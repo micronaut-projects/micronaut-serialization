@@ -45,6 +45,8 @@ import java.util.concurrent.atomic.AtomicLong;
  * This package-private support object is shared by runtime introspections and the remaining reflection
  * fallback glue. It precomputes configured adapters, serializers, deserializers, and global date format
  * state once per mapper so the hot object paths do not rediscover JSON-B configuration repeatedly.
+ * The object is registered by id because runtime Serde metadata can carry
+ * annotation values, but not object references.
  */
 final class JsonbRuntimeCustomizations {
     private static final AtomicLong IDS = new AtomicLong();
@@ -67,6 +69,13 @@ final class JsonbRuntimeCustomizations {
         }
     }
 
+    /**
+     * Extracts configured JSON-B adapters, serializers, and deserializers from
+     * a mapper configuration.
+     *
+     * @param config The JSON-B configuration
+     * @return The runtime customization registry for the mapper
+     */
     static JsonbRuntimeCustomizations of(JsonbConfig config) {
         List<ConfigAdapter> adapters = configValues(config, JsonbConfig.ADAPTERS, JsonbAdapter.class)
             .stream()
@@ -83,6 +92,12 @@ final class JsonbRuntimeCustomizations {
         return new JsonbRuntimeCustomizations(adapters, serializers, deserializers);
     }
 
+    /**
+     * Resolves a customization registry referenced from runtime Serde metadata.
+     *
+     * @param id The metadata id
+     * @return The registered customization registry
+     */
     static JsonbRuntimeCustomizations get(String id) {
         JsonbRuntimeCustomizations customizations = CONFIGURED.get(id);
         if (customizations == null) {
@@ -91,14 +106,31 @@ final class JsonbRuntimeCustomizations {
         return customizations;
     }
 
+    /**
+     * Returns whether configured serializers or adapters may affect writes.
+     *
+     * @return Whether write customizations are present
+     */
     boolean hasSerializers() {
         return !adapters.isEmpty() || !serializers.isEmpty();
     }
 
+    /**
+     * Returns whether configured deserializers or adapters may affect reads.
+     *
+     * @return Whether read customizations are present
+     */
     boolean hasDeserializers() {
         return !adapters.isEmpty() || !deserializers.isEmpty();
     }
 
+    /**
+     * Applies bridge Serde metadata to a runtime property argument when JSON-B
+     * configuration contains a matching adapter, serializer, or deserializer.
+     *
+     * @param metadata The mutable runtime annotation metadata
+     * @param type The property or element type being modeled
+     */
     void applySerdeMetadata(MutableAnnotationMetadata metadata, Type type) {
         boolean hasSerializer = hasSerializer(type);
         boolean hasDeserializer = hasDeserializer(type);
@@ -157,6 +189,13 @@ final class JsonbRuntimeCustomizations {
         return false;
     }
 
+    /**
+     * Applies a configured serializer or adapter to a top-level fallback value.
+     *
+     * @param value The value being serialized
+     * @param codec The bounded Serde codec bridge
+     * @return The customized JSON tree, or {@code null} when no customization matched
+     */
     @Nullable JsonNode serialize(@Nullable Object value, JsonbFallbackCodec codec) {
         if (value == null) {
             return null;
@@ -185,6 +224,14 @@ final class JsonbRuntimeCustomizations {
         return null;
     }
 
+    /**
+     * Applies a configured deserializer or adapter to a top-level fallback tree.
+     *
+     * @param value The tree being deserialized
+     * @param targetType The requested target type
+     * @param codec The bounded Serde codec bridge
+     * @return The customized value, or {@code null} when no customization matched
+     */
     @Nullable Object deserialize(JsonNode value,
                                  Type targetType,
                                  JsonbFallbackCodec codec) {
@@ -313,6 +360,12 @@ final class JsonbRuntimeCustomizations {
         };
     }
 
+    /**
+     * Finds a configured JSON-B serializer for a type.
+     *
+     * @param type The requested type
+     * @return The serializer configuration, if any
+     */
     @Nullable ConfigSerializer serializer(Type type) {
         for (ConfigSerializer serializer : serializers) {
             if (matches(type, serializer.type())) {
@@ -322,6 +375,12 @@ final class JsonbRuntimeCustomizations {
         return null;
     }
 
+    /**
+     * Finds a configured JSON-B deserializer for a type.
+     *
+     * @param type The requested type
+     * @return The deserializer configuration, if any
+     */
     @Nullable ConfigDeserializer deserializer(Type type) {
         for (ConfigDeserializer deserializer : deserializers) {
             if (matches(type, deserializer.type())) {
@@ -331,6 +390,12 @@ final class JsonbRuntimeCustomizations {
         return null;
     }
 
+    /**
+     * Finds a configured JSON-B adapter for a source type.
+     *
+     * @param type The requested source type
+     * @return The adapter configuration, if any
+     */
     @Nullable ConfigAdapter adapter(Type type) {
         for (ConfigAdapter adapter : adapters) {
             if (matches(type, adapter.sourceType())) {
@@ -340,21 +405,63 @@ final class JsonbRuntimeCustomizations {
         return null;
     }
 
+    /**
+     * Configured JSON-B adapter plus the source and adapted target types
+     * discovered from its generic signature.
+     *
+     * @param sourceType The JSON-B model type
+     * @param targetType The adapted JSON representation type
+     * @param adapter The adapter instance
+     */
     record ConfigAdapter(Type sourceType, Type targetType, JsonbAdapter<Object, Object> adapter) {
+        /**
+         * Creates a typed adapter configuration from a user-supplied adapter.
+         *
+         * @param sourceType The JSON-B model type
+         * @param targetType The adapted JSON representation type
+         * @param adapter The adapter instance
+         * @return The adapter configuration
+         */
         @SuppressWarnings("unchecked")
         static ConfigAdapter of(Type sourceType, Type targetType, JsonbAdapter<?, ?> adapter) {
             return new ConfigAdapter(sourceType, targetType, (JsonbAdapter<Object, Object>) adapter);
         }
     }
 
+    /**
+     * Configured JSON-B serializer plus the type it handles.
+     *
+     * @param type The handled type
+     * @param serializer The serializer instance
+     */
     record ConfigSerializer(Type type, JsonbSerializer<Object> serializer) {
+        /**
+         * Creates a typed serializer configuration from a user-supplied serializer.
+         *
+         * @param type The handled type
+         * @param serializer The serializer instance
+         * @return The serializer configuration
+         */
         @SuppressWarnings("unchecked")
         static ConfigSerializer of(Type type, JsonbSerializer<?> serializer) {
             return new ConfigSerializer(type, (JsonbSerializer<Object>) serializer);
         }
     }
 
+    /**
+     * Configured JSON-B deserializer plus the type it handles.
+     *
+     * @param type The handled type
+     * @param deserializer The deserializer instance
+     */
     record ConfigDeserializer(Type type, JsonbDeserializer<Object> deserializer) {
+        /**
+         * Creates a typed deserializer configuration from a user-supplied deserializer.
+         *
+         * @param type The handled type
+         * @param deserializer The deserializer instance
+         * @return The deserializer configuration
+         */
         @SuppressWarnings("unchecked")
         static ConfigDeserializer of(Type type, JsonbDeserializer<?> deserializer) {
             return new ConfigDeserializer(type, (JsonbDeserializer<Object>) deserializer);

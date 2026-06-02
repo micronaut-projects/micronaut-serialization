@@ -82,7 +82,7 @@ public interface SerdeConfiguration {
      * Control whether {@link java.time.Duration} values are written and read as ISO-8601 strings.
      *
      * @return Whether durations are represented as strings
-     * @since 3.0.1
+     * @since 3.1.0
      */
     @Bindable(defaultValue = "false")
     default boolean isWriteDurationsAsStrings() {
@@ -93,7 +93,7 @@ public interface SerdeConfiguration {
      * Control whether {@link java.util.Date} values are written with the configured time zone id.
      *
      * @return Whether dates include a zone id
-     * @since 3.0.1
+     * @since 3.1.0
      */
     @Bindable(defaultValue = "false")
     default boolean isWriteJavaUtilDatesWithZoneId() {
@@ -104,7 +104,7 @@ public interface SerdeConfiguration {
      * Control whether deprecated three-letter time zone IDs are rejected.
      *
      * @return Whether deprecated time zone IDs are rejected
-     * @since 3.0.1
+     * @since 3.1.0
      */
     @Bindable(defaultValue = "false")
     default boolean isRejectDeprecatedThreeLetterTimeZoneIds() {
@@ -115,7 +115,7 @@ public interface SerdeConfiguration {
      * Control whether date/time values are written in JSON-B strict I-JSON temporal form.
      *
      * @return Whether date/time values use strict I-JSON temporal formatting
-     * @since 3.0.1
+     * @since 3.1.0
      */
     @Bindable(defaultValue = "false")
     default boolean isWriteDateTimesAsStrictIJson() {

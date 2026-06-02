@@ -43,6 +43,10 @@ final class JsonbCalendarSerde implements SerdeRegistrar<Calendar> {
     private static final DateTimeFormatter STRICT_IJSON_FORMATTER = DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss'Z'XXX");
     private final boolean strictIJson;
 
+    /**
+     * @param serdeConfiguration The active Serde configuration used to select
+     * strict I-JSON date/time formatting
+     */
     JsonbCalendarSerde(SerdeConfiguration serdeConfiguration) {
         this.strictIJson = serdeConfiguration.isWriteDateTimesAsStrictIJson();
     }
@@ -75,6 +79,14 @@ final class JsonbCalendarSerde implements SerdeRegistrar<Calendar> {
         return SerdeRegistrar.super.getTypes();
     }
 
+    /**
+     * Formats a JSON-B calendar value using the same rules as generated JSON-B
+     * scalar metadata.
+     *
+     * @param calendar The calendar to format
+     * @param strictIJson Whether strict I-JSON date/time output is enabled
+     * @return The JSON-B calendar string
+     */
     static String format(Calendar calendar, boolean strictIJson) {
         ZoneId zone = calendar.getTimeZone().toZoneId();
         ZonedDateTime zonedDateTime = calendar.toInstant().atZone(zone);
@@ -87,6 +99,14 @@ final class JsonbCalendarSerde implements SerdeRegistrar<Calendar> {
         return DateTimeFormatter.ISO_DATE.format(zonedDateTime);
     }
 
+    /**
+     * Parses a JSON-B calendar string. The {@code type} parameter is retained
+     * for call-site clarity and compatibility with the GregorianCalendar wrapper.
+     *
+     * @param value The encoded calendar value
+     * @param type The requested calendar type
+     * @return The parsed calendar
+     */
     static Calendar parse(String value, Class<?> type) {
         Calendar calendar = Calendar.getInstance();
         if (value.indexOf('T') >= 0) {

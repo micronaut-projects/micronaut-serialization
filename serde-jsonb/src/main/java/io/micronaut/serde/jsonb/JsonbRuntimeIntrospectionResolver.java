@@ -49,6 +49,19 @@ final class JsonbRuntimeIntrospectionResolver implements SerdeIntrospections.Run
     private final ConcurrentMap<Class<?>, JsonbRuntimeBeanIntrospection<?>> introspections = new ConcurrentHashMap<>();
     private final ConcurrentMap<Class<?>, JsonbRuntimeBeanIntrospection<?>> scopedIntrospections = new ConcurrentHashMap<>();
 
+    /**
+     * Creates a JSON-B runtime introspection resolver for one mapper
+     * configuration. The {@code includeGeneratedIntrospections} flag is used
+     * only by the reflection provider after JSON-B fallback rules have already
+     * selected fallback; normal mapper lookup keeps generated introspections as
+     * the preferred path.
+     *
+     * @param namingStrategy The configured JSON-B naming strategy
+     * @param propertyOrderStrategy The configured JSON-B property order strategy
+     * @param visibilityStrategy The configured JSON-B visibility strategy
+     * @param customizations Configured JSON-B adapters, serializers, and deserializers
+     * @param includeGeneratedIntrospections Whether generated-introspection classes may get runtime models
+     */
     JsonbRuntimeIntrospectionResolver(@Nullable Object namingStrategy,
                                       String propertyOrderStrategy,
                                       @Nullable PropertyVisibilityStrategy visibilityStrategy,
@@ -88,11 +101,29 @@ final class JsonbRuntimeIntrospectionResolver implements SerdeIntrospections.Run
         return Optional.of(introspection(type));
     }
 
+    /**
+     * Returns the shared runtime model for a type under this mapper's global
+     * JSON-B configuration.
+     *
+     * @param type The bean type
+     * @param <T> The bean type
+     * @return The cached runtime introspection
+     */
     @SuppressWarnings("unchecked")
     <T> JsonbRuntimeBeanIntrospection<T> introspection(Class<T> type) {
         return (JsonbRuntimeBeanIntrospection<T>) introspections.computeIfAbsent(type, this::createIntrospection);
     }
 
+    /**
+     * Returns a runtime model for a per-call visibility strategy. These models
+     * are cached separately because visibility is part of the effective property
+     * set and cannot be overlaid onto the global model.
+     *
+     * @param type The bean type
+     * @param scopedVisibilityStrategy The visibility strategy selected for the current operation
+     * @param <T> The bean type
+     * @return The cached scoped runtime introspection
+     */
     @SuppressWarnings("unchecked")
     <T> JsonbRuntimeBeanIntrospection<T> introspection(Class<T> type, PropertyVisibilityStrategy scopedVisibilityStrategy) {
         return (JsonbRuntimeBeanIntrospection<T>) scopedIntrospections.computeIfAbsent(
@@ -107,7 +138,7 @@ final class JsonbRuntimeIntrospectionResolver implements SerdeIntrospections.Run
 
     private static boolean supports(Class<?> type, boolean includeGeneratedIntrospections) {
         return type != Object.class
-            && !ReflectionFallback.isJsonScalar(type)
+            && !JsonbReflectionUtil.isJsonScalar(type)
             && !JsonValue.class.isAssignableFrom(type)
             && !Optional.class.isAssignableFrom(type)
             && !type.isArray()

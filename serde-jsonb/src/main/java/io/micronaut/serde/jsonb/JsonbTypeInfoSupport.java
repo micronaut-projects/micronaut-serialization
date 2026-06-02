@@ -33,15 +33,30 @@ import java.lang.reflect.Modifier;
  * <p>
  * The code centralizes validation and discriminator-property synthesis so array, generated,
  * and fallback object paths agree on the JSON-B subtype model without reintroducing buffered writes.
+ * It does not serialize values directly; it only supplies metadata and synthetic
+ * discriminator properties consumed by the normal Serde object pipeline.
  */
 final class JsonbTypeInfoSupport {
     private JsonbTypeInfoSupport() {
     }
 
+    /**
+     * Returns whether the type hierarchy contains JSON-B type information.
+     *
+     * @param type The type to inspect
+     * @return Whether the type hierarchy contains JSON-B type information.
+     */
     static boolean hasTypeInfo(Class<?> type) {
         return !annotatedTypeInfoTypes(type).isEmpty();
     }
 
+    /**
+     * Builds the synthetic discriminator properties that must be appended to the
+     * runtime Serde metadata for a concrete subtype.
+     *
+     * @param type The concrete type being serialized or modeled
+     * @return A map from discriminator property name to alias value
+     */
     static Map<String, Object> typeInfoProperties(Class<?> type) {
         List<Class<?>> annotatedTypes = annotatedTypeInfoTypes(type);
         if (annotatedTypes.isEmpty()) {
@@ -91,14 +106,21 @@ final class JsonbTypeInfoSupport {
                 continue;
             }
             String methodName = method.getName();
-            if ((methodName.startsWith("get") && methodName.length() > 3 && ReflectionFallback.decapitalize(methodName.substring(3)).equals(key))
-                || (methodName.startsWith("is") && methodName.length() > 2 && ReflectionFallback.decapitalize(methodName.substring(2)).equals(key))) {
+            if ((methodName.startsWith("get") && methodName.length() > 3 && JsonbReflectionUtil.decapitalize(methodName.substring(3)).equals(key))
+                || (methodName.startsWith("is") && methodName.length() > 2 && JsonbReflectionUtil.decapitalize(methodName.substring(2)).equals(key))) {
                 return true;
             }
         }
         return false;
     }
 
+    /**
+     * Finds all JSON-B type-info annotations visible from the class, interface,
+     * and superclass hierarchy in deterministic base-to-leaf order.
+     *
+     * @param type The concrete type to inspect
+     * @return Annotated hierarchy types
+     */
     static List<Class<?>> annotatedTypeInfoTypes(Class<?> type) {
         Set<Class<?>> types = new LinkedHashSet<>();
         collectHierarchy(type, types);
@@ -133,6 +155,14 @@ final class JsonbTypeInfoSupport {
         collectHierarchy(type.getSuperclass(), types);
     }
 
+    /**
+     * Validates that discovered JSON-B type-info annotations form one
+     * inheritance chain. Multiple unrelated annotated interfaces are ambiguous
+     * because JSON-B has no deterministic discriminator merge rule.
+     *
+     * @param annotatedTypes The annotated types discovered for the hierarchy
+     * @param type The concrete type being modeled
+     */
     static void ensureSingleTypeInfoChain(List<Class<?>> annotatedTypes, Class<?> type) {
         for (int i = 0; i < annotatedTypes.size(); i++) {
             Class<?> left = annotatedTypes.get(i);

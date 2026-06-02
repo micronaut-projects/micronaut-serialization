@@ -57,7 +57,7 @@ import tools.jackson.core.ObjectReadContext;
 /**
  * Micronaut Serialization backed JSON-B provider with reflection fallback behavior for JSON-B compatibility.
  *
- * @since 3.0.1
+ * @since 3.1.0
  */
 public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvider {
     @Override
@@ -65,6 +65,19 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
         return new Builder();
     }
 
+    /**
+     * Creates the context-backed reflection provider used by {@link JsonbFactory}
+     * when reflection fallback is enabled.
+     *
+     * @param config The JSON-B configuration
+     * @param beanContext The Micronaut bean context
+     * @param objectMapper The base object mapper
+     * @param serdeIntrospections The base Serde introspections
+     * @param serdeConfiguration The effective Serde configuration
+     * @param serializationConfiguration The effective serialization configuration
+     * @param deserializationConfiguration The effective deserialization configuration
+     * @return The configured JSON-B instance
+     */
     static Jsonb create(JsonbConfig config,
                         BeanContext beanContext,
                         ObjectMapper objectMapper,
@@ -94,6 +107,14 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
         private final ConcurrentMap<Class<? extends PropertyVisibilityStrategy>, PropertyVisibilityStrategy> visibilityStrategies = new ConcurrentHashMap<>();
         private final ConcurrentMap<Class<?>, JsonbRuntimeBeanIntrospection<?>> visibilityIntrospections = new ConcurrentHashMap<>();
 
+        /**
+         * Creates a standalone reflection provider. Standalone instances build a
+         * reduced internal context because no Micronaut application context is
+         * available for callback component lookup.
+         *
+         * @param config The JSON-B configuration
+         * @param jsonProvider The optional JSON-P provider supplied by the builder
+         */
         MicronautJsonb(JsonbConfig config, @Nullable JsonProvider jsonProvider) {
             this(config, standaloneRuntimeMapper(config, jsonProvider));
         }
@@ -110,6 +131,19 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
             this.failOnUnknownProperties = config.getProperty("jsonb.fail-on-unknown-properties").filter(Boolean.TRUE::equals).isPresent();
         }
 
+        /**
+         * Creates a context-backed reflection provider. This path reuses the
+         * application mapper configuration and resolves JSON-B callback
+         * components through the Micronaut bean context.
+         *
+         * @param config The JSON-B configuration
+         * @param beanContext The Micronaut bean context
+         * @param objectMapper The base object mapper
+         * @param serdeIntrospections The base Serde introspections
+         * @param serdeConfiguration The effective Serde configuration
+         * @param serializationConfiguration The effective serialization configuration
+         * @param deserializationConfiguration The effective deserialization configuration
+         */
         MicronautJsonb(JsonbConfig config,
                        BeanContext beanContext,
                        ObjectMapper objectMapper,
@@ -260,7 +294,7 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
         }
 
         static boolean canResolveGeneratedSerde(Class<?> type) {
-            return ReflectionFallback.isJsonScalar(type)
+            return JsonbReflectionUtil.isJsonScalar(type)
                 || hasIntrospection(type);
         }
 
@@ -299,12 +333,13 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
                 }
                 return;
             }
-            JsonbRuntimeBeanIntrospection<?> runtimeModel = runtimeModel(object.getClass());
+            Class<?> theClass = object.getClass();
+            JsonbRuntimeBeanIntrospection<?> runtimeModel = runtimeModel(theClass);
             validateWriteModel(runtimeModel);
-            PropertyVisibilityStrategy visibilityStrategy = visibilityStrategy(object.getClass(), runtimeModel);
-            JsonbRuntimeBeanIntrospection<?> effectiveRuntimeModel = runtimeModel(object.getClass(), visibilityStrategy);
+            PropertyVisibilityStrategy visibilityStrategy = visibilityStrategy(theClass, runtimeModel);
+            JsonbRuntimeBeanIntrospection<?> effectiveRuntimeModel = runtimeModel(theClass, visibilityStrategy);
             @SuppressWarnings({"unchecked", "rawtypes"})
-            Argument<Object> argument = (Argument) Argument.of(object.getClass());
+            Argument<Object> argument = (Argument) Argument.of(theClass);
             if (!canWriteGeneratedDirectly(argument, effectiveRuntimeModel, visibilityStrategy)) {
                 writeFallback(object, stream, null, visibilityStrategy);
                 return;
@@ -329,10 +364,11 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
                 }
                 return;
             }
-            JsonbRuntimeBeanIntrospection<?> runtimeModel = runtimeModel(object.getClass());
+            Class<?> theClass = object.getClass();
+            JsonbRuntimeBeanIntrospection<?> runtimeModel = runtimeModel(theClass);
             validateWriteModel(runtimeModel);
-            PropertyVisibilityStrategy visibilityStrategy = visibilityStrategy(object.getClass(), runtimeModel);
-            JsonbRuntimeBeanIntrospection<?> effectiveRuntimeModel = runtimeModel(object.getClass(), visibilityStrategy);
+            PropertyVisibilityStrategy visibilityStrategy = visibilityStrategy(theClass, runtimeModel);
+            JsonbRuntimeBeanIntrospection<?> effectiveRuntimeModel = runtimeModel(theClass, visibilityStrategy);
             @SuppressWarnings({"rawtypes", "unchecked"})
             Argument<Object> argument = (Argument) argument(runtimeType);
             if (!canWriteGeneratedDirectly(argument, effectiveRuntimeModel, visibilityStrategy)) {
@@ -348,27 +384,28 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
 
         private @Nullable Object read(byte[] bytes, Argument<?> argument) {
 
-            if (argument.getType() == Object.class || isRawUntypedContainer(argument)) {
+            Class<?> theClass = argument.getType();
+            if (theClass == Object.class || isRawUntypedContainer(argument)) {
                 try {
                     JsonNode value = readTree(() -> jsonFactory.createParser(ObjectReadContext.empty(), bytes));
-                    return JsonbFallbackCodec.normalizeUntypedValue(value);
+                    return fallbackCodec.readValue(value, Argument.OBJECT_ARGUMENT);
                 } catch (IOException | RuntimeException e) {
                     throw new JsonbException("Cannot read JSON-B value", e);
                 }
             } else {
-                JsonbRuntimeBeanIntrospection<?> runtimeModel = runtimeModel(argument.getType());
+                JsonbRuntimeBeanIntrospection<?> runtimeModel = runtimeModel(theClass);
                 if (runtimeModel != null) {
                     runtimeModel.validateReadModel();
                 }
-                PropertyVisibilityStrategy visibilityStrategy = visibilityStrategy(argument.getType(), runtimeModel);
-                JsonbRuntimeBeanIntrospection<?> effectiveRuntimeModel = runtimeModel(argument.getType(), visibilityStrategy);
+                PropertyVisibilityStrategy visibilityStrategy = visibilityStrategy(theClass, runtimeModel);
+                JsonbRuntimeBeanIntrospection<?> effectiveRuntimeModel = runtimeModel(theClass, visibilityStrategy);
                 JsonNode tree;
                 try {
                     tree = readTree(() -> jsonFactory.createParser(ObjectReadContext.empty(), bytes));
                 } catch (IOException | RuntimeException e) {
                     throw new JsonbException("Cannot read JSON-B value", e);
                 }
-                validateUnknownProperties(tree, argument.getType(), effectiveRuntimeModel);
+                validateUnknownProperties(tree, theClass, effectiveRuntimeModel);
                 if (visibilityStrategy != null || customizations.hasDeserializers() || (runtimeModel != null && runtimeModel.requiresFallback()) || requiresGenericNumberFallback(argument)) {
                     return readFallback(tree, argument, null);
                 }
@@ -386,20 +423,21 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
         }
 
         private @Nullable Object read(Argument<?> argument, ParserSource parserSource) {
-            if (argument.getType() == Object.class || isRawUntypedContainer(argument)) {
+            Class<?> theClass = argument.getType();
+            if (theClass == Object.class || isRawUntypedContainer(argument)) {
                 try {
                     JsonNode value = readTree(parserSource);
-                    return JsonbFallbackCodec.normalizeUntypedValue(value);
+                    return fallbackCodec.readValue(value, Argument.OBJECT_ARGUMENT);
                 } catch (IOException | RuntimeException e) {
                     throw new JsonbException("Cannot read JSON-B value", e);
                 }
             }
-            JsonbRuntimeBeanIntrospection<?> runtimeModel = runtimeModel(argument.getType());
+            JsonbRuntimeBeanIntrospection<?> runtimeModel = runtimeModel(theClass);
             if (runtimeModel != null) {
                 runtimeModel.validateReadModel();
             }
-            PropertyVisibilityStrategy visibilityStrategy = visibilityStrategy(argument.getType(), runtimeModel);
-            JsonbRuntimeBeanIntrospection<?> effectiveRuntimeModel = runtimeModel(argument.getType(), visibilityStrategy);
+            PropertyVisibilityStrategy visibilityStrategy = visibilityStrategy(theClass, runtimeModel);
+            JsonbRuntimeBeanIntrospection<?> effectiveRuntimeModel = runtimeModel(theClass, visibilityStrategy);
             if (visibilityStrategy != null || customizations.hasDeserializers() || (runtimeModel != null && runtimeModel.requiresFallback()) || requiresGenericNumberFallback(argument)) {
                 JsonNode value;
                 try {
@@ -407,7 +445,7 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
                 } catch (IOException | RuntimeException e) {
                     throw new JsonbException("Cannot read JSON-B value", e);
                 }
-                validateUnknownProperties(value, argument.getType(), effectiveRuntimeModel);
+                validateUnknownProperties(value, theClass, effectiveRuntimeModel);
                 return readFallback(value, argument, null);
             }
             return applyTypeVariableValues(readGenerated(parserSource, argument), argument);
@@ -419,7 +457,7 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
         }
 
         private void validateUnknownProperties(JsonNode value, Class<?> type, @Nullable JsonbRuntimeBeanIntrospection<?> runtimeModel) {
-            if (!failOnUnknownProperties || ReflectionFallback.isJsonScalar(type)) {
+            if (!failOnUnknownProperties || JsonbReflectionUtil.isJsonScalar(type)) {
                 return;
             }
             if (!value.isObject()) {
@@ -453,7 +491,7 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
             if (propertyNamingStrategy == null) {
                 return name;
             }
-            return ReflectionFallback.translateName(name, propertyNamingStrategy);
+            return JsonbReflectionUtil.translateName(name, propertyNamingStrategy);
         }
 
         private <T> void writeGenerated(@Nullable T object, Argument<T> argument, OutputStream stream) throws IOException {
@@ -509,7 +547,7 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
                     writeFallbackValue(stream, argument, object);
                 } else {
                     @SuppressWarnings({"unchecked", "rawtypes"})
-                    Argument<Object> argument = object == null ? (Argument) Argument.OBJECT_ARGUMENT : (Argument) Argument.of(object.getClass());
+                    Argument<Object> argument = object == null ? Argument.OBJECT_ARGUMENT : (Argument) Argument.of(object.getClass());
                     writeFallbackValue(stream, argument, object);
                 }
             } catch (IOException | RuntimeException fallbackFailure) {
@@ -562,7 +600,7 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
         private static boolean canUseRuntimeObjectMapping(Class<?> type,
                                                           boolean hasCustomizers) {
             return !hasCustomizers
-                && !ReflectionFallback.isJsonScalar(type)
+                && !JsonbReflectionUtil.isJsonScalar(type)
                 && !JsonValue.class.isAssignableFrom(type)
                 && !Optional.class.isAssignableFrom(type)
                 && !type.isArray()
@@ -641,7 +679,7 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
 
         private @Nullable JsonbRuntimeBeanIntrospection<?> runtimeModel(Class<?> type) {
             if (type == Object.class
-                || ReflectionFallback.isJsonScalar(type)
+                || JsonbReflectionUtil.isJsonScalar(type)
                 || JsonValue.class.isAssignableFrom(type)
                 || Optional.class.isAssignableFrom(type)
                 || type.isArray()
@@ -678,7 +716,7 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
             if (componentFactory != null) {
                 return componentFactory.get(type);
             }
-            return JsonbBridgeSupport.ComponentFactory.cdiBean(type).orElseGet(() -> ReflectionFallback.instantiate(type));
+            return JsonbBridgeSupport.ComponentFactory.cdiBean(type).orElseGet(() -> JsonbReflectionUtil.instantiate(type));
         }
 
         private static @Nullable PropertyVisibilityStrategy propertyVisibilityStrategy(JsonbConfig config) {

@@ -25,8 +25,22 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
+/**
+ * JSON-B decoder wrapper around a Serde decoder.
+ * <p>
+ * The wrapper keeps normal Serde deserialization in control while applying the
+ * JSON-B-specific scalar rules that differ from the generic decoder contract,
+ * such as binary data strategies and untyped {@link BigDecimal} numbers.
+ *
+ * @param delegate The underlying Serde decoder
+ * @param binaryDataStrategy The configured JSON-B binary data strategy
+ */
 record JsonbDecoder(Decoder delegate, String binaryDataStrategy) implements Decoder {
 
     @Override
@@ -208,7 +222,7 @@ record JsonbDecoder(Decoder delegate, String binaryDataStrategy) implements Deco
 
     @Override
     public @Nullable Object decodeArbitrary() throws IOException {
-        return delegate.decodeArbitrary();
+        return toJsonbArbitrary(delegate.decodeNode());
     }
 
     @Override
@@ -249,5 +263,49 @@ record JsonbDecoder(Decoder delegate, String binaryDataStrategy) implements Deco
     private static String padBase64(String value) {
         int padding = value.length() % 4;
         return padding == 0 ? value : value + "=".repeat(4 - padding);
+    }
+
+    /**
+     * Converts untyped JSON-B values to the representation required by the
+     * Jakarta JSON-B default mapping rules. In particular, numbers under
+     * {@code Object}, raw {@code List}, and raw {@code Map} must materialize as
+     * {@link BigDecimal}, not as the narrower numeric type preserved by the
+     * generic {@link io.micronaut.serde.Decoder#decodeArbitrary()} contract.
+     *
+     * @param node The JSON tree to convert
+     * @return The JSON-B arbitrary value
+     */
+    private static @Nullable Object toJsonbArbitrary(JsonNode node) {
+        if (node.isObject()) {
+            Map<String, Object> converted = new LinkedHashMap<>();
+            for (Map.Entry<String, JsonNode> entry : node.entries()) {
+                converted.put(entry.getKey(), toJsonbArbitrary(entry.getValue()));
+            }
+            return converted;
+        }
+        if (node.isArray()) {
+            List<Object> converted = new ArrayList<>(node.size());
+            for (JsonNode item : node.values()) {
+                converted.add(toJsonbArbitrary(item));
+            }
+            return converted;
+        }
+        if (node.isNumber()) {
+            Number number = node.getNumberValue();
+            if (number instanceof BigDecimal decimal) {
+                return decimal;
+            }
+            if (number instanceof BigInteger integer) {
+                return new BigDecimal(integer);
+            }
+            return new BigDecimal(String.valueOf(number));
+        }
+        if (node.isString()) {
+            return node.getStringValue();
+        }
+        if (node.isBoolean()) {
+            return node.getBooleanValue();
+        }
+        return null;
     }
 }

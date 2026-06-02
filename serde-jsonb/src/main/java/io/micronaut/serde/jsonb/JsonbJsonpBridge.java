@@ -47,11 +47,22 @@ import java.util.Objects;
 
 /**
  * Shared JSON-P conversion utilities for JSON-B callback bridges.
+ * <p>
+ * The bridge converts between bounded {@link JsonNode} trees, JSON-P values,
+ * and JSON-P parser/generator callback APIs. It must avoid JSON string
+ * round-trips for deserializer callbacks when a streaming decoder is available.
  */
 final class JsonbJsonpBridge {
     private JsonbJsonpBridge() {
     }
 
+    /**
+     * Converts a bounded Serde tree to the requested JSON-P value type.
+     *
+     * @param node The source JSON tree
+     * @param targetType The requested JSON-P target type
+     * @return The JSON-P value
+     */
     static JsonValue toJsonpValue(JsonNode node, Class<?> targetType) {
         JsonProvider provider = JsonProvider.provider();
         if (node.isNull()) {
@@ -90,6 +101,12 @@ final class JsonbJsonpBridge {
         return JsonValue.NULL;
     }
 
+    /**
+     * Converts a JSON-P value to a bounded Serde tree representation.
+     *
+     * @param value The JSON-P value
+     * @return The JSON tree
+     */
     static JsonNode toJsonNode(JsonValue value) {
         return switch (value.getValueType()) {
             case ARRAY -> {
@@ -114,14 +131,36 @@ final class JsonbJsonpBridge {
         };
     }
 
+    /**
+     * Reads the next JSON-P parser event into a Serde tree. This is used by
+     * JSON-B callback contexts where the callback owns the parser cursor.
+     *
+     * @param parser The JSON-P parser
+     * @return The parsed JSON tree
+     */
     static JsonNode parseNext(JsonParser parser) {
         return parse(parser, parser.next());
     }
 
+    /**
+     * Creates a JSON-P parser over an already-buffered tree.
+     *
+     * @param node The source tree
+     * @return The JSON-P parser
+     */
     static JsonParser parserForDeserializer(JsonNode node) {
         return new JsonNodeParser(node, node.isArray());
     }
 
+    /**
+     * Creates a JSON-P parser for a JSON-B deserializer callback. When the
+     * decoder is backed by Jackson, parser events are streamed directly from the
+     * decoder; otherwise the method falls back to the bounded tree path.
+     *
+     * @param decoder The source decoder
+     * @return The JSON-P parser
+     * @throws IOException If decoder access fails
+     */
     static JsonParser parserForDeserializer(Decoder decoder) throws IOException {
         if (decoder instanceof JsonbDecoder jsonbDecoder && jsonbDecoder.delegate() instanceof JacksonDecoder jacksonDecoder) {
             return new JacksonDecoderParser(jacksonDecoder);
@@ -129,6 +168,12 @@ final class JsonbJsonpBridge {
         return parserForDeserializer(decoder.decodeNode());
     }
 
+    /**
+     * Writes a bounded tree to a JSON-P generator.
+     *
+     * @param generator The JSON-P generator
+     * @param node The tree to write
+     */
     static void writeJsonValue(JsonGenerator generator, JsonNode node) {
         if (node.isNull()) {
             generator.writeNull();
@@ -162,6 +207,16 @@ final class JsonbJsonpBridge {
         }
     }
 
+    /**
+     * Invokes a JSON-B serializer and captures its JSON-P generator output as a
+     * bounded Serde tree.
+     *
+     * @param serializer The JSON-B serializer
+     * @param value The value to serialize
+     * @param codec The fallback codec used by recursive serializer context calls
+     * @return The generated JSON tree
+     * @throws IOException If serializer output cannot be captured
+     */
     static JsonNode writeWithJsonbSerializer(JsonbSerializer<Object> serializer,
                                              Object value,
                                              JsonbFallbackCodec codec) throws IOException {

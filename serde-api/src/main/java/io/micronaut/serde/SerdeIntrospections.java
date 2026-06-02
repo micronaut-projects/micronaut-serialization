@@ -61,7 +61,7 @@ public interface SerdeIntrospections {
      *
      * @param resolver The runtime introspection resolver
      * @return The resolver-backed introspections
-     * @since 3.0.1
+     * @since 3.1.0
      */
     default SerdeIntrospections withRuntimeIntrospectionResolver(RuntimeIntrospectionResolver resolver) {
         return new RuntimeResolverSerdeIntrospections(this, resolver);
@@ -89,7 +89,7 @@ public interface SerdeIntrospections {
     /**
      * The kind of runtime introspection being requested.
      *
-     * @since 3.0.1
+     * @since 3.1.0
      */
     enum RuntimeIntrospectionKind {
         /**
@@ -109,7 +109,7 @@ public interface SerdeIntrospections {
      * @param argument The requested argument
      * @param kind The requested introspection kind
      * @param <T> The bean type
-     * @since 3.0.1
+     * @since 3.1.0
      */
     record RuntimeIntrospectionRequest<T>(
         Argument<T> argument,
@@ -120,7 +120,7 @@ public interface SerdeIntrospections {
     /**
      * Resolves runtime-built introspections.
      *
-     * @since 3.0.1
+     * @since 3.1.0
      */
     interface RuntimeIntrospectionResolver {
 

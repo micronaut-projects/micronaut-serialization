@@ -24,6 +24,16 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Base64;
 
+/**
+ * JSON-B encoder wrapper around a Serde encoder.
+ * <p>
+ * The wrapper keeps normal Serde serialization in control while applying the
+ * JSON-B-specific scalar rules that differ from the generic encoder contract,
+ * such as binary data strategies and character encoding.
+ *
+ * @param delegate The underlying Serde encoder
+ * @param binaryDataStrategy The configured JSON-B binary data strategy
+ */
 record JsonbEncoder(Encoder delegate, String binaryDataStrategy) implements Encoder {
 
     @Override

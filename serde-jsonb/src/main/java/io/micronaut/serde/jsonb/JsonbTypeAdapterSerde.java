@@ -39,6 +39,9 @@ import java.io.IOException;
 public final class JsonbTypeAdapterSerde implements Serde<Object> {
     private final JsonbBridgeSupport.ComponentFactory componentFactory;
 
+    /**
+     * @param beanContext The Micronaut bean context used to resolve JSON-B adapter instances
+     */
     JsonbTypeAdapterSerde(BeanContext beanContext) {
         this.componentFactory = new JsonbBridgeSupport.ComponentFactory(beanContext);
     }

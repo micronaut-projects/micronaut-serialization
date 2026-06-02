@@ -40,6 +40,10 @@ public final class JsonbTypeDeserializerBridge implements Deserializer<Object> {
     private final JsonbBridgeSupport.ComponentFactory componentFactory;
     private final ObjectMapper mapper;
 
+    /**
+     * @param beanContext The Micronaut bean context used to resolve JSON-B deserializer instances
+     * @param mapper The cloned JSON-B mapper used for recursive deserializer context operations
+     */
     JsonbTypeDeserializerBridge(BeanContext beanContext, ObjectMapper mapper) {
         this.componentFactory = new JsonbBridgeSupport.ComponentFactory(beanContext);
         this.mapper = mapper;

@@ -29,11 +29,31 @@ import java.lang.annotation.RetentionPolicy;
 @Internal
 @Retention(RetentionPolicy.RUNTIME)
 @interface JsonbSerdeConfig {
+    /**
+     * Returns the JSON-B adapter class attached to the Serde metadata.
+     *
+     * @return The adapter class
+     */
     Class<? extends JsonbAdapter> adapter() default JsonbAdapter.class;
 
+    /**
+     * Returns the JSON-B serializer class attached to the Serde metadata.
+     *
+     * @return The serializer class
+     */
     Class<? extends JsonbSerializer> serializer() default JsonbSerializer.class;
 
+    /**
+     * Returns the JSON-B deserializer class attached to the Serde metadata.
+     *
+     * @return The deserializer class
+     */
     Class<? extends JsonbDeserializer> deserializer() default JsonbDeserializer.class;
 
+    /**
+     * Returns the id of a mapper-level customization registry.
+     *
+     * @return The customization registry id
+     */
     String customization() default "";
 }

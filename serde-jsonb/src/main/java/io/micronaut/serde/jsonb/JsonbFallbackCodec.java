@@ -28,7 +28,6 @@ import io.micronaut.serde.jackson.JacksonDecoder;
 import io.micronaut.serde.jackson.JacksonEncoder;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
 import io.micronaut.serde.support.util.JsonNodeEncoder;
-import jakarta.json.JsonValue;
 import org.jspecify.annotations.Nullable;
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.JsonParser;
@@ -36,23 +35,20 @@ import tools.jackson.core.JsonParser;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
-import java.time.OffsetTime;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.PriorityQueue;
 
 /**
  * Bounded codec bridge used by JSON-B reflection fallback paths.
+ * <p>
+ * This class is intentionally a thin adapter over Micronaut Serialization
+ * codecs. It owns limit propagation and JSON-B encoder/decoder wrapping, but
+ * it must not grow type-specific conversion rules that duplicate registered
+ * serializers and deserializers.
  */
 final class JsonbFallbackCodec {
     private final SerdeRegistry registry;
     private final LimitingStream.RemainingLimits limits;
     private final String binaryDataStrategy;
-    private final boolean strictIJsonDates;
 
     JsonbFallbackCodec(ObjectMapper mapper,
                        @Nullable SerdeConfiguration serdeConfiguration,
@@ -60,61 +56,62 @@ final class JsonbFallbackCodec {
         this.registry = mapper.getSerdeRegistry();
         this.limits = serdeConfiguration == null ? LimitingStream.DEFAULT_LIMITS : LimitingStream.limitsFromConfiguration(serdeConfiguration);
         this.binaryDataStrategy = binaryDataStrategy;
-        this.strictIJsonDates = serdeConfiguration != null && serdeConfiguration.isWriteDateTimesAsStrictIJson();
     }
 
+    /**
+     * Reads one bounded tree from the Jackson parser used by reflection fallback
+     * preflight and JSON-B customization callbacks.
+     *
+     * @param parser The parser positioned at the value to read
+     * @return The bounded JSON tree
+     * @throws IOException If parser or limit handling fails
+     */
     JsonNode readTree(JsonParser parser) throws IOException {
         return JacksonDecoder.create(parser, limits).decodeNode();
     }
 
+    /**
+     * Deserializes an already-buffered fallback tree through the normal Serde
+     * registry. Use this instead of hand-converting JSON-B fallback values.
+     *
+     * @param node The bounded JSON tree
+     * @param argument The target argument
+     * @param <T> The target type
+     * @return The deserialized value
+     * @throws IOException If deserialization fails
+     */
     <T> @Nullable T readValue(JsonNode node, Argument<T> argument) throws IOException {
-        if (JsonValue.class.isAssignableFrom(argument.getType())) {
-            return readJsonpValue(node, argument);
-        }
-        if (Calendar.class.isAssignableFrom(argument.getType())) {
-            return readCalendar(node, argument);
-        }
-        if (argument.getType() == OffsetTime.class) {
-            @SuppressWarnings("unchecked")
-            T value = (T) OffsetTime.parse(node.coerceStringValue());
-            return value;
-        }
-        if (argument.getType() == ZoneOffset.class) {
-            @SuppressWarnings("unchecked")
-            T value = (T) ZoneOffset.of(node.coerceStringValue());
-            return value;
-        }
-        if (PriorityQueue.class.isAssignableFrom(argument.getType())) {
-            return readPriorityQueue(node, argument);
-        }
         Deserializer.DecoderContext decoderContext = registry.newDecoderContext(null);
         Deserializer<? extends T> deserializer = findDeserializer(decoderContext, argument);
         return deserializer.deserializeNullable(new JsonbDecoder(JsonNodeDecoder.create(node, limits), binaryDataStrategy), decoderContext, argument);
     }
 
+    /**
+     * Deserializes a fallback tree for a reflection-discovered generic type.
+     *
+     * @param node The bounded JSON tree
+     * @param type The target reflection type
+     * @return The deserialized value
+     * @throws IOException If deserialization fails
+     */
     @Nullable Object readValue(JsonNode node, Type type) throws IOException {
         return readValue(node, Argument.of(type));
     }
 
+    /**
+     * Serializes a value through the Serde registry into the active JSON-B
+     * generator. Null is handled here because nullable serializers may not be
+     * available for runtime-only fallback arguments.
+     *
+     * @param generator The target JSON generator
+     * @param argument The source argument
+     * @param value The value to serialize
+     * @param <T> The source type
+     * @throws IOException If serialization fails
+     */
     <T> void writeValue(JsonGenerator generator, Argument<T> argument, @Nullable T value) throws IOException {
-        switch (value) {
-            case null -> {
-                generator.writeNull();
-                return;
-            }
-            case JsonValue jsonValue -> {
-                writeTree(generator, JsonbJsonpBridge.toJsonNode(jsonValue));
-                return;
-            }
-            case Calendar calendar -> {
-                generator.writeString(JsonbCalendarSerde.format(calendar, strictIJsonDates));
-                return;
-            }
-            default -> {
-            }
-        }
-        if (value instanceof OffsetTime || value instanceof ZoneOffset) {
-            generator.writeString(value.toString());
+        if (value == null) {
+            generator.writeNull();
             return;
         }
         Serializer.EncoderContext encoderContext = registry.newEncoderContext(null);
@@ -122,6 +119,14 @@ final class JsonbFallbackCodec {
         serializer.serialize(new JsonbEncoder(JacksonEncoder.create(generator, limits), binaryDataStrategy), encoderContext, argument, value);
     }
 
+    /**
+     * Writes a prebuilt tree to the JSON-B generator without re-entering Serde
+     * lookup. This is used for JSON-B custom serializers that have already
+     * emitted a bounded tree.
+     *
+     * @param generator The target JSON generator
+     * @param node The tree to write
+     */
     void writeTree(JsonGenerator generator, JsonNode node) {
         if (node.isNull()) {
             generator.writeNull();
@@ -156,22 +161,19 @@ final class JsonbFallbackCodec {
         }
     }
 
+    /**
+     * Serializes a value to a bounded tree for JSON-B adapter and serializer
+     * callbacks that need JSON-P style intermediate values.
+     *
+     * @param argument The source argument
+     * @param value The value to serialize
+     * @param <T> The source type
+     * @return The completed JSON tree
+     * @throws IOException If serialization fails
+     */
     <T> JsonNode writeValueToTree(Argument<T> argument, @Nullable T value) throws IOException {
-        switch (value) {
-            case null -> {
-                return JsonNode.nullNode();
-            }
-            case JsonValue jsonValue -> {
-                return JsonbJsonpBridge.toJsonNode(jsonValue);
-            }
-            case Calendar calendar -> {
-                return JsonNode.createStringNode(JsonbCalendarSerde.format(calendar, strictIJsonDates));
-            }
-            default -> {
-            }
-        }
-        if (value instanceof OffsetTime || value instanceof ZoneOffset) {
-            return JsonNode.createStringNode(value.toString());
+        if (value == null) {
+            return JsonNode.nullNode();
         }
         JsonNodeEncoder encoder = JsonNodeEncoder.create(limits);
         Serializer.EncoderContext encoderContext = registry.newEncoderContext(null);
@@ -180,64 +182,11 @@ final class JsonbFallbackCodec {
         return encoder.getCompletedValue();
     }
 
-    @SuppressWarnings("unchecked")
-    private static <T> T readJsonpValue(JsonNode node, Argument<T> argument) {
-        return (T) JsonbJsonpBridge.toJsonpValue(node, argument.getType());
-    }
-
-    private <T> T readCalendar(JsonNode node, Argument<T> argument) {
-        Calendar calendar = JsonbCalendarSerde.parse(node.coerceStringValue(), argument.getType());
-        @SuppressWarnings("unchecked")
-        T value = (T) calendar;
-        return value;
-    }
-
-    private <T> T readPriorityQueue(JsonNode node, Argument<T> argument) throws IOException {
-        PriorityQueue<Object> queue = new PriorityQueue<>();
-        Argument<?> elementType = argument.getTypeParameters().length == 0 ? Argument.OBJECT_ARGUMENT : argument.getTypeParameters()[0];
-        if (node.isArray()) {
-            for (JsonNode item : node.values()) {
-                queue.add(readValue(item, elementType));
-            }
-        }
-        @SuppressWarnings("unchecked")
-        T value = (T) queue;
-        return value;
-    }
-
     private <T> Serializer<? super T> findSerializer(Serializer.EncoderContext encoderContext, Argument<T> argument) throws SerdeException {
         return encoderContext.findSerializer(argument).createSpecific(encoderContext, argument);
     }
 
     private <T> Deserializer<? extends T> findDeserializer(Deserializer.DecoderContext decoderContext, Argument<T> argument) throws SerdeException {
         return decoderContext.findDeserializer(argument).createSpecific(decoderContext, argument);
-    }
-
-    static @Nullable Object normalizeUntypedValue(JsonNode node) {
-        if (node.isObject()) {
-            Map<String, Object> converted = new LinkedHashMap<>();
-            for (Map.Entry<String, JsonNode> entry : node.entries()) {
-                converted.put(entry.getKey(), normalizeUntypedValue(entry.getValue()));
-            }
-            return converted;
-        }
-        if (node.isArray()) {
-            List<Object> converted = new ArrayList<>(node.size());
-            for (JsonNode item : node.values()) {
-                converted.add(normalizeUntypedValue(item));
-            }
-            return converted;
-        }
-        if (node.isNumber()) {
-            Number number = node.getNumberValue();
-            return number instanceof BigDecimal ? number : new BigDecimal(String.valueOf(number));
-        }
-        if (node.isString()) {
-            return node.getStringValue();
-        }
-        if (node.isBoolean()) {
-            return node.getBooleanValue();
-        }
-        return null;
     }
 }

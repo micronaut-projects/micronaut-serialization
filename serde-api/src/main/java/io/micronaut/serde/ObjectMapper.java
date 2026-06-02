@@ -73,7 +73,7 @@ public interface ObjectMapper extends JsonMapper {
      * @param deserializationConfiguration The {@link DeserializationConfiguration}
      * @param introspections The {@link SerdeIntrospections}
      * @return A new {@link JsonMapper} with the updated config and introspections
-     * @since 3.0.1
+     * @since 3.1.0
      */
     default ObjectMapper cloneWithConfiguration(
         @Nullable SerdeConfiguration configuration,

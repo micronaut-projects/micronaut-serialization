@@ -80,7 +80,7 @@ import java.util.TimeZone;
 /**
  * Micronaut Serialization backed JSON-B provider using generated serializers and deserializers.
  *
- * @since 3.0.1
+ * @since 3.1.0
  */
 public class MicronautJsonbProvider extends JsonbProvider {
     @Override

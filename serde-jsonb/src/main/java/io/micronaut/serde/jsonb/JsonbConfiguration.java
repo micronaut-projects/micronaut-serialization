@@ -21,28 +21,28 @@ import io.micronaut.core.bind.annotation.Bindable;
 /**
  * Configuration for the Micronaut JSON-B integration.
  *
- * @since 3.0.1
+ * @since 3.1.0
  */
 @ConfigurationProperties(JsonbConfiguration.PREFIX)
 public interface JsonbConfiguration {
     /**
      * Configuration prefix for Micronaut JSON-B integration.
      *
-     * @since 3.0.1
+     * @since 3.1.0
      */
     String PREFIX = "micronaut.serde.jsonb";
 
     /**
      * JSON-B configuration property for additional reduced-context package prefixes.
      *
-     * @since 3.0.1
+     * @since 3.1.0
      */
     String ADDITIONAL_PACKAGES = PREFIX + ".additional-packages";
 
     /**
      * Configuration property that enables reflection fallback for the context-created JSON-B bean.
      *
-     * @since 3.0.1
+     * @since 3.1.0
      */
     String REFLECTION_ENABLED = PREFIX + ".reflection-enabled";
 
@@ -50,7 +50,7 @@ public interface JsonbConfiguration {
      * Whether the context-created JSON-B bean should use reflection fallback behavior.
      *
      * @return Whether reflection fallback is enabled
-     * @since 3.0.1
+     * @since 3.1.0
      */
     @Bindable(defaultValue = "false")
     boolean isReflectionEnabled();

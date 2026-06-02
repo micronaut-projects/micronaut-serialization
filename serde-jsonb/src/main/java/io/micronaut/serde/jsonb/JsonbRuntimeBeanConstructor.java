@@ -53,6 +53,15 @@ final class JsonbRuntimeBeanConstructor<T> implements BeanConstructor<T> {
     private final Argument<?>[] arguments;
     private final AnnotationMetadata annotationMetadata;
 
+    /**
+     * Creates the Micronaut constructor view for the chosen JSON-B construction
+     * member. Exactly one of {@code constructor} or {@code factory} should be
+     * present; neither is present for default-constructor-only fallback models.
+     *
+     * @param type The bean type
+     * @param constructor The selected constructor
+     * @param factory The selected static factory method
+     */
     private JsonbRuntimeBeanConstructor(Class<T> type, @Nullable Constructor<T> constructor, @Nullable Method factory) {
         this.type = type;
         this.constructor = constructor;
@@ -70,6 +79,16 @@ final class JsonbRuntimeBeanConstructor<T> implements BeanConstructor<T> {
         this.annotationMetadata = metadata;
     }
 
+    /**
+     * Discovers the JSON-B construction member for a runtime introspection.
+     * Selection order mirrors JSON-B fallback behavior: explicit
+     * {@link JsonbCreator}, then default constructor, then record canonical
+     * constructor.
+     *
+     * @param type The bean type
+     * @param <T> The bean type
+     * @return The runtime constructor adapter
+     */
     static <T> JsonbRuntimeBeanConstructor<T> of(Class<T> type) {
         Constructor<T> creatorConstructor = null;
         for (Constructor<?> constructor : type.getDeclaredConstructors()) {
@@ -129,7 +148,7 @@ final class JsonbRuntimeBeanConstructor<T> implements BeanConstructor<T> {
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             throw new JsonbException("Cannot instantiate JSON-B fallback type " + type.getName(), e);
         }
-        return ReflectionFallback.instantiate(type);
+        return JsonbReflectionUtil.instantiate(type);
     }
 
     @Override
@@ -137,6 +156,14 @@ final class JsonbRuntimeBeanConstructor<T> implements BeanConstructor<T> {
         return annotationMetadata;
     }
 
+    /**
+     * Builds constructor argument metadata from Java reflection parameters.
+     * {@link JsonbProperty} names are translated to Serde property metadata so
+     * existing generated deserializer machinery can bind the runtime model.
+     *
+     * @param executable The constructor or factory method
+     * @return The constructor arguments exposed to Serde
+     */
     private static Argument<?>[] arguments(Executable executable) {
         Parameter[] parameters = executable.getParameters();
         Type[] genericTypes = executable instanceof Constructor<?> constructor

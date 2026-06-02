@@ -39,6 +39,9 @@ import java.util.List;
 /**
  * Bridges JSON-B config-level adapters, serializers, and deserializers into
  * Serde's property and element codec lookup.
+ * <p>
+ * Runtime introspections attach this serde through synthetic metadata when a
+ * configured JSON-B customization applies to a property or collection element.
  */
 @Internal
 @Singleton
@@ -47,6 +50,10 @@ public final class JsonbConfiguredSerde implements Serde<Object> {
 
     private final ObjectMapper mapper;
 
+    /**
+     * @param mapper The cloned JSON-B mapper used for recursive configured
+     * customization codec operations
+     */
     JsonbConfiguredSerde(ObjectMapper mapper) {
         this.mapper = mapper;
     }

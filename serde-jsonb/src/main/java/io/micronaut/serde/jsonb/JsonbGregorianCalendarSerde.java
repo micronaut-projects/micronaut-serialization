@@ -37,6 +37,10 @@ final class JsonbGregorianCalendarSerde implements SerdeRegistrar<GregorianCalen
     private static final Argument<GregorianCalendar> GREGORIAN_CALENDAR = Argument.of(GregorianCalendar.class);
     private final boolean strictIJson;
 
+    /**
+     * @param serdeConfiguration The active Serde configuration used to select
+     * strict I-JSON date/time formatting
+     */
     JsonbGregorianCalendarSerde(SerdeConfiguration serdeConfiguration) {
         this.strictIJson = serdeConfiguration.isWriteDateTimesAsStrictIJson();
     }

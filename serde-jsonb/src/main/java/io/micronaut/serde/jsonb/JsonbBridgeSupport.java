@@ -36,10 +36,24 @@ import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.util.Optional;
 
+/**
+ * Shared reflection and component helpers used by JSON-B annotation bridges.
+ * <p>
+ * These methods translate JSON-B annotation metadata into concrete callback
+ * classes and Serde {@link Argument} instances. They should stay independent of
+ * actual value conversion, which belongs in the codec bridges.
+ */
 final class JsonbBridgeSupport {
     private JsonbBridgeSupport() {
     }
 
+    /**
+     * Reads the adapter class encoded in {@link JsonbSerdeConfig} metadata.
+     *
+     * @param annotationMetadata The runtime or generated annotation metadata
+     * @return The configured adapter class
+     * @throws SerdeException If the metadata is missing
+     */
     @SuppressWarnings({"rawtypes", "unchecked"})
     static Class<? extends JsonbAdapter> adapterClass(AnnotationMetadata annotationMetadata) throws SerdeException {
         return annotationMetadata.classValue(JsonbSerdeConfig.class, "adapter")
@@ -47,6 +61,13 @@ final class JsonbBridgeSupport {
             .orElseThrow(() -> new SerdeException("Missing JSON-B adapter metadata"));
     }
 
+    /**
+     * Reads the serializer class encoded in {@link JsonbSerdeConfig} metadata.
+     *
+     * @param annotationMetadata The runtime or generated annotation metadata
+     * @return The configured serializer class
+     * @throws SerdeException If the metadata is missing
+     */
     @SuppressWarnings({"rawtypes", "unchecked"})
     static Class<? extends JsonbSerializer> serializerClass(AnnotationMetadata annotationMetadata) throws SerdeException {
         return annotationMetadata.classValue(JsonbSerdeConfig.class, "serializer")
@@ -54,6 +75,13 @@ final class JsonbBridgeSupport {
             .orElseThrow(() -> new SerdeException("Missing JSON-B serializer metadata"));
     }
 
+    /**
+     * Reads the deserializer class encoded in {@link JsonbSerdeConfig} metadata.
+     *
+     * @param annotationMetadata The runtime or generated annotation metadata
+     * @return The configured deserializer class
+     * @throws SerdeException If the metadata is missing
+     */
     @SuppressWarnings({"rawtypes", "unchecked"})
     static Class<? extends JsonbDeserializer> deserializerClass(AnnotationMetadata annotationMetadata) throws SerdeException {
         return annotationMetadata.classValue(JsonbSerdeConfig.class, "deserializer")
@@ -61,6 +89,13 @@ final class JsonbBridgeSupport {
             .orElseThrow(() -> new SerdeException("Missing JSON-B deserializer metadata"));
     }
 
+    /**
+     * Resolves the adapted JSON representation type from a JSON-B adapter's
+     * generic signature.
+     *
+     * @param adapterClass The adapter class
+     * @return The adapted target type, or {@code Object.class} when unresolved
+     */
     @SuppressWarnings({"rawtypes"})
     static Type adaptedType(Class<? extends JsonbAdapter> adapterClass) {
         Type type = findAdapterType(adapterClass);
@@ -97,6 +132,14 @@ final class JsonbBridgeSupport {
         return null;
     }
 
+    /**
+     * Converts a reflection {@link Type} into a Serde {@link Argument}. This
+     * keeps JSON-B runtime adapters/deserializers on the same generic type model
+     * used by generated Serde code.
+     *
+     * @param runtimeType The reflection type
+     * @return The corresponding Serde argument
+     */
     static Argument<?> argument(Type runtimeType) {
         switch (runtimeType) {
             case TypeVariable<?> typeVariable -> {
@@ -127,19 +170,40 @@ final class JsonbBridgeSupport {
         return Argument.of(runtimeType);
     }
 
+    /**
+     * Resolves JSON-B callback components from Micronaut beans, CDI beans, or
+     * reflective construction, in that order.
+     */
     static final class ComponentFactory {
         private final BeanContext beanContext;
 
+        /**
+         * @param beanContext The Micronaut bean context used for callback lookup
+         */
         ComponentFactory(BeanContext beanContext) {
             this.beanContext = beanContext;
         }
 
+        /**
+         * Resolves or creates a JSON-B callback component.
+         *
+         * @param type The component type
+         * @param <T> The component type
+         * @return The component instance
+         */
         <T> T get(Class<T> type) {
             return beanContext.findBean(type)
                 .or(() -> cdiBean(type))
                 .orElseGet(() -> instantiate(type));
         }
 
+        /**
+         * Reflectively instantiates a JSON-B component as the final fallback.
+         *
+         * @param type The component type
+         * @param <T> The component type
+         * @return The component instance
+         */
         static <T> T instantiate(Class<T> type) {
             try {
                 Constructor<T> constructor = type.getDeclaredConstructor();
@@ -150,6 +214,13 @@ final class JsonbBridgeSupport {
             }
         }
 
+        /**
+         * Attempts CDI lookup without taking a compile-time dependency on CDI.
+         *
+         * @param type The component type
+         * @param <T> The component type
+         * @return The CDI component, if CDI is available and has a bean
+         */
         static <T> Optional<T> cdiBean(Class<T> type) {
             try {
                 Class<?> cdiType = Class.forName("jakarta.enterprise.inject.spi.CDI");

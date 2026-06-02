@@ -139,7 +139,7 @@ Add first-class Jakarta JSON-P and JSON-B support to Micronaut Serialization wit
 
 ## Assumptions
 
-- Target version is the current repo version, `3.0.1-SNAPSHOT`; any new public APIs should use `@since 3.0.1`.
+- Target version is the current repo version, `3.1.0-SNAPSHOT`; any new public APIs should use `@since 3.1.0`.
 - Use standalone JSON-P and JSON-B TCKs, not Jakarta Platform TCKs.
 - Keep `serde-jsonp` available and documented; do not deprecate it in this change.
 - JSON-P implementation must be reflection-free.

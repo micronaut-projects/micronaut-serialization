@@ -92,6 +92,19 @@ final class JsonbRuntimeBeanIntrospection<T> implements BeanIntrospection<T> {
     private final boolean requiresFallback;
     private final boolean canWriteGeneratedDirectly;
 
+    /**
+     * Builds the runtime JSON-B model for one class and mapper configuration.
+     * The model intentionally computes both visible runtime properties and a
+     * wider validation property set so JSON-B validation can still detect
+     * duplicate names or invalid transient/customization combinations on
+     * members hidden from serialization.
+     *
+     * @param type The bean type
+     * @param namingStrategy The effective JSON-B naming strategy
+     * @param propertyOrderStrategy The effective JSON-B property ordering strategy
+     * @param visibilityStrategy The effective JSON-B visibility strategy
+     * @param customizations Configured JSON-B adapters, serializers, and deserializers
+     */
     JsonbRuntimeBeanIntrospection(Class<T> type,
                                   @Nullable Object namingStrategy,
                                   String propertyOrderStrategy,
@@ -104,38 +117,38 @@ final class JsonbRuntimeBeanIntrospection<T> implements BeanIntrospection<T> {
         this.hasTypeInfo = !typeInfoProperties.isEmpty() || JsonbTypeInfoSupport.hasTypeInfo(type);
         Map<String, JsonbRuntimeProperty<T>> allModels = new LinkedHashMap<>();
         int[] allPropertyIndex = {0};
-        for (Field field : ReflectionFallback.fields(type)) {
+        for (Field field : JsonbReflectionUtil.fields(type)) {
             if (field.isSynthetic() || Modifier.isStatic(field.getModifiers())) {
                 continue;
             }
             allModels.computeIfAbsent(field.getName(), n -> new JsonbRuntimeProperty<>(this, n, namingStrategy, allPropertyIndex[0]++)).field = field;
         }
         for (Method method : type.getMethods()) {
-            if (ReflectionFallback.isGetterName(method) && method.getParameterCount() == 0 && !method.isSynthetic() && !method.isBridge() && method.getDeclaringClass() != Object.class) {
-                allModels.computeIfAbsent(ReflectionFallback.implicitPropertyName(method), n -> new JsonbRuntimeProperty<>(this, n, namingStrategy, allPropertyIndex[0]++)).getter = method;
+            if (JsonbReflectionUtil.isGetterName(method) && method.getParameterCount() == 0 && !method.isSynthetic() && !method.isBridge() && method.getDeclaringClass() != Object.class) {
+                allModels.computeIfAbsent(JsonbReflectionUtil.implicitPropertyName(method), n -> new JsonbRuntimeProperty<>(this, n, namingStrategy, allPropertyIndex[0]++)).getter = method;
             } else if (method.getName().startsWith("set") && method.getName().length() > 3 && method.getParameterCount() == 1 && !method.isSynthetic() && !method.isBridge()) {
-                allModels.computeIfAbsent(ReflectionFallback.implicitPropertyName(method), n -> new JsonbRuntimeProperty<>(this, n, namingStrategy, allPropertyIndex[0]++)).setter = method;
+                allModels.computeIfAbsent(JsonbReflectionUtil.implicitPropertyName(method), n -> new JsonbRuntimeProperty<>(this, n, namingStrategy, allPropertyIndex[0]++)).setter = method;
             }
         }
         this.validationProperties = List.copyOf(allModels.values());
         Map<String, JsonbRuntimeProperty<T>> models = new LinkedHashMap<>();
-        Set<String> transientProperties = ReflectionFallback.transientProperties(type);
+        Set<String> transientProperties = JsonbReflectionUtil.transientProperties(type);
         int[] propertyIndex = {0};
         for (Method method : type.getMethods()) {
-            if (ReflectionFallback.isGetter(method) && ReflectionFallback.isVisible(method, visibilityStrategy)) {
-                String name = ReflectionFallback.implicitPropertyName(method);
-                if (!transientProperties.contains(name) && !ReflectionFallback.isStaticBackedAccessor(type, name)) {
+            if (JsonbReflectionUtil.isGetter(method) && JsonbReflectionUtil.isVisible(method, visibilityStrategy)) {
+                String name = JsonbReflectionUtil.implicitPropertyName(method);
+                if (!transientProperties.contains(name) && !JsonbReflectionUtil.isStaticBackedAccessor(type, name)) {
                     models.computeIfAbsent(name, n -> new JsonbRuntimeProperty<>(this, n, namingStrategy, propertyIndex[0]++)).getter = method;
                 }
-            } else if (ReflectionFallback.isSetter(method) && ReflectionFallback.isVisibleSetter(method, visibilityStrategy)) {
-                String name = ReflectionFallback.implicitPropertyName(method);
-                if (!transientProperties.contains(name) && !ReflectionFallback.isStaticBackedAccessor(type, name)) {
+            } else if (JsonbReflectionUtil.isSetter(method) && JsonbReflectionUtil.isVisibleSetter(method, visibilityStrategy)) {
+                String name = JsonbReflectionUtil.implicitPropertyName(method);
+                if (!transientProperties.contains(name) && !JsonbReflectionUtil.isStaticBackedAccessor(type, name)) {
                     models.computeIfAbsent(name, n -> new JsonbRuntimeProperty<>(this, n, namingStrategy, propertyIndex[0]++)).setter = method;
                 }
             }
         }
-        for (Field field : ReflectionFallback.fields(type)) {
-            if (ReflectionFallback.isFieldProperty(field) && ReflectionFallback.isVisible(field, visibilityStrategy) && !transientProperties.contains(field.getName())) {
+        for (Field field : JsonbReflectionUtil.fields(type)) {
+            if (JsonbReflectionUtil.isFieldProperty(field) && JsonbReflectionUtil.isVisible(field, visibilityStrategy) && !transientProperties.contains(field.getName())) {
                 models.computeIfAbsent(field.getName(), n -> new JsonbRuntimeProperty<>(this, n, namingStrategy, propertyIndex[0]++)).field = field;
             }
         }
@@ -170,14 +183,22 @@ final class JsonbRuntimeBeanIntrospection<T> implements BeanIntrospection<T> {
             && !hasGeneratedWriteFallbackProperty;
     }
 
+    /**
+     * Validates the parts of the runtime model that can make JSON-B
+     * deserialization illegal before the Serde deserializer mutates a bean.
+     */
     void validateReadModel() {
         validateObjectModel();
-        ReflectionFallback.validateCreatorModel(type);
+        JsonbReflectionUtil.validateCreatorModel(type);
         if (!hasTypeInfo) {
-            ReflectionFallback.validateDefaultConstructorAccess(type);
+            JsonbReflectionUtil.validateDefaultConstructorAccess(type);
         }
     }
 
+    /**
+     * Validates the parts of the runtime model that can make JSON-B
+     * serialization illegal before any bytes are written to the caller's target.
+     */
     void validateWriteModel() {
         validateObjectModel();
     }
@@ -213,10 +234,22 @@ final class JsonbRuntimeBeanIntrospection<T> implements BeanIntrospection<T> {
         return requiresFallback;
     }
 
+    /**
+     * Returns the {@link JsonbVisibility} strategy declared on the type or one
+     * of its packages.
+     *
+     * @return The visibility strategy type, if present
+     */
     @Nullable Class<? extends PropertyVisibilityStrategy> visibilityStrategyType() {
         return visibilityStrategyType;
     }
 
+    /**
+     * Returns the JSON property names that may be read into this model.
+     *
+     * @return The property names used by fallback unknown-property validation
+     * before Serde deserialization
+     */
     Set<String> deserializablePropertyNames() {
         Set<String> names = new HashSet<>();
         for (JsonbRuntimeProperty<T> property : validationProperties) {
@@ -227,14 +260,33 @@ final class JsonbRuntimeBeanIntrospection<T> implements BeanIntrospection<T> {
         return names;
     }
 
+    /**
+     * Returns the visible JSON-B runtime properties.
+     *
+     * @return The runtime properties in effective serialization order
+     */
     List<JsonbRuntimeProperty<T>> runtimeProperties() {
         return properties;
     }
 
+    /**
+     * Returns the mapper-level JSON-B customizations.
+     *
+     * @return The customizations applied to properties of this model
+     */
     JsonbRuntimeCustomizations customizations() {
         return customizations;
     }
 
+    /**
+     * Tests whether the generated Serde serializer can be used after the
+     * reflection provider has performed JSON-B validation. This must remain
+     * conservative: any JSON-B rule not represented in generated metadata should
+     * force fallback.
+     *
+     * @param argument The requested runtime argument
+     * @return Whether generated serialization is safe for this model
+     */
     boolean canWriteGeneratedDirectly(Argument<?> argument) {
         return argument.getType() != Object.class
             && argument.getType().isAssignableFrom(type)
@@ -303,7 +355,7 @@ final class JsonbRuntimeBeanIntrospection<T> implements BeanIntrospection<T> {
 
     private boolean hasStaticBackedAccessor() {
         for (JsonbRuntimeProperty<T> property : validationProperties) {
-            if ((property.getter() != null || property.setter() != null) && ReflectionFallback.isStaticBackedAccessor(type, property.implicitName())) {
+            if ((property.getter() != null || property.setter() != null) && JsonbReflectionUtil.isStaticBackedAccessor(type, property.implicitName())) {
                 return true;
             }
         }
@@ -351,6 +403,13 @@ final class JsonbRuntimeBeanIntrospection<T> implements BeanIntrospection<T> {
         return false;
     }
 
+    /**
+     * Finds the effective JSON-B visibility strategy class declared on a type
+     * hierarchy or package hierarchy.
+     *
+     * @param type The type to inspect
+     * @return The configured visibility strategy type, if any
+     */
     static @Nullable Class<? extends PropertyVisibilityStrategy> visibilityStrategyType(Class<?> type) {
         Class<?> current = type;
         while (current != Object.class && current != null) {
@@ -504,7 +563,7 @@ final class JsonbRuntimeBeanIntrospection<T> implements BeanIntrospection<T> {
     }
 
     private static Comparator<JsonbRuntimeProperty<?>> propertyComparator(Class<?> type, String propertyOrderStrategy) {
-        JsonbPropertyOrder order = ReflectionFallback.propertyOrder(type);
+        JsonbPropertyOrder order = JsonbReflectionUtil.propertyOrder(type);
         if (order != null && order.value().length > 0) {
             List<String> names = List.of(order.value());
             return Comparator.comparingInt(property -> {
@@ -543,7 +602,7 @@ final class JsonbRuntimeBeanIntrospection<T> implements BeanIntrospection<T> {
                                                    String propertyOrderStrategy,
                                                    List<? extends JsonbRuntimeProperty<?>> properties) {
         MutableAnnotationMetadata metadata = new MutableAnnotationMetadata();
-        JsonbPropertyOrder propertyOrder = ReflectionFallback.propertyOrder(type);
+        JsonbPropertyOrder propertyOrder = JsonbReflectionUtil.propertyOrder(type);
         if (propertyOrder != null && propertyOrder.value().length > 0) {
             metadata.addAnnotation(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER, Map.of(AnnotationMetadata.VALUE_MEMBER, propertyOrder.value()));
         } else if (PropertyOrderStrategy.LEXICOGRAPHICAL.equals(propertyOrderStrategy) && !properties.isEmpty()) {
@@ -610,7 +669,7 @@ final class JsonbRuntimeBeanIntrospection<T> implements BeanIntrospection<T> {
             if (typeProperties.size() > 1) {
                 values.put(SerdeConfig.TYPE_PROPERTIES, typeProperties.toArray(new String[0]));
                 values.put(SerdeConfig.TYPE_PROPERTY_VALUES, typePropertyValues.toArray(new String[0]));
-                JsonbPropertyOrder jsonbPropertyOrder = ReflectionFallback.propertyOrder(type);
+                JsonbPropertyOrder jsonbPropertyOrder = JsonbReflectionUtil.propertyOrder(type);
                 if (jsonbPropertyOrder == null || jsonbPropertyOrder.value().length == 0) {
                     metadata.addAnnotation(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER, Map.of(
                         AnnotationMetadata.VALUE_MEMBER,
@@ -643,9 +702,9 @@ final class JsonbRuntimeBeanIntrospection<T> implements BeanIntrospection<T> {
                 }
                 String methodName = method.getName();
                 if (methodName.startsWith("get") && methodName.length() > 3) {
-                    addIfAbsent(order, ReflectionFallback.decapitalize(methodName.substring(3)));
+                    addIfAbsent(order, JsonbReflectionUtil.decapitalize(methodName.substring(3)));
                 } else if (methodName.startsWith("is") && methodName.length() > 2) {
-                    addIfAbsent(order, ReflectionFallback.decapitalize(methodName.substring(2)));
+                    addIfAbsent(order, JsonbReflectionUtil.decapitalize(methodName.substring(2)));
                 }
             }
         }

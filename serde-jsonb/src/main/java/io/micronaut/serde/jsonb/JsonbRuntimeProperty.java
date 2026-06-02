@@ -80,6 +80,17 @@ final class JsonbRuntimeProperty<T> implements BeanProperty<T, Object>, UnsafeBe
     private @Nullable Argument<Object> readArgument;
     private @Nullable Argument<Object> writeArgument;
 
+    /**
+     * Creates a mutable property model while the owning runtime introspection is
+     * discovering fields and accessors. The constructor records the implicit Java
+     * property name; JSON-B naming and annotation overrides are resolved lazily
+     * because read and write members can be discovered in different passes.
+     *
+     * @param introspection The owning runtime introspection
+     * @param implicitName The JavaBean property name before JSON-B translation
+     * @param namingStrategy The effective JSON-B naming strategy
+     * @param index The discovery index used as the initial order
+     */
     JsonbRuntimeProperty(JsonbRuntimeBeanIntrospection<T> introspection, String implicitName, @Nullable Object namingStrategy, int index) {
         this.introspection = introspection;
         this.implicitName = implicitName;
@@ -242,10 +253,20 @@ final class JsonbRuntimeProperty<T> implements BeanProperty<T, Object>, UnsafeBe
         return readMember() == null;
     }
 
+    /**
+     * Returns the reflective member used for serialization.
+     *
+     * @return The accessible read member, or {@code null} for write-only properties
+     */
     @Nullable AccessibleObject readMember() {
         return accessible(getter != null ? getter : field);
     }
 
+    /**
+     * Returns the reflective member used for deserialization.
+     *
+     * @return The accessible write member, or {@code null} for read-only properties
+     */
     @Nullable AccessibleObject writeMember() {
         return accessible(setter != null ? setter : field);
     }
@@ -262,9 +283,14 @@ final class JsonbRuntimeProperty<T> implements BeanProperty<T, Object>, UnsafeBe
         if (property != null && !property.value().isEmpty()) {
             return property.value();
         }
-        return ReflectionFallback.translateName(implicitName, namingStrategy);
+        return JsonbReflectionUtil.translateName(implicitName, namingStrategy);
     }
 
+    /**
+     * Returns the generic type exposed to serialization.
+     *
+     * @return The serialization type, or {@code null} when the property has no readable member
+     */
     @Nullable Type serializationType() {
         AccessibleObject member = readMember();
         if (member instanceof Method method) {
@@ -276,6 +302,11 @@ final class JsonbRuntimeProperty<T> implements BeanProperty<T, Object>, UnsafeBe
         return null;
     }
 
+    /**
+     * Returns the generic type accepted during deserialization.
+     *
+     * @return The deserialization type, or {@code null} when the property has no writable member
+     */
     @Nullable Type deserializationType() {
         AccessibleObject member = writeMember();
         if (member instanceof Method method) {
@@ -287,18 +318,39 @@ final class JsonbRuntimeProperty<T> implements BeanProperty<T, Object>, UnsafeBe
         return null;
     }
 
+    /**
+     * Returns the JavaBean property name before JSON-B naming overrides.
+     *
+     * @return The implicit property name
+     */
     String implicitName() {
         return implicitName;
     }
 
+    /**
+     * Returns the discovered getter.
+     *
+     * @return The getter, if any
+     */
     @Nullable Method getter() {
         return getter;
     }
 
+    /**
+     * Returns the discovered setter.
+     *
+     * @return The setter, if any
+     */
     @Nullable Method setter() {
         return setter;
     }
 
+    /**
+     * Returns the declaring class of the active read/write member.
+     *
+     * @return The declaring class, falling back to the bean type for
+     * synthetic runtime-only properties
+     */
     Class<?> declaringClass() {
         AccessibleObject member = readMember();
         if (member == null) {
@@ -313,6 +365,13 @@ final class JsonbRuntimeProperty<T> implements BeanProperty<T, Object>, UnsafeBe
         return introspection.getBeanType();
     }
 
+    /**
+     * Updates the effective property order after the owning introspection has
+     * sorted all properties. Cached arguments and metadata are cleared because
+     * the order is encoded into Serde metadata.
+     *
+     * @param order The effective serialization order
+     */
     void order(int order) {
         this.order = order;
         this.readAnnotationMetadata = null;
@@ -321,29 +380,54 @@ final class JsonbRuntimeProperty<T> implements BeanProperty<T, Object>, UnsafeBe
         this.writeArgument = null;
     }
 
+    /**
+     * Returns whether this property is JSON-B transient.
+     *
+     * @return Whether Java {@code transient} or {@link JsonbTransient} applies
+     */
     boolean isJsonbTransient() {
         return (field != null && Modifier.isTransient(field.getModifiers()))
             || hasJsonbTransient();
     }
 
+    /**
+     * Returns whether any backing member declares {@link JsonbTransient}.
+     *
+     * @return Whether a backing member is annotated as JSON-B transient
+     */
     boolean hasJsonbTransient() {
         return (field != null && field.isAnnotationPresent(JsonbTransient.class))
             || (getter != null && getter.isAnnotationPresent(JsonbTransient.class))
             || (setter != null && setter.isAnnotationPresent(JsonbTransient.class));
     }
 
+    /**
+     * Returns whether the property declares any JSON-B customization annotation.
+     *
+     * @return Whether a customization annotation is present
+     */
     boolean hasJsonbCustomization() {
         return hasJsonbCustomization(field)
             || hasJsonbCustomization(getter)
             || hasJsonbCustomization(setter);
     }
 
+    /**
+     * Returns whether the property declares fallback-only customization.
+     *
+     * @return Whether generated Serde metadata cannot represent a customization
+     */
     boolean hasFallbackCustomization() {
         return hasFallbackCustomization(field)
             || hasFallbackCustomization(getter)
             || hasFallbackCustomization(setter);
     }
 
+    /**
+     * Returns the effective serialized JSON property name.
+     *
+     * @return The serialized name, or {@code null} for write-only properties
+     */
     @Nullable String serializationName() {
         if (readMember() == null) {
             return null;
@@ -352,9 +436,14 @@ final class JsonbRuntimeProperty<T> implements BeanProperty<T, Object>, UnsafeBe
         if (name == null) {
             name = annotationPropertyName(field);
         }
-        return name == null ? ReflectionFallback.translateName(implicitName, namingStrategy) : name;
+        return name == null ? JsonbReflectionUtil.translateName(implicitName, namingStrategy) : name;
     }
 
+    /**
+     * Returns the effective deserialized JSON property name.
+     *
+     * @return The deserialized name, or {@code null} for read-only properties
+     */
     @Nullable String deserializationName() {
         if (writeMember() == null) {
             return null;
@@ -363,13 +452,23 @@ final class JsonbRuntimeProperty<T> implements BeanProperty<T, Object>, UnsafeBe
         if (name == null) {
             name = annotationPropertyName(field);
         }
-        return name == null ? ReflectionFallback.translateName(implicitName, namingStrategy) : name;
+        return name == null ? JsonbReflectionUtil.translateName(implicitName, namingStrategy) : name;
     }
 
+    /**
+     * Creates a read-only BeanProperty view.
+     *
+     * @return A read-only view backed by this runtime property
+     */
     BeanReadProperty<T, Object> asReadProperty() {
         return new ReadView();
     }
 
+    /**
+     * Creates a write-only BeanProperty view.
+     *
+     * @return A write-only view backed by this runtime property
+     */
     BeanWriteProperty<T, Object> asWriteProperty() {
         return new WriteView();
     }
@@ -388,7 +487,7 @@ final class JsonbRuntimeProperty<T> implements BeanProperty<T, Object>, UnsafeBe
         if (property != null && property.nillable()) {
             metadata.addAnnotation(SerdeConfig.class.getName(), Map.of(SerdeConfig.INCLUDE, SerdeConfig.SerInclude.ALWAYS.name()));
         }
-        JsonbNumberFormat numberFormat = ReflectionFallback.numberFormat(primaryMember instanceof Method method ? method : null, field, introspection.getBeanType());
+        JsonbNumberFormat numberFormat = JsonbReflectionUtil.numberFormat(primaryMember instanceof Method method ? method : null, field, introspection.getBeanType());
         if (numberFormat != null) {
             Map<CharSequence, Object> values = new LinkedHashMap<>();
             if (!numberFormat.value().isEmpty()) {
@@ -402,7 +501,7 @@ final class JsonbRuntimeProperty<T> implements BeanProperty<T, Object>, UnsafeBe
             }
             metadata.addAnnotation(SerdeConfig.class.getName(), values);
         }
-        JsonbDateFormat dateFormat = ReflectionFallback.dateFormat(primaryMember instanceof Method method ? method : null, field, introspection.getBeanType());
+        JsonbDateFormat dateFormat = JsonbReflectionUtil.dateFormat(primaryMember instanceof Method method ? method : null, field, introspection.getBeanType());
         if (dateFormat != null && !"##time-in-millis".equals(dateFormat.value())) {
             String pattern = "##default".equals(dateFormat.value()) ? DateTimeFormatter.RFC_1123_DATE_TIME.toString() : dateFormat.value();
             Map<CharSequence, Object> values = new LinkedHashMap<>();

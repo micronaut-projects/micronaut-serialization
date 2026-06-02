@@ -81,7 +81,7 @@ import static io.micronaut.serde.jsonp.MicronautJsonProvider.PatchBuilder.MOVE;
 /**
  * Micronaut-native Jakarta JSON-P provider.
  *
- * @since 3.0.1
+ * @since 3.1.0
  */
 public final class MicronautJsonProvider extends JsonProvider {
     private static final JsonFactory JSON_FACTORY = JsonFactory.builder()

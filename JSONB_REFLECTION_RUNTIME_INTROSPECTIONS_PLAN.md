@@ -68,5 +68,5 @@ Refactor `MicronautJsonbReflectionProvider` so ordinary reflection fallback obje
 ## Assumptions
 
 - First migration is object-model-first: `SerBean`/`DeserBean` handle ordinary object fallback, while specialized JSON-B glue remains in the provider.
-- Resolver SPI is a compatible public API addition with `@since 3.0.1`, matching current `projectVersion=3.0.1-SNAPSHOT`.
+- Resolver SPI is a compatible public API addition with `@since 3.1.0`, matching current `projectVersion=3.1.0-SNAPSHOT`.
 - Runtime introspections are internal implementation objects; the only public surface is the resolver SPI, not the reflection implementation or `SerBean`/`DeserBean`.

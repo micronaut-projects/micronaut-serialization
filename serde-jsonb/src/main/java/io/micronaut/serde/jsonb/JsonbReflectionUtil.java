@@ -56,11 +56,23 @@ import java.util.TimeZone;
 
 /**
  * Reflection metadata and validation helpers for JSON-B fallback discovery.
+ * <p>
+ * This utility deliberately stops at metadata discovery, naming, visibility,
+ * and JSON-B validation. Value conversion belongs in Serde codecs and
+ * JSON-B-specific encoder/decoder bridges.
  */
-final class ReflectionFallback {
-    private ReflectionFallback() {
+final class JsonbReflectionUtil {
+    private JsonbReflectionUtil() {
     }
 
+    /**
+     * Instantiates a type through its no-arg constructor for runtime fallback
+     * models that do not have a creator constructor.
+     *
+     * @param type The type to instantiate
+     * @param <T> The bean type
+     * @return The new instance
+     */
     static <T> T instantiate(Class<T> type) {
         try {
             Constructor<T> constructor = type.getDeclaredConstructor();
@@ -73,6 +85,14 @@ final class ReflectionFallback {
         }
     }
 
+    /**
+     * Returns declared fields from the full class hierarchy in superclass-first
+     * order. Runtime property discovery depends on this order for stable
+     * fallback property ordering.
+     *
+     * @param type The type to inspect
+     * @return The hierarchy fields
+     */
     static List<Field> fields(Class<?> type) {
         List<Field> fields = new ArrayList<>();
         List<Class<?>> hierarchy = new ArrayList<>();
@@ -88,6 +108,14 @@ final class ReflectionFallback {
         return fields;
     }
 
+    /**
+     * Tests whether a type should be treated as a scalar by JSON-B model
+     * discovery. Scalar values are handled by registered Serde codecs instead of
+     * runtime bean introspection.
+     *
+     * @param type The type to test
+     * @return Whether the type is scalar for JSON-B fallback purposes
+     */
     static boolean isJsonScalar(Class<?> type) {
         return type.isPrimitive()
             || CharSequence.class.isAssignableFrom(type)
@@ -112,6 +140,13 @@ final class ReflectionFallback {
             || ZoneId.class.isAssignableFrom(type);
     }
 
+    /**
+     * Tests whether a method is a JSON-B visible getter before an optional
+     * {@link PropertyVisibilityStrategy} is applied.
+     *
+     * @param method The method to inspect
+     * @return Whether the method is a getter candidate
+     */
     static boolean isGetter(Method method) {
         return method.getParameterCount() == 0
             && !method.getReturnType().equals(Void.TYPE)
@@ -123,6 +158,13 @@ final class ReflectionFallback {
             || (method.getName().startsWith("is") && method.getName().length() > 2 && method.getReturnType() == boolean.class));
     }
 
+    /**
+     * Tests whether a method is a JSON-B visible setter before an optional
+     * {@link PropertyVisibilityStrategy} is applied.
+     *
+     * @param method The method to inspect
+     * @return Whether the method is a setter candidate
+     */
     static boolean isSetter(Method method) {
         return method.getParameterCount() == 1
             && method.getName().startsWith("set")
@@ -132,6 +174,13 @@ final class ReflectionFallback {
             && !method.isAnnotationPresent(JsonbTransient.class);
     }
 
+    /**
+     * Tests whether a field is eligible to become a JSON-B property before an
+     * optional {@link PropertyVisibilityStrategy} is applied.
+     *
+     * @param field The field to inspect
+     * @return Whether the field is a property candidate
+     */
     static boolean isFieldProperty(Field field) {
         int modifiers = field.getModifiers();
         return !Modifier.isStatic(modifiers)
@@ -140,18 +189,47 @@ final class ReflectionFallback {
             && !field.isAnnotationPresent(JsonbTransient.class);
     }
 
+    /**
+     * Applies a JSON-B visibility strategy to a getter candidate.
+     *
+     * @param method The getter candidate
+     * @param visibilityStrategy The configured strategy, if any
+     * @return Whether the getter is visible
+     */
     static boolean isVisible(Method method, @Nullable PropertyVisibilityStrategy visibilityStrategy) {
         return visibilityStrategy == null || visibilityStrategy.isVisible(method);
     }
 
+    /**
+     * Applies a JSON-B visibility strategy to a setter candidate.
+     *
+     * @param method The setter candidate
+     * @param visibilityStrategy The configured strategy, if any
+     * @return Whether the setter is visible
+     */
     static boolean isVisibleSetter(Method method, @Nullable PropertyVisibilityStrategy visibilityStrategy) {
         return visibilityStrategy == null || visibilityStrategy.isVisible(method);
     }
 
+    /**
+     * Applies a JSON-B visibility strategy to a field candidate.
+     *
+     * @param field The field candidate
+     * @param visibilityStrategy The configured strategy, if any
+     * @return Whether the field is visible
+     */
     static boolean isVisible(Field field, @Nullable PropertyVisibilityStrategy visibilityStrategy) {
         return visibilityStrategy == null || visibilityStrategy.isVisible(field);
     }
 
+    /**
+     * Resolves Java and JSON-B transient properties for a type. The returned
+     * names are implicit JavaBean names, not naming-strategy translated JSON
+     * names.
+     *
+     * @param type The type to inspect
+     * @return The transient property names
+     */
     static Set<String> transientProperties(Class<?> type) {
         Set<String> properties = new HashSet<>();
         for (Field field : fields(type)) {
@@ -168,6 +246,13 @@ final class ReflectionFallback {
         return properties;
     }
 
+    /**
+     * Validates the JSON-B default-constructor rule for runtime deserialization.
+     * Generated deserializers and explicit creators are allowed to bypass this
+     * check; ordinary fallback beans are not.
+     *
+     * @param type The bean type to validate
+     */
     static void validateDefaultConstructorAccess(Class<?> type) {
         if (isJsonScalar(type) || type.isEnum() || type.isArray() || Collection.class.isAssignableFrom(type) || Map.class.isAssignableFrom(type)) {
             return;
@@ -186,6 +271,12 @@ final class ReflectionFallback {
         }
     }
 
+    /**
+     * Validates the JSON-B creator constraints represented by the runtime
+     * constructor adapter.
+     *
+     * @param type The bean type to validate
+     */
     static void validateCreatorModel(Class<?> type) {
         if (isJsonScalar(type) || type.isEnum() || type.isArray() || Collection.class.isAssignableFrom(type) || Map.class.isAssignableFrom(type)) {
             return;
@@ -201,11 +292,26 @@ final class ReflectionFallback {
         }
     }
 
+    /**
+     * Detects accessors whose implicit property name points at a static field.
+     * JSON-B can see such methods, but generated Serde property metadata cannot
+     * safely model that mixed static/instance shape.
+     *
+     * @param type The declaring type
+     * @param implicitName The JavaBean property name
+     * @return Whether a static field backs the accessor name
+     */
     static boolean isStaticBackedAccessor(Class<?> type, String implicitName) {
         Field field = field(type, implicitName);
         return field != null && Modifier.isStatic(field.getModifiers());
     }
 
+    /**
+     * Finds the nearest JSON-B property order annotation in the class hierarchy.
+     *
+     * @param type The type to inspect
+     * @return The property order annotation, if any
+     */
     static @Nullable JsonbPropertyOrder propertyOrder(Class<?> type) {
         Class<?> current = type;
         while (current != null && current != Object.class) {
@@ -218,6 +324,15 @@ final class ReflectionFallback {
         return null;
     }
 
+    /**
+     * Resolves the effective JSON-B number format for a property, including
+     * accessor, field, type, and package scopes.
+     *
+     * @param accessor The accessor member, if any
+     * @param field The field member, if any
+     * @param beanType The owning bean type
+     * @return The effective number format, if any
+     */
     static @Nullable JsonbNumberFormat numberFormat(@Nullable Method accessor, @Nullable Field field, Class<?> beanType) {
         JsonbNumberFormat format = accessor == null ? null : accessor.getAnnotation(JsonbNumberFormat.class);
         if (format != null) {
@@ -247,6 +362,15 @@ final class ReflectionFallback {
         return null;
     }
 
+    /**
+     * Resolves the effective JSON-B date format for a property, including
+     * accessor, field, type, and package scopes.
+     *
+     * @param accessor The accessor member, if any
+     * @param field The field member, if any
+     * @param beanType The owning bean type
+     * @return The effective date format, if any
+     */
     static @Nullable JsonbDateFormat dateFormat(@Nullable Method accessor, @Nullable Field field, Class<?> beanType) {
         JsonbDateFormat format = accessor == null ? null : accessor.getAnnotation(JsonbDateFormat.class);
         if (format != null) {
@@ -276,11 +400,25 @@ final class ReflectionFallback {
         return null;
     }
 
+    /**
+     * Tests only the JavaBean getter name shape. This is used when validation
+     * needs to inspect members even if JSON-B visibility would later exclude
+     * them from the active property set.
+     *
+     * @param method The method to inspect
+     * @return Whether the method has a getter-style name
+     */
     static boolean isGetterName(Method method) {
         return (method.getName().startsWith("get") && method.getName().length() > 3)
             || (method.getName().startsWith("is") && method.getName().length() > 2);
     }
 
+    /**
+     * Derives the implicit JavaBean property name from a getter or setter.
+     *
+     * @param method The accessor method
+     * @return The implicit property name
+     */
     static String implicitPropertyName(Method method) {
         String name = method.getName();
         if (name.startsWith("get") || name.startsWith("set")) {
@@ -289,6 +427,14 @@ final class ReflectionFallback {
         return decapitalize(name.substring(2));
     }
 
+    /**
+     * Applies the configured JSON-B property naming strategy to an implicit
+     * JavaBean property name.
+     *
+     * @param name The implicit property name
+     * @param namingStrategy The configured naming strategy, if any
+     * @return The translated JSON property name
+     */
     static String translateName(String name, @Nullable Object namingStrategy) {
         if (namingStrategy instanceof PropertyNamingStrategy strategy) {
             return strategy.translateName(name);
@@ -312,6 +458,13 @@ final class ReflectionFallback {
         return name;
     }
 
+    /**
+     * JSON-B-compatible JavaBean decapitalization. Leading acronyms are left
+     * intact to match the JavaBeans convention.
+     *
+     * @param name The accessor suffix
+     * @return The decapitalized property name
+     */
     static String decapitalize(String name) {
         if (name.length() > 1 && Character.isUpperCase(name.charAt(0)) && Character.isUpperCase(name.charAt(1))) {
             return name;
