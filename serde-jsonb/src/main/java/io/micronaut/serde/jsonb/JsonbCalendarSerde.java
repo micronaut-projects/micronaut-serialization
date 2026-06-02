@@ -40,7 +40,7 @@ import java.util.TimeZone;
 @Singleton
 final class JsonbCalendarSerde implements SerdeRegistrar<Calendar> {
     private static final Argument<Calendar> CALENDAR = Argument.of(Calendar.class);
-    private static final DateTimeFormatter STRICT_IJSON_FORMATTER = DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss'Z'XXX");
+    private static final DateTimeFormatter STRICT_IJSON_FORMATTER = DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss'Z'xxx");
     private final boolean strictIJson;
 
     /**
@@ -100,11 +100,9 @@ final class JsonbCalendarSerde implements SerdeRegistrar<Calendar> {
     }
 
     /**
-     * Parses a JSON-B calendar string. The {@code type} parameter is retained
-     * for call-site clarity and compatibility with the GregorianCalendar wrapper.
+     * Parses a JSON-B calendar string.
      *
      * @param value The encoded calendar value
-     * @param type The requested calendar type
      * @return The parsed calendar
      */
     static Calendar parse(String value) {

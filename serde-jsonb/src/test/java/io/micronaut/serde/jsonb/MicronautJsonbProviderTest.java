@@ -62,6 +62,7 @@ import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -539,6 +540,13 @@ class MicronautJsonbProviderTest {
             assertThrows(JsonbException.class, () -> jsonb.fromJson("{\"value\":\"CST\"}", TimeZoneHolder.class));
             assertEquals("UTC", jsonb.fromJson("{\"value\":\"UTC\"}", TimeZoneHolder.class).value().getID());
         }
+
+        try (Jsonb jsonb = JsonbBuilder.create(new JsonbConfig().withStrictIJSON(true))) {
+            Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"), Locale.ROOT);
+            calendar.clear();
+            calendar.set(1970, Calendar.JANUARY, 1, 0, 0, 0);
+            assertEquals("{\"value\":\"1970-01-01T00:00:00Z+00:00\"}", jsonb.toJson(new CalendarHolder(calendar)));
+        }
     }
 
     private static Book book() {
@@ -623,6 +631,10 @@ class MicronautJsonbProviderTest {
 
     @Serdeable
     record DateHolder(Date value) {
+    }
+
+    @Serdeable
+    record CalendarHolder(Calendar value) {
     }
 
     @Serdeable
