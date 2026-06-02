@@ -19,17 +19,16 @@ import io.micronaut.context.BeanContext;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.exceptions.SerdeException;
+import jakarta.enterprise.inject.spi.CDI;
 import jakarta.json.bind.JsonbException;
 import jakarta.json.bind.adapter.JsonbAdapter;
 import jakarta.json.bind.serializer.JsonbDeserializer;
 import jakarta.json.bind.serializer.JsonbSerializer;
 import org.jspecify.annotations.Nullable;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.GenericArrayType;
-import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
@@ -215,20 +214,36 @@ final class JsonbBridgeSupport {
         }
 
         /**
-         * Attempts CDI lookup without taking a compile-time dependency on CDI.
+         * Determines whether the optional CDI API is available. The JSON-B
+         * module compiles against CDI as {@code compileOnly}; this guard keeps
+         * callback lookup usable when applications do not include CDI.
+         *
+         * @return Whether CDI support can be directly called
+         */
+        static boolean isCdiSupportPresent() {
+            try {
+                //noinspection ConstantConditions
+                return CDI.class != null;
+            } catch (Throwable e) {
+                return false;
+            }
+        }
+
+        /**
+         * Attempts CDI lookup through direct CDI API dispatch when CDI is
+         * present at runtime.
          *
          * @param type The component type
          * @param <T> The component type
          * @return The CDI component, if CDI is available and has a bean
          */
         static <T> Optional<T> cdiBean(Class<T> type) {
+            if (!isCdiSupportPresent()) {
+                return Optional.empty();
+            }
             try {
-                Class<?> cdiType = Class.forName("jakarta.enterprise.inject.spi.CDI");
-                Object cdi = cdiType.getMethod("current").invoke(null);
-                Method select = cdi.getClass().getMethod("select", Class.class, Annotation[].class);
-                Object instance = select.invoke(cdi, type, new Annotation[0]);
-                return Optional.of(type.cast(instance.getClass().getMethod("get").invoke(instance)));
-            } catch (ReflectiveOperationException | LinkageError | RuntimeException e) {
+                return Optional.of(CDI.current().select(type).get());
+            } catch (LinkageError | RuntimeException e) {
                 return Optional.empty();
             }
         }

@@ -80,13 +80,7 @@ final class JsonbReflectionUtil {
      */
     static List<Field> fields(Class<?> type) {
         List<Field> fields = new ArrayList<>();
-        List<Class<?>> hierarchy = new ArrayList<>();
-        Class<?> current = type;
-        while (current != Object.class && current != null) {
-            hierarchy.add(current);
-            current = current.getSuperclass();
-        }
-        Collections.reverse(hierarchy);
+        List<Class<?>> hierarchy = resolveHierarchy(type);
         for (Class<?> hierarchyType : hierarchy) {
             Collections.addAll(fields, hierarchyType.getDeclaredFields());
         }
@@ -478,5 +472,16 @@ final class JsonbReflectionUtil {
             builder.append(character);
         }
         return builder.toString();
+    }
+
+    static List<Class<?>> resolveHierarchy(Class<?> type) {
+        List<Class<?>> hierarchy = new ArrayList<>();
+        Class<?> current = type;
+        while (current != null && current != Object.class) {
+            hierarchy.add(current);
+            current = current.getSuperclass();
+        }
+        Collections.reverse(hierarchy);
+        return hierarchy;
     }
 }

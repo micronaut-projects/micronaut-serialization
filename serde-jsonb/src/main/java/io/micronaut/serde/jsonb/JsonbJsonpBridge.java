@@ -343,6 +343,7 @@ final class JsonbJsonpBridge {
         }
     }
 
+    @SuppressWarnings("resource")
     private static final class JsonNodeGenerator implements JsonGenerator {
         private final java.util.ArrayDeque<Container> containers = new java.util.ArrayDeque<>();
         private @Nullable JsonNode value;
@@ -610,7 +611,7 @@ final class JsonbJsonpBridge {
 
         @Override
         public String getString() {
-            return parser.getText();
+            return parser.getString();
         }
 
         @Override

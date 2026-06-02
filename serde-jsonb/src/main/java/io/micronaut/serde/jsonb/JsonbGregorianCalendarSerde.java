@@ -52,7 +52,7 @@ final class JsonbGregorianCalendarSerde implements SerdeRegistrar<GregorianCalen
 
     @Override
     public GregorianCalendar deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super GregorianCalendar> type) throws IOException {
-        Calendar calendar = JsonbCalendarSerde.parse(decoder.decodeString(), type.getType());
+        Calendar calendar = JsonbCalendarSerde.parse(decoder.decodeString());
         GregorianCalendar gregorianCalendar = new GregorianCalendar(calendar.getTimeZone());
         gregorianCalendar.clear();
         gregorianCalendar.setTimeInMillis(calendar.getTimeInMillis());

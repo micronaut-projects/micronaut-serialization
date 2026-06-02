@@ -37,6 +37,10 @@ import java.lang.reflect.Modifier;
  * discriminator properties consumed by the normal Serde object pipeline.
  */
 final class JsonbTypeInfoSupport {
+
+    private static final String PREFIX_GET = "get";
+    private static final String PREFIX_IS = "is";
+
     private JsonbTypeInfoSupport() {
     }
 
@@ -106,8 +110,8 @@ final class JsonbTypeInfoSupport {
                 continue;
             }
             String methodName = method.getName();
-            if ((methodName.startsWith("get") && methodName.length() > 3 && JsonbReflectionUtil.decapitalize(methodName.substring(3)).equals(key))
-                || (methodName.startsWith("is") && methodName.length() > 2 && JsonbReflectionUtil.decapitalize(methodName.substring(2)).equals(key))) {
+            if ((methodName.startsWith(PREFIX_GET) && methodName.length() > 3 && JsonbReflectionUtil.decapitalize(methodName.substring(3)).equals(key))
+                || (methodName.startsWith(PREFIX_IS) && methodName.length() > 2 && JsonbReflectionUtil.decapitalize(methodName.substring(2)).equals(key))) {
                 return true;
             }
         }

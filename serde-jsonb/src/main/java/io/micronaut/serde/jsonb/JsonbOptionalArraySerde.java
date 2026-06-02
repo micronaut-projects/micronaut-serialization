@@ -71,7 +71,7 @@ final class JsonbOptionalArraySerde implements Serializer<Optional[]>, Deseriali
                         System.arraycopy(values, 0, expanded, 0, values.length);
                         values = expanded;
                     }
-                    values[index++] = componentDeserializer.deserializeNullable(array, decoderContext, componentType);
+                    values[index++] = componentDeserializer.deserialize(array, decoderContext, componentType);
                 }
                 array.finishStructure();
                 Optional[] result = new Optional[index];

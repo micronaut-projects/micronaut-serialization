@@ -74,7 +74,7 @@ public final class JsonbTypeAdapterSerde implements Serde<Object> {
 
     @Override
     public Deserializer<Object> createSpecific(DecoderContext context, Argument<? super Object> type) throws SerdeException {
-        Class<? extends JsonbAdapter> adapterClass = JsonbBridgeSupport.adapterClass(type.getAnnotationMetadata());
+        @SuppressWarnings("rawtypes") Class<? extends JsonbAdapter> adapterClass = JsonbBridgeSupport.adapterClass(type.getAnnotationMetadata());
         JsonbAdapter<Object, Object> adapter = adapter(adapterClass);
         @SuppressWarnings({"rawtypes", "unchecked"})
         Argument<Object> adaptedType = (Argument) Argument.of(JsonbBridgeSupport.adaptedType(adapterClass));

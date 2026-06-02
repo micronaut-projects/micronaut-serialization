@@ -43,7 +43,6 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -240,8 +239,11 @@ final class JsonbRuntimeBeanIntrospection<T> implements BeanIntrospection<T> {
     Set<String> deserializablePropertyNames() {
         Set<String> names = new HashSet<>();
         for (JsonbRuntimeProperty<T> property : validationProperties) {
-            if (!property.isJsonbTransient() && property.deserializationName() != null) {
-                names.add(property.deserializationName());
+            if (!property.isJsonbTransient()) {
+                String n = property.deserializationName();
+                if (n != null) {
+                    names.add(n);
+                }
             }
         }
         return names;
@@ -447,6 +449,7 @@ final class JsonbRuntimeBeanIntrospection<T> implements BeanIntrospection<T> {
         return JsonbScalarTypes.isJsonDateTimeScalar(type);
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public Collection<BeanProperty<T, Object>> getBeanProperties() {
         return (Collection) properties;
@@ -477,6 +480,7 @@ final class JsonbRuntimeBeanIntrospection<T> implements BeanIntrospection<T> {
         return constructor.instantiate();
     }
 
+    @SuppressWarnings("NullableProblems")
     @Override
     public T instantiate(boolean strictNullable, Object... arguments) {
         return constructor.instantiate(arguments);
@@ -559,13 +563,7 @@ final class JsonbRuntimeBeanIntrospection<T> implements BeanIntrospection<T> {
     }
 
     private static Map<Class<?>, Integer> hierarchyOrder(Class<?> type) {
-        List<Class<?>> hierarchy = new ArrayList<>();
-        Class<?> current = type;
-        while (current != null && current != Object.class) {
-            hierarchy.add(current);
-            current = current.getSuperclass();
-        }
-        Collections.reverse(hierarchy);
+        List<Class<?>> hierarchy = JsonbReflectionUtil.resolveHierarchy(type);
         Map<Class<?>, Integer> order = new LinkedHashMap<>();
         for (int i = 0; i < hierarchy.size(); i++) {
             order.put(hierarchy.get(i), i);
@@ -658,13 +656,7 @@ final class JsonbRuntimeBeanIntrospection<T> implements BeanIntrospection<T> {
 
     private static List<String> jsonbTypeInfoPropertyOrder(Class<?> type, List<String> typeProperties) {
         List<String> order = new ArrayList<>(typeProperties);
-        List<Class<?>> hierarchy = new ArrayList<>();
-        Class<?> current = type;
-        while (current != null && current != Object.class) {
-            hierarchy.add(current);
-            current = current.getSuperclass();
-        }
-        Collections.reverse(hierarchy);
+        List<Class<?>> hierarchy = JsonbReflectionUtil.resolveHierarchy(type);
         for (Class<?> hierarchyType : hierarchy) {
             for (Field field : hierarchyType.getDeclaredFields()) {
                 if (!Modifier.isStatic(field.getModifiers())) {

@@ -58,7 +58,7 @@ final class JsonbCalendarSerde implements SerdeRegistrar<Calendar> {
 
     @Override
     public Calendar deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Calendar> type) throws IOException {
-        return parse(decoder.decodeString(), type.getType());
+        return parse(decoder.decodeString());
     }
 
     @Override
@@ -107,7 +107,7 @@ final class JsonbCalendarSerde implements SerdeRegistrar<Calendar> {
      * @param type The requested calendar type
      * @return The parsed calendar
      */
-    static Calendar parse(String value, Class<?> type) {
+    static Calendar parse(String value) {
         Calendar calendar = Calendar.getInstance();
         if (value.indexOf('T') >= 0) {
             ZonedDateTime zonedDateTime = ZonedDateTime.parse(value, DateTimeFormatter.ISO_DATE_TIME);

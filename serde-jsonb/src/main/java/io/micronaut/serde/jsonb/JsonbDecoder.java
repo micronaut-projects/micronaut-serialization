@@ -277,14 +277,14 @@ record JsonbDecoder(Decoder delegate, String binaryDataStrategy) implements Deco
      */
     private static @Nullable Object toJsonbArbitrary(JsonNode node) {
         if (node.isObject()) {
-            Map<String, Object> converted = new LinkedHashMap<>();
+            Map<String, @Nullable Object> converted = new LinkedHashMap<>();
             for (Map.Entry<String, JsonNode> entry : node.entries()) {
                 converted.put(entry.getKey(), toJsonbArbitrary(entry.getValue()));
             }
             return converted;
         }
         if (node.isArray()) {
-            List<Object> converted = new ArrayList<>(node.size());
+            List<@Nullable Object> converted = new ArrayList<>(node.size());
             for (JsonNode item : node.values()) {
                 converted.add(toJsonbArbitrary(item));
             }

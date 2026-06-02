@@ -113,8 +113,8 @@ dependencies {
     testImplementation(mnTest.junit.jupiter.engine)
     testRuntimeOnly(libs.junit.platform.launcher)
     testRuntimeOnly(mnLogging.logback.classic)
-    jakartaJsonpTck(libs.managed.jakarta.json.tck)
-    jakartaJsonpTck(libs.managed.jakarta.tck.sigtest)
+    jakartaJsonpTck(libs.jakarta.json.tck)
+    jakartaJsonpTck(libs.jakarta.tck.sigtest)
 }
 
 tasks.test {

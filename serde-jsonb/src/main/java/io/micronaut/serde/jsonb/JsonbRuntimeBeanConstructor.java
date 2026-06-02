@@ -89,6 +89,7 @@ final class JsonbRuntimeBeanConstructor<T> implements BeanConstructor<T> {
      * @param <T> The bean type
      * @return The runtime constructor adapter
      */
+    @SuppressWarnings("unchecked")
     static <T> JsonbRuntimeBeanConstructor<T> of(Class<T> type) {
         Constructor<T> creatorConstructor = null;
         for (Constructor<?> constructor : type.getDeclaredConstructors()) {
@@ -134,6 +135,7 @@ final class JsonbRuntimeBeanConstructor<T> implements BeanConstructor<T> {
         return arguments;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public T instantiate(Object... parameterValues) {
         try {

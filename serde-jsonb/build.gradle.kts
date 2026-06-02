@@ -9,6 +9,8 @@ dependencies {
     api(libs.managed.jakarta.json.bindApi)
     api(libs.managed.jakarta.json.api)
 
+    compileOnly(libs.jakarta.enterprise.cdi.api)
+
     implementation(projects.micronautSerdeJackson)
     implementation(projects.micronautSerdeSupport)
     implementation(projects.micronautSerdeJsonpImpl)

@@ -123,13 +123,13 @@ dependencies {
     testImplementation(libs.managed.jakarta.json.bindApi)
     testImplementation(libs.managed.jakarta.json.api)
     testImplementation(mnTest.junit.jupiter.engine)
-    testCompileOnly(libs.managed.jakarta.json.bind.tck)
-    testRuntimeOnly(libs.managed.jakarta.enterprise.cdi.api)
-    testRuntimeOnly(libs.managed.weld.se.core)
+    testCompileOnly(libs.jakarta.json.bind.tck)
+    testRuntimeOnly(libs.jakarta.enterprise.cdi.api)
+    testRuntimeOnly(libs.weld.se.core)
     testRuntimeOnly(libs.junit.platform.launcher)
     testRuntimeOnly(mnLogging.logback.classic)
-    jakartaJsonbTck(libs.managed.jakarta.json.bind.tck)
-    jakartaJsonbTck(libs.managed.jakarta.tck.sigtest)
+    jakartaJsonbTck(libs.jakarta.json.bind.tck)
+    jakartaJsonbTck(libs.jakarta.tck.sigtest)
 }
 
 val generateJakartaJsonbTckSerdeImports by tasks.registering {
