@@ -56,6 +56,7 @@ public final class JsonbTypeInfoMapper implements NamedAnnotationMapper {
                 .member(SerdeConfig.SerSubtyped.DISCRIMINATOR_TYPE, SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY)
                 .member(SerdeConfig.SerSubtyped.DISCRIMINATOR_VALUE, SerdeConfig.SerSubtyped.DiscriminatorValueKind.NAME)
                 .member(SerdeConfig.SerSubtyped.DISCRIMINATOR_PROP, annotation.stringValue("key").orElse("@type"))
+                .member(SerdeConfig.SerSubtyped.JSONB_TYPE_INFO, true)
                 .build()
         );
     }

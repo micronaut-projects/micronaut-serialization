@@ -104,11 +104,23 @@ public class MicronautJsonbProvider extends JsonbProvider {
             return this;
         }
 
+        /**
+         * Builds a JSON-B instance from the configured properties.
+         *
+         * @return The JSON-B instance
+         */
         @Override
         public Jsonb build() {
             return build(config, jsonProvider);
         }
 
+        /**
+         * Extension point for providers that need a specialized JSON-B implementation.
+         *
+         * @param config The JSON-B configuration
+         * @param jsonProvider The optional JSON-P provider
+         * @return The JSON-B instance
+         */
         protected Jsonb build(JsonbConfig config, @Nullable JsonProvider jsonProvider) {
             return new MicronautJsonb(config, jsonProvider);
         }
@@ -122,6 +134,7 @@ public class MicronautJsonbProvider extends JsonbProvider {
         protected final boolean prettyPrint;
         protected final boolean strictIJson;
         protected final String binaryDataStrategy;
+        protected final @Nullable SerdeConfiguration serdeConfiguration;
         private final boolean reflectionOnlyFeatures;
         private final Runnable closeAction;
 
@@ -142,11 +155,15 @@ public class MicronautJsonbProvider extends JsonbProvider {
                 new JsonbSerdeConfiguration(config, serdeConfiguration),
                 new JsonbSerializationConfiguration(config, serializationConfiguration),
                 new JsonbDeserializationConfiguration(config, deserializationConfiguration)
-            ), () -> {
+            ), new JsonbSerdeConfiguration(config, serdeConfiguration), () -> {
             });
         }
 
-        private MicronautJsonb(JsonbConfig config, ObjectMapper mapper, Runnable closeAction) {
+        protected MicronautJsonb(JsonbConfig config, ObjectMapper mapper, Runnable closeAction) {
+            this(config, mapper, mapper.getSerdeRegistry().newEncoderContext(null).getSerdeConfiguration().orElse(null), closeAction);
+        }
+
+        protected MicronautJsonb(JsonbConfig config, ObjectMapper mapper, @Nullable SerdeConfiguration serdeConfiguration, Runnable closeAction) {
             this.mapper = mapper;
             this.closeAction = closeAction;
             this.registry = mapper.getSerdeRegistry();
@@ -155,6 +172,7 @@ public class MicronautJsonbProvider extends JsonbProvider {
             this.prettyPrint = config.getProperty(JsonbConfig.FORMATTING).filter(Boolean.TRUE::equals).isPresent();
             this.strictIJson = config.getProperty(JsonbConfig.STRICT_IJSON).filter(Boolean.TRUE::equals).isPresent();
             this.binaryDataStrategy = binaryDataStrategy(config);
+            this.serdeConfiguration = serdeConfiguration;
             this.reflectionOnlyFeatures = hasReflectionOnlyFeatures(config);
         }
 
@@ -225,7 +243,7 @@ public class MicronautJsonbProvider extends JsonbProvider {
             validateStrictTopLevel(object);
             try {
                 @SuppressWarnings({"unchecked", "rawtypes"})
-                Argument<Object> argument = object == null ? (Argument) Argument.OBJECT_ARGUMENT : (Argument) Argument.of(object.getClass());
+                Argument<Object> argument = object == null ? Argument.OBJECT_ARGUMENT : (Argument) Argument.of(object.getClass());
                 writeGenerated(object, argument, () -> jsonFactory.createGenerator(new JsonbWriteContext(prettyPrint), new NonClosingWriter(writer)));
             } catch (IOException | RuntimeException e) {
                 throw new JsonbException("Cannot write JSON-B value", e);
@@ -249,7 +267,7 @@ public class MicronautJsonbProvider extends JsonbProvider {
             validateStrictTopLevel(object);
             try {
                 @SuppressWarnings({"unchecked", "rawtypes"})
-                Argument<Object> argument = object == null ? (Argument) Argument.OBJECT_ARGUMENT : (Argument) Argument.of(object.getClass());
+                Argument<Object> argument = object == null ? Argument.OBJECT_ARGUMENT : (Argument) Argument.of(object.getClass());
                 writeGenerated(object, argument, () -> jsonFactory.createGenerator(new JsonbWriteContext(prettyPrint), new NonClosingOutputStream(stream)));
             } catch (IOException | RuntimeException e) {
                 throw new JsonbException("Cannot write JSON-B value", e);
@@ -273,31 +291,73 @@ public class MicronautJsonbProvider extends JsonbProvider {
             closeAction.run();
         }
 
+        /**
+         * Reads a JSON string through the generated deserializer path. Subclasses may override to provide
+         * non-generated fallback behavior.
+         *
+         * @param str The JSON string
+         * @param argument The target argument
+         * @param <T> The target type
+         * @return The decoded value
+         */
         protected <T> @Nullable T readString(String str, Argument<T> argument) {
             return readGenerated(argument, () -> jsonFactory.createParser(ObjectReadContext.empty(), str));
         }
 
+        /**
+         * Reads JSON from a reader through the generated deserializer path. Subclasses may override to provide
+         * non-generated fallback behavior while preserving streaming reads.
+         *
+         * @param reader The JSON reader
+         * @param argument The target argument
+         * @param <T> The target type
+         * @return The decoded value
+         */
         protected <T> @Nullable T readReader(Reader reader, Argument<T> argument) {
             return readGenerated(argument, () -> jsonFactory.createParser(ObjectReadContext.empty(), reader));
         }
 
+        /**
+         * Reads JSON from a stream through the generated deserializer path. Subclasses may override to provide
+         * non-generated fallback behavior while preserving streaming reads.
+         *
+         * @param stream The JSON input stream
+         * @param argument The target argument
+         * @param <T> The target type
+         * @return The decoded value
+         */
         protected <T> @Nullable T readStream(InputStream stream, Argument<T> argument) {
             return readGenerated(argument, () -> jsonFactory.createParser(ObjectReadContext.empty(), stream));
         }
 
+        /**
+         * Reads JSON from a parser source with the generated deserializer for the supplied argument.
+         *
+         * @param argument The target argument
+         * @param parserSource The parser source
+         * @param <T> The target type
+         * @return The decoded value
+         */
         protected <T> @Nullable T readGenerated(Argument<T> argument, ParserSource parserSource) {
             ensureGeneratedOnlyFeatures();
             try {
                 Deserializer.DecoderContext decoderContext = registry.newDecoderContext(null);
                 Deserializer<? extends T> deserializer = decoderContext.findDeserializer(argument).createSpecific(decoderContext, argument);
                 try (JsonParser parser = parserSource.createParser()) {
-                    return deserializer.deserializeNullable(new JsonbDecoder(JacksonDecoder.create(parser, LimitingStream.DEFAULT_LIMITS), binaryDataStrategy), decoderContext, argument);
+                    return deserializer.deserializeNullable(new JsonbDecoder(JacksonDecoder.create(parser, limits()), binaryDataStrategy), decoderContext, argument);
                 }
             } catch (IOException | RuntimeException e) {
                 throw new JsonbException("Cannot read JSON-B value", e);
             }
         }
 
+        /**
+         * Checks whether a generated deserializer can be created for the argument.
+         *
+         * @param argument The target argument
+         * @param <T> The target type
+         * @return Whether the deserializer can be created
+         */
         protected <T> boolean canCreateGeneratedDeserializer(Argument<T> argument) {
             try {
                 Deserializer.DecoderContext decoderContext = registry.newDecoderContext(null);
@@ -308,6 +368,32 @@ public class MicronautJsonbProvider extends JsonbProvider {
             }
         }
 
+        /**
+         * Checks whether a generated serializer can be created for the argument.
+         *
+         * @param argument The target argument
+         * @param <T> The target type
+         * @return Whether the serializer can be created
+         */
+        protected <T> boolean canCreateGeneratedSerializer(Argument<T> argument) {
+            try {
+                Serializer.EncoderContext encoderContext = registry.newEncoderContext(null);
+                encoderContext.findSerializer(argument).createSpecific(encoderContext, argument);
+                return true;
+            } catch (Exception e) {
+                return false;
+            }
+        }
+
+        /**
+         * Writes JSON through the generated serializer path.
+         *
+         * @param object The value to write
+         * @param argument The value argument
+         * @param generatorSource The generator source
+         * @param <T> The value type
+         * @throws IOException If JSON writing fails
+         */
         protected <T> void writeGenerated(@Nullable T object, Argument<T> argument, GeneratorSource generatorSource) throws IOException {
             ensureGeneratedOnlyFeatures();
             try (JsonGenerator generator = generatorSource.createGenerator()) {
@@ -316,11 +402,20 @@ public class MicronautJsonbProvider extends JsonbProvider {
                 } else {
                     Serializer.EncoderContext encoderContext = registry.newEncoderContext(null);
                     Serializer<? super T> serializer = encoderContext.findSerializer(argument).createSpecific(encoderContext, argument);
-                    serializer.serialize(new JsonbEncoder(JacksonEncoder.create(generator, LimitingStream.DEFAULT_LIMITS), binaryDataStrategy), encoderContext, argument, object);
+                    serializer.serialize(new JsonbEncoder(JacksonEncoder.create(generator, limits()), binaryDataStrategy), encoderContext, argument, object);
                 }
             }
         }
 
+        protected final LimitingStream.RemainingLimits limits() {
+            return serdeConfiguration == null ? LimitingStream.DEFAULT_LIMITS : LimitingStream.limitsFromConfiguration(serdeConfiguration);
+        }
+
+        /**
+         * Validates strict I-JSON top-level constraints before writing.
+         *
+         * @param object The value to write
+         */
         protected void validateStrictTopLevel(@Nullable Object object) {
             if (!strictIJson || object instanceof JsonStructure) {
                 return;
@@ -330,6 +425,9 @@ public class MicronautJsonbProvider extends JsonbProvider {
             }
         }
 
+        /**
+         * Ensures reflection-only JSON-B features are not used by the generated provider.
+         */
         protected void ensureGeneratedOnlyFeatures() {
             if (reflectionOnlyFeatures) {
                 throw new JsonbException("This JSON-B configuration requires MicronautJsonbReflectionProvider");
@@ -345,7 +443,7 @@ public class MicronautJsonbProvider extends JsonbProvider {
         }
 
         protected static Argument<?> argument(java.lang.reflect.Type runtimeType) {
-            return Argument.of(runtimeType);
+            return JsonbBridgeSupport.argument(runtimeType);
         }
 
         protected static Map<String, Object> properties(JsonbConfig config) {
@@ -373,7 +471,7 @@ public class MicronautJsonbProvider extends JsonbProvider {
                 });
             config.getProperty(JsonbConfig.LOCALE)
                 .ifPresent(locale -> properties.put("micronaut.serde.locale", locale));
-            if (!PropertyOrderStrategy.ANY.equals(propertyOrderStrategy(config))) {
+            if (PropertyOrderStrategy.LEXICOGRAPHICAL.equals(propertyOrderStrategy(config))) {
                 properties.put("micronaut.serde.serialization.sort-properties-alphabetically", true);
             }
             mappedPropertyNamingStrategy(config)
@@ -384,10 +482,12 @@ public class MicronautJsonbProvider extends JsonbProvider {
             config.getProperty("jsonb.fail-on-unknown-properties")
                 .filter(Boolean.TRUE::equals)
                 .ifPresent(ignored -> properties.put("micronaut.serde.deserialization.ignore-unknown", false));
+            config.getProperty("micronaut.serde.maximum-nesting-depth")
+                .ifPresent(value -> properties.put("micronaut.serde.maximum-nesting-depth", value));
             return properties;
         }
 
-        private static String[] additionalPackages(JsonbConfig config) {
+        protected static String[] additionalPackages(JsonbConfig config) {
             return config.getProperty(JsonbConfiguration.ADDITIONAL_PACKAGES)
                 .map(MicronautJsonb::additionalPackages)
                 .orElseGet(() -> new String[0]);
@@ -395,18 +495,19 @@ public class MicronautJsonbProvider extends JsonbProvider {
 
         private static String[] additionalPackages(Object value) {
             List<String> packageNames = new ArrayList<>();
-            if (value instanceof String string) {
-                addCommaDelimitedPackageNames(packageNames, string);
-            } else if (value instanceof String[] strings) {
-                for (String packageName : strings) {
-                    addPackageName(packageNames, packageName);
+            switch (value) {
+                case String string -> addCommaDelimitedPackageNames(packageNames, string);
+                case String[] strings -> {
+                    for (String packageName : strings) {
+                        addPackageName(packageNames, packageName);
+                    }
                 }
-            } else if (value instanceof Collection<?> collection) {
-                for (Object item : collection) {
-                    addPackageName(packageNames, String.valueOf(item));
+                case Collection<?> collection -> {
+                    for (Object item : collection) {
+                        addPackageName(packageNames, String.valueOf(item));
+                    }
                 }
-            } else {
-                addPackageName(packageNames, String.valueOf(value));
+                default -> addPackageName(packageNames, String.valueOf(value));
             }
             return packageNames.toArray(String[]::new);
         }
@@ -488,12 +589,12 @@ public class MicronautJsonbProvider extends JsonbProvider {
                 || ZoneId.class.isAssignableFrom(type);
         }
 
-        private record MapperAndClose(ObjectMapper mapper, Runnable closeAction) {
+        protected record MapperAndClose(ObjectMapper mapper, Runnable closeAction) {
         }
     }
 
-    private record JsonbSerdeConfiguration(JsonbConfig jsonbConfig,
-                                           SerdeConfiguration delegate) implements SerdeConfiguration {
+    protected record JsonbSerdeConfiguration(JsonbConfig jsonbConfig,
+                                             SerdeConfiguration delegate) implements SerdeConfiguration {
         @Override
         public Optional<String> getDateFormat() {
             return jsonbConfig.getProperty(JsonbConfig.DATE_FORMAT)
@@ -587,8 +688,14 @@ public class MicronautJsonbProvider extends JsonbProvider {
         }
     }
 
-    private record JsonbSerializationConfiguration(JsonbConfig jsonbConfig,
-                                                   SerializationConfiguration delegate) implements SerializationConfiguration {
+    protected record JsonbSerializationConfiguration(JsonbConfig jsonbConfig,
+                                                     SerializationConfiguration delegate,
+                                                     boolean forceDisableGeneratedSerializer) implements SerializationConfiguration {
+        protected JsonbSerializationConfiguration(JsonbConfig jsonbConfig,
+                                                  SerializationConfiguration delegate) {
+            this(jsonbConfig, delegate, false);
+        }
+
         @Override
         public SerdeConfig.SerInclude getInclusion() {
             return jsonbConfig.getProperty(JsonbConfig.NULL_VALUES)
@@ -603,8 +710,14 @@ public class MicronautJsonbProvider extends JsonbProvider {
 
         @Override
         public boolean sortPropertiesAlphabetically() {
-            return !PropertyOrderStrategy.ANY.equals(MicronautJsonb.propertyOrderStrategy(jsonbConfig))
-                || delegate.sortPropertiesAlphabetically();
+            String propertyOrderStrategy = MicronautJsonb.propertyOrderStrategy(jsonbConfig);
+            if (PropertyOrderStrategy.LEXICOGRAPHICAL.equals(propertyOrderStrategy)) {
+                return true;
+            }
+            if (PropertyOrderStrategy.REVERSE.equals(propertyOrderStrategy)) {
+                return false;
+            }
+            return delegate.sortPropertiesAlphabetically();
         }
 
         @Override
@@ -629,15 +742,21 @@ public class MicronautJsonbProvider extends JsonbProvider {
 
         @Override
         public boolean disableGeneratedSerializer() {
-            return delegate.disableGeneratedSerializer();
+            return forceDisableGeneratedSerializer || delegate.disableGeneratedSerializer();
         }
     }
 
-    private record JsonbDeserializationConfiguration(JsonbConfig jsonbConfig,
-                                                     DeserializationConfiguration delegate) implements DeserializationConfiguration {
+    protected record JsonbDeserializationConfiguration(JsonbConfig jsonbConfig,
+                                                       DeserializationConfiguration delegate,
+                                                       boolean forceDisableGeneratedDeserializer) implements DeserializationConfiguration {
+        protected JsonbDeserializationConfiguration(JsonbConfig jsonbConfig,
+                                                    DeserializationConfiguration delegate) {
+            this(jsonbConfig, delegate, false);
+        }
+
         @Override
         public boolean isIgnoreUnknown() {
-            return !jsonbConfig.getProperty("jsonb.fail-on-unknown-properties").filter(Boolean.TRUE::equals).isPresent()
+            return jsonbConfig.getProperty("jsonb.fail-on-unknown-properties").filter(Boolean.TRUE::equals).isEmpty()
                 && delegate.isIgnoreUnknown();
         }
 
@@ -704,7 +823,7 @@ public class MicronautJsonbProvider extends JsonbProvider {
 
         @Override
         public boolean disableGeneratedDeserializer() {
-            return delegate.disableGeneratedDeserializer();
+            return forceDisableGeneratedDeserializer || delegate.disableGeneratedDeserializer();
         }
     }
 

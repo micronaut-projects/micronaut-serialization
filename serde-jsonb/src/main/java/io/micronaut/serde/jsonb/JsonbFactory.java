@@ -20,6 +20,7 @@ import io.micronaut.context.annotation.Factory;
 import io.micronaut.context.annotation.Requires;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.serde.ObjectMapper;
+import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.SerializationConfiguration;
@@ -50,6 +51,7 @@ final class JsonbFactory {
      * @param config JSON-B configuration
      * @param beanContext The current bean context
      * @param objectMapper The current object mapper
+     * @param serdeIntrospections The current serde introspections
      * @param serdeConfiguration The current serde configuration
      * @param serializationConfiguration The current serialization configuration
      * @param deserializationConfiguration The current deserialization configuration
@@ -60,6 +62,7 @@ final class JsonbFactory {
     Jsonb jsonb(JsonbConfig config,
                 BeanContext beanContext,
                 ObjectMapper objectMapper,
+                SerdeIntrospections serdeIntrospections,
                 SerdeConfiguration serdeConfiguration,
                 SerializationConfiguration serializationConfiguration,
                 DeserializationConfiguration deserializationConfiguration,
@@ -69,6 +72,7 @@ final class JsonbFactory {
                 config,
                 beanContext,
                 objectMapper,
+                serdeIntrospections,
                 serdeConfiguration,
                 serializationConfiguration,
                 deserializationConfiguration

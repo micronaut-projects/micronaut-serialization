@@ -18,12 +18,14 @@ package io.micronaut.serde.jsonb;
 import io.micronaut.context.BeanContext;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
-import io.micronaut.json.JsonMapper;
+import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.ObjectMapper;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import jakarta.inject.Singleton;
 import jakarta.json.bind.JsonbException;
+import jakarta.json.bind.config.BinaryDataStrategy;
 import jakarta.json.bind.serializer.JsonbSerializer;
 
 import java.io.IOException;
@@ -34,10 +36,12 @@ import java.io.IOException;
 @Internal
 @Singleton
 public final class JsonbTypeSerializerBridge implements Serializer<Object> {
-    private final JsonbBridgeSupport.ComponentFactory componentFactory;
-    private final JsonMapper mapper;
+    private static final Argument<JsonNode> JSON_NODE_ARGUMENT = Argument.of(JsonNode.class);
 
-    JsonbTypeSerializerBridge(BeanContext beanContext, JsonMapper mapper) {
+    private final JsonbBridgeSupport.ComponentFactory componentFactory;
+    private final ObjectMapper mapper;
+
+    JsonbTypeSerializerBridge(BeanContext beanContext, ObjectMapper mapper) {
         this.componentFactory = new JsonbBridgeSupport.ComponentFactory(beanContext);
         this.mapper = mapper;
     }
@@ -48,10 +52,16 @@ public final class JsonbTypeSerializerBridge implements Serializer<Object> {
         JsonbSerializer<Object> serializer = (JsonbSerializer<Object>) componentFactory.get(
             JsonbBridgeSupport.serializerClass(type.getAnnotationMetadata())
         );
+        Serializer<? super JsonNode> jsonNodeSerializer = context.findSerializer(JSON_NODE_ARGUMENT).createSpecific(context, JSON_NODE_ARGUMENT);
+        JsonbFallbackCodec codec = new JsonbFallbackCodec(
+            mapper,
+            context.getSerdeConfiguration().orElse(null),
+            BinaryDataStrategy.BYTE
+        );
         return (encoder, _, _, value) -> {
             try {
-                JsonbBridgeSupport.encodeAny(encoder, JsonbBridgeSupport.writeWithJsonbSerializer(serializer, value, mapper));
-            } catch (JsonbException e) {
+                jsonNodeSerializer.serialize(encoder, context, JSON_NODE_ARGUMENT, JsonbJsonpBridge.writeWithJsonbSerializer(serializer, value, codec));
+            } catch (JsonbException | IOException e) {
                 throw e;
             } catch (RuntimeException e) {
                 throw new JsonbException("Cannot serialize JSON-B value with custom serializer", e);

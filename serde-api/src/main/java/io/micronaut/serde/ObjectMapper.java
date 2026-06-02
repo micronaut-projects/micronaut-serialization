@@ -65,6 +65,26 @@ public interface ObjectMapper extends JsonMapper {
     }
 
     /**
+     * Optional feature. Create a new {@link ObjectMapper} with the given configuration values and introspections. A
+     * {@code null} configuration parameter indicates the old configuration should be used.
+     *
+     * @param configuration The {@link SerdeConfiguration}
+     * @param serializationConfiguration The {@link SerializationConfiguration}
+     * @param deserializationConfiguration The {@link DeserializationConfiguration}
+     * @param introspections The {@link SerdeIntrospections}
+     * @return A new {@link JsonMapper} with the updated config and introspections
+     * @since 3.0.1
+     */
+    default ObjectMapper cloneWithConfiguration(
+        @Nullable SerdeConfiguration configuration,
+        @Nullable SerializationConfiguration serializationConfiguration,
+        @Nullable DeserializationConfiguration deserializationConfiguration,
+        SerdeIntrospections introspections
+    ) {
+        return cloneWithConfiguration(configuration, serializationConfiguration, deserializationConfiguration);
+    }
+
+    /**
      * Returns the {@link SerdeRegistry} used by this object mapper, if possible.
      *
      * @return The serde registry

@@ -34,4 +34,6 @@ import java.lang.annotation.RetentionPolicy;
     Class<? extends JsonbSerializer> serializer() default JsonbSerializer.class;
 
     Class<? extends JsonbDeserializer> deserializer() default JsonbDeserializer.class;
+
+    String customization() default "";
 }

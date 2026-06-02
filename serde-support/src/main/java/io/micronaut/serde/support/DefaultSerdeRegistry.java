@@ -167,6 +167,14 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
     @Override
     public SerdeRegistry cloneWithConfiguration(@Nullable SerdeConfiguration configuration, @Nullable SerializationConfiguration serializationConfiguration, @Nullable DeserializationConfiguration deserializationConfiguration) {
+        return cloneWithConfiguration(configuration, serializationConfiguration, deserializationConfiguration, introspections);
+    }
+
+    @Override
+    public SerdeRegistry cloneWithConfiguration(@Nullable SerdeConfiguration configuration,
+                                                @Nullable SerializationConfiguration serializationConfiguration,
+                                                @Nullable DeserializationConfiguration deserializationConfiguration,
+                                                SerdeIntrospections introspections) {
         return new DefaultSerdeRegistry(
             beanContext,
             introspections,

@@ -17,24 +17,19 @@ package io.micronaut.serde.jsonb;
 
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
-import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.support.SerdeRegistrar;
 import jakarta.inject.Singleton;
 import jakarta.json.JsonArray;
-import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonNumber;
 import jakarta.json.JsonObject;
-import jakarta.json.JsonObjectBuilder;
 import jakarta.json.JsonString;
 import jakarta.json.JsonStructure;
 import jakarta.json.JsonValue;
-import jakarta.json.spi.JsonProvider;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
@@ -74,6 +69,7 @@ final class JsonpValueSerde implements SerdeRegistrar<JsonValue> {
             case TRUE -> encoder.encodeBoolean(true);
             case FALSE -> encoder.encodeBoolean(false);
             case NULL -> encoder.encodeNull();
+            default -> throw new IOException("Unsupported JSON-P value type: " + value.getValueType());
         }
     }
 
@@ -94,7 +90,7 @@ final class JsonpValueSerde implements SerdeRegistrar<JsonValue> {
 
     @Override
     public JsonValue deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super JsonValue> type) throws IOException {
-        return toJsonpValue(decoder.decodeNode(), type.getType());
+        return JsonbJsonpBridge.toJsonpValue(decoder.decodeNode(), type.getType());
     }
 
     @Override
@@ -103,73 +99,6 @@ final class JsonpValueSerde implements SerdeRegistrar<JsonValue> {
             return JsonValue.NULL;
         }
         return deserialize(decoder, context, type);
-    }
-
-    private static JsonValue toJsonpValue(JsonNode node, Class<?> targetType) {
-        JsonProvider provider = JsonProvider.provider();
-        if (node.isNull()) {
-            return JsonValue.NULL;
-        }
-        if (targetType == JsonString.class) {
-            return provider.createValue(node.coerceStringValue());
-        }
-        if (targetType == JsonNumber.class) {
-            return jsonNumber(provider, node.getNumberValue());
-        }
-        if (targetType == JsonArray.class) {
-            return jsonArray(provider, node);
-        }
-        if (targetType == JsonObject.class) {
-            return jsonObject(provider, node);
-        }
-        if (targetType == JsonStructure.class) {
-            return node.isArray() ? jsonArray(provider, node) : jsonObject(provider, node);
-        }
-        if (node.isObject()) {
-            return jsonObject(provider, node);
-        }
-        if (node.isArray()) {
-            return jsonArray(provider, node);
-        }
-        if (node.isString()) {
-            return provider.createValue(node.getStringValue());
-        }
-        if (node.isNumber()) {
-            return jsonNumber(provider, node.getNumberValue());
-        }
-        if (node.isBoolean()) {
-            return node.getBooleanValue() ? JsonValue.TRUE : JsonValue.FALSE;
-        }
-        return JsonValue.NULL;
-    }
-
-    private static JsonNumber jsonNumber(JsonProvider provider, Number number) {
-        if (number instanceof BigDecimal decimal) {
-            return provider.createValue(decimal);
-        }
-        if (number instanceof BigInteger integer) {
-            return provider.createValue(integer);
-        }
-        if (number instanceof Float || number instanceof Double) {
-            return provider.createValue(number.doubleValue());
-        }
-        return provider.createValue(number.longValue());
-    }
-
-    private static JsonObject jsonObject(JsonProvider provider, JsonNode node) {
-        JsonObjectBuilder builder = provider.createObjectBuilder();
-        for (Map.Entry<String, JsonNode> entry : node.entries()) {
-            builder.add(entry.getKey(), toJsonpValue(entry.getValue(), JsonValue.class));
-        }
-        return builder.build();
-    }
-
-    private static JsonArray jsonArray(JsonProvider provider, JsonNode node) {
-        JsonArrayBuilder builder = provider.createArrayBuilder();
-        for (JsonNode value : node.values()) {
-            builder.add(toJsonpValue(value, JsonValue.class));
-        }
-        return builder.build();
     }
 
     @Override

@@ -24,9 +24,26 @@ import jakarta.json.bind.JsonbBuilder;
 import jakarta.json.bind.JsonbConfig;
 import jakarta.json.bind.JsonbException;
 import jakarta.json.bind.annotation.JsonbCreator;
+import jakarta.json.bind.annotation.JsonbDateFormat;
+import jakarta.json.bind.annotation.JsonbNumberFormat;
 import jakarta.json.bind.annotation.JsonbProperty;
+import jakarta.json.bind.annotation.JsonbPropertyOrder;
+import jakarta.json.bind.annotation.JsonbTransient;
+import jakarta.json.bind.annotation.JsonbSubtype;
+import jakarta.json.bind.annotation.JsonbTypeAdapter;
+import jakarta.json.bind.annotation.JsonbTypeDeserializer;
+import jakarta.json.bind.annotation.JsonbTypeInfo;
+import jakarta.json.bind.annotation.JsonbTypeSerializer;
+import jakarta.json.bind.annotation.JsonbVisibility;
+import jakarta.json.bind.adapter.JsonbAdapter;
+import jakarta.json.bind.serializer.DeserializationContext;
+import jakarta.json.bind.serializer.JsonbDeserializer;
+import jakarta.json.bind.serializer.JsonbSerializer;
+import jakarta.json.bind.config.PropertyVisibilityStrategy;
 import jakarta.json.bind.config.BinaryDataStrategy;
 import jakarta.json.bind.spi.JsonbProvider;
+import jakarta.json.stream.JsonGenerator;
+import jakarta.json.stream.JsonParser;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -39,12 +56,18 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -172,6 +195,19 @@ class MicronautJsonbProviderTest {
     }
 
     @Test
+    void reflectionProviderReadsFallbackInputStreamWithoutReadAllBytes() throws Exception {
+        JsonbConfig config = new JsonbConfig()
+            .setProperty(JsonbConfig.PROPERTY_VISIBILITY_STRATEGY, new RuntimeVisibilityStrategy());
+
+        try (Jsonb jsonb = JsonbBuilder.create(config)) {
+            RuntimeVisibilityBook decoded = jsonb.fromJson(new NoReadAllBytesInputStream("{\"visible\":\"read\",\"hidden\":\"secret\"}"), RuntimeVisibilityBook.class);
+
+            assertEquals("read", decoded.visible);
+            assertEquals("initial", decoded.hidden);
+        }
+    }
+
+    @Test
     void generatedProviderReadsReaderWithoutTransferTo() throws Exception {
         try (Jsonb jsonb = new MicronautJsonbProvider().create().build()) {
             String json = "{\"qty\":10,\"title\":\"The Stand\"}";
@@ -186,6 +222,19 @@ class MicronautJsonbProviderTest {
             String json = "{\"qty\":10,\"title\":\"The Stand\"}";
 
             assertEquals(book(), jsonb.fromJson(new NoTransferToReader(json), Book.class));
+        }
+    }
+
+    @Test
+    void reflectionProviderReadsFallbackReaderWithoutTransferTo() throws Exception {
+        JsonbConfig config = new JsonbConfig()
+            .setProperty(JsonbConfig.PROPERTY_VISIBILITY_STRATEGY, new RuntimeVisibilityStrategy());
+
+        try (Jsonb jsonb = JsonbBuilder.create(config)) {
+            RuntimeVisibilityBook decoded = jsonb.fromJson(new NoTransferToReader("{\"visible\":\"read\",\"hidden\":\"secret\"}"), RuntimeVisibilityBook.class);
+
+            assertEquals("read", decoded.visible);
+            assertEquals("initial", decoded.hidden);
         }
     }
 
@@ -226,12 +275,213 @@ class MicronautJsonbProviderTest {
     }
 
     @Test
+    void reflectionProviderHandlesNonIntrospectedBeanThroughRuntimeIntrospection() throws Exception {
+        try (Jsonb jsonb = JsonbBuilder.create()) {
+            RuntimeBook book = new RuntimeBook();
+            book.title = "The Stand";
+            book.ignored = "secret";
+
+            assertEquals("{\"name\":\"The Stand\"}", jsonb.toJson(book));
+
+            RuntimeBook decoded = jsonb.fromJson("{\"name\":\"It\",\"ignored\":\"secret\"}", RuntimeBook.class);
+            assertEquals("It", decoded.title);
+            assertEquals("initial", decoded.ignored);
+        }
+    }
+
+    @Test
+    void reflectionProviderMapsJsonbMetadataThroughRuntimeIntrospection() throws Exception {
+        try (Jsonb jsonb = JsonbBuilder.create()) {
+            RuntimeMetadataBook book = new RuntimeMetadataBook();
+            book.serialized = "write";
+            book.adapted = "value";
+            book.amount = new BigDecimal("1234.5");
+            SimpleDateFormat utcDayFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+            utcDayFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+            book.day = utcDayFormat.parse("2026-06-01");
+
+            assertEquals(
+                "{\"serialized\":\"ser:write\",\"adapted\":\"adapt:value\",\"amount\":\"1,234.50\",\"day\":\"2026-06-01\"}",
+                jsonb.toJson(book)
+            );
+
+            RuntimeMetadataBook decoded = jsonb.fromJson(
+                "{\"serialized\":\"ignored\",\"adapted\":\"adapt:read\",\"amount\":\"1,234.50\",\"day\":\"2026-06-01\",\"deserialized\":\"raw\"}",
+                RuntimeMetadataBook.class
+            );
+            assertEquals("read", decoded.adapted);
+            assertEquals("deser:raw", decoded.deserialized);
+            assertEquals(0, new BigDecimal("1234.50").compareTo(decoded.amount));
+            assertEquals(utcDayFormat.parse("2026-06-01"), decoded.day);
+        }
+    }
+
+    @Test
+    void reflectionProviderUsesJsonbCreatorThroughRuntimeIntrospection() throws Exception {
+        try (Jsonb jsonb = JsonbBuilder.create()) {
+            RuntimeCreatorBook book = jsonb.fromJson("{\"title\":\"The Stand\",\"qty\":10}", RuntimeCreatorBook.class);
+
+            assertEquals("The Stand", book.title);
+            assertEquals(10, book.quantity);
+            assertEquals("{\"title\":\"The Stand\",\"qty\":10}", jsonb.toJson(book));
+        }
+    }
+
+    @Test
+    void reflectionProviderUsesRecordsThroughRuntimeIntrospection() throws Exception {
+        try (Jsonb jsonb = JsonbBuilder.create()) {
+            RuntimeRecordBook book = jsonb.fromJson("{\"title\":\"The Stand\",\"qty\":10}", RuntimeRecordBook.class);
+
+            assertEquals(new RuntimeRecordBook("The Stand", 10), book);
+            assertEquals("{\"title\":\"The Stand\",\"qty\":10}", jsonb.toJson(book));
+        }
+    }
+
+    @Test
+    void reflectionProviderUsesVisibilityStrategyThroughRuntimeIntrospection() throws Exception {
+        JsonbConfig config = new JsonbConfig()
+            .setProperty(JsonbConfig.PROPERTY_VISIBILITY_STRATEGY, new RuntimeVisibilityStrategy());
+
+        try (Jsonb jsonb = JsonbBuilder.create(config)) {
+            RuntimeVisibilityBook book = new RuntimeVisibilityBook();
+            book.visible = "shown";
+            book.hidden = "secret";
+
+            assertEquals("{\"visible\":\"shown\"}", jsonb.toJson(book));
+
+            RuntimeVisibilityBook decoded = jsonb.fromJson("{\"visible\":\"read\",\"hidden\":\"secret\"}", RuntimeVisibilityBook.class);
+            assertEquals("read", decoded.visible);
+            assertEquals("initial", decoded.hidden);
+        }
+    }
+
+    @Test
+    void reflectionProviderUsesSerdeMetadataForJsonbTypeInfo() throws Exception {
+        try (Jsonb jsonb = JsonbBuilder.create()) {
+            RuntimeTypedBook book = new RuntimeTypedBook("The Stand", 10);
+
+            assertEquals("{\"kind\":\"book\",\"title\":\"The Stand\",\"qty\":10}", jsonb.toJson(book));
+
+            RuntimeTypedItem decoded = jsonb.fromJson("{\"kind\":\"book\",\"title\":\"It\",\"qty\":20}", RuntimeTypedItem.class);
+            RuntimeTypedBook decodedBook = assertInstanceOf(RuntimeTypedBook.class, decoded);
+            assertEquals("It", decodedBook.title);
+            assertEquals(20, decodedBook.quantity);
+        }
+    }
+
+    @Test
+    void reflectionProviderUsesRuntimeIntrospectionMetadataForJsonbTypeInfo() throws Exception {
+        try (Jsonb jsonb = JsonbBuilder.create()) {
+            RuntimeFallbackTypedBook book = new RuntimeFallbackTypedBook("The Stand", 10);
+
+            assertEquals("{\"kind\":\"book\",\"title\":\"The Stand\",\"qty\":10}", jsonb.toJson(book));
+
+            RuntimeFallbackTypedItem decoded = jsonb.fromJson("{\"kind\":\"book\",\"title\":\"It\",\"qty\":20}", RuntimeFallbackTypedItem.class);
+            RuntimeFallbackTypedBook decodedBook = assertInstanceOf(RuntimeFallbackTypedBook.class, decoded);
+            assertEquals("It", decodedBook.title);
+            assertEquals(20, decodedBook.quantity);
+        }
+    }
+
+    @Test
     void generatedProviderSourceDoesNotUseReflectionFallback() throws Exception {
         String source = Files.readString(Path.of("src/main/java/io/micronaut/serde/jsonb/MicronautJsonbProvider.java"));
 
         for (String forbidden : List.of("Field", "Method", "Constructor", "ParameterizedType", "setAccessible", "getDeclared", "Class.forName", "ReflectionFallback")) {
             assertFalse(source.contains(forbidden), () -> "MicronautJsonbProvider should not use " + forbidden);
         }
+    }
+
+    @Test
+    void reflectionFallbackDoesNotKeepDuplicateRuntimePropertyModel() throws Exception {
+        String source = Files.readString(Path.of("src/main/java/io/micronaut/serde/jsonb/ReflectionFallback.java"));
+
+        assertFalse(source.contains("PropertyModel"));
+        assertFalse(source.contains("propertyModels("));
+        assertFalse(source.contains("toBean("));
+        assertFalse(source.contains("toJsonpValue("));
+        assertFalse(source.contains("JsonObjectBuilder"));
+        assertFalse(source.contains("JsonArrayBuilder"));
+    }
+
+    @Test
+    void generatedProviderUsesConfiguredLimitsForGeneratedPaths() throws Exception {
+        String source = Files.readString(Path.of("src/main/java/io/micronaut/serde/jsonb/MicronautJsonbProvider.java"));
+
+        assertFalse(methodSource(source, "readGenerated").contains("LimitingStream.DEFAULT_LIMITS"));
+        assertFalse(methodSource(source, "writeGenerated").contains("LimitingStream.DEFAULT_LIMITS"));
+    }
+
+    @Test
+    void configuredMaximumNestingDepthIsEnforcedForGeneratedJsonb() throws Exception {
+        JsonbConfig config = new JsonbConfig()
+            .setProperty("micronaut.serde.maximum-nesting-depth", 1);
+
+        try (Jsonb jsonb = new MicronautJsonbProvider().create().withConfig(config).build()) {
+            assertThrows(JsonbException.class, () -> jsonb.fromJson("{\"value\":{\"value\":\"too-deep\"}}", GeneratedNested.class));
+            assertThrows(JsonbException.class, () -> jsonb.toJson(new GeneratedNested(new GeneratedNested(null))));
+        }
+    }
+
+    @Test
+    void configuredMaximumNestingDepthIsEnforcedForReflectionFallbackJsonb() throws Exception {
+        JsonbConfig config = new JsonbConfig()
+            .setProperty("micronaut.serde.maximum-nesting-depth", 1)
+            .setProperty(JsonbConfig.PROPERTY_VISIBILITY_STRATEGY, new RuntimeNestedVisibilityStrategy());
+
+        try (Jsonb jsonb = JsonbBuilder.create(config)) {
+            assertThrows(JsonbException.class, () -> jsonb.fromJson("{\"value\":{\"value\":\"too-deep\"}}", RuntimeNested.class));
+            RuntimeNested nested = new RuntimeNested();
+            nested.value = new RuntimeNested();
+            assertThrows(JsonbException.class, () -> jsonb.toJson(nested));
+        }
+    }
+
+    @Test
+    void reflectionProviderHotPathsUseRuntimeModelPreflight() throws Exception {
+        String source = Files.readString(Path.of("src/main/java/io/micronaut/serde/jsonb/MicronautJsonbReflectionProvider.java"));
+
+        assertFalse(source.contains("ReflectionFallback.validateObjectModel"));
+        assertFalse(source.contains("JsonbTypeInfoSupport.validateTypeInfoModel"));
+        assertFalse(source.contains("getAnnotation(JsonbVisibility"));
+    }
+
+    @Test
+    void reflectionProviderValidatesDuplicateNamesThroughRuntimeModel() throws Exception {
+        try (Jsonb jsonb = JsonbBuilder.create()) {
+            JsonbException exception = assertThrows(JsonbException.class, () -> jsonb.toJson(new DuplicateJsonbNames()));
+
+            assertTrue(exception.getMessage().contains("Duplicate JSON-B property name: same"));
+        }
+    }
+
+    @Test
+    void reflectionProviderValidatesTransientCustomizationThroughRuntimeModel() throws Exception {
+        try (Jsonb jsonb = JsonbBuilder.create()) {
+            JsonbException exception = assertThrows(JsonbException.class, () -> jsonb.toJson(new TransientCustomizedBook()));
+
+            assertTrue(exception.getMessage().contains("JsonbTransient cannot be combined"));
+        }
+    }
+
+    @Test
+    void reflectionProviderCachesAnnotatedVisibilityStrategyForRepeatedRuntimeMapping() throws Exception {
+        CountingRuntimeVisibilityStrategy.INSTANTIATIONS.set(0);
+
+        try (Jsonb jsonb = JsonbBuilder.create()) {
+            AnnotatedRuntimeVisibilityBook book = new AnnotatedRuntimeVisibilityBook();
+            book.visible = "shown";
+            book.hidden = "secret";
+
+            assertEquals("{\"visible\":\"shown\"}", jsonb.toJson(book));
+            assertEquals("{\"visible\":\"shown\"}", jsonb.toJson(book));
+
+            AnnotatedRuntimeVisibilityBook decoded = jsonb.fromJson("{\"visible\":\"read\",\"hidden\":\"secret\"}", AnnotatedRuntimeVisibilityBook.class);
+            assertEquals("read", decoded.visible);
+            assertEquals("initial", decoded.hidden);
+        }
+
+        assertEquals(1, CountingRuntimeVisibilityStrategy.INSTANTIATIONS.get());
     }
 
     @Test
@@ -293,6 +543,25 @@ class MicronautJsonbProviderTest {
 
     private static Book book() {
         return new Book("The Stand", 10);
+    }
+
+    private static String methodSource(String source, String methodName) {
+        int start = source.indexOf(methodName + "(");
+        assertTrue(start >= 0, () -> "Missing method " + methodName);
+        int brace = source.indexOf('{', start);
+        int depth = 0;
+        for (int i = brace; i < source.length(); i++) {
+            char character = source.charAt(i);
+            if (character == '{') {
+                depth++;
+            } else if (character == '}') {
+                depth--;
+                if (depth == 0) {
+                    return source.substring(start, i + 1);
+                }
+            }
+        }
+        throw new AssertionError("Cannot locate method body for " + methodName);
     }
 
     private static final class NoReadAllBytesInputStream extends ByteArrayInputStream {
@@ -360,6 +629,29 @@ class MicronautJsonbProviderTest {
     record TimeZoneHolder(TimeZone value) {
     }
 
+    @Serdeable
+    record GeneratedNested(GeneratedNested value) {
+    }
+
+    static final class RuntimeNested {
+        private RuntimeNested value;
+
+        protected RuntimeNested() {
+        }
+    }
+
+    static final class RuntimeNestedVisibilityStrategy implements PropertyVisibilityStrategy {
+        @Override
+        public boolean isVisible(Field field) {
+            return true;
+        }
+
+        @Override
+        public boolean isVisible(Method method) {
+            return false;
+        }
+    }
+
     static final class PlainBook {
         private final String name;
 
@@ -369,6 +661,278 @@ class MicronautJsonbProviderTest {
 
         public String getName() {
             return name;
+        }
+    }
+
+    static class RuntimeBook {
+        private String title;
+        private String ignored = "initial";
+
+        protected RuntimeBook() {
+        }
+
+        @JsonbProperty("name")
+        public String getTitle() {
+            return title;
+        }
+
+        @JsonbProperty("name")
+        public void setTitle(String title) {
+            this.title = title;
+        }
+
+        @JsonbTransient
+        public String getIgnored() {
+            return ignored;
+        }
+
+        @JsonbTransient
+        public void setIgnored(String ignored) {
+            this.ignored = ignored;
+        }
+    }
+
+    @JsonbPropertyOrder({"serialized", "adapted", "amount", "day"})
+    static class RuntimeMetadataBook {
+        private String serialized;
+        private String adapted;
+        private BigDecimal amount;
+        private Date day;
+        private String deserialized;
+
+        protected RuntimeMetadataBook() {
+        }
+
+        @JsonbTypeSerializer(PrefixSerializer.class)
+        public String getSerialized() {
+            return serialized;
+        }
+
+        public void setSerialized(String serialized) {
+            this.serialized = serialized;
+        }
+
+        @JsonbTypeAdapter(PrefixAdapter.class)
+        public String getAdapted() {
+            return adapted;
+        }
+
+        @JsonbTypeAdapter(PrefixAdapter.class)
+        public void setAdapted(String adapted) {
+            this.adapted = adapted;
+        }
+
+        @JsonbNumberFormat("###,##0.00")
+        public BigDecimal getAmount() {
+            return amount;
+        }
+
+        @JsonbNumberFormat("###,##0.00")
+        public void setAmount(BigDecimal amount) {
+            this.amount = amount;
+        }
+
+        @JsonbDateFormat("yyyy-MM-dd")
+        public Date getDay() {
+            return day;
+        }
+
+        @JsonbDateFormat("yyyy-MM-dd")
+        public void setDay(Date day) {
+            this.day = day;
+        }
+
+        public String getDeserialized() {
+            return deserialized;
+        }
+
+        @JsonbTypeDeserializer(PrefixDeserializer.class)
+        public void setDeserialized(String deserialized) {
+            this.deserialized = deserialized;
+        }
+    }
+
+    static final class PrefixAdapter implements JsonbAdapter<String, String> {
+        @Override
+        public String adaptToJson(String obj) {
+            return "adapt:" + obj;
+        }
+
+        @Override
+        public String adaptFromJson(String obj) {
+            return obj.substring("adapt:".length());
+        }
+    }
+
+    static final class PrefixSerializer implements JsonbSerializer<String> {
+        @Override
+        public void serialize(String obj, JsonGenerator generator, jakarta.json.bind.serializer.SerializationContext ctx) {
+            generator.write("ser:" + obj);
+        }
+    }
+
+    static final class PrefixDeserializer implements JsonbDeserializer<String> {
+        @Override
+        public String deserialize(JsonParser parser, DeserializationContext ctx, Type rtType) {
+            if (parser.hasNext()) {
+                parser.next();
+            }
+            return "deser:" + parser.getString();
+        }
+    }
+
+    @JsonbPropertyOrder({"title", "qty"})
+    static final class RuntimeCreatorBook {
+        private final String title;
+        private final int quantity;
+
+        @JsonbCreator
+        RuntimeCreatorBook(@JsonbProperty("title") String title, @JsonbProperty("qty") int quantity) {
+            this.title = title;
+            this.quantity = quantity;
+        }
+
+        public String getTitle() {
+            return title;
+        }
+
+        @JsonbProperty("qty")
+        public int getQuantity() {
+            return quantity;
+        }
+    }
+
+    @JsonbPropertyOrder({"title", "qty"})
+    record RuntimeRecordBook(@JsonbProperty("title") String title, @JsonbProperty("qty") int quantity) {
+    }
+
+    static class RuntimeVisibilityBook {
+        private String visible;
+        private String hidden = "initial";
+
+        protected RuntimeVisibilityBook() {
+        }
+    }
+
+    static final class RuntimeVisibilityStrategy implements PropertyVisibilityStrategy {
+        @Override
+        public boolean isVisible(Field field) {
+            return field.getName().equals("visible");
+        }
+
+        @Override
+        public boolean isVisible(Method method) {
+            return false;
+        }
+    }
+
+    static final class DuplicateJsonbNames {
+        private String first = "one";
+        private String second = "two";
+
+        @JsonbProperty("same")
+        public String getFirst() {
+            return first;
+        }
+
+        @JsonbProperty("same")
+        public String getSecond() {
+            return second;
+        }
+    }
+
+    static final class TransientCustomizedBook {
+        private String name = "The Stand";
+
+        @JsonbTransient
+        @JsonbProperty("name")
+        public String getName() {
+            return name;
+        }
+    }
+
+    @JsonbVisibility(CountingRuntimeVisibilityStrategy.class)
+    static class AnnotatedRuntimeVisibilityBook {
+        private String visible;
+        private String hidden = "initial";
+
+        protected AnnotatedRuntimeVisibilityBook() {
+        }
+    }
+
+    static final class CountingRuntimeVisibilityStrategy implements PropertyVisibilityStrategy {
+        static final AtomicInteger INSTANTIATIONS = new AtomicInteger();
+
+        CountingRuntimeVisibilityStrategy() {
+            INSTANTIATIONS.incrementAndGet();
+        }
+
+        @Override
+        public boolean isVisible(Field field) {
+            return field.getName().equals("visible");
+        }
+
+        @Override
+        public boolean isVisible(Method method) {
+            return false;
+        }
+    }
+
+    @Serdeable
+    @JsonbTypeInfo(
+        key = "kind",
+        value = @JsonbSubtype(alias = "book", type = RuntimeTypedBook.class)
+    )
+    abstract static class RuntimeTypedItem {
+    }
+
+    @Serdeable
+    @JsonbPropertyOrder({"kind", "title", "qty"})
+    static final class RuntimeTypedBook extends RuntimeTypedItem {
+        private final String title;
+        private final int quantity;
+
+        @JsonbCreator
+        RuntimeTypedBook(@JsonbProperty("title") String title, @JsonbProperty("qty") int quantity) {
+            this.title = title;
+            this.quantity = quantity;
+        }
+
+        public String getTitle() {
+            return title;
+        }
+
+        @JsonbProperty("qty")
+        public int getQuantity() {
+            return quantity;
+        }
+    }
+
+    @JsonbTypeInfo(
+        key = "kind",
+        value = @JsonbSubtype(alias = "book", type = RuntimeFallbackTypedBook.class)
+    )
+    abstract static class RuntimeFallbackTypedItem {
+    }
+
+    @JsonbPropertyOrder({"kind", "title", "qty"})
+    static final class RuntimeFallbackTypedBook extends RuntimeFallbackTypedItem {
+        private final String title;
+        private final int quantity;
+
+        @JsonbCreator
+        RuntimeFallbackTypedBook(@JsonbProperty("title") String title, @JsonbProperty("qty") int quantity) {
+            this.title = title;
+            this.quantity = quantity;
+        }
+
+        public String getTitle() {
+            return title;
+        }
+
+        @JsonbProperty("qty")
+        public int getQuantity() {
+            return quantity;
         }
     }
 

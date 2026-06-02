@@ -1062,7 +1062,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                 null,
                 (DeserBean<? super Object>) deserBean,
                 conf,
-                false);
+                true);
             beanDeserializer = resolvedBeanDeserializer;
             resolvedBeanDeserializer.init(decoderContext);
             if (buffer != null) {

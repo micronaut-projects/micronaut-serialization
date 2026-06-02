@@ -13,6 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/**
+ * Micronaut Serialization JSON-B integration.
+ */
 @NullMarked
 package io.micronaut.serde.jsonb;
 
