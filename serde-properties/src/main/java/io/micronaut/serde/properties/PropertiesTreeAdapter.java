@@ -1,3 +1,18 @@
+/*
+ * Copyright 2017-2026 original authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.micronaut.serde.properties;
 
 import io.micronaut.context.env.AbstractPropertySourceLoader;
@@ -9,11 +24,24 @@ import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.json.stream.JsonStreamMapper;
 import jakarta.inject.Singleton;
 
-
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+
+/**
+ * Builds an intermediate JSON tree from flat Java {@code .properties} keys.
+ *
+ * <p>The tree-building algorithm is adapted from Micronaut Core's
+ * {@code JsonBeanPropertyBinder#buildSourceObjectNode(...)}.</p>
+ *
+ * @see <a href="https://github.com/micronaut-projects/micronaut-core/blob/5.0.x/json-core/src/main/java/io/micronaut/json/bind/JsonBeanPropertyBinder.java">Micronaut Core JsonBeanPropertyBinder</a>
+ */
 @Internal
 @Singleton
 public class PropertiesTreeAdapter {
@@ -27,14 +55,9 @@ public class PropertiesTreeAdapter {
     protected JsonNode parse(InputStream stream) throws IOException {
         AbstractPropertySourceLoader loader = new PropertiesPropertySourceLoader(false);
         Map<String, Object> read = loader.read("", stream);
-
         Map<CharSequence, Object> values = new LinkedHashMap<>(read);
-
         return buildSourceObjectNode(values.entrySet());
-
-
     }
-
 
     private JsonNode buildSourceObjectNode(Set<? extends Map.Entry<? extends CharSequence, Object>> source) throws IOException {
         var rootNode = new ObjectBuilder();
@@ -53,21 +76,48 @@ public class PropertiesTreeAdapter {
                     token = token.substring(0, j);
                 }
 
+
+                // We are at the last part of the .properties key.
+                // Example: for "book.title", the last part is "title".
+                // Example: for "values[0]", the last part is directly "values[0]".
+                // So at this point we must store the value in the JSON tree.
+
                 if (!tokenIterator.hasNext()) {
-                    if (index != null) {
-                        current = getOrCreateObjectAtKey(current, index);
-                    }
+                    // Convert the raw .properties value into a JsonNode.
+                    // i.E "localhost" becomes a JSON string node.
+                    JsonNode valueNode = toValueNode(value);
 
-                    // Using JsonStreamMapper rather than JsonMapper that import some Jackson databind
+                    // Case 1: the key ends with a numeric index, like "values[0]=a".
+                    // Here index = "0", so this should be stored as a JSON array/list.
+                    if (index != null && StringUtils.isDigits(index)) {
+                        // Get or create the array under the key "values".
+                        ArrayBuilder arrayNode = getOrCreateArrayAtKey(current, token);
 
-                    JsonNode valueNode = jsonMapper.writeValueToTree(value);
-                    if (current == rootNode && valueNode.isValueNode()) {
-                        // Store root values as an array of a single value to
-                        // simplify deserialization cases of usersId=1&usersId=2 vs usersId=1 into a collection
-                        ArrayBuilder array = new ArrayBuilder();
-                        array.values.add(new FixedValue(valueNode));
-                        current.values.put(token, array);
+                        // Convert the text index "0" into integer 0.
+                        int arrayIndex = Integer.parseInt(index);
+
+                        // Grow the array if needed so this index exists.
+                        // Example: if values[2]=c arrives before values[0], missing slots are added.
+                        expandArrayToThreshold(arrayIndex, arrayNode);
+
+                        // Store the value at the correct array position.
+                        // Example: values[0]=a stores "a" at position 0.
+                        arrayNode.values.set(arrayIndex, new FixedValue(valueNode));
+
+                        // Case 2: the key ends with a non-numeric index, like "authorsByInitials[SK]=...".
+                        // Here index = "SK", so this should be stored as a map/object entry, not an array.
+                    } else if (index != null) {
+                        // Get or create the object under the key "authorsByInitials".
+                        ObjectBuilder objectNode = getOrCreateObjectAtKey(current, token);
+
+                        // Store the value using "SK" as the object/map key.
+                        // Example: authorsByInitials[SK]=x becomes { "authorsByInitials": { "SK": x } }
+                        objectNode.values.put(index, new FixedValue(valueNode));
+
+                        // Case 3: there is no index.
+                        // Example: "host=localhost" or "book.title=The Stand".
                     } else {
+                        // Store the value directly under the property name.
                         current.values.put(token, new FixedValue(valueNode));
                     }
                 } else {
@@ -91,7 +141,15 @@ public class PropertiesTreeAdapter {
         return rootNode.build();
     }
 
-        private ObjectBuilder getOrCreateObjectAtKey(ObjectBuilder objectNode, String key) {
+    // Divination - Coercion
+    private JsonNode toValueNode(Object value) throws IOException {
+        if (value instanceof String string) {
+            return JsonNode.createStringNode(string);
+        }
+        return jsonMapper.writeValueToTree(value);
+    }
+
+    private ObjectBuilder getOrCreateObjectAtKey(ObjectBuilder objectNode, String key) {
         ValueBuilder valueBuilder = objectNode.values.get(key);
         if (valueBuilder instanceof ObjectBuilder objectBuilder) {
             return objectBuilder;
@@ -169,6 +227,4 @@ public class PropertiesTreeAdapter {
             return JsonNode.createArrayNode(values.stream().map(ValueBuilder::build).toList());
         }
     }
-
-
 }

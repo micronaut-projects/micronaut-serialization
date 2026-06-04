@@ -28,6 +28,7 @@ import io.micronaut.serde.ObjectMapper;
 import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerdeConfiguration;
+import io.micronaut.serde.json.stream.JsonStreamMapper;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
 import io.micronaut.serde.support.util.JsonNodeEncoder;
 import jakarta.inject.Inject;
@@ -49,17 +50,23 @@ import java.io.OutputStream;
 @BootstrapContextCompatible
 public final class PropertiesMapper implements ObjectMapper {
 
+    private static final Argument<JsonNode> JSON_NODE_TYPE = Argument.of(JsonNode.class);
     private final SerdeRegistry registry;
     @Nullable
     private final SerdeConfiguration serdeConfiguration;
     @NonNull
     private final PropertiesTreeAdapter propertiesTreeAdapter;
+    private final JsonStreamMapper jsonStreamMapper;
 
     @Inject
-    public PropertiesMapper(SerdeRegistry registry, @Nullable SerdeConfiguration serdeConfiguration, PropertiesTreeAdapter propertiesTreeAdapter) {
+    public PropertiesMapper(SerdeRegistry registry,
+                            @Nullable SerdeConfiguration serdeConfiguration,
+                            PropertiesTreeAdapter propertiesTreeAdapter,
+                            JsonStreamMapper jsonStreamMapper) {
         this.registry = registry;
         this.serdeConfiguration = serdeConfiguration;
         this.propertiesTreeAdapter = propertiesTreeAdapter;
+        this.jsonStreamMapper = jsonStreamMapper;
     }
 
     @Override
@@ -77,9 +84,8 @@ public final class PropertiesMapper implements ObjectMapper {
     @Override
     public <T> @Nullable T readValue(InputStream inputStream, Argument<T> type) throws IOException {
         JsonNode tree = propertiesTreeAdapter.parse(inputStream);
-        Deserializer.DecoderContext decoderContext = registry.newDecoderContext(null);
-        Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, type);
-        return deserializer.deserializeNullable(JsonNodeDecoder.create(tree, limits()), decoderContext, type);
+        byte[] json = jsonStreamMapper.writeValueAsBytes(JSON_NODE_TYPE, tree);
+        return jsonStreamMapper.readValue(json, type);
     }
 
     @Override
