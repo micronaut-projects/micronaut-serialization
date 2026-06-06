@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.properties
 
+import io.micronaut.context.ApplicationContext
 import io.micronaut.json.JsonMapper
 import io.micronaut.serde.AbstractJsonCompileSpec
 
@@ -29,6 +30,12 @@ abstract class PropertiesCompileSpec extends AbstractJsonCompileSpec {
     @Override
     Class<JsonMapper> getJsonMapperClass() {
         PropertiesMapper
+    }
+
+    ApplicationContext buildContext(String source, Map<String, Object> contextProperties) {
+        ApplicationContext context = super.buildContext("test.Source" + System.currentTimeMillis(), source, true, contextProperties)
+        jsonMapper = context.getBean(getJsonMapperClass())
+        return context
     }
 
     protected <T> T readProperties(String properties, Object type) {

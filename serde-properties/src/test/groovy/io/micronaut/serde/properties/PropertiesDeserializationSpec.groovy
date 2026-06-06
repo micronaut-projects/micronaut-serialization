@@ -17,6 +17,7 @@ package io.micronaut.serde.properties
 
 import io.micronaut.core.type.Argument
 import io.micronaut.json.tree.JsonNode
+import io.micronaut.serde.exceptions.SerdeException
 
 class PropertiesDeserializationSpec extends PropertiesCompileSpec {
 
@@ -244,6 +245,45 @@ values[2]=c
 
         then:
         tags.values == ['a', 'b', 'c']
+
+        cleanup:
+        context.close()
+    }
+
+    void 'test indexed scalar list respects configured array size threshold'() {
+        given:
+        def context = buildContext('''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import java.util.List;
+
+@Serdeable
+class Tags {
+    private List<String> values;
+    public List<String> getValues() { return values; }
+    public void setValues(List<String> values) { this.values = values; }
+}
+''', ['micronaut.serde.deserialization.array-size-threshold': 2])
+        def type = argumentOf(context, 'test.Tags')
+
+        when:
+        def tags = readProperties('''
+values[1]=b
+values[0]=a
+''', type)
+
+        then:
+        tags.values == ['a', 'b']
+
+        when:
+        readProperties('''
+values[2]=c
+''', type)
+
+        then:
+        def e = thrown SerdeException
+        e.message == 'Array index [2] exceeds the configured array size threshold [2]'
 
         cleanup:
         context.close()

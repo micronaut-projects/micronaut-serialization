@@ -21,6 +21,8 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.core.util.StringUtils;
 import io.micronaut.json.tree.JsonNode;
+import io.micronaut.serde.config.DeserializationConfiguration;
+import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.json.stream.JsonStreamMapper;
 import jakarta.inject.Singleton;
 
@@ -47,9 +49,11 @@ import java.util.Set;
 public class PropertiesTreeAdapter {
 
     private final JsonStreamMapper jsonMapper;
+    private final int arraySizeThreshold;
 
-    public PropertiesTreeAdapter(JsonStreamMapper jsonStreamMapper) {
+    public PropertiesTreeAdapter(JsonStreamMapper jsonStreamMapper, DeserializationConfiguration deserializationConfiguration) {
         this.jsonMapper = jsonStreamMapper;
+        this.arraySizeThreshold = deserializationConfiguration.getArraySizeThreshold();
     }
 
     protected JsonNode parse(InputStream stream) throws IOException {
@@ -179,12 +183,13 @@ public class PropertiesTreeAdapter {
         return objectBuilder;
     }
 
-    private void expandArrayToThreshold(int arrayIndex, ArrayBuilder arrayNode) {
-//        if (arrayIndex < arraySizeThreshold) {
-            while (arrayNode.values.size() < arrayIndex + 1) {
-                arrayNode.values.add(FixedValue.NULL);
-            }
-//        }
+    private void expandArrayToThreshold(int arrayIndex, ArrayBuilder arrayNode) throws SerdeException {
+        if (arrayIndex >= arraySizeThreshold) {
+            throw new SerdeException("Array index [" + arrayIndex + "] exceeds the configured array size threshold [" + arraySizeThreshold + "]");
+        }
+        while (arrayNode.values.size() < arrayIndex + 1) {
+            arrayNode.values.add(FixedValue.NULL);
+        }
     }
 
     private interface ValueBuilder {
