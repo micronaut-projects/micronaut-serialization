@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.serde.properties;
+package io.micronaut.serde.properties.util;
 
 import io.micronaut.context.env.AbstractPropertySourceLoader;
 import io.micronaut.context.env.PropertiesPropertySourceLoader;
@@ -57,7 +57,14 @@ public class PropertiesTreeAdapter {
         this.arraySizeThreshold = deserializationConfiguration.getArraySizeThreshold();
     }
 
-    protected JsonNode parse(InputStream stream) throws IOException {
+    /**
+     * Parses a Java {@code .properties} stream into a JSON tree.
+     *
+     * @param stream
+     * @return The parsed JSON tree
+     * @throws IOException
+     */
+    public JsonNode parse(InputStream stream) throws IOException {
         AbstractPropertySourceLoader loader = new PropertiesPropertySourceLoader(false);
         Map<String, Object> read = loader.read("", stream);
         Map<CharSequence, Object> values = new LinkedHashMap<>(read);

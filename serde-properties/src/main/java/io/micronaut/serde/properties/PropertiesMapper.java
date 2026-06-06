@@ -29,6 +29,8 @@ import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.json.stream.JsonStreamMapper;
+import io.micronaut.serde.properties.util.PropertiesTreeAdapter;
+import io.micronaut.serde.properties.util.PropertiesWriter;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
 import io.micronaut.serde.support.util.JsonNodeEncoder;
 import jakarta.inject.Inject;
@@ -43,7 +45,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * Object mapper for Java {@code .properties} documents.
+ * A Java {@code .properties}-backed {@link ObjectMapper}.
+ *
+ * <p>Reads parse flat {@code .properties} documents into an intermediate
+ * {@link JsonNode} tree before delegating to Micronaut Serialization.
+ *
+ * <p>Writes serialize values to a {@link JsonNode} tree first, then flatten
+ * object paths and array indexes into {@code .properties} key/value lines.</p>
  *
  * @author Mousrij Hamza
  * @since 3.0.1
@@ -68,6 +76,15 @@ public final class PropertiesMapper implements ObjectMapper {
     private final PropertiesWriter propertiesWriter;
     private final JsonStreamMapper jsonStreamMapper;
 
+    /**
+     * Creates a Java {@code .properties}-backed {@link ObjectMapper}.
+     *
+     * @param registry
+     * @param serdeConfiguration
+     * @param propertiesTreeAdapter
+     * @param propertiesWriter
+     * @param jsonStreamMapper
+     */
     @Inject
     public PropertiesMapper(SerdeRegistry registry,
                             @Nullable SerdeConfiguration serdeConfiguration,
@@ -81,11 +98,25 @@ public final class PropertiesMapper implements ObjectMapper {
         this.jsonStreamMapper = jsonStreamMapper;
     }
 
+    /**
+     * Returns the {@link SerdeRegistry} used by this object mapper, if possible.
+     *
+     * @return The serde registry
+     */
     @Override
     public SerdeRegistry getSerdeRegistry() {
         return registry;
     }
 
+    /**
+     * Transform a {@link JsonNode} to a value of the given type.
+     *
+     * @param tree
+     * @param type
+     * @param <T> Type variable of the return type
+     * @return The deserialized value
+     * @throws IOException
+     */
     @Override
     public <T> @Nullable T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
         Deserializer.DecoderContext decoderContext = registry.newDecoderContext(null);
@@ -93,6 +124,15 @@ public final class PropertiesMapper implements ObjectMapper {
         return deserializer.deserializeNullable(JsonNodeDecoder.create(tree, limits()), decoderContext, type);
     }
 
+    /**
+     * Parse and map {@code .properties} data from the given stream.
+     *
+     * @param inputStream
+     * @param type
+     * @param <T> Type variable of the return type
+     * @return The deserialized object
+     * @throws IOException
+     */
     @Override
     public <T> @Nullable T readValue(InputStream inputStream, Argument<T> type) throws IOException {
         JsonNode tree = propertiesTreeAdapter.parse(inputStream);
@@ -100,11 +140,27 @@ public final class PropertiesMapper implements ObjectMapper {
         return jsonStreamMapper.readValue(json, type);
     }
 
+    /**
+     * Parse and map {@code .properties} data from the given byte array.
+     *
+     * @param byteArray
+     * @param type
+     * @param <T> Type variable of the return type
+     * @return The deserialized object
+     * @throws IOException
+     */
     @Override
     public <T> @Nullable T readValue(byte[] byteArray, Argument<T> type) throws IOException {
         return readValue(new ByteArrayInputStream(byteArray), type);
     }
 
+    /**
+     * Transform an object value to a JSON tree.
+     *
+     * @param value
+     * @return The JSON representation
+     * @throws IOException
+     */
     @Override
     public @NonNull JsonNode writeValueToTree(@Nullable Object value) throws IOException {
         if (value == null) {
@@ -115,6 +171,15 @@ public final class PropertiesMapper implements ObjectMapper {
         return encoder.getCompletedValue();
     }
 
+    /**
+     * Transform an object value to a JSON tree.
+     *
+     * @param type
+     * @param value
+     * @param <T> The type variable of the type
+     * @return The JSON representation
+     * @throws IOException
+     */
     @Override
     public <T> JsonNode writeValueToTree(Argument<T> type, @Nullable T value) throws IOException {
         if (value == null) {
@@ -126,16 +191,39 @@ public final class PropertiesMapper implements ObjectMapper {
         return encoder.getCompletedValue();
     }
 
+    /**
+     * Write an object as {@code .properties} data.
+     *
+     * @param outputStream
+     * @param object The object to serialize
+     * @throws IOException
+     */
     @Override
     public void writeValue(OutputStream outputStream, @Nullable Object object) throws IOException {
         propertiesWriter.write(outputStream, writeValueToTree(object));
     }
 
+    /**
+     * Write an object as {@code .properties} data.
+     *
+     * @param outputStream
+     * @param type
+     * @param object
+     * @param <T> The generic type
+     * @throws IOException
+     */
     @Override
     public <T> void writeValue(OutputStream outputStream, Argument<T> type, @Nullable T object) throws IOException {
         propertiesWriter.write(outputStream, writeValueToTree(type, object));
     }
 
+    /**
+     * Write an object as {@code .properties} data.
+     *
+     * @param object
+     * @return The serialized {@code .properties} bytes
+     * @throws IOException
+     */
     @Override
     public byte[] writeValueAsBytes(@Nullable Object object) throws IOException {
         final ByteArrayOutputStream output = new ByteArrayOutputStream();
@@ -143,6 +231,15 @@ public final class PropertiesMapper implements ObjectMapper {
         return output.toByteArray();
     }
 
+    /**
+     * Write an object as {@code .properties} data.
+     *
+     * @param type
+     * @param object
+     * @param <T> The generic type
+     * @return The serialized {@code .properties} bytes
+     * @throws IOException
+     */
     @Override
     public <T> byte[] writeValueAsBytes(Argument<T> type, @Nullable T object) throws IOException {
         final ByteArrayOutputStream output = new ByteArrayOutputStream();
@@ -150,6 +247,9 @@ public final class PropertiesMapper implements ObjectMapper {
         return output.toByteArray();
     }
 
+    /**
+     * @return The configured stream config
+     */
     @Override
     public JsonStreamConfig getStreamConfig() {
         return JsonStreamConfig.DEFAULT;

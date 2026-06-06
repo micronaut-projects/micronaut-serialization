@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.serde.properties;
+package io.micronaut.serde.properties.util;
 
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.json.tree.JsonNode;
@@ -36,7 +36,17 @@ import java.util.Objects;
 @Singleton
 public class PropertiesWriter {
 
-    void write(OutputStream outputStream, JsonNode tree) throws IOException {
+    private static final String LINE_SEPARATOR = System.lineSeparator();
+
+    /**
+     * Writes the given JSON tree to the output stream as a flattened
+     * {@code .properties} document.
+     *
+     * @param outputStream
+     * @param tree
+     * @throws IOException
+     */
+    public void write(OutputStream outputStream, JsonNode tree) throws IOException {
         Objects.requireNonNull(outputStream, "Output stream cannot be null");
         Writer writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
         new TreeWriter(writer).writeProperties(tree);
@@ -93,7 +103,7 @@ public class PropertiesWriter {
             }
             StringBuilder valueBuilder = PropertiesEscapes.appendValue(value);
             writer.write(valueBuilder == null ? value : valueBuilder.toString());
-            writer.write('\n');
+            writer.write(LINE_SEPARATOR);
         }
     }
 }
