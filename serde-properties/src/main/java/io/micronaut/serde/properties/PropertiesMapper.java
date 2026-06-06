@@ -37,35 +37,47 @@ import jakarta.inject.Singleton;
 import org.jspecify.annotations.Nullable;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
  * Object mapper for Java {@code .properties} documents.
+ *
+ * @author Mousrij Hamza
+ * @since 3.0.1
  */
 @Singleton
 @Secondary
-@Named("properties")
+@Named(PropertiesMapper.NAME)
 @BootstrapContextCompatible
 public final class PropertiesMapper implements ObjectMapper {
 
+    /**
+     * The qualifier name of the {@code .properties} {@link ObjectMapper} bean.
+     */
+    public static final String NAME = "properties";
     private static final Argument<JsonNode> JSON_NODE_TYPE = Argument.of(JsonNode.class);
     private final SerdeRegistry registry;
     @Nullable
     private final SerdeConfiguration serdeConfiguration;
     @NonNull
     private final PropertiesTreeAdapter propertiesTreeAdapter;
+    @NonNull
+    private final PropertiesWriter propertiesWriter;
     private final JsonStreamMapper jsonStreamMapper;
 
     @Inject
     public PropertiesMapper(SerdeRegistry registry,
                             @Nullable SerdeConfiguration serdeConfiguration,
                             PropertiesTreeAdapter propertiesTreeAdapter,
+                            PropertiesWriter propertiesWriter,
                             JsonStreamMapper jsonStreamMapper) {
         this.registry = registry;
         this.serdeConfiguration = serdeConfiguration;
         this.propertiesTreeAdapter = propertiesTreeAdapter;
+        this.propertiesWriter = propertiesWriter;
         this.jsonStreamMapper = jsonStreamMapper;
     }
 
@@ -116,22 +128,26 @@ public final class PropertiesMapper implements ObjectMapper {
 
     @Override
     public void writeValue(OutputStream outputStream, @Nullable Object object) throws IOException {
-
+        propertiesWriter.write(outputStream, writeValueToTree(object));
     }
 
     @Override
     public <T> void writeValue(OutputStream outputStream, Argument<T> type, @Nullable T object) throws IOException {
-
+        propertiesWriter.write(outputStream, writeValueToTree(type, object));
     }
 
     @Override
     public byte[] writeValueAsBytes(@Nullable Object object) throws IOException {
-        return new byte[0];
+        final ByteArrayOutputStream output = new ByteArrayOutputStream();
+        writeValue(output, object);
+        return output.toByteArray();
     }
 
     @Override
     public <T> byte[] writeValueAsBytes(Argument<T> type, @Nullable T object) throws IOException {
-        return new byte[0];
+        final ByteArrayOutputStream output = new ByteArrayOutputStream();
+        writeValue(output, type, object);
+        return output.toByteArray();
     }
 
     @Override

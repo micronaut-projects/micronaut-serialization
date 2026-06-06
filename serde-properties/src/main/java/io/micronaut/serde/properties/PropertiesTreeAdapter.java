@@ -43,6 +43,7 @@ import java.util.Set;
  * {@code JsonBeanPropertyBinder#buildSourceObjectNode(...)}.</p>
  *
  * @see <a href="https://github.com/micronaut-projects/micronaut-core/blob/5.0.x/json-core/src/main/java/io/micronaut/json/bind/JsonBeanPropertyBinder.java">Micronaut Core JsonBeanPropertyBinder</a>
+ * @since 3.0.1
  */
 @Internal
 @Singleton
