@@ -35,7 +35,7 @@ import java.io.IOException;
  */
 @Internal
 @Singleton
-public final class JsonbTypeSerializerBridge implements Serializer<Object> {
+final class JsonbTypeSerializerBridge implements Serializer<Object> {
     private static final Argument<JsonNode> JSON_NODE_ARGUMENT = Argument.of(JsonNode.class);
 
     private final JsonbBridgeSupport.ComponentFactory componentFactory;

@@ -36,7 +36,7 @@ import java.io.IOException;
  */
 @Internal
 @Singleton
-public final class JsonbTypeDeserializerBridge implements Deserializer<Object> {
+final class JsonbTypeDeserializerBridge implements Deserializer<Object> {
     private final JsonbBridgeSupport.ComponentFactory componentFactory;
     private final ObjectMapper mapper;
 

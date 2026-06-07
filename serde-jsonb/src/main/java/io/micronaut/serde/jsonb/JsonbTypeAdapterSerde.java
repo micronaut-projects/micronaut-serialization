@@ -36,7 +36,7 @@ import java.io.IOException;
  */
 @Internal
 @Singleton
-public final class JsonbTypeAdapterSerde implements Serde<Object> {
+final class JsonbTypeAdapterSerde implements Serde<Object> {
     private final JsonbBridgeSupport.ComponentFactory componentFactory;
 
     /**

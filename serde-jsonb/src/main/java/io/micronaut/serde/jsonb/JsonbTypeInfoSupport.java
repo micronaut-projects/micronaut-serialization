@@ -16,17 +16,18 @@
 package io.micronaut.serde.jsonb;
 
 import jakarta.json.bind.JsonbException;
+import jakarta.json.bind.annotation.JsonbSubtype;
 import jakarta.json.bind.annotation.JsonbTypeInfo;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 
 /**
  * JSON-B type-information helper shared by runtime introspection metadata and reflection fallback serialization.
@@ -75,7 +76,7 @@ final class JsonbTypeInfoSupport {
             }
             validateSubtypeAliases(annotatedType, typeInfo);
             validatePropertyName(annotatedType, typeInfo.key());
-            for (jakarta.json.bind.annotation.JsonbSubtype subtype : typeInfo.value()) {
+            for (JsonbSubtype subtype : typeInfo.value()) {
                 if (subtype.type().isAssignableFrom(type)) {
                     properties.put(typeInfo.key(), subtype.alias());
                     break;
@@ -86,7 +87,7 @@ final class JsonbTypeInfoSupport {
     }
 
     private static void validateSubtypeAliases(Class<?> annotatedType, JsonbTypeInfo typeInfo) {
-        for (jakarta.json.bind.annotation.JsonbSubtype subtype : typeInfo.value()) {
+        for (JsonbSubtype subtype : typeInfo.value()) {
             if (!annotatedType.isAssignableFrom(subtype.type())) {
                 throw new JsonbException("JSON-B type alias " + subtype.alias() + " does not point to a subtype of " + annotatedType.getName());
             }

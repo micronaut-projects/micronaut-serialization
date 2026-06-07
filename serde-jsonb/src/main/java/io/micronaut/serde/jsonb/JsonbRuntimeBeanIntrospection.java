@@ -26,10 +26,11 @@ import io.micronaut.core.beans.BeanWriteProperty;
 import io.micronaut.core.type.Argument;
 import io.micronaut.inject.annotation.MutableAnnotationMetadata;
 import io.micronaut.serde.config.annotation.SerdeConfig;
+import jakarta.json.bind.JsonbException;
 import jakarta.json.bind.annotation.JsonbPropertyOrder;
+import jakarta.json.bind.annotation.JsonbSubtype;
 import jakarta.json.bind.annotation.JsonbTypeInfo;
 import jakarta.json.bind.annotation.JsonbVisibility;
-import jakarta.json.bind.JsonbException;
 import jakarta.json.bind.config.PropertyOrderStrategy;
 import jakarta.json.bind.config.PropertyVisibilityStrategy;
 import org.jspecify.annotations.Nullable;
@@ -606,7 +607,7 @@ final class JsonbRuntimeBeanIntrospection<T> implements BeanIntrospection<T> {
             }
             if (annotatedType == type) {
                 List<AnnotationValue<SerdeConfig.SerSubtyped.SerSubtype>> subtypes = new ArrayList<>();
-                for (jakarta.json.bind.annotation.JsonbSubtype subtype : typeInfo.value()) {
+                for (JsonbSubtype subtype : typeInfo.value()) {
                     subtypes.add(AnnotationValue.builder(SerdeConfig.SerSubtyped.SerSubtype.class)
                         .member(AnnotationMetadata.VALUE_MEMBER, new AnnotationClassValue<>(subtype.type()))
                         .member("names", new String[]{subtype.alias()})
@@ -623,7 +624,7 @@ final class JsonbRuntimeBeanIntrospection<T> implements BeanIntrospection<T> {
                 }
             }
             List<String> names = new ArrayList<>();
-            for (jakarta.json.bind.annotation.JsonbSubtype subtype : typeInfo.value()) {
+            for (JsonbSubtype subtype : typeInfo.value()) {
                 if (subtype.type().isAssignableFrom(type)) {
                     names.add(subtype.alias());
                 }

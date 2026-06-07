@@ -18,6 +18,8 @@ package io.micronaut.serde.jsonb;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Creator;
 import io.micronaut.core.beans.BeanConstructor;
+import io.micronaut.core.reflect.InstantiationUtils;
+import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.type.Argument;
 import io.micronaut.inject.annotation.MutableAnnotationMetadata;
 import io.micronaut.serde.config.annotation.SerdeConfig;
@@ -28,12 +30,12 @@ import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.RecordComponent;
 import java.lang.reflect.Type;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Constructor/factory adapter for runtime JSON-B introspections.
@@ -82,7 +84,7 @@ final class JsonbRuntimeBeanConstructor<T> implements BeanConstructor<T> {
     /**
      * Discovers the JSON-B construction member for a runtime introspection.
      * Selection order mirrors JSON-B fallback behavior: explicit
-     * {@link JsonbCreator}, then default constructor, then record canonical
+     * {@link JsonbCreator}, then record canonical constructor, then default
      * constructor.
      *
      * @param type The bean type
@@ -106,23 +108,19 @@ final class JsonbRuntimeBeanConstructor<T> implements BeanConstructor<T> {
                 return new JsonbRuntimeBeanConstructor<>(type, null, method);
             }
         }
-        try {
-            return new JsonbRuntimeBeanConstructor<>(type, type.getDeclaredConstructor(), null);
-        } catch (NoSuchMethodException e) {
-            if (type.isRecord()) {
-                try {
-                    RecordComponent[] recordComponents = type.getRecordComponents();
-                    Class<?>[] componentTypes = new Class<?>[recordComponents.length];
-                    for (int i = 0; i < recordComponents.length; i++) {
-                        componentTypes[i] = recordComponents[i].getType();
-                    }
-                    return new JsonbRuntimeBeanConstructor<>(type, type.getDeclaredConstructor(componentTypes), null);
-                } catch (NoSuchMethodException ignored) {
-                    return new JsonbRuntimeBeanConstructor<>(type, null, null);
-                }
+        if (type.isRecord()) {
+            RecordComponent[] recordComponents = type.getRecordComponents();
+            Class<?>[] componentTypes = new Class<?>[recordComponents.length];
+            for (int i = 0; i < recordComponents.length; i++) {
+                componentTypes[i] = recordComponents[i].getType();
             }
-            return new JsonbRuntimeBeanConstructor<>(type, null, null);
+            return ReflectionUtils.findConstructor(type, componentTypes)
+                .map(constructor -> new JsonbRuntimeBeanConstructor<>(type, constructor, null))
+                .orElseGet(() -> new JsonbRuntimeBeanConstructor<>(type, null, null));
         }
+        return ReflectionUtils.findConstructor(type)
+            .map(constructor -> new JsonbRuntimeBeanConstructor<>(type, constructor, null))
+            .orElseGet(() -> new JsonbRuntimeBeanConstructor<>(type, null, null));
     }
 
     @Override
@@ -138,17 +136,17 @@ final class JsonbRuntimeBeanConstructor<T> implements BeanConstructor<T> {
     @SuppressWarnings("unchecked")
     @Override
     public T instantiate(Object... parameterValues) {
-        try {
-            if (constructor != null) {
-                constructor.setAccessible(true);
-                return constructor.newInstance(parameterValues);
+        if (constructor != null) {
+            constructor.setAccessible(true);
+            return InstantiationUtils.tryInstantiate(constructor, parameterValues)
+                .orElseThrow(() -> new JsonbException("Cannot instantiate JSON-B fallback type " + type.getName()));
+        }
+        if (factory != null) {
+            try {
+                return Objects.requireNonNull(ReflectionUtils.invokeInaccessibleMethod(type, factory, parameterValues));
+            } catch (RuntimeException e) {
+                throw new JsonbException("Cannot instantiate JSON-B fallback type " + type.getName(), e);
             }
-            if (factory != null) {
-                factory.setAccessible(true);
-                return (T) factory.invoke(null, parameterValues);
-            }
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            throw new JsonbException("Cannot instantiate JSON-B fallback type " + type.getName(), e);
         }
         return JsonbReflectionUtil.instantiate(type);
     }

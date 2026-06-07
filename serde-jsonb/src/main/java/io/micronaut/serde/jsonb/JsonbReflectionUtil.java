@@ -15,6 +15,8 @@
  */
 package io.micronaut.serde.jsonb;
 
+import io.micronaut.core.reflect.InstantiationUtils;
+import io.micronaut.core.reflect.ReflectionUtils;
 import jakarta.json.bind.JsonbException;
 import jakarta.json.bind.annotation.JsonbCreator;
 import jakarta.json.bind.annotation.JsonbDateFormat;
@@ -27,7 +29,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -59,15 +60,11 @@ final class JsonbReflectionUtil {
      * @return The new instance
      */
     static <T> T instantiate(Class<T> type) {
-        try {
-            Constructor<T> constructor = type.getDeclaredConstructor();
-            constructor.setAccessible(true);
-            return constructor.newInstance();
-        } catch (NoSuchMethodException e) {
-            throw new JsonbException("No default constructor available for JSON-B fallback type " + type.getName(), e);
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            throw new JsonbException("Cannot instantiate JSON-B fallback type " + type.getName(), e);
-        }
+        Constructor<T> constructor = ReflectionUtils.findConstructor(type)
+            .orElseThrow(() -> new JsonbException("No default constructor available for JSON-B fallback type " + type.getName()));
+        constructor.setAccessible(true);
+        return InstantiationUtils.tryInstantiate(constructor)
+            .orElseThrow(() -> new JsonbException("Cannot instantiate JSON-B fallback type " + type.getName()));
     }
 
     /**
