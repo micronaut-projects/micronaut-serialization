@@ -104,36 +104,6 @@ final class JsonbJsonpBridge {
     }
 
     /**
-     * Converts a JSON-P value to a bounded Serde tree representation.
-     *
-     * @param value The JSON-P value
-     * @return The JSON tree
-     */
-    static JsonNode toJsonNode(JsonValue value) {
-        return switch (value.getValueType()) {
-            case ARRAY -> {
-                JsonArray array = value.asJsonArray();
-                java.util.List<JsonNode> values = new java.util.ArrayList<>(array.size());
-                for (JsonValue item : array) {
-                    values.add(toJsonNode(item));
-                }
-                yield JsonNode.createArrayNode(values);
-            }
-            case OBJECT -> {
-                Map<String, JsonNode> values = new LinkedHashMap<>();
-                JsonObject object = value.asJsonObject();
-                object.forEach((key, item) -> values.put(key, toJsonNode(item)));
-                yield JsonNode.createObjectNode(values);
-            }
-            case STRING -> JsonNode.createStringNode(((JsonString) value).getString());
-            case NUMBER -> JsonNode.createNumberNode(((JsonNumber) value).bigDecimalValue());
-            case TRUE -> JsonNode.createBooleanNode(true);
-            case FALSE -> JsonNode.createBooleanNode(false);
-            case NULL -> JsonNode.nullNode();
-        };
-    }
-
-    /**
      * Reads the next JSON-P parser event into a Serde tree. This is used by
      * JSON-B callback contexts where the callback owns the parser cursor.
      *
@@ -549,7 +519,7 @@ final class JsonbJsonpBridge {
                 case OBJECT -> {
                     writeStartObject();
                     JsonObject object = jsonValue.asJsonObject();
-                    object.forEach((key, item) -> write(key, item));
+                    object.forEach(this::write);
                     writeEnd();
                 }
                 case STRING -> write(((JsonString) jsonValue).getString());

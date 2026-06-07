@@ -31,6 +31,7 @@ import jakarta.json.bind.adapter.JsonbAdapter;
 import jakarta.json.bind.config.PropertyVisibilityStrategy;
 import jakarta.json.bind.serializer.JsonbDeserializer;
 import jakarta.json.bind.serializer.JsonbSerializer;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
@@ -51,7 +52,7 @@ final class JsonbFactory {
     JsonbConfig jsonbConfig(List<JsonbAdapter<?, ?>> adapters,
                             List<JsonbSerializer<?>> serializers,
                             List<JsonbDeserializer<?>> deserializers,
-                            Optional<PropertyVisibilityStrategy> visibilityStrategy) {
+                            @Nullable PropertyVisibilityStrategy visibilityStrategy) {
         JsonbConfig config = new JsonbConfig();
         if (!adapters.isEmpty()) {
             config.withAdapters(adapters.toArray(JsonbAdapter[]::new));
@@ -62,7 +63,9 @@ final class JsonbFactory {
         if (!deserializers.isEmpty()) {
             config.withDeserializers(deserializers.toArray(JsonbDeserializer[]::new));
         }
-        visibilityStrategy.ifPresent(strategy -> config.setProperty(JsonbConfig.PROPERTY_VISIBILITY_STRATEGY, strategy));
+        if (visibilityStrategy != null) {
+            config.setProperty(JsonbConfig.PROPERTY_VISIBILITY_STRATEGY, visibilityStrategy);
+        }
         return config;
     }
 
@@ -79,6 +82,7 @@ final class JsonbFactory {
      * @param jsonbConfiguration The JSON-B integration configuration
      * @return The JSON-B instance
      */
+    @SuppressWarnings("unused")
     @Singleton
     Jsonb jsonb(JsonbConfig config,
                 BeanContext beanContext,

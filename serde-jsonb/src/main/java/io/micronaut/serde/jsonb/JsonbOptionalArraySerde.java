@@ -32,7 +32,7 @@ import java.util.Optional;
 /**
  * JSON-B default mapping for arrays of {@link Optional}.
  */
-@SuppressWarnings("rawtypes")
+@SuppressWarnings({"rawtypes", "unused"})
 @Internal
 @Singleton
 final class JsonbOptionalArraySerde implements Serializer<Optional[]>, Deserializer<Optional[]>, SerdeRegistrar<Optional[]> {

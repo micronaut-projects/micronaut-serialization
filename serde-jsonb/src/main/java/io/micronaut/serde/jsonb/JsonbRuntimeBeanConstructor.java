@@ -133,7 +133,6 @@ final class JsonbRuntimeBeanConstructor<T> implements BeanConstructor<T> {
         return arguments;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public T instantiate(Object... parameterValues) {
         if (constructor != null) {
@@ -168,7 +167,7 @@ final class JsonbRuntimeBeanConstructor<T> implements BeanConstructor<T> {
         Parameter[] parameters = executable.getParameters();
         Type[] genericTypes = executable instanceof Constructor<?> constructor
             ? constructor.getGenericParameterTypes()
-            : ((Method) executable).getGenericParameterTypes();
+            : executable.getGenericParameterTypes();
         Argument<?>[] arguments = new Argument<?>[parameters.length];
         for (int i = 0; i < parameters.length; i++) {
             Parameter parameter = parameters[i];

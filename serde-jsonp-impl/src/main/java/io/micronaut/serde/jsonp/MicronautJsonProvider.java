@@ -2015,12 +2015,12 @@ public final class MicronautJsonProvider extends JsonProvider {
                 }
                 return (T) requireStructure(value);
             }
-            return (T) updateValue(target, 0, value, operation);
+            return (T) updateValue(target, value, operation);
         }
 
-        private JsonValue updateValue(JsonValue current, int tokenIndex, JsonValue value, Operation operation) {
-            List<PathFrame> frames = new ArrayList<>(tokens.size() - tokenIndex - 1);
-            for (int i = tokenIndex; i < tokens.size() - 1; i++) {
+        private JsonValue updateValue(JsonValue current, JsonValue value, Operation operation) {
+            List<PathFrame> frames = new ArrayList<>(tokens.size() - 1);
+            for (int i = 0; i < tokens.size() - 1; i++) {
                 String token = tokens.get(i);
                 if (current instanceof JsonObject object) {
                     if (!object.containsKey(token)) {
@@ -2037,7 +2037,7 @@ public final class MicronautJsonProvider extends JsonProvider {
                 }
             }
 
-            JsonValue updated = updateLeaf(current, tokens.get(tokens.size() - 1), value, operation);
+            JsonValue updated = updateLeaf(current, tokens.getLast(), value, operation);
             for (int i = frames.size() - 1; i >= 0; i--) {
                 updated = frames.get(i).withUpdatedChild(updated);
             }
