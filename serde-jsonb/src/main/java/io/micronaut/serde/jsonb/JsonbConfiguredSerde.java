@@ -46,7 +46,7 @@ import java.util.List;
 @Internal
 @Singleton
 @SuppressWarnings("java:S3776")
-final class JsonbConfiguredSerde implements Serde<Object> {
+public final class JsonbConfiguredSerde implements Serde<Object> {
     private static final Argument<JsonNode> JSON_NODE_ARGUMENT = Argument.of(JsonNode.class);
 
     private final ObjectMapper mapper;
