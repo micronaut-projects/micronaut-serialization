@@ -24,23 +24,25 @@ import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.json.stream.JsonStreamMapper;
+import io.micronaut.serde.properties.SerdePropertiesConfiguration;
 import jakarta.inject.Singleton;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-
 /**
  * Builds an intermediate JSON tree from flat Java {@code .properties} keys.
  *
- * <p>The tree-building algorithm is adapted from Micronaut Core's
- * {@code JsonBeanPropertyBinder#buildSourceObjectNode(...)}.</p>
+ * <p>The tree-building algorithm is copied then adapted from Micronaut Core's
+ * {@code JsonBeanPropertyBinder#buildSourceObjectNode(...)}. Bracketed array
+ * indexe is the default behavior, and Dotted one-based array indexes are
+ * supported when configured through {@link SerdePropertiesConfiguration}.</p>
  *
  * @see <a href="https://github.com/micronaut-projects/micronaut-core/blob/5.0.x/json-core/src/main/java/io/micronaut/json/bind/JsonBeanPropertyBinder.java">Micronaut Core JsonBeanPropertyBinder</a>
  * @since 3.0.1
@@ -51,10 +53,21 @@ public class PropertiesTreeAdapter {
 
     private final JsonStreamMapper jsonMapper;
     private final int arraySizeThreshold;
+    private final SerdePropertiesConfiguration.ArrayIndexStyle arrayIndexStyle;
 
-    public PropertiesTreeAdapter(JsonStreamMapper jsonStreamMapper, DeserializationConfiguration deserializationConfiguration) {
+    /**
+     * Creates a properties tree adapter.
+     *
+     * @param jsonStreamMapper The JSON mapper used to convert non-string property values
+     * @param deserializationConfiguration The deserialization configuration
+     * @param propertiesConfiguration The properties format configuration
+     */
+    public PropertiesTreeAdapter(JsonStreamMapper jsonStreamMapper,
+                                 DeserializationConfiguration deserializationConfiguration,
+                                 SerdePropertiesConfiguration propertiesConfiguration) {
         this.jsonMapper = jsonStreamMapper;
         this.arraySizeThreshold = deserializationConfiguration.getArraySizeThreshold();
+        this.arrayIndexStyle = propertiesConfiguration.getArrayIndexStyle();
     }
 
     /**
@@ -76,84 +89,104 @@ public class PropertiesTreeAdapter {
         for (Map.Entry<? extends CharSequence, ? super Object> entry : source) {
             CharSequence key = entry.getKey();
             Object value = entry.getValue();
-            String property = key.toString();
             ObjectBuilder current = rootNode;
-            String index = null;
-            Iterator<String> tokenIterator = StringUtils.splitOmitEmptyStringsIterator(property, '.');
-            while (tokenIterator.hasNext()) {
-                String token = tokenIterator.next();
+            List<String> tokens = splitProperty(key.toString());
+            for (int i = 0; i < tokens.size(); i++) {
+                String token = tokens.get(i);
+                String index = null;
                 int j = token.indexOf('[');
                 if (j > -1 && token.endsWith("]")) {
                     index = token.substring(j + 1, token.length() - 1);
                     token = token.substring(0, j);
                 }
 
-
-                // We are at the last part of the .properties key.
-                // Example: for "book.title", the last part is "title".
-                // Example: for "values[0]", the last part is directly "values[0]".
-                // So at this point we must store the value in the JSON tree.
-
-                if (!tokenIterator.hasNext()) {
-                    // Convert the raw .properties value into a JsonNode.
-                    // i.E "localhost" becomes a JSON string node.
-                    JsonNode valueNode = toValueNode(value);
-
-                    // Case 1: the key ends with a numeric index, like "values[0]=a".
-                    // Here index = "0", so this should be stored as a JSON array/list.
-                    if (index != null && StringUtils.isDigits(index)) {
-                        // Get or create the array under the key "values".
-                        ArrayBuilder arrayNode = getOrCreateArrayAtKey(current, token);
-
-                        // Convert the text index "0" into integer 0.
-                        int arrayIndex = Integer.parseInt(index);
-
-                        // Grow the array if needed so this index exists.
-                        // Example: if values[2]=c arrives before values[0], missing slots are added.
-                        expandArrayToThreshold(arrayIndex, arrayNode);
-
-                        // Store the value at the correct array position.
-                        // Example: values[0]=a stores "a" at position 0.
-                        arrayNode.values.set(arrayIndex, new FixedValue(valueNode));
-
-                        // Case 2: the key ends with a non-numeric index, like "authorsByInitials[SK]=...".
-                        // Here index = "SK", so this should be stored as a map/object entry, not an array.
-                    } else if (index != null) {
-                        // Get or create the object under the key "authorsByInitials".
-                        ObjectBuilder objectNode = getOrCreateObjectAtKey(current, token);
-
-                        // Store the value using "SK" as the object/map key.
-                        // Example: authorsByInitials[SK]=x becomes { "authorsByInitials": { "SK": x } }
-                        objectNode.values.put(index, new FixedValue(valueNode));
-
-                        // Case 3: there is no index.
-                        // Example: "host=localhost" or "book.title=The Stand".
+                if (isDottedArrayPath(index, tokens, i)) {
+                    ArrayBuilder arrayNode = getOrCreateArrayAtKey(current, token);
+                    int arrayIndex = toDottedArrayIndex(tokens.get(++i));
+                    expandArrayToThreshold(arrayIndex, arrayNode);
+                    if (hasNextToken(tokens, i)) {
+                        current = getOrCreateNodeAtIndex(arrayNode, arrayIndex);
                     } else {
-                        // Store the value directly under the property name.
-                        current.values.put(token, new FixedValue(valueNode));
+                        arrayNode.values.set(arrayIndex, new FixedValue(toValueNode(value)));
                     }
+                    continue;
+                }
+
+                if (hasNextToken(tokens, i)) {
+                    current = enterValue(current, token, index);
                 } else {
-                    if (index != null) {
-                        if (StringUtils.isDigits(index)) {
-                            ArrayBuilder arrayNode = getOrCreateArrayAtKey(current, token);
-                            int arrayIndex = Integer.parseInt(index);
-                            expandArrayToThreshold(arrayIndex, arrayNode);
-                            current = getOrCreateNodeAtIndex(arrayNode, arrayIndex);
-                        } else {
-                            ObjectBuilder objectNode = getOrCreateObjectAtKey(current, token);
-                            current = getOrCreateObjectAtKey(objectNode, index);
-                        }
-                        index = null;
-                    } else {
-                        current = getOrCreateObjectAtKey(current, token);
-                    }
+                    JsonNode valueNode = toValueNode(value);
+                    storeValue(current, token, index, valueNode);
                 }
             }
         }
         return rootNode.build();
     }
 
-    // Divination - Coercion
+    private List<String> splitProperty(String property) {
+        List<String> tokens = new ArrayList<>();
+        StringUtils.splitOmitEmptyStringsIterator(property, '.').forEachRemaining(tokens::add);
+        return tokens;
+    }
+
+    private void storeValue(ObjectBuilder current, String token, @Nullable String index, JsonNode valueNode) throws SerdeException {
+        if (index != null && StringUtils.isDigits(index)) {
+            ArrayBuilder arrayNode = getOrCreateArrayAtKey(current, token);
+            int arrayIndex = Integer.parseInt(index);
+            expandArrayToThreshold(arrayIndex, arrayNode);
+            arrayNode.values.set(arrayIndex, new FixedValue(valueNode));
+        } else if (index != null) {
+            ObjectBuilder objectNode = getOrCreateObjectAtKey(current, token);
+            objectNode.values.put(index, new FixedValue(valueNode));
+        } else {
+            current.values.put(token, new FixedValue(valueNode));
+        }
+    }
+
+    private ObjectBuilder enterValue(ObjectBuilder current, String token, @Nullable String index) throws SerdeException {
+        if (index != null) {
+            if (StringUtils.isDigits(index)) {
+                ArrayBuilder arrayNode = getOrCreateArrayAtKey(current, token);
+                int arrayIndex = Integer.parseInt(index);
+                expandArrayToThreshold(arrayIndex, arrayNode);
+                return getOrCreateNodeAtIndex(arrayNode, arrayIndex);
+            }
+            ObjectBuilder objectNode = getOrCreateObjectAtKey(current, token);
+            return getOrCreateObjectAtKey(objectNode, index);
+        }
+        return getOrCreateObjectAtKey(current, token);
+    }
+
+    private boolean useDottedArrayIndexes() {
+        return arrayIndexStyle == SerdePropertiesConfiguration.ArrayIndexStyle.DOTTED;
+    }
+
+    private boolean isDottedArrayPath(@Nullable String index, List<String> tokens, int position) {
+        if (index != null) {
+            return false;
+        }
+        if (!hasNextToken(tokens, position)) {
+            return false;
+        }
+        if (!useDottedArrayIndexes()) {
+            return false;
+        }
+        return isDottedArrayIndex(tokens.get(position + 1));
+    }
+
+    private boolean hasNextToken(List<String> tokens, int position) {
+        return position + 1 < tokens.size();
+    }
+
+    // ("1"  -> true & >0) orr "name" -> false
+    private boolean isDottedArrayIndex(String token) {
+        return StringUtils.isDigits(token) && Integer.parseInt(token) > 0;
+    }
+
+    private int toDottedArrayIndex(String token) {
+        return Integer.parseInt(token) - 1;
+    }
+
     private JsonNode toValueNode(Object value) throws IOException {
         if (value instanceof String string) {
             return JsonNode.createStringNode(string);

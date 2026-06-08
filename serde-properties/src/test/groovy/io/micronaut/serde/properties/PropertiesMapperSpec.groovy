@@ -245,18 +245,18 @@ class Author {
         lines.contains('book.authorsByInitials.SK.name=Stephen King')
 
 
-//        when:
-//        def roundTripped = readProperties(properties, type)
-//
-//        then:
-//        roundTripped.book.title == 'The Stand'
-//        roundTripped.book.authors.size() == 2
-//        roundTripped.book.authors[0].name == 'Stephen King'
-//        roundTripped.book.authors[0].age == 60
-//        roundTripped.book.authors[1].name == 'JRR Tolkien'
-//        roundTripped.book.authors[1].age == 81
-//        roundTripped.book.authorsByInitials['SK'].name == 'Stephen King'
-//        roundTripped.book.authorsByInitials['SK'].age == 60
+        when:
+        def roundTripped = readProperties(properties, type)
+
+        then:
+        roundTripped.book.title == 'The Stand'
+        roundTripped.book.authors.size() == 2
+        roundTripped.book.authors[0].name == 'Stephen King'
+        roundTripped.book.authors[0].age == 60
+        roundTripped.book.authors[1].name == 'JRR Tolkien'
+        roundTripped.book.authors[1].age == 81
+        roundTripped.book.authorsByInitials['SK'].name == 'Stephen King'
+        roundTripped.book.authorsByInitials['SK'].age == 60
 
         cleanup:
         context.close()
@@ -327,24 +327,23 @@ class Author {
         lines.contains('book.authorsByInitials.SK.age=60')
         lines.contains('book.authorsByInitials.SK.name=Stephen King')
 
-//        when:
-//        def roundTripped = readProperties(properties, type)
-//
-//        then:
-//        roundTripped.book.title == 'The Stand'
-//        roundTripped.book.authors.size() == 2
-//        roundTripped.book.authors[0].name == 'Stephen King'
-//        roundTripped.book.authors[0].age == 60
-//        roundTripped.book.authors[1].name == 'JRR Tolkien'
-//        roundTripped.book.authors[1].age == 81
-//        roundTripped.book.authorsByInitials['SK'].name == 'Stephen King'
-//        roundTripped.book.authorsByInitials['SK'].age == 60
+        when:
+        def roundTripped = readProperties(properties, type)
+
+        then:
+        roundTripped.book.title == 'The Stand'
+        roundTripped.book.authors.size() == 2
+        roundTripped.book.authors[0].name == 'Stephen King'
+        roundTripped.book.authors[0].age == 60
+        roundTripped.book.authors[1].name == 'JRR Tolkien'
+        roundTripped.book.authors[1].age == 81
+        roundTripped.book.authorsByInitials['SK'].name == 'Stephen King'
+        roundTripped.book.authorsByInitials['SK'].age == 60
 
         cleanup:
         context.close()
     }
 
-    @Ignore
     void 'test dotted array index style reads and writes one based dotted indexes'() {
         given:
         def context = buildContext('''
