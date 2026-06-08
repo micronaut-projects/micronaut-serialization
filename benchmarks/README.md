@@ -52,43 +52,44 @@ Use longer warmup and measurement iterations for performance conclusions.
 `fabienrenaud/java-json-benchmark` users data shape. It includes nested user
 objects, friend objects, arrays/lists, strings, numbers, and booleans.
 
-The following local result was captured on JDK 25 from a rerun of the
+The following local result was captured on GraalVM Java 25 from a rerun of the
 published benchmark classes, `UserBeanSerdeBenchmark` and
-`PropertyAccessShapeBenchmark`, with 1 fork, 5 warmup iterations, and 5
+`PropertyAccessShapeBenchmark`, with 3 forks, 5 warmup iterations, and 5
 measurement iterations with 1-second iterations and `-prof gc`.
 
 | Benchmark | Stack | Score |
 | --- | --- | ---: |
-| `serialize` | Jackson Databind | 296434.520 ops/s |
-| `serialize` | Jackson Databind Blackbird | 296601.980 ops/s |
-| `serialize` | Serde Jackson generated | 397529.012 ops/s |
-| `serialize` | Serde Jackson runtime | 328679.764 ops/s |
-| `deserialize` | Jackson Databind | 4343.504 ns/op |
-| `deserialize` | Jackson Databind Blackbird | 4169.716 ns/op |
-| `deserialize` | Serde Jackson generated | 3871.981 ns/op |
-| `deserialize` | Serde Jackson runtime | 4087.727 ns/op |
-| `roundTrip` | Jackson Databind | 8501.947 ns/op |
-| `roundTrip` | Jackson Databind Blackbird | 8137.167 ns/op |
-| `roundTrip` | Serde Jackson generated | 6274.849 ns/op |
-| `roundTrip` | Serde Jackson runtime | 6953.842 ns/op |
+| `serialize` | Jackson Databind | 386747.328 ops/s |
+| `serialize` | Jackson Databind Blackbird | 384944.900 ops/s |
+| `serialize` | Serde Jackson generated | 461673.850 ops/s |
+| `serialize` | Serde Jackson runtime | 408845.913 ops/s |
+| `deserialize` | Jackson Databind | 3755.969 ns/op |
+| `deserialize` | Jackson Databind Blackbird | 3667.105 ns/op |
+| `deserialize` | Serde Jackson generated | 3112.711 ns/op |
+| `deserialize` | Serde Jackson runtime | 3248.889 ns/op |
+| `roundTrip` | Jackson Databind | 6696.438 ns/op |
+| `roundTrip` | Jackson Databind Blackbird | 6630.402 ns/op |
+| `roundTrip` | Serde Jackson generated | 5250.939 ns/op |
+| `roundTrip` | Serde Jackson runtime | 5698.729 ns/op |
 
 ![UserBeanSerdeBenchmark local results](user-bean-benchmark-results.svg)
 
 Generated Micronaut Serialization led serialization, deserialization, and round
 trip in this run:
 
-- Serialization throughput was about 34.1% higher than Jackson Databind and
-  about 20.9% higher than runtime Serde.
-- Runtime Serde serialization was about 10.9% higher than Jackson Databind.
-- Runtime Serde deserialization was faster than both Jackson modes, but still
-  about 5.6% slower than generated Serde.
-- Generated Serde round trip was about 35.5% faster than Jackson Databind and
-  about 10.8% faster than runtime Serde.
+- Serialization throughput was about 19.4% higher than Jackson Databind and
+  about 12.9% higher than runtime Serde.
+- Runtime Serde serialization was about 5.7% higher than Jackson Databind.
+- Generated Serde deserialization was about 20.7% faster than Jackson Databind and
+  about 4.4% faster than runtime Serde.
+- Generated Serde round trip was about 27.5% faster than Jackson Databind and
+  about 8.5% faster than runtime Serde.
 
-The serialization GC-profiler row measured generated Serde at about `6056 B/op`,
-runtime Serde at about `6121 B/op`, and Jackson Databind at about `6176 B/op`
-after releasing the Jackson `BufferRecycler` acquired by
-`JacksonJsonMapper.writeValueAsBytes`.
+The serialization GC-profiler row measured generated Serde at about
+`6008 B/op`, runtime Serde at about
+`6072 B/op`, and Jackson Databind at about
+`6128 B/op` after releasing the Jackson `BufferRecycler`
+acquired by `JacksonJsonMapper.writeValueAsBytes`.
 
 ## Property Access Results
 
@@ -96,45 +97,45 @@ after releasing the Jackson `BufferRecycler` acquired by
 keeping the JSON shape constant. It compares a 10-scalar-property bean bound via
 constructor arguments, JavaBean getters/setters, and public fields.
 
-The checked-in chart uses the same JDK 25 rerun as the user-bean results: 1
-fork, 5 warmup iterations, and 5 measurement iterations with 1-second
-iterations and `-prof gc`.
+The checked-in chart uses the same GraalVM Java 25 rerun as the user-bean
+results: 3 forks, 5 warmup iterations, and 5 measurement iterations with
+1-second iterations and `-prof gc`.
 
 ### Serialization Throughput
 
 | Shape | Jackson Databind | Jackson Databind Blackbird | Serde generated | Serde runtime |
 | --- | ---: | ---: | ---: | ---: |
-| Constructor | 2489730.322 ops/s | 2621700.877 ops/s | 3129365.168 ops/s | 2721379.252 ops/s |
-| Getter/setter | 2473221.289 ops/s | 2191072.484 ops/s | 3153901.624 ops/s | 2477595.284 ops/s |
-| Field | 2354108.273 ops/s | 2436811.256 ops/s | 3179993.557 ops/s | 2714157.274 ops/s |
+| Constructor | 3188619.209 ops/s | 3829079.071 ops/s | 4054851.835 ops/s | 3611367.522 ops/s |
+| Getter/setter | 3230420.652 ops/s | 3800296.461 ops/s | 4047709.891 ops/s | 3649161.750 ops/s |
+| Field | 3210080.485 ops/s | 3236783.577 ops/s | 4028662.688 ops/s | 3628848.310 ops/s |
 
 ### Deserialization Average Time
 
 | Shape | Jackson Databind | Jackson Databind Blackbird | Serde generated | Serde runtime |
 | --- | ---: | ---: | ---: | ---: |
-| Constructor | 724.640 ns/op | 592.184 ns/op | 463.715 ns/op | 489.959 ns/op |
-| Getter/setter | 467.885 ns/op | 440.687 ns/op | 494.398 ns/op | 435.826 ns/op |
-| Field | 471.130 ns/op | 466.211 ns/op | 429.459 ns/op | 431.469 ns/op |
+| Constructor | 621.558 ns/op | 513.990 ns/op | 275.386 ns/op | 331.476 ns/op |
+| Getter/setter | 353.467 ns/op | 324.126 ns/op | 276.121 ns/op | 286.697 ns/op |
+| Field | 349.391 ns/op | 348.772 ns/op | 274.427 ns/op | 285.839 ns/op |
 
 ### Round Trip Average Time
 
 | Shape | Jackson Databind | Jackson Databind Blackbird | Serde generated | Serde runtime |
 | --- | ---: | ---: | ---: | ---: |
-| Constructor | 1151.411 ns/op | 998.567 ns/op | 818.462 ns/op | 953.365 ns/op |
-| Getter/setter | 920.895 ns/op | 941.657 ns/op | 768.391 ns/op | 902.130 ns/op |
-| Field | 907.985 ns/op | 922.468 ns/op | 770.478 ns/op | 896.809 ns/op |
+| Constructor | 937.242 ns/op | 779.151 ns/op | 562.716 ns/op | 643.359 ns/op |
+| Getter/setter | 731.758 ns/op | 643.983 ns/op | 564.177 ns/op | 601.727 ns/op |
+| Field | 717.164 ns/op | 729.498 ns/op | 565.911 ns/op | 624.377 ns/op |
 
 ![PropertyAccessShapeBenchmark local results](property-access-shape-benchmark-results.svg)
 
-Generated Serde has the highest serialization throughput for all three shapes
-in this matrix. For deserialization, generated Serde is fastest for constructor
-and field binding, while runtime Serde is fastest for getter/setter binding in
-this local run. Runtime Serde serialization beats both Jackson modes for all
-three shapes after switching runtime property reads to the non-allocating Core
-`BeanPropertyImpl` read path. Runtime serialization allocation is now about
-`848 B/op`, while generated Serde remains lower at about `760 B/op`. Runtime
-round-trip allocation for mutable shapes is about `1856 B/op`; generated Serde
-remains the fastest round-trip stack for all three shapes in this run.
+Generated Serde has the highest serialization throughput, fastest
+deserialization average time, and fastest round-trip average time for all three
+property-access shapes in this matrix. Runtime Serde serialization also beats
+Jackson Databind for all three shapes after switching runtime property reads to
+the non-allocating Core `BeanPropertyImpl` read path. Runtime serialization
+allocation is now about `776 B/op`, while generated Serde remains lower at about
+`712 B/op`. Runtime round-trip allocation for mutable shapes is about
+`1728-1760 B/op`; generated Serde remains lower at about
+`1632 B/op` in this run.
 
 ## Focused Profiling Findings
 
@@ -147,19 +148,19 @@ Current getter/setter deserialization result from the full rerun:
 
 | Stack | Score |
 | --- | ---: |
-| Jackson Databind | 467.885 ns/op |
-| Jackson Databind Blackbird | 440.687 ns/op |
-| Serde Jackson generated | 494.398 ns/op |
-| Serde Jackson runtime | 435.826 ns/op |
+| Jackson Databind | 353.467 ns/op |
+| Jackson Databind Blackbird | 324.126 ns/op |
+| Serde Jackson generated | 276.121 ns/op |
+| Serde Jackson runtime | 286.697 ns/op |
 
 Current constructor serialization result from the full rerun:
 
 | Stack | Score |
 | --- | ---: |
-| Jackson Databind | 2489730.322 ops/s |
-| Jackson Databind Blackbird | 2621700.877 ops/s |
-| Serde Jackson generated | 3129365.168 ops/s |
-| Serde Jackson runtime | 2721379.252 ops/s |
+| Jackson Databind | 3188619.209 ops/s |
+| Jackson Databind Blackbird | 3829079.071 ops/s |
+| Serde Jackson generated | 4054851.835 ops/s |
+| Serde Jackson runtime | 3611367.522 ops/s |
 
 GC profiling for getter/setter deserialization:
 
@@ -167,21 +168,21 @@ GC profiling for getter/setter deserialization:
 | --- | ---: |
 | Jackson Databind | 1072 B/op |
 | Jackson Databind Blackbird | 1032 B/op |
-| Serde Jackson generated | 920 B/op |
-| Serde Jackson runtime | 1008 B/op |
+| Serde Jackson generated | 872 B/op |
+| Serde Jackson runtime | 872 B/op |
 
-The current getter/setter deserialization result is mixed: runtime Serde is
-ahead of both Jackson modes in this one-fork run, while generated Serde is
-behind the Jackson baselines for that one shape. Generated Serde remains ahead
-for constructor and field deserialization. The generated/runtime spread varies
-by shape and is still driven by property access, `DerProperty` dispatch, and
-boxed primitive movement rather than decode-key dispatch.
+The earlier one-fork getter/setter deserialization outlier did not reproduce in
+this three-fork GraalVM run. Generated Serde is fastest for getter/setter
+deserialization at `276.121 ns/op`, ahead of runtime Serde at
+`286.697 ns/op` and Jackson Databind Blackbird at
+`324.126 ns/op`. The generated/runtime spread still varies by shape and is driven by
+property access, `DerProperty` dispatch, and boxed primitive movement rather
+than decode-key dispatch.
 
 A measured backend-neutral sourcegen alternative replaced nullable scalar
 primitive decoders with `decodeNull()` plus primitive decoders. It preserved
-behavior, but regressed the focused getter/setter generated result to about
-`340.847 ns/op` while Blackbird measured about `327.237 ns/op`, so it is not
-part of the retained changes.
+behavior, but regressed the focused getter/setter generated result in local
+experiments, so it is not part of the retained changes.
 
 The remaining runtime Serde deserialization gap is a different issue. The simple
 runtime path no longer uses `PropertiesBag.Consumer`, but it still pays
