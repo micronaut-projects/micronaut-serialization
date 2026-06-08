@@ -31,7 +31,27 @@ import java.io.IOException;
 import java.util.Objects;
 
 /**
- * Simple object serializer.
+ * Runtime object serializer optimized for repeatedly writing the same bean shape.
+ * It snapshots the bean properties into arrays so the hot path can index directly
+ * into properties, arguments, reference paths, serializers, scalar value kinds,
+ * and precomputed {@link Keys}. Property names are written through
+ * {@link KeysAwareEncoder} so encoders that support indexed keys can avoid
+ * repeated string lookup or allocation.
+ * <p>
+ * If every property serializer is available when this serializer is constructed,
+ * serialization uses a resolved path that skips per-property serializer lookup.
+ * Scalar serializers that expose a {@link DecoderValueKind.Provider} are also
+ * written directly with the corresponding encoder primitive method when no
+ * property-level formatting or feature override is active.
+ * <p>
+ * The retained unrolling strategy is a smaller variant of the Jackson-style
+ * {@code UnrolledBeanSerializer} experiment. Instead of storing a separate
+ * field for each property and dispatching small beans through a size-specific
+ * fall-through switch, this serializer keeps the shared array-based machinery
+ * and emits four consecutive property writes in each counted-loop iteration.
+ * A fall-through tail switch then writes the remaining zero to three
+ * properties. That keeps the hot path free of iterator allocation and reduces
+ * loop branches without duplicating serializer state or error-path handling.
  *
  * @param <T> The bean type
  * @author Denis Stepanov
@@ -48,7 +68,7 @@ final class SimpleObjectSerializer<T> implements ObjectSerializer<T> {
     private final Keys keys;
     private final boolean serializersResolved;
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({"unchecked"})
     SimpleObjectSerializer(SerBean<T> serBean) {
         this.writeProperties = serBean.writeProperties.toArray(SerBean.SerProperty[]::new);
         this.serializers = new Serializer[writeProperties.length];
