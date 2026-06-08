@@ -74,6 +74,31 @@ loadScripts(document, 'script');</script>
 </div>
 </li>
 <li>
+<div class="caption"><span>io.micronaut.serde.<a href="io/micronaut/serde/Keys.html" title="interface in io.micronaut.serde">Keys</a></span></div>
+<div class="summary-table three-column-summary">
+<div class="table-header col-first">Modifier and Type</div>
+<div class="table-header col-second">Constant Field</div>
+<div class="table-header col-last">Value</div>
+<div class="col-first even-row-color"><code id="io.micronaut.serde.Keys.UNKNOWN_KEY">public&nbsp;static&nbsp;final&nbsp;int</code></div>
+<div class="col-second even-row-color"><code><a href="io/micronaut/serde/Keys.html#UNKNOWN_KEY">UNKNOWN_KEY</a></code></div>
+<div class="col-last even-row-color"><code>-1</code></div>
+</div>
+</li>
+<li>
+<div class="caption"><span>io.micronaut.serde.<a href="io/micronaut/serde/KeysAwareDecoder.html" title="interface in io.micronaut.serde">KeysAwareDecoder</a></span></div>
+<div class="summary-table three-column-summary">
+<div class="table-header col-first">Modifier and Type</div>
+<div class="table-header col-second">Constant Field</div>
+<div class="table-header col-last">Value</div>
+<div class="col-first even-row-color"><code id="io.micronaut.serde.KeysAwareDecoder.MATCH_END_OBJECT">public&nbsp;static&nbsp;final&nbsp;int</code></div>
+<div class="col-second even-row-color"><code><a href="io/micronaut/serde/KeysAwareDecoder.html#MATCH_END_OBJECT">MATCH_END_OBJECT</a></code></div>
+<div class="col-last even-row-color"><code>-1</code></div>
+<div class="col-first odd-row-color"><code id="io.micronaut.serde.KeysAwareDecoder.MATCH_UNKNOWN_NAME">public&nbsp;static&nbsp;final&nbsp;int</code></div>
+<div class="col-second odd-row-color"><code><a href="io/micronaut/serde/KeysAwareDecoder.html#MATCH_UNKNOWN_NAME">MATCH_UNKNOWN_NAME</a></code></div>
+<div class="col-last odd-row-color"><code>-2</code></div>
+</div>
+</li>
+<li>
 <div class="caption"><span>io.micronaut.serde.<a href="io/micronaut/serde/LimitingStream.html" title="class in io.micronaut.serde">LimitingStream</a></span></div>
 <div class="summary-table three-column-summary">
 <div class="table-header col-first">Modifier and Type</div>
@@ -338,6 +363,46 @@ loadScripts(document, 'script');</script>
 <div class="col-first odd-row-color"><code id="io.micronaut.serde.config.annotation.SerdeConfig.SerUnwrapped.SUFFIX">public&nbsp;static&nbsp;final&nbsp;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
 <div class="col-second odd-row-color"><code><a href="io/micronaut/serde/config/annotation/SerdeConfig.SerUnwrapped.html#SUFFIX">SUFFIX</a></code></div>
 <div class="col-last odd-row-color"><code>"suffix"</code></div>
+</div>
+</li>
+</ul>
+<ul class="block-list">
+<li>
+<div class="caption"><span>io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/DecoderValueKind.html" title="enum class in io.micronaut.serde.support.util">DecoderValueKind</a></span></div>
+<div class="summary-table three-column-summary">
+<div class="table-header col-first">Modifier and Type</div>
+<div class="table-header col-second">Constant Field</div>
+<div class="table-header col-last">Value</div>
+<div class="col-first even-row-color"><code id="io.micronaut.serde.support.util.DecoderValueKind.BOOLEAN_CODE">public&nbsp;static&nbsp;final&nbsp;byte</code></div>
+<div class="col-second even-row-color"><code><a href="io/micronaut/serde/support/util/DecoderValueKind.html#BOOLEAN_CODE">BOOLEAN_CODE</a></code></div>
+<div class="col-last even-row-color"><code>0x2</code></div>
+<div class="col-first odd-row-color"><code id="io.micronaut.serde.support.util.DecoderValueKind.BYTE_CODE">public&nbsp;static&nbsp;final&nbsp;byte</code></div>
+<div class="col-second odd-row-color"><code><a href="io/micronaut/serde/support/util/DecoderValueKind.html#BYTE_CODE">BYTE_CODE</a></code></div>
+<div class="col-last odd-row-color"><code>0x7</code></div>
+<div class="col-first even-row-color"><code id="io.micronaut.serde.support.util.DecoderValueKind.CHAR_CODE">public&nbsp;static&nbsp;final&nbsp;byte</code></div>
+<div class="col-second even-row-color"><code><a href="io/micronaut/serde/support/util/DecoderValueKind.html#CHAR_CODE">CHAR_CODE</a></code></div>
+<div class="col-last even-row-color"><code>0x9</code></div>
+<div class="col-first odd-row-color"><code id="io.micronaut.serde.support.util.DecoderValueKind.DOUBLE_CODE">public&nbsp;static&nbsp;final&nbsp;byte</code></div>
+<div class="col-second odd-row-color"><code><a href="io/micronaut/serde/support/util/DecoderValueKind.html#DOUBLE_CODE">DOUBLE_CODE</a></code></div>
+<div class="col-last odd-row-color"><code>0x6</code></div>
+<div class="col-first even-row-color"><code id="io.micronaut.serde.support.util.DecoderValueKind.FLOAT_CODE">public&nbsp;static&nbsp;final&nbsp;byte</code></div>
+<div class="col-second even-row-color"><code><a href="io/micronaut/serde/support/util/DecoderValueKind.html#FLOAT_CODE">FLOAT_CODE</a></code></div>
+<div class="col-last even-row-color"><code>0x5</code></div>
+<div class="col-first odd-row-color"><code id="io.micronaut.serde.support.util.DecoderValueKind.INT_CODE">public&nbsp;static&nbsp;final&nbsp;byte</code></div>
+<div class="col-second odd-row-color"><code><a href="io/micronaut/serde/support/util/DecoderValueKind.html#INT_CODE">INT_CODE</a></code></div>
+<div class="col-last odd-row-color"><code>0x3</code></div>
+<div class="col-first even-row-color"><code id="io.micronaut.serde.support.util.DecoderValueKind.LONG_CODE">public&nbsp;static&nbsp;final&nbsp;byte</code></div>
+<div class="col-second even-row-color"><code><a href="io/micronaut/serde/support/util/DecoderValueKind.html#LONG_CODE">LONG_CODE</a></code></div>
+<div class="col-last even-row-color"><code>0x4</code></div>
+<div class="col-first odd-row-color"><code id="io.micronaut.serde.support.util.DecoderValueKind.NONE_CODE">public&nbsp;static&nbsp;final&nbsp;byte</code></div>
+<div class="col-second odd-row-color"><code><a href="io/micronaut/serde/support/util/DecoderValueKind.html#NONE_CODE">NONE_CODE</a></code></div>
+<div class="col-last odd-row-color"><code>0x0</code></div>
+<div class="col-first even-row-color"><code id="io.micronaut.serde.support.util.DecoderValueKind.SHORT_CODE">public&nbsp;static&nbsp;final&nbsp;byte</code></div>
+<div class="col-second even-row-color"><code><a href="io/micronaut/serde/support/util/DecoderValueKind.html#SHORT_CODE">SHORT_CODE</a></code></div>
+<div class="col-last even-row-color"><code>0x8</code></div>
+<div class="col-first odd-row-color"><code id="io.micronaut.serde.support.util.DecoderValueKind.STRING_CODE">public&nbsp;static&nbsp;final&nbsp;byte</code></div>
+<div class="col-second odd-row-color"><code><a href="io/micronaut/serde/support/util/DecoderValueKind.html#STRING_CODE">STRING_CODE</a></code></div>
+<div class="col-last odd-row-color"><code>0x1</code></div>
 </div>
 </li>
 </ul>

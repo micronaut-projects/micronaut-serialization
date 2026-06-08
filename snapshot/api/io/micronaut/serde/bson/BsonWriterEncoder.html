@@ -68,6 +68,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#encodeObject(io.micronaut.core.type.Argument)" tabindex="0">encodeObject(Argument)</a></li>
 <li><a href="#finishStructure()" tabindex="0">finishStructure()</a></li>
 <li><a href="#encodeKey(java.lang.String)" tabindex="0">encodeKey(String)</a></li>
+<li><a href="#encodeKey(io.micronaut.serde.Keys,int)" tabindex="0">encodeKey(Keys, int)</a></li>
 <li><a href="#encodeString(java.lang.String)" tabindex="0">encodeString(String)</a></li>
 <li><a href="#encodeBoolean(boolean)" tabindex="0">encodeBoolean(boolean)</a></li>
 <li><a href="#encodeByte(byte)" tabindex="0">encodeByte(byte)</a></li>
@@ -102,14 +103,14 @@ loadScripts(document, 'script');</script>
 <section class="class-description" id="class-description">
 <dl class="notes">
 <dt>All Implemented Interfaces:</dt>
-<dd><code><a href="../Encoder.html" title="interface in io.micronaut.serde">Encoder</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/AutoCloseable.html" title="class or interface in java.lang" class="external-link">AutoCloseable</a></code></dd>
+<dd><code><a href="../Encoder.html" title="interface in io.micronaut.serde">Encoder</a>, <a href="../KeysAwareEncoder.html" title="interface in io.micronaut.serde">KeysAwareEncoder</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/AutoCloseable.html" title="class or interface in java.lang" class="external-link">AutoCloseable</a></code></dd>
 </dl>
 <hr>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="annotations">@Internal
 </span><span class="modifiers">public final class </span><span class="element-name type-name-label">BsonWriterEncoder</span>
 <span class="extends-implements">extends <a href="../LimitingStream.html" title="class in io.micronaut.serde">LimitingStream</a>
-implements <a href="../Encoder.html" title="interface in io.micronaut.serde">Encoder</a></span></div>
+implements <a href="../KeysAwareEncoder.html" title="interface in io.micronaut.serde">KeysAwareEncoder</a></span></div>
 <div class="block">Bson implementation of <a href="../Encoder.html" title="interface in io.micronaut.serde"><code>Encoder</code></a>.</div>
 <dl class="notes">
 <dt>Author:</dt>
@@ -221,46 +222,52 @@ implements <a href="../Encoder.html" title="interface in io.micronaut.serde">Enc
 <div class="block">Encode an int.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#encodeKey(java.lang.String)" class="member-name-link">encodeKey</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;key)</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#encodeKey(io.micronaut.serde.Keys,int)" class="member-name-link">encodeKey</a><wbr>(<a href="../Keys.html" title="interface in io.micronaut.serde">Keys</a>&nbsp;keys,
+ int&nbsp;index)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Encode a key by index from the supplied key set.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#encodeKey(java.lang.String)" class="member-name-link">encodeKey</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;key)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Encode a key.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#encodeLong(long)" class="member-name-link">encodeLong</a><wbr>(long&nbsp;value)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#encodeLong(long)" class="member-name-link">encodeLong</a><wbr>(long&nbsp;value)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Encode a long.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#encodeNull()" class="member-name-link">encodeNull</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#encodeNull()" class="member-name-link">encodeNull</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Encode <code>null</code>.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../Encoder.html" title="interface in io.micronaut.serde">Encoder</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#encodeObject(io.micronaut.core.type.Argument)" class="member-name-link">encodeObject</a><wbr>(io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../Encoder.html" title="interface in io.micronaut.serde">Encoder</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#encodeObject(io.micronaut.core.type.Argument)" class="member-name-link">encodeObject</a><wbr>(io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Encodes an object.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#encodeObjectId(org.bson.types.ObjectId)" class="member-name-link">encodeObjectId</a><wbr>(org.bson.types.ObjectId&nbsp;value)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#encodeShort(short)" class="member-name-link">encodeShort</a><wbr>(short&nbsp;value)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#encodeObjectId(org.bson.types.ObjectId)" class="member-name-link">encodeObjectId</a><wbr>(org.bson.types.ObjectId&nbsp;value)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#encodeShort(short)" class="member-name-link">encodeShort</a><wbr>(short&nbsp;value)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Encode a short.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#encodeString(java.lang.String)" class="member-name-link">encodeString</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;value)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#encodeString(java.lang.String)" class="member-name-link">encodeString</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;value)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Encode a string.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#finishStructure()" class="member-name-link">finishStructure</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#finishStructure()" class="member-name-link">finishStructure</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Finalize a previously created structure, like an array or object.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>org.bson.BsonWriter</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getBsonWriter()" class="member-name-link">getBsonWriter</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>org.bson.BsonWriter</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getBsonWriter()" class="member-name-link">getBsonWriter</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 </div>
 </div>
 </div>
@@ -369,6 +376,24 @@ implements <a href="../Encoder.html" title="interface in io.micronaut.serde">Enc
 <dd><code><a href="../Encoder.html#encodeKey(java.lang.String)">encodeKey</a></code>&nbsp;in interface&nbsp;<code><a href="../Encoder.html" title="interface in io.micronaut.serde">Encoder</a></code></dd>
 <dt>Parameters:</dt>
 <dd><code>key</code> - The key, never <code>null</code></dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="encodeKey(io.micronaut.serde.Keys,int)">
+<h3>encodeKey</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">encodeKey</span><wbr><span class="parameters">(<a href="../Keys.html" title="interface in io.micronaut.serde">Keys</a>&nbsp;keys,
+ int&nbsp;index)</span></div>
+<div class="block"><span class="description-from-type-label">Description copied from interface:&nbsp;<code><a href="../KeysAwareEncoder.html#encodeKey(io.micronaut.serde.Keys,int)">KeysAwareEncoder</a></code></span></div>
+<div class="block">Encode a key by index from the supplied key set.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../KeysAwareEncoder.html#encodeKey(io.micronaut.serde.Keys,int)">encodeKey</a></code>&nbsp;in interface&nbsp;<code><a href="../KeysAwareEncoder.html" title="interface in io.micronaut.serde">KeysAwareEncoder</a></code></dd>
+<dt>Parameters:</dt>
+<dd><code>keys</code> - The keys</dd>
+<dd><code>index</code> - The key index</dd>
 </dl>
 </div>
 </section>

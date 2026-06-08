@@ -67,6 +67,8 @@ loadScripts(document, 'script');</script>
 <li><a href="#backFromChild(io.micronaut.serde.support.AbstractStreamDecoder)" tabindex="0">backFromChild(AbstractStreamDecoder)</a></li>
 <li><a href="#nextToken()" tabindex="0">nextToken()</a></li>
 <li><a href="#getCurrentKey()" tabindex="0">getCurrentKey()</a></li>
+<li><a href="#decodeKey()" tabindex="0">decodeKey()</a></li>
+<li><a href="#decodeKey(io.micronaut.serde.Keys)" tabindex="0">decodeKey(Keys)</a></li>
 <li><a href="#coerceScalarToString(io.micronaut.serde.support.AbstractStreamDecoder.TokenType)" tabindex="0">coerceScalarToString(AbstractStreamDecoder.TokenType)</a></li>
 <li><a href="#createChildDecoder()" tabindex="0">createChildDecoder()</a></li>
 <li><a href="#getString()" tabindex="0">getString()</a></li>
@@ -106,13 +108,14 @@ loadScripts(document, 'script');</script>
 <section class="class-description" id="class-description">
 <dl class="notes">
 <dt>All Implemented Interfaces:</dt>
-<dd><code><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/AutoCloseable.html" title="class or interface in java.lang" class="external-link">AutoCloseable</a></code></dd>
+<dd><code><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a>, <a href="../KeysAwareDecoder.html" title="interface in io.micronaut.serde">KeysAwareDecoder</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/AutoCloseable.html" title="class or interface in java.lang" class="external-link">AutoCloseable</a></code></dd>
 </dl>
 <hr>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="annotations">@Internal
 </span><span class="modifiers">public final class </span><span class="element-name type-name-label">BsonReaderDecoder</span>
-<span class="extends-implements">extends <a href="../support/AbstractDecoderPerStructureStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractDecoderPerStructureStreamDecoder</a></span></div>
+<span class="extends-implements">extends <a href="../support/AbstractDecoderPerStructureStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractDecoderPerStructureStreamDecoder</a>
+implements <a href="../KeysAwareDecoder.html" title="interface in io.micronaut.serde">KeysAwareDecoder</a></span></div>
 <div class="block">Bson implementation of <a href="../Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a>.</div>
 <dl class="notes">
 <dt>Author:</dt>
@@ -141,6 +144,9 @@ loadScripts(document, 'script');</script>
 <div class="inherited-list">
 <h3 id="fields-inherited-from-class-io.micronaut.serde.LimitingStream">Fields inherited from class&nbsp;<a href="../LimitingStream.html#field-summary" title="class in io.micronaut.serde">LimitingStream</a></h3>
 <code><a href="../LimitingStream.html#DEFAULT_LIMITS">DEFAULT_LIMITS</a>, <a href="../LimitingStream.html#DEFAULT_MAXIMUM_DEPTH">DEFAULT_MAXIMUM_DEPTH</a></code></div>
+<div class="inherited-list">
+<h3 id="fields-inherited-from-class-io.micronaut.serde.KeysAwareDecoder">Fields inherited from interface&nbsp;<a href="../KeysAwareDecoder.html#field-summary" title="interface in io.micronaut.serde">KeysAwareDecoder</a></h3>
+<code><a href="../KeysAwareDecoder.html#MATCH_END_OBJECT">MATCH_END_OBJECT</a>, <a href="../KeysAwareDecoder.html#MATCH_UNKNOWN_NAME">MATCH_UNKNOWN_NAME</a></code></div>
 </section>
 </li>
 <!-- ======== CONSTRUCTOR SUMMARY ======== -->
@@ -211,6 +217,16 @@ loadScripts(document, 'script');</script>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Decodes <code>Decimal128</code>.</div>
 </div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@Nullable <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeKey()" class="member-name-link">decodeKey</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Decodes a key, if there are no more keys to decode returns <code>null</code>.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>int</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeKey(io.micronaut.serde.Keys)" class="member-name-link">decodeKey</a><wbr>(<a href="../Keys.html" title="interface in io.micronaut.serde">Keys</a>&nbsp;keys)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Decode the next object key and match it against the supplied key set.</div>
+</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>org.bson.types.ObjectId</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeObjectId()" class="member-name-link">decodeObjectId</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
@@ -277,7 +293,7 @@ loadScripts(document, 'script');</script>
 </div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-io.micronaut.serde.support.AbstractDecoderPerStructureStreamDecoder">Methods inherited from class&nbsp;<a href="../support/AbstractDecoderPerStructureStreamDecoder.html#method-summary" title="class in io.micronaut.serde.support">AbstractDecoderPerStructureStreamDecoder</a></h3>
-<code><a href="../support/AbstractDecoderPerStructureStreamDecoder.html#decodeArray0(io.micronaut.serde.support.AbstractStreamDecoder.TokenType)" title="decodeArray0(AbstractStreamDecoder.TokenType)">decodeArray0</a>, <a href="../support/AbstractDecoderPerStructureStreamDecoder.html#decodeKey()" title="decodeKey()">decodeKey</a>, <a href="../support/AbstractDecoderPerStructureStreamDecoder.html#decodeObject0(io.micronaut.serde.support.AbstractStreamDecoder.TokenType)" title="decodeObject0(AbstractStreamDecoder.TokenType)">decodeObject0</a>, <a href="../support/AbstractDecoderPerStructureStreamDecoder.html#finishStructure(boolean)" title="finishStructure(boolean)">finishStructure</a>, <a href="../support/AbstractDecoderPerStructureStreamDecoder.html#hasNextArrayValue()" title="hasNextArrayValue()">hasNextArrayValue</a>, <a href="../support/AbstractDecoderPerStructureStreamDecoder.html#preDecodeValue(io.micronaut.serde.support.AbstractStreamDecoder.TokenType)" title="preDecodeValue(AbstractStreamDecoder.TokenType)">preDecodeValue</a></code></div>
+<code><a href="../support/AbstractDecoderPerStructureStreamDecoder.html#checkChild()" title="checkChild()">checkChild</a>, <a href="../support/AbstractDecoderPerStructureStreamDecoder.html#decodeArray0(io.micronaut.serde.support.AbstractStreamDecoder.TokenType)" title="decodeArray0(AbstractStreamDecoder.TokenType)">decodeArray0</a>, <a href="../support/AbstractDecoderPerStructureStreamDecoder.html#decodeObject0(io.micronaut.serde.support.AbstractStreamDecoder.TokenType)" title="decodeObject0(AbstractStreamDecoder.TokenType)">decodeObject0</a>, <a href="../support/AbstractDecoderPerStructureStreamDecoder.html#finishStructure(boolean)" title="finishStructure(boolean)">finishStructure</a>, <a href="../support/AbstractDecoderPerStructureStreamDecoder.html#hasNextArrayValue()" title="hasNextArrayValue()">hasNextArrayValue</a>, <a href="../support/AbstractDecoderPerStructureStreamDecoder.html#preDecodeValue(io.micronaut.serde.support.AbstractStreamDecoder.TokenType)" title="preDecodeValue(AbstractStreamDecoder.TokenType)">preDecodeValue</a></code></div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-io.micronaut.serde.support.AbstractStreamDecoder">Methods inherited from class&nbsp;<a href="../support/AbstractStreamDecoder.html#method-summary" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></h3>
 <code><a href="../support/AbstractStreamDecoder.html#consumeLeftElements(io.micronaut.serde.support.AbstractStreamDecoder.TokenType)" title="consumeLeftElements(AbstractStreamDecoder.TokenType)">consumeLeftElements</a>, <a href="../support/AbstractStreamDecoder.html#decodeArbitrary()" title="decodeArbitrary()">decodeArbitrary</a>, <a href="../support/AbstractStreamDecoder.html#decodeArray(io.micronaut.core.type.Argument)" title="decodeArray(Argument)">decodeArray</a>, <a href="../support/AbstractStreamDecoder.html#decodeBigDecimal()" title="decodeBigDecimal()">decodeBigDecimal</a>, <a href="../support/AbstractStreamDecoder.html#decodeBigInteger()" title="decodeBigInteger()">decodeBigInteger</a>, <a href="../support/AbstractStreamDecoder.html#decodeBoolean()" title="decodeBoolean()">decodeBoolean</a>, <a href="../support/AbstractStreamDecoder.html#decodeByte()" title="decodeByte()">decodeByte</a>, <a href="../support/AbstractStreamDecoder.html#decodeChar()" title="decodeChar()">decodeChar</a>, <a href="../support/AbstractStreamDecoder.html#decodeCustom(io.micronaut.serde.support.AbstractStreamDecoder.ValueDecoder)" title="decodeCustom(AbstractStreamDecoder.ValueDecoder)">decodeCustom</a>, <a href="../support/AbstractStreamDecoder.html#decodeCustom(io.micronaut.serde.support.AbstractStreamDecoder.ValueDecoder,boolean)" title="decodeCustom(AbstractStreamDecoder.ValueDecoder, boolean)">decodeCustom</a>, <a href="../support/AbstractStreamDecoder.html#decodeDouble()" title="decodeDouble()">decodeDouble</a>, <a href="../support/AbstractStreamDecoder.html#decodeFloat()" title="decodeFloat()">decodeFloat</a>, <a href="../support/AbstractStreamDecoder.html#decodeInt()" title="decodeInt()">decodeInt</a>, <a href="../support/AbstractStreamDecoder.html#decodeLong()" title="decodeLong()">decodeLong</a>, <a href="../support/AbstractStreamDecoder.html#decodeNode()" title="decodeNode()">decodeNode</a>, <a href="../support/AbstractStreamDecoder.html#decodeNull()" title="decodeNull()">decodeNull</a>, <a href="../support/AbstractStreamDecoder.html#decodeNumber(io.micronaut.serde.support.AbstractStreamDecoder.TokenType,io.micronaut.serde.support.AbstractStreamDecoder.ValueDecoder,java.util.function.Function,T,T)" title="decodeNumber(AbstractStreamDecoder.TokenType, AbstractStreamDecoder.ValueDecoder, Function, T, T)">decodeNumber</a>, <a href="../support/AbstractStreamDecoder.html#decodeObject(io.micronaut.core.type.Argument)" title="decodeObject(Argument)">decodeObject</a>, <a href="../support/AbstractStreamDecoder.html#decodeShort()" title="decodeShort()">decodeShort</a>, <a href="../support/AbstractStreamDecoder.html#decodeString()" title="decodeString()">decodeString</a>, <a href="../support/AbstractStreamDecoder.html#getBestNumberNode()" title="getBestNumberNode()">getBestNumberNode</a>, <a href="../support/AbstractStreamDecoder.html#getInteger()" title="getInteger()">getInteger</a>, <a href="../support/AbstractStreamDecoder.html#skipValue()" title="skipValue()">skipValue</a>, <a href="../support/AbstractStreamDecoder.html#unexpectedToken(io.micronaut.serde.support.AbstractStreamDecoder.TokenType)" title="unexpectedToken(AbstractStreamDecoder.TokenType)">unexpectedToken</a></code></div>
@@ -289,7 +305,7 @@ loadScripts(document, 'script');</script>
 <code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#clone()" title="class or interface in java.lang" class="external-link">clone</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#equals(java.lang.Object)" title="class or interface in java.lang" class="external-link">equals</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#finalize()" title="class or interface in java.lang" class="external-link">finalize</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#getClass()" title="class or interface in java.lang" class="external-link">getClass</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#hashCode()" title="class or interface in java.lang" class="external-link">hashCode</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#notify()" title="class or interface in java.lang" class="external-link">notify</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#notifyAll()" title="class or interface in java.lang" class="external-link">notifyAll</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#toString()" title="class or interface in java.lang" class="external-link">toString</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#wait()" title="class or interface in java.lang" class="external-link">wait</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#wait(long)" title="class or interface in java.lang" class="external-link">wait</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#wait(long,int)" title="class or interface in java.lang" class="external-link">wait</a></code></div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-io.micronaut.serde.Decoder">Methods inherited from interface&nbsp;<a href="../Decoder.html#method-summary" title="interface in io.micronaut.serde">Decoder</a></h3>
-<code><a href="../Decoder.html#close()" title="close()">close</a>, <a href="../Decoder.html#decodeArray()" title="decodeArray()">decodeArray</a>, <a href="../Decoder.html#decodeBigDecimalNullable()" title="decodeBigDecimalNullable()">decodeBigDecimalNullable</a>, <a href="../Decoder.html#decodeBigIntegerNullable()" title="decodeBigIntegerNullable()">decodeBigIntegerNullable</a>, <a href="../Decoder.html#decodeBinaryNullable()" title="decodeBinaryNullable()">decodeBinaryNullable</a>, <a href="../Decoder.html#decodeBooleanNullable()" title="decodeBooleanNullable()">decodeBooleanNullable</a>, <a href="../Decoder.html#decodeByteNullable()" title="decodeByteNullable()">decodeByteNullable</a>, <a href="../Decoder.html#decodeCharNullable()" title="decodeCharNullable()">decodeCharNullable</a>, <a href="../Decoder.html#decodeDoubleNullable()" title="decodeDoubleNullable()">decodeDoubleNullable</a>, <a href="../Decoder.html#decodeFloatNullable()" title="decodeFloatNullable()">decodeFloatNullable</a>, <a href="../Decoder.html#decodeIntNullable()" title="decodeIntNullable()">decodeIntNullable</a>, <a href="../Decoder.html#decodeLongNullable()" title="decodeLongNullable()">decodeLongNullable</a>, <a href="../Decoder.html#decodeNumber()" title="decodeNumber()">decodeNumber</a>, <a href="../Decoder.html#decodeNumberNullable()" title="decodeNumberNullable()">decodeNumberNullable</a>, <a href="../Decoder.html#decodeObject()" title="decodeObject()">decodeObject</a>, <a href="../Decoder.html#decodeShortNullable()" title="decodeShortNullable()">decodeShortNullable</a>, <a href="../Decoder.html#decodeStringNullable()" title="decodeStringNullable()">decodeStringNullable</a>, <a href="../Decoder.html#finishStructure()" title="finishStructure()">finishStructure</a></code></div>
+<code><a href="../Decoder.html#close()" title="close()">close</a>, <a href="../Decoder.html#decodeArbitrary()" title="decodeArbitrary()">decodeArbitrary</a>, <a href="../Decoder.html#decodeArray()" title="decodeArray()">decodeArray</a>, <a href="../Decoder.html#decodeArray(io.micronaut.core.type.Argument)" title="decodeArray(Argument)">decodeArray</a>, <a href="../Decoder.html#decodeBigDecimal()" title="decodeBigDecimal()">decodeBigDecimal</a>, <a href="../Decoder.html#decodeBigDecimalNullable()" title="decodeBigDecimalNullable()">decodeBigDecimalNullable</a>, <a href="../Decoder.html#decodeBigInteger()" title="decodeBigInteger()">decodeBigInteger</a>, <a href="../Decoder.html#decodeBigIntegerNullable()" title="decodeBigIntegerNullable()">decodeBigIntegerNullable</a>, <a href="../Decoder.html#decodeBinaryNullable()" title="decodeBinaryNullable()">decodeBinaryNullable</a>, <a href="../Decoder.html#decodeBoolean()" title="decodeBoolean()">decodeBoolean</a>, <a href="../Decoder.html#decodeBooleanNullable()" title="decodeBooleanNullable()">decodeBooleanNullable</a>, <a href="../Decoder.html#decodeByte()" title="decodeByte()">decodeByte</a>, <a href="../Decoder.html#decodeByteNullable()" title="decodeByteNullable()">decodeByteNullable</a>, <a href="../Decoder.html#decodeChar()" title="decodeChar()">decodeChar</a>, <a href="../Decoder.html#decodeCharNullable()" title="decodeCharNullable()">decodeCharNullable</a>, <a href="../Decoder.html#decodeDouble()" title="decodeDouble()">decodeDouble</a>, <a href="../Decoder.html#decodeDoubleNullable()" title="decodeDoubleNullable()">decodeDoubleNullable</a>, <a href="../Decoder.html#decodeFloat()" title="decodeFloat()">decodeFloat</a>, <a href="../Decoder.html#decodeFloatNullable()" title="decodeFloatNullable()">decodeFloatNullable</a>, <a href="../Decoder.html#decodeInt()" title="decodeInt()">decodeInt</a>, <a href="../Decoder.html#decodeIntNullable()" title="decodeIntNullable()">decodeIntNullable</a>, <a href="../Decoder.html#decodeLong()" title="decodeLong()">decodeLong</a>, <a href="../Decoder.html#decodeLongNullable()" title="decodeLongNullable()">decodeLongNullable</a>, <a href="../Decoder.html#decodeNode()" title="decodeNode()">decodeNode</a>, <a href="../Decoder.html#decodeNull()" title="decodeNull()">decodeNull</a>, <a href="../Decoder.html#decodeNumber()" title="decodeNumber()">decodeNumber</a>, <a href="../Decoder.html#decodeNumberNullable()" title="decodeNumberNullable()">decodeNumberNullable</a>, <a href="../Decoder.html#decodeObject()" title="decodeObject()">decodeObject</a>, <a href="../Decoder.html#decodeObject(io.micronaut.core.type.Argument)" title="decodeObject(Argument)">decodeObject</a>, <a href="../Decoder.html#decodeShort()" title="decodeShort()">decodeShort</a>, <a href="../Decoder.html#decodeShortNullable()" title="decodeShortNullable()">decodeShortNullable</a>, <a href="../Decoder.html#decodeString()" title="decodeString()">decodeString</a>, <a href="../Decoder.html#decodeStringNullable()" title="decodeStringNullable()">decodeStringNullable</a>, <a href="../Decoder.html#finishStructure()" title="finishStructure()">finishStructure</a>, <a href="../Decoder.html#finishStructure(boolean)" title="finishStructure(boolean)">finishStructure</a>, <a href="../Decoder.html#hasNextArrayValue()" title="hasNextArrayValue()">hasNextArrayValue</a>, <a href="../Decoder.html#skipValue()" title="skipValue()">skipValue</a></code></div>
 </section>
 </li>
 </ul>
@@ -365,6 +381,51 @@ may hold an outdated value until <a href="../support/AbstractStreamDecoder.html#
 <dd><code><a href="../support/AbstractStreamDecoder.html#getCurrentKey()">getCurrentKey</a></code>&nbsp;in class&nbsp;<code><a href="../support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></dd>
 <dt>Returns:</dt>
 <dd>The current field key</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="decodeKey()">
+<h3>decodeKey</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">@Nullable <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">decodeKey</span>()
+                           throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block"><span class="description-from-type-label">Description copied from interface:&nbsp;<code><a href="../Decoder.html#decodeKey()">Decoder</a></code></span></div>
+<div class="block">Decodes a key, if there are no more keys to decode returns <code>null</code>.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../Decoder.html#decodeKey()">decodeKey</a></code>&nbsp;in interface&nbsp;<code><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></dd>
+<dt>Overrides:</dt>
+<dd><code><a href="../support/AbstractDecoderPerStructureStreamDecoder.html#decodeKey()">decodeKey</a></code>&nbsp;in class&nbsp;<code><a href="../support/AbstractDecoderPerStructureStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractDecoderPerStructureStreamDecoder</a></code></dd>
+<dt>Returns:</dt>
+<dd>The key or <code>null</code> if there aren't any more keys</dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an unrecoverable error occurs</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="decodeKey(io.micronaut.serde.Keys)">
+<h3>decodeKey</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">int</span>&nbsp;<span class="element-name">decodeKey</span><wbr><span class="parameters">(<a href="../Keys.html" title="interface in io.micronaut.serde">Keys</a>&nbsp;keys)</span>
+              throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block"><span class="description-from-type-label">Description copied from interface:&nbsp;<code><a href="../KeysAwareDecoder.html#decodeKey(io.micronaut.serde.Keys)">KeysAwareDecoder</a></code></span></div>
+<div class="block">Decode the next object key and match it against the supplied key set.
+A non-negative result is the matched key index. <a href="../KeysAwareDecoder.html#MATCH_UNKNOWN_NAME"><code>KeysAwareDecoder.MATCH_UNKNOWN_NAME</code></a>
+means the current key is available through <a href="../Decoder.html#decodeKey()"><code>Decoder.decodeKey()</code></a> and is
+guaranteed not to match the supplied <a href="../Keys.html" title="interface in io.micronaut.serde"><code>Keys</code></a>.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../KeysAwareDecoder.html#decodeKey(io.micronaut.serde.Keys)">decodeKey</a></code>&nbsp;in interface&nbsp;<code><a href="../KeysAwareDecoder.html" title="interface in io.micronaut.serde">KeysAwareDecoder</a></code></dd>
+<dt>Parameters:</dt>
+<dd><code>keys</code> - The keys</dd>
+<dt>Returns:</dt>
+<dd>The matched key index, <a href="../KeysAwareDecoder.html#MATCH_END_OBJECT"><code>KeysAwareDecoder.MATCH_END_OBJECT</code></a>, or <a href="../KeysAwareDecoder.html#MATCH_UNKNOWN_NAME"><code>KeysAwareDecoder.MATCH_UNKNOWN_NAME</code></a></dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an unrecoverable error occurs</dd>
 </dl>
 </div>
 </section>
@@ -611,6 +672,8 @@ Implementations <b>must</b> support the array shape, but the other shapes are op
 <div class="block"><span class="description-from-type-label">Description copied from interface:&nbsp;<code><a href="../Decoder.html#createDeserializationException(java.lang.String,java.lang.Object)">Decoder</a></code></span></div>
 <div class="block">Creates an exception for the given message.</div>
 <dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../Decoder.html#createDeserializationException(java.lang.String,java.lang.Object)">createDeserializationException</a></code>&nbsp;in interface&nbsp;<code><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></dd>
 <dt>Parameters:</dt>
 <dd><code>message</code> - The message, never <code>null</code></dd>
 <dd><code>invalidValue</code> - The invalid value. Can be <code>null</code>.</dd>

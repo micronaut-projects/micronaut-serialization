@@ -183,7 +183,7 @@
 <div class="sect3">
 <h4 id="_runtime_performance">Runtime Performance</h4>
 <div class="paragraph">
-<p>The <code>UserBeanSerdeBenchmark</code> JMH benchmark compares Jackson Databind, Jackson Databind with Blackbird, Micronaut Serialization using generated serializers/deserializers, and Micronaut Serialization with generated serializers/deserializers disabled. A local run on JDK 25 used 3 forks, 5 warmup iterations, and 10 measurement iterations with 1-second iterations.</p>
+<p>The <code>UserBeanSerdeBenchmark</code> JMH benchmark compares Jackson Databind, Jackson Databind with Blackbird, Micronaut Serialization using generated serializers/deserializers, and Micronaut Serialization with generated serializers/deserializers disabled. A local GraalVM Java 25 run used 3 forks, 5 warmup iterations, and 5 measurement iterations with 1-second iterations and <code>-prof gc</code>.</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -205,24 +205,24 @@
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Serialize throughput</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">389,166 ops/s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">389,564 ops/s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">510,335 ops/s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">414,885 ops/s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">386,747 ops/s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">384,945 ops/s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">461,674 ops/s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">408,846 ops/s</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Deserialize average time</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3,294 ns/op</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3,320 ns/op</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3,060 ns/op</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3,559 ns/op</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3,756 ns/op</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3,667 ns/op</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3,113 ns/op</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3,249 ns/op</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Round-trip average time</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">6,546 ns/op</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">6,528 ns/op</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">5,113 ns/op</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">6,096 ns/op</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6,696 ns/op</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6,630 ns/op</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5,251 ns/op</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5,699 ns/op</p></td>
 </tr>
 </tbody>
 </table>
@@ -232,7 +232,7 @@
 </div>
 </div>
 <div class="paragraph">
-<p>In this run, generated Micronaut Serialization had the highest serialization throughput, about 31.1% faster than Jackson Databind and about 23.0% faster than the runtime fallback. It was also the fastest deserialization path, about 7.1% faster than Jackson Databind, and the fastest combined serialize-and-deserialize round trip, about 21.9% faster than Jackson Databind. The runtime fallback remained slower than generated Micronaut Serialization across all measured operations, which is expected because it uses runtime serializer/deserializer selection instead of generated classes.</p>
+<p>In this run, generated Micronaut Serialization had the highest serialization throughput, about 19.4% faster than Jackson Databind and about 12.9% faster than the runtime fallback. It was also the fastest deserialization path, about 20.7% faster than Jackson Databind, and the fastest combined serialize-and-deserialize round trip, about 27.5% faster than Jackson Databind. The runtime fallback remained slower than generated Micronaut Serialization across all measured operations, which is expected because it uses runtime serializer/deserializer selection instead of generated classes.</p>
 </div>
 </div>
 <div class="sect3">
