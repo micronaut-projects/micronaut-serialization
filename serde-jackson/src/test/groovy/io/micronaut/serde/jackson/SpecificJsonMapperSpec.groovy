@@ -6,6 +6,7 @@ import io.micronaut.serde.annotation.Serdeable
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 import spock.lang.Specification
+import tools.jackson.core.util.JsonRecyclerPools
 
 @MicronautTest
 class SpecificJsonMapperSpec extends Specification {
@@ -24,68 +25,56 @@ class SpecificJsonMapperSpec extends Specification {
 
     }
 
-    void "write value as bytes releases buffer recycler"() {
+    void "write value as bytes uses thread local buffer recycler"() {
         given:
             def recyclerPool = jacksonJsonMapper.@jsonFactory._getRecyclerPool()
-            recyclerPool.clear()
 
         when:
             def bytes = jacksonJsonMapper.writeValueAsBytes(new TestX(name: "Fred"))
 
         then:
             new String(bytes) == '{"name":"Fred"}'
-            recyclerPool.pooledCount() == 1
-
-        cleanup:
-            recyclerPool.clear()
+            recyclerPool instanceof JsonRecyclerPools.ThreadLocalPool
+            recyclerPool.pooledCount() == -1
     }
 
-    void "write typed value as bytes releases buffer recycler"() {
+    void "write typed value as bytes uses thread local buffer recycler"() {
         given:
             def recyclerPool = jacksonJsonMapper.@jsonFactory._getRecyclerPool()
-            recyclerPool.clear()
 
         when:
             def bytes = jacksonJsonMapper.writeValueAsBytes(Argument.of(TestX), new TestX(name: "Fred"))
 
         then:
             new String(bytes) == '{"name":"Fred"}'
-            recyclerPool.pooledCount() == 1
-
-        cleanup:
-            recyclerPool.clear()
+            recyclerPool instanceof JsonRecyclerPools.ThreadLocalPool
+            recyclerPool.pooledCount() == -1
     }
 
-    void "read value from bytes releases buffer recycler"() {
+    void "read value from bytes uses thread local buffer recycler"() {
         given:
             def recyclerPool = jacksonJsonMapper.@jsonFactory._getRecyclerPool()
-            recyclerPool.clear()
 
         when:
             def value = jacksonJsonMapper.readValue('{"name":"Fred"}'.bytes, Argument.of(TestX))
 
         then:
             value.name == "Fred"
-            recyclerPool.pooledCount() == 1
-
-        cleanup:
-            recyclerPool.clear()
+            recyclerPool instanceof JsonRecyclerPools.ThreadLocalPool
+            recyclerPool.pooledCount() == -1
     }
 
-    void "read value from stream releases buffer recycler"() {
+    void "read value from stream uses thread local buffer recycler"() {
         given:
             def recyclerPool = jacksonJsonMapper.@jsonFactory._getRecyclerPool()
-            recyclerPool.clear()
 
         when:
             def value = jacksonJsonMapper.readValue(new ByteArrayInputStream('{"name":"Fred"}'.bytes), Argument.of(TestX))
 
         then:
             value.name == "Fred"
-            recyclerPool.pooledCount() == 1
-
-        cleanup:
-            recyclerPool.clear()
+            recyclerPool instanceof JsonRecyclerPools.ThreadLocalPool
+            recyclerPool.pooledCount() == -1
     }
 
     @Serdeable

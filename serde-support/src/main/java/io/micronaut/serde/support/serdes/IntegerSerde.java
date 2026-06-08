@@ -21,12 +21,13 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.support.SerdeRegistrar;
+import io.micronaut.serde.support.util.DecoderValueKind;
 
 import java.io.IOException;
 import java.util.Arrays;
 
 @Internal
-final class IntegerSerde implements SerdeRegistrar<Integer>, NumberSerde<Integer> {
+final class IntegerSerde implements SerdeRegistrar<Integer>, NumberSerde<Integer>, DecoderValueKind.Provider {
 
     @Override
     public Integer deserialize(Decoder decoder,
@@ -38,6 +39,11 @@ final class IntegerSerde implements SerdeRegistrar<Integer>, NumberSerde<Integer
     @Override
     public @Nullable Integer deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super Integer> type) throws IOException {
         return decoder.decodeIntNullable();
+    }
+
+    @Override
+    public DecoderValueKind decoderValueKind() {
+        return DecoderValueKind.INT;
     }
 
     @Override

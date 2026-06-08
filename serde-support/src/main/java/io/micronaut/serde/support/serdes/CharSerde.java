@@ -21,13 +21,14 @@ import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.FormattedSerde;
 import io.micronaut.serde.support.SerdeRegistrar;
+import io.micronaut.serde.support.util.DecoderValueKind;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.Arrays;
 
 @Internal
-final class CharSerde implements FormattedSerde<Character>, SerdeRegistrar<Character> {
+final class CharSerde implements FormattedSerde<Character>, SerdeRegistrar<Character>, DecoderValueKind.Provider {
     @Override
     public Character deserialize(Decoder decoder,
                                  DecoderContext decoderContext,
@@ -68,5 +69,10 @@ final class CharSerde implements FormattedSerde<Character>, SerdeRegistrar<Chara
     @Override
     public Character getDefaultValue(DecoderContext context, Argument<? super Character> type) {
         return type.isPrimitive() ? (char) 0 : null;
+    }
+
+    @Override
+    public DecoderValueKind decoderValueKind() {
+        return DecoderValueKind.CHAR;
     }
 }

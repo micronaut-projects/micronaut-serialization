@@ -22,11 +22,12 @@ import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.FormattedSerde;
 import io.micronaut.serde.support.SerdeRegistrar;
+import io.micronaut.serde.support.util.DecoderValueKind;
 
 import java.io.IOException;
 
 @Internal
-final class StringSerde implements FormattedSerde<String>, SerdeRegistrar<String> {
+final class StringSerde implements FormattedSerde<String>, SerdeRegistrar<String>, DecoderValueKind.Provider {
 
     @Override
     public Argument<String> getType() {
@@ -47,6 +48,11 @@ final class StringSerde implements FormattedSerde<String>, SerdeRegistrar<String
     @Override
     public @Nullable String deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super String> type) throws IOException {
         return decoder.decodeStringNullable();
+    }
+
+    @Override
+    public DecoderValueKind decoderValueKind() {
+        return DecoderValueKind.STRING;
     }
 
     @Override

@@ -16,28 +16,55 @@
 package io.micronaut.serde.support.deserializers;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.reflect.exception.InstantiationException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.Keys;
+import io.micronaut.serde.KeysAwareDecoder;
 import io.micronaut.serde.UpdatingDeserializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Objects;
 
 /**
- * A simple all-args constructor and no setter properties implementation for deserialization of objects that uses introspection metadata.
+ * Deserializes immutable record-like objects through the runtime constructor-only fast path.
+ *
+ * <p>This implementation is selected for objects whose JSON object can be bound entirely to creator parameters and
+ * instantiated once, after all constructor values have been collected. The shape is deliberately simpler than
+ * {@link SpecificObjectDeserializer}: no mutable/injected properties, unwrapped properties, external type ids,
+ * subtypes, ignored property names, any-setters, views, aliases, managed/back references, unresolved type variables,
+ * or properties from another introspection. Beans that need any of those features stay on the general path.</p>
+ *
+ * <p>Like {@link SimpleObjectDeserializer}, this fast path relies on identity key indexes. The aggregate
+ * {@link Keys} index is also the constructor-parameter array index, so a decoded key can write straight to
+ * {@code localConstructorParameters[keyIndex]} and the matching slot in the constructor argument array. This avoids a
+ * {@link PropertiesBag} consumer, string lookup, alias remapping, and a second property-index conversion inside the
+ * object loop.</p>
+ *
+ * <p>Seen tracking is represented as a single {@code long} mask. {@code consumedProperties} begins with all
+ * non-creator bits set, then each decoded constructor property flips its bit. The loop can stop as soon as all
+ * constructor bits are consumed; remaining JSON fields are relevant only for unknown or duplicate checks. Missing
+ * creator values are filled from defaults by iterating the remaining zero bits before invoking
+ * {@link BeanIntrospection#instantiate(boolean, Object...)}.</p>
+ *
+ * <p>The fast path does not support updating an existing instance because the object is immutable from the
+ * deserializer's perspective: constructor values must be collected before the single instantiation step.</p>
  *
  * @author Denis Stepanov
  */
 @Internal
 final class SimpleRecordLikeObjectDeserializer implements Deserializer<Object>, UpdatingDeserializer<Object> {
     private final BeanIntrospection<Object> introspection;
-    private final PropertiesBag<Object> constructorParameters;
+    private final long propertiesMask;
+    private final DeserBean.DerProperty<Object, Object>[] constructorParameters;
+    private final Keys propertyKeys;
+    private final List<String> propertyKeyNames;
     private final int valuesSize;
     private final boolean ignoreUnknown;
     private final boolean strictNullable;
@@ -48,7 +75,11 @@ final class SimpleRecordLikeObjectDeserializer implements Deserializer<Object>, 
                                        DeserBean<? super Object> deserBean,
                                        @Nullable SerdeDeserializationPreInstantiateCallback preInstantiateCallback) {
         this.introspection = deserBean.introspection;
-        this.constructorParameters = Objects.requireNonNull(deserBean.creatorParams);
+        PropertiesBag<Object> properties = Objects.requireNonNull(deserBean.creatorParams);
+        this.constructorParameters = properties.getPropertiesArray();
+        this.propertiesMask = properties.propertiesMask();
+        this.propertyKeys = deserBean.propertyKeys;
+        this.propertyKeyNames = deserBean.propertyKeyNames();
         this.valuesSize = deserBean.creatorSize;
         this.preInstantiateCallback = preInstantiateCallback;
         this.ignoreUnknown = deserBean.ignoreUnknown;
@@ -57,36 +88,55 @@ final class SimpleRecordLikeObjectDeserializer implements Deserializer<Object>, 
 
     @Override
     public Object deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> beanType) throws IOException {
-        final Decoder objectDecoder = decoder.decodeObject(beanType);
-        final PropertiesBag<Object>.Consumer creatorParameters = constructorParameters.newConsumer();
+        final KeysAwareDecoder objectDecoder = KeysAwareDecoder.of(decoder.decodeObject(beanType));
+        final DeserBean.DerProperty<Object, Object>[] localConstructorParameters = constructorParameters;
         final Object[] params = new Object[valuesSize];
-        boolean allConsumed = valuesSize == 0;
+        long consumedProperties = ~propertiesMask;
         boolean finished = false;
-        while (!allConsumed) {
-            final String propertyName = objectDecoder.decodeKey();
-            if (propertyName == null) {
+        while (consumedProperties != -1) {
+            final int keyIndex = objectDecoder.decodeKey(propertyKeys);
+            if (keyIndex == KeysAwareDecoder.MATCH_END_OBJECT) {
                 finished = true;
                 break;
             }
-            final DeserBean.DerProperty<Object, Object> derProperty = creatorParameters.consume(propertyName);
-            if (derProperty != null) {
-                derProperty.deserializeAndSetConstructorValue(objectDecoder, decoderContext, params);
-                allConsumed = creatorParameters.isAllConsumed();
-            } else if (ignoreUnknown) {
-                objectDecoder.skipValue();
+            if (keyIndex == KeysAwareDecoder.MATCH_UNKNOWN_NAME) {
+                String propertyName = objectDecoder.decodeKey();
+                if (propertyName == null) {
+                    finished = true;
+                    break;
+                }
+                if (ignoreUnknown) {
+                    objectDecoder.skipValue();
+                } else {
+                    throw unknownProperty(beanType, propertyName);
+                }
             } else {
-                throw unexpectedProperty(beanType, creatorParameters, propertyName);
+                long propertyMask = 1L << keyIndex;
+                if ((consumedProperties & propertyMask) == 0) {
+                    consumedProperties |= propertyMask;
+                    localConstructorParameters[keyIndex].deserializeAndSetConstructorValue(objectDecoder, decoderContext, params);
+                } else if (ignoreUnknown) {
+                    objectDecoder.skipValue();
+                } else {
+                    throw duplicateProperty(beanType, propertyKeyNames.get(keyIndex));
+                }
             }
         }
-        if (!allConsumed) {
-            for (DeserBean.DerProperty<Object, Object> sp : creatorParameters.getNotConsumed()) {
-                sp.setDefaultConstructorValue(decoderContext, params);
-            }
+        long remainingProperties = ~consumedProperties;
+        while (remainingProperties != 0) {
+            int index = Long.numberOfTrailingZeros(remainingProperties);
+            localConstructorParameters[index].setDefaultConstructorValue(decoderContext, params);
+            remainingProperties &= remainingProperties - 1;
         }
         if (!finished && !ignoreUnknown) {
-            final String propertyName = objectDecoder.decodeKey();
-            if (propertyName != null) {
-                throw unexpectedProperty(beanType, creatorParameters, propertyName);
+            int keyIndex = objectDecoder.decodeKey(propertyKeys);
+            if (keyIndex == KeysAwareDecoder.MATCH_UNKNOWN_NAME) {
+                String propertyName = objectDecoder.decodeKey();
+                if (propertyName != null) {
+                    throw unknownProperty(beanType, propertyName);
+                }
+            } else if (keyIndex != KeysAwareDecoder.MATCH_END_OBJECT) {
+                throw duplicateProperty(beanType, propertyKeyNames.get(keyIndex));
             }
         }
 
@@ -103,13 +153,6 @@ final class SimpleRecordLikeObjectDeserializer implements Deserializer<Object>, 
         objectDecoder.finishStructure(true);
 
         return obj;
-    }
-
-    private SerdeException unexpectedProperty(Argument<? super Object> beanType, PropertiesBag<Object>.Consumer creatorParameters, String propertyName) {
-        if (creatorParameters.contains(propertyName)) {
-            return duplicateProperty(beanType, propertyName);
-        }
-        return unknownProperty(beanType, propertyName);
     }
 
     private static SerdeException unknownProperty(Argument<? super Object> beanType, String propertyName) {

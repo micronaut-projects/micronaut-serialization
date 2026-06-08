@@ -17,6 +17,8 @@ package io.micronaut.serde.bson;
 
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Keys;
+import io.micronaut.serde.KeysAwareDecoder;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.AbstractDecoderPerStructureStreamDecoder;
 import io.micronaut.serde.support.AbstractStreamDecoder;
@@ -38,6 +40,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.Objects;
 
 /**
  * Bson implementation of {@link Decoder}.
@@ -45,7 +48,7 @@ import java.util.Deque;
  * @author Denis Stepanov
  */
 @Internal
-public final class BsonReaderDecoder extends AbstractDecoderPerStructureStreamDecoder {
+public final class BsonReaderDecoder extends AbstractDecoderPerStructureStreamDecoder implements KeysAwareDecoder {
     private final BsonReader bsonReader;
     private final Deque<Context> contextStack;
 
@@ -53,6 +56,8 @@ public final class BsonReaderDecoder extends AbstractDecoderPerStructureStreamDe
     private BsonType currentBsonType;
     @Nullable
     private TokenType currentToken;
+    @Nullable
+    private String pendingUnknownKey;
 
     public BsonReaderDecoder(BsonReader bsonReader, RemainingLimits remainingLimits) {
         super(remainingLimits);
@@ -288,6 +293,40 @@ public final class BsonReaderDecoder extends AbstractDecoderPerStructureStreamDe
     @Override
     protected String getCurrentKey() {
         return bsonReader.readName();
+    }
+
+    @Nullable
+    @Override
+    public String decodeKey() throws IOException {
+        checkChild();
+        String key = pendingUnknownKey;
+        if (key != null) {
+            pendingUnknownKey = null;
+            return key;
+        }
+        return super.decodeKey();
+    }
+
+    @Override
+    public int decodeKey(Keys keys) throws IOException {
+        checkChild();
+        if (pendingUnknownKey != null) {
+            return MATCH_UNKNOWN_NAME;
+        }
+        TokenType token = currentToken();
+        if (token == TokenType.END_OBJECT) {
+            return MATCH_END_OBJECT;
+        }
+        if (token != TokenType.KEY) {
+            throw new IllegalStateException("Not at a field name");
+        }
+        String key = Objects.requireNonNull(super.decodeKey(), "key");
+        int keyIndex = keys.indexOf(key);
+        if (keyIndex == Keys.UNKNOWN_KEY) {
+            pendingUnknownKey = key;
+            return MATCH_UNKNOWN_NAME;
+        }
+        return keyIndex;
     }
 
     @Override

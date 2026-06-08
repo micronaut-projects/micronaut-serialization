@@ -22,6 +22,7 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.Order;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.BeanMethod;
+import io.micronaut.core.beans.BeanProperty;
 import io.micronaut.core.beans.BeanReadProperty;
 import io.micronaut.core.beans.UnsafeBeanReadProperty;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
@@ -34,6 +35,7 @@ import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.inject.qualifiers.Qualifiers;
 import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.FormattedSerializer;
+import io.micronaut.serde.Keys;
 import io.micronaut.serde.PropertyFilter;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
@@ -88,6 +90,7 @@ final class SerBean<T> {
     // CHECKSTYLE:OFF
     public final BeanIntrospection<T> introspection;
     public final List<SerProperty<T, Object>> writeProperties;
+    public final Keys propertyKeys;
     @Nullable
     public final String wrapperProperty;
     @Nullable
@@ -218,6 +221,7 @@ final class SerBean<T> {
             }
         }
         sortPropertiesIfNeeded(serdeArgumentConf, serializationConfiguration, writeProperties);
+        propertyKeys = Keys.create(writeProperties.stream().map(property -> property.name).toList());
 
         simpleBean = isSimpleBean();
         boolean isAbstractIntrospection = Modifier.isAbstract(introspection.getBeanType().getModifiers());
@@ -593,12 +597,26 @@ final class SerBean<T> {
 
         public PropSerProperty(SerBean<B> bean, String name, String originalName, Argument<P> argument, AnnotationMetadata annotationMetadata, BeanReadProperty<B, P> beanProperty) {
             super(bean, name, originalName, argument, annotationMetadata);
-            this.beanProperty = (UnsafeBeanReadProperty<B, P>) beanProperty;
+            this.beanProperty = optimizedReadProperty(beanProperty);
         }
 
         @Override
         public @Nullable P get(B bean) {
             return beanProperty.getUnsafe(bean);
+        }
+
+        @SuppressWarnings("unchecked")
+        private static <B, P> UnsafeBeanReadProperty<B, P> optimizedReadProperty(BeanReadProperty<B, P> beanProperty) {
+            UnsafeBeanReadProperty<B, P> unsafeBeanProperty = (UnsafeBeanReadProperty<B, P>) beanProperty;
+            for (BeanProperty<B, Object> property : beanProperty.getDeclaringBean().getBeanProperties()) {
+                if (!property.isWriteOnly()
+                    && property instanceof UnsafeBeanReadProperty
+                    && property.getName().equals(beanProperty.getName())
+                    && property.getType().equals(beanProperty.getType())) {
+                    return (UnsafeBeanReadProperty<B, P>) property;
+                }
+            }
+            return unsafeBeanProperty;
         }
     }
 

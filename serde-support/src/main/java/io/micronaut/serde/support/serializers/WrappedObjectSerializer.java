@@ -18,6 +18,8 @@ package io.micronaut.serde.support.serializers;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.Keys;
+import io.micronaut.serde.KeysAwareEncoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
 
@@ -34,24 +36,25 @@ import java.io.IOException;
 final class WrappedObjectSerializer<T> implements ObjectSerializer<T> {
 
     private final Serializer<T> serializer;
-    private final String wrapperProperty;
+    private final Keys wrapperKeys;
 
     WrappedObjectSerializer(Serializer<T> serializer, String wrapperProperty) {
         this.serializer = serializer;
-        this.wrapperProperty = wrapperProperty;
+        this.wrapperKeys = Keys.create(wrapperProperty);
     }
 
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
-        try (Encoder wrapperEncoder = encoder.encodeObject(Argument.OBJECT_ARGUMENT)) {
-            wrapperEncoder.encodeKey(wrapperProperty);
+        try (KeysAwareEncoder wrapperEncoder = KeysAwareEncoder.of(encoder.encodeObject(Argument.OBJECT_ARGUMENT))) {
+            wrapperEncoder.encodeKey(wrapperKeys, 0);
             serializer.serialize(wrapperEncoder, context, type, value);
         }
     }
 
     @Override
     public void serializeInto(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
-        encoder.encodeKey(wrapperProperty);
-        serializer.serialize(encoder, context, type, value);
+        KeysAwareEncoder keysAwareEncoder = KeysAwareEncoder.of(encoder);
+        keysAwareEncoder.encodeKey(wrapperKeys, 0);
+        serializer.serialize(keysAwareEncoder, context, type, value);
     }
 }

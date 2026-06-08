@@ -19,14 +19,20 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Keys;
+import io.micronaut.serde.KeysAwareDecoder;
+import io.micronaut.serde.KeysSupport;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.exceptions.InvalidFormatException;
+import io.micronaut.serde.exceptions.NullValueSerdeException;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
 import io.micronaut.serde.util.BinaryCodecUtil;
 import org.jspecify.annotations.Nullable;
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
+import tools.jackson.core.SerializableString;
+import tools.jackson.core.sym.PropertyNameMatcher;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -43,7 +49,7 @@ import java.util.Map;
  * @author Denis Stepanov
  */
 @Internal
-public final class JacksonDecoder extends LimitingStream implements Decoder {
+public final class JacksonDecoder extends LimitingStream implements KeysAwareDecoder {
     /**
      * Default value for {@link JsonParser#nextIntValue(int)}. If this value is encountered, we
      * enter the slow parse path.
@@ -54,12 +60,24 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
      * encountered, we enter the slow parse path.
      */
     private static final long LONG_CANARY = 0xff1234567890abcdL;
+    private static final int JACKSON_KEYS_INDEX = KeysSupport.indexOf(new JacksonKeysProvider());
+    private static final Object[] EMPTY_JACKSON_KEYS = new JacksonKeysProvider().create(List.of(), false);
+    private static final SerializableString[] EMPTY_SERIALIZABLE_KEYS =
+        (SerializableString[]) EMPTY_JACKSON_KEYS[JacksonKeysProvider.SERIALIZABLE_KEYS_INDEX];
+    private static final PropertyNameMatcher EMPTY_PROPERTY_NAME_MATCHER =
+        (PropertyNameMatcher) EMPTY_JACKSON_KEYS[JacksonKeysProvider.PROPERTY_NAME_MATCHER_INDEX];
 
     @Internal
     private final JsonParser parser;
 
     @Nullable
     private JsonToken peekedToken;
+    @Nullable
+    private Keys currentKeys;
+    private SerializableString[] currentSerializableKeys = EMPTY_SERIALIZABLE_KEYS;
+    private PropertyNameMatcher currentPropertyNameMatcher = EMPTY_PROPERTY_NAME_MATCHER;
+    private boolean sequentialKeyMatching;
+    private int sequentialKeyIndex;
     private boolean currentlyUnwrappingArray;
 
     private JacksonDecoder(JsonParser parser, RemainingLimits remainingLimits) throws IOException {
@@ -80,6 +98,88 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
     }
 
     @Override
+    public int decodeKey(Keys keys) {
+        JsonToken token = peekedToken;
+        if (token != null) {
+            if (token == JsonToken.END_OBJECT) {
+                return MATCH_END_OBJECT;
+            }
+            if (token == JsonToken.PROPERTY_NAME) {
+                int keyIndex = matchCurrentKey(keys);
+                if (keyIndex >= 0) {
+                    peekedToken = null;
+                    return keyIndex;
+                }
+                // MATCH_UNKNOWN_NAME is only used after the matcher rejects this
+                // property name for the supplied Keys.
+                return MATCH_UNKNOWN_NAME;
+            }
+            return MATCH_UNKNOWN_NAME;
+        }
+        int keyIndex = nextKeyIndex(keys);
+        if (keyIndex >= 0) {
+            return keyIndex;
+        }
+        peekedToken = parser.currentToken();
+        if (keyIndex == PropertyNameMatcher.MATCH_END_OBJECT) {
+            return MATCH_END_OBJECT;
+        }
+        // The parser matched neither the supplied Keys nor the end marker.
+        // The caller can read this unknown name with decodeKey().
+        return MATCH_UNKNOWN_NAME;
+    }
+
+    private int nextKeyIndex(Keys keys) {
+        jacksonKeys(keys);
+        if (sequentialKeyMatching) {
+            SerializableString[] serializableKeys = currentSerializableKeys;
+            int keyIndex = sequentialKeyIndex;
+            if (keyIndex < serializableKeys.length) {
+                if (parser.nextName(serializableKeys[keyIndex])) {
+                    sequentialKeyIndex = keyIndex + 1;
+                    return keyIndex;
+                }
+                sequentialKeyMatching = false;
+                JsonToken token = parser.currentToken();
+                if (token == JsonToken.END_OBJECT) {
+                    return PropertyNameMatcher.MATCH_END_OBJECT;
+                }
+                if (token == JsonToken.PROPERTY_NAME) {
+                    return parser.currentNameMatch(currentPropertyNameMatcher);
+                }
+                return PropertyNameMatcher.MATCH_ODD_TOKEN;
+            }
+            sequentialKeyMatching = false;
+        }
+        return parser.nextNameMatch(currentPropertyNameMatcher);
+    }
+
+    private int matchCurrentKey(Keys keys) {
+        jacksonKeys(keys);
+        if (sequentialKeyMatching) {
+            SerializableString[] serializableKeys = currentSerializableKeys;
+            int keyIndex = sequentialKeyIndex;
+            if (keyIndex < serializableKeys.length && serializableKeys[keyIndex].getValue().equals(parser.currentName())) {
+                sequentialKeyIndex = keyIndex + 1;
+                return keyIndex;
+            }
+            sequentialKeyMatching = false;
+        }
+        return parser.currentNameMatch(currentPropertyNameMatcher);
+    }
+
+    private void jacksonKeys(Keys keys) {
+        if (keys != currentKeys) {
+            Object[] jacksonKeys = KeysSupport.get(keys, JACKSON_KEYS_INDEX);
+            currentKeys = keys;
+            currentSerializableKeys = (SerializableString[]) jacksonKeys[JacksonKeysProvider.SERIALIZABLE_KEYS_INDEX];
+            currentPropertyNameMatcher = (PropertyNameMatcher) jacksonKeys[JacksonKeysProvider.PROPERTY_NAME_MATCHER_INDEX];
+            sequentialKeyMatching = !keys.caseInsensitive();
+            sequentialKeyIndex = 0;
+        }
+    }
+
+    @Override
     public IOException createDeserializationException(String message, @Nullable Object invalidValue) {
         if (invalidValue != null) {
             return new InvalidFormatException(message + " \n at " + parser.currentLocation(), null, invalidValue);
@@ -94,6 +194,10 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
      */
     private IOException unexpectedToken(JsonToken expected, JsonToken actual) {
         return createDeserializationException("Unexpected token " + actual + ", expected " + expected, null);
+    }
+
+    private NullValueSerdeException unexpectedNullToken(JsonToken expected, JsonToken actual) {
+        return NullValueSerdeException.unexpectedToken(expected, actual);
     }
 
     @Override
@@ -175,6 +279,7 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
             throw unexpectedToken(JsonToken.START_OBJECT, t);
         }
         increaseDepth();
+        resetSequentialKeyMatching();
         return this;
     }
 
@@ -185,14 +290,22 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
             throw unexpectedToken(JsonToken.START_OBJECT, t);
         }
         increaseDepth();
+        resetSequentialKeyMatching();
         return this;
+    }
+
+    private void resetSequentialKeyMatching() {
+        sequentialKeyIndex = 0;
+        if (currentKeys != null) {
+            sequentialKeyMatching = !currentKeys.caseInsensitive();
+        }
     }
 
     @Override
     public String decodeString() throws IOException {
         String s = decodeStringNullable();
         if (s == null) {
-            throw unexpectedToken(JsonToken.VALUE_STRING, parser.currentToken());
+            throw unexpectedNullToken(JsonToken.VALUE_STRING, parser.currentToken());
         }
         return s;
     }
@@ -235,11 +348,13 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
 
     @Override
     public boolean decodeBoolean() throws IOException {
-        Boolean v = decodeBooleanNullable();
-        if (v == null) {
-            throw unexpectedToken(JsonToken.VALUE_TRUE, parser.currentToken());
+        if (peekedToken == null) {
+            Boolean value = parser.nextBooleanValue();
+            if (value != null) {
+                return value;
+            }
         }
-        return v;
+        return decodeBooleanValue(peekedToken == null ? parser.currentToken() : nextToken());
     }
 
     @Nullable
@@ -294,13 +409,31 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
         }
     }
 
+    private boolean decodeBooleanValue(JsonToken t) throws IOException {
+        return switch (t) {
+            case VALUE_TRUE -> true;
+            case VALUE_FALSE -> false;
+            case VALUE_NUMBER_FLOAT -> parser.getFloatValue() != 0.0;
+            case START_ARRAY -> {
+                if (beginUnwrapArray(t)) {
+                    boolean unwrapped = decodeBoolean();
+                    if (endUnwrapArray()) {
+                        yield unwrapped;
+                    } else {
+                        throw createDeserializationException("Expected one string, but got array of multiple values", null);
+                    }
+                }
+                throw unexpectedToken(JsonToken.VALUE_TRUE, t);
+            }
+            case VALUE_NULL -> throw unexpectedNullToken(JsonToken.VALUE_TRUE, t);
+            case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_TRUE, t);
+            default -> parser.getValueAsBoolean();
+        };
+    }
+
     @Override
     public byte decodeByte() throws IOException {
-        Byte v = decodeByteNullable();
-        if (v == null) {
-            throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, parser.currentToken());
-        }
-        return v;
+        return decodeByteValue(nextToken());
     }
 
     @Nullable
@@ -335,13 +468,30 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
         }
     }
 
+    private byte decodeByteValue(JsonToken t) throws IOException {
+        return switch (t) {
+            case VALUE_TRUE -> 1;
+            case VALUE_FALSE -> 0;
+            case START_ARRAY -> {
+                if (beginUnwrapArray(t)) {
+                    byte unwrapped = decodeByte();
+                    if (endUnwrapArray()) {
+                        yield unwrapped;
+                    } else {
+                        throw createDeserializationException("Expected one string, but got array of multiple values", null);
+                    }
+                }
+                throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
+            }
+            case VALUE_NULL -> throw unexpectedNullToken(JsonToken.VALUE_NUMBER_INT, t);
+            case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
+            default -> parser.getByteValue();
+        };
+    }
+
     @Override
     public short decodeShort() throws IOException {
-        Short v = decodeShortNullable();
-        if (v == null) {
-            throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, parser.currentToken());
-        }
-        return v;
+        return decodeShortValue(nextToken());
     }
 
     @Nullable
@@ -376,13 +526,30 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
         }
     }
 
+    private short decodeShortValue(JsonToken t) throws IOException {
+        return switch (t) {
+            case VALUE_TRUE -> 1;
+            case VALUE_FALSE -> 0;
+            case START_ARRAY -> {
+                if (beginUnwrapArray(t)) {
+                    short unwrapped = decodeShort();
+                    if (endUnwrapArray()) {
+                        yield unwrapped;
+                    } else {
+                        throw createDeserializationException("Expected one string, but got array of multiple values", null);
+                    }
+                }
+                throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
+            }
+            case VALUE_NULL -> throw unexpectedNullToken(JsonToken.VALUE_NUMBER_INT, t);
+            case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
+            default -> parser.getShortValue();
+        };
+    }
+
     @Override
     public char decodeChar() throws IOException {
-        Character v = decodeCharNullable();
-        if (v == null) {
-            throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, parser.currentToken());
-        }
-        return v;
+        return decodeCharValue(nextToken());
     }
 
     @Nullable
@@ -425,13 +592,48 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
         }
     }
 
+    private char decodeCharValue(JsonToken t) throws IOException {
+        return switch (t) {
+            case START_ARRAY -> {
+                if (beginUnwrapArray(t)) {
+                    char unwrapped = decodeChar();
+                    if (endUnwrapArray()) {
+                        yield unwrapped;
+                    } else {
+                        throw createDeserializationException("Expected one string, but got array of multiple values", null);
+                    }
+                }
+                throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
+            }
+            case VALUE_STRING -> {
+                String string = parser.getText();
+                if (string.length() != 1) {
+                    throw createDeserializationException("When decoding char value, must give a single character", string);
+                }
+                yield string.charAt(0);
+            }
+            case VALUE_NUMBER_INT -> (char) parser.getIntValue();
+            case VALUE_NULL -> throw unexpectedNullToken(JsonToken.VALUE_NUMBER_INT, t);
+            case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
+            default -> {
+                String text = parser.getText();
+                if (text.length() == 0) {
+                    throw createDeserializationException("No characters found", text);
+                }
+                yield text.charAt(0);
+            }
+        };
+    }
+
     @Override
     public int decodeInt() throws IOException {
-        Integer v = decodeIntNullable();
-        if (v == null) {
-            throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, parser.currentToken());
+        if (peekedToken == null) {
+            int value = parser.nextIntValue(INT_CANARY);
+            if (value != INT_CANARY) {
+                return value;
+            }
         }
-        return v;
+        return decodeIntValue(peekedToken == null ? parser.currentToken() : nextToken());
     }
 
     @Nullable
@@ -489,13 +691,45 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
         }
     }
 
+    private int decodeIntValue(JsonToken t) throws IOException {
+        return switch (t) {
+            case VALUE_NUMBER_INT -> parser.getIntValue();
+            case VALUE_STRING -> {
+                String string = parser.getText();
+                try {
+                    yield Integer.parseInt(string);
+                } catch (NumberFormatException e) {
+                    throw createDeserializationException("Unable to coerce string to integer", string);
+                }
+            }
+            case START_ARRAY -> {
+                if (beginUnwrapArray(t)) {
+                    int unwrapped = decodeInt();
+                    if (endUnwrapArray()) {
+                        yield unwrapped;
+                    } else {
+                        throw createDeserializationException("Expected one string, but got array of multiple values", null);
+                    }
+                }
+                throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
+            }
+            case VALUE_FALSE -> 0;
+            case VALUE_TRUE -> 1;
+            case VALUE_NULL -> throw unexpectedNullToken(JsonToken.VALUE_NUMBER_INT, t);
+            case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
+            default -> parser.getValueAsInt();
+        };
+    }
+
     @Override
     public long decodeLong() throws IOException {
-        Long v = decodeLongNullable();
-        if (v == null) {
-            throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, parser.currentToken());
+        if (peekedToken == null) {
+            long value = parser.nextLongValue(LONG_CANARY);
+            if (value != LONG_CANARY) {
+                return value;
+            }
         }
-        return v;
+        return decodeLongValue(peekedToken == null ? parser.currentToken() : nextToken());
     }
 
     @Nullable
@@ -559,13 +793,39 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
         }
     }
 
+    private long decodeLongValue(JsonToken t) throws IOException {
+        return switch (t) {
+            case VALUE_NUMBER_INT -> parser.getLongValue();
+            case VALUE_STRING -> {
+                String string = parser.getText();
+                try {
+                    yield Long.parseLong(string);
+                } catch (NumberFormatException e) {
+                    throw createDeserializationException("Unable to coerce string to integer", string);
+                }
+            }
+            case VALUE_FALSE -> 0L;
+            case VALUE_TRUE -> 1L;
+            case START_ARRAY -> {
+                if (beginUnwrapArray(t)) {
+                    long unwrapped = decodeLong();
+                    if (endUnwrapArray()) {
+                        yield unwrapped;
+                    } else {
+                        throw createDeserializationException("Expected one string, but got array of multiple values", null);
+                    }
+                }
+                throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
+            }
+            case VALUE_NULL -> throw unexpectedNullToken(JsonToken.VALUE_NUMBER_INT, t);
+            case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
+            default -> parser.getValueAsLong();
+        };
+    }
+
     @Override
     public float decodeFloat() throws IOException {
-        Float v = decodeFloatNullable();
-        if (v == null) {
-            throw unexpectedToken(JsonToken.VALUE_NUMBER_FLOAT, parser.currentToken());
-        }
-        return v;
+        return decodeFloatValue(nextToken());
     }
 
     @Nullable
@@ -610,13 +870,42 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
         }
     }
 
+    private float decodeFloatValue(JsonToken t) throws IOException {
+        return switch (t) {
+            case VALUE_STRING -> {
+                String string = parser.getText();
+                try {
+                    yield Float.parseFloat(string);
+                } catch (NumberFormatException e) {
+                    throw createDeserializationException("Unable to coerce string to float", string);
+                }
+            }
+            case START_ARRAY -> {
+                if (beginUnwrapArray(t)) {
+                    float unwrapped = decodeFloat();
+                    if (endUnwrapArray()) {
+                        yield unwrapped;
+                    } else {
+                        throw createDeserializationException("Expected one string, but got array of multiple values", null);
+                    }
+                }
+                throw unexpectedToken(JsonToken.VALUE_NUMBER_FLOAT, t);
+            }
+            case VALUE_FALSE -> 0F;
+            case VALUE_TRUE -> 1F;
+            case VALUE_NULL -> throw unexpectedNullToken(JsonToken.VALUE_NUMBER_FLOAT, t);
+            case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_FLOAT, t);
+            default -> parser.getFloatValue();
+        };
+    }
+
     @Override
     public double decodeDouble() throws IOException {
-        Double v = decodeDoubleNullable();
-        if (v == null) {
-            throw unexpectedToken(JsonToken.VALUE_NUMBER_FLOAT, parser.currentToken());
+        JsonToken t = nextToken();
+        if (t == JsonToken.VALUE_NUMBER_FLOAT) {
+            return parser.getDoubleValue();
         }
-        return v;
+        return decodeDoubleValue(t);
     }
 
     @Nullable
@@ -670,11 +959,41 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
         }
     }
 
+    private double decodeDoubleValue(JsonToken t) throws IOException {
+        return switch (t) {
+            case VALUE_NUMBER_INT, VALUE_NUMBER_FLOAT -> parser.getDoubleValue();
+            case VALUE_STRING -> {
+                String string = parser.getText();
+                try {
+                    yield Double.parseDouble(string);
+                } catch (NumberFormatException e) {
+                    throw createDeserializationException("Unable to coerce string to double", string);
+                }
+            }
+            case START_ARRAY -> {
+                if (beginUnwrapArray(t)) {
+                    double unwrapped = decodeDouble();
+                    if (endUnwrapArray()) {
+                        yield unwrapped;
+                    } else {
+                        throw createDeserializationException("Expected one string, but got array of multiple values", null);
+                    }
+                }
+                throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
+            }
+            case VALUE_FALSE -> 0D;
+            case VALUE_TRUE -> 1D;
+            case VALUE_NULL -> throw unexpectedNullToken(JsonToken.VALUE_NUMBER_FLOAT, t);
+            case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_FLOAT, t);
+            default -> parser.getValueAsDouble();
+        };
+    }
+
     @Override
     public BigInteger decodeBigInteger() throws IOException {
         BigInteger v = decodeBigIntegerNullable();
         if (v == null) {
-            throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, parser.currentToken());
+            throw unexpectedNullToken(JsonToken.VALUE_NUMBER_INT, parser.currentToken());
         }
         return v;
     }
@@ -723,7 +1042,7 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
     public BigDecimal decodeBigDecimal() throws IOException {
         BigDecimal v = decodeBigDecimalNullable();
         if (v == null) {
-            throw unexpectedToken(JsonToken.VALUE_NUMBER_FLOAT, parser.currentToken());
+            throw unexpectedNullToken(JsonToken.VALUE_NUMBER_FLOAT, parser.currentToken());
         }
         return v;
     }
@@ -1063,4 +1382,5 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
             return key;
         }
     }
+
 }
