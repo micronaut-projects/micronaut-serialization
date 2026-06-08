@@ -22,7 +22,6 @@ import io.micronaut.serde.Encoder;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.support.SerdeRegistrar;
 import jakarta.inject.Singleton;
-import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -59,14 +58,6 @@ final class JsonbCalendarSerde implements SerdeRegistrar<Calendar> {
     @Override
     public Calendar deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Calendar> type) throws IOException {
         return parse(decoder.decodeString());
-    }
-
-    @Override
-    public @Nullable Calendar deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super Calendar> type) throws IOException {
-        if (decoder.decodeNull()) {
-            return null;
-        }
-        return deserialize(decoder, context, type);
     }
 
     @Override
