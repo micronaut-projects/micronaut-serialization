@@ -3,7 +3,6 @@ plugins {
 }
 
 micronautBuild {
-    // Newly added module: enable binary compatibility checks only once it has been released.
     binaryCompatibility.enabledAfter("3.0.1")
 }
 
@@ -26,6 +25,7 @@ dependencies {
 
     testImplementation(projects.micronautSerdeProcessor)
     testImplementation(projects.micronautSerdeTck)
+    testImplementation(projects.micronautSerdePropertiesTck)
     testImplementation(mn.micronaut.inject.java.test)
     testImplementation(mnTest.micronaut.test.spock)
 

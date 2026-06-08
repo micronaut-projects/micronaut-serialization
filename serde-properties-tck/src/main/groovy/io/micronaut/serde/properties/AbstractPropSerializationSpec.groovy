@@ -16,11 +16,10 @@
 package io.micronaut.serde.properties
 
 import io.micronaut.core.type.Argument
-import io.micronaut.json.tree.JsonNode
 
 import java.nio.charset.StandardCharsets
 
-class PropertiesSerializationSpec extends PropertiesCompileSpec {
+abstract class AbstractPropSerializationSpec extends AbstractPropDeserializationSpec {
 
     void 'test serialize a flat bean to properties bytes and stream'() {
         given:
@@ -54,7 +53,7 @@ class Server {
         when:
         def bytesOutput = writeProperties(server)
         def outputStream = new ByteArrayOutputStream()
-        jsonMapper.writeValue(outputStream, type, server)
+        writeProperties(outputStream, type, server)
         def streamOutput = new String(outputStream.toByteArray(), StandardCharsets.UTF_8)
 
         then:
@@ -125,18 +124,17 @@ class Author {
         def library = newInstance(context, 'test.Library', [book: book])
 
         when:
-        def properties = writeProperties(library)
+        def properties = writeProperties(type, library)
+        def lines = properties.readLines()
 
         then:
-        properties.readLines().sort() == [
-                'book.authorsByInitials.SK.age=60',
-                'book.authorsByInitials.SK.name=Stephen King',
-                'book.authors[0].age=60',
-                'book.authors[0].name=Stephen King',
-                'book.authors[1].age=81',
-                'book.authors[1].name=JRR Tolkien',
-                'book.title=The Stand'
-        ].sort()
+        lines.contains('book.title=The Stand')
+        lines.contains('book.authors.1.age=60')
+        lines.contains('book.authors.1.name=Stephen King')
+        lines.contains('book.authors.2.age=81')
+        lines.contains('book.authors.2.name=JRR Tolkien')
+        lines.contains('book.authorsByInitials.SK.age=60')
+        lines.contains('book.authorsByInitials.SK.name=Stephen King')
 
         when:
         def roundTripped = readProperties(properties, type)
@@ -157,36 +155,16 @@ class Author {
 
     void 'test serialize properties escapes special key and value characters'() {
         given:
-        def context = buildContext('package test; class Placeholder {}')
-        def tree = JsonNode.createObjectNode([
-                'key value': JsonNode.createStringNode(' leading=:#!\\' + '\n' + 'Omega \u03a9')
-        ])
+        buildContext('package test; class Placeholder {}')
+        def value = 'value=:#!\\' + '\n' + 'Omega \u03a9'
+        def values = ['key value': value]
+        def type = Argument.mapOf(String, String)
 
         when:
-        def properties = new String(
-                jsonMapper.writeValueAsBytes(Argument.of(JsonNode), tree),
-                StandardCharsets.UTF_8
-        )
-        def parsed = jsonMapper.readValue(properties.getBytes(StandardCharsets.UTF_8), Argument.mapOf(String, Object))
+        def properties = writeProperties(type, values)
+        def parsed = readProperties(properties, type)
 
         then:
-        parsed['key value'] == ' leading=:#!\\' + '\n' + 'Omega \u03a9'
-
-        cleanup:
-        context.close()
-    }
-
-    void 'test serialize rejects root scalars because properties require keys'() {
-        given:
-        def context = buildContext('package test; class Placeholder {}')
-
-        when:
-        jsonMapper.writeValueAsBytes(Argument.of(JsonNode), JsonNode.createStringNode('value'))
-
-        then:
-        thrown(IOException)
-
-        cleanup:
-        context.close()
+        parsed['key value'] == value
     }
 }

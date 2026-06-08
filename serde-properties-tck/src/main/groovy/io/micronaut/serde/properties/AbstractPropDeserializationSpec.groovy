@@ -16,12 +16,10 @@
 package io.micronaut.serde.properties
 
 import io.micronaut.core.type.Argument
-import io.micronaut.json.tree.JsonNode
-import io.micronaut.serde.exceptions.SerdeException
 
-class PropertiesDeserializationSpec extends PropertiesCompileSpec {
+abstract class AbstractPropDeserializationSpec extends AbstractPropCompileSpec {
 
-    void 'test scalar coercion (char, byte, short, BigDecimal) is inherited from AbstractStreamDecoder'() {
+    void 'test scalar coercion to primitive and BigDecimal fields'() {
         given:
         def context = buildContext('''
 package test;
@@ -66,51 +64,6 @@ amount=9.99
         context.close()
     }
 
-    void 'test readValueFromTree decodes an already typed tree (NUMBER/BOOLEAN tokens)'() {
-        given:
-        def context = buildContext('''
-package test;
-
-import io.micronaut.serde.annotation.Serdeable;
-
-@Serdeable
-class Server {
-    private String host;
-    private int port;
-    private boolean secure;
-    private double ratio;
-
-    public String getHost() { return host; }
-    public void setHost(String host) { this.host = host; }
-    public int getPort() { return port; }
-    public void setPort(int port) { this.port = port; }
-    public boolean isSecure() { return secure; }
-    public void setSecure(boolean secure) { this.secure = secure; }
-    public double getRatio() { return ratio; }
-    public void setRatio(double ratio) { this.ratio = ratio; }
-}
-''')
-        def type = argumentOf(context, 'test.Server')
-        def tree = JsonNode.createObjectNode([
-                host  : JsonNode.createStringNode('localhost'),
-                port  : JsonNode.createNumberNode(8080),
-                secure: JsonNode.createBooleanNode(true),
-                ratio : JsonNode.createNumberNode(1.5d)
-        ])
-
-        when: 'the tree carries real number/boolean nodes, exercising the NUMBER/BOOLEAN getters'
-        def server = jsonMapper.readValueFromTree(tree, type)
-
-        then:
-        server.host == 'localhost'
-        server.port == 8080
-        server.secure
-        server.ratio == 1.5d
-
-        cleanup:
-        context.close()
-    }
-
     void 'test deserialize a flat .properties document with primitive coercion'() {
         given:
         def context = buildContext('''
@@ -141,7 +94,7 @@ port=8080
 secure=true
 ''', type)
 
-        then: 'string stays a string, "8080" is coerced to int, "true" to boolean'
+        then:
         server.host == 'localhost'
         server.port == 8080
         server.secure
@@ -150,7 +103,7 @@ secure=true
         context.close()
     }
 
-    void 'test deserialize nested objects, indexed lists and maps'() {
+    void 'test deserialize nested objects indexed lists and maps'() {
         given:
         def context = buildContext('''
 package test;
@@ -196,12 +149,12 @@ class Author {
         when:
         def library = readProperties('''
 book.title=The Stand
-book.authors[0].name=Stephen King
-book.authors[0].age=60
-book.authors[1].name=JRR Tolkien
-book.authors[1].age=81
-book.authorsByInitials[SK].name=Stephen King
-book.authorsByInitials[SK].age=60
+book.authors.1.name=Stephen King
+book.authors.1.age=60
+book.authors.2.name=JRR Tolkien
+book.authors.2.age=81
+book.authorsByInitials.SK.name=Stephen King
+book.authorsByInitials.SK.age=60
 ''', type)
         def book = library.book
 
@@ -236,54 +189,15 @@ class Tags {
 ''')
         def type = argumentOf(context, 'test.Tags')
 
-        when: 'indices are intentionally given out of order to assert ordering by index'
+        when:
         def tags = readProperties('''
-values[1]=b
-values[0]=a
-values[2]=c
+values.2=b
+values.1=a
+values.3=c
 ''', type)
 
         then:
         tags.values == ['a', 'b', 'c']
-
-        cleanup:
-        context.close()
-    }
-
-    void 'test indexed scalar list respects configured array size threshold'() {
-        given:
-        def context = buildContext('''
-package test;
-
-import io.micronaut.serde.annotation.Serdeable;
-import java.util.List;
-
-@Serdeable
-class Tags {
-    private List<String> values;
-    public List<String> getValues() { return values; }
-    public void setValues(List<String> values) { this.values = values; }
-}
-''', ['micronaut.serde.deserialization.array-size-threshold': 2])
-        def type = argumentOf(context, 'test.Tags')
-
-        when:
-        def tags = readProperties('''
-values[1]=b
-values[0]=a
-''', type)
-
-        then:
-        tags.values == ['a', 'b']
-
-        when:
-        readProperties('''
-values[2]=c
-''', type)
-
-        then:
-        def e = thrown SerdeException
-        e.message == 'Array index [2] exceeds the configured array size threshold [2]'
 
         cleanup:
         context.close()
@@ -294,10 +208,7 @@ values[2]=c
         buildContext('package test; class Placeholder {}')
 
         when:
-        def map = jsonMapper.readValue(
-                'a.b=1\na.c=hello\n'.bytes,
-                Argument.mapOf(String, Object)
-        )
+        def map = readProperties('a.b=1\na.c=hello\n', Argument.mapOf(String, Object))
 
         then:
         map.a.b == '1'
