@@ -32,7 +32,7 @@ abstract class PropertiesCompileSpec extends AbstractJsonCompileSpec {
         PropertiesMapper
     }
 
-    ApplicationContext buildContext(String source, Map<String, Object> contextProperties) {
+    ApplicationContext buildContext(String source, Map<String, Object> contextProperties = [:]) {
         ApplicationContext context = super.buildContext("test.Source" + System.currentTimeMillis(), source, true, contextProperties)
         jsonMapper = context.getBean(getJsonMapperClass())
         return context

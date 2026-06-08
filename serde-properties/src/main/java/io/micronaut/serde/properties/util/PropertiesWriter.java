@@ -17,6 +17,7 @@ package io.micronaut.serde.properties.util;
 
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.json.tree.JsonNode;
+import io.micronaut.serde.properties.SerdePropertiesConfiguration;
 import jakarta.inject.Singleton;
 
 import java.io.IOException;
@@ -30,6 +31,8 @@ import java.util.Objects;
 /**
  * Writes a JSON tree as a Java {@code .properties} document.
  *
+ * <p>Array index and bracketed output is controlled by {@link SerdePropertiesConfiguration}.</p>
+ *
  * @since 3.0.1
  */
 @Internal
@@ -37,6 +40,17 @@ import java.util.Objects;
 public class PropertiesWriter {
 
     private static final String LINE_SEPARATOR = System.lineSeparator();
+
+    private final SerdePropertiesConfiguration.ArrayIndexStyle arrayIndexStyle;
+
+    /**
+     * Creates a properties writer.
+     *
+     * @param propertiesConfiguration The properties format configuration
+     */
+    public PropertiesWriter(SerdePropertiesConfiguration propertiesConfiguration) {
+        this.arrayIndexStyle = propertiesConfiguration.getArrayIndexStyle();
+    }
 
     /**
      * Writes the given JSON tree to the output stream as a flattened
@@ -49,16 +63,18 @@ public class PropertiesWriter {
     public void write(OutputStream outputStream, JsonNode tree) throws IOException {
         Objects.requireNonNull(outputStream, "Output stream cannot be null");
         Writer writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
-        new TreeWriter(writer).writeProperties(tree);
+        new TreeWriter(writer, arrayIndexStyle).writeProperties(tree);
         writer.flush();
     }
 
     private static final class TreeWriter {
         private final Writer writer;
+        private final SerdePropertiesConfiguration.ArrayIndexStyle arrayIndexStyle;
         private final StringBuilder path = new StringBuilder();
 
-        private TreeWriter(Writer writer) {
+        private TreeWriter(Writer writer, SerdePropertiesConfiguration.ArrayIndexStyle arrayIndexStyle) {
             this.writer = writer;
+            this.arrayIndexStyle = arrayIndexStyle;
         }
 
         private void writeProperties(JsonNode node) throws IOException {
@@ -79,7 +95,7 @@ public class PropertiesWriter {
                 int index = 0;
                 for (JsonNode value : node.values()) {
                     int length = path.length();
-                    path.append('[').append(index).append(']');
+                    appendArrayIndex(index);
                     writeProperties(value);
                     path.setLength(length);
                     index++;
@@ -104,6 +120,14 @@ public class PropertiesWriter {
             StringBuilder valueBuilder = PropertiesEscapes.appendValue(value);
             writer.write(valueBuilder == null ? value : valueBuilder.toString());
             writer.write(LINE_SEPARATOR);
+        }
+
+        private void appendArrayIndex(int index) {
+            if (arrayIndexStyle == SerdePropertiesConfiguration.ArrayIndexStyle.DOTTED) {
+                path.append('.').append(index + 1);
+            } else {
+                path.append('[').append(index).append(']');
+            }
         }
     }
 }

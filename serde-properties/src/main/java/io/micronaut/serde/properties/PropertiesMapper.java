@@ -51,7 +51,9 @@ import java.io.OutputStream;
  * {@link JsonNode} tree before delegating to Micronaut Serialization.
  *
  * <p>Writes serialize values to a {@link JsonNode} tree first, then flatten
- * object paths and array indexes into {@code .properties} key/value lines.</p>
+ * object paths and array indexes into {@code .properties} key/value lines.
+ * Array index syntax is controlled by {@link SerdePropertiesConfiguration};
+ * the default is bracketed indexes.</p>
  *
  * @author Mousrij Hamza
  * @since 3.0.1
