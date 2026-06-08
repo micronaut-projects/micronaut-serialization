@@ -47,10 +47,10 @@ import java.io.OutputStream;
 /**
  * A Java {@code .properties}-backed {@link ObjectMapper}.
  *
- * <p>Reads parse flat {@code .properties} documents into an intermediate
- * {@link JsonNode} tree before delegating to Micronaut Serialization.
+ * <p>Reads and parses flat {@code .properties} documents into an intermediate
+ * {@link JsonNode} tree before delegating to Micronaut Serialization.</p>
  *
- * <p>Writes serialize values to a {@link JsonNode} tree first, then flatten
+ * <p>Serializes values to a {@link JsonNode} tree first, then flattens
  * object paths and array indexes into {@code .properties} key/value lines.
  * Array index syntax is controlled by {@link SerdePropertiesConfiguration};
  * the default is bracketed indexes.</p>

@@ -39,9 +39,9 @@ import java.util.Set;
 /**
  * Builds an intermediate JSON tree from flat Java {@code .properties} keys.
  *
- * <p>The tree-building algorithm is copied then adapted from Micronaut Core's
+ * <p>The tree-building algorithm is copied and adapted from Micronaut Core's
  * {@code JsonBeanPropertyBinder#buildSourceObjectNode(...)}. Bracketed array
- * indexe is the default behavior, and Dotted one-based array indexes are
+ * indexes are the default behavior, and dotted one-based array indexes are
  * supported when configured through {@link SerdePropertiesConfiguration}.</p>
  *
  * @see <a href="https://github.com/micronaut-projects/micronaut-core/blob/5.0.x/json-core/src/main/java/io/micronaut/json/bind/JsonBeanPropertyBinder.java">Micronaut Core JsonBeanPropertyBinder</a>
@@ -80,7 +80,8 @@ public class PropertiesTreeAdapter {
     public JsonNode parse(InputStream stream) throws IOException {
         AbstractPropertySourceLoader loader = new PropertiesPropertySourceLoader(false);
         Map<String, Object> read = loader.read("", stream);
-        Map<CharSequence, Object> values = new LinkedHashMap<>(read);
+        Map<CharSequence, Object> values = new LinkedHashMap<>();
+        values.putAll(read);
         return buildSourceObjectNode(values.entrySet());
     }
 
@@ -178,7 +179,7 @@ public class PropertiesTreeAdapter {
         return position + 1 < tokens.size();
     }
 
-    // ("1"  -> true & >0) orr "name" -> false
+    // ("1" -> true & >0) or "name" -> false
     private boolean isDottedArrayIndex(String token) {
         return StringUtils.isDigits(token) && Integer.parseInt(token) > 0;
     }

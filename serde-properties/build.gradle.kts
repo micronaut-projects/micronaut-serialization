@@ -33,7 +33,7 @@ dependencies {
 }
 
 configurations.configureEach {
-    exclude(module = "com.fasterxml.jackson.core", group = "jackson-databind")
+    exclude(group = "com.fasterxml.jackson.core", module = "jackson-databind")
 }
 
 tasks {
