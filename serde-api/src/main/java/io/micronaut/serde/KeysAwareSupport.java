@@ -52,7 +52,7 @@ final class KeysAwareSupport {
         return new FallbackKeysAwareEncoder(encoder);
     }
 
-    private static final class FallbackKeysAwareDecoder extends DelegatingDecoder implements KeysAwareDecoder {
+    private static final class FallbackKeysAwareDecoder extends DelegatingDecoder implements KeysAwareDecoder, WrappedDecoder {
         private final Decoder delegate;
         @Nullable
         private String pendingUnknownKey;
@@ -64,6 +64,11 @@ final class KeysAwareSupport {
         @Override
         protected Decoder delegate() {
             pendingUnknownKey = null;
+            return delegate;
+        }
+
+        @Override
+        public Decoder wrappedDecoder() {
             return delegate;
         }
 
@@ -126,11 +131,16 @@ final class KeysAwareSupport {
         }
     }
 
-    private static final class FallbackKeysAwareEncoder implements KeysAwareEncoder {
+    private static final class FallbackKeysAwareEncoder implements KeysAwareEncoder, WrappedEncoder {
         private final Encoder delegate;
 
         private FallbackKeysAwareEncoder(Encoder delegate) {
             this.delegate = delegate;
+        }
+
+        @Override
+        public Encoder wrappedEncoder() {
+            return delegate;
         }
 
         @Override
