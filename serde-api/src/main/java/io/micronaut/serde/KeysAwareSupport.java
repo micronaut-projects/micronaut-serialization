@@ -28,7 +28,7 @@ import java.util.Objects;
  * Support logic for adapting encoders and decoders to keys-aware variants.
  *
  * @author Denis Stepanov
- * @since 3.0
+ * @since 3.1
  */
 @Internal
 final class KeysAwareSupport {

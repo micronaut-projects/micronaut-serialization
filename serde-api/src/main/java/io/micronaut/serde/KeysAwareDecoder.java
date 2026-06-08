@@ -23,7 +23,7 @@ import java.io.IOException;
  * Optional decoder capability for matching object keys against a known key set.
  *
  * @author Denis Stepanov
- * @since 3.0
+ * @since 3.1
  */
 @Internal
 public interface KeysAwareDecoder extends Decoder {

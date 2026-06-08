@@ -24,7 +24,7 @@ import java.util.List;
  * Contributes BSON key data to {@link io.micronaut.serde.Keys}.
  *
  * @author Denis Stepanov
- * @since 3.0
+ * @since 3.1
  */
 @Internal
 public final class BsonKeysProvider implements KeysProvider {

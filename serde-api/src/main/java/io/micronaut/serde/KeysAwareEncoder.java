@@ -23,7 +23,7 @@ import java.io.IOException;
  * Optional encoder capability for writing object keys from a known key set.
  *
  * @author Denis Stepanov
- * @since 3.0
+ * @since 3.1
  */
 @Internal
 public interface KeysAwareEncoder extends Encoder {

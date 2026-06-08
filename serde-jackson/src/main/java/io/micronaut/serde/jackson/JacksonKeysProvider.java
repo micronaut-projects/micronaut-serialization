@@ -31,7 +31,7 @@ import java.util.Locale;
  * Contributes Jackson Core key data to {@link io.micronaut.serde.Keys}.
  *
  * @author Denis Stepanov
- * @since 3.0
+ * @since 3.1
  */
 @Internal
 public final class JacksonKeysProvider implements KeysProvider {

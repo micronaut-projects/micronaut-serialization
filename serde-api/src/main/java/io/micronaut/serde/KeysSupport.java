@@ -29,7 +29,7 @@ import java.util.Objects;
  * Support logic for creating {@link Keys} instances.
  *
  * @author Denis Stepanov
- * @since 3.0
+ * @since 3.1
  */
 @Internal
 public final class KeysSupport {

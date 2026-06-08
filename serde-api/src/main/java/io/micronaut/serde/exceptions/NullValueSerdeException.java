@@ -19,6 +19,9 @@ import io.micronaut.core.annotation.Internal;
 
 /**
  * Signals that a scalar decoder encountered a serialized null value where a non-null value was expected.
+ *
+ * @author Denis Stepanov
+ * @since 3.1
  */
 @Internal
 public final class NullValueSerdeException extends SerdeException {

@@ -21,7 +21,7 @@ import io.micronaut.core.annotation.Internal;
  * Internal marker for serdes that map directly to one scalar value method.
  *
  * @author Denis Stepanov
- * @since 3.0
+ * @since 3.1
  */
 @Internal
 public enum DecoderValueKind {
@@ -104,6 +104,8 @@ public enum DecoderValueKind {
 
     /**
      * Internal marker for serdes that expose the direct scalar value kind.
+     *
+     * @since 3.1
      */
     @Internal
     public interface Provider {

@@ -23,7 +23,7 @@ import java.util.List;
  * Service-loaded contributor for backend-specific key data.
  *
  * @author Denis Stepanov
- * @since 3.0
+ * @since 3.1
  */
 @Internal
 public interface KeysProvider {
