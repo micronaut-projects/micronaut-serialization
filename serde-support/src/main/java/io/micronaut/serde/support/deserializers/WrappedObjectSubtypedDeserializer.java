@@ -19,10 +19,13 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.Keys;
+import io.micronaut.serde.KeysAwareDecoder;
 import io.micronaut.serde.exceptions.SerdeException;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -35,10 +38,14 @@ import java.util.Objects;
 final class WrappedObjectSubtypedDeserializer implements Deserializer<Object> {
 
     private final DeserializerSubtypeInfo<? super Object> subtypeInfo;
+    private final List<String> subtypeNames;
+    private final Keys subtypeKeys;
     private final boolean ignoreUnknown;
 
     WrappedObjectSubtypedDeserializer(DeserializerSubtypeInfo<? super Object> subtypeInfo, boolean ignoreUnknown) {
         this.subtypeInfo = subtypeInfo;
+        this.subtypeNames = List.copyOf(subtypeInfo.parent().subtypes().keySet());
+        this.subtypeKeys = Keys.create(subtypeNames);
         this.ignoreUnknown = ignoreUnknown;
     }
 
@@ -63,13 +70,18 @@ final class WrappedObjectSubtypedDeserializer implements Deserializer<Object> {
                                          Argument<? super Object> type,
                                          boolean isNullable) throws IOException {
 
-        Decoder unwrappedDecoder = decoder.decodeObject();
-        String discriminatorValue = unwrappedDecoder.decodeKey();
-        if (discriminatorValue == null) {
+        KeysAwareDecoder unwrappedDecoder = KeysAwareDecoder.of(decoder.decodeObject());
+        int keyIndex = unwrappedDecoder.decodeKey(subtypeKeys);
+        String discriminatorValue;
+        if (keyIndex == KeysAwareDecoder.MATCH_END_OBJECT) {
             if (isNullable) {
                 return null;
             }
             throw new SerdeException("Wrapper property is null encountered during deserialization of type: " + type);
+        } else if (keyIndex == KeysAwareDecoder.MATCH_UNKNOWN_NAME) {
+            discriminatorValue = unwrappedDecoder.decodeKey();
+        } else {
+            discriminatorValue = subtypeNames.get(keyIndex);
         }
         Deserializer<? super Object> deserializer = subtypeInfo.findDeserializer(discriminatorValue);
 
@@ -83,7 +95,15 @@ final class WrappedObjectSubtypedDeserializer implements Deserializer<Object> {
         if (ignoreUnknown) {
             unwrappedDecoder.finishStructure(true);
         } else {
-            String unknownProp = unwrappedDecoder.decodeKey();
+            keyIndex = unwrappedDecoder.decodeKey(subtypeKeys);
+            String unknownProp;
+            if (keyIndex == KeysAwareDecoder.MATCH_END_OBJECT) {
+                unknownProp = null;
+            } else if (keyIndex == KeysAwareDecoder.MATCH_UNKNOWN_NAME) {
+                unknownProp = unwrappedDecoder.decodeKey();
+            } else {
+                unknownProp = subtypeNames.get(keyIndex);
+            }
             if (unknownProp != null) {
                 throw unknownProperty(type, unknownProp);
             }

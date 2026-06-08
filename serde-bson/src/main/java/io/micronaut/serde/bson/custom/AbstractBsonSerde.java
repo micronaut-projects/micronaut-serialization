@@ -20,6 +20,8 @@ import io.micronaut.serde.Decoder;
 import io.micronaut.serde.DelegatingDecoder;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serde;
+import io.micronaut.serde.WrappedDecoder;
+import io.micronaut.serde.WrappedEncoder;
 import io.micronaut.serde.bson.BsonReaderDecoder;
 import io.micronaut.serde.bson.BsonWriterEncoder;
 import io.micronaut.serde.exceptions.SerdeException;
@@ -47,8 +49,9 @@ public abstract class AbstractBsonSerde<T> implements Serde<T> {
     }
 
     private BsonReaderDecoder asBson(Decoder decoder) throws IOException {
+        decoder = WrappedDecoder.unwrap(decoder);
         if (decoder instanceof DelegatingDecoder delegating) {
-            decoder = delegating.delegateForDecodeValue();
+            decoder = WrappedDecoder.unwrap(delegating.delegateForDecodeValue());
         }
         if (decoder instanceof BsonReaderDecoder bson) {
             return bson;
@@ -57,6 +60,7 @@ public abstract class AbstractBsonSerde<T> implements Serde<T> {
     }
 
     private BsonWriterEncoder asBson(Encoder encoder) throws SerdeException {
+        encoder = WrappedEncoder.unwrap(encoder);
         if (encoder instanceof BsonWriterEncoder bsonWriterEncoder) {
             return bsonWriterEncoder;
         }

@@ -18,6 +18,9 @@ package io.micronaut.serde.bson;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.Keys;
+import io.micronaut.serde.KeysAwareEncoder;
+import io.micronaut.serde.KeysSupport;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.exceptions.SerdeException;
 import org.bson.BsonBinary;
@@ -36,7 +39,9 @@ import java.math.BigInteger;
  * @author Denis Stepanov
  */
 @Internal
-public final class BsonWriterEncoder extends LimitingStream implements Encoder {
+public final class BsonWriterEncoder extends LimitingStream implements KeysAwareEncoder {
+    private static final int BSON_KEYS_INDEX = KeysSupport.indexOf(new BsonKeysProvider());
+
     private final BsonWriter bsonWriter;
     private final boolean isArray;
     @Nullable
@@ -44,6 +49,9 @@ public final class BsonWriterEncoder extends LimitingStream implements Encoder {
 
     @Nullable
     private String currentKey;
+    @Nullable
+    private Keys currentKeys;
+    private String @Nullable [] currentKeyNames;
     private int currentIndex = 0;
 
     public BsonWriterEncoder(BsonWriter bsonWriter, RemainingLimits remainingLimits) {
@@ -93,6 +101,21 @@ public final class BsonWriterEncoder extends LimitingStream implements Encoder {
     public void encodeKey(String key) {
         this.currentKey = key;
         bsonWriter.writeName(key);
+    }
+
+    @Override
+    public void encodeKey(Keys keys, int index) {
+        encodeKey(keyName(keys, index));
+    }
+
+    private String keyName(Keys keys, int index) {
+        String[] keyNames = currentKeyNames;
+        if (keys != currentKeys || keyNames == null) {
+            keyNames = (String[]) KeysSupport.get(keys, BSON_KEYS_INDEX)[BsonKeysProvider.KEY_NAMES_INDEX];
+            currentKeys = keys;
+            currentKeyNames = keyNames;
+        }
+        return keyNames[index];
     }
 
     @Override

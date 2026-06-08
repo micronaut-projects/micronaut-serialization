@@ -19,6 +19,8 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.JsonMapper;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.Keys;
+import io.micronaut.serde.KeysAwareEncoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerializationConfiguration;
@@ -49,9 +51,11 @@ import java.util.Objects;
 @Internal
 final class CustomizedObjectSerializer<T> implements ObjectSerializer<T> {
     private final SerBean<T> serBean;
+    private final Keys keys;
 
     CustomizedObjectSerializer(SerBean<T> serBean) {
         this.serBean = serBean;
+        this.keys = serBean.propertyKeys;
     }
 
     @Override
@@ -63,7 +67,10 @@ final class CustomizedObjectSerializer<T> implements ObjectSerializer<T> {
 
     @Override
     public void serializeInto(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
+        KeysAwareEncoder keysAwareEncoder = KeysAwareEncoder.of(encoder);
+        int propertyIndex = 0;
         for (SerBean.SerProperty<T, Object> property : serBean.writeProperties) {
+            int keyIndex = propertyIndex++;
             try {
                 final Object propertyValue = property.get(value);
                 final Serializer<Object> serializer = Objects.requireNonNull(property.serializer);
@@ -96,7 +103,7 @@ final class CustomizedObjectSerializer<T> implements ObjectSerializer<T> {
                         case ALWAYS, USE_DEFAULTS -> false;
                         case NON_NULL -> propertyValue == null;
                         case NON_ABSENT -> serializer.isAbsent(propertyContext, propertyValue);
-                        case NON_DEFAULT -> serializer.isEmpty(propertyContext, propertyValue) || propertyValue != null && serializer.isDefault(propertyContext, propertyValue);
+                        case NON_DEFAULT -> serializer.isEmpty(propertyContext, propertyValue) || (propertyValue != null && serializer.isDefault(propertyContext, propertyValue));
                         case NON_EMPTY -> serializer.isEmpty(propertyContext, propertyValue);
                         case NEVER -> true;
                     };
@@ -125,17 +132,17 @@ final class CustomizedObjectSerializer<T> implements ObjectSerializer<T> {
                     if (property.serializableInto) {
                         if (property.objectSerializer != null) {
                             if (propertyValue != null) {
-                                property.objectSerializer.serializeInto(encoder, propertyContext, property.argument, propertyValue);
+                                property.objectSerializer.serializeInto(keysAwareEncoder, propertyContext, property.argument, propertyValue);
                             }
                         } else {
                             throw new SerdeException("Serializer for a property: " + property.name + " doesn't support serializing into an existing object");
                         }
                     } else {
-                        encoder.encodeKey(property.name);
+                        keysAwareEncoder.encodeKey(keys, keyIndex);
                         if (propertyValue == null) {
-                            encoder.encodeNull();
+                            keysAwareEncoder.encodeNull();
                         } else {
-                            serializer.serialize(encoder, propertyContext, property.argument, propertyValue);
+                            serializer.serialize(keysAwareEncoder, propertyContext, property.argument, propertyValue);
                         }
                     }
                 } finally {

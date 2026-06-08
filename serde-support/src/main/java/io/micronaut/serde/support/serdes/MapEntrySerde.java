@@ -23,6 +23,9 @@ import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.FormattedSerde;
+import io.micronaut.serde.Keys;
+import io.micronaut.serde.KeysAwareDecoder;
+import io.micronaut.serde.KeysAwareEncoder;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerdeRegistrar;
@@ -40,8 +43,7 @@ import java.util.Map;
  */
 @Internal
 final class MapEntrySerde implements FormattedSerde<Map.Entry<?, ?>>, SerdeRegistrar<Map.Entry<?, ?>> {
-    private static final String MAP_ENTRY_KEY = "key";
-    private static final String MAP_ENTRY_VALUE = "value";
+    private static final Keys MAP_ENTRY_KEYS = Keys.create("key", "value");
 
     @Override
     public Serializer<Map.Entry<?, ?>> createSpecific(EncoderContext context,
@@ -187,10 +189,10 @@ final class MapEntrySerde implements FormattedSerde<Map.Entry<?, ?>>, SerdeRegis
                               EncoderContext context,
                               Argument<? extends T> type,
                               T value) throws IOException {
-            try (Encoder objectEncoder = encoder.encodeObject(type)) {
-                objectEncoder.encodeKey(MAP_ENTRY_KEY);
+            try (KeysAwareEncoder objectEncoder = KeysAwareEncoder.of(encoder.encodeObject(type))) {
+                objectEncoder.encodeKey(MAP_ENTRY_KEYS, 0);
                 encodeNullable(objectEncoder, context, keyArgument, keySerializer, value.getKey());
-                objectEncoder.encodeKey(MAP_ENTRY_VALUE);
+                objectEncoder.encodeKey(MAP_ENTRY_KEYS, 1);
                 encodeNullable(objectEncoder, context, valueArgument, valueSerializer, value.getValue());
             }
         }
@@ -246,19 +248,23 @@ final class MapEntrySerde implements FormattedSerde<Map.Entry<?, ?>>, SerdeRegis
                              Argument<? super T> type) throws IOException {
             Object key = null;
             Object value = null;
-            try (Decoder objectDecoder = decoder.decodeObject(type)) {
-                String property;
-                while ((property = objectDecoder.decodeKey()) != null) {
-                    switch (property) {
-                        case MAP_ENTRY_KEY ->
+            try (KeysAwareDecoder objectDecoder = KeysAwareDecoder.of(decoder.decodeObject(type))) {
+                while (true) {
+                    switch (objectDecoder.decodeKey(MAP_ENTRY_KEYS)) {
+                        case KeysAwareDecoder.MATCH_END_OBJECT -> {
+                            return (T) new AbstractMap.SimpleEntry<>(key, value);
+                        }
+                        case 0 ->
                             key = decodeNullable(objectDecoder, context, keyArgument, keyDeserializer);
-                        case MAP_ENTRY_VALUE ->
+                        case 1 ->
                             value = decodeNullable(objectDecoder, context, valueArgument, valueDeserializer);
-                        default -> objectDecoder.skipValue();
+                        default -> {
+                            objectDecoder.decodeKey();
+                            objectDecoder.skipValue();
+                        }
                     }
                 }
             }
-            return (T) new AbstractMap.SimpleEntry<>(key, value);
         }
     }
 

@@ -119,6 +119,22 @@ class JacksonDecoderSpec extends Specification {
         ]
     }
 
+    def "non-null scalar decoders keep unexpected null token message"() {
+        when:
+        decodeNullScalar(method)
+
+        then:
+        def e = thrown(SerdeException)
+        e.message == expectedMessage
+
+        where:
+        method             | expectedMessage
+        'decodeString'     | 'Unexpected token VALUE_NULL, expected VALUE_STRING'
+        'decodeDouble'     | 'Unexpected token VALUE_NULL, expected VALUE_NUMBER_FLOAT'
+        'decodeBigInteger' | 'Unexpected token VALUE_NULL, expected VALUE_NUMBER_INT'
+        'decodeBigDecimal' | 'Unexpected token VALUE_NULL, expected VALUE_NUMBER_FLOAT'
+    }
+
     def "empty input"() {
         when:
         createDecoder('').decodeString()
@@ -145,5 +161,21 @@ class JacksonDecoderSpec extends Specification {
         }
         !arrayDecoder.hasNextArrayValue()
         arrayDecoder.finishStructure()
+    }
+
+    private static Object decodeNullScalar(String method) throws IOException {
+        Decoder decoder = createDecoder('null')
+        switch (method) {
+            case 'decodeString':
+                return decoder.decodeString()
+            case 'decodeDouble':
+                return decoder.decodeDouble()
+            case 'decodeBigInteger':
+                return decoder.decodeBigInteger()
+            case 'decodeBigDecimal':
+                return decoder.decodeBigDecimal()
+            default:
+                throw new IllegalArgumentException(method)
+        }
     }
 }

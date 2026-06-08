@@ -20,6 +20,7 @@ import io.micronaut.core.annotation.UsedByGeneratedCode;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.config.DeserializationConfiguration;
+import io.micronaut.serde.exceptions.NullValueSerdeException;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
 import org.jspecify.annotations.Nullable;
@@ -202,9 +203,14 @@ public final class GeneratedSerdeExceptionUtil {
     public static SerdeException withPropertyPath(Throwable exception,
                                                   Argument<?> beanType,
                                                   Argument<?> propertyArgument) {
-        SerdeException serdeException = exception instanceof SerdeException existing
-            ? existing
-            : new SerdeException("Error processing property [" + propertyArgument.getName() + "] of type [" + beanType + "]: " + exception.getMessage(), exception);
+        SerdeException serdeException;
+        if (exception instanceof NullValueSerdeException) {
+            serdeException = nullValue(beanType, propertyArgument);
+        } else if (exception instanceof SerdeException existing) {
+            serdeException = existing;
+        } else {
+            serdeException = new SerdeException("Error processing property [" + propertyArgument.getName() + "] of type [" + beanType + "]: " + exception.getMessage(), exception);
+        }
         serdeException.getPath().add(ReferencePath.ofProperty(beanType.getType(), propertyArgument));
         return serdeException;
     }
