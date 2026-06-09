@@ -374,7 +374,7 @@ final class JsonbReflectionUtil {
      * @return The implicit property name
      */
     static String implicitPropertyName(Method method) {
-        if (isGetter(method)) {
+        if (isGetterName(method)) {
             return NameUtils.getPropertyNameForGetter(method.getName());
         } else {
             return NameUtils.getPropertyNameForSetter(method.getName());

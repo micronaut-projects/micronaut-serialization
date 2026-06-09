@@ -1,6 +1,7 @@
 package example;
 
 import io.micronaut.context.ApplicationContext;
+import io.micronaut.serde.jsonb.JsonbConfiguration;
 import jakarta.json.bind.Jsonb;
 import org.junit.jupiter.api.Test;
 
@@ -11,7 +12,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 final class JsonbExtensionTest {
     @Test
     void jsonbExtensionBeansAreRegisteredInPriorityOrder() throws Exception {
-        try (ApplicationContext context = ApplicationContext.run(Map.of("spec.name", "jsonb-extension-beans"))) {
+        try (ApplicationContext context = ApplicationContext.run(Map.of(
+            "spec.name", "jsonb-extension-beans",
+            JsonbConfiguration.REFLECTION, JsonbConfiguration.Reflection.AUTO
+        ))) {
             Jsonb jsonb = context.getBean(Jsonb.class);
 
             assertEquals("\"#ff0000\"", jsonb.toJson(new Color("ff0000")));
@@ -23,7 +27,10 @@ final class JsonbExtensionTest {
 
     @Test
     void jsonbExtensionsCanBeRegisteredProgrammatically() throws Exception {
-        try (ApplicationContext context = ApplicationContext.run(Map.of("spec.name", "jsonb-programmatic-config"))) {
+        try (ApplicationContext context = ApplicationContext.run(Map.of(
+            "spec.name", "jsonb-programmatic-config",
+            JsonbConfiguration.REFLECTION, JsonbConfiguration.Reflection.AUTO
+        ))) {
             Jsonb jsonb = context.getBean(Jsonb.class);
 
             assertEquals("\"code:A1\"", jsonb.toJson(new ProgrammaticCode("A1")));
