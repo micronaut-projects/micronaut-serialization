@@ -167,9 +167,7 @@ final class JsonbRuntimeBeanConstructor<T> implements BeanConstructor<T> {
      */
     private static Argument<?>[] arguments(Executable executable) {
         Parameter[] parameters = executable.getParameters();
-        Type[] genericTypes = executable instanceof Constructor<?> constructor
-            ? constructor.getGenericParameterTypes()
-            : executable.getGenericParameterTypes();
+        Type[] genericTypes = executable.getGenericParameterTypes();
         Argument<?>[] arguments = new Argument<?>[parameters.length];
         for (int i = 0; i < parameters.length; i++) {
             Parameter parameter = parameters[i];
