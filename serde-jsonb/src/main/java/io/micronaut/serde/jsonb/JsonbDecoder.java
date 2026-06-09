@@ -238,7 +238,14 @@ record JsonbDecoder(Decoder delegate, String binaryDataStrategy) implements Deco
                 return BigInteger.valueOf(number.longValue());
             }
             if (number instanceof Float || number instanceof Double) {
-                return BigDecimal.valueOf(number.doubleValue()).toBigIntegerExact();
+                double value = number.doubleValue();
+                if (!Double.isFinite(value) || Math.rint(value) != value) {
+                    throw new ArithmeticException();
+                }
+                if (value >= Long.MIN_VALUE && value <= Long.MAX_VALUE) {
+                    return BigInteger.valueOf((long) value);
+                }
+                return BigDecimal.valueOf(value).toBigIntegerExact();
             }
             return new BigDecimal(number.toString()).toBigIntegerExact();
         } catch (ArithmeticException | NumberFormatException e) {

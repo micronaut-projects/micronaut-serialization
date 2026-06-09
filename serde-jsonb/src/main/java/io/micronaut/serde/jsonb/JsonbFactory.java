@@ -35,7 +35,6 @@ import jakarta.json.bind.serializer.JsonbSerializer;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * JSON-B beans backed by the current Micronaut context.

@@ -74,7 +74,7 @@ final class JsonbRuntimeBeanConstructor<T> implements BeanConstructor<T> {
             this.arguments = Argument.ZERO_ARGUMENTS;
         } else {
             this.arguments = arguments(executable);
-            if (arguments.length > 0 || executable.isAnnotationPresent(JsonbCreator.class)) {
+            if (executable.isAnnotationPresent(JsonbCreator.class)) {
                 metadata.addAnnotation(Creator.class.getName(), Map.of("mode", SerdeConfig.SerCreatorMode.PROPERTIES));
             }
         }
@@ -136,7 +136,9 @@ final class JsonbRuntimeBeanConstructor<T> implements BeanConstructor<T> {
     @Override
     public T instantiate(Object... parameterValues) {
         if (constructor != null) {
-            constructor.setAccessible(true);
+            if (!constructor.trySetAccessible()) {
+                throw new JsonbException("Cannot access JSON-B fallback constructor for " + type.getName());
+            }
             return InstantiationUtils.tryInstantiate(constructor, parameterValues)
                 .orElseThrow(() -> new JsonbException("Cannot instantiate JSON-B fallback type " + type.getName()));
         }

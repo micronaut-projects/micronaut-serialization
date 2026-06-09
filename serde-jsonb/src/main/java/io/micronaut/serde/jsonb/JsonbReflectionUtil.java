@@ -62,7 +62,9 @@ final class JsonbReflectionUtil {
     static <T> T instantiate(Class<T> type) {
         Constructor<T> constructor = ReflectionUtils.findConstructor(type)
             .orElseThrow(() -> new JsonbException("No default constructor available for JSON-B fallback type " + type.getName()));
-        constructor.setAccessible(true);
+        if (!constructor.trySetAccessible()) {
+            throw new JsonbException("Cannot access default constructor for JSON-B fallback type " + type.getName());
+        }
         return InstantiationUtils.tryInstantiate(constructor)
             .orElseThrow(() -> new JsonbException("Cannot instantiate JSON-B fallback type " + type.getName()));
     }
