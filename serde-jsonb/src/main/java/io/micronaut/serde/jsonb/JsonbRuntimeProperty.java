@@ -66,7 +66,7 @@ import java.util.Map;
  *
  * @param <T> The bean type
  */
-@SuppressWarnings({"java:S3776", "java:S1192"})
+@SuppressWarnings({"java:S3776", "java:S1192", "java:S3011"})
 final class JsonbRuntimeProperty<T> implements BeanProperty<T, Object>, UnsafeBeanReadProperty<T, Object>, UnsafeBeanWriteProperty<T, Object> {
     final int index;
     @Nullable Field field;
