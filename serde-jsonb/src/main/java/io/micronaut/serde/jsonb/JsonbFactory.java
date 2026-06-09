@@ -27,6 +27,7 @@ import io.micronaut.serde.config.SerializationConfiguration;
 import jakarta.inject.Singleton;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbConfig;
+import jakarta.json.bind.JsonbException;
 import jakarta.json.bind.adapter.JsonbAdapter;
 import jakarta.json.bind.config.PropertyVisibilityStrategy;
 import jakarta.json.bind.serializer.JsonbDeserializer;
@@ -92,7 +93,9 @@ final class JsonbFactory {
                 SerializationConfiguration serializationConfiguration,
                 DeserializationConfiguration deserializationConfiguration,
                 JsonbConfiguration jsonbConfiguration) {
-        if (jsonbConfiguration.isReflectionEnabled() || MicronautJsonbProvider.MicronautJsonb.hasReflectionOnlyFeatures(config)) {
+        boolean reflectionOnlyFeatures = MicronautJsonbProvider.MicronautJsonb.hasReflectionOnlyFeatures(config);
+        if (jsonbConfiguration.getReflection() == JsonbConfiguration.Reflection.ON
+            || (jsonbConfiguration.getReflection() == JsonbConfiguration.Reflection.AUTO && reflectionOnlyFeatures)) {
             return MicronautJsonbReflectionProvider.create(
                 config,
                 beanContext,
@@ -102,6 +105,9 @@ final class JsonbFactory {
                 serializationConfiguration,
                 deserializationConfiguration
             );
+        }
+        if (reflectionOnlyFeatures) {
+            throw new JsonbException("This JSON-B configuration requires reflection fallback. Set " + JsonbConfiguration.REFLECTION + " to AUTO or ON to enable it.");
         }
         return new MicronautJsonbProvider.MicronautJsonb(
             config,

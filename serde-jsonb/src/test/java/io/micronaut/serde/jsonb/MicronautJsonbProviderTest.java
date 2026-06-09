@@ -143,7 +143,7 @@ class MicronautJsonbProviderTest {
             assertThrows(JsonbException.class, () -> jsonb.toJson(new PlainBook("The Stand")));
         }
 
-        try (ApplicationContext context = ApplicationContext.run(Map.of(JsonbConfiguration.REFLECTION_ENABLED, true))) {
+        try (ApplicationContext context = ApplicationContext.run(Map.of(JsonbConfiguration.REFLECTION, JsonbConfiguration.Reflection.ON))) {
             Jsonb jsonb = context.getBean(Jsonb.class);
 
             assertEquals("{\"name\":\"The Stand\"}", jsonb.toJson(new PlainBook("The Stand")));
@@ -632,6 +632,7 @@ class MicronautJsonbProviderTest {
             queue.add(1);
             Type queueType = parameterizedType(PriorityQueue.class, Integer.class);
             assertEquals("[1,3]", jsonb.toJson(queue, queueType));
+            assertThrows(JsonbException.class, () -> jsonb.fromJson("[1,null,3]", queueType));
         }
 
         JsonbConfig config = new JsonbConfig()

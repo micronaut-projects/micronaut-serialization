@@ -40,18 +40,40 @@ public interface JsonbConfiguration {
     String ADDITIONAL_PACKAGES = PREFIX + ".additional-packages";
 
     /**
-     * Configuration property that enables reflection fallback for the context-created JSON-B bean.
+     * Configuration property that controls reflection fallback for the context-created JSON-B bean.
      *
      * @since 3.1.0
      */
-    String REFLECTION_ENABLED = PREFIX + ".reflection-enabled";
+    String REFLECTION = PREFIX + ".reflection";
 
     /**
-     * Whether the context-created JSON-B bean should use reflection fallback behavior.
+     * Reflection fallback mode for the context-created JSON-B bean.
      *
-     * @return Whether reflection fallback is enabled
+     * @return The reflection fallback mode
      * @since 3.1.0
      */
-    @Bindable(defaultValue = "false")
-    boolean isReflectionEnabled();
+    @Bindable(defaultValue = "OFF")
+    Reflection getReflection();
+
+    /**
+     * JSON-B reflection fallback mode.
+     *
+     * @since 3.1.0
+     */
+    enum Reflection {
+        /**
+         * Always use reflection fallback behavior.
+         */
+        ON,
+
+        /**
+         * Never use reflection fallback behavior.
+         */
+        OFF,
+
+        /**
+         * Use reflection fallback only when the JSON-B configuration requires it.
+         */
+        AUTO
+    }
 }

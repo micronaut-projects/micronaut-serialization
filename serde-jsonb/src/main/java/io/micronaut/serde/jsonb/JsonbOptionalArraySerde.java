@@ -27,6 +27,8 @@ import jakarta.inject.Singleton;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -59,20 +61,12 @@ final class JsonbOptionalArraySerde implements Serializer<Optional[]>, Deseriali
             @Override
             public Optional[] deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Optional[]> arrayType) throws IOException {
                 Decoder array = decoder.decodeArray();
-                Optional[] values = new Optional[10];
-                int index = 0;
+                List<Optional> values = new ArrayList<>();
                 while (array.hasNextArrayValue()) {
-                    if (index == values.length) {
-                        Optional[] expanded = new Optional[values.length * 2];
-                        System.arraycopy(values, 0, expanded, 0, values.length);
-                        values = expanded;
-                    }
-                    values[index++] = componentDeserializer.deserialize(array, decoderContext, componentType);
+                    values.add(componentDeserializer.deserialize(array, decoderContext, componentType));
                 }
                 array.finishStructure();
-                Optional[] result = new Optional[index];
-                System.arraycopy(values, 0, result, 0, index);
-                return result;
+                return values.toArray(Optional[]::new);
             }
 
             @Override

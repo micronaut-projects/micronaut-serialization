@@ -42,7 +42,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class JsonbExtensionBeanTest {
     @Test
     void jsonbExtensionBeansAreAppliedInBeanOrder() throws Exception {
-        try (ApplicationContext context = ApplicationContext.run(Map.of("spec.name", "jsonb-extension-beans"))) {
+        try (ApplicationContext context = ApplicationContext.run(Map.of(
+            "spec.name", "jsonb-extension-beans",
+            JsonbConfiguration.REFLECTION, JsonbConfiguration.Reflection.AUTO
+        ))) {
             Jsonb jsonb = context.getBean(Jsonb.class);
 
             assertEquals("\"serializer-high:a\"", jsonb.toJson(new BeanCallbackValue("a")));
@@ -55,7 +58,10 @@ class JsonbExtensionBeanTest {
 
     @Test
     void explicitJsonbConfigRegistrationKeepsConfiguredOrder() throws Exception {
-        try (ApplicationContext context = ApplicationContext.run(Map.of("spec.name", "jsonb-config-registration"))) {
+        try (ApplicationContext context = ApplicationContext.run(Map.of(
+            "spec.name", "jsonb-config-registration",
+            JsonbConfiguration.REFLECTION, JsonbConfiguration.Reflection.AUTO
+        ))) {
             Jsonb jsonb = context.getBean(Jsonb.class);
 
             assertEquals("\"configured-first:a\"", jsonb.toJson(new ConfiguredCallbackValue("a")));
@@ -68,7 +74,10 @@ class JsonbExtensionBeanTest {
 
     @Test
     void propertyVisibilityStrategyBeanIsApplied() throws Exception {
-        try (ApplicationContext context = ApplicationContext.run(Map.of("spec.name", "jsonb-visibility-bean"))) {
+        try (ApplicationContext context = ApplicationContext.run(Map.of(
+            "spec.name", "jsonb-visibility-bean",
+            JsonbConfiguration.REFLECTION, JsonbConfiguration.Reflection.AUTO
+        ))) {
             Jsonb jsonb = context.getBean(Jsonb.class);
 
             assertEquals("{\"value\":\"a\"}", jsonb.toJson(new VisibilityValue("a")));

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.serde.jsonb;
+package io.micronaut.serde.support.serdes;
 
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
@@ -30,19 +30,18 @@ import java.io.IOException;
 import java.util.PriorityQueue;
 
 /**
- * JSON-B default mapping for {@link PriorityQueue}.
+ * Serde for {@link PriorityQueue}.
  */
 @Internal
 @Singleton
-final class JsonbPriorityQueueSerde implements SerdeRegistrar<PriorityQueue<Object>> {
+final class PriorityQueueSerde implements SerdeRegistrar<PriorityQueue<Object>> {
     @SuppressWarnings("unchecked")
     private static final Argument<PriorityQueue<Object>> PRIORITY_QUEUE =
         (Argument<PriorityQueue<Object>>) (Argument<?>) Argument.of(PriorityQueue.class, Argument.ofTypeVariable(Object.class, "E"));
 
     @Override
     public Serializer<PriorityQueue<Object>> createSpecific(EncoderContext context, Argument<? extends PriorityQueue<Object>> type) throws SerdeException {
-        @SuppressWarnings("unchecked")
-        Argument<Object> elementType = (Argument<Object>) (type.getTypeParameters().length == 0 ? Argument.OBJECT_ARGUMENT : type.getTypeParameters()[0]);
+        Argument<Object> elementType = elementType(type);
         Serializer<? super Object> elementSerializer = context.findSerializer(elementType).createSpecific(context, elementType);
         return (encoder, encoderContext, queueType, value) -> {
             try (Encoder array = encoder.encodeArray(queueType)) {
@@ -55,8 +54,7 @@ final class JsonbPriorityQueueSerde implements SerdeRegistrar<PriorityQueue<Obje
 
     @Override
     public Deserializer<PriorityQueue<Object>> createSpecific(DecoderContext context, Argument<? super PriorityQueue<Object>> type) throws SerdeException {
-        @SuppressWarnings("unchecked")
-        Argument<Object> elementType = (Argument<Object>) (type.getTypeParameters().length == 0 ? Argument.OBJECT_ARGUMENT : type.getTypeParameters()[0]);
+        Argument<Object> elementType = elementType(type);
         Deserializer<? extends Object> elementDeserializer = context.findDeserializer(elementType).createSpecific(context, elementType);
         return new Deserializer<>() {
             @Override
@@ -74,9 +72,10 @@ final class JsonbPriorityQueueSerde implements SerdeRegistrar<PriorityQueue<Obje
                 Decoder array = decoder.decodeArray();
                 while (array.hasNextArrayValue()) {
                     Object item = elementDeserializer.deserializeNullable(array, context, elementType);
-                    if (item != null) {
-                        queue.add(item);
+                    if (item == null) {
+                        throw decoder.createDeserializationException("PriorityQueue does not support null values", null);
                     }
+                    queue.add(item);
                 }
                 array.finishStructure();
                 return queue;
@@ -97,5 +96,10 @@ final class JsonbPriorityQueueSerde implements SerdeRegistrar<PriorityQueue<Obje
     @Override
     public Argument<PriorityQueue<Object>> getType() {
         return PRIORITY_QUEUE;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Argument<Object> elementType(Argument<?> type) {
+        return (Argument<Object>) (type.getTypeParameters().length == 0 ? Argument.OBJECT_ARGUMENT : type.getTypeParameters()[0]);
     }
 }

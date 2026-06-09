@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.jsonb;
 
+import io.micronaut.core.naming.NameUtils;
 import io.micronaut.core.reflect.InstantiationUtils;
 import io.micronaut.core.reflect.ReflectionUtils;
 import jakarta.json.bind.JsonbException;
@@ -36,7 +37,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -123,8 +123,7 @@ final class JsonbReflectionUtil {
      */
     static boolean isSetter(Method method) {
         return method.getParameterCount() == 1
-            && method.getName().startsWith("set")
-            && method.getName().length() > 3
+            && NameUtils.isSetterName(method.getName())
             && !method.isSynthetic()
             && !method.isBridge()
             && !method.isAnnotationPresent(JsonbTransient.class);
@@ -365,8 +364,7 @@ final class JsonbReflectionUtil {
      * @return Whether the method has a getter-style name
      */
     static boolean isGetterName(Method method) {
-        return (method.getName().startsWith("get") && method.getName().length() > 3)
-            || (method.getName().startsWith("is") && method.getName().length() > 2);
+        return NameUtils.isGetterName(method.getName());
     }
 
     /**
@@ -376,11 +374,11 @@ final class JsonbReflectionUtil {
      * @return The implicit property name
      */
     static String implicitPropertyName(Method method) {
-        String name = method.getName();
-        if (name.startsWith("get") || name.startsWith("set")) {
-            return decapitalize(name.substring(3));
+        if (isGetter(method)) {
+            return NameUtils.getPropertyNameForGetter(method.getName());
+        } else {
+            return NameUtils.getPropertyNameForSetter(method.getName());
         }
-        return decapitalize(name.substring(2));
     }
 
     /**
@@ -399,17 +397,17 @@ final class JsonbReflectionUtil {
             return name;
         }
         if (PropertyNamingStrategy.LOWER_CASE_WITH_DASHES.equals(namingStrategy)) {
-            return splitCamelCase(name, "-").toLowerCase(Locale.ROOT);
+            return NameUtils.hyphenate(name, true);
         }
         if (PropertyNamingStrategy.LOWER_CASE_WITH_UNDERSCORES.equals(namingStrategy)) {
-            return splitCamelCase(name, "_").toLowerCase(Locale.ROOT);
+            return NameUtils.underscoreSeparate(name, true);
         }
         if (PropertyNamingStrategy.UPPER_CAMEL_CASE.equals(namingStrategy)) {
-            return Character.toUpperCase(name.charAt(0)) + name.substring(1);
+            return NameUtils.capitalize(name);
         }
         if (PropertyNamingStrategy.UPPER_CAMEL_CASE_WITH_SPACES.equals(namingStrategy)) {
             String upperCamel = Character.toUpperCase(name.charAt(0)) + name.substring(1);
-            return splitCamelCase(upperCamel, " ");
+            return splitCamelCase(upperCamel);
         }
         return name;
     }
@@ -422,22 +420,11 @@ final class JsonbReflectionUtil {
      * @return The decapitalized property name
      */
     static String decapitalize(String name) {
-        if (name.length() > 1 && Character.isUpperCase(name.charAt(0)) && Character.isUpperCase(name.charAt(1))) {
-            return name;
-        }
-        return Character.toLowerCase(name.charAt(0)) + name.substring(1);
+        return NameUtils.decapitalize(name);
     }
 
     private static @Nullable Field field(Class<?> type, String name) {
-        Class<?> current = type;
-        while (current != Object.class && current != null) {
-            try {
-                return current.getDeclaredField(name);
-            } catch (NoSuchFieldException ignored) {
-                current = current.getSuperclass();
-            }
-        }
-        return null;
+        return ReflectionUtils.findField(type, name).orElse(null);
     }
 
     private static int creatorCount(Class<?> type) {
@@ -456,15 +443,15 @@ final class JsonbReflectionUtil {
     }
 
     private static boolean isSetterName(Method method) {
-        return method.getName().startsWith("set") && method.getName().length() > 3;
+        return NameUtils.isSetterName(method.getName());
     }
 
-    private static String splitCamelCase(String name, String separator) {
+    private static String splitCamelCase(String name) {
         StringBuilder builder = new StringBuilder(name.length() + 8);
         for (int i = 0; i < name.length(); i++) {
             char character = name.charAt(i);
             if (i > 0 && Character.isUpperCase(character)) {
-                builder.append(separator);
+                builder.append(" ");
             }
             builder.append(character);
         }
