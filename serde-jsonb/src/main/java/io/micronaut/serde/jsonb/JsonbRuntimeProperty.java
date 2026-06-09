@@ -272,9 +272,9 @@ final class JsonbRuntimeProperty<T> implements BeanProperty<T, Object>, UnsafeBe
         return accessible(setter != null ? setter : field);
     }
 
-    private static @Nullable AccessibleObject accessible(@Nullable AccessibleObject member) {
-        if (member != null) {
-            member.setAccessible(true);
+    private @Nullable AccessibleObject accessible(@Nullable AccessibleObject member) {
+        if (member != null && !member.trySetAccessible()) {
+            throw new JsonbException("Cannot access JSON-B property " + implicitName);
         }
         return member;
     }
