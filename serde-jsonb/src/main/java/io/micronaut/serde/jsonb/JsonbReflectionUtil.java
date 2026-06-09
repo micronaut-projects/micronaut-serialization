@@ -38,6 +38,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -259,7 +260,7 @@ final class JsonbReflectionUtil {
      * @return Whether a static field backs the accessor name
      */
     static boolean isStaticBackedAccessor(Class<?> type, String implicitName) {
-        Field field = field(type, implicitName);
+        Field field = field(type, implicitName).orElse(null);
         return field != null && Modifier.isStatic(field.getModifiers());
     }
 
@@ -425,8 +426,8 @@ final class JsonbReflectionUtil {
         return NameUtils.decapitalize(name);
     }
 
-    private static @Nullable Field field(Class<?> type, String name) {
-        return ReflectionUtils.findField(type, name).orElse(null);
+    private static Optional<Field> field(Class<?> type, String name) {
+        return ReflectionUtils.findField(type, name);
     }
 
     private static int creatorCount(Class<?> type) {
