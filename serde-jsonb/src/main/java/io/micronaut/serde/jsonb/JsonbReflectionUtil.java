@@ -38,6 +38,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -423,7 +424,7 @@ final class JsonbReflectionUtil {
      * @return The decapitalized property name
      */
     static String decapitalize(String name) {
-        return NameUtils.decapitalize(name);
+        return Objects.requireNonNull(NameUtils.decapitalize(name));
     }
 
     private static Optional<Field> field(Class<?> type, String name) {
