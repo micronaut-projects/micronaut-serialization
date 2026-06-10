@@ -16,6 +16,7 @@
 package io.micronaut.serde.jsonb;
 
 import io.micronaut.context.BeanContext;
+import io.micronaut.context.annotation.Bean;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
@@ -34,6 +35,7 @@ import java.io.IOException;
  */
 @Internal
 @Singleton
+@Bean(typed = JsonbTypeSerializerBridge.class)
 public final class JsonbTypeSerializerBridge implements Serializer<Object> {
     private static final Argument<JsonNode> JSON_NODE_ARGUMENT = Argument.of(JsonNode.class);
 

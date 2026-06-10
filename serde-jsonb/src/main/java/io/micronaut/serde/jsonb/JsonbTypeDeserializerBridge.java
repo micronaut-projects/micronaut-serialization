@@ -16,6 +16,7 @@
 package io.micronaut.serde.jsonb;
 
 import io.micronaut.context.BeanContext;
+import io.micronaut.context.annotation.Bean;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
@@ -26,7 +27,6 @@ import jakarta.inject.Singleton;
 import jakarta.json.bind.JsonbException;
 import jakarta.json.bind.serializer.JsonbDeserializer;
 import jakarta.json.stream.JsonParser;
-import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 
@@ -35,6 +35,7 @@ import java.io.IOException;
  */
 @Internal
 @Singleton
+@Bean(typed = JsonbTypeDeserializerBridge.class)
 public final class JsonbTypeDeserializerBridge implements Deserializer<Object> {
     private final JsonbBridgeSupport.ComponentFactory componentFactory;
     private final ObjectMapper mapper;

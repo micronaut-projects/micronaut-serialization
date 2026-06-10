@@ -19,7 +19,7 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
-import io.micronaut.serde.support.SerdeRegistrar;
+import io.micronaut.serde.Serde;
 import jakarta.inject.Singleton;
 import org.jspecify.annotations.Nullable;
 
@@ -31,9 +31,7 @@ import java.time.OffsetTime;
  */
 @Internal
 @Singleton
-final class JsonbOffsetTimeSerde implements SerdeRegistrar<OffsetTime> {
-    private static final Argument<OffsetTime> OFFSET_TIME = Argument.of(OffsetTime.class);
-
+final class JsonbOffsetTimeSerde implements Serde<OffsetTime> {
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends OffsetTime> type, OffsetTime value) throws IOException {
         encoder.encodeString(value.toString());
@@ -52,8 +50,4 @@ final class JsonbOffsetTimeSerde implements SerdeRegistrar<OffsetTime> {
         return deserialize(decoder, context, type);
     }
 
-    @Override
-    public Argument<OffsetTime> getType() {
-        return OFFSET_TIME;
-    }
 }

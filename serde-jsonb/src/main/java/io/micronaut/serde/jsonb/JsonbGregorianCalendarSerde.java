@@ -15,10 +15,12 @@
  */
 package io.micronaut.serde.jsonb;
 
+import io.micronaut.context.annotation.Bean;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.Serde;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.support.SerdeRegistrar;
 import jakarta.inject.Singleton;
@@ -33,8 +35,7 @@ import java.util.GregorianCalendar;
  */
 @Internal
 @Singleton
-final class JsonbGregorianCalendarSerde implements SerdeRegistrar<GregorianCalendar> {
-    private static final Argument<GregorianCalendar> GREGORIAN_CALENDAR = Argument.of(GregorianCalendar.class);
+final class JsonbGregorianCalendarSerde implements Serde<GregorianCalendar> {
     private final boolean strictIJson;
 
     /**
@@ -65,10 +66,5 @@ final class JsonbGregorianCalendarSerde implements SerdeRegistrar<GregorianCalen
             return null;
         }
         return deserialize(decoder, context, type);
-    }
-
-    @Override
-    public Argument<GregorianCalendar> getType() {
-        return GREGORIAN_CALENDAR;
     }
 }

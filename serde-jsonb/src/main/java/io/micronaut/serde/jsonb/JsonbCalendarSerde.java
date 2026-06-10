@@ -19,8 +19,8 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.Serde;
 import io.micronaut.serde.config.SerdeConfiguration;
-import io.micronaut.serde.support.SerdeRegistrar;
 import jakarta.inject.Singleton;
 
 import java.io.IOException;
@@ -37,8 +37,7 @@ import java.util.TimeZone;
  */
 @Internal
 @Singleton
-final class JsonbCalendarSerde implements SerdeRegistrar<Calendar> {
-    private static final Argument<Calendar> CALENDAR = Argument.of(Calendar.class);
+final class JsonbCalendarSerde implements Serde<Calendar> {
     private static final DateTimeFormatter STRICT_IJSON_FORMATTER = DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss'Z'xxx");
     private final boolean strictIJson;
 
@@ -58,16 +57,6 @@ final class JsonbCalendarSerde implements SerdeRegistrar<Calendar> {
     @Override
     public Calendar deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Calendar> type) throws IOException {
         return parse(decoder.decodeString());
-    }
-
-    @Override
-    public Argument<Calendar> getType() {
-        return CALENDAR;
-    }
-
-    @Override
-    public Iterable<Argument<?>> getTypes() {
-        return SerdeRegistrar.super.getTypes();
     }
 
     /**

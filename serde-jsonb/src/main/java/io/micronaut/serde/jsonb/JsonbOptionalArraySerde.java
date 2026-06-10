@@ -22,7 +22,6 @@ import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
-import io.micronaut.serde.support.SerdeRegistrar;
 import jakarta.inject.Singleton;
 import org.jspecify.annotations.Nullable;
 
@@ -37,7 +36,7 @@ import java.util.Optional;
 @SuppressWarnings({"rawtypes", "unused"})
 @Internal
 @Singleton
-final class JsonbOptionalArraySerde implements Serializer<Optional[]>, Deserializer<Optional[]>, SerdeRegistrar<Optional[]> {
+final class JsonbOptionalArraySerde implements Serializer<Optional[]>, Deserializer<Optional[]> {
     private static final Argument<Optional[]> OPTIONAL_ARRAY = Argument.of(Optional[].class);
 
     @Override
@@ -87,11 +86,6 @@ final class JsonbOptionalArraySerde implements Serializer<Optional[]>, Deseriali
     @Override
     public Optional[] deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Optional[]> type) throws IOException {
         return createSpecific(decoderContext, type).deserialize(decoder, decoderContext, type);
-    }
-
-    @Override
-    public Argument<Optional[]> getType() {
-        return OPTIONAL_ARRAY;
     }
 
     private static Argument<Optional> componentType(Argument<?> type) {

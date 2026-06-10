@@ -16,6 +16,7 @@
 package io.micronaut.serde.jsonb;
 
 import io.micronaut.context.BeanContext;
+import io.micronaut.context.annotation.Bean;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
@@ -36,6 +37,7 @@ import java.io.IOException;
  */
 @Internal
 @Singleton
+@Bean(typed = JsonbTypeAdapterSerde.class)
 public final class JsonbTypeAdapterSerde implements Serde<Object> {
     private final JsonbBridgeSupport.ComponentFactory componentFactory;
 
