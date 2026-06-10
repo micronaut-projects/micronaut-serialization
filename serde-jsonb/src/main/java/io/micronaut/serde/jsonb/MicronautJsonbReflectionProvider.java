@@ -16,6 +16,7 @@
 package io.micronaut.serde.jsonb;
 
 import io.micronaut.context.BeanContext;
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.BeanIntrospector;
 import io.micronaut.core.beans.BeanProperty;
@@ -61,6 +62,7 @@ import tools.jackson.core.ObjectReadContext;
  *
  * @since 3.1.0
  */
+@Internal
 public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvider {
     @Override
     public JsonbBuilder create() {

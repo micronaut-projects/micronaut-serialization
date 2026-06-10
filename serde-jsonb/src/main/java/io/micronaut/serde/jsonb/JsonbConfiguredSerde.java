@@ -110,17 +110,28 @@ public final class JsonbConfiguredSerde implements Serde<Object> {
                                           JsonbFallbackCodec codec) throws Exception {
         Argument<?> elementType = type.getTypeParameters()[0];
         Encoder array = encoder.encodeArray(type);
+        Class<?> lastItemClass = null;
+        JsonbRuntimeCustomizations.@Nullable ConfigSerializer lastConfiguredSerializer = null;
+        JsonbRuntimeCustomizations.@Nullable ConfigAdapter lastAdapter = null;
+        @Nullable Serializer<Object> lastSerializer = null;
         for (Object item : iterable) {
             if (item == null) {
                 array.encodeNull();
                 continue;
             }
-            JsonbRuntimeCustomizations.ConfigSerializer configuredSerializer = customizations.serializer(item.getClass());
+            Class<?> itemClass = item.getClass();
+            if (itemClass != lastItemClass) {
+                lastItemClass = itemClass;
+                lastConfiguredSerializer = customizations.serializer(itemClass);
+                lastAdapter = customizations.adapter(itemClass);
+                lastSerializer = null;
+            }
+            JsonbRuntimeCustomizations.ConfigSerializer configuredSerializer = lastConfiguredSerializer;
             if (configuredSerializer != null) {
                 jsonNodeSerializer.serialize(array, context, JSON_NODE_ARGUMENT, JsonbJsonpBridge.writeWithJsonbSerializer(configuredSerializer.serializer(), item, codec));
                 continue;
             }
-            JsonbRuntimeCustomizations.ConfigAdapter adapter = customizations.adapter(item.getClass());
+            JsonbRuntimeCustomizations.ConfigAdapter adapter = lastAdapter;
             if (adapter != null) {
                 Object adapted = adapter.adapter().adaptToJson(item);
                 if (adapted == null) {
@@ -134,8 +145,12 @@ public final class JsonbConfiguredSerde implements Serde<Object> {
                 continue;
             }
             @SuppressWarnings({"rawtypes", "unchecked"})
-            Argument<Object> runtimeType = (Argument) Argument.of(item.getClass(), elementType.getAnnotationMetadata());
-            Serializer<Object> serializer = context.findSerializer(runtimeType).createSpecific(context, runtimeType);
+            Argument<Object> runtimeType = (Argument) Argument.of(itemClass, elementType.getAnnotationMetadata());
+            Serializer<Object> serializer = lastSerializer;
+            if (serializer == null) {
+                serializer = context.findSerializer(runtimeType).createSpecific(context, runtimeType);
+                lastSerializer = serializer;
+            }
             serializer.serialize(array, context, runtimeType, item);
         }
         array.finishStructure();

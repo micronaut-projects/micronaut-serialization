@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.jsonb;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
@@ -41,6 +42,7 @@ import java.util.Map;
  * @param delegate The underlying Serde decoder
  * @param binaryDataStrategy The configured JSON-B binary data strategy
  */
+@Internal
 record JsonbDecoder(Decoder delegate, String binaryDataStrategy) implements Decoder {
 
     @Override

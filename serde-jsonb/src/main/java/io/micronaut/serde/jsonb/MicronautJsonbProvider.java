@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.jsonb;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.clhm.ConcurrentLinkedHashMap;
 import io.micronaut.serde.Deserializer;
@@ -71,6 +72,7 @@ import java.util.concurrent.ConcurrentMap;
  *
  * @since 3.1.0
  */
+@Internal
 public class MicronautJsonbProvider extends JsonbProvider {
     @Override
     public JsonbBuilder create() {
@@ -699,11 +701,11 @@ public class MicronautJsonbProvider extends JsonbProvider {
         }
     }
 
-    protected record JsonbSerializationConfiguration(JsonbConfig jsonbConfig,
-                                                     SerializationConfiguration delegate,
-                                                     boolean forceDisableGeneratedSerializer) implements SerializationConfiguration {
-        protected JsonbSerializationConfiguration(JsonbConfig jsonbConfig,
-                                                  SerializationConfiguration delegate) {
+    record JsonbSerializationConfiguration(JsonbConfig jsonbConfig,
+                                           SerializationConfiguration delegate,
+                                           boolean forceDisableGeneratedSerializer) implements SerializationConfiguration {
+        JsonbSerializationConfiguration(JsonbConfig jsonbConfig,
+                                        SerializationConfiguration delegate) {
             this(jsonbConfig, delegate, false);
         }
 
@@ -757,11 +759,11 @@ public class MicronautJsonbProvider extends JsonbProvider {
         }
     }
 
-    protected record JsonbDeserializationConfiguration(JsonbConfig jsonbConfig,
-                                                       DeserializationConfiguration delegate,
-                                                       boolean forceDisableGeneratedDeserializer) implements DeserializationConfiguration {
-        protected JsonbDeserializationConfiguration(JsonbConfig jsonbConfig,
-                                                    DeserializationConfiguration delegate) {
+    record JsonbDeserializationConfiguration(JsonbConfig jsonbConfig,
+                                             DeserializationConfiguration delegate,
+                                             boolean forceDisableGeneratedDeserializer) implements DeserializationConfiguration {
+        JsonbDeserializationConfiguration(JsonbConfig jsonbConfig,
+                                          DeserializationConfiguration delegate) {
             this(jsonbConfig, delegate, false);
         }
 

@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.jsonb;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import jakarta.json.bind.JsonbException;
 import jakarta.json.bind.serializer.DeserializationContext;
@@ -31,6 +32,7 @@ import java.util.Objects;
  *
  * @param codec The bounded runtime codec configured with JSON-B introspection support
  */
+@Internal
 record JsonbDeserializationContext(JsonbFallbackCodec codec) implements DeserializationContext {
 
     @Override

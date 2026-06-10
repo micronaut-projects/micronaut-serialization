@@ -46,9 +46,16 @@ import java.util.Map;
  * serializers and deserializers.
  */
 final class JsonbFallbackCodec {
+    private static final String DEFAULT_BINARY_DATA_STRATEGY = jakarta.json.bind.config.BinaryDataStrategy.BYTE;
+
     private final SerdeRegistry registry;
     private final LimitingStream.RemainingLimits limits;
     private final String binaryDataStrategy;
+
+    JsonbFallbackCodec(ObjectMapper mapper,
+                       @Nullable SerdeConfiguration serdeConfiguration) {
+        this(mapper, serdeConfiguration, DEFAULT_BINARY_DATA_STRATEGY);
+    }
 
     JsonbFallbackCodec(ObjectMapper mapper,
                        @Nullable SerdeConfiguration serdeConfiguration,

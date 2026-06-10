@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.jsonb;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import jakarta.json.bind.config.BinaryDataStrategy;
@@ -34,6 +35,7 @@ import java.util.Base64;
  * @param delegate The underlying Serde encoder
  * @param binaryDataStrategy The configured JSON-B binary data strategy
  */
+@Internal
 record JsonbEncoder(Encoder delegate, String binaryDataStrategy) implements Encoder {
 
     @Override

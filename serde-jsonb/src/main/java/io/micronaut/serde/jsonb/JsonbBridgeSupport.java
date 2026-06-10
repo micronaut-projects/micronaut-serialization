@@ -207,7 +207,7 @@ final class JsonbBridgeSupport {
         static <T> T instantiate(Class<T> type) {
             try {
                 Constructor<T> constructor = type.getDeclaredConstructor();
-                constructor.setAccessible(true);
+                constructor.trySetAccessible();
                 return constructor.newInstance();
             } catch (ReflectiveOperationException e) {
                 throw new JsonbException("Cannot instantiate JSON-B component " + type.getName(), e);

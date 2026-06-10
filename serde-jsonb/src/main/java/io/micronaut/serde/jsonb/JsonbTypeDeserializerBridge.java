@@ -24,7 +24,6 @@ import io.micronaut.serde.ObjectMapper;
 import io.micronaut.serde.exceptions.SerdeException;
 import jakarta.inject.Singleton;
 import jakarta.json.bind.JsonbException;
-import jakarta.json.bind.config.BinaryDataStrategy;
 import jakarta.json.bind.serializer.JsonbDeserializer;
 import jakarta.json.stream.JsonParser;
 import org.jspecify.annotations.Nullable;
@@ -57,8 +56,7 @@ public final class JsonbTypeDeserializerBridge implements Deserializer<Object> {
         );
         JsonbFallbackCodec codec = new JsonbFallbackCodec(
             mapper,
-            context.getSerdeConfiguration().orElse(null),
-            BinaryDataStrategy.BYTE
+            context.getSerdeConfiguration().orElse(null)
         );
         return new Deserializer<>() {
             @Override

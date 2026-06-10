@@ -25,7 +25,6 @@ import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import jakarta.inject.Singleton;
 import jakarta.json.bind.JsonbException;
-import jakarta.json.bind.config.BinaryDataStrategy;
 import jakarta.json.bind.serializer.JsonbSerializer;
 
 import java.io.IOException;
@@ -59,8 +58,7 @@ public final class JsonbTypeSerializerBridge implements Serializer<Object> {
         Serializer<? super JsonNode> jsonNodeSerializer = context.findSerializer(JSON_NODE_ARGUMENT).createSpecific(context, JSON_NODE_ARGUMENT);
         JsonbFallbackCodec codec = new JsonbFallbackCodec(
             mapper,
-            context.getSerdeConfiguration().orElse(null),
-            BinaryDataStrategy.BYTE
+            context.getSerdeConfiguration().orElse(null)
         );
         return (encoder, _, _, value) -> {
             try {
