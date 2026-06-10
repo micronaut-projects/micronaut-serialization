@@ -26,6 +26,8 @@ import jakarta.json.JsonPointer;
 import jakarta.json.JsonString;
 import jakarta.json.JsonStructure;
 import jakarta.json.JsonValue;
+import jakarta.json.JsonWriter;
+import jakarta.json.stream.JsonGenerator;
 import org.jspecify.annotations.Nullable;
 
 import java.io.StringWriter;
@@ -638,7 +640,9 @@ final class JsonpValueSupport {
         @Override
         public String toString() {
             StringWriter writer = new StringWriter();
-            new MicronautJsonProvider().createWriter(writer).writeObject(this);
+            try (JsonWriter jsonWriter = new MicronautJsonProvider().createWriter(writer)) {
+                jsonWriter.writeObject(this);
+            }
             return writer.toString();
         }
     }
@@ -798,7 +802,9 @@ final class JsonpValueSupport {
         @Override
         public String toString() {
             StringWriter writer = new StringWriter();
-            new MicronautJsonProvider().createWriter(writer).writeArray(this);
+            try (JsonWriter jsonWriter = new MicronautJsonProvider().createWriter(writer)) {
+                jsonWriter.writeArray(this);
+            }
             return writer.toString();
         }
     }
@@ -826,7 +832,9 @@ final class JsonpValueSupport {
         @Override
         public String toString() {
             StringWriter writer = new StringWriter();
-            new MicronautJsonProvider().createGenerator(writer).write(getString).close();
+            try (JsonGenerator generator = new MicronautJsonProvider().createGenerator(writer)) {
+                generator.write(getString);
+            }
             return writer.toString();
         }
 

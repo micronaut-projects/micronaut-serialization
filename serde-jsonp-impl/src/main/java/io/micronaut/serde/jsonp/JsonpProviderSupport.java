@@ -100,7 +100,8 @@ final class JsonpProviderSupport {
     /**
      * Copies only supported Jakarta JSON-P configuration keys into an immutable map used by factory instances.
      */
-    static Map<String, ?> copyConfig(@Nullable Map<String, ?> config, String... supportedKeys) {
+    @SuppressWarnings("java:S1452")
+    static Map<String, Object> copyConfig(@Nullable Map<String, ?> config, String... supportedKeys) {
         if (config == null || config.isEmpty()) {
             return Map.of();
         }

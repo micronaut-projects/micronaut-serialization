@@ -15,14 +15,12 @@
  */
 package io.micronaut.serde.jsonb;
 
-import io.micronaut.context.annotation.Bean;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serde;
 import io.micronaut.serde.config.SerdeConfiguration;
-import io.micronaut.serde.support.SerdeRegistrar;
 import jakarta.inject.Singleton;
 import org.jspecify.annotations.Nullable;
 
