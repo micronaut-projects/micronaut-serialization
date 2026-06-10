@@ -58,24 +58,13 @@ public final class JsonbTypeDeserializerBridge implements Deserializer<Object> {
             mapper,
             context.getSerdeConfiguration().orElse(null)
         );
-        return new Deserializer<>() {
-            @Override
-            public @Nullable Object deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super Object> type) throws IOException {
-                if (decoder.decodeNull()) {
-                    return null;
-                }
-                return deserialize(decoder, context, type);
-            }
-
-            @Override
-            public Object deserialize(Decoder decoder, DecoderContext context, Argument<? super Object> type) throws IOException {
-                try (JsonParser parser = JsonbJsonpBridge.parserForDeserializer(decoder)) {
-                    return deserializer.deserialize(parser, new JsonbDeserializationContext(codec), type.getType());
-                } catch (JsonbException e) {
-                    throw e;
-                } catch (RuntimeException e) {
-                    throw new JsonbException("Cannot deserialize JSON-B value with custom deserializer", e);
-                }
+        return (decoder, context1, type1) -> {
+            try (JsonParser parser = JsonbJsonpBridge.parserForDeserializer(decoder)) {
+                return deserializer.deserialize(parser, new JsonbDeserializationContext(codec), type1.getType());
+            } catch (JsonbException e) {
+                throw e;
+            } catch (RuntimeException e) {
+                throw new JsonbException("Cannot deserialize JSON-B value with custom deserializer", e);
             }
         };
     }
