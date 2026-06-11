@@ -29,7 +29,6 @@ import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerdeRegistrar;
 import io.micronaut.serde.support.util.SerdeFeatures;
-import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.time.LocalTime;
@@ -121,14 +120,6 @@ final class OffsetTimeSerde implements FormattedSerde<OffsetTime>, SerdeRegistra
             return deserializeArray(decoder, decoderContext);
         }
         return OffsetTime.from(formatter.parse(decoder.decodeString()));
-    }
-
-    @Override
-    public @Nullable OffsetTime deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super OffsetTime> type) throws IOException {
-        if (decoder.decodeNull()) {
-            return null;
-        }
-        return deserialize(decoder, context, type);
     }
 
     @Override

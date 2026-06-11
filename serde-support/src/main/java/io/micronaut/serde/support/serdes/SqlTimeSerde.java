@@ -20,7 +20,6 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.support.SerdeRegistrar;
-import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.sql.Time;
@@ -40,14 +39,6 @@ final class SqlTimeSerde implements SerdeRegistrar<Time> {
     @Override
     public Time deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Time> type) throws IOException {
         return Time.valueOf(decoder.decodeString());
-    }
-
-    @Override
-    public @Nullable Time deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super Time> type) throws IOException {
-        if (decoder.decodeNull()) {
-            return null;
-        }
-        return deserialize(decoder, context, type);
     }
 
     @Override

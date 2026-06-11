@@ -27,7 +27,6 @@ import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerdeRegistrar;
 import io.micronaut.serde.support.util.SerdeFeatures;
-import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.time.YearMonth;
@@ -109,14 +108,6 @@ final class YearMonthSerde implements FormattedSerde<YearMonth>, SerdeRegistrar<
             }
         }
         return YearMonth.parse(decoder.decodeString(), formatter);
-    }
-
-    @Override
-    public @Nullable YearMonth deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super YearMonth> type) throws IOException {
-        if (decoder.decodeNull()) {
-            return null;
-        }
-        return deserialize(decoder, context, type);
     }
 
     @Override

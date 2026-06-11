@@ -53,4 +53,12 @@ if (System.getenv("SONAR_TOKEN") != null) {
             )
         }
     }
+
+    subprojects {
+        if (name.contains("tck", ignoreCase = true)) {
+            configure<SonarExtension> {
+                setSkipProject(true)
+            }
+        }
+    }
 }

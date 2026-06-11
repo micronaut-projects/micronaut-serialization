@@ -88,14 +88,6 @@ final class GregorianCalendarSerde implements FormattedSerde<GregorianCalendar>,
     }
 
     @Override
-    public @Nullable GregorianCalendar deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super GregorianCalendar> type) throws IOException {
-        if (decoder.decodeNull()) {
-            return null;
-        }
-        return deserialize(decoder, context, type);
-    }
-
-    @Override
     public Argument<GregorianCalendar> getType() {
         return ARGUMENT;
     }

@@ -108,14 +108,6 @@ final class MonthSerde implements FormattedSerde<Month>, SerdeRegistrar<Month> {
     }
 
     @Override
-    public @Nullable Month deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super Month> type) throws IOException {
-        if (decoder.decodeNull()) {
-            return null;
-        }
-        return deserialize(decoder, context, type);
-    }
-
-    @Override
     public Argument<Month> getType() {
         return ARGUMENT;
     }
