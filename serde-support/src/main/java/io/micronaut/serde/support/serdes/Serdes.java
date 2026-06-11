@@ -109,7 +109,7 @@ public final class Serdes {
         consumer.accept(new GregorianCalendarSerde(calendarSerde));
         consumer.accept(new TimeZoneSerde(serdeConfiguration));
         consumer.accept(new ZoneOffsetSerde());
-        consumer.accept(new OffsetTimeSerde());
+        consumer.accept(new OffsetTimeSerde(serdeConfiguration));
         consumer.accept(new ByteArraySerde(serdeConfiguration));
         consumer.accept(new DurationSerde(serdeConfiguration));
         SERDES.forEach(consumer);
@@ -122,8 +122,12 @@ public final class Serdes {
         consumer.accept(new LocalDateTimeSerde(serdeConfiguration));
         consumer.accept(new OffsetDateTimeSerde(serdeConfiguration));
         consumer.accept(new SqlDateSerde(localDateSerde, instantSerde));
+        consumer.accept(new SqlTimeSerde());
         consumer.accept(new SqlTimestampSerde(instantSerde));
+        consumer.accept(new MonthSerde());
         consumer.accept(new YearSerde());
+        consumer.accept(new YearMonthSerde(serdeConfiguration));
+        consumer.accept(new MonthDaySerde(serdeConfiguration));
         consumer.accept(new ZonedDateTimeSerde(serdeConfiguration));
         consumer.accept(new EnumSerde<>(introspections));
         consumer.accept(new InetAddressSerde(serdeConfiguration));

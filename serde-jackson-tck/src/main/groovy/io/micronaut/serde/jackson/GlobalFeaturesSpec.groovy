@@ -17,11 +17,19 @@ package io.micronaut.serde.jackson
 
 import io.micronaut.core.type.Argument
 
+import java.sql.Time
 import java.time.Instant
+import java.time.Month
+import java.time.MonthDay
 import java.time.OffsetDateTime
+import java.time.OffsetTime
+import java.time.YearMonth
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
+import java.util.Calendar
+import java.util.GregorianCalendar
+import java.util.TimeZone
 
 abstract class GlobalFeaturesSpec extends JsonCompileSpec {
 
@@ -433,6 +441,121 @@ class Test {
             context.close()
     }
 
+    void "test global date timestamp features for scalar temporal values"() {
+        given:
+            def context = buildContext('test.Test', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import java.sql.Time;
+import java.time.Month;
+import java.time.MonthDay;
+import java.time.OffsetTime;
+import java.time.YearMonth;
+import java.time.ZoneOffset;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
+
+@Serdeable
+class Test {
+    private OffsetTime offsetTime;
+    private YearMonth yearMonth;
+    private MonthDay monthDay;
+    private Month month;
+    private ZoneOffset zoneOffset;
+    private Time sqlTime;
+    private TimeZone timeZone;
+    private Calendar calendar;
+    private GregorianCalendar gregorianCalendar;
+    public OffsetTime getOffsetTime() {
+        return offsetTime;
+    }
+    public void setOffsetTime(OffsetTime offsetTime) {
+        this.offsetTime = offsetTime;
+    }
+    public YearMonth getYearMonth() {
+        return yearMonth;
+    }
+    public void setYearMonth(YearMonth yearMonth) {
+        this.yearMonth = yearMonth;
+    }
+    public MonthDay getMonthDay() {
+        return monthDay;
+    }
+    public void setMonthDay(MonthDay monthDay) {
+        this.monthDay = monthDay;
+    }
+    public Month getMonth() {
+        return month;
+    }
+    public void setMonth(Month month) {
+        this.month = month;
+    }
+    public ZoneOffset getZoneOffset() {
+        return zoneOffset;
+    }
+    public void setZoneOffset(ZoneOffset zoneOffset) {
+        this.zoneOffset = zoneOffset;
+    }
+    public Time getSqlTime() {
+        return sqlTime;
+    }
+    public void setSqlTime(Time sqlTime) {
+        this.sqlTime = sqlTime;
+    }
+    public TimeZone getTimeZone() {
+        return timeZone;
+    }
+    public void setTimeZone(TimeZone timeZone) {
+        this.timeZone = timeZone;
+    }
+    public Calendar getCalendar() {
+        return calendar;
+    }
+    public void setCalendar(Calendar calendar) {
+        this.calendar = calendar;
+    }
+    public GregorianCalendar getGregorianCalendar() {
+        return gregorianCalendar;
+    }
+    public void setGregorianCalendar(GregorianCalendar gregorianCalendar) {
+        this.gregorianCalendar = gregorianCalendar;
+    }
+}
+""", [
+                offsetTime: OffsetTime.of(12, 30, 45, 123456789, ZoneOffset.ofHours(2)),
+                yearMonth: YearMonth.of(2024, 9),
+                monthDay: MonthDay.of(9, 8),
+                month: Month.SEPTEMBER,
+                zoneOffset: ZoneOffset.ofHoursMinutes(5, 30),
+                sqlTime: Time.valueOf('12:30:45'),
+                timeZone: TimeZone.getTimeZone('Europe/Paris'),
+                calendar: calendar('Europe/Paris', 123),
+                gregorianCalendar: calendar('Europe/Paris', 123)
+            ], dateTimestampNanosecondsDisabledConfig())
+
+        expect:
+            validateJsonWithoutOrder(
+                jsonMapper,
+                '{"offsetTime":[12,30,45,123,"+02:00"],"yearMonth":[2024,9],"monthDay":"--09-08","month":9,"zoneOffset":"+05:30","sqlTime":"12:30:45","timeZone":"Europe/Paris","calendar":1725791445123,"gregorianCalendar":1725791445123}',
+                writeJson(jsonMapper, beanUnderTest)
+            )
+            def read = jsonMapper.readValue('{"offsetTime":[13,31,46,987,"+03:00"],"yearMonth":[2025,10],"monthDay":"--10-09","month":10,"zoneOffset":"+02:30","sqlTime":"13:31:46","timeZone":"America/New_York","calendar":1725885045000,"gregorianCalendar":1725885045000}', typeUnderTest)
+            read.offsetTime == OffsetTime.of(13, 31, 46, 987000000, ZoneOffset.ofHours(3))
+            read.yearMonth == YearMonth.of(2025, 10)
+            read.monthDay == MonthDay.of(10, 9)
+            read.month == Month.OCTOBER
+            read.zoneOffset == ZoneOffset.ofHoursMinutes(2, 30)
+            read.sqlTime == Time.valueOf('13:31:46')
+            read.timeZone.ID == 'America/New_York'
+            read.calendar.timeInMillis == 1725885045000L
+            read.gregorianCalendar.timeInMillis == 1725885045000L
+
+        cleanup:
+            context.close()
+    }
+
     void "test global write dates with zone id"() {
         given:
             def context = buildContext('test.Test', """
@@ -494,5 +617,13 @@ class Test {
 
         cleanup:
             context.close()
+    }
+
+    private static GregorianCalendar calendar(String timeZoneId, int millis = 0) {
+        def calendar = new GregorianCalendar(TimeZone.getTimeZone(timeZoneId))
+        calendar.clear()
+        calendar.set(2024, Calendar.SEPTEMBER, 8, 12, 30, 45)
+        calendar.set(Calendar.MILLISECOND, millis)
+        calendar
     }
 }
