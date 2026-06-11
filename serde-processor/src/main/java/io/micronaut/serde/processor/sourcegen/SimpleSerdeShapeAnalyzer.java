@@ -802,6 +802,7 @@ public final class SimpleSerdeShapeAnalyzer {
             || element.booleanValue(SerdeConfig.class, SerdeConfig.REQUIRED).orElse(false)
             || element.booleanValue(SerdeConfig.class, SerdeConfig.READ_ONLY).orElse(false)
             || element.booleanValue(SerdeConfig.class, SerdeConfig.WRITE_ONLY).orElse(false)
+            || element.booleanValue(SerdeConfig.class, SerdeConfig.MERGE).orElse(false)
             || FormatConfiguration.from(element.getAnnotationMetadata()) != null
             || hasFeatureOverrides(element.getAnnotationMetadata())
             || hasSerializeAsOverride(element)
@@ -819,6 +820,7 @@ public final class SimpleSerdeShapeAnalyzer {
             || annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.REQUIRED).orElse(false)
             || annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.READ_ONLY).orElse(false)
             || annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.WRITE_ONLY).orElse(false)
+            || annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.MERGE).orElse(false)
             || FormatConfiguration.from(annotationMetadata) != null
             || hasFeatureOverrides(annotationMetadata)
             || hasSerializeAsOverride(annotationMetadata)

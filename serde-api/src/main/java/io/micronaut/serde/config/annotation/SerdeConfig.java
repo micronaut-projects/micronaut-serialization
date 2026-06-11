@@ -98,6 +98,11 @@ public @interface SerdeConfig {
     String INCLUDE_CONTENT = "includeContent";
 
     /**
+     * Whether an existing value should be updated instead of replaced.
+     */
+    String MERGE = "merge";
+
+    /**
      * Property filter name.
      */
     String FILTER = "filter";

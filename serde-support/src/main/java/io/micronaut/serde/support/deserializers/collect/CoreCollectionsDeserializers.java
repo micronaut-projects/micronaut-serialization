@@ -109,7 +109,9 @@ public final class CoreCollectionsDeserializers {
         consumer.accept(new SpecificOnlyMapDeserializer<Object, Object, HashMap<Object, Object>>(HashMap.class) {
 
             @Override
-            protected Deserializer<HashMap<Object, Object>> createSpecific(Argument<Object> keyType, Argument<Object> valueType, @Nullable Deserializer<?> valueDeser) {
+            protected Deserializer<HashMap<Object, Object>> createSpecific(Argument<Object> keyType,
+                                                                           Argument<Object> valueType,
+                                                                           @Nullable Deserializer<?> valueDeser) {
                 return new HashMapDeserializer<>(valueDeser, keyType, valueType);
             }
 
@@ -117,7 +119,9 @@ public final class CoreCollectionsDeserializers {
         consumer.accept(new SpecificOnlyMapDeserializer<Object, Object, LinkedHashMap<Object, Object>>(LinkedHashMap.class) {
 
             @Override
-            protected Deserializer<LinkedHashMap<Object, Object>> createSpecific(Argument<Object> keyType, Argument<Object> valueType, @Nullable Deserializer<?> valueDeser) {
+            protected Deserializer<LinkedHashMap<Object, Object>> createSpecific(Argument<Object> keyType,
+                                                                                 Argument<Object> valueType,
+                                                                                 @Nullable Deserializer<?> valueDeser) {
                 return new LinkedHashMapDeserializer<>(valueDeser, keyType, valueType);
             }
 
@@ -130,7 +134,9 @@ public final class CoreCollectionsDeserializers {
         consumer.accept(new SpecificOnlyMapDeserializer<Object, Object, TreeMap<Object, Object>>(TreeMap.class) {
 
             @Override
-            protected Deserializer<TreeMap<Object, Object>> createSpecific(Argument<Object> keyType, Argument<Object> valueType, @Nullable Deserializer<?> valueDeser) {
+            protected Deserializer<TreeMap<Object, Object>> createSpecific(Argument<Object> keyType,
+                                                                           Argument<Object> valueType,
+                                                                           @Nullable Deserializer<?> valueDeser) {
                 return new TreeMapDeserializer<>(valueDeser, keyType, valueType);
             }
 

@@ -404,39 +404,121 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
     @Override
     public void updateValueFromTree(Object value, JsonNode tree) throws IOException {
         if (tree != null && value != null) {
-            Argument<Object> type = (Argument<Object>) Argument.of(value.getClass());
-            Deserializer deserializer;
-            if (isSpecificType(type)) {
-                deserializer = Objects.requireNonNull(specificDeserializer);
-            } else {
-                deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, (Argument) type);
-            }
-            if (deserializer instanceof UpdatingDeserializer) {
-
-                try (JsonParser parser = treeCodec.treeAsTokens(tree, ObjectReadContext.empty())) {
-                    if (!parser.hasCurrentToken()) {
-                        parser.nextToken();
-                    }
-                    // for jackson compat we need to support deserializing null, but most deserializers don't support it.
-                    if (parser.currentToken() != JsonToken.VALUE_NULL) {
-                        final Decoder decoder = JacksonDecoder.create(parser, streamLimits);
-                        ((UpdatingDeserializer<Object>) deserializer).deserializeInto(
-                            decoder,
-                            decoderContext,
-                            type,
-                            value
-                        );
-                    }
-                }
+            try (JsonParser parser = treeCodec.treeAsTokens(tree, ObjectReadContext.empty())) {
+                updateValue(parser, value, (Argument<Object>) Argument.of(value.getClass()));
             }
         }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> T updateValue(T valueToUpdate, @Nullable Object overrides) throws IOException {
+        Objects.requireNonNull(valueToUpdate, "Value to update cannot be null");
+        return updateValue(valueToUpdate, (Argument<T>) Argument.of(valueToUpdate.getClass()), overrides);
+    }
+
+    @Override
+    public <T> T updateValue(T valueToUpdate, Argument<T> type, @Nullable Object overrides) throws IOException {
+        Objects.requireNonNull(valueToUpdate, "Value to update cannot be null");
+        Objects.requireNonNull(type, "Type cannot be null");
+        if (overrides == null) {
+            return valueToUpdate;
+        }
+        if (overrides instanceof JsonNode jsonNode) {
+            try (JsonParser parser = treeCodec.treeAsTokens(jsonNode, ObjectReadContext.empty())) {
+                return updateValue(parser, valueToUpdate, type);
+            }
+        }
+        BufferRecycler bufferRecycler = jsonFactory._getBufferRecycler();
+        try (ByteArrayBuilder bb = new ByteArrayBuilder(bufferRecycler)) {
+            try (JsonGenerator generator = createGenerator(bb)) {
+                writeValue0(generator, overrides);
+            }
+            try (JsonParser parser = jsonFactory.createParser(bb.getClearAndRelease())) {
+                updateValue(parser, valueToUpdate, type);
+            }
+        } finally {
+            bufferRecycler.releaseToPool();
+        }
+        return valueToUpdate;
+    }
+
+    @Override
+    public <T> T updateValue(T valueToUpdate, Argument<T> type, InputStream inputStream) throws IOException {
+        Objects.requireNonNull(valueToUpdate, "Value to update cannot be null");
+        Objects.requireNonNull(type, "Type cannot be null");
+        Objects.requireNonNull(inputStream, "Input stream cannot be null");
+        try (JsonParser parser = jsonFactory.createParser(inputStream)) {
+            return updateValue(parser, valueToUpdate, type);
+        } catch (StreamReadException pe) {
+            throw new JsonSyntaxException(pe);
+        }
+    }
+
+    @Override
+    public <T> T updateValue(T valueToUpdate, Argument<T> type, byte[] byteArray) throws IOException {
+        Objects.requireNonNull(valueToUpdate, "Value to update cannot be null");
+        Objects.requireNonNull(type, "Type cannot be null");
+        Objects.requireNonNull(byteArray, "Byte array cannot be null");
+        try (JsonParser parser = jsonFactory.createParser(byteArray)) {
+            return updateValue(parser, valueToUpdate, type);
+        } catch (StreamReadException pe) {
+            throw new JsonSyntaxException(pe);
+        }
+    }
+
+    @Override
+    public <T> T updateValue(T valueToUpdate, Argument<T> type, ByteBuffer<?> byteBuffer) throws IOException {
+        Objects.requireNonNull(valueToUpdate, "Value to update cannot be null");
+        Objects.requireNonNull(type, "Type cannot be null");
+        Objects.requireNonNull(byteBuffer, "Byte buffer cannot be null");
+        try (JsonParser parser = JacksonCoreParserFactory.createJsonParser(jsonFactory, byteBuffer)) {
+            return updateValue(parser, valueToUpdate, type);
+        } catch (StreamReadException pe) {
+            throw new JsonSyntaxException(pe);
+        }
+    }
+
+    private <T> T updateValue(JsonParser parser, T value, Argument<T> type) throws IOException {
+        Deserializer<T> deserializer;
+        Deserializer.DecoderContext decoderContext = this.decoderContext;
+        if (isSpecificType(type)) {
+            deserializer = (Deserializer<T>) Objects.requireNonNull(specificDeserializer);
+        } else {
+            @Nullable Class<?> viewClass = JsonViewUtil.extractView(serdeConfiguration, type, view);
+            if (viewClass != view) {
+                decoderContext = registry.newDecoderContext(viewClass);
+            }
+            deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, (Argument) type);
+        }
+        if (!(deserializer instanceof UpdatingDeserializer<T>)) {
+            deserializer = decoderContext.findDeserializer(Argument.OBJECT_ARGUMENT)
+                .createSpecific(decoderContext, (Argument) type);
+        }
+        if (!(deserializer instanceof UpdatingDeserializer<T> updatingDeserializer)) {
+            throw new UnsupportedOperationException("Updating existing value of type [" + type + "] is not supported");
+        }
+        if (!parser.hasCurrentToken()) {
+            parser.nextToken();
+        }
+        // for jackson compat we need to support deserializing null, but most deserializers don't support it.
+        if (parser.currentToken() != JsonToken.VALUE_NULL) {
+            final Decoder decoder = JacksonDecoder.create(parser, streamLimits);
+            updatingDeserializer.deserializeInto(
+                decoder,
+                decoderContext,
+                type,
+                value
+            );
+        }
+        return value;
     }
 
     private boolean isSpecificType(Argument<?> type) {
         return type == specificType || type.equalsType(specificType);
     }
 
-    private JsonGenerator createGenerator(OutputStream outputStream) throws IOException {
+    private JsonGenerator createGenerator(OutputStream outputStream) {
         if (jacksonConfiguration.isPrettyPrint()) {
             return jsonFactory.createGenerator(new PrettyPrintWriteContext(), outputStream);
         }
