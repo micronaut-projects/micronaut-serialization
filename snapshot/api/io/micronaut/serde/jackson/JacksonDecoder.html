@@ -94,6 +94,9 @@ loadScripts(document, 'script');</script>
 <li><a href="#decodeNumber()" tabindex="0">decodeNumber()</a></li>
 <li><a href="#decodeBinary()" tabindex="0">decodeBinary()</a></li>
 <li><a href="#decodeNull()" tabindex="0">decodeNull()</a></li>
+<li><a href="#peekTokenForStreaming()" tabindex="0">peekTokenForStreaming()</a></li>
+<li><a href="#nextTokenForStreaming()" tabindex="0">nextTokenForStreaming()</a></li>
+<li><a href="#parserForStreaming()" tabindex="0">parserForStreaming()</a></li>
 <li><a href="#decodeBuffer()" tabindex="0">decodeBuffer()</a></li>
 <li><a href="#decodeNode()" tabindex="0">decodeNode()</a></li>
 <li><a href="#decodeArbitrary()" tabindex="0">decodeArbitrary()</a></li>
@@ -353,9 +356,24 @@ implements <a href="../KeysAwareDecoder.html" title="interface in io.micronaut.s
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#hasNextArrayValue()" class="member-name-link">hasNextArrayValue</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#skipValue()" class="member-name-link">skipValue</a>()</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>tools.jackson.core.JsonToken</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#nextTokenForStreaming()" class="member-name-link">nextTokenForStreaming</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Consumes the next token for integrations that need direct JSON token streaming.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>tools.jackson.core.JsonParser</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#parserForStreaming()" class="member-name-link">parserForStreaming</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Returns the underlying parser for current-token scalar access.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>tools.jackson.core.JsonToken</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#peekTokenForStreaming()" class="member-name-link">peekTokenForStreaming</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Peeks the next token for integrations that need direct JSON token streaming.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#skipValue()" class="member-name-link">skipValue</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Skips the current value.</div>
 </div>
 </div>
@@ -1070,6 +1088,54 @@ value.</div>
 <dd>Returns <code>true</code> if the value was <code>null</code></dd>
 <dt>Throws:</dt>
 <dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an unrecoverable error occurs</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="peekTokenForStreaming()">
+<h3>peekTokenForStreaming</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@Internal
+</span><span class="modifiers">public</span>&nbsp;<span class="return-type">tools.jackson.core.JsonToken</span>&nbsp;<span class="element-name">peekTokenForStreaming</span>()
+                                                   throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block">Peeks the next token for integrations that need direct JSON token streaming.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>The next token</dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an unrecoverable error occurs</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="nextTokenForStreaming()">
+<h3>nextTokenForStreaming</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@Internal
+</span><span class="modifiers">public</span>&nbsp;<span class="return-type">tools.jackson.core.JsonToken</span>&nbsp;<span class="element-name">nextTokenForStreaming</span>()
+                                                   throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block">Consumes the next token for integrations that need direct JSON token streaming.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>The consumed token</dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an unrecoverable error occurs</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="parserForStreaming()">
+<h3>parserForStreaming</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@Internal
+</span><span class="modifiers">public</span>&nbsp;<span class="return-type">tools.jackson.core.JsonParser</span>&nbsp;<span class="element-name">parserForStreaming</span>()</div>
+<div class="block">Returns the underlying parser for current-token scalar access.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>The underlying parser</dd>
 </dl>
 </div>
 </section>

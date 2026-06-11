@@ -100,6 +100,14 @@ loadScripts(document, 'script');</script>
 <div class="col-last even-row-color">
 <div class="block">Jackson-backed JSON mapper, encoder, decoder, and configuration support.</div>
 </div>
+<div class="col-first odd-row-color"><a href="jsonb/package-summary.html">io.micronaut.serde.jsonb</a></div>
+<div class="col-last odd-row-color">
+<div class="block">Micronaut Serialization JSON-B integration.</div>
+</div>
+<div class="col-first even-row-color"><a href="jsonp/package-summary.html">io.micronaut.serde.jsonp</a></div>
+<div class="col-last even-row-color">
+<div class="block">JSON-P provider implementation backed by Micronaut Serialization JSON tree support.</div>
+</div>
 <div class="col-first odd-row-color"><a href="processor/package-summary.html">io.micronaut.serde.processor</a></div>
 <div class="col-last odd-row-color">
 <div class="block">Annotation processing entry point for generating Micronaut Serialization metadata and source.</div>
@@ -240,41 +248,53 @@ loadScripts(document, 'script');</script>
 <div class="col-last odd-row-color class-summary class-summary-tab1">
 <div class="block">Interface that abstracts the lookup for introspections usable for serialization and/or deserialization.</div>
 </div>
-<div class="col-first even-row-color class-summary class-summary-tab2"><a href="SerdeJsonMapperSupplier.html" title="class in io.micronaut.serde">SerdeJsonMapperSupplier</a></div>
-<div class="col-last even-row-color class-summary class-summary-tab2">
+<div class="col-first even-row-color class-summary class-summary-tab3"><a href="SerdeIntrospections.RuntimeIntrospectionKind.html" title="enum class in io.micronaut.serde">SerdeIntrospections.RuntimeIntrospectionKind</a></div>
+<div class="col-last even-row-color class-summary class-summary-tab3">
+<div class="block">The kind of runtime introspection being requested.</div>
+</div>
+<div class="col-first odd-row-color class-summary class-summary-tab4"><a href="SerdeIntrospections.RuntimeIntrospectionRequest.html" title="class in io.micronaut.serde">SerdeIntrospections.RuntimeIntrospectionRequest</a>&lt;T&gt;</div>
+<div class="col-last odd-row-color class-summary class-summary-tab4">
+<div class="block">A runtime introspection request.</div>
+</div>
+<div class="col-first even-row-color class-summary class-summary-tab1"><a href="SerdeIntrospections.RuntimeIntrospectionResolver.html" title="interface in io.micronaut.serde">SerdeIntrospections.RuntimeIntrospectionResolver</a></div>
+<div class="col-last even-row-color class-summary class-summary-tab1">
+<div class="block">Resolves runtime-built introspections.</div>
+</div>
+<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="SerdeJsonMapperSupplier.html" title="class in io.micronaut.serde">SerdeJsonMapperSupplier</a></div>
+<div class="col-last odd-row-color class-summary class-summary-tab2">
 <div class="block">An implementation of the <code>JsonMapperSupplier</code> interface for Micronaut Serialization.</div>
 </div>
-<div class="col-first odd-row-color class-summary class-summary-tab1"><a href="SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a></div>
-<div class="col-last odd-row-color class-summary class-summary-tab1">
+<div class="col-first even-row-color class-summary class-summary-tab1"><a href="SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a></div>
+<div class="col-last even-row-color class-summary class-summary-tab1">
 <div class="block">Represents a registry where specific serializers can be looked up.</div>
 </div>
-<div class="col-first even-row-color class-summary class-summary-tab1"><a href="Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;T&gt;</div>
-<div class="col-last even-row-color class-summary class-summary-tab1">
+<div class="col-first odd-row-color class-summary class-summary-tab1"><a href="Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;T&gt;</div>
+<div class="col-last odd-row-color class-summary class-summary-tab1">
 <div class="block">Models a build time serializer.</div>
 </div>
-<div class="col-first odd-row-color class-summary class-summary-tab1"><a href="Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a></div>
-<div class="col-last odd-row-color class-summary class-summary-tab1">
+<div class="col-first even-row-color class-summary class-summary-tab1"><a href="Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a></div>
+<div class="col-last even-row-color class-summary class-summary-tab1">
 <div class="block">Context object passes to the
 <a href="Serializer.html#serialize(io.micronaut.serde.Encoder,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,T)"><code>Serializer.serialize(Encoder, EncoderContext, Argument, Object)</code></a>  method.</div>
 </div>
-<div class="col-first even-row-color class-summary class-summary-tab1"><a href="SerializerLocator.html" title="interface in io.micronaut.serde">SerializerLocator</a></div>
-<div class="col-last even-row-color class-summary class-summary-tab1">
+<div class="col-first odd-row-color class-summary class-summary-tab1"><a href="SerializerLocator.html" title="interface in io.micronaut.serde">SerializerLocator</a></div>
+<div class="col-last odd-row-color class-summary class-summary-tab1">
 <div class="block">Locator strategy interface for serializers.</div>
 </div>
-<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="Simple.html" title="class in io.micronaut.serde">Simple</a></div>
-<div class="col-last odd-row-color class-summary class-summary-tab2">&nbsp;</div>
-<div class="col-first even-row-color class-summary class-summary-tab2"><a href="SomeObject.html" title="class in io.micronaut.serde">SomeObject</a></div>
+<div class="col-first even-row-color class-summary class-summary-tab2"><a href="Simple.html" title="class in io.micronaut.serde">Simple</a></div>
 <div class="col-last even-row-color class-summary class-summary-tab2">&nbsp;</div>
-<div class="col-first odd-row-color class-summary class-summary-tab1"><a href="UpdatingDeserializer.html" title="interface in io.micronaut.serde">UpdatingDeserializer</a>&lt;T&gt;</div>
-<div class="col-last odd-row-color class-summary class-summary-tab1">
+<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="SomeObject.html" title="class in io.micronaut.serde">SomeObject</a></div>
+<div class="col-last odd-row-color class-summary class-summary-tab2">&nbsp;</div>
+<div class="col-first even-row-color class-summary class-summary-tab1"><a href="UpdatingDeserializer.html" title="interface in io.micronaut.serde">UpdatingDeserializer</a>&lt;T&gt;</div>
+<div class="col-last even-row-color class-summary class-summary-tab1">
 <div class="block">Interface that represents a deserializer capable of updating an existing object.</div>
 </div>
-<div class="col-first even-row-color class-summary class-summary-tab1"><a href="WrappedDecoder.html" title="interface in io.micronaut.serde">WrappedDecoder</a></div>
-<div class="col-last even-row-color class-summary class-summary-tab1">
+<div class="col-first odd-row-color class-summary class-summary-tab1"><a href="WrappedDecoder.html" title="interface in io.micronaut.serde">WrappedDecoder</a></div>
+<div class="col-last odd-row-color class-summary class-summary-tab1">
 <div class="block">Decoder wrapper that exposes the wrapped decoder for backend-specific integrations.</div>
 </div>
-<div class="col-first odd-row-color class-summary class-summary-tab1"><a href="WrappedEncoder.html" title="interface in io.micronaut.serde">WrappedEncoder</a></div>
-<div class="col-last odd-row-color class-summary class-summary-tab1">
+<div class="col-first even-row-color class-summary class-summary-tab1"><a href="WrappedEncoder.html" title="interface in io.micronaut.serde">WrappedEncoder</a></div>
+<div class="col-last even-row-color class-summary class-summary-tab1">
 <div class="block">Encoder wrapper that exposes the wrapped encoder for backend-specific integrations.</div>
 </div>
 </div>

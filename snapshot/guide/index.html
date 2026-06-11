@@ -54,7 +54,7 @@
                                 
                                 <div class="toc-item" style="margin-left:0"><a href="#jacksonAnnotations"><strong>4</strong><span>Jackson Annotations</span></a></div>
                                 
-                                <div class="toc-item" style="margin-left:0"><a href="#jsonbAnnotations"><strong>5</strong><span>JSON-B Annotations</span></a></div>
+                                <div class="toc-item" style="margin-left:0"><a href="#jsonbAnnotations"><strong>5</strong><span>JSON-B Support</span></a></div>
                                 
                                 <div class="toc-item" style="margin-left:0"><a href="#bsonAnnotations"><strong>6</strong><span>BSON Annotations</span></a></div>
                                 
@@ -115,7 +115,13 @@
         
         <div class="toc-item" style="margin-left:10px" id="toc-item-jacksonFilter"><a href="#jacksonFilter"><strong>4.1</strong><span>Custom Property Filters</span></a></div>
         
-        <div class="toc-item" style="margin-left:0px" id="toc-item-jsonbAnnotations"><a href="#jsonbAnnotations"><strong>5</strong><span>JSON-B Annotations</span></a></div>
+        <div class="toc-item" style="margin-left:0px" id="toc-item-jsonbAnnotations"><a href="#jsonbAnnotations"><strong>5</strong><span>JSON-B Support</span></a></div>
+        
+        <div class="toc-item" style="margin-left:10px" id="toc-item-annotations"><a href="#annotations"><strong>5.1</strong><span>JSON-B Annotations</span></a></div>
+        
+        <div class="toc-item" style="margin-left:10px" id="toc-item-extensionBeans"><a href="#extensionBeans"><strong>5.2</strong><span>JSON-B Extension Beans</span></a></div>
+        
+        <div class="toc-item" style="margin-left:10px" id="toc-item-programmaticConfiguration"><a href="#programmaticConfiguration"><strong>5.3</strong><span>Programmatic JSON-B Configuration</span></a></div>
         
         <div class="toc-item" style="margin-left:0px" id="toc-item-bsonAnnotations"><a href="#bsonAnnotations"><strong>6</strong><span>BSON Annotations</span></a></div>
         
@@ -742,7 +748,23 @@ class BookTest extends Specification {
 
 
 <div class="paragraph">
-<p>To completely remove all dependencies on Jackson and use JSON-B annotations in your source code combined with JSON-P at a runtime replace the <code>micronaut-jackson-databind</code> and <code>micronaut-jackson-core</code> modules with <code>micronaut-serde-jsonp</code>.</p>
+<p>To completely remove all dependencies on Jackson Databind and use JSON-B annotations in your source code combined with JSON-P at runtime, replace <code>micronaut-jackson-databind</code> with Micronaut Serialization.</p>
+</div>
+<div class="paragraph">
+<p>Micronaut Serialization provides three Jakarta JSON artifacts with different purposes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>micronaut-serde-jsonp</code> is the existing JSON-P stream integration backed by Eclipse Parsson.</p>
+</li>
+<li>
+<p><code>micronaut-serde-jsonp-impl</code> is the Micronaut-native JSON-P provider. It implements <code>jakarta.json.spi.JsonProvider</code> without depending on Parsson and does not use reflection.</p>
+</li>
+<li>
+<p><code>micronaut-serde-jsonb</code> is the Micronaut Serialization backed JSON-B runtime provider. It implements <code>jakarta.json.bind.spi.JsonbProvider</code>; JSON-B compatibility behavior may use reflection only as an isolated fallback when Micronaut introspection and serialization metadata cannot satisfy a spec-required runtime type.</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
 <p>Add the following artifact to the <code>dependencies</code> block:</p>
@@ -763,6 +785,59 @@ class BookTest extends Specification {
 </div>
 </div>
 </p>
+</div>
+<div class="paragraph">
+<p>Use the Micronaut-native JSON-P provider when your application or library calls the Jakarta JSON-P provider APIs directly:</p>
+</div>
+<div class="paragraph">
+<p>        <div class="listingblock multi-language-sample">
+<div class="title"></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">implementation(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-jsonp-impl")</span></code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="maven">&lt;dependency&gt;
+    &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
+    &lt;artifactId&gt;micronaut-serde-jsonp-impl&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></pre>
+</div>
+</div>
+</p>
+</div>
+<div class="paragraph">
+<p>Use the JSON-B runtime provider when your application or library calls <code>JsonbBuilder</code> or <code>JsonbProvider</code>:</p>
+</div>
+<div class="paragraph">
+<p>        <div class="listingblock multi-language-sample">
+<div class="title"></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">implementation(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-jsonb")</span></code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="maven">&lt;dependency&gt;
+    &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
+    &lt;artifactId&gt;micronaut-serde-jsonb&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></pre>
+</div>
+</div>
+</p>
+</div>
+<div class="paragraph">
+<p>The providers are loaded through the standard Jakarta service loader files:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>META-INF/services/jakarta.json.spi.JsonProvider</code></p>
+</li>
+<li>
+<p><code>META-INF/services/jakarta.json.bind.spi.JsonbProvider</code></p>
+</li>
+</ul>
 </div>
 <div class="admonitionblock warning">
 <table>
@@ -2012,7 +2087,7 @@ class PersonFilterTest extends Specification {
 </div>
 </div>
 
-<h1 id="jsonbAnnotations"><a class="anchor" href="#jsonbAnnotations"></a>5 JSON-B Annotations</h1>
+<h1 id="jsonbAnnotations"><a class="anchor" href="#jsonbAnnotations"></a>5 JSON-B Support</h1>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.1.x/src/main/docs/guide/jsonbAnnotations.adoc"'>
@@ -2022,28 +2097,72 @@ class PersonFilterTest extends Specification {
 
 
 <div class="paragraph">
-<p>Micronaut Serialization supports a subset of the available <a href="https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/annotation/package-summary.html">JSON-B</a> annotations.</p>
+<p>Micronaut Serialization supports JSON-B annotations through the compile-time serializer metadata and provides a JSON-B runtime provider in the <code>micronaut-serde-jsonb</code> module.</p>
 </div>
 <div class="paragraph">
-<p>Note that only the annotations are supported and the runtime APIs are not, hence it is recommended to include JSON-B only as a <code>compileOnly</code> dependency. For example for Gradle:</p>
-</div>
-<div class="listingblock">
-<div class="title"><code>jakarta.json.bind-api</code> as <code>compileOnly</code> scope</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">compileOnly("jakarta.json.bind:jakarta.json.bind-api")</code></pre>
-</div>
+<p>If you only use JSON-B annotations on classes serialized through Micronaut Serialization APIs, include <code>jakarta.json.bind-api</code> as a compile-only dependency. If you need the <code>jakarta.json.bind.Jsonb</code> runtime API, JSON-B serializers, JSON-B deserializers, adapters, visibility strategies, or programmatic <code>JsonbConfig</code>, add the Micronaut JSON-B runtime provider:</p>
 </div>
 <div class="paragraph">
-<p>or Maven:</p>
-</div>
-<div class="listingblock">
-<div class="title"><code>jakarta.json.bind-api</code> as <code>provided</code> scope</div>
+<p>        <div class="listingblock multi-language-sample">
+<div class="title"></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
-  &lt;groupId&gt;jakarta.json.bind&lt;/groupId&gt;
-  &lt;artifactId&gt;jakarta.json.bind-api&lt;/artifactId&gt;
-  &lt;scope&gt;provided&lt;/scope&gt;
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">implementation(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-jsonb")</span></code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="maven">&lt;dependency&gt;
+    &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
+    &lt;artifactId&gt;micronaut-serde-jsonb&lt;/artifactId&gt;
 &lt;/dependency&gt;</code></pre>
+</div>
+</div>
+</p>
+</div>
+<div class="paragraph">
+<p>The context-created <code>Jsonb</code> bean uses generated Micronaut Serialization metadata by default and automatically enables the JSON-B compatibility provider when runtime JSON-B customizations require it.</p>
+</div>
+
+<h2 id="annotations"><a class="anchor" href="#annotations"></a>5.1 JSON-B Annotations</h2>
+
+<div class='contribute-btn'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.1.x/src/main/docs/guide/jsonbAnnotations/annotations.adoc"'>
+        <i class='fa fa-pencil-square-o'></i> Improve this doc
+    </button>
+</div>
+
+
+<div class="paragraph">
+<p>Micronaut Serialization supports JSON-B annotations for generated serialization metadata and JSON-B runtime compatibility features.</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
+
+import io.micronaut.serde.annotation.Serdeable;
+import jakarta.json.bind.annotation.JsonbCreator;
+import jakarta.json.bind.annotation.JsonbProperty;
+
+@Serdeable // <b class="conum">(1)</b>
+public class Book {
+    private final String title;
+    @JsonbProperty("qty") // <b class="conum">(2)</b>
+    private final int quantity;
+
+    @JsonbCreator // <b class="conum">(3)</b>
+    public Book(String title, int quantity) {
+        this.title = title;
+        this.quantity = quantity;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+}</code></pre>
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
@@ -2054,7 +2173,7 @@ class PersonFilterTest extends Specification {
 </colgroup>
 <thead>
 <tr>
-<th class="tableblock halign-left valign-top">Jackson Annotation</th>
+<th class="tableblock halign-left valign-top">JSON-B API</th>
 <th class="tableblock halign-left valign-top">Supported</th>
 <th class="tableblock halign-left valign-top">Notes</th>
 </tr>
@@ -2062,61 +2181,301 @@ class PersonFilterTest extends Specification {
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/annotation/JsonbCreator.html">@JsonbCreator</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
 <td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/annotation/JsonbDateFormat.html">@JsonbDateFormat</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
 <td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/annotation/JsonbNillable.html">@JsonbNillable</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
 <td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/annotation/JsonbNumberFormat.html">@JsonbNumberFormat</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
 <td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/annotation/JsonbProperty.html">@JsonbProperty</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
 <td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/annotation/JsonbPropertyOrder.html">@JsonbPropertyOrder</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
 <td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/annotation/JsonbTransient.html">@JsonbTransient</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
 <td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/annotation/JsonbTypeAdapter.html">@JsonbTypeAdapter</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Exposes runtime API</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Supported by the JSON-B runtime compatibility provider.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/annotation/JsonbTypeDeserializer.html">@JsonbTypeDeserializer</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Exposes runtime API</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Supported by the JSON-B runtime compatibility provider.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/annotation/JsonbTypeInfo.html">@JsonbTypeInfo</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Subtype aliases are read from <code>@JsonbSubtype</code> declarations.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/annotation/JsonbSubtype.html">@JsonbSubtype</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Used with <code>@JsonbTypeInfo</code>.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/annotation/JsonbTypeSerializer.html">@JsonbTypeSerializer</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Exposes runtime API</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Supported by the JSON-B runtime compatibility provider.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/annotation/JsonbVisibility.html">@JsonbVisibility</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Requires Reflection</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Supported by the JSON-B runtime compatibility provider.</p></td>
 </tr>
 </tbody>
 </table>
+
+<h2 id="extensionBeans"><a class="anchor" href="#extensionBeans"></a>5.2 JSON-B Extension Beans</h2>
+
+<div class='contribute-btn'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.1.x/src/main/docs/guide/jsonbAnnotations/extensionBeans.adoc"'>
+        <i class='fa fa-pencil-square-o'></i> Improve this doc
+    </button>
+</div>
+
+
+<div class="paragraph">
+<p>JSON-B extension types can be registered as Micronaut beans when the application uses the <code>Jsonb</code> bean from <code>micronaut-serde-jsonb</code>.</p>
+</div>
+<div class="paragraph">
+<p>The default <code>JsonbConfig</code> bean collects the following bean types:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>JsonbSerializer&lt;T&gt;</code></p>
+</li>
+<li>
+<p><code>JsonbDeserializer&lt;T&gt;</code></p>
+</li>
+<li>
+<p><code>JsonbAdapter&lt;T, R&gt;</code></p>
+</li>
+<li>
+<p><code>PropertyVisibilityStrategy</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Use <code>jakarta.annotation.Priority</code> to order multiple serializer, deserializer, or adapter beans. Lower priority values are selected first. If multiple JSON-B callbacks match the same type, the first matching callback in bean order is used.</p>
+</div>
+<div class="paragraph">
+<p>The following serializer is discovered as a bean:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
+
+import io.micronaut.context.annotation.Requires;
+import jakarta.annotation.Priority;
+import jakarta.inject.Singleton;
+import jakarta.json.bind.serializer.JsonbSerializer;
+import jakarta.json.bind.serializer.SerializationContext;
+import jakarta.json.stream.JsonGenerator;
+
+@Singleton
+@Requires(property = "spec.name", value = "jsonb-extension-beans")
+@Priority(10)
+public final class ColorSerializer implements JsonbSerializer&lt;Color&gt; {
+    @Override
+    public void serialize(Color obj, JsonGenerator generator, SerializationContext ctx) {
+        generator.write("#" + obj.getValue());
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A lower-priority serializer for the same type can also exist:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
+
+import io.micronaut.context.annotation.Requires;
+import jakarta.annotation.Priority;
+import jakarta.inject.Singleton;
+import jakarta.json.bind.serializer.JsonbSerializer;
+import jakarta.json.bind.serializer.SerializationContext;
+import jakarta.json.stream.JsonGenerator;
+
+@Singleton
+@Requires(property = "spec.name", value = "jsonb-extension-beans")
+@Priority(20)
+public final class LowerPriorityColorSerializer implements JsonbSerializer&lt;Color&gt; {
+    @Override
+    public void serialize(Color obj, JsonGenerator generator, SerializationContext ctx) {
+        generator.write("fallback-" + obj.getValue());
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The lower <code>@Priority</code> value on <code>ColorSerializer</code> means it is registered first and wins for <code>Color</code>.</p>
+</div>
+<div class="paragraph">
+<p>Deserializers and adapters are registered the same way:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
+
+import io.micronaut.context.annotation.Requires;
+import jakarta.annotation.Priority;
+import jakarta.inject.Singleton;
+import jakarta.json.bind.serializer.DeserializationContext;
+import jakarta.json.bind.serializer.JsonbDeserializer;
+import jakarta.json.stream.JsonParser;
+
+import java.lang.reflect.Type;
+
+@Singleton
+@Requires(property = "spec.name", value = "jsonb-extension-beans")
+@Priority(10)
+public final class ColorDeserializer implements JsonbDeserializer&lt;Color&gt; {
+    @Override
+    public Color deserialize(JsonParser parser, DeserializationContext ctx, Type rtType) {
+        while (parser.hasNext()) {
+            if (parser.next() == JsonParser.Event.VALUE_STRING) {
+                return new Color(parser.getString().substring(1));
+            }
+        }
+        throw new IllegalStateException("Expected a JSON string");
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
+
+import io.micronaut.context.annotation.Requires;
+import jakarta.annotation.Priority;
+import jakarta.inject.Singleton;
+import jakarta.json.bind.adapter.JsonbAdapter;
+
+@Singleton
+@Requires(property = "spec.name", value = "jsonb-extension-beans")
+@Priority(10)
+public final class MilesAdapter implements JsonbAdapter&lt;Miles, String&gt; {
+    @Override
+    public String adaptToJson(Miles obj) {
+        return obj.getValue() + " mi";
+    }
+
+    @Override
+    public Miles adaptFromJson(String obj) {
+        return new Miles(Integer.parseInt(obj.replace(" mi", "")));
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>PropertyVisibilityStrategy</code> is a single JSON-B configuration value. If you expose one as a bean, Micronaut&#8217;s normal single-bean selection rules apply.</p>
+</div>
+
+<h2 id="programmaticConfiguration"><a class="anchor" href="#programmaticConfiguration"></a>5.3 Programmatic JSON-B Configuration</h2>
+
+<div class='contribute-btn'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.1.x/src/main/docs/guide/jsonbAnnotations/programmaticConfiguration.adoc"'>
+        <i class='fa fa-pencil-square-o'></i> Improve this doc
+    </button>
+</div>
+
+
+<div class="paragraph">
+<p>Programmatic JSON-B configuration is supported by defining a <code>JsonbConfig</code> bean.</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
+
+import io.micronaut.context.annotation.Factory;
+import io.micronaut.context.annotation.Requires;
+import jakarta.inject.Singleton;
+import jakarta.json.bind.JsonbConfig;
+
+@Factory
+@Requires(property = "spec.name", value = "jsonb-programmatic-config")
+public final class ProgrammaticJsonbConfigFactory {
+    @Singleton
+    JsonbConfig jsonbConfig() {
+        return new JsonbConfig()
+            .withSerializers(new ProgrammaticCodeSerializer())
+            .withDeserializers(new ProgrammaticCodeDeserializer());
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The configured serializers, deserializers, and adapters are applied in the order passed to <code>JsonbConfig</code>. If more than one callback matches a type, the first matching configured callback wins.</p>
+</div>
+<div class="paragraph">
+<p>When you provide a custom <code>JsonbConfig</code> bean, it replaces the default Micronaut-provided config that collects extension beans. Register every JSON-B runtime customization needed by the application on that config.</p>
+</div>
+<div class="paragraph">
+<p>The serializer and deserializer used by the programmatic config are ordinary JSON-B callback implementations:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
+
+import jakarta.json.bind.serializer.JsonbSerializer;
+import jakarta.json.bind.serializer.SerializationContext;
+import jakarta.json.stream.JsonGenerator;
+
+public final class ProgrammaticCodeSerializer implements JsonbSerializer&lt;ProgrammaticCode&gt; {
+    @Override
+    public void serialize(ProgrammaticCode obj, JsonGenerator generator, SerializationContext ctx) {
+        generator.write("code:" + obj.getValue());
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
+
+import jakarta.json.bind.serializer.DeserializationContext;
+import jakarta.json.bind.serializer.JsonbDeserializer;
+import jakarta.json.stream.JsonParser;
+
+import java.lang.reflect.Type;
+
+public final class ProgrammaticCodeDeserializer implements JsonbDeserializer&lt;ProgrammaticCode&gt; {
+    @Override
+    public ProgrammaticCode deserialize(JsonParser parser, DeserializationContext ctx, Type rtType) {
+        while (parser.hasNext()) {
+            if (parser.next() == JsonParser.Event.VALUE_STRING) {
+                return new ProgrammaticCode(parser.getString().substring(5));
+            }
+        }
+        throw new IllegalStateException("Expected a JSON string");
+    }
+}</code></pre>
+</div>
+</div>
 
 <h1 id="bsonAnnotations"><a class="anchor" href="#bsonAnnotations"></a>6 BSON Annotations</h1>
 

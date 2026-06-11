@@ -53,12 +53,14 @@ loadScripts(document, 'script');</script>
 <div class="toc-header">Contents&nbsp;<input type="text" class="filter-input" disabled placeholder="Filter contents (type .)" aria-label="Filter table of contents" autocomplete="off" spellcheck="false"><input type="reset" class="reset-filter" disabled tabindex="-1" value="Reset"></div>
 <ol class="toc-list" tabindex="-1">
 <li><a href="#" tabindex="0">Description</a></li>
+<li><a href="#nested-class-summary" tabindex="0">Nested Class Summary</a></li>
 <li><a href="#method-summary" tabindex="0">Method Summary</a></li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
 <li><a href="#getBeanIntrospector()" tabindex="0">getBeanIntrospector()</a></li>
 <li><a href="#getSerializableIntrospection(io.micronaut.core.type.Argument)" tabindex="0">getSerializableIntrospection(Argument)</a></li>
 <li><a href="#getDeserializableIntrospection(io.micronaut.core.type.Argument)" tabindex="0">getDeserializableIntrospection(Argument)</a></li>
+<li><a href="#withRuntimeIntrospectionResolver(io.micronaut.serde.SerdeIntrospections.RuntimeIntrospectionResolver)" tabindex="0">withRuntimeIntrospectionResolver(SerdeIntrospections.RuntimeIntrospectionResolver)</a></li>
 <li><a href="#findSubtypeDeserializables(java.lang.Class)" tabindex="0">findSubtypeDeserializables(Class)</a></li>
 </ol>
 </li>
@@ -82,6 +84,33 @@ loadScripts(document, 'script');</script>
 </section>
 <section class="summary">
 <ul class="summary-list">
+<!-- ======== NESTED CLASS SUMMARY ======== -->
+<li>
+<section class="nested-class-summary" id="nested-class-summary">
+<h2>Nested Class Summary</h2>
+<div class="caption"><span>Nested Classes</span></div>
+<div class="summary-table three-column-summary">
+<div class="table-header col-first">Modifier and Type</div>
+<div class="table-header col-second">Interface</div>
+<div class="table-header col-last">Description</div>
+<div class="col-first even-row-color"><code>static enum&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="SerdeIntrospections.RuntimeIntrospectionKind.html" class="type-name-link" title="enum class in io.micronaut.serde">SerdeIntrospections.RuntimeIntrospectionKind</a></code></div>
+<div class="col-last even-row-color">
+<div class="block">The kind of runtime introspection being requested.</div>
+</div>
+<div class="col-first odd-row-color"><code>static final record&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="SerdeIntrospections.RuntimeIntrospectionRequest.html" class="type-name-link" title="class in io.micronaut.serde">SerdeIntrospections.RuntimeIntrospectionRequest</a>&lt;<a href="SerdeIntrospections.RuntimeIntrospectionRequest.html#type-param-T" title="type parameter in SerdeIntrospections.RuntimeIntrospectionRequest">T</a>&gt;</code></div>
+<div class="col-last odd-row-color">
+<div class="block">A runtime introspection request.</div>
+</div>
+<div class="col-first even-row-color"><code>static interface&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="SerdeIntrospections.RuntimeIntrospectionResolver.html" class="type-name-link" title="interface in io.micronaut.serde">SerdeIntrospections.RuntimeIntrospectionResolver</a></code></div>
+<div class="col-last even-row-color">
+<div class="block">Resolves runtime-built introspections.</div>
+</div>
+</div>
+</section>
+</li>
 <!-- ========== METHOD SUMMARY =========== -->
 <li>
 <section class="method-summary" id="method-summary">
@@ -112,6 +141,11 @@ loadScripts(document, 'script');</script>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getSerializableIntrospection(io.micronaut.core.type.Argument)" class="member-name-link">getSerializableIntrospection</a><wbr>(io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Gets an introspection for the given type for serialization.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="SerdeIntrospections.html" title="interface in io.micronaut.serde">SerdeIntrospections</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#withRuntimeIntrospectionResolver(io.micronaut.serde.SerdeIntrospections.RuntimeIntrospectionResolver)" class="member-name-link">withRuntimeIntrospectionResolver</a><wbr>(<a href="SerdeIntrospections.RuntimeIntrospectionResolver.html" title="interface in io.micronaut.serde">SerdeIntrospections.RuntimeIntrospectionResolver</a>&nbsp;resolver)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Creates introspections that first consult the given runtime resolver.</div>
 </div>
 </div>
 </div>
@@ -174,6 +208,23 @@ loadScripts(document, 'script');</script>
 <dd>The introspection, never <code>null</code></dd>
 <dt>Throws:</dt>
 <dd><code>io.micronaut.core.beans.exceptions.IntrospectionException</code> - if no introspection exists</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="withRuntimeIntrospectionResolver(io.micronaut.serde.SerdeIntrospections.RuntimeIntrospectionResolver)">
+<h3>withRuntimeIntrospectionResolver</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type"><a href="SerdeIntrospections.html" title="interface in io.micronaut.serde">SerdeIntrospections</a></span>&nbsp;<span class="element-name">withRuntimeIntrospectionResolver</span><wbr><span class="parameters">(<a href="SerdeIntrospections.RuntimeIntrospectionResolver.html" title="interface in io.micronaut.serde">SerdeIntrospections.RuntimeIntrospectionResolver</a>&nbsp;resolver)</span></div>
+<div class="block">Creates introspections that first consult the given runtime resolver.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>resolver</code> - The runtime introspection resolver</dd>
+<dt>Returns:</dt>
+<dd>The resolver-backed introspections</dd>
+<dt>Since:</dt>
+<dd>3.1.0</dd>
 </dl>
 </div>
 </section>

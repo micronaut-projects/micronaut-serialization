@@ -63,6 +63,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
 <li><a href="#getName()" tabindex="0">getName()</a></li>
+<li><a href="#map(io.micronaut.core.annotation.AnnotationValue,io.micronaut.inject.visitor.VisitorContext)" tabindex="0">map(AnnotationValue, VisitorContext)</a></li>
 <li><a href="#transform(io.micronaut.core.annotation.AnnotationValue,io.micronaut.inject.visitor.VisitorContext)" tabindex="0">transform(AnnotationValue, VisitorContext)</a></li>
 </ol>
 </li>
@@ -79,13 +80,13 @@ loadScripts(document, 'script');</script>
 <section class="class-description" id="class-description">
 <dl class="notes">
 <dt>All Implemented Interfaces:</dt>
-<dd><code>io.micronaut.core.naming.Named, io.micronaut.inject.annotation.AnnotationTransformer&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/annotation/Annotation.html" title="class or interface in java.lang.annotation" class="external-link">Annotation</a>&gt;, io.micronaut.inject.annotation.NamedAnnotationTransformer</code></dd>
+<dd><code>io.micronaut.core.naming.Named, io.micronaut.inject.annotation.AnnotationMapper&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/annotation/Annotation.html" title="class or interface in java.lang.annotation" class="external-link">Annotation</a>&gt;, io.micronaut.inject.annotation.AnnotationTransformer&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/annotation/Annotation.html" title="class or interface in java.lang.annotation" class="external-link">Annotation</a>&gt;, io.micronaut.inject.annotation.NamedAnnotationMapper, io.micronaut.inject.annotation.NamedAnnotationTransformer</code></dd>
 </dl>
 <hr>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="modifiers">public class </span><span class="element-name type-name-label">JsonbNillableTransformer</span>
 <span class="extends-implements">extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>
-implements io.micronaut.inject.annotation.NamedAnnotationTransformer</span></div>
+implements io.micronaut.inject.annotation.NamedAnnotationMapper, io.micronaut.inject.annotation.NamedAnnotationTransformer</span></div>
 <div class="block">Support JsonbNillable.</div>
 </div>
 </section>
@@ -119,9 +120,13 @@ implements io.micronaut.inject.annotation.NamedAnnotationTransformer</span></div
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getName()" class="member-name-link">getName</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;io.micronaut.core.annotation.AnnotationValue&lt;?&gt;&gt;</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#transform(io.micronaut.core.annotation.AnnotationValue,io.micronaut.inject.visitor.VisitorContext)" class="member-name-link">transform</a><wbr>(io.micronaut.core.annotation.AnnotationValue&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/annotation/Annotation.html" title="class or interface in java.lang.annotation" class="external-link">Annotation</a>&gt;&nbsp;annotation,
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#map(io.micronaut.core.annotation.AnnotationValue,io.micronaut.inject.visitor.VisitorContext)" class="member-name-link">map</a><wbr>(io.micronaut.core.annotation.AnnotationValue&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/annotation/Annotation.html" title="class or interface in java.lang.annotation" class="external-link">Annotation</a>&gt;&nbsp;annotation,
  io.micronaut.inject.visitor.VisitorContext&nbsp;visitorContext)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;io.micronaut.core.annotation.AnnotationValue&lt;?&gt;&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#transform(io.micronaut.core.annotation.AnnotationValue,io.micronaut.inject.visitor.VisitorContext)" class="member-name-link">transform</a><wbr>(io.micronaut.core.annotation.AnnotationValue&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/annotation/Annotation.html" title="class or interface in java.lang.annotation" class="external-link">Annotation</a>&gt;&nbsp;annotation,
+ io.micronaut.inject.visitor.VisitorContext&nbsp;visitorContext)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 </div>
 </div>
 </div>
@@ -163,6 +168,19 @@ implements io.micronaut.inject.annotation.NamedAnnotationTransformer</span></div
 <dl class="notes">
 <dt>Specified by:</dt>
 <dd><code>getName</code>&nbsp;in interface&nbsp;<code>io.micronaut.core.naming.Named</code></dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="map(io.micronaut.core.annotation.AnnotationValue,io.micronaut.inject.visitor.VisitorContext)">
+<h3>map</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;io.micronaut.core.annotation.AnnotationValue&lt;?&gt;&gt;</span>&nbsp;<span class="element-name">map</span><wbr><span class="parameters">(io.micronaut.core.annotation.AnnotationValue&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/annotation/Annotation.html" title="class or interface in java.lang.annotation" class="external-link">Annotation</a>&gt;&nbsp;annotation,
+ io.micronaut.inject.visitor.VisitorContext&nbsp;visitorContext)</span></div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code>map</code>&nbsp;in interface&nbsp;<code>io.micronaut.inject.annotation.AnnotationMapper&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/annotation/Annotation.html" title="class or interface in java.lang.annotation" class="external-link">Annotation</a>&gt;</code></dd>
 </dl>
 </div>
 </section>

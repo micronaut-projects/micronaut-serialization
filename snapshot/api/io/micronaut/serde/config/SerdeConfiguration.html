@@ -69,6 +69,10 @@ loadScripts(document, 'script');</script>
 <li><a href="#getTimeWriteShape()" tabindex="0">getTimeWriteShape()</a></li>
 <li><a href="#getNumericTimeUnit()" tabindex="0">getNumericTimeUnit()</a></li>
 <li><a href="#isWriteBinaryAsArray()" tabindex="0">isWriteBinaryAsArray()</a></li>
+<li><a href="#isWriteDurationsAsStrings()" tabindex="0">isWriteDurationsAsStrings()</a></li>
+<li><a href="#isWriteJavaUtilDatesWithZoneId()" tabindex="0">isWriteJavaUtilDatesWithZoneId()</a></li>
+<li><a href="#isRejectDeprecatedThreeLetterTimeZoneIds()" tabindex="0">isRejectDeprecatedThreeLetterTimeZoneIds()</a></li>
+<li><a href="#isWriteDateTimesAsStrictIJson()" tabindex="0">isWriteDateTimesAsStrictIJson()</a></li>
 <li><a href="#getLocale()" tabindex="0">getLocale()</a></li>
 <li><a href="#getTimeZone()" tabindex="0">getTimeZone()</a></li>
 <li><a href="#getIncludedIntrospectionPackages()" tabindex="0">getIncludedIntrospectionPackages()</a></li>
@@ -86,6 +90,10 @@ loadScripts(document, 'script');</script>
 <h1 title="Interface SerdeConfiguration" class="title">Interface SerdeConfiguration</h1>
 </div>
 <section class="class-description" id="class-description">
+<dl class="notes">
+<dt>All Known Implementing Classes:</dt>
+<dd><code><a href="../jsonb/MicronautJsonbProvider.JsonbSerdeConfiguration.html" title="class in io.micronaut.serde.jsonb">MicronautJsonbProvider.JsonbSerdeConfiguration</a></code></dd>
+</dl>
 <hr>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="modifiers">public interface </span><span class="element-name type-name-label">SerdeConfiguration</span></div>
@@ -196,10 +204,30 @@ as serializable by default without the need to add the <a href="../annotation/Se
 <div class="block">When <code>true</code>, mappers should respect JsonView annotations on arguments passed to
 read/write methods.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#isWriteBinaryAsArray()" class="member-name-link">isWriteBinaryAsArray</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#isRejectDeprecatedThreeLetterTimeZoneIds()" class="member-name-link">isRejectDeprecatedThreeLetterTimeZoneIds</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Control whether deprecated three-letter time zone IDs are rejected.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#isWriteBinaryAsArray()" class="member-name-link">isWriteBinaryAsArray</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Control whether to use legacy behavior for writing byte arrays.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#isWriteDateTimesAsStrictIJson()" class="member-name-link">isWriteDateTimesAsStrictIJson</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Control whether date/time values are written in JSON-B strict I-JSON temporal form.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#isWriteDurationsAsStrings()" class="member-name-link">isWriteDurationsAsStrings</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Control whether <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/Duration.html" title="class or interface in java.time" class="external-link"><code>Duration</code></a> values are written and read as ISO-8601 strings.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#isWriteJavaUtilDatesWithZoneId()" class="member-name-link">isWriteJavaUtilDatesWithZoneId</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Control whether <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Date.html" title="class or interface in java.util" class="external-link"><code>Date</code></a> values are written with the configured time zone id.</div>
 </div>
 </div>
 </div>
@@ -322,6 +350,70 @@ JSON.</div>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>Whether to use legacy byte array writing behavior</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="isWriteDurationsAsStrings()">
+<h3>isWriteDurationsAsStrings</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@Bindable(defaultValue="false")
+</span><span class="modifiers">default</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">isWriteDurationsAsStrings</span>()</div>
+<div class="block">Control whether <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/Duration.html" title="class or interface in java.time" class="external-link"><code>Duration</code></a> values are written and read as ISO-8601 strings.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>Whether durations are represented as strings</dd>
+<dt>Since:</dt>
+<dd>3.1.0</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="isWriteJavaUtilDatesWithZoneId()">
+<h3>isWriteJavaUtilDatesWithZoneId</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@Bindable(defaultValue="false")
+</span><span class="modifiers">default</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">isWriteJavaUtilDatesWithZoneId</span>()</div>
+<div class="block">Control whether <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Date.html" title="class or interface in java.util" class="external-link"><code>Date</code></a> values are written with the configured time zone id.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>Whether dates include a zone id</dd>
+<dt>Since:</dt>
+<dd>3.1.0</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="isRejectDeprecatedThreeLetterTimeZoneIds()">
+<h3>isRejectDeprecatedThreeLetterTimeZoneIds</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@Bindable(defaultValue="false")
+</span><span class="modifiers">default</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">isRejectDeprecatedThreeLetterTimeZoneIds</span>()</div>
+<div class="block">Control whether deprecated three-letter time zone IDs are rejected.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>Whether deprecated time zone IDs are rejected</dd>
+<dt>Since:</dt>
+<dd>3.1.0</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="isWriteDateTimesAsStrictIJson()">
+<h3>isWriteDateTimesAsStrictIJson</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@Bindable(defaultValue="false")
+</span><span class="modifiers">default</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">isWriteDateTimesAsStrictIJson</span>()</div>
+<div class="block">Control whether date/time values are written in JSON-B strict I-JSON temporal form.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>Whether date/time values use strict I-JSON temporal formatting</dd>
+<dt>Since:</dt>
+<dd>3.1.0</dd>
 </dl>
 </div>
 </section>
