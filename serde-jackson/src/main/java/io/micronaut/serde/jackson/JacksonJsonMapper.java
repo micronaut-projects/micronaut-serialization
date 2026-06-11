@@ -33,6 +33,7 @@ import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.ObjectMapper;
+import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.UpdatingDeserializer;
@@ -159,8 +160,18 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
 
     @Override
     public ObjectMapper cloneWithConfiguration(@Nullable SerdeConfiguration configuration, @Nullable SerializationConfiguration serializationConfiguration, @Nullable DeserializationConfiguration deserializationConfiguration) {
+        return cloneWithConfiguration(configuration, serializationConfiguration, deserializationConfiguration, null);
+    }
+
+    @Override
+    public ObjectMapper cloneWithConfiguration(@Nullable SerdeConfiguration configuration,
+                                               @Nullable SerializationConfiguration serializationConfiguration,
+                                               @Nullable DeserializationConfiguration deserializationConfiguration,
+                                               @Nullable SerdeIntrospections introspections) {
         return new JacksonJsonMapper(
-            registry.cloneWithConfiguration(configuration, serializationConfiguration, deserializationConfiguration),
+            introspections == null
+                ? registry.cloneWithConfiguration(configuration, serializationConfiguration, deserializationConfiguration)
+                : registry.cloneWithConfiguration(configuration, serializationConfiguration, deserializationConfiguration, introspections),
             streamConfig,
             configuration == null ? this.serdeConfiguration : configuration,
             jacksonConfiguration,

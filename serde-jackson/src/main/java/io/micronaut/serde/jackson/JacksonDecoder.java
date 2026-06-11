@@ -1163,6 +1163,44 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
         }
     }
 
+    /**
+     * Peeks the next token for integrations that need direct JSON token streaming.
+     *
+     * @return The next token
+     * @throws IOException If an unrecoverable error occurs
+     */
+    @Internal
+    public JsonToken peekTokenForStreaming() throws IOException {
+        return peekToken();
+    }
+
+    /**
+     * Consumes the next token for integrations that need direct JSON token streaming.
+     *
+     * @return The consumed token
+     * @throws IOException If an unrecoverable error occurs
+     */
+    @Internal
+    public JsonToken nextTokenForStreaming() throws IOException {
+        JsonToken token = nextToken();
+        if (token == JsonToken.START_ARRAY || token == JsonToken.START_OBJECT) {
+            increaseDepth();
+        } else if (token == JsonToken.END_ARRAY || token == JsonToken.END_OBJECT) {
+            decreaseDepth();
+        }
+        return token;
+    }
+
+    /**
+     * Returns the underlying parser for current-token scalar access.
+     *
+     * @return The underlying parser
+     */
+    @Internal
+    public JsonParser parserForStreaming() {
+        return parser;
+    }
+
     @Override
     public Decoder decodeBuffer() throws IOException {
         JsonNode node = decodeNode();

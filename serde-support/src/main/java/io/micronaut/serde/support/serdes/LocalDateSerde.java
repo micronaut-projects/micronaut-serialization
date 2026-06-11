@@ -38,6 +38,7 @@ import java.time.temporal.TemporalQuery;
  */
 public final class LocalDateSerde extends DefaultFormattedTemporalSerde<LocalDate> implements TemporalSerde<LocalDate>, SerdeRegistrar<LocalDate> {
     private final boolean writeNumeric;
+    private final boolean strictIJson;
 
     /**
      * Allows configuring a default time format for temporal date/time types.
@@ -45,13 +46,15 @@ public final class LocalDateSerde extends DefaultFormattedTemporalSerde<LocalDat
      * @param configuration The configuration
      */
     public LocalDateSerde(SerdeConfiguration configuration) {
-        this(stringFormatter(configuration), configuration.getTimeWriteShape());
+        this(stringFormatter(configuration), configuration.getTimeWriteShape(), configuration.isWriteDateTimesAsStrictIJson());
     }
 
     private LocalDateSerde(DateTimeFormatter stringFormatter,
-                           SerdeConfiguration.TimeShape writeShape) {
+                           SerdeConfiguration.TimeShape writeShape,
+                           boolean strictIJson) {
         super(stringFormatter);
         this.writeNumeric = writeShape != SerdeConfiguration.TimeShape.STRING;
+        this.strictIJson = strictIJson;
     }
 
     @Override
@@ -85,16 +88,26 @@ public final class LocalDateSerde extends DefaultFormattedTemporalSerde<LocalDat
     protected DefaultFormattedTemporalSerde<LocalDate> createSpecific(DateTimeFormatter stringFormatter,
                                                                       SerdeConfiguration.TimeShape timeWriteShape,
                                                                       SerdeConfiguration.NumericTimeUnit numericUnit) {
-        return new LocalDateSerde(stringFormatter, timeWriteShape);
+        return new LocalDateSerde(stringFormatter, timeWriteShape, strictIJson);
     }
 
     @Override
     void serialize0(Encoder encoder, LocalDate value) throws IOException {
-        if (writeNumeric) {
+        if (strictIJson) {
+            encoder.encodeString(StrictIJsonDateTimeFormat.format(value));
+        } else if (writeNumeric) {
             encoder.encodeLong(value.toEpochDay());
         } else {
             super.serialize0(encoder, value);
         }
+    }
+
+    @Override
+    LocalDate parseString(String text) {
+        if (strictIJson) {
+            return StrictIJsonDateTimeFormat.parseLocalDate(text);
+        }
+        return super.parseString(text);
     }
 
     @Override

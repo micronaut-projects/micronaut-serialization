@@ -49,6 +49,26 @@ public interface SerdeRegistry extends SerializerLocator, DeserializerLocator, N
     }
 
     /**
+     * Optional feature. Create a new {@link SerdeRegistry} with the given configuration values and introspections. A
+     * {@code null} configuration parameter indicates the old configuration should be used.
+     *
+     * @param configuration The {@link SerdeConfiguration}
+     * @param serializationConfiguration The {@link SerializationConfiguration}
+     * @param deserializationConfiguration The {@link DeserializationConfiguration}
+     * @param introspections The {@link SerdeIntrospections}
+     * @return A new {@link SerdeRegistry} with the updated config and introspections
+     * @since 3.1.0
+     */
+    default SerdeRegistry cloneWithConfiguration(
+        @Nullable SerdeConfiguration configuration,
+        @Nullable SerializationConfiguration serializationConfiguration,
+        @Nullable DeserializationConfiguration deserializationConfiguration,
+        SerdeIntrospections introspections
+    ) {
+        return cloneWithConfiguration(configuration, serializationConfiguration, deserializationConfiguration);
+    }
+
+    /**
      * Creates a new encoder context.
      * @param view The view
      * @return The encoder context

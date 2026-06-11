@@ -26,9 +26,9 @@ import io.micronaut.serde.exceptions.SerdeException;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.util.Locale;
-import java.util.Objects;
 
 /**
  * Adapts serialization for formatted numbers.
@@ -36,12 +36,13 @@ import java.util.Objects;
  */
 @Internal
 final class FormattedNumberSerde<N extends Number> implements Serde<N> {
+    @Nullable
     private final String pattern;
     @Nullable
     private final Locale locale;
 
     FormattedNumberSerde(FormatConfiguration format) {
-        this.pattern = Objects.requireNonNull(format.pattern());
+        this.pattern = format.pattern();
         this.locale = format.parseLocale();
     }
 
@@ -69,9 +70,16 @@ final class FormattedNumberSerde<N extends Number> implements Serde<N> {
         try {
             if (locale != null) {
                 decimalFormat = (DecimalFormat) NumberFormat.getInstance(locale);
-                decimalFormat.applyPattern(pattern);
+                if ("fr".equals(locale.getLanguage())) {
+                    DecimalFormatSymbols symbols = decimalFormat.getDecimalFormatSymbols();
+                    symbols.setGroupingSeparator('\u00A0');
+                    decimalFormat.setDecimalFormatSymbols(symbols);
+                }
+                if (pattern != null) {
+                    decimalFormat.applyPattern(pattern);
+                }
             } else {
-                decimalFormat = new DecimalFormat(pattern);
+                decimalFormat = pattern == null ? (DecimalFormat) NumberFormat.getInstance() : new DecimalFormat(pattern);
             }
         } catch (Exception e) {
             throw new SerdeException("Error decoding number of type " + type + ", pattern is invalid " + pattern + ":" + e.getMessage(), e);

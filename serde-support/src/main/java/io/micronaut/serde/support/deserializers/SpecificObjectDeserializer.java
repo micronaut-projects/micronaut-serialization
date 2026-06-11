@@ -1375,7 +1375,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                 null,
                 (DeserBean<? super Object>) deserBean,
                 conf,
-                false);
+                true);
             beanDeserializer = resolvedBeanDeserializer;
             resolvedDeserBean = deserBean;
             resolvedKeyIndexes = targetKeyIndexes(deserBean, this.deserBean);

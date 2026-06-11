@@ -1,0 +1,71 @@
+name: Jakarta JSON TCK
+on:
+  push:
+    branches:
+      - master
+      - '[0-9]+.[0-9]+.x'
+  pull_request:
+    branches:
+      - master
+      - '[0-9]+.[0-9]+.x'
+jobs:
+  json-tck:
+    if: github.repository != 'micronaut-projects/micronaut-project-template'
+    runs-on: ubuntu-latest
+    steps:
+      - name: "📥 Checkout repository"
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
+
+      - name: "🔧 Setup GraalVM CE"
+        uses: graalvm/setup-graalvm@bef4b0e916c7dd079bf60fb95d49139f67e32c5f # v1
+        with:
+          distribution: 'graalvm'
+          java-version: '25'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "🔧 Setup Gradle"
+        uses: gradle/actions/setup-gradle@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # v6
+
+      - name: "🧪 Run Jakarta JSON-P TCK"
+        id: jsonp
+        continue-on-error: true
+        env:
+          DEVELOCITY_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
+          DEVELOCITY_CACHE_USERNAME: ${{ secrets.GRADLE_ENTERPRISE_CACHE_USERNAME }}
+          DEVELOCITY_CACHE_PASSWORD: ${{ secrets.GRADLE_ENTERPRISE_CACHE_PASSWORD }}
+        run: ./gradlew :micronaut-tests:micronaut-jsonp-tck:jakartaJsonpTck --no-daemon
+
+      - name: "📦 Collect Jakarta JSON-P TCK evidence"
+        if: always()
+        run: .github/scripts/json-tck-evidence.sh jsonp tests/jsonp-tck/build/test-results/jakartaJsonpTck build/json-tck-evidence/jsonp
+
+      - name: "🧪 Run Jakarta JSON-B TCK"
+        id: jsonb
+        continue-on-error: true
+        env:
+          DEVELOCITY_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
+          DEVELOCITY_CACHE_USERNAME: ${{ secrets.GRADLE_ENTERPRISE_CACHE_USERNAME }}
+          DEVELOCITY_CACHE_PASSWORD: ${{ secrets.GRADLE_ENTERPRISE_CACHE_PASSWORD }}
+        run: ./gradlew :micronaut-tests:micronaut-jsonb-tck:jakartaJsonbTck --no-daemon
+
+      - name: "📦 Collect Jakarta JSON-B TCK evidence"
+        if: always()
+        run: .github/scripts/json-tck-evidence.sh jsonb tests/jsonb-tck/build/test-results/jakartaJsonbTck build/json-tck-evidence/jsonb
+
+      - name: "📜 Upload Jakarta JSON TCK evidence"
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: jakarta-json-tck-evidence
+          path: build/json-tck-evidence
+
+      - name: "✅ Check Jakarta JSON TCK results"
+        if: always()
+        env:
+          JSONP_OUTCOME: ${{ steps.jsonp.outcome }}
+          JSONB_OUTCOME: ${{ steps.jsonb.outcome }}
+        run: |
+          test "${JSONP_OUTCOME}" = "success"
+          test "${JSONB_OUTCOME}" = "success"
