@@ -25,7 +25,6 @@ import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serde;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
-import jakarta.inject.Singleton;
 import jakarta.json.bind.JsonbException;
 import jakarta.json.bind.adapter.JsonbAdapter;
 import org.jspecify.annotations.Nullable;
@@ -36,7 +35,6 @@ import java.io.IOException;
  * Bridges {@link jakarta.json.bind.annotation.JsonbTypeAdapter} to Micronaut Serialization.
  */
 @Internal
-@Singleton
 @Bean(typed = JsonbTypeAdapterSerde.class)
 public final class JsonbTypeAdapterSerde implements Serde<Object> {
     private final JsonbBridgeSupport.ComponentFactory componentFactory;

@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.serde.jsonb;
+package io.micronaut.serde.support.serdes;
 
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
-import io.micronaut.serde.Serde;
-import io.micronaut.serde.config.SerdeConfiguration;
-import jakarta.inject.Singleton;
+import io.micronaut.serde.support.SerdeRegistrar;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -29,29 +27,30 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 
 /**
- * JSON-B default mapping for {@link GregorianCalendar}.
+ * Serde mapping for {@link GregorianCalendar}.
  */
 @Internal
-@Singleton
-final class JsonbGregorianCalendarSerde implements Serde<GregorianCalendar> {
-    private final boolean strictIJson;
+final class GregorianCalendarSerde implements SerdeRegistrar<GregorianCalendar> {
+    private static final Argument<GregorianCalendar> ARGUMENT = Argument.of(GregorianCalendar.class);
+    private static final Argument<Calendar> CALENDAR_ARGUMENT = Argument.of(Calendar.class);
+
+    private final CalendarSerde calendarSerde;
 
     /**
-     * @param serdeConfiguration The active Serde configuration used to select
-     * strict I-JSON date/time formatting
+     * @param calendarSerde The calendar serde
      */
-    JsonbGregorianCalendarSerde(SerdeConfiguration serdeConfiguration) {
-        this.strictIJson = serdeConfiguration.isWriteDateTimesAsStrictIJson();
+    GregorianCalendarSerde(CalendarSerde calendarSerde) {
+        this.calendarSerde = calendarSerde;
     }
 
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends GregorianCalendar> type, GregorianCalendar value) throws IOException {
-        encoder.encodeString(JsonbCalendarSerde.format(value, strictIJson));
+        calendarSerde.serialize(encoder, context, ARGUMENT, value);
     }
 
     @Override
     public GregorianCalendar deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super GregorianCalendar> type) throws IOException {
-        Calendar calendar = JsonbCalendarSerde.parse(decoder.decodeString());
+        Calendar calendar = calendarSerde.deserialize(decoder, decoderContext, CALENDAR_ARGUMENT);
         GregorianCalendar gregorianCalendar = new GregorianCalendar(calendar.getTimeZone());
         gregorianCalendar.clear();
         gregorianCalendar.setTimeInMillis(calendar.getTimeInMillis());
@@ -64,5 +63,10 @@ final class JsonbGregorianCalendarSerde implements Serde<GregorianCalendar> {
             return null;
         }
         return deserialize(decoder, context, type);
+    }
+
+    @Override
+    public Argument<GregorianCalendar> getType() {
+        return ARGUMENT;
     }
 }

@@ -13,25 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.serde.jsonb;
+package io.micronaut.serde.support.serdes;
 
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
-import io.micronaut.serde.Serde;
-import jakarta.inject.Singleton;
+import io.micronaut.serde.support.SerdeRegistrar;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.time.OffsetTime;
 
 /**
- * JSON-B default mapping for {@link OffsetTime}.
+ * Serde mapping for {@link OffsetTime}.
  */
 @Internal
-@Singleton
-final class JsonbOffsetTimeSerde implements Serde<OffsetTime> {
+final class OffsetTimeSerde implements SerdeRegistrar<OffsetTime> {
+    private static final Argument<OffsetTime> ARGUMENT = Argument.of(OffsetTime.class);
+
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends OffsetTime> type, OffsetTime value) throws IOException {
         encoder.encodeString(value.toString());
@@ -50,4 +50,8 @@ final class JsonbOffsetTimeSerde implements Serde<OffsetTime> {
         return deserialize(decoder, context, type);
     }
 
+    @Override
+    public Argument<OffsetTime> getType() {
+        return ARGUMENT;
+    }
 }

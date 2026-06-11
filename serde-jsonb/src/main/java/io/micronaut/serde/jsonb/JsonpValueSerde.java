@@ -18,28 +18,27 @@ package io.micronaut.serde.jsonb;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
-import io.micronaut.serde.support.SerdeRegistrar;
+import io.micronaut.serde.Serializer;
 import jakarta.inject.Singleton;
-import jakarta.json.JsonArray;
 import jakarta.json.JsonNumber;
-import jakarta.json.JsonObject;
 import jakarta.json.JsonString;
-import jakarta.json.JsonStructure;
 import jakarta.json.JsonValue;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.List;
 import java.util.Map;
 
 /**
  * JSON-P value serde used by the JSON-B provider for generated serializers.
+ *
+ * @param <T> The deserialize type
  */
 @Internal
 @Singleton
-final class JsonpValueSerde implements SerdeRegistrar<JsonValue> {
+final class JsonpValueSerde<T extends JsonValue> implements Serializer<JsonValue>, Deserializer<T> {
     private static final Argument<JsonValue> JSON_VALUE = Argument.of(JsonValue.class);
 
     @Override
@@ -69,7 +68,8 @@ final class JsonpValueSerde implements SerdeRegistrar<JsonValue> {
             case TRUE -> encoder.encodeBoolean(true);
             case FALSE -> encoder.encodeBoolean(false);
             case NULL -> encoder.encodeNull();
-            default -> throw new IOException("Unsupported JSON-P value type: " + value.getValueType());
+            default ->
+                throw new IOException("Unsupported JSON-P value type: " + value.getValueType());
         }
     }
 
@@ -89,32 +89,16 @@ final class JsonpValueSerde implements SerdeRegistrar<JsonValue> {
     }
 
     @Override
-    public JsonValue deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super JsonValue> type) throws IOException {
-        return JsonbJsonpBridge.toJsonpValue(decoder.decodeNode(), type.getType());
+    public T deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super T> type) throws IOException {
+        return (T) JsonbJsonpBridge.toJsonpValue(decoder.decodeNode(), type.getType());
     }
 
     @Override
-    public @Nullable JsonValue deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super JsonValue> type) throws IOException {
+    public @Nullable T deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super T> type) throws IOException {
         if (decoder.decodeNull()) {
-            return JsonValue.NULL;
+            return (T) JsonValue.NULL;
         }
         return deserialize(decoder, context, type);
     }
 
-    @Override
-    public Argument<JsonValue> getType() {
-        return JSON_VALUE;
-    }
-
-    @Override
-    public Iterable<Argument<?>> getTypes() {
-        return List.of(
-            Argument.of(JsonValue.class),
-            Argument.of(JsonStructure.class),
-            Argument.of(JsonObject.class),
-            Argument.of(JsonArray.class),
-            Argument.of(JsonString.class),
-            Argument.of(JsonNumber.class)
-        );
-    }
 }

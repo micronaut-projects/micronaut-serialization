@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.jsonb;
 
+import io.micronaut.context.annotation.Bean;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
@@ -25,7 +26,6 @@ import io.micronaut.serde.ObjectMapper;
 import io.micronaut.serde.Serde;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
-import jakarta.inject.Singleton;
 import jakarta.json.bind.JsonbException;
 import jakarta.json.bind.config.BinaryDataStrategy;
 import jakarta.json.stream.JsonParser;
@@ -44,7 +44,7 @@ import java.util.List;
  * configured JSON-B customization applies to a property or collection element.
  */
 @Internal
-@Singleton
+@Bean(typed = JsonbConfiguredSerde.class)
 @SuppressWarnings("java:S3776")
 public final class JsonbConfiguredSerde implements Serde<Object> {
     private static final Argument<JsonNode> JSON_NODE_ARGUMENT = Argument.of(JsonNode.class);
@@ -53,7 +53,7 @@ public final class JsonbConfiguredSerde implements Serde<Object> {
 
     /**
      * @param mapper The cloned JSON-B mapper used for recursive configured
-     * customization codec operations
+     *               customization codec operations
      */
     JsonbConfiguredSerde(ObjectMapper mapper) {
         this.mapper = mapper;

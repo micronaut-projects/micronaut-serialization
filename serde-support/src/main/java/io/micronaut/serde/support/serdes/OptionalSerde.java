@@ -19,7 +19,6 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.serde.Decoder;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
@@ -28,6 +27,7 @@ import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerdeRegistrar;
 import io.micronaut.serde.util.CustomizableDeserializer;
 import io.micronaut.serde.util.CustomizableSerializer;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -45,11 +45,8 @@ final class OptionalSerde<T> implements CustomizableSerializer<Optional<T>>, Cus
     public Serializer<Optional<T>> createSpecific(EncoderContext encoderContext, Argument<? extends Optional<T>> type)
         throws SerdeException {
         final Argument<?>[] generics = type.getTypeParameters();
-        if (ArrayUtils.isEmpty(generics)) {
-            throw new SerdeException("Serializing raw optionals is not supported for type: " + type);
-        }
         //noinspection unchecked
-        final Argument<T> generic = (Argument<T>) generics[0];
+        final Argument<T> generic = ArrayUtils.isEmpty(generics) ? (Argument<T>) Argument.OBJECT_ARGUMENT : (Argument<T>) generics[0];
         final Serializer<? super T> contentSerializer = encoderContext.findSerializer(generic).createSpecific(encoderContext, generic);
         SerdeConfig.SerInclude includeContent = type.getAnnotationMetadata()
             .enumValue(SerdeConfig.class.getName(), SerdeConfig.INCLUDE_CONTENT, SerdeConfig.SerInclude.class)
@@ -99,11 +96,7 @@ final class OptionalSerde<T> implements CustomizableSerializer<Optional<T>>, Cus
 
     @Override
     public Deserializer<Optional<T>> createSpecific(DecoderContext context, Argument<? super Optional<T>> type) throws SerdeException {
-        @SuppressWarnings("unchecked") final Argument<T> generic =
-            (Argument<T>) type.getFirstTypeVariable().orElse(null);
-        if (generic == null) {
-            throw new SerdeException("Cannot deserialize raw optional");
-        }
+        @SuppressWarnings("unchecked") final Argument<T> generic = (Argument<T>) type.getFirstTypeVariable().orElse(Argument.OBJECT_ARGUMENT);
         final Deserializer<? extends T> deserializer = context.findDeserializer(generic)
             .createSpecific(context, generic);
 
@@ -115,7 +108,7 @@ final class OptionalSerde<T> implements CustomizableSerializer<Optional<T>>, Cus
                 if (decoder.decodeNull()) {
                     return Optional.empty();
                 } else {
-                    return Optional.ofNullable(
+                    return Optional.of(
                         deserializer.deserialize(
                             decoder,
                             context,
