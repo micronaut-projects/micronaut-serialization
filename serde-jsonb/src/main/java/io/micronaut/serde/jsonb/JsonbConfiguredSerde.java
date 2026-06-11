@@ -166,14 +166,6 @@ public final class JsonbConfiguredSerde implements Serde<Object> {
         );
         return new Deserializer<>() {
             @Override
-            public @Nullable Object deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super Object> type) throws IOException {
-                if (decoder.decodeNull()) {
-                    return null;
-                }
-                return deserialize(decoder, context, type);
-            }
-
-            @Override
             public Object deserialize(Decoder decoder, DecoderContext context, Argument<? super Object> type) throws IOException {
                 JsonbRuntimeCustomizations.ConfigDeserializer configuredDeserializer = customizations.deserializer(type.asType());
                 if (configuredDeserializer != null) {

@@ -22,27 +22,27 @@ import io.micronaut.serde.Encoder;
 import io.micronaut.serde.support.SerdeRegistrar;
 
 import java.io.IOException;
-import java.time.ZoneOffset;
+import java.sql.Time;
 
 /**
- * Serde mapping for {@link ZoneOffset}.
+ * Serde mapping for {@link Time}.
  */
 @Internal
-final class ZoneOffsetSerde implements SerdeRegistrar<ZoneOffset> {
-    private static final Argument<ZoneOffset> ARGUMENT = Argument.of(ZoneOffset.class);
+final class SqlTimeSerde implements SerdeRegistrar<Time> {
+    private static final Argument<Time> ARGUMENT = Argument.of(Time.class);
 
     @Override
-    public void serialize(Encoder encoder, EncoderContext context, Argument<? extends ZoneOffset> type, ZoneOffset value) throws IOException {
+    public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Time> type, Time value) throws IOException {
         encoder.encodeString(value.toString());
     }
 
     @Override
-    public ZoneOffset deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super ZoneOffset> type) throws IOException {
-        return ZoneOffset.of(decoder.decodeString());
+    public Time deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Time> type) throws IOException {
+        return Time.valueOf(decoder.decodeString());
     }
 
     @Override
-    public Argument<ZoneOffset> getType() {
+    public Argument<Time> getType() {
         return ARGUMENT;
     }
 }

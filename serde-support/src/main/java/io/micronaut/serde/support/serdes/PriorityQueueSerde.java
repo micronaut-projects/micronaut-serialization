@@ -24,7 +24,6 @@ import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerdeRegistrar;
 import jakarta.inject.Singleton;
-import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.PriorityQueue;
@@ -57,15 +56,6 @@ final class PriorityQueueSerde implements SerdeRegistrar<PriorityQueue<Object>> 
         Argument<Object> elementType = elementType(type);
         Deserializer<? extends Object> elementDeserializer = context.findDeserializer(elementType).createSpecific(context, elementType);
         return new Deserializer<>() {
-            @Override
-            @SuppressWarnings("java:S2638")
-            public @Nullable PriorityQueue<Object> deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super PriorityQueue<Object>> type) throws IOException {
-                if (decoder.decodeNull()) {
-                    return null;
-                }
-                return deserialize(decoder, context, type);
-            }
-
             @Override
             public PriorityQueue<Object> deserialize(Decoder decoder, DecoderContext context, Argument<? super PriorityQueue<Object>> type) throws IOException {
                 PriorityQueue<Object> queue = new PriorityQueue<>();
