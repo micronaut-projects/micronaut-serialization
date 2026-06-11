@@ -24,7 +24,6 @@ import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectMapper;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
-import jakarta.inject.Singleton;
 import jakarta.json.bind.JsonbException;
 import jakarta.json.bind.serializer.JsonbSerializer;
 
@@ -34,7 +33,6 @@ import java.io.IOException;
  * Bridges {@link jakarta.json.bind.annotation.JsonbTypeSerializer} to Micronaut Serialization.
  */
 @Internal
-@Singleton
 @Bean(typed = JsonbTypeSerializerBridge.class)
 public final class JsonbTypeSerializerBridge implements Serializer<Object> {
     private static final Argument<JsonNode> JSON_NODE_ARGUMENT = Argument.of(JsonNode.class);

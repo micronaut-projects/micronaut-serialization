@@ -27,7 +27,6 @@ import io.micronaut.core.beans.UnsafeBeanWriteProperty;
 import io.micronaut.core.type.Argument;
 import io.micronaut.inject.annotation.MutableAnnotationMetadata;
 import io.micronaut.serde.config.annotation.SerdeConfig;
-import jakarta.json.JsonValue;
 import jakarta.json.bind.JsonbException;
 import jakarta.json.bind.annotation.JsonbDateFormat;
 import jakarta.json.bind.annotation.JsonbNumberFormat;
@@ -44,13 +43,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.time.OffsetTime;
-import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -535,47 +529,9 @@ final class JsonbRuntimeProperty<T> implements BeanProperty<T, Object>, UnsafeBe
             configuredType = serialization ? deserializationType() : serializationType();
         }
         if (configuredType != null) {
-            Class<?> erasedType = erasedType(configuredType);
-            if (erasedType != null && JsonValue.class.isAssignableFrom(erasedType)) {
-                metadata.addAnnotation(SerdeConfig.class.getName(), Map.of(
-                    SerdeConfig.SERIALIZER_CLASS, new AnnotationClassValue<>(JsonpValueSerde.class),
-                    SerdeConfig.DESERIALIZER_CLASS, new AnnotationClassValue<>(JsonpValueSerde.class)
-                ));
-            }
-            if (erasedType != null && GregorianCalendar.class.isAssignableFrom(erasedType)) {
-                metadata.addAnnotation(SerdeConfig.class.getName(), Map.of(
-                    SerdeConfig.SERIALIZER_CLASS, new AnnotationClassValue<>(JsonbGregorianCalendarSerde.class),
-                    SerdeConfig.DESERIALIZER_CLASS, new AnnotationClassValue<>(JsonbGregorianCalendarSerde.class)
-                ));
-            } else if (erasedType != null && Calendar.class.isAssignableFrom(erasedType)) {
-                metadata.addAnnotation(SerdeConfig.class.getName(), Map.of(
-                    SerdeConfig.SERIALIZER_CLASS, new AnnotationClassValue<>(JsonbCalendarSerde.class),
-                    SerdeConfig.DESERIALIZER_CLASS, new AnnotationClassValue<>(JsonbCalendarSerde.class)
-                ));
-            } else if (erasedType == OffsetTime.class) {
-                metadata.addAnnotation(SerdeConfig.class.getName(), Map.of(
-                    SerdeConfig.SERIALIZER_CLASS, new AnnotationClassValue<>(JsonbOffsetTimeSerde.class),
-                    SerdeConfig.DESERIALIZER_CLASS, new AnnotationClassValue<>(JsonbOffsetTimeSerde.class)
-                ));
-            } else if (erasedType == ZoneOffset.class) {
-                metadata.addAnnotation(SerdeConfig.class.getName(), Map.of(
-                    SerdeConfig.SERIALIZER_CLASS, new AnnotationClassValue<>(JsonbZoneOffsetSerde.class),
-                    SerdeConfig.DESERIALIZER_CLASS, new AnnotationClassValue<>(JsonbZoneOffsetSerde.class)
-                ));
-            }
             introspection.customizations().applySerdeMetadata(metadata, configuredType);
         }
         return metadata;
-    }
-
-    private static @Nullable Class<?> erasedType(Type type) {
-        if (type instanceof Class<?> clazz) {
-            return clazz;
-        }
-        if (type instanceof ParameterizedType parameterizedType && parameterizedType.getRawType() instanceof Class<?> clazz) {
-            return clazz;
-        }
-        return null;
     }
 
     private Argument<?> customizeArgument(Argument<?> source) {

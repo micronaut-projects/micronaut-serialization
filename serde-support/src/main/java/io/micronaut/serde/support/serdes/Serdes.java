@@ -104,7 +104,12 @@ public final class Serdes {
                                 SerdeIntrospections introspections,
                                 Consumer<SerdeRegistrar<?>> consumer) {
         LEGACY_DEFAULT_SERDES.forEach(consumer);
+        CalendarSerde calendarSerde = new CalendarSerde(serdeConfiguration);
+        consumer.accept(calendarSerde);
+        consumer.accept(new GregorianCalendarSerde(calendarSerde));
         consumer.accept(new TimeZoneSerde(serdeConfiguration));
+        consumer.accept(new ZoneOffsetSerde());
+        consumer.accept(new OffsetTimeSerde());
         consumer.accept(new ByteArraySerde(serdeConfiguration));
         consumer.accept(new DurationSerde(serdeConfiguration));
         SERDES.forEach(consumer);

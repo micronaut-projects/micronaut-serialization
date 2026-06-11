@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.serde.jsonb;
+package io.micronaut.serde.support.serdes;
 
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
-import io.micronaut.serde.Serde;
 import io.micronaut.serde.config.SerdeConfiguration;
-import jakarta.inject.Singleton;
+import io.micronaut.serde.support.SerdeRegistrar;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -33,19 +32,19 @@ import java.util.Calendar;
 import java.util.TimeZone;
 
 /**
- * JSON-B default mapping for calendar values.
+ * Serde mapping for calendar values.
  */
 @Internal
-@Singleton
-final class JsonbCalendarSerde implements Serde<Calendar> {
+final class CalendarSerde implements SerdeRegistrar<Calendar> {
+    private static final Argument<Calendar> ARGUMENT = Argument.of(Calendar.class);
     private static final DateTimeFormatter STRICT_IJSON_FORMATTER = DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss'Z'xxx");
     private final boolean strictIJson;
 
     /**
      * @param serdeConfiguration The active Serde configuration used to select
-     * strict I-JSON date/time formatting
+     *                           strict I-JSON date/time formatting
      */
-    JsonbCalendarSerde(SerdeConfiguration serdeConfiguration) {
+    CalendarSerde(SerdeConfiguration serdeConfiguration) {
         this.strictIJson = serdeConfiguration.isWriteDateTimesAsStrictIJson();
     }
 
@@ -63,11 +62,11 @@ final class JsonbCalendarSerde implements Serde<Calendar> {
      * Formats a JSON-B calendar value using the same rules as generated JSON-B
      * scalar metadata.
      *
-     * @param calendar The calendar to format
+     * @param calendar    The calendar to format
      * @param strictIJson Whether strict I-JSON date/time output is enabled
      * @return The JSON-B calendar string
      */
-    static String format(Calendar calendar, boolean strictIJson) {
+    private String format(Calendar calendar, boolean strictIJson) {
         ZoneId zone = calendar.getTimeZone().toZoneId();
         ZonedDateTime zonedDateTime = calendar.toInstant().atZone(zone);
         if (strictIJson) {
@@ -85,7 +84,7 @@ final class JsonbCalendarSerde implements Serde<Calendar> {
      * @param value The encoded calendar value
      * @return The parsed calendar
      */
-    static Calendar parse(String value) {
+    private Calendar parse(String value) {
         Calendar calendar = Calendar.getInstance();
         if (value.indexOf('T') >= 0) {
             ZonedDateTime zonedDateTime = ZonedDateTime.parse(value, DateTimeFormatter.ISO_DATE_TIME);
@@ -107,5 +106,10 @@ final class JsonbCalendarSerde implements Serde<Calendar> {
             || calendar.isSet(Calendar.MINUTE)
             || calendar.isSet(Calendar.SECOND)
             || calendar.isSet(Calendar.MILLISECOND);
+    }
+
+    @Override
+    public Argument<Calendar> getType() {
+        return ARGUMENT;
     }
 }

@@ -23,7 +23,6 @@ import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.ObjectMapper;
 import io.micronaut.serde.exceptions.SerdeException;
-import jakarta.inject.Singleton;
 import jakarta.json.bind.JsonbException;
 import jakarta.json.bind.serializer.JsonbDeserializer;
 import jakarta.json.stream.JsonParser;
@@ -34,7 +33,6 @@ import java.io.IOException;
  * Bridges {@link jakarta.json.bind.annotation.JsonbTypeDeserializer} to Micronaut Serialization.
  */
 @Internal
-@Singleton
 @Bean(typed = JsonbTypeDeserializerBridge.class)
 public final class JsonbTypeDeserializerBridge implements Deserializer<Object> {
     private final JsonbBridgeSupport.ComponentFactory componentFactory;
@@ -42,7 +40,7 @@ public final class JsonbTypeDeserializerBridge implements Deserializer<Object> {
 
     /**
      * @param beanContext The Micronaut bean context used to resolve JSON-B deserializer instances
-     * @param mapper The cloned JSON-B mapper used for recursive deserializer context operations
+     * @param mapper      The cloned JSON-B mapper used for recursive deserializer context operations
      */
     JsonbTypeDeserializerBridge(BeanContext beanContext, ObjectMapper mapper) {
         this.componentFactory = new JsonbBridgeSupport.ComponentFactory(beanContext);

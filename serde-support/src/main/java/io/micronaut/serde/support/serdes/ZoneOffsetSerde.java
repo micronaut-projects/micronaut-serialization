@@ -13,25 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.serde.jsonb;
+package io.micronaut.serde.support.serdes;
 
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
-import io.micronaut.serde.Serde;
-import jakarta.inject.Singleton;
+import io.micronaut.serde.support.SerdeRegistrar;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.time.ZoneOffset;
 
 /**
- * JSON-B default mapping for {@link ZoneOffset}.
+ * Serde mapping for {@link ZoneOffset}.
  */
 @Internal
-@Singleton
-final class JsonbZoneOffsetSerde implements Serde<ZoneOffset> {
+final class ZoneOffsetSerde implements SerdeRegistrar<ZoneOffset> {
+    private static final Argument<ZoneOffset> ARGUMENT = Argument.of(ZoneOffset.class);
+
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends ZoneOffset> type, ZoneOffset value) throws IOException {
         encoder.encodeString(value.toString());
@@ -48,5 +48,10 @@ final class JsonbZoneOffsetSerde implements Serde<ZoneOffset> {
             return null;
         }
         return deserialize(decoder, context, type);
+    }
+
+    @Override
+    public Argument<ZoneOffset> getType() {
+        return ARGUMENT;
     }
 }
