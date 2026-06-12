@@ -272,7 +272,8 @@ abstract class Base {
 class Person extends Base {
     private final int age;
 
-    Person(int age) {
+    @JsonCreator
+    Person(@JsonProperty("age") int age) {
         this.age = age;
     }
 
@@ -302,6 +303,13 @@ class Person extends Base {
         then:
             result.class.name == 'example.Person'
             result.age == 19
+
+        when:
+            def databindResult = new ObjectMapper().readValue('{"age":19,"name":"bob"}', baseClass)
+
+        then:
+            databindResult.class.name == 'example.Person'
+            databindResult.age == 19
 
         cleanup:
             compiled.close()
