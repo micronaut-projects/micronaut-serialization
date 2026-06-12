@@ -90,6 +90,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     private @Nullable FieldElement anySetterField;
     private @Nullable MethodElement jsonValueMethod;
     private @Nullable FieldElement jsonValueField;
+    private @Nullable MethodElement jsonKeyMethod;
+    private @Nullable FieldElement jsonKeyField;
     private final Set<MethodElement> readMethods = new HashSet<>(20);
     private final Set<MethodElement> writeMethods = new HashSet<>(20);
     private final Set<String> elementVisitedAsSubtype = new HashSet<>(10);
@@ -110,7 +112,6 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
     private Set<String> getUnsupportedJacksonAnnotations() {
         return CollectionUtils.setOf(
-                "com.fasterxml.jackson.annotation.JsonKey",
                 "com.fasterxml.jackson.annotation.JsonAutoDetect",
                 "com.fasterxml.jackson.annotation.JsonMerge",
                 "com.fasterxml.jackson.annotation.JsonIdentityInfo",
@@ -167,6 +168,15 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 throw new ProcessingException(element, "A JsonValue method is already defined: " + jsonValueMethod);
             } else {
                 this.jsonValueField = element;
+            }
+        }
+        if (element.hasDeclaredAnnotation(SerdeConfig.SerKey.class)) {
+            if (jsonKeyField != null) {
+                throw new ProcessingException(element, "A JsonKey field is already defined: " + jsonKeyField);
+            } else if (jsonKeyMethod != null) {
+                throw new ProcessingException(element, "A JsonKey method is already defined: " + jsonKeyMethod);
+            } else {
+                this.jsonKeyField = element;
             }
         }
     }
@@ -260,6 +270,21 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 throw new ProcessingException(element, "A JsonValue method is already defined: " + jsonValueMethod);
             } else {
                 this.jsonValueMethod = element;
+            }
+        }
+        if (methodMetadata.hasDeclaredAnnotation(SerdeConfig.SerKey.class)) {
+            if (element.isStatic()) {
+                throw new ProcessingException(element, "A JsonKey method cannot be static");
+            } else if (element.getReturnType().getName().equals("void")) {
+                throw new ProcessingException(element, "A JsonKey method cannot return void");
+            } else if (element.hasParameters()) {
+                throw new ProcessingException(element, "A JsonKey method cannot define arguments");
+            } else if (jsonKeyField != null) {
+                throw new ProcessingException(element, "A JsonKey field is already defined: " + jsonKeyField);
+            } else if (jsonKeyMethod != null) {
+                throw new ProcessingException(element, "A JsonKey method is already defined: " + jsonKeyMethod);
+            } else {
+                this.jsonKeyMethod = element;
             }
         }
     }
@@ -1415,6 +1440,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         this.anySetterField = null;
         this.jsonValueField = null;
         this.jsonValueMethod = null;
+        this.jsonKeyField = null;
+        this.jsonKeyMethod = null;
         this.readMethods.clear();
         this.writeMethods.clear();
     }
