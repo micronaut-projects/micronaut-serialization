@@ -1544,7 +1544,6 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                         "com.fasterxml.jackson.annotation.JsonTypeInfo",
                         "com.fasterxml.jackson.annotation.JsonRootName",
                         "com.fasterxml.jackson.annotation.JsonTypeName",
-                        "com.fasterxml.jackson.annotation.JsonTypeId",
                         "com.fasterxml.jackson.annotation.JsonAutoDetect",
                         "com.fasterxml.jackson.annotation.JsonIgnoreProperties",
                         "com.fasterxml.jackson.annotation.JsonIncludeProperties"

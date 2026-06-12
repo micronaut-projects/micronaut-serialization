@@ -434,6 +434,13 @@ public @interface SerdeConfig {
     }
 
     /**
+     * Meta-annotation used to model the property that provides the type id during serialization.
+     */
+    @Internal
+    @interface SerTypeId {
+    }
+
+    /**
      * Meta-annotation used to model the enum constant to use for unknown values.
      *
      * @since 3.0

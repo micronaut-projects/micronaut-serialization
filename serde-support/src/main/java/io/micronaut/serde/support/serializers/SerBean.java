@@ -66,6 +66,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -98,6 +99,12 @@ final class SerBean<T> {
     public final String wrapperProperty;
     @Nullable
     public final String arrayWrapperProperty;
+    @Nullable
+    public final SerProperty<T, Object> typeIdProperty;
+    @Nullable
+    public final SerProperty<T, Object> dynamicWrapperProperty;
+    @Nullable
+    public final SerProperty<T, Object> dynamicArrayWrapperProperty;
     @Nullable
     public SerProperty<T, Object> jsonValue;
     @Nullable
@@ -150,6 +157,8 @@ final class SerBean<T> {
                     ));
                 })
                 .toList();
+        SerProperty<T, Object> resolvedTypeIdProperty = findTypeIdProperty(this, properties);
+        this.typeIdProperty = resolvedTypeIdProperty;
         final Map.Entry<BeanReadProperty<T, Object>, AnnotationMetadata> serPropEntry = properties.stream()
                 .filter(bp -> bp.getValue().hasAnnotation(SerdeConfig.SerValue.class) || bp.getValue().hasAnnotation(JACKSON_VALUE))
                 .findFirst().orElse(null);
@@ -157,6 +166,8 @@ final class SerBean<T> {
         if (serPropEntry != null) {
             wrapperProperty = null;
             arrayWrapperProperty = null;
+            dynamicWrapperProperty = null;
+            dynamicArrayWrapperProperty = null;
             BeanReadProperty<T, Object> beanProperty = serPropEntry.getKey();
             final Argument<Object> serType = beanProperty.asArgument();
             AnnotationMetadata propertyAnnotationMetadata = withoutJsonKey(serPropEntry.getValue());
@@ -179,6 +190,8 @@ final class SerBean<T> {
             if (serMethod != null) {
                 wrapperProperty = null;
                 arrayWrapperProperty = null;
+                dynamicWrapperProperty = null;
+                dynamicArrayWrapperProperty = null;
                 SerProperty<T, Object> resolvedJsonValue = new MethodSerProperty<>(
                     SerBean.this,
                     serMethod.getName(),
@@ -200,11 +213,23 @@ final class SerBean<T> {
                     resolvedSubtypeInfo,
                     introspections,
                     introspection,
-                    resolvedInitializers
+                    resolvedInitializers,
+                    resolvedTypeIdProperty
                 );
 
                 String arrayWrapperProperty = introspection.stringValue(SerdeConfig.class, SerdeConfig.ARRAY_WRAPPER_PROPERTY).orElse(null);
                 String wrapperProperty = introspection.stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY).orElse(null);
+                SerProperty<T, Object> dynamicWrapperProperty = null;
+                SerProperty<T, Object> dynamicArrayWrapperProperty = null;
+                if (resolvedTypeIdProperty != null) {
+                    if (wrapperProperty != null) {
+                        wrapperProperty = null;
+                        dynamicWrapperProperty = resolvedTypeIdProperty;
+                    } else if (arrayWrapperProperty != null) {
+                        arrayWrapperProperty = null;
+                        dynamicArrayWrapperProperty = resolvedTypeIdProperty;
+                    }
+                }
                 if (subtypeInfo != null) {
                     String[] names = introspection.getAnnotationMetadata().stringValues(SerdeConfig.class, SerdeConfig.TYPE_NAMES);
                     if (names.length == 0) {
@@ -215,15 +240,31 @@ final class SerBean<T> {
                     }
                     if (names != null && names.length > 0) {
                         if (subtypeInfo.discriminatorType() == SerdeConfig.SerSubtyped.DiscriminatorType.WRAPPER_OBJECT) {
-                            wrapperProperty = names[0];
+                            if (resolvedTypeIdProperty != null) {
+                                dynamicWrapperProperty = resolvedTypeIdProperty;
+                            } else {
+                                wrapperProperty = names[0];
+                            }
                         } else if (subtypeInfo.discriminatorType() == SerdeConfig.SerSubtyped.DiscriminatorType.WRAPPER_ARRAY) {
-                            arrayWrapperProperty = names[0];
+                            if (resolvedTypeIdProperty != null) {
+                                dynamicArrayWrapperProperty = resolvedTypeIdProperty;
+                            } else {
+                                arrayWrapperProperty = names[0];
+                            }
+                        }
+                    } else if (resolvedTypeIdProperty != null) {
+                        if (subtypeInfo.discriminatorType() == SerdeConfig.SerSubtyped.DiscriminatorType.WRAPPER_OBJECT) {
+                            dynamicWrapperProperty = resolvedTypeIdProperty;
+                        } else if (subtypeInfo.discriminatorType() == SerdeConfig.SerSubtyped.DiscriminatorType.WRAPPER_ARRAY) {
+                            dynamicArrayWrapperProperty = resolvedTypeIdProperty;
                         }
                     }
                 }
 
                 this.wrapperProperty = wrapperProperty;
                 this.arrayWrapperProperty = arrayWrapperProperty;
+                this.dynamicWrapperProperty = dynamicWrapperProperty;
+                this.dynamicArrayWrapperProperty = dynamicArrayWrapperProperty;
             }
         }
         sortPropertiesIfNeeded(serdeArgumentConf, introspection.getAnnotationMetadata(), serializationConfiguration, writeProperties);
@@ -289,6 +330,67 @@ final class SerBean<T> {
         return mutableAnnotationMetadata;
     }
 
+    @Nullable
+    private static <T> SerProperty<T, Object> findTypeIdProperty(SerBean<T> serBean,
+                                                                 Collection<Map.Entry<BeanReadProperty<T, Object>, AnnotationMetadata>> properties) throws SerdeException {
+        SerProperty<T, Object> typeIdProperty = null;
+        for (Map.Entry<BeanReadProperty<T, Object>, AnnotationMetadata> prop : properties) {
+            if (prop.getValue().hasAnnotation(SerdeConfig.SerTypeId.class)) {
+                if (typeIdProperty != null) {
+                    throw new SerdeException("Multiple type ids defined for type [" + serBean.introspection.getBeanType().getName() + "]");
+                }
+                BeanReadProperty<T, Object> property = prop.getKey();
+                typeIdProperty = new PropSerProperty<>(
+                    serBean,
+                    property.getName(),
+                    property.getName(),
+                    property.asArgument(),
+                    prop.getValue(),
+                    property
+                );
+            }
+        }
+        return typeIdProperty;
+    }
+
+    private static <T> boolean isTypeIdPropertyUsed(@Nullable SerProperty<T, Object> typeIdProperty,
+                                                    @Nullable SubtypeInfo subtypeInfo,
+                                                    List<PropertySubtypeDescriptor> propertySubtypeDescriptors,
+                                                    BeanIntrospection<T> introspection) {
+        if (typeIdProperty == null) {
+            return false;
+        }
+        if (!propertySubtypeDescriptors.isEmpty()) {
+            return true;
+        }
+        if (subtypeInfo != null) {
+            return subtypeInfo.discriminatorType() == SerdeConfig.SerSubtyped.DiscriminatorType.WRAPPER_OBJECT
+                || subtypeInfo.discriminatorType() == SerdeConfig.SerSubtyped.DiscriminatorType.WRAPPER_ARRAY
+                || subtypeInfo.discriminatorType() == SerdeConfig.SerSubtyped.DiscriminatorType.EXTERNAL_PROPERTY;
+        }
+        return introspection.stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY).isPresent()
+            || introspection.stringValue(SerdeConfig.class, SerdeConfig.ARRAY_WRAPPER_PROPERTY).isPresent();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <B, P> UnsafeBeanReadProperty<B, P> optimizedReadProperty(BeanReadProperty<B, P> beanProperty) {
+        UnsafeBeanReadProperty<B, P> unsafeBeanProperty = (UnsafeBeanReadProperty<B, P>) beanProperty;
+        for (BeanProperty<B, Object> property : beanProperty.getDeclaringBean().getBeanProperties()) {
+            if (!property.isWriteOnly()
+                && property instanceof UnsafeBeanReadProperty
+                && property.getName().equals(beanProperty.getName())
+                && property.getType().equals(beanProperty.getType())) {
+                return (UnsafeBeanReadProperty<B, P>) property;
+            }
+        }
+        return unsafeBeanProperty;
+    }
+
+    private static boolean isSameProperty(BeanReadProperty<?, Object> property, SerProperty<?, Object> typeIdProperty) {
+        return property.getName().equals(typeIdProperty.originalName)
+            && property.getType().equals(typeIdProperty.argument.getType());
+    }
+
     private static <T> void sortPropertiesIfNeeded(@Nullable SerdeArgumentConf serdeArgumentConf,
                                                    AnnotationMetadata annotationMetadata,
                                                    SerializationConfiguration serializationConfiguration,
@@ -327,7 +429,7 @@ final class SerBean<T> {
     }
 
     private static boolean isInjectedSubtypeProperty(SerProperty<?, Object> property) {
-        return property instanceof CustomSerProperty<?, ?> || property instanceof InjectedSerProperty<?, ?>;
+        return property instanceof CustomSerProperty<?, ?> || property instanceof InjectedSerProperty<?, ?> || property instanceof TypeIdSerProperty<?, ?>;
     }
 
     private static int propertyOrderIndex(String[] explicitOrder,
@@ -376,7 +478,8 @@ final class SerBean<T> {
                                                                                @Nullable SubtypeInfo subtypeInfo,
                                                                                SerdeIntrospections introspections,
                                                                                BeanIntrospection<T> introspection,
-                                                                               List<Initializer> initializers) throws SerdeException {
+                                                                               List<Initializer> initializers,
+                                                                               @Nullable SerProperty<T, Object> typeIdProperty) throws SerdeException {
 
         final List<BeanMethod<T, Object>> jsonGetters = new ArrayList<>(introspection.getBeanMethods().size());
         for (BeanMethod<T, Object> beanMethod : introspection.getBeanMethods()) {
@@ -387,6 +490,7 @@ final class SerBean<T> {
         }
 
         List<PropertySubtypeDescriptor> propertySubtypeDescriptors = findDescriptors(subtypeInfo, type, introspection);
+        boolean typeIdPropertyUsed = isTypeIdPropertyUsed(typeIdProperty, subtypeInfo, propertySubtypeDescriptors, introspection);
 
         if (properties.isEmpty() && jsonGetters.isEmpty() && propertySubtypeDescriptors.isEmpty()) {
             return List.of();
@@ -399,17 +503,25 @@ final class SerBean<T> {
         final @Nullable PropertyNamingStrategy entityPropertyNamingStrategy = getPropertyNamingStrategy(introspection, encoderContext, defaultPropertyNamingStrategy);
         final List<SerProperty<T, Object>> writeProperties = new ArrayList<>(properties.size() + jsonGetters.size());
         for (PropertySubtypeDescriptor propertySubtypeDescriptor : propertySubtypeDescriptors) {
-            addSubtypeProperty(serBean, serdeArgumentConf, introspection, initializers, writeProperties, propertySubtypeDescriptor);
+            if (typeIdProperty == null) {
+                addSubtypeProperty(serBean, serdeArgumentConf, introspection, initializers, writeProperties, propertySubtypeDescriptor);
+            } else {
+                addTypeIdProperty(serBean, serdeArgumentConf, introspection, initializers, writeProperties, propertySubtypeDescriptor.propertyName(), typeIdProperty);
+            }
         }
         final Set<String> addedProperties = CollectionUtils.newHashSet(properties.size());
         for (Map.Entry<BeanReadProperty<T, Object>, AnnotationMetadata> propWithAnnotations : properties) {
             final BeanReadProperty<T, Object> property = propWithAnnotations.getKey();
+            if (typeIdPropertyUsed && typeIdProperty != null && isSameProperty(property, typeIdProperty)) {
+                continue;
+            }
             final Argument<Object> argument = property.asArgument();
             final AnnotationMetadata propertyAnnotationMetadata = propWithAnnotations.getValue();
             PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(property.getAnnotationMetadata(), encoderContext, entityPropertyNamingStrategy);
 
             SubtypeInfo propSubtypeInfo = SubtypeInfo.createForProperty(propertyAnnotationMetadata);
             if (propSubtypeInfo != null && propSubtypeInfo.discriminatorType() == SerdeConfig.SerSubtyped.DiscriminatorType.EXTERNAL_PROPERTY) {
+                Map<Class<?>, Optional<BeanReadProperty<Object, Object>>> typeIdProperties = new ConcurrentHashMap<>();
                 final CustomSerProperty<T, String> subtypeDiscriminatorProperty = new CustomSerProperty<>(
                     serBean,
                     propSubtypeInfo.discriminatorName(),
@@ -418,6 +530,10 @@ final class SerBean<T> {
                         Object subtypeValue = property.get(bean);
                         if (subtypeValue == null) {
                             return null;
+                        }
+                        String typeId = findExternalTypeId(introspections, typeIdProperties, subtypeValue);
+                        if (typeId != null) {
+                            return typeId;
                         }
                         String[] names = propSubtypeInfo.subtypes().get(subtypeValue.getClass());
                         if (names == null) {
@@ -507,6 +623,68 @@ final class SerBean<T> {
             initializers.add(ctx -> initProperty(prop, ctx, serdeArgumentConf));
         }
         return writeProperties;
+    }
+
+    @Nullable
+    private static String findExternalTypeId(SerdeIntrospections introspections,
+                                             Map<Class<?>, Optional<BeanReadProperty<Object, Object>>> typeIdProperties,
+                                             Object subtypeValue) {
+        Optional<BeanReadProperty<Object, Object>> typeIdProperty = typeIdProperties.computeIfAbsent(
+            subtypeValue.getClass(),
+            subtypeClass -> findExternalTypeIdProperty(introspections, subtypeClass)
+        );
+        if (typeIdProperty.isEmpty()) {
+            return null;
+        }
+        Object typeIdValue = typeIdProperty.get().get(subtypeValue);
+        if (typeIdValue == null) {
+            throw new IllegalStateException("Property [" + typeIdProperty.get().getName() + "] of type ["
+                + subtypeValue.getClass().getName() + "] returned null");
+        }
+        return typeIdValue.toString();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Optional<BeanReadProperty<Object, Object>> findExternalTypeIdProperty(SerdeIntrospections introspections, Class<?> subtypeClass) {
+        try {
+            BeanIntrospection<Object> subtypeIntrospection = introspections.getSerializableIntrospection(
+                Argument.of((Class<Object>) subtypeClass)
+            );
+            BeanReadProperty<Object, Object> typeIdProperty = null;
+            for (BeanReadProperty<Object, Object> property : subtypeIntrospection.getBeanReadProperties()) {
+                if (property.getAnnotationMetadata().hasAnnotation(SerdeConfig.SerTypeId.class)) {
+                    if (typeIdProperty != null) {
+                        throw new IllegalStateException("Multiple type ids defined for type [" + subtypeClass.getName() + "]");
+                    }
+                    typeIdProperty = property;
+                }
+            }
+            return Optional.ofNullable(typeIdProperty);
+        } catch (IntrospectionException e) {
+            return Optional.empty();
+        }
+    }
+
+    private static <T> void addTypeIdProperty(SerBean<T> serBean,
+                                              @Nullable SerdeArgumentConf serdeArgumentConf,
+                                              BeanIntrospection<T> introspection,
+                                              List<Initializer> initializers,
+                                              List<SerProperty<T, Object>> writeProperties,
+                                              String propertyName,
+                                              SerProperty<T, Object> typeIdProperty) {
+        SerProperty<T, Object> prop = new TypeIdSerProperty<>(
+            serBean,
+            propertyName,
+            typeIdProperty
+        );
+        writeProperties.add(prop);
+        initializers.add(context -> {
+            try {
+                initProperty(prop, context, serdeArgumentConf);
+            } catch (SerdeException e) {
+                throw new IntrospectionException("Error configuring subtype binding for type " + introspection.getBeanType() + ": " + e.getMessage());
+            }
+        });
     }
 
     private static <T> void addSubtypeProperty(SerBean<T> serBean,
@@ -655,7 +833,7 @@ final class SerBean<T> {
     }
 
     private boolean isSimpleBean() {
-        if (propertyFilter != null || jsonValue != null) {
+        if (propertyFilter != null || jsonValue != null || dynamicWrapperProperty != null || dynamicArrayWrapperProperty != null) {
             return false;
         }
         for (SerProperty<T, Object> property : writeProperties) {
@@ -742,19 +920,25 @@ final class SerBean<T> {
         public Class<?> getDeclaringType() {
             return beanProperty.getDeclaringType();
         }
+    }
 
-        @SuppressWarnings("unchecked")
-        private static <B, P> UnsafeBeanReadProperty<B, P> optimizedReadProperty(BeanReadProperty<B, P> beanProperty) {
-            UnsafeBeanReadProperty<B, P> unsafeBeanProperty = (UnsafeBeanReadProperty<B, P>) beanProperty;
-            for (BeanProperty<B, Object> property : beanProperty.getDeclaringBean().getBeanProperties()) {
-                if (!property.isWriteOnly()
-                    && property instanceof UnsafeBeanReadProperty
-                    && property.getName().equals(beanProperty.getName())
-                    && property.getType().equals(beanProperty.getType())) {
-                    return (UnsafeBeanReadProperty<B, P>) property;
-                }
-            }
-            return unsafeBeanProperty;
+    static final class TypeIdSerProperty<B, P> extends SerProperty<B, P> {
+
+        private final SerProperty<B, P> typeIdProperty;
+
+        public TypeIdSerProperty(SerBean<B> bean, String name, SerProperty<B, P> typeIdProperty) {
+            super(bean, name, typeIdProperty.originalName, typeIdProperty.argument);
+            this.typeIdProperty = typeIdProperty;
+        }
+
+        @Override
+        public @Nullable P get(B bean) {
+            return typeIdProperty.get(bean);
+        }
+
+        @Override
+        public Class<?> getDeclaringType() {
+            return typeIdProperty.getDeclaringType();
         }
     }
 
@@ -884,6 +1068,14 @@ final class SerBean<T> {
         }
 
         public abstract @Nullable P get(B bean);
+
+        String getRequiredString(B bean) throws SerdeException {
+            P value = get(bean);
+            if (value == null) {
+                throw new SerdeException("Property [" + originalName + "] of type [" + getDeclaringType().getName() + "] returned null");
+            }
+            return value.toString();
+        }
     }
 
     private interface Initializer {

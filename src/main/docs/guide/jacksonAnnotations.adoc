@@ -124,7 +124,7 @@ NOTE: If an unsupported annotation or member is used, a compilation error will r
 |
 
 |link:{jacksonAnnotationJavadoc}/JsonTypeId.html[@JsonTypeId]
-|❌
+|✅
 |
 
 |link:{jacksonAnnotationJavadoc}/JsonTypeInfo.html[@JsonTypeInfo]

@@ -85,6 +85,262 @@ class B extends Base {
             compiled.close()
     }
 
+    def 'test @JsonTypeId with property type info'() {
+        given:
+            def compiled = buildContext('example.Base', '''
+package example;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+@JsonSubTypes(@JsonSubTypes.Type(value = Book.class, name = "book"))
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")
+class Base {
+}
+
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Book extends Base {
+    @JsonTypeId
+    public String code;
+    public String title;
+}
+''', true)
+            def jsonMapper = compiled.getBean(JsonMapper)
+
+        when:
+            def book = newInstance(compiled, 'example.Book')
+            book.code = 'book'
+            book.title = 'Micronaut'
+            String json = serializeToString(jsonMapper, book)
+
+        then:
+            JSONAssert.assertEquals('{"kind":"book","title":"Micronaut"}', json, JSONCompareMode.STRICT)
+
+        cleanup:
+            compiled.close()
+    }
+
+    void 'test @JsonTypeId with wrapper #include type info'(String include, String expected) {
+        given:
+            def compiled = buildContext('example.Base', """
+package example;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+@JsonSubTypes(@JsonSubTypes.Type(value = Book.class, name = "book"))
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.${include})
+class Base {
+}
+
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Book extends Base {
+    @JsonTypeId
+    public String code;
+    public String title;
+}
+""", true)
+            def jsonMapper = compiled.getBean(JsonMapper)
+
+        when:
+            def book = newInstance(compiled, 'example.Book')
+            book.code = 'custom-book'
+            book.title = 'Micronaut'
+
+        then:
+            serializeToString(jsonMapper, book) == expected
+
+        cleanup:
+            compiled.close()
+
+        where:
+            include          | expected
+            'WRAPPER_OBJECT' | '{"custom-book":{"title":"Micronaut"}}'
+            'WRAPPER_ARRAY'  | '["custom-book",{"title":"Micronaut"}]'
+    }
+
+    def 'test @JsonTypeId on method with wrapper object type info'() {
+        given:
+            def compiled = buildContext('example.Base', '''
+package example;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@JsonSubTypes(@JsonSubTypes.Type(value = Book.class, name = "book"))
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_OBJECT)
+class Base {
+}
+
+@Serdeable
+class Book extends Base {
+    private final String title;
+
+    Book(String title) {
+        this.title = title;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    @JsonTypeId
+    public String getCode() {
+        return "custom-book";
+    }
+}
+''', true)
+            def jsonMapper = compiled.getBean(JsonMapper)
+
+        when:
+            def book = newInstance(compiled, 'example.Book', 'Micronaut')
+
+        then:
+            serializeToString(jsonMapper, book) == '{"custom-book":{"title":"Micronaut"}}'
+
+        cleanup:
+            compiled.close()
+    }
+
+    def 'test @JsonTypeId with external property type info'() {
+        given:
+            def compiled = buildContext('example.Wrapper', '''
+package example;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Wrapper {
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "kind")
+    public Book book;
+}
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Book {
+    @JsonTypeId
+    public String kind;
+    public String title;
+}
+''', true)
+            def jsonMapper = compiled.getBean(JsonMapper)
+
+        when:
+            def book = newInstance(compiled, 'example.Book')
+            book.kind = 'custom-book'
+            book.title = 'Micronaut'
+            def wrapper = newInstance(compiled, 'example.Wrapper')
+            wrapper.book = book
+            String json = serializeToString(jsonMapper, wrapper)
+
+        then:
+            JSONAssert.assertEquals('{"book":{"title":"Micronaut"},"kind":"custom-book"}', json, JSONCompareMode.NON_EXTENSIBLE)
+
+        cleanup:
+            compiled.close()
+    }
+
+    def 'test @JsonTypeId on abstract base getter'() {
+        given:
+            def compiled = buildContext('example.Base', '''
+package example;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "name")
+@JsonSubTypes(@JsonSubTypes.Type(value = Person.class))
+abstract class Base {
+    @JsonTypeId
+    public abstract String getName();
+}
+
+@Serdeable
+@JsonPropertyOrder({"age", "name"})
+@JsonTypeName("bob")
+class Person extends Base {
+    private final int age;
+
+    Person(int age) {
+        this.age = age;
+    }
+
+    @Override
+    public String getName() {
+        return "bob";
+    }
+
+    public int getAge() {
+        return age;
+    }
+}
+''', true)
+            def jsonMapper = compiled.getBean(JsonMapper)
+            def baseClass = compiled.classLoader.loadClass('example.Base')
+
+        when:
+            def person = newInstance(compiled, 'example.Person', 41)
+            String json = serializeToString(jsonMapper, person)
+
+        then:
+            JSONAssert.assertEquals('{"name":"bob","age":41}', json, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+            def result = deserializeFromString(jsonMapper, baseClass, '{"age":19,"name":"bob"}')
+
+        then:
+            result.class.name == 'example.Person'
+            result.age == 19
+
+        cleanup:
+            compiled.close()
+    }
+
+    def 'test multiple @JsonTypeId properties fail'() {
+        given:
+            def compiled = buildContext('example.MultipleIds', '''
+package example;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+class MultipleIds {
+    @JsonTypeId
+    public String type1 = "type1";
+
+    @JsonTypeId
+    public String type2 = "type2";
+}
+''', true)
+            def jsonMapper = compiled.getBean(JsonMapper)
+            def bean = newInstance(compiled, 'example.MultipleIds')
+
+        when:
+            serializeToString(jsonMapper, bean)
+
+        then:
+            def e = thrown(Exception)
+            e.message.contains('Multiple type ids')
+
+        cleanup:
+            compiled.close()
+    }
+
     def 'test JsonTypeInfo with record deduction with some name'() {
         given:
             def compiled = buildContext('example.ReadResourceResult', '''
