@@ -22,8 +22,15 @@ micronaut-oracle-cloud = "6.0.0-RC2"
 micronaut-reactor = "4.0.0-RC1"
 micronaut-validation = "5.0.0-RC2"
 micronaut-gradle-plugin = "5.0.0-M1"
-micronaut-sourcegen = "2.0.0-RC3"
+micronaut-sourcegen = "2.0.0"
 jsonassert = "1.5.3"
+
+# Dependencies used only by Jakarta TCK verification tasks.
+jakarta-enterprise-cdi-api = "4.0.1"
+jakarta-json-tck = "2.1.1"
+jakarta-json-bind-tck = "3.0.0"
+jakarta-tck-sigtest = "2.6"
+weld-se = "5.1.3.Final"
 
 [libraries]
 # Micronaut
@@ -41,6 +48,13 @@ managed-bson = { module = "org.mongodb:bson", version.ref = "managed-bson" }
 managed-eclipse-parsson = { module = "org.eclipse.parsson:parsson", version.ref = "managed-eclipse-parsson" }
 managed-jakarta-json-api = { module = "jakarta.json:jakarta.json-api", version.ref = "managed-jakarta-json-api" }
 managed-jakarta-json-bindApi = { module = "jakarta.json.bind:jakarta.json.bind-api", version.ref = "managed-jakarta-json-bindApi" }
+
+# Dependencies used only by Jakarta TCK verification tasks.
+jakarta-enterprise-cdi-api = { module = "jakarta.enterprise:jakarta.enterprise.cdi-api", version.ref = "jakarta-enterprise-cdi-api" }
+jakarta-json-tck = { module = "jakarta.json:jakarta.json-tck-tests", version.ref = "jakarta-json-tck" }
+jakarta-json-bind-tck = { module = "jakarta.json.bind:jakarta.json.bind-tck", version.ref = "jakarta-json-bind-tck" }
+jakarta-tck-sigtest = { module = "jakarta.tck:sigtest-maven-plugin", version.ref = "jakarta-tck-sigtest" }
+weld-se-core = { module = "org.jboss.weld.se:weld-se-core", version.ref = "weld-se" }
 
 oracle-jdbc-driver = { module = "com.oracle.database.jdbc:ojdbc8", version.ref = "oracle-jdbc-driver" }
 jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrains-annotations" }

@@ -24,6 +24,8 @@ import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.FieldElement;
 import io.micronaut.inject.ast.MethodElement;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.Keys;
+import io.micronaut.serde.KeysAwareEncoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
@@ -60,10 +62,13 @@ public final class BeanSerializerSourceGen {
     private static final String VALUE_PARAMETER = "value";
     private static final String VALUE_LOCAL_PREFIX = "value";
     private static final String GENERATED_VALUE_MEMBER = "value";
+    private static final String KEYS_FIELD = "KEYS";
 
     private static final TypeDef ARGUMENT_TYPE = TypeDef.of(Argument.class);
     private static final TypeDef SERIALIZER_TYPE = TypeDef.of(Serializer.class);
     private static final TypeDef STRING_TYPE = TypeDef.of(String.class);
+    private static final ClassTypeDef KEYS_TYPE = ClassTypeDef.of(Keys.class);
+    private static final ClassTypeDef KEYS_AWARE_ENCODER_TYPE = ClassTypeDef.of(KeysAwareEncoder.class);
 
     private static final Method SERIALIZE_METHOD = ReflectionUtils.getRequiredMethod(
         Serializer.class,
@@ -87,8 +92,10 @@ public final class BeanSerializerSourceGen {
         Serializer.EncoderContext.class,
         Argument.class
     );
+    private static final Method KEYS_CREATE_METHOD = ReflectionUtils.getRequiredMethod(Keys.class, "create", String[].class);
     private static final Method ENCODE_OBJECT_METHOD = ReflectionUtils.getRequiredMethod(Encoder.class, "encodeObject", Argument.class);
-    private static final Method ENCODE_KEY_METHOD = ReflectionUtils.getRequiredMethod(Encoder.class, "encodeKey", String.class);
+    private static final Method KEYS_AWARE_ENCODER_OF_METHOD = ReflectionUtils.getRequiredMethod(KeysAwareEncoder.class, "of", Encoder.class);
+    private static final Method ENCODE_KEY_KEYS_METHOD = ReflectionUtils.getRequiredMethod(KeysAwareEncoder.class, "encodeKey", Keys.class, int.class);
     private static final Method ENCODE_STRING_METHOD = ReflectionUtils.getRequiredMethod(Encoder.class, "encodeString", String.class);
     private static final Method ENCODE_BOOLEAN_METHOD = ReflectionUtils.getRequiredMethod(Encoder.class, "encodeBoolean", boolean.class);
     private static final Method ENCODE_BYTE_METHOD = ReflectionUtils.getRequiredMethod(Encoder.class, "encodeByte", byte.class);
@@ -153,7 +160,12 @@ public final class BeanSerializerSourceGen {
             }
             index++;
         }
-
+        if (!keyFieldNames.isEmpty()) {
+            fields.add(FieldDef.builder(KEYS_FIELD, KEYS_TYPE)
+                .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                .initializer(keysCreateExpression(serializerClassTypeDef, new ArrayList<>(keyFieldNames.values())))
+                .build());
+        }
         ClassDef.ClassDefBuilder classDefBuilder = ClassDef.builder(SerdeSourceGenClassNaming.generatedSerializerClassName(element))
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
             .addAnnotation(Prototype.class)
@@ -165,15 +177,21 @@ public final class BeanSerializerSourceGen {
             .addFields(fields)
             .addMethod(generateCreateSpecificMethod(beanTypeDef))
             .addMethod(generateSerializeMethod(beanTypeDef))
-            .addMethod(generateSerializeIntoMethod(beanTypeDef, serializerClassTypeDef, beanSerdeShape, keyFieldNames, argumentFieldNames, serializerFieldNames));
+            .addMethod(generateSerializeIntoMethod(beanTypeDef, serializerClassTypeDef, beanSerdeShape, argumentFieldNames, serializerFieldNames));
         if (!serializerFieldNames.isEmpty()) {
             classDefBuilder.addMethod(generateConstructor(beanTypeDef, serializerClassTypeDef, argumentFieldNames, serializerFieldNames));
         }
 
+        List<Object> suppressWarnings = new ArrayList<>();
         if (fieldAccessProperties) {
+            suppressWarnings.add("UnnecessaryParentheses");
+        }
+        if (!suppressWarnings.isEmpty()) {
             classDefBuilder.addAnnotation(AnnotationDef.builder(SuppressWarnings.class)
-                .addMember(GENERATED_VALUE_MEMBER, "UnnecessaryParentheses")
+                .addMember(GENERATED_VALUE_MEMBER, suppressWarnings)
                 .build());
+        }
+        if (fieldAccessProperties) {
             classDefBuilder.addAnnotation(Secondary.class);
         }
         return classDefBuilder.build();
@@ -258,7 +276,6 @@ public final class BeanSerializerSourceGen {
     private MethodDef generateSerializeIntoMethod(TypeDef beanTypeDef,
                                                   ClassTypeDef serializerClassTypeDef,
                                                   BeanSerdeShape beanSerdeShape,
-                                                  Map<String, String> keyFieldNames,
                                                   Map<String, String> argumentFieldNames,
                                                   Map<String, String> serializerFieldNames) {
         return MethodDef.builder("serializeInto")
@@ -269,29 +286,70 @@ public final class BeanSerializerSourceGen {
             .addParameter("type", TypeDef.of(Argument.class))
             .addParameter(VALUE_PARAMETER, beanTypeDef)
             .addThrows(TypeDef.of(IOException.class))
-            .build((aThis, methodParameters) -> StatementDef.multi(
-                serializeIntoStatements(aThis, serializerClassTypeDef, methodParameters.get(0), methodParameters.get(1), methodParameters.get(2), methodParameters.get(3), beanSerdeShape, keyFieldNames, argumentFieldNames, serializerFieldNames)
-            ));
+            .build((aThis, methodParameters) -> {
+                VariableDef.MethodParameter encoder = methodParameters.get(0);
+                VariableDef.MethodParameter context = methodParameters.get(1);
+                VariableDef.MethodParameter type = methodParameters.get(2);
+                VariableDef.MethodParameter value = methodParameters.get(3);
+                if (beanSerdeShape.properties().isEmpty()) {
+                    return StatementDef.multi(serializeIntoStatements(
+                        aThis,
+                        serializerClassTypeDef,
+                        encoder,
+                        encoder,
+                        context,
+                        type,
+                        value,
+                        beanSerdeShape,
+                        argumentFieldNames,
+                        serializerFieldNames
+                    ));
+                }
+                return KEYS_AWARE_ENCODER_TYPE.invokeStatic(KEYS_AWARE_ENCODER_OF_METHOD, encoder)
+                    .newLocal("keysAwareEncoder", keysAwareEncoder -> StatementDef.multi(serializeIntoStatements(
+                            aThis,
+                            serializerClassTypeDef,
+                            encoder,
+                            keysAwareEncoder,
+                            context,
+                            type,
+                            value,
+                            beanSerdeShape,
+                            argumentFieldNames,
+                            serializerFieldNames
+                        ))
+                    );
+            });
     }
 
     @SuppressWarnings("java:S107")
     private List<StatementDef> serializeIntoStatements(VariableDef.This aThis,
                                                        ClassTypeDef serializerClassTypeDef,
-                                                       VariableDef encoder,
+                                                       VariableDef valueEncoder,
+                                                       VariableDef keyEncoder,
                                                        VariableDef.MethodParameter context,
                                                        VariableDef.MethodParameter type,
                                                        VariableDef.MethodParameter value,
                                                        BeanSerdeShape beanSerdeShape,
-                                                       Map<String, String> keyFieldNames,
                                                        Map<String, String> argumentFieldNames,
                                                        Map<String, String> serializerFieldNames) {
         List<StatementDef> statements = new ArrayList<>();
         int index = 0;
         for (BeanSerdeShape.BeanProperty property : beanSerdeShape.properties()) {
-            statements.add(encoder.invoke(ENCODE_KEY_METHOD, serializerClassTypeDef.getStaticField(required(keyFieldNames, property.name()), STRING_TYPE)));
-            statements.add(serializeProperty(aThis, serializerClassTypeDef, encoder, context, type, value, property, index++, argumentFieldNames, serializerFieldNames));
+            statements.add(encodeKeyStatement(serializerClassTypeDef, keyEncoder, index));
+            statements.add(serializeProperty(aThis, serializerClassTypeDef, valueEncoder, context, type, value, property, index++, argumentFieldNames, serializerFieldNames));
         }
         return statements;
+    }
+
+    private StatementDef encodeKeyStatement(ClassTypeDef serializerClassTypeDef,
+                                            VariableDef encoder,
+                                            int index) {
+        return encoder.invoke(
+            ENCODE_KEY_KEYS_METHOD,
+            serializerClassTypeDef.getStaticField(KEYS_FIELD, KEYS_TYPE),
+            ExpressionDef.constant(index)
+        );
     }
 
     @SuppressWarnings("java:S107")
@@ -370,6 +428,16 @@ public final class BeanSerializerSourceGen {
 
     private String indexedName(String prefix, int index) {
         return prefix + "_" + index;
+    }
+
+    private ExpressionDef keysCreateExpression(ClassTypeDef serializerClassTypeDef, List<String> keyFieldNames) {
+        List<ExpressionDef> keyExpressions = keyFieldNames.stream()
+            .map(keyFieldName -> (ExpressionDef) serializerClassTypeDef.getStaticField(keyFieldName, STRING_TYPE))
+            .toList();
+        return KEYS_TYPE.invokeStatic(
+            KEYS_CREATE_METHOD,
+            STRING_TYPE.array().instantiate(keyExpressions)
+        );
     }
 
     private @Nullable Method scalarEncoderMethod(ClassElement type) {

@@ -18,27 +18,35 @@ package io.micronaut.serde.jackson;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.Keys;
+import io.micronaut.serde.KeysAwareEncoder;
+import io.micronaut.serde.KeysSupport;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.exceptions.SerdeException;
 import org.jspecify.annotations.Nullable;
 import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.SerializableString;
 import tools.jackson.core.TokenStreamContext;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Objects;
 
 /**
  * Implementation of the {@link io.micronaut.serde.Encoder} interface for Jackson.
  */
-public abstract class JacksonEncoder extends LimitingStream implements Encoder {
+public abstract class JacksonEncoder extends LimitingStream implements KeysAwareEncoder {
+    private static final int JACKSON_KEYS_INDEX = KeysSupport.indexOf(new JacksonKeysProvider());
+
     protected final JsonGenerator generator;
     @Nullable
     private final JacksonEncoder parent;
 
     @Nullable
     private JacksonEncoder child;
+    @Nullable
+    private Keys currentKeys;
+    private SerializableString @Nullable [] currentSerializableKeys;
 
     private JacksonEncoder(JacksonEncoder parent, RemainingLimits remainingLimits) {
         super(remainingLimits);
@@ -65,7 +73,6 @@ public abstract class JacksonEncoder extends LimitingStream implements Encoder {
      */
     @Internal
     public static Encoder create(JsonGenerator generator, RemainingLimits remainingLimits) {
-        Objects.requireNonNull(generator, "generator");
         return new ReuseChildEncoder(generator, remainingLimits);
     }
 
@@ -130,13 +137,26 @@ public abstract class JacksonEncoder extends LimitingStream implements Encoder {
 
     @Override
     public final void encodeKey(String key) throws IOException {
-        Objects.requireNonNull(key, "key");
         generator.writeName(key);
     }
 
     @Override
+    public final void encodeKey(Keys keys, int index) throws IOException {
+        generator.writeName(serializableKey(keys, index));
+    }
+
+    private SerializableString serializableKey(Keys keys, int index) {
+        SerializableString[] serializableKeys = currentSerializableKeys;
+        if (keys != currentKeys || serializableKeys == null) {
+            serializableKeys = (SerializableString[]) KeysSupport.get(keys, JACKSON_KEYS_INDEX)[JacksonKeysProvider.SERIALIZABLE_KEYS_INDEX];
+            currentKeys = keys;
+            currentSerializableKeys = serializableKeys;
+        }
+        return serializableKeys[index];
+    }
+
+    @Override
     public final void encodeString(String value) throws IOException {
-        Objects.requireNonNull(value, "value");
         generator.writeString(value);
     }
 
@@ -182,13 +202,11 @@ public abstract class JacksonEncoder extends LimitingStream implements Encoder {
 
     @Override
     public final void encodeBigInteger(BigInteger value) throws IOException {
-        Objects.requireNonNull(value, "value");
         generator.writeNumber(value);
     }
 
     @Override
     public final void encodeBigDecimal(BigDecimal value) throws IOException {
-        Objects.requireNonNull(value, "value");
         generator.writeNumber(value);
     }
 

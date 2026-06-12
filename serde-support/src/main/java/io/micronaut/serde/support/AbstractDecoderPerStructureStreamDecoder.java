@@ -93,7 +93,7 @@ public abstract class AbstractDecoderPerStructureStreamDecoder extends AbstractS
 
     @Nullable
     @Override
-    public final String decodeKey() throws IOException {
+    public String decodeKey() throws IOException {
         checkChild();
         return super.decodeKey();
     }
@@ -114,7 +114,7 @@ public abstract class AbstractDecoderPerStructureStreamDecoder extends AbstractS
         return child;
     }
 
-    private void checkChild() {
+    protected final void checkChild() {
         if (child != null) {
             throw new IllegalStateException("There is still an unfinished child parser");
         }

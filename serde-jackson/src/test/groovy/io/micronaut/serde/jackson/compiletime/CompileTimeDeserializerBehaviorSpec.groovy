@@ -142,7 +142,7 @@ class CompileTimeDeserializerBehaviorSpec extends JsonCompileSpec {
         'missing all values'        | '{}'
     }
 
-    void 'test generated primitive decoder only uses nullable scalar decode when primitive nulls fail'() {
+    void 'test generated primitive decoder uses direct scalar decode when primitive nulls fail'() {
         given:
         def context = ApplicationContext.run([
             'micronaut.serde.deserialization.fail-on-null-for-primitives': failOnNullForPrimitives
@@ -170,7 +170,125 @@ class CompileTimeDeserializerBehaviorSpec extends JsonCompileSpec {
         failOnNullForPrimitives | json                            | expectedActive | expectedCount | expectedNullablePrimitiveDecodeCalls | expectedPrimitiveDecodeCalls | expectedDecodeNullCalls
         false                   | '{"active":true,"count":12}'    | true           | 12            | 0                                    | 2                            | 2
         false                   | '{"active":null,"count":null}'  | true           | 7             | 0                                    | 0                            | 2
-        true                    | '{"active":true,"count":12}'    | true           | 12            | 2                                    | 0                            | 0
+        true                    | '{"active":true,"count":12}'    | true           | 12            | 0                                    | 2                            | 0
+    }
+
+    void 'test generated primitive decoder covers every primitive scalar path'() {
+        given:
+        def context = ApplicationContext.run([
+            'micronaut.serde.deserialization.fail-on-null-for-primitives': failOnNullForPrimitives
+        ])
+        def registry = context.getBean(SerdeRegistry)
+        Argument argument = Argument.of(SourceGenAllPrimitiveKinds)
+        def decoderContext = registry.newDecoderContext(Object)
+        Deserializer deserializer = registry.findDeserializer(argument).createSpecific(decoderContext, argument)
+        def decoder = trackingDecoder(json, false)
+
+        when:
+        SourceGenAllPrimitiveKinds value = deserializer.deserialize(decoder, decoderContext, argument)
+
+        then:
+        assertAllPrimitiveValues(value, expectedActive, expectedByte, expectedShort, expectedChar, expectedCount, expectedId, expectedRatio, expectedScore)
+        decoder.nullablePrimitiveDecodeCalls == expectedNullablePrimitiveDecodeCalls
+        decoder.primitiveDecodeCalls == expectedPrimitiveDecodeCalls
+        decoder.decodeNullCalls == expectedDecodeNullCalls
+
+        cleanup:
+        context.close()
+
+        where:
+        failOnNullForPrimitives | json                                                                                                                                      | expectedActive | expectedByte | expectedShort | expectedChar | expectedCount | expectedId | expectedRatio | expectedScore | expectedNullablePrimitiveDecodeCalls | expectedPrimitiveDecodeCalls | expectedDecodeNullCalls
+        false                   | '{"active":false,"byteValue":1,"shortValue":2,"charValue":"a","count":3,"id":4,"ratio":5.5,"score":6.5}'                    | false          | (byte) 1     | (short) 2     | (char) 'a'   | 3             | 4L         | 5.5F          | 6.5D          | 1                                    | 7                            | 7
+        false                   | '{"active":null,"byteValue":null,"shortValue":null,"charValue":null,"count":null,"id":null,"ratio":null,"score":null}'       | true           | (byte) 7     | (short) 8     | (char) 'z'   | 9             | 10L        | 1.5F          | 2.5D          | 1                                    | 0                            | 7
+        true                    | '{"active":false,"byteValue":1,"shortValue":2,"charValue":"a","count":3,"id":4,"ratio":5.5,"score":6.5}'                    | false          | (byte) 1     | (short) 2     | (char) 'a'   | 3             | 4L         | 5.5F          | 6.5D          | 0                                    | 8                            | 0
+    }
+
+    void 'test generated primitive decoder source includes every primitive scalar method'() {
+        given:
+        def context = ApplicationContext.run()
+        Class<?> generatedType = SourceGenAllPrimitiveKinds
+        def introspections = context.getBean(SerdeIntrospections)
+        def generatedMetadata = introspections.getDeserializableIntrospection(Argument.of(generatedType)).annotationMetadata
+        String deserializerClassName = generatedMetadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_CLASS).orElse(null)
+        String deserializerSource = generatedTestSource(deserializerClassName)
+
+        expect:
+        assert deserializerSource.contains('objectDecoder.decodeLongNullable()')
+        ['Boolean', 'Byte', 'Short', 'Char', 'Int', 'Float', 'Double'].each {
+            assert deserializerSource.contains("objectDecoder.decode${it}()")
+        }
+        assert deserializerSource.contains('objectDecoder.decodeLong()')
+
+        cleanup:
+        context.close()
+    }
+
+    void 'test generated non null boxed scalar bean keeps nullable boxed decoders and direct string decoder'() {
+        given:
+        def context = ApplicationContext.run()
+        jsonMapper = context.getBean(JsonMapper)
+        def registry = context.getBean(SerdeRegistry)
+        def introspections = context.getBean(SerdeIntrospections)
+        def argument = Argument.of(SourceGenNonNullBoxedScalarBean)
+        def generatedMetadata = introspections.getDeserializableIntrospection(argument).annotationMetadata
+        String deserializerClassName = generatedMetadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_CLASS).orElse(null)
+        String deserializerSource = generatedTestSource(deserializerClassName)
+
+        when:
+        SourceGenNonNullBoxedScalarBean decoded = jsonMapper.readValue(
+            '{"d":1.5,"i":2,"b":true,"s":"x"}',
+            argument
+        )
+
+        then:
+        assertGeneratedDeserializer(registry, SourceGenNonNullBoxedScalarBean.class)
+        decoded.d == 1.5D
+        decoded.i == 2
+        decoded.b
+        decoded.s == 'x'
+        deserializerSource.contains('objectDecoder.decodeDoubleNullable()')
+        deserializerSource.contains('objectDecoder.decodeIntNullable()')
+        deserializerSource.contains('objectDecoder.decodeBooleanNullable()')
+        deserializerSource.contains('bean.setS(objectDecoder.decodeString());')
+        !deserializerSource.contains('bean.setD(objectDecoder.decodeDouble());')
+        !deserializerSource.contains('bean.setI(objectDecoder.decodeInt());')
+        !deserializerSource.contains('bean.setB(objectDecoder.decodeBoolean());')
+        !deserializerSource.contains('decodeStringNullable()')
+        assertSerdeFailure(
+            jsonMapper,
+            SourceGenNonNullBoxedScalarBean,
+            '{"d":null,"i":2,"b":true,"s":"x"}',
+            'Non-null property',
+            '["d"]'
+        )
+
+        cleanup:
+        context.close()
+    }
+
+    void 'test runtime primitive decoder value kinds cover every primitive scalar path'() {
+        given:
+        def context = ApplicationContext.run([
+            'micronaut.serde.deserialization.fail-on-null-for-primitives': false
+        ])
+        jsonMapper = context.getBean(JsonMapper)
+
+        when:
+        SourceGenRuntimeAllPrimitiveKinds decoded = jsonMapper.readValue(
+            '{"active":false,"byteValue":1,"shortValue":2,"charValue":"a","count":3,"id":4,"ratio":5.5,"score":6.5}',
+            Argument.of(SourceGenRuntimeAllPrimitiveKinds)
+        )
+        SourceGenRuntimeAllPrimitiveKinds decodedNulls = jsonMapper.readValue(
+            '{"active":null,"byteValue":null,"shortValue":null,"charValue":null,"count":null,"id":null,"ratio":null,"score":null}',
+            Argument.of(SourceGenRuntimeAllPrimitiveKinds)
+        )
+
+        then:
+        assertAllPrimitiveValues(decoded, false, (byte) 1, (short) 2, (char) 'a', 3, 4L, 5.5F, 6.5D)
+        assertAllPrimitiveValues(decodedNulls, true, (byte) 7, (short) 8, (char) 'z', 9, 10L, 1.5F, 2.5D)
+
+        cleanup:
+        context.close()
     }
 
     void 'test generated field default deserializer covers primitive and unknown branches'() {
@@ -584,6 +702,25 @@ class CompileTimeDeserializerBehaviorSpec extends JsonCompileSpec {
         assert propertyValue(generated, 'nullableActive') == propertyValue(runtime, 'nullableActive')
     }
 
+    private static void assertAllPrimitiveValues(Object value,
+                                                 boolean expectedActive,
+                                                 byte expectedByte,
+                                                 short expectedShort,
+                                                 char expectedChar,
+                                                 int expectedCount,
+                                                 long expectedId,
+                                                 float expectedRatio,
+                                                 double expectedScore) {
+        assert propertyValue(value, 'active') == expectedActive
+        assert propertyValue(value, 'byteValue') == expectedByte
+        assert propertyValue(value, 'shortValue') == expectedShort
+        assert propertyValue(value, 'charValue') == expectedChar
+        assert propertyValue(value, 'count') == expectedCount
+        assert propertyValue(value, 'id') == expectedId
+        assert propertyValue(value, 'ratio') == expectedRatio
+        assert propertyValue(value, 'score') == expectedScore
+    }
+
     private static void assertReadMatches(JsonMapper jsonMapper,
                                           Class<?> generatedType,
                                           Class<?> runtimeType,
@@ -750,9 +887,45 @@ class CompileTimeDeserializerBehaviorSpec extends JsonCompileSpec {
         }
 
         @Override
+        Byte decodeByteNullable() throws IOException {
+            trackNullablePrimitiveDecode()
+            delegate.decodeByteNullable()
+        }
+
+        @Override
+        Short decodeShortNullable() throws IOException {
+            trackNullablePrimitiveDecode()
+            delegate.decodeShortNullable()
+        }
+
+        @Override
+        Character decodeCharNullable() throws IOException {
+            trackNullablePrimitiveDecode()
+            delegate.decodeCharNullable()
+        }
+
+        @Override
         Integer decodeIntNullable() throws IOException {
             trackNullablePrimitiveDecode()
             delegate.decodeIntNullable()
+        }
+
+        @Override
+        Long decodeLongNullable() throws IOException {
+            trackNullablePrimitiveDecode()
+            delegate.decodeLongNullable()
+        }
+
+        @Override
+        Float decodeFloatNullable() throws IOException {
+            trackNullablePrimitiveDecode()
+            delegate.decodeFloatNullable()
+        }
+
+        @Override
+        Double decodeDoubleNullable() throws IOException {
+            trackNullablePrimitiveDecode()
+            delegate.decodeDoubleNullable()
         }
 
         @Override
@@ -762,9 +935,45 @@ class CompileTimeDeserializerBehaviorSpec extends JsonCompileSpec {
         }
 
         @Override
+        byte decodeByte() throws IOException {
+            tracker.primitiveDecodeCalls++
+            delegate.decodeByte()
+        }
+
+        @Override
+        short decodeShort() throws IOException {
+            tracker.primitiveDecodeCalls++
+            delegate.decodeShort()
+        }
+
+        @Override
+        char decodeChar() throws IOException {
+            tracker.primitiveDecodeCalls++
+            delegate.decodeChar()
+        }
+
+        @Override
         int decodeInt() throws IOException {
             tracker.primitiveDecodeCalls++
             delegate.decodeInt()
+        }
+
+        @Override
+        long decodeLong() throws IOException {
+            tracker.primitiveDecodeCalls++
+            delegate.decodeLong()
+        }
+
+        @Override
+        float decodeFloat() throws IOException {
+            tracker.primitiveDecodeCalls++
+            delegate.decodeFloat()
+        }
+
+        @Override
+        double decodeDouble() throws IOException {
+            tracker.primitiveDecodeCalls++
+            delegate.decodeDouble()
         }
 
         @Override

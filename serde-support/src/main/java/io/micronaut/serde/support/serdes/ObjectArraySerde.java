@@ -37,16 +37,20 @@ public class ObjectArraySerde implements FormattedSerde<Object[]>, SerdeRegistra
     @Override
     public Deserializer<Object[]> createSpecific(DecoderContext context, Argument<? super Object[]> type)
             throws SerdeException {
-        final Argument<Object> componentType = Argument.of((Class<Object>) type.getType().getComponentType());
+        final Argument<Object> componentType = getComponentType(type);
         final Deserializer<?> deserializer = context.findDeserializer(componentType).createSpecific(context, componentType);
         return SingleElementArraySerde.acceptSingleValueAsArray(new CustomizedObjectArrayDeserializer(componentType, deserializer), context);
     }
 
     @Override
     public Serializer<Object[]> createSpecific(EncoderContext context, Argument<? extends Object[]> type) throws SerdeException {
-        final Argument<Object> componentType = Argument.of((Class<Object>) type.getType().getComponentType());
+        final Argument<Object> componentType = getComponentType(type);
         final Serializer<? super Object> serializer = context.findSerializer(componentType).createSpecific(context, componentType);
         return SingleElementArraySerde.writeSingleElementArraysUnwrapped(new CustomizedObjectArraySerializer(componentType, serializer), context);
+    }
+
+    private Argument<Object> getComponentType(Argument<?> type) {
+        return Argument.of((Class<Object>) type.getType().getComponentType(), type.getTypeParameters());
     }
 
     @Override

@@ -26,6 +26,10 @@ import java.util.Map;
 
 public class UserBeanSerdeBenchmark {
 
+    private static final String JACKSON_DATABIND = "Jackson Databind";
+    private static final String JACKSON_DATABIND_BLACKBIRD = "Jackson Databind Blackbird";
+    private static final String SERDE_JACKSON_GENERATED = "Serde Jackson Generated";
+    private static final String SERDE_JACKSON_RUNTIME = "Serde Jackson Runtime";
     private static final Argument<Users> USERS_ARGUMENT = Argument.of(Users.class);
     private static final byte[] USERS_JSON = """
         {"users":[{"_id":"39771757156730064829","index":1031703887,"guid":"ifhsrU6geU4PijjDE8Q5","isActive":false,"balance":"TKl0GcwTs72S4CPx5rfg","picture":"FkKrg6ZOPC5REchlhixu5WgIl3gNAqq28iLtFm6dKfTSQs8d3P0cYxKsEvbvMB2C6BVgExop3khRlNSFE4SV8dVFitFs7RyyecN8","age":5,"eyeColor":"AY79Pw4sYByUZEMLxnYJ","name":"XjXrEZMuTvPnuOPBg7hL","gender":"VaMcuWBHvnWvIlCC9q4T","company":"6pmCe1LxouRGfZD79ena","email":"TboNtpmAS0ppZ07jITFE","phone":"j8OoUhtmwBlI20EgD1LS","address":"Aqo4fSYBpvvAWTDqbFbK","about":"1kXFSA2782BLqNBbKIbp","registered":"Mc7h3gZJcQ11ShGQYdXI","latitude":13.474549605725421,"longitude":35.010833129741435,"tags":["8tGfPhZkZD","XYmwuAAtZ4","u9iBDMpS9G","4udy1eRqme","Lg48Ogrf0I","zku019kVpo","iuIMkiZzog","MuI1uYeCjc","49n7qisFD8","TtVgWerCRh","H604QRJmi1","ZIQMfqInNH","CbDyjjA19F","pNFwPdkVdU","aPFLsUbIUh","fA735PT0Hd","00etYDYL87","mlyEf1lI2B","RQ05IJSzXF","3jJt0Zrkhw","ZINP8GH4Bm","XebX8UvviN","EXqZ9G0ATB","ssyzWZVAa2"],"friends":[{"id":"2668","name":"lcxeDXPbnoIxAPqTNdkwbcGIJxLnPe"},{"id":"9395","name":"dxNBbezfkbotyCmFzjodONShlGFaAg"},{"id":"5249","name":"fYHSDXScMSzQvxzFuuPHYWfyjdGQLg"},{"id":"4978","name":"qfoxPWmoWUyUduVkRwhzyBusuflrFY"},{"id":"9710","name":"vUAJwshFGLoBHfwLcsEVNLJLwdaCAg"},{"id":"7404","name":"BhVMdvhPRdpwpDWAmfhNDikncdNgGr"},{"id":"1343","name":"ZeDoizPcOBafZtVYDOmpzGoHekfoxf"},{"id":"7382","name":"KtqXeVdCQJlwSNHkgkxuoIGdOWrmqG"},{"id":"1365","name":"rCSTlgbmTAFhbSfPmnftcDLwdiKsHt"},{"id":"8037","name":"PUvwVYoSvSTnwjJCQITTcwNvMOpxie"},{"id":"4858","name":"cUfQfDIiyMfCMYBKGwhZSWnRRKwlxG"},{"id":"9141","name":"rJxMGOWRjdkphthcaKTspFrMcvcLLb"},{"id":"9128","name":"gcsYaolAQqrNMQTluIAKOkwYTWVUXe"},{"id":"2268","name":"jwXOUcXAiLurRlgTdxyKWvsbNHfFxl"},{"id":"5447","name":"whivfJXOdxoHtLIGpytTdbOXxlZpUY"},{"id":"7551","name":"whykuIjZUgvOFGpmNHjoPeTeYCPNby"},{"id":"719","name":"SmbiwQaORLdsbAlUZbQwgCKfuoPLVr"},{"id":"7773","name":"LZmRMXmXXHzlzFFJAopDNnWkuBqndD"},{"id":"9602","name":"xCNsDBFMygEwZuecJKTUrqeDLBJlrR"},{"id":"1536","name":"hrfeFnKnmVgZDDOxAHgXfgcJSRyiXB"},{"id":"3549","name":"NvvhXwWgCSaYijqhxsrxIWrHbBOOIa"}],"greeting":"hTAIJLspvLr8DJPG3jYh","favoriteFruit":"f6ZsZ3saRGKMBCZLAkiP"}]}
@@ -58,12 +62,12 @@ public class UserBeanSerdeBenchmark {
     @State(Scope.Thread)
     public static class Holder {
         @Param({
-            "JACKSON_DATABIND",
-            "JACKSON_DATABIND_BLACKBIRD",
-            "SERDE_JACKSON_GENERATED",
-            "SERDE_JACKSON_RUNTIME"
+            JACKSON_DATABIND,
+            JACKSON_DATABIND_BLACKBIRD,
+            SERDE_JACKSON_GENERATED,
+            SERDE_JACKSON_RUNTIME
         })
-        Stack stack = Stack.SERDE_JACKSON_GENERATED;
+        String stack = SERDE_JACKSON_GENERATED;
 
         JsonMapper jsonMapper;
         ApplicationContext context;
@@ -71,22 +75,26 @@ public class UserBeanSerdeBenchmark {
 
         @Setup
         public void setUp() throws Exception {
-            if (stack == Stack.JACKSON_DATABIND) {
-                jsonMapper = new JacksonDatabindMapper();
-            } else if (stack == Stack.JACKSON_DATABIND_BLACKBIRD) {
+            if (stack.equals(JACKSON_DATABIND)) {
+                ObjectMapper objectMapper = tools.jackson.databind.json.JsonMapper.builder()
+                    .build();
+                validateBlackbirdModule(objectMapper, false);
+                jsonMapper = new JacksonDatabindMapper(objectMapper);
+            } else if (stack.equals(JACKSON_DATABIND_BLACKBIRD)) {
                 // Users is a public-field model. Blackbird is registered here, but it primarily
                 // optimizes method-backed bean accessors, so this shape may show limited benefit.
                 ObjectMapper objectMapper = tools.jackson.databind.json.JsonMapper.builder()
                     .addModule(new BlackbirdModule())
                     .build();
+                validateBlackbirdModule(objectMapper, true);
                 jsonMapper = new JacksonDatabindMapper(objectMapper);
-            } else if (stack == Stack.SERDE_JACKSON_GENERATED) {
+            } else if (stack.equals(SERDE_JACKSON_GENERATED)) {
                 context = ApplicationContext.run(Map.of(
                     "micronaut.serde.serialization.inclusion", "ALWAYS"
                 ));
                 jsonMapper = context.getBean(JacksonJsonMapper.class);
                 validateDefaultSerdes(context);
-            } else if (stack == Stack.SERDE_JACKSON_RUNTIME) {
+            } else if (stack.equals(SERDE_JACKSON_RUNTIME)) {
                 context = ApplicationContext.run(Map.of(
                     "micronaut.serde.serialization.inclusion", "ALWAYS",
                     "micronaut.serde.serialization.disable-generated-serializer", true,
@@ -148,12 +156,14 @@ public class UserBeanSerdeBenchmark {
                 throw new IllegalStateException("Expected " + role + " " + expectedClassName + " but found " + actualClassName);
             }
         }
+
+        private static void validateBlackbirdModule(ObjectMapper objectMapper, boolean expected) {
+            boolean present = objectMapper.registeredModules().stream()
+                .anyMatch(BlackbirdModule.class::isInstance);
+            if (present != expected) {
+                throw new IllegalStateException("Expected Jackson Blackbird module present=" + expected + " but was " + present);
+            }
+        }
     }
 
-    public enum Stack {
-        JACKSON_DATABIND,
-        JACKSON_DATABIND_BLACKBIRD,
-        SERDE_JACKSON_GENERATED,
-        SERDE_JACKSON_RUNTIME
-    }
 }

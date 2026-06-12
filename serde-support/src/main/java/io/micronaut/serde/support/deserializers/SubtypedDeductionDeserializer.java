@@ -19,14 +19,21 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.Keys;
+import io.micronaut.serde.KeysAwareDecoder;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Subtyped deduction deserializer.
@@ -40,12 +47,16 @@ final class SubtypedDeductionDeserializer implements Deserializer<Object> {
     private final DeserBean<? super Object> deserBean;
     private final DeserBeanSubtypeInfo<? super Object> subtypeInfo;
     private final Map<String, Deserializer<Object>> deserializers;
+    private final List<String> propertyNames;
+    private final Keys propertyKeys;
 
     SubtypedDeductionDeserializer(DeserBean<? super Object> deserBean,
                                   Map<String, Deserializer<Object>> deserializers) {
         this.deserBean = deserBean;
         this.subtypeInfo = Objects.requireNonNull(deserBean.subtypeInfo);
         this.deserializers = deserializers;
+        this.propertyNames = subtypePropertyKeys(subtypeInfo);
+        this.propertyKeys = Keys.create(propertyNames, deserBean.acceptCaseInsensitiveProperties);
         SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType = subtypeInfo.info().discriminatorType();
         if (discriminatorType != SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY
             && discriminatorType != SerdeConfig.SerSubtyped.DiscriminatorType.EXISTING_PROPERTY) {
@@ -70,6 +81,7 @@ final class SubtypedDeductionDeserializer implements Deserializer<Object> {
     }
 
     private Deserializer<Object> findDeserializer(Decoder objectDecoder) throws IOException {
+        KeysAwareDecoder keysAwareDecoder = KeysAwareDecoder.of(objectDecoder);
         Map<String, DeserBeanSubtypeInfo.SubtypeDef<?>> subtypes = new LinkedHashMap<>(subtypeInfo.subtypes());
 
         while (true) {
@@ -83,9 +95,17 @@ final class SubtypedDeductionDeserializer implements Deserializer<Object> {
             if (subtypes.isEmpty()) {
                 break;
             }
-            final String key = objectDecoder.decodeKey();
-            if (key == null) {
+            final int keyIndex = keysAwareDecoder.decodeKey(propertyKeys);
+            final String key;
+            if (keyIndex == KeysAwareDecoder.MATCH_END_OBJECT) {
                 break;
+            } else if (keyIndex == KeysAwareDecoder.MATCH_UNKNOWN_NAME) {
+                key = keysAwareDecoder.decodeKey();
+                if (key == null) {
+                    break;
+                }
+            } else {
+                key = propertyNames.get(keyIndex);
             }
             Iterator<Map.Entry<String, DeserBeanSubtypeInfo.SubtypeDef<?>>> iterator = subtypes.entrySet().iterator();
             while (iterator.hasNext()) {
@@ -94,11 +114,11 @@ final class SubtypedDeductionDeserializer implements Deserializer<Object> {
                     iterator.remove();
                     continue;
                 }
-                if (subtype.injectProperties != null && subtype.injectProperties.propertyIndexOf(key) != -1) {
+                if (subtype.injectProperties != null && subtype.injectProperties.contains(key)) {
                     // Found property
                     continue;
                 }
-                if (subtype.creatorParams != null && subtype.creatorParams.propertyIndexOf(key) != -1) {
+                if (subtype.creatorParams != null && subtype.creatorParams.contains(key)) {
                     // Found property
                     continue;
                 }
@@ -106,9 +126,28 @@ final class SubtypedDeductionDeserializer implements Deserializer<Object> {
                 iterator.remove();
             }
 
-            objectDecoder.skipValue();
+            keysAwareDecoder.skipValue();
         }
         throw new SerdeException("Cannot deduct the subtype for bean " + deserBean.introspection.getBeanType().getName());
+    }
+
+    private static List<String> subtypePropertyKeys(DeserBeanSubtypeInfo<?> subtypeInfo) {
+        Set<String> keys = new LinkedHashSet<>();
+        for (DeserBeanSubtypeInfo.SubtypeDef<?> subtype : subtypeInfo.subtypes().values()) {
+            DeserBean<?> subtypeDeserBean = subtype.deserBean();
+            if (subtypeDeserBean == null) {
+                continue;
+            }
+            addPropertyKeys(keys, subtypeDeserBean.injectProperties);
+            addPropertyKeys(keys, subtypeDeserBean.creatorParams);
+        }
+        return new ArrayList<>(keys);
+    }
+
+    private static void addPropertyKeys(Set<String> keys, @Nullable PropertiesBag<?> properties) {
+        if (properties != null) {
+            keys.addAll(properties.getKeys());
+        }
     }
 
 }

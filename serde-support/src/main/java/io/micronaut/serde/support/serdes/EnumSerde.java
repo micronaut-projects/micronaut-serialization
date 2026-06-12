@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.support.serdes;
 
+import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Creator;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.BeanMethod;
@@ -56,6 +57,7 @@ import java.util.stream.Collectors;
  * @since 1.0.0
  */
 final class EnumSerde<E extends Enum<E>> implements CustomizableDeserializer<E>, FormattedSerde<E>, SerdeRegistrar<E> {
+    private static final String JACKSON_KEY = "com.fasterxml.jackson.annotation.JsonKey";
 
     private final SerdeIntrospections introspections;
 
@@ -186,8 +188,25 @@ final class EnumSerde<E extends Enum<E>> implements CustomizableDeserializer<E>,
     @Override
     public Serializer<E> createSpecific(EncoderContext context,
                                         Argument<? extends E> type) throws SerdeException {
+        boolean keySerialization = type.getAnnotationMetadata().hasAnnotation(SerdeConfig.SerKey.class);
         try {
             BeanIntrospection<E> si = introspections.getSerializableIntrospection((Argument<E>) type);
+            if (keySerialization) {
+                for (BeanMethod<? extends E, Object> beanMethod : si.getBeanMethods()) {
+                    if (isJsonKey(beanMethod.getAnnotationMetadata())) {
+                        Argument<Object> valueType = beanMethod.getReturnType().asArgument();
+                        Serializer<? super Object> valueSerializer = context.findSerializer(valueType);
+                        return new EnumJsonValueSerializer<>(valueType, valueSerializer, beanMethod, null);
+                    }
+                }
+                for (BeanProperty<? extends E, Object> beanProperty : si.getBeanProperties()) {
+                    if (isJsonKey(beanProperty.getAnnotationMetadata())) {
+                        Argument<Object> valueType = beanProperty.asArgument();
+                        Serializer<? super Object> valueSerializer = context.findSerializer(valueType);
+                        return new EnumJsonValueSerializer<>(valueType, valueSerializer, null, beanProperty);
+                    }
+                }
+            }
             for (BeanMethod<? extends E, Object> beanMethod : si.getBeanMethods()) {
                 if (beanMethod.getAnnotationMetadata().hasDeclaredAnnotation(SerdeConfig.SerValue.class)) {
                     Argument<Object> valueType = beanMethod.getReturnType().asArgument();
@@ -218,6 +237,11 @@ final class EnumSerde<E extends Enum<E>> implements CustomizableDeserializer<E>,
             // ignore
         }
         return new EnumNameSerializer<>();
+    }
+
+    private static boolean isJsonKey(AnnotationMetadata annotationMetadata) {
+        return annotationMetadata.hasAnnotation(SerdeConfig.SerKey.class)
+            || (annotationMetadata.hasAnnotation(JACKSON_KEY) && annotationMetadata.booleanValue(JACKSON_KEY).orElse(true));
     }
 
     @Override

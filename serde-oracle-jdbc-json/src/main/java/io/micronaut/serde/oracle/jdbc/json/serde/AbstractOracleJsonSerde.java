@@ -20,6 +20,8 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serde;
+import io.micronaut.serde.WrappedDecoder;
+import io.micronaut.serde.WrappedEncoder;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonGeneratorEncoder;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder;
 import org.jspecify.annotations.Nullable;
@@ -36,7 +38,8 @@ public abstract class AbstractOracleJsonSerde<T> implements Serde<T> {
 
     @Override
     public final T deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super T> type) throws IOException {
-        if (decoder instanceof OracleJdbcJsonParserDecoder oracleJdbcJsonParserDecoder) {
+        Decoder unwrappedDecoder = WrappedDecoder.unwrap(decoder);
+        if (unwrappedDecoder instanceof OracleJdbcJsonParserDecoder oracleJdbcJsonParserDecoder) {
             return doDeserializeNonNull(oracleJdbcJsonParserDecoder, decoderContext, type);
         } else {
             return getDefault().deserialize(decoder, decoderContext, type);
@@ -45,7 +48,8 @@ public abstract class AbstractOracleJsonSerde<T> implements Serde<T> {
 
     @Override
     public final @Nullable T deserializeNullable(Decoder decoder, DecoderContext decoderContext, Argument<? super T> type) throws IOException {
-        if (decoder instanceof OracleJdbcJsonParserDecoder oracleJdbcJsonParserDecoder) {
+        Decoder unwrappedDecoder = WrappedDecoder.unwrap(decoder);
+        if (unwrappedDecoder instanceof OracleJdbcJsonParserDecoder oracleJdbcJsonParserDecoder) {
             if (decoder.decodeNull()) {
                 return null;
             }
@@ -57,7 +61,8 @@ public abstract class AbstractOracleJsonSerde<T> implements Serde<T> {
 
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
-        if (encoder instanceof OracleJdbcJsonGeneratorEncoder oracleEncoder) {
+        Encoder unwrappedEncoder = WrappedEncoder.unwrap(encoder);
+        if (unwrappedEncoder instanceof OracleJdbcJsonGeneratorEncoder oracleEncoder) {
             doSerializeNonNull(oracleEncoder, context, type, value);
         } else {
             getDefault().serialize(encoder, context, type, value);

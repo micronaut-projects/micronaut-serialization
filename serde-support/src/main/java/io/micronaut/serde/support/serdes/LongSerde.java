@@ -20,11 +20,12 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.support.SerdeRegistrar;
+import io.micronaut.serde.support.util.DecoderValueKind;
 
 import java.io.IOException;
 import java.util.Arrays;
 
-final class LongSerde implements SerdeRegistrar<Long>, NumberSerde<Long> {
+final class LongSerde implements SerdeRegistrar<Long>, NumberSerde<Long>, DecoderValueKind.Provider {
     @Override
     public Long deserialize(Decoder decoder,
                             DecoderContext decoderContext,
@@ -35,6 +36,11 @@ final class LongSerde implements SerdeRegistrar<Long>, NumberSerde<Long> {
     @Override
     public @Nullable Long deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super Long> type) throws IOException {
         return decoder.decodeLongNullable();
+    }
+
+    @Override
+    public DecoderValueKind decoderValueKind() {
+        return DecoderValueKind.LONG;
     }
 
     @Override

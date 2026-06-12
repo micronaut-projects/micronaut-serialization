@@ -16,13 +16,14 @@
 package io.micronaut.serde.support.deserializers;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.reflect.exception.InstantiationException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.Keys;
+import io.micronaut.serde.KeysAwareDecoder;
 import io.micronaut.serde.UpdatingDeserializer;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.InvalidFormatException;
@@ -30,6 +31,7 @@ import io.micronaut.serde.exceptions.InvalidPropertyFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
 import io.micronaut.serde.reference.PropertyReference;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -96,23 +98,33 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
     }
 
     private @Nullable Object deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type, BeanDeserializer beanDeserializer) throws IOException {
-        Decoder objectDecoder = decoder.decodeObject(type);
+        KeysAwareDecoder objectDecoder = KeysAwareDecoder.of(decoder.decodeObject(type));
 
         Object instance = null;
         boolean completed = false;
         while (true) {
-            final String propertyName = objectDecoder.decodeKey();
-            if (propertyName == null) {
+            int keyIndex = objectDecoder.decodeKey(deserBean.propertyKeys);
+            if (keyIndex == KeysAwareDecoder.MATCH_END_OBJECT) {
                 completed = true;
                 break;
             }
-            if (deserBean.isIgnoredProperty(propertyName)) {
-                objectDecoder.skipValue();
-                continue;
-            }
-            boolean consumed = beanDeserializer.tryConsume(propertyName, objectDecoder, decoderContext, type);
-            if (!consumed) {
-                handleUnexpectedProperty(objectDecoder, propertyName, deserBean);
+            if (keyIndex == KeysAwareDecoder.MATCH_UNKNOWN_NAME) {
+                String propertyName = objectDecoder.decodeKey();
+                if (propertyName == null) {
+                    completed = true;
+                    break;
+                }
+                if (!beanDeserializer.tryConsumeUnknown(propertyName, objectDecoder, decoderContext, type)) {
+                    handleUnknownProperty(objectDecoder, propertyName, deserBean);
+                }
+            } else {
+                if (deserBean.isIgnoredPropertyKey(keyIndex)) {
+                    objectDecoder.skipValue();
+                    continue;
+                }
+                if (!beanDeserializer.tryConsume(keyIndex, objectDecoder, decoderContext, type)) {
+                    handleUnexpectedProperty(objectDecoder, keyIndex, deserBean);
+                }
             }
             if (beanDeserializer.isAllConsumed()) {
                 instance = beanDeserializer.provideInstance(type, decoderContext);
@@ -127,10 +139,20 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
             objectDecoder.finishStructure(true);
         } else {
             if (!completed) {
-                String propertyName = objectDecoder.decodeKey();
-                while (propertyName != null) {
-                    handleUnexpectedProperty(objectDecoder, propertyName, deserBean);
-                    propertyName = objectDecoder.decodeKey();
+                while (true) {
+                    int keyIndex = objectDecoder.decodeKey(deserBean.propertyKeys);
+                    if (keyIndex == KeysAwareDecoder.MATCH_END_OBJECT) {
+                        break;
+                    }
+                    if (keyIndex == KeysAwareDecoder.MATCH_UNKNOWN_NAME) {
+                        String propertyName = objectDecoder.decodeKey();
+                        if (propertyName == null) {
+                            break;
+                        }
+                        handleUnknownProperty(objectDecoder, propertyName, deserBean);
+                    } else {
+                        handleUnexpectedProperty(objectDecoder, keyIndex, deserBean);
+                    }
                 }
             }
             objectDecoder.finishStructure();
@@ -144,24 +166,36 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                                                                    BeanDeserializer beanDeserializer) throws IOException {
         Set<String> missingExternalProperties = deserBean.externalProperties == null ? Set.of() : new HashSet<>(deserBean.externalProperties);
         List<PropertyReference<?, ?>> references = new ArrayList<>(missingExternalProperties.size());
-        Map<String, Decoder> cache = new HashMap<>();
+        Map<String, BufferedProperty> cache = new HashMap<>();
 
-        final Decoder rootObjectDecoder = decoder.decodeObject(type);
+        final KeysAwareDecoder rootObjectDecoder = KeysAwareDecoder.of(decoder.decodeObject(type));
         try {
             Object instance = null;
             boolean completed = false;
-            Iterator<Map.Entry<String, Decoder>> cacheIterator = null;
+            Iterator<BufferedProperty> cacheIterator = null;
+            int keyIndex = Keys.UNKNOWN_KEY;
             while (true) {
                 Decoder objectDecoder = rootObjectDecoder;
+                DeserBean<?> sourceDeserBean = deserBean;
 
                 final String propertyName;
                 if (cacheIterator == null || !cacheIterator.hasNext()) {
-                    propertyName = objectDecoder.decodeKey();
-                    if (propertyName == null) {
+                    keyIndex = rootObjectDecoder.decodeKey(deserBean.propertyKeys);
+                    if (keyIndex == KeysAwareDecoder.MATCH_END_OBJECT) {
                         completed = true;
                         break;
                     }
-                    if (deserBean.isIgnoredProperty(propertyName)) {
+                    if (keyIndex == KeysAwareDecoder.MATCH_UNKNOWN_NAME) {
+                        propertyName = rootObjectDecoder.decodeKey();
+                        if (propertyName == null) {
+                            completed = true;
+                            break;
+                        }
+                        keyIndex = Keys.UNKNOWN_KEY;
+                    } else {
+                        propertyName = deserBean.propertyKeyName(keyIndex);
+                    }
+                    if (deserBean.isIgnoredPropertyKey(keyIndex)) {
                         objectDecoder.skipValue();
                         continue;
                     }
@@ -170,7 +204,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                             String externalPropertyValue;
                             if (deserBean.subtypeInfo != null && deserBean.subtypeInfo.info().discriminatorVisible()) {
                                 Decoder cachedBuffer = decoder.decodeBuffer();
-                                cache.put(propertyName, cachedBuffer);
+                                cache.put(propertyName, new BufferedProperty(deserBean, keyIndex, propertyName, cachedBuffer));
                                 externalPropertyValue = cachedBuffer.decodeString();
                             } else {
                                 externalPropertyValue = objectDecoder.decodeString();
@@ -181,22 +215,41 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                             references.add(reference);
 
                             if (missingExternalProperties.isEmpty()) {
-                                cacheIterator = cache.entrySet().iterator();
+                                cacheIterator = cache.values().iterator();
                             }
                         } else {
-                            cache.put(propertyName, decoder.decodeBuffer());
+                            cache.put(propertyName, new BufferedProperty(deserBean, keyIndex, propertyName, decoder.decodeBuffer()));
                         }
                         continue;
                     }
                 } else {
-                    Map.Entry<String, Decoder> entry = cacheIterator.next();
-                    propertyName = entry.getKey();
-                    objectDecoder = entry.getValue();
+                    BufferedProperty bufferedProperty = cacheIterator.next();
+                    propertyName = bufferedProperty.propertyName;
+                    objectDecoder = bufferedProperty.decoder;
+                    sourceDeserBean = bufferedProperty.sourceDeserBean;
+                    keyIndex = bufferedProperty.keyIndex;
                 }
 
-                boolean consumed = beanDeserializer.tryConsume(propertyName, objectDecoder, decoderContext, type);
+                boolean consumed;
+                if (keyIndex == Keys.UNKNOWN_KEY) {
+                    consumed = beanDeserializer.tryConsumeUnknown(propertyName, objectDecoder, decoderContext, type);
+                } else {
+                    int targetKeyIndex = targetKeyIndex(deserBean, sourceDeserBean, keyIndex);
+                    consumed = targetKeyIndex == Keys.UNKNOWN_KEY
+                        ? beanDeserializer.tryConsumeUnknown(propertyName, objectDecoder, decoderContext, type)
+                        : beanDeserializer.tryConsume(targetKeyIndex, objectDecoder, decoderContext, type);
+                }
                 if (!consumed) {
-                    handleUnexpectedProperty(objectDecoder, propertyName, deserBean);
+                    if (keyIndex == Keys.UNKNOWN_KEY) {
+                        handleUnknownProperty(objectDecoder, propertyName, deserBean);
+                    } else {
+                        int targetKeyIndex = targetKeyIndex(deserBean, sourceDeserBean, keyIndex);
+                        if (targetKeyIndex == Keys.UNKNOWN_KEY) {
+                            handleUnknownProperty(objectDecoder, propertyName, deserBean);
+                        } else {
+                            handleUnexpectedProperty(objectDecoder, targetKeyIndex, deserBean);
+                        }
+                    }
                 }
                 if (beanDeserializer.isAllConsumed()) {
                     instance = beanDeserializer.provideInstance(type, decoderContext);
@@ -211,35 +264,67 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                 rootObjectDecoder.finishStructure(true);
             } else {
                 if (deserBean.ignoredProperties != null && !completed) {
-                    String key = rootObjectDecoder.decodeKey();
-                    while (key != null) {
-                        handleUnexpectedProperty(rootObjectDecoder, key, deserBean);
-                        key = rootObjectDecoder.decodeKey();
+                    while (true) {
+                        keyIndex = rootObjectDecoder.decodeKey(deserBean.propertyKeys);
+                        if (keyIndex == KeysAwareDecoder.MATCH_END_OBJECT) {
+                            break;
+                        }
+                        if (keyIndex == KeysAwareDecoder.MATCH_UNKNOWN_NAME) {
+                            String propertyName = rootObjectDecoder.decodeKey();
+                            if (propertyName == null) {
+                                break;
+                            }
+                            handleUnknownProperty(rootObjectDecoder, propertyName, deserBean);
+                        } else {
+                            handleUnexpectedProperty(rootObjectDecoder, keyIndex, deserBean);
+                        }
                     }
                 }
                 rootObjectDecoder.finishStructure();
             }
             return instance;
         } finally {
-            for (PropertyReference<?, ?> reference : references) {
-                decoderContext.pushManagedRef(reference);
+            for (int i = 0; i < references.size(); i++) {
+                decoderContext.popManagedRef();
             }
-
         }
     }
 
     private static void handleUnexpectedProperty(Decoder objectDecoder,
+                                                 int keyIndex,
                                                  String propertyName,
                                                  DeserBean<?> deserBean) throws IOException {
-        if (deserBean.ignoreUnknown || deserBean.isIgnoredProperty(propertyName)) {
+        if (keyIndex == Keys.UNKNOWN_KEY) {
+            handleUnknownProperty(objectDecoder, propertyName, deserBean);
+            return;
+        }
+        if (deserBean.ignoreUnknown || deserBean.isIgnoredPropertyKey(keyIndex)) {
             objectDecoder.skipValue();
         } else {
             Class<?> beanType = deserBean.introspection.getBeanType();
-            if (deserBean.injectProperties != null
-                && deserBean.injectProperties.newConsumer().contains(propertyName) ||
-                deserBean.creatorParams != null && deserBean.creatorParams.newConsumer().contains(propertyName)) {
+            if (deserBean.isKnownPropertyKey(keyIndex)) {
                 throw duplicateProperty(propertyName, beanType);
             }
+            throw unknownProperty(propertyName, deserBean.introspection.asArgument());
+        }
+    }
+
+    private static void handleUnexpectedProperty(Decoder objectDecoder,
+                                                 int keyIndex,
+                                                 DeserBean<?> deserBean) throws IOException {
+        if (deserBean.ignoreUnknown || deserBean.isIgnoredPropertyKey(keyIndex)) {
+            objectDecoder.skipValue();
+            return;
+        }
+        handleUnexpectedProperty(objectDecoder, keyIndex, deserBean.propertyKeyName(keyIndex), deserBean);
+    }
+
+    private static void handleUnknownProperty(Decoder objectDecoder,
+                                              String propertyName,
+                                              DeserBean<?> deserBean) throws IOException {
+        if (deserBean.ignoreUnknown) {
+            objectDecoder.skipValue();
+        } else {
             throw unknownProperty(propertyName, deserBean.introspection.asArgument());
         }
     }
@@ -265,12 +350,12 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
         }
         if (allowSubtype && db.subtypeInfo != null) {
             if (db.subtypeInfo.info().deduct()) {
-                return new SubtypedDeductionBeanDeserializer(db.subtypeInfo, conf);
+                return new SubtypedDeductionBeanDeserializer(db, db.subtypeInfo, conf);
             } else {
                 SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType = db.subtypeInfo.info().discriminatorType();
                 return switch (discriminatorType) {
                     case PROPERTY, EXISTING_PROPERTY ->
-                        new SubtypedPropertyBeanDeserializer(db.subtypeInfo, conf);
+                        new SubtypedPropertyBeanDeserializer(db, db.subtypeInfo, conf);
                     case WRAPPER_OBJECT -> new SubtypedWrapperBeanDeserializer(db, conf);
                     default ->
                         throw new IllegalStateException(discriminatorType + " not supported in this scenario!");
@@ -281,6 +366,62 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
             return new ArgsConstructorBeanDeserializer(db, conf);
         }
         return new NoArgsConstructorDeserializer(instance, db, conf);
+    }
+
+    private static boolean tryConsumeResolved(BeanDeserializer resolvedBeanDeserializer,
+                                              DeserBean<?> targetDeserBean,
+                                              DeserBean<?> sourceDeserBean,
+                                              int sourceKeyIndex,
+                                              String propertyName,
+                                              Decoder decoder,
+                                              DecoderContext decoderContext,
+                                              Argument<? super Object> objectArgument) throws IOException {
+        if (sourceKeyIndex == Keys.UNKNOWN_KEY) {
+            return resolvedBeanDeserializer.tryConsumeUnknown(propertyName, decoder, decoderContext, objectArgument);
+        }
+        int targetKeyIndex = targetKeyIndex(targetDeserBean, sourceDeserBean, sourceKeyIndex);
+        if (targetKeyIndex == Keys.UNKNOWN_KEY) {
+            return resolvedBeanDeserializer.tryConsumeUnknown(propertyName, decoder, decoderContext, objectArgument);
+        }
+        return resolvedBeanDeserializer.tryConsume(targetKeyIndex, decoder, decoderContext, objectArgument);
+    }
+
+    private static void handleResolvedUnexpected(Decoder objectDecoder,
+                                                 DeserBean<?> targetDeserBean,
+                                                 DeserBean<?> sourceDeserBean,
+                                                 int sourceKeyIndex,
+                                                 String propertyName) throws IOException {
+        if (sourceKeyIndex == Keys.UNKNOWN_KEY) {
+            handleUnknownProperty(objectDecoder, propertyName, targetDeserBean);
+            return;
+        }
+        int targetKeyIndex = targetKeyIndex(targetDeserBean, sourceDeserBean, sourceKeyIndex);
+        if (targetKeyIndex == Keys.UNKNOWN_KEY) {
+            handleUnknownProperty(objectDecoder, propertyName, targetDeserBean);
+        } else {
+            handleUnexpectedProperty(objectDecoder, targetKeyIndex, targetDeserBean);
+        }
+    }
+
+    private static int targetKeyIndex(DeserBean<?> targetDeserBean,
+                                      DeserBean<?> sourceDeserBean,
+                                      int sourceKeyIndex) {
+        return targetDeserBean.propertyKeys.indexOf(sourceDeserBean.propertyKeyName(sourceKeyIndex));
+    }
+
+    private static int[] targetKeyIndexes(DeserBean<?> targetDeserBean,
+                                          DeserBean<?> sourceDeserBean) {
+        int[] targetKeyIndexes = new int[sourceDeserBean.propertyKeyCount()];
+        for (int i = 0; i < targetKeyIndexes.length; i++) {
+            targetKeyIndexes[i] = targetKeyIndex(targetDeserBean, sourceDeserBean, i);
+        }
+        return targetKeyIndexes;
+    }
+
+    private static int targetKeyIndex(int[] targetKeyIndexes, int sourceKeyIndex) {
+        return sourceKeyIndex >= 0 && sourceKeyIndex < targetKeyIndexes.length
+            ? targetKeyIndexes[sourceKeyIndex]
+            : Keys.UNKNOWN_KEY;
     }
 
     private static void deserializeAndSetPropertyValue(DecoderContext decoderContext,
@@ -411,7 +552,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
             } else {
                 unwrappedProperties = new UnwrappedPropertyDeserializer[db.unwrappedProperties.length];
                 for (int i = 0; i < db.unwrappedProperties.length; i++) {
-                    unwrappedProperties[i] = new UnwrappedPropertyDeserializer(db.unwrappedProperties[i], conf);
+                    unwrappedProperties[i] = new UnwrappedPropertyDeserializer(db, db.unwrappedProperties[i], conf);
                 }
             }
         }
@@ -424,8 +565,35 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
             }
         }
 
-        boolean tryConsume(String propertyName, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException {
-            final DeserBean.DerProperty<Object, Object> property = propertiesConsumer.consume(propertyName);
+        boolean tryConsume(int keyIndex, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException {
+            final DeserBean.DerProperty<Object, Object> property = propertiesConsumer.consumeKeyIndex(keyIndex);
+            if (tryConsumeProperty(property, decoder, decoderContext)) {
+                return true;
+            }
+            if (unwrappedProperties != null) {
+                for (UnwrappedPropertyDeserializer unwrappedProperty : unwrappedProperties) {
+                    if (unwrappedProperty.tryConsume(keyIndex, decoder, decoderContext, objectArgument)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        boolean tryConsumeUnknown(String propertyName, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException {
+            if (unwrappedProperties != null) {
+                for (UnwrappedPropertyDeserializer unwrappedProperty : unwrappedProperties) {
+                    if (unwrappedProperty.tryConsumeUnknown(propertyName, decoder, decoderContext, objectArgument)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        private boolean tryConsumeProperty(DeserBean.@Nullable DerProperty<Object, Object> property,
+                                           Decoder decoder,
+                                           DecoderContext decoderContext) throws IOException {
             if (property != null && property.beanProperty != null) {
                 if (property.views != null && !decoderContext.hasView(property.views)) {
                     decoder.skipValue();
@@ -437,13 +605,6 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                     buffered[property.index] = decoder.decodeBuffer();
                 }
                 return true;
-            }
-            if (unwrappedProperties != null) {
-                for (UnwrappedPropertyDeserializer unwrappedProperty : unwrappedProperties) {
-                    if (unwrappedProperty.tryConsume(propertyName, decoder, decoderContext, objectArgument)) {
-                        return true;
-                    }
-                }
             }
             return false;
         }
@@ -532,7 +693,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
             } else {
                 unwrappedProperties = new UnwrappedPropertyDeserializer[db.unwrappedProperties.length];
                 for (int i = 0; i < db.unwrappedProperties.length; i++) {
-                    unwrappedProperties[i] = new UnwrappedPropertyDeserializer(db.unwrappedProperties[i], conf);
+                    unwrappedProperties[i] = new UnwrappedPropertyDeserializer(db, db.unwrappedProperties[i], conf);
                 }
             }
         }
@@ -545,11 +706,69 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
             }
         }
 
-        boolean tryConsumeAndSet(String propertyName, Decoder decoder,
+        boolean tryConsumeAndSet(int keyIndex,
+                                 Decoder decoder,
                                  DecoderContext decoderContext,
                                  Argument<? super Object> objectArgument,
                                  Object instance) throws IOException {
-            final DeserBean.DerProperty<Object, Object> property = propertiesConsumer.consume(propertyName);
+            final DeserBean.DerProperty<Object, Object> property = propertiesConsumer.consumeKeyIndex(keyIndex);
+            if (tryConsumeAndSetProperty(property, decoder, decoderContext, objectArgument, instance)) {
+                return true;
+            }
+            if (unwrappedProperties != null) {
+                for (UnwrappedPropertyDeserializer unwrappedProperty : unwrappedProperties) {
+                    if (unwrappedProperty.tryConsume(keyIndex, decoder, decoderContext, objectArgument)) {
+                        if (unwrappedProperty.isAllConsumed()) {
+                            DeserBean.DerProperty<Object, Object> wrappedProperty = unwrappedProperty.wrappedProperty;
+                            if (wrappedProperty.views != null && !decoderContext.hasView(wrappedProperty.views)) {
+                                continue;
+                            }
+                            propertiesConsumer.consume(wrappedProperty.index);
+                            wrappedProperty.set(
+                                decoderContext,
+                                instance,
+                                unwrappedProperty.beanDeserializer.provideInstance(objectArgument, decoderContext)
+                            );
+                        }
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        boolean tryConsumeUnknownAndSet(String propertyName,
+                                        Decoder decoder,
+                                        DecoderContext decoderContext,
+                                        Argument<? super Object> objectArgument,
+                                        Object instance) throws IOException {
+            if (unwrappedProperties != null) {
+                for (UnwrappedPropertyDeserializer up : unwrappedProperties) {
+                    if (up.tryConsumeUnknown(propertyName, decoder, decoderContext, objectArgument)) {
+                        if (up.isAllConsumed()) {
+                            DeserBean.DerProperty<Object, Object> wrappedProperty = up.wrappedProperty;
+                            if (wrappedProperty.views != null && !decoderContext.hasView(wrappedProperty.views)) {
+                                continue;
+                            }
+                            propertiesConsumer.consume(wrappedProperty.index);
+                            wrappedProperty.set(
+                                decoderContext,
+                                instance,
+                                up.beanDeserializer.provideInstance(objectArgument, decoderContext)
+                            );
+                        }
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        private boolean tryConsumeAndSetProperty(DeserBean.@Nullable DerProperty<Object, Object> property,
+                                                 Decoder decoder,
+                                                 DecoderContext decoderContext,
+                                                 Argument<? super Object> objectArgument,
+                                                 Object instance) throws IOException {
             if (property != null) {
                 if (property.views != null && !decoderContext.hasView(property.views)) {
                     decoder.skipValue();
@@ -573,25 +792,6 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                     deserializeAndSetPropertyValue(decoderContext, decoder, property, objectArgument, instance);
                 }
                 return true;
-            }
-            if (unwrappedProperties != null) {
-                for (UnwrappedPropertyDeserializer up : unwrappedProperties) {
-                    if (up.tryConsume(propertyName, decoder, decoderContext, objectArgument)) {
-                        if (up.isAllConsumed()) {
-                            DeserBean.DerProperty<Object, Object> wrappedProperty = up.wrappedProperty;
-                            if (wrappedProperty.views != null && !decoderContext.hasView(wrappedProperty.views)) {
-                                continue;
-                            }
-                            propertiesConsumer.consume(wrappedProperty.index);
-                            wrappedProperty.set(
-                                decoderContext,
-                                instance,
-                                up.beanDeserializer.provideInstance(objectArgument, decoderContext)
-                            );
-                        }
-                        return true;
-                    }
-                }
             }
             return false;
         }
@@ -669,7 +869,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
             } else {
                 unwrappedProperties = new UnwrappedPropertyDeserializer[db.creatorUnwrapped.length];
                 for (int i = 0; i < db.creatorUnwrapped.length; i++) {
-                    unwrappedProperties[i] = new UnwrappedPropertyDeserializer(db.creatorUnwrapped[i], conf);
+                    unwrappedProperties[i] = new UnwrappedPropertyDeserializer(db, db.creatorUnwrapped[i], conf);
                 }
             }
             if (db.anySetter == null || !db.anySetter.constructorArgument) {
@@ -687,22 +887,46 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
             }
         }
 
-        boolean tryConsume(String propertyName, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException {
+        boolean tryConsume(int keyIndex, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException {
             if (allConsumed) {
                 return false;
             }
-            final DeserBean.DerProperty<Object, Object> property = creatorParameters.consume(propertyName);
-            if (property == null) {
-                if (unwrappedProperties != null) {
-                    for (UnwrappedPropertyDeserializer unwrappedProperty : unwrappedProperties) {
-                        if (unwrappedProperty.tryConsume(propertyName, decoder, decoderContext, objectArgument)) {
-                            return true;
-                        }
+            final DeserBean.DerProperty<Object, Object> property = creatorParameters.consumeKeyIndex(keyIndex);
+            if (tryConsumeProperty(property, decoder, decoderContext, objectArgument)) {
+                return true;
+            }
+            if (unwrappedProperties != null) {
+                for (UnwrappedPropertyDeserializer unwrappedProperty : unwrappedProperties) {
+                    if (unwrappedProperty.tryConsume(keyIndex, decoder, decoderContext, objectArgument)) {
+                        return true;
                     }
                 }
-                if (anyValuesDeserializer != null) {
-                    return anyValuesDeserializer.tryConsume(propertyName, decoder, decoderContext);
+            }
+            return false;
+        }
+
+        boolean tryConsumeUnknown(String propertyName, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException {
+            if (allConsumed) {
+                return false;
+            }
+            if (unwrappedProperties != null) {
+                for (UnwrappedPropertyDeserializer unwrappedProperty : unwrappedProperties) {
+                    if (unwrappedProperty.tryConsumeUnknown(propertyName, decoder, decoderContext, objectArgument)) {
+                        return true;
+                    }
                 }
+            }
+            if (anyValuesDeserializer != null) {
+                return anyValuesDeserializer.tryConsume(propertyName, decoder, decoderContext);
+            }
+            return false;
+        }
+
+        private boolean tryConsumeProperty(DeserBean.@Nullable DerProperty<Object, Object> property,
+                                           Decoder decoder,
+                                           DecoderContext decoderContext,
+                                           Argument<? super Object> objectArgument) throws IOException {
+            if (property == null) {
                 return false;
             }
             if (property.views != null && !decoderContext.hasView(property.views)) {
@@ -818,21 +1042,48 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
 
         private final DeserBean.DerProperty<Object, Object> wrappedProperty;
         private final BeanDeserializer beanDeserializer;
+        private final int[] keyIndexes;
 
-        private UnwrappedPropertyDeserializer(DeserBean.DerProperty<Object, Object> unwrappedProperty, Conf conf) {
+        private UnwrappedPropertyDeserializer(DeserBean<?> parentDeserBean,
+                                              DeserBean.DerProperty<Object, Object> unwrappedProperty,
+                                              Conf conf) {
             this.wrappedProperty = unwrappedProperty;
-            this.beanDeserializer = newBeanDeserializer(null, Objects.requireNonNull(unwrappedProperty.unwrapped), conf, true);
+            DeserBean<?> unwrappedBean = Objects.requireNonNull(unwrappedProperty.unwrapped);
+            this.beanDeserializer = newBeanDeserializer(null, (DeserBean<? super Object>) unwrappedBean, conf, true);
+            this.keyIndexes = new int[parentDeserBean.propertyKeyCount()];
+            for (int i = 0; i < keyIndexes.length; i++) {
+                if (!parentDeserBean.isKnownPropertyKey(i) && !parentDeserBean.isIgnoredPropertyKey(i)) {
+                    keyIndexes[i] = unwrappedBean.propertyKeyIndexOf(parentDeserBean.propertyKeyName(i));
+                } else {
+                    keyIndexes[i] = Keys.UNKNOWN_KEY;
+                }
+            }
         }
 
-        boolean tryConsume(String propertyName, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException {
+        boolean tryConsume(int keyIndex, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException {
             if (wrappedProperty.views != null && !decoderContext.hasView(wrappedProperty.views)) {
                 return false;
             }
-            return beanDeserializer.tryConsume(propertyName, decoder, decoderContext, objectArgument);
+            int unwrappedKeyIndex = unwrappedKeyIndex(keyIndex);
+            if (unwrappedKeyIndex == Keys.UNKNOWN_KEY) {
+                return false;
+            }
+            return beanDeserializer.tryConsume(unwrappedKeyIndex, decoder, decoderContext, objectArgument);
+        }
+
+        boolean tryConsumeUnknown(String propertyName, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException {
+            if (wrappedProperty.views != null && !decoderContext.hasView(wrappedProperty.views)) {
+                return false;
+            }
+            return beanDeserializer.tryConsumeUnknown(propertyName, decoder, decoderContext, objectArgument);
         }
 
         boolean isAllConsumed() {
             return beanDeserializer.isAllConsumed();
+        }
+
+        private int unwrappedKeyIndex(int keyIndex) {
+            return keyIndex < keyIndexes.length ? keyIndexes[keyIndex] : Keys.UNKNOWN_KEY;
         }
     }
 
@@ -868,11 +1119,19 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
         }
 
         @Override
-        boolean tryConsume(String propertyName, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException {
-            if (constructorValuesDeserializer.tryConsume(propertyName, decoder, decoderContext, objectArgument)) {
+        boolean tryConsume(int keyIndex, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException {
+            if (constructorValuesDeserializer.tryConsume(keyIndex, decoder, decoderContext, objectArgument)) {
                 return true;
             }
-            if (propertiesConsumer != null && propertiesConsumer.tryConsume(propertyName, decoder, decoderContext, objectArgument)) {
+            return propertiesConsumer != null && propertiesConsumer.tryConsume(keyIndex, decoder, decoderContext, objectArgument);
+        }
+
+        @Override
+        boolean tryConsumeUnknown(String propertyName, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException {
+            if (constructorValuesDeserializer.tryConsumeUnknown(propertyName, decoder, decoderContext, objectArgument)) {
+                return true;
+            }
+            if (propertiesConsumer != null && propertiesConsumer.tryConsumeUnknown(propertyName, decoder, decoderContext, objectArgument)) {
                 return true;
             }
             return anyValuesDeserializer != null && anyValuesDeserializer.tryConsume(propertyName, decoder, decoderContext);
@@ -961,8 +1220,14 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
         }
 
         @Override
-        boolean tryConsume(String propertyName, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException {
-            if (propertiesConsumer != null && propertiesConsumer.tryConsumeAndSet(propertyName, decoder, decoderContext, objectArgument, Objects.requireNonNull(instance))) {
+        boolean tryConsume(int keyIndex, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException {
+            return propertiesConsumer != null
+                && propertiesConsumer.tryConsumeAndSet(keyIndex, decoder, decoderContext, objectArgument, Objects.requireNonNull(instance));
+        }
+
+        @Override
+        boolean tryConsumeUnknown(String propertyName, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException {
+            if (propertiesConsumer != null && propertiesConsumer.tryConsumeUnknownAndSet(propertyName, decoder, decoderContext, objectArgument, Objects.requireNonNull(instance))) {
                 return true;
             }
             return anyValuesDeserializer != null && anyValuesDeserializer.tryConsume(propertyName, decoder, decoderContext);
@@ -1009,49 +1274,97 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
      */
     private static final class SubtypedPropertyBeanDeserializer extends BeanDeserializer {
 
+        private final DeserBean<? super Object> deserBean;
         private final DeserBeanSubtypeInfo<? super Object> subtypeInfo;
         private final Conf conf;
 
         @Nullable
-        private Map<String, Decoder> buffer;
+        private Map<String, BufferedProperty> buffer;
         @Nullable
         private BeanDeserializer beanDeserializer;
+        @Nullable
+        private DeserBean<?> resolvedDeserBean;
+        private int @Nullable [] resolvedKeyIndexes;
+        private final int discriminatorKeyIndex;
 
-        SubtypedPropertyBeanDeserializer(DeserBeanSubtypeInfo<? super Object> subtypeInfo,
+        SubtypedPropertyBeanDeserializer(DeserBean<? super Object> db,
+                                         DeserBeanSubtypeInfo<? super Object> subtypeInfo,
                                          Conf conf) {
+            this.deserBean = db;
             this.subtypeInfo = subtypeInfo;
             this.conf = conf;
+            this.discriminatorKeyIndex = deserBean.propertyKeyIndexOf(subtypeInfo.info().discriminatorName());
         }
 
         @Override
-        boolean tryConsume(String propertyName, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException {
+        boolean tryConsume(int keyIndex, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException {
             if (beanDeserializer != null) {
-                return beanDeserializer.tryConsume(propertyName, decoder, decoderContext, objectArgument);
-            }
-            if (subtypeInfo.info().discriminatorName().equals(propertyName)) {
-                Decoder bufferedDiscriminatorValue = null;
-                String discriminatorValue;
-                if (subtypeInfo.info().discriminatorVisible()) {
-                    bufferedDiscriminatorValue = decoder.decodeBuffer();
-                    discriminatorValue = bufferedDiscriminatorValue.decodeString();
-                } else {
-                    discriminatorValue = decoder.decodeString();
-                }
-                DeserBean<?> deserBean = subtypeInfo.findDeserBean(discriminatorValue);
-                createBeanDeserializerAndConsumeBuffer(decoder, decoderContext, objectArgument, deserBean);
-                if (bufferedDiscriminatorValue != null) {
-                    boolean consumed = Objects.requireNonNull(beanDeserializer).tryConsume(propertyName, bufferedDiscriminatorValue, decoderContext, objectArgument);
-                    if (!consumed) {
-                        handleUnexpectedProperty(decoder, propertyName, deserBean);
+                DeserBean<?> resolvedDeserBean = Objects.requireNonNull(this.resolvedDeserBean);
+                int targetKeyIndex = targetKeyIndex(Objects.requireNonNull(resolvedKeyIndexes), keyIndex);
+                if (targetKeyIndex == Keys.UNKNOWN_KEY) {
+                    String propertyName = deserBean.propertyKeyName(keyIndex);
+                    if (!beanDeserializer.tryConsumeUnknown(propertyName, decoder, decoderContext, objectArgument)) {
+                        handleUnknownProperty(decoder, propertyName, resolvedDeserBean);
                     }
+                } else if (!beanDeserializer.tryConsume(targetKeyIndex, decoder, decoderContext, objectArgument)) {
+                    handleUnexpectedProperty(decoder, targetKeyIndex, resolvedDeserBean);
                 }
+                return true;
+            }
+            if (discriminatorKeyIndex != Keys.UNKNOWN_KEY && keyIndex == discriminatorKeyIndex) {
+                consumeDiscriminator(keyIndex, subtypeInfo.info().discriminatorName(), decoder, decoderContext, objectArgument);
             } else {
-                if (buffer == null) {
-                    buffer = new LinkedHashMap<>();
-                }
-                buffer.put(propertyName, decoder.decodeBuffer());
+                bufferProperty(keyIndex, deserBean.propertyKeyName(keyIndex), decoder);
             }
             return true;
+        }
+
+        @Override
+        boolean tryConsumeUnknown(String propertyName, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException {
+            if (beanDeserializer != null) {
+                DeserBean<?> resolvedDeserBean = Objects.requireNonNull(this.resolvedDeserBean);
+                if (!beanDeserializer.tryConsumeUnknown(propertyName, decoder, decoderContext, objectArgument)) {
+                    handleUnknownProperty(decoder, propertyName, resolvedDeserBean);
+                }
+                return true;
+            }
+            if (subtypeInfo.info().discriminatorName().equals(propertyName)) {
+                consumeDiscriminator(Keys.UNKNOWN_KEY, propertyName, decoder, decoderContext, objectArgument);
+            } else {
+                bufferProperty(Keys.UNKNOWN_KEY, propertyName, decoder);
+            }
+            return true;
+        }
+
+        private void consumeDiscriminator(int keyIndex,
+                                          String propertyName,
+                                          Decoder decoder,
+                                          DecoderContext decoderContext,
+                                          Argument<? super Object> objectArgument) throws IOException {
+            Decoder bufferedDiscriminatorValue = null;
+            String discriminatorValue;
+            if (subtypeInfo.info().discriminatorVisible()) {
+                bufferedDiscriminatorValue = decoder.decodeBuffer();
+                discriminatorValue = bufferedDiscriminatorValue.decodeString();
+            } else {
+                discriminatorValue = decoder.decodeString();
+            }
+            DeserBean<?> deserBean = subtypeInfo.findDeserBean(discriminatorValue);
+            createBeanDeserializerAndConsumeBuffer(decoder, decoderContext, objectArgument, deserBean);
+            if (bufferedDiscriminatorValue != null) {
+                BeanDeserializer resolvedBeanDeserializer = Objects.requireNonNull(beanDeserializer);
+                boolean consumed = tryConsumeResolved(resolvedBeanDeserializer, deserBean, this.deserBean, keyIndex, propertyName, bufferedDiscriminatorValue, decoderContext, objectArgument);
+                if (!consumed) {
+                    handleResolvedUnexpected(decoder, deserBean, this.deserBean, keyIndex, propertyName);
+                }
+            }
+        }
+
+        private void bufferProperty(int keyIndex, String propertyName, Decoder decoder) throws IOException {
+            if (buffer == null) {
+                buffer = new LinkedHashMap<>();
+            }
+            buffer.put(propertyName, new BufferedProperty(deserBean, keyIndex, propertyName, decoder.decodeBuffer()));
         }
 
         private void createBeanDeserializerAndConsumeBuffer(Decoder decoder,
@@ -1062,14 +1375,31 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                 null,
                 (DeserBean<? super Object>) deserBean,
                 conf,
-                false);
+                true);
             beanDeserializer = resolvedBeanDeserializer;
+            resolvedDeserBean = deserBean;
+            resolvedKeyIndexes = targetKeyIndexes(deserBean, this.deserBean);
             resolvedBeanDeserializer.init(decoderContext);
             if (buffer != null) {
-                for (Map.Entry<String, Decoder> e : buffer.entrySet()) {
-                    boolean consumed = resolvedBeanDeserializer.tryConsume(e.getKey(), e.getValue(), decoderContext, objectArgument);
+                for (BufferedProperty bufferedProperty : buffer.values()) {
+                    boolean consumed = tryConsumeResolved(
+                        resolvedBeanDeserializer,
+                        deserBean,
+                        bufferedProperty.sourceDeserBean,
+                        bufferedProperty.keyIndex,
+                        bufferedProperty.propertyName,
+                        bufferedProperty.decoder,
+                        decoderContext,
+                        objectArgument
+                    );
                     if (!consumed) {
-                        handleUnexpectedProperty(decoder, e.getKey(), deserBean);
+                        handleResolvedUnexpected(
+                            decoder,
+                            deserBean,
+                            bufferedProperty.sourceDeserBean,
+                            bufferedProperty.keyIndex,
+                            bufferedProperty.propertyName
+                        );
                     }
                 }
                 buffer = null;
@@ -1104,25 +1434,61 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
      */
     private static final class SubtypedDeductionBeanDeserializer extends BeanDeserializer {
 
+        private final DeserBean<? super Object> deserBean;
         private final Conf conf;
         private final Map<String, DeserBeanSubtypeInfo.SubtypeDef<?>> subtypes;
 
         @Nullable
-        private Map<String, Decoder> buffer;
+        private Map<String, BufferedProperty> buffer;
         @Nullable
         private BeanDeserializer beanDeserializer;
+        @Nullable
+        private DeserBean<?> resolvedDeserBean;
+        private int @Nullable [] resolvedKeyIndexes;
 
-        SubtypedDeductionBeanDeserializer(DeserBeanSubtypeInfo<? super Object> subtypeInfo,
+        SubtypedDeductionBeanDeserializer(DeserBean<? super Object> db,
+                                          DeserBeanSubtypeInfo<? super Object> subtypeInfo,
                                           Conf conf) {
+            this.deserBean = db;
             this.conf = conf;
             subtypes = new LinkedHashMap<>(subtypeInfo.subtypes());
         }
 
         @Override
-        boolean tryConsume(String propertyName, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException {
+        boolean tryConsume(int keyIndex, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException {
             if (beanDeserializer != null) {
-                return beanDeserializer.tryConsume(propertyName, decoder, decoderContext, objectArgument);
+                DeserBean<?> resolvedDeserBean = Objects.requireNonNull(this.resolvedDeserBean);
+                int targetKeyIndex = targetKeyIndex(Objects.requireNonNull(resolvedKeyIndexes), keyIndex);
+                if (targetKeyIndex == Keys.UNKNOWN_KEY) {
+                    String propertyName = deserBean.propertyKeyName(keyIndex);
+                    if (!beanDeserializer.tryConsumeUnknown(propertyName, decoder, decoderContext, objectArgument)) {
+                        handleUnknownProperty(decoder, propertyName, resolvedDeserBean);
+                    }
+                } else if (!beanDeserializer.tryConsume(targetKeyIndex, decoder, decoderContext, objectArgument)) {
+                    handleUnexpectedProperty(decoder, targetKeyIndex, resolvedDeserBean);
+                }
+                return true;
             }
+            return tryConsumeName(keyIndex, deserBean.propertyKeyName(keyIndex), decoder, decoderContext, objectArgument);
+        }
+
+        @Override
+        boolean tryConsumeUnknown(String propertyName, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException {
+            if (beanDeserializer != null) {
+                DeserBean<?> resolvedDeserBean = Objects.requireNonNull(this.resolvedDeserBean);
+                if (!beanDeserializer.tryConsumeUnknown(propertyName, decoder, decoderContext, objectArgument)) {
+                    handleUnknownProperty(decoder, propertyName, resolvedDeserBean);
+                }
+                return true;
+            }
+            return tryConsumeName(Keys.UNKNOWN_KEY, propertyName, decoder, decoderContext, objectArgument);
+        }
+
+        private boolean tryConsumeName(int keyIndex,
+                                       String propertyName,
+                                       Decoder decoder,
+                                       DecoderContext decoderContext,
+                                       Argument<? super Object> objectArgument) throws IOException {
             Iterator<Map.Entry<String, DeserBeanSubtypeInfo.SubtypeDef<?>>> iterator = subtypes.entrySet().iterator();
             while (iterator.hasNext()) {
                 DeserBean<?> subtype = iterator.next().getValue().deserBean();
@@ -1130,11 +1496,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                     iterator.remove();
                     continue;
                 }
-                if (subtype.injectProperties != null && subtype.injectProperties.propertyIndexOf(propertyName) != -1) {
-                    // Found property
-                    continue;
-                }
-                if (subtype.creatorParams != null && subtype.creatorParams.propertyIndexOf(propertyName) != -1) {
+                if (subtype.isKnownProperty(propertyName)) {
                     // Found property
                     continue;
                 }
@@ -1144,12 +1506,13 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
             if (subtypes.size() == 1) {
                 DeserBean<?> subtypeDeserBean = subtypes.values().iterator().next().deserBean();
                 createBeanDeserializerAndConsumeBuffer(decoder, decoderContext, objectArgument, Objects.requireNonNull(subtypeDeserBean));
-                return Objects.requireNonNull(beanDeserializer).tryConsume(propertyName, decoder, decoderContext, objectArgument);
+                BeanDeserializer resolvedBeanDeserializer = Objects.requireNonNull(beanDeserializer);
+                return tryConsumeResolved(resolvedBeanDeserializer, subtypeDeserBean, deserBean, keyIndex, propertyName, decoder, decoderContext, objectArgument);
             } else {
                 if (buffer == null) {
                     buffer = new LinkedHashMap<>();
                 }
-                buffer.put(propertyName, decoder.decodeBuffer());
+                buffer.put(propertyName, new BufferedProperty(deserBean, keyIndex, propertyName, decoder.decodeBuffer()));
             }
             return true;
         }
@@ -1164,12 +1527,29 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                 conf,
                 false);
             beanDeserializer = resolvedBeanDeserializer;
+            resolvedDeserBean = deserBean;
+            resolvedKeyIndexes = targetKeyIndexes(deserBean, this.deserBean);
             resolvedBeanDeserializer.init(decoderContext);
             if (buffer != null) {
-                for (Map.Entry<String, Decoder> e : buffer.entrySet()) {
-                    boolean consumed = resolvedBeanDeserializer.tryConsume(e.getKey(), e.getValue(), decoderContext, argument);
+                for (BufferedProperty bufferedProperty : buffer.values()) {
+                    boolean consumed = tryConsumeResolved(
+                        resolvedBeanDeserializer,
+                        deserBean,
+                        bufferedProperty.sourceDeserBean,
+                        bufferedProperty.keyIndex,
+                        bufferedProperty.propertyName,
+                        bufferedProperty.decoder,
+                        decoderContext,
+                        argument
+                    );
                     if (!consumed) {
-                        handleUnexpectedProperty(decoder, e.getKey(), deserBean);
+                        handleResolvedUnexpected(
+                            decoder,
+                            deserBean,
+                            bufferedProperty.sourceDeserBean,
+                            bufferedProperty.keyIndex,
+                            bufferedProperty.propertyName
+                        );
                     }
                 }
                 buffer = null;
@@ -1222,7 +1602,16 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
         }
 
         @Override
-        boolean tryConsume(String propertyName, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException {
+        boolean tryConsume(int keyIndex, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException {
+            return tryConsumeName(db.propertyKeyName(keyIndex), decoder, decoderContext, objectArgument);
+        }
+
+        @Override
+        boolean tryConsumeUnknown(String propertyName, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException {
+            return tryConsumeName(propertyName, decoder, decoderContext, objectArgument);
+        }
+
+        private boolean tryConsumeName(String propertyName, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException {
             DeserBeanSubtypeInfo.SubtypeDef<?> subtype = subtypeInfo.subtypes().get(propertyName);
             DeserBean<?> subDeserBean = null;
             if (subtype == null) {
@@ -1278,12 +1667,17 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
         }
 
         @Override
-        boolean tryConsume(String propertyName, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException {
-            final DeserBean.DerProperty<Object, Object> property = propertiesConsumer.consume(propertyName);
+        boolean tryConsume(int keyIndex, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException {
+            final DeserBean.DerProperty<Object, Object> property = propertiesConsumer.consumeKeyIndex(keyIndex);
             if (property != null) {
                 property.deserializeAndCallBuilder(decoder, decoderContext, Objects.requireNonNull(builder));
                 return true;
             }
+            return false;
+        }
+
+        @Override
+        boolean tryConsumeUnknown(String propertyName, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) {
             return false;
         }
 
@@ -1320,6 +1714,10 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
 
     }
 
+    private record BufferedProperty(DeserBean<?> sourceDeserBean, int keyIndex, String propertyName, Decoder decoder) {
+
+    }
+
     /**
      * The bean deserializes based on its shape.
      *
@@ -1327,7 +1725,9 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
      */
     private abstract static sealed class BeanDeserializer {
 
-        abstract boolean tryConsume(String propertyName, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException;
+        abstract boolean tryConsume(int keyIndex, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException;
+
+        abstract boolean tryConsumeUnknown(String propertyName, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException;
 
         abstract boolean isAllConsumed();
 

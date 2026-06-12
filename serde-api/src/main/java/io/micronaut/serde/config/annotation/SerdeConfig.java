@@ -135,6 +135,16 @@ public @interface SerdeConfig {
     String TYPE_PROPERTY = "typeProperty";
 
     /**
+     * Type properties used for subtype binding when multiple discriminator properties apply.
+     */
+    String TYPE_PROPERTIES = "typeProperties";
+
+    /**
+     * Type property values used for subtype binding when multiple discriminator properties apply.
+     */
+    String TYPE_PROPERTY_VALUES = "typePropertyValues";
+
+    /**
      * The type discriminator type.
      */
     String TYPE_DISCRIMINATOR_TYPE = "typeDiscriminatorType";
@@ -383,6 +393,11 @@ public @interface SerdeConfig {
         String DISCRIMINATOR_PROP = "dp";
 
         /**
+         * Whether the subtype metadata came from JSON-B type information.
+         */
+        String JSONB_TYPE_INFO = "jsonbTypeInfo";
+
+        /**
          * The discriminator type.
          */
         enum DiscriminatorType {
@@ -409,6 +424,13 @@ public @interface SerdeConfig {
      */
     @Internal
     @interface SerValue {
+    }
+
+    /**
+     * Meta-annotation used to model the value used during map key serialization.
+     */
+    @Internal
+    @interface SerKey {
     }
 
     /**

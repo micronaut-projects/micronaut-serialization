@@ -84,7 +84,7 @@ NOTE: If an unsupported annotation or member is used, a compilation error will r
 |unsupported members: `contentFilter`, `valueFilter`
 
 |link:{jacksonAnnotationJavadoc}/JsonKey.html[@JsonKey]
-|❌
+|✅
 |
 
 |link:{jacksonAnnotationJavadoc}/JsonManagedReference.html[@JsonManagedReference]
