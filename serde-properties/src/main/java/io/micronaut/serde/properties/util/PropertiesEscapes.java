@@ -25,7 +25,7 @@ import java.util.Arrays;
  *
  * <p>Adapted from upstream {@code tools.jackson.dataformat.javaprop.io.JPropEscapes}.</p>
  *
- * @since 3.0.1
+ * @since 3.1.0
  */
 @Internal
 final class PropertiesEscapes {

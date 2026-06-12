@@ -33,11 +33,11 @@ import java.util.Objects;
  *
  * <p>Array index and bracketed output is controlled by {@link SerdePropertiesConfiguration}.</p>
  *
- * @since 3.0.1
+ * @since 3.1.0
  */
 @Internal
 @Singleton
-public class PropertiesWriter {
+public final class PropertiesWriter {
 
     private static final String LINE_SEPARATOR = System.lineSeparator();
 
@@ -56,9 +56,9 @@ public class PropertiesWriter {
      * Writes the given JSON tree to the output stream as a flattened
      * {@code .properties} document.
      *
-     * @param outputStream
-     * @param tree
-     * @throws IOException
+     * @param outputStream The destination stream
+     * @param tree The tree to flatten into properties output
+     * @throws IOException If the properties output cannot be written
      */
     public void write(OutputStream outputStream, JsonNode tree) throws IOException {
         Objects.requireNonNull(outputStream, "Output stream cannot be null");

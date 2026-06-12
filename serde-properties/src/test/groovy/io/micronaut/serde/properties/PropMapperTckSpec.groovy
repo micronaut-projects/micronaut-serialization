@@ -26,6 +26,6 @@ class PropMapperTckSpec extends AbstractMicronautPropSpec {
 
     @Override
     protected Map<String, Object> getContextProperties() {
-        ['micronaut.serde.properties.array-index-style': 'DOTTED']
+        ['micronaut.serde.format.properties.array-index-style': 'DOTTED']
     }
 }

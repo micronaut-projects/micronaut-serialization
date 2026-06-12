@@ -25,14 +25,14 @@ import java.util.Objects;
 /**
  * Java {@code .properties}-specific configuration.
  *
- * @since 3.0.1
+ * @since 3.1.0
  */
 @BootstrapContextCompatible
 @Internal
 @ConfigurationProperties(SerdePropertiesConfiguration.PREFIX)
 public final class SerdePropertiesConfiguration {
 
-    static final String PREFIX = SerdeConfiguration.PREFIX + ".properties";
+    static final String PREFIX = SerdeConfiguration.PREFIX + ".format.properties";
 
     private ArrayIndexStyle arrayIndexStyle = ArrayIndexStyle.BRACKETED;
 
@@ -57,7 +57,7 @@ public final class SerdePropertiesConfiguration {
     /**
      * Array index path style.
      *
-     * @since 3.0.1
+     * @since 3.1.0
      */
     public enum ArrayIndexStyle {
         /**

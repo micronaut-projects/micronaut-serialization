@@ -45,7 +45,7 @@ import java.util.Set;
  * supported when configured through {@link SerdePropertiesConfiguration}.</p>
  *
  * @see <a href="https://github.com/micronaut-projects/micronaut-core/blob/5.0.x/json-core/src/main/java/io/micronaut/json/bind/JsonBeanPropertyBinder.java">Micronaut Core JsonBeanPropertyBinder</a>
- * @since 3.0.1
+ * @since 3.1.0
  */
 @Internal
 @Singleton
@@ -73,9 +73,9 @@ public class PropertiesTreeAdapter {
     /**
      * Parses a Java {@code .properties} stream into a JSON tree.
      *
-     * @param stream
+     * @param stream The properties input stream
      * @return The parsed JSON tree
-     * @throws IOException
+     * @throws IOException If the properties stream cannot be read
      */
     public JsonNode parse(InputStream stream) throws IOException {
         AbstractPropertySourceLoader loader = new PropertiesPropertySourceLoader(false);

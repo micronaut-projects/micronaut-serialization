@@ -158,7 +158,7 @@ class Tags {
     public List<String> getValues() { return values; }
     public void setValues(List<String> values) { this.values = values; }
 }
-''', ['micronaut.serde.properties.array-index-style': 'BRACKETED'])
+''', ['micronaut.serde.format.properties.array-index-style': 'BRACKETED'])
         def type = argumentOf(context, 'test.Tags')
 
         when:
@@ -220,7 +220,7 @@ class Author {
     public int getAge() { return age; }
     public void setAge(int age) { this.age = age; }
 }
-''', ['micronaut.serde.properties.array-index-style': 'BRACKETED'])
+''', ['micronaut.serde.format.properties.array-index-style': 'BRACKETED'])
         def type = argumentOf(context, 'test.Library')
         def king = newInstance(context, 'test.Author', [name: 'Stephen King', age: 60])
         def tolkien = newInstance(context, 'test.Author', [name: 'JRR Tolkien', age: 81])
@@ -302,7 +302,7 @@ class Author {
     public int getAge() { return age; }
     public void setAge(int age) { this.age = age; }
 }
-''', ['micronaut.serde.properties.array-index-style': 'DOTTED'])
+''', ['micronaut.serde.format.properties.array-index-style': 'DOTTED'])
 
         def type = argumentOf(context, 'test.Library')
         def king = newInstance(context, 'test.Author', [name: 'Stephen King', age: 60])
@@ -358,7 +358,7 @@ class Tags {
     public List<String> getValues() { return values; }
     public void setValues(List<String> values) { this.values = values; }
 }
-''', ['micronaut.serde.properties.array-index-style': 'DOTTED'])
+''', ['micronaut.serde.format.properties.array-index-style': 'DOTTED'])
         def type = argumentOf(context, 'test.Tags')
 
         when:
