@@ -14,6 +14,15 @@ See the [Documentation](https://micronaut-projects.github.io/micronaut-serializa
 
 See the [Snapshot Documentation](https://micronaut-projects.github.io/micronaut-serialization/snapshot/guide/) for the current development docs.
 
+## Specification Compliance
+
+Micronaut Serialization verifies its Jakarta JSON provider support with the official standalone Jakarta TCKs:
+
+* [Jakarta JSON Processing (JSON-P)](https://jakarta.ee/specifications/jsonp/2.1/) 2.1, using `jakarta.json-api` 2.1.3 and `jakarta.json-tck-tests` 2.1.1.
+* [Jakarta JSON Binding (JSON-B)](https://jakarta.ee/specifications/jsonb/3.0/) 3.0, using `jakarta.json.bind-api` 3.0.2 and `jakarta.json.bind-tck` 3.0.0.
+
+The latest published TCK results are available from the fixed [Jakarta JSON TCK results page](https://micronaut-projects.github.io/micronaut-serialization/tck-results/latest/). Each successful push run also publishes immutable results under `tck-results/<workflow-run-id>/` with separate JSON-P and JSON-B summaries, sanitized JUnit XML, and SHA-256 checksums.
+
 ## Snapshots and Releases
 
 Snapshots are automatically published to [Sonatype Snapshots](https://s01.oss.sonatype.org/content/repositories/snapshots/io/micronaut/) using [Github Actions](https://github.com/micronaut-projects/micronaut-serialization/actions).
