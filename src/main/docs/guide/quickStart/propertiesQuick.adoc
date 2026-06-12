@@ -1,0 +1,55 @@
+Micronaut Serialization includes support for reading and writing Java `+*.properties+` documents with the `micronaut-serde-properties` module.
+
+Add the following artifact to the `dependencies` block:
+
+dependency:micronaut-serde-properties[groupId="io.micronaut.serde",scope="implementation"]
+
+The `+*.properties+` mapper is exposed as a named api:serde.ObjectMapper[] bean. Inject it with the `properties` qualifier when you want to read or write `+*.properties+` data:
+
+[source,java]
+----
+import io.micronaut.serde.ObjectMapper;
+import io.micronaut.serde.properties.PropertiesMapper;
+import jakarta.inject.Named;
+
+class BookService {
+    private final ObjectMapper propertiesMapper;
+
+    BookService(@Named(PropertiesMapper.NAME) ObjectMapper propertiesMapper) {
+        this.propertiesMapper = propertiesMapper;
+    }
+}
+----
+
+Once you have a type that can be serialized and deserialized, the mapper flattens object paths into property keys:
+
+[source,properties]
+----
+book.title=The Stand
+book.authors[0].name=Stephen King
+book.authors[0].age=60
+book.authors[1].name=JRR Tolkien
+book.authors[1].age=81
+----
+
+By default, arrays use zero-based bracketed indexes such as `authors[0]`.
+You can configure one-based dotted indexes instead:
+
+[configuration]
+----
+micronaut:
+  serde:
+    format:
+      properties:
+        array-index-style: DOTTED
+----
+
+With dotted indexes, the same array paths are written as:
+
+[source,properties]
+----
+book.authors.1.name=Stephen King
+book.authors.2.name=JRR Tolkien
+----
+
+NOTE: Java `+*.properties+` documents require keys. Root objects can be written as properties, but root arrays and root scalar values cannot be written directly.

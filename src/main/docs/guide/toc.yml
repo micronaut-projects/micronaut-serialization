@@ -7,6 +7,7 @@ quickStart:
   jacksonQuick: Jackson Annotations & Jackson Core
   jsonpQuick: JSON-B Annotations & JSON-P
   bsonQuick: BSON Annotations and BSON
+  propertiesQuick: Java Properties
 jacksonAnnotations:
   title: Jackson Annotations
   jacksonFilter: Custom Property Filters
@@ -17,4 +18,3 @@ serdeImport: Enabling Serialization of External Classes
 keys: Custom Key Converters
 breaks: Breaking Changes
 repository: Repository
-
