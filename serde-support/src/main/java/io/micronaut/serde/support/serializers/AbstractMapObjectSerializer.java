@@ -70,7 +70,7 @@ abstract sealed class AbstractMapObjectSerializer<K, V> implements ObjectSeriali
     }
 
     @SuppressWarnings("unchecked")
-    private static int compareKeys(Object left, Object right) {
+    private static int compareKeys(@Nullable Object left, @Nullable Object right) {
         if (left == right) {
             return 0;
         }
@@ -104,7 +104,7 @@ abstract sealed class AbstractMapObjectSerializer<K, V> implements ObjectSeriali
                 .sorted(AbstractMapObjectSerializer::compareEntriesByKey)
                 .toList();
         }
-        for (Map.Entry<K, V> entry : entries) {
+        for (Map.Entry<@Nullable K, @Nullable V> entry : entries) {
             K k = entry.getKey();
             try {
                 V v = entry.getValue();

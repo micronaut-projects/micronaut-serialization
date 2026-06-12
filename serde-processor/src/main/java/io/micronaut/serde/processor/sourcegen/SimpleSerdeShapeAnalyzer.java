@@ -162,6 +162,13 @@ public final class SimpleSerdeShapeAnalyzer {
             && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
             return decision(shapeKind, serializerReasons, deserializerReasons);
         }
+        if (serializerReasons.isEmpty()
+            && hasAnnotation(element, SerdeConfig.SerKey.class)) {
+            failSerializer(serializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
+            if (isBothFailed(serializerReasons, deserializerReasons)) {
+                return decision(shapeKind, serializerReasons, deserializerReasons);
+            }
+        }
         if (!element.isEnum()
             && !isBothFailed(serializerReasons, deserializerReasons)
             && hasSerValueInPropertyTypes(element)

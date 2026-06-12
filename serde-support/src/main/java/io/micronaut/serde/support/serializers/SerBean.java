@@ -32,6 +32,7 @@ import io.micronaut.core.order.Ordered;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
+import io.micronaut.inject.annotation.MutableAnnotationMetadata;
 import io.micronaut.inject.qualifiers.Qualifiers;
 import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.FormattedSerializer;
@@ -87,6 +88,7 @@ final class SerBean<T> {
     );
     private static final String JK_PROP = "com.fasterxml.jackson.annotation.JsonProperty";
     private static final String JACKSON_VALUE = "com.fasterxml.jackson.annotation.JsonValue";
+    private static final String JACKSON_KEY = "com.fasterxml.jackson.annotation.JsonKey";
 
     // CHECKSTYLE:OFF
     public final BeanIntrospection<T> introspection;
@@ -98,6 +100,8 @@ final class SerBean<T> {
     public final String arrayWrapperProperty;
     @Nullable
     public SerProperty<T, Object> jsonValue;
+    @Nullable
+    public SerProperty<T, Object> jsonKey;
     public final SerializationConfiguration configuration;
     public final boolean simpleBean;
     public final boolean subtyped;
@@ -149,12 +153,13 @@ final class SerBean<T> {
         final Map.Entry<BeanReadProperty<T, Object>, AnnotationMetadata> serPropEntry = properties.stream()
                 .filter(bp -> bp.getValue().hasAnnotation(SerdeConfig.SerValue.class) || bp.getValue().hasAnnotation(JACKSON_VALUE))
                 .findFirst().orElse(null);
+        jsonKey = resolveJsonKey(properties, resolvedInitializers, serdeArgumentConf);
         if (serPropEntry != null) {
             wrapperProperty = null;
             arrayWrapperProperty = null;
             BeanReadProperty<T, Object> beanProperty = serPropEntry.getKey();
             final Argument<Object> serType = beanProperty.asArgument();
-            AnnotationMetadata propertyAnnotationMetadata = serPropEntry.getValue();
+            AnnotationMetadata propertyAnnotationMetadata = withoutJsonKey(serPropEntry.getValue());
             SerProperty<T, Object> resolvedJsonValue = new PropSerProperty<>(
                 SerBean.this,
                 beanProperty.getName(),
@@ -179,7 +184,7 @@ final class SerBean<T> {
                     serMethod.getName(),
                     serMethod.getName(),
                     serMethod.getReturnType().asArgument(),
-                    serMethod.getAnnotationMetadata(),
+                    withoutJsonKey(serMethod.getAnnotationMetadata()),
                     serMethod
                 );
                 jsonValue = resolvedJsonValue;
@@ -226,7 +231,62 @@ final class SerBean<T> {
 
         simpleBean = isSimpleBean();
         boolean isAbstractIntrospection = Modifier.isAbstract(introspection.getBeanType().getModifiers());
-        subtyped = isAbstractIntrospection || resolvedSubtypeInfo != null && !resolvedSubtypeInfo.subtypes().isEmpty() && !resolvedSubtypeInfo.subtypes().containsKey(type.getType()) || introspection.getAnnotationMetadata().hasDeclaredAnnotation(SerdeConfig.SerSubtyped.class);
+        subtyped = isAbstractIntrospection
+            || (resolvedSubtypeInfo != null && !resolvedSubtypeInfo.subtypes().isEmpty() && !resolvedSubtypeInfo.subtypes().containsKey(type.getType()))
+            || introspection.getAnnotationMetadata().hasDeclaredAnnotation(SerdeConfig.SerSubtyped.class);
+    }
+
+    @Nullable
+    private SerProperty<T, Object> resolveJsonKey(Collection<Map.Entry<BeanReadProperty<T, Object>, AnnotationMetadata>> properties,
+                                                  List<Initializer> resolvedInitializers,
+                                                  @Nullable SerdeArgumentConf serdeArgumentConf) {
+        final Map.Entry<BeanReadProperty<T, Object>, AnnotationMetadata> serKeyPropEntry = properties.stream()
+            .filter(bp -> isJsonKey(bp.getValue()))
+            .findFirst().orElse(null);
+        if (serKeyPropEntry != null) {
+            BeanReadProperty<T, Object> beanProperty = serKeyPropEntry.getKey();
+            SerProperty<T, Object> resolvedJsonKey = new PropSerProperty<>(
+                SerBean.this,
+                beanProperty.getName(),
+                beanProperty.getName(),
+                beanProperty.asArgument(),
+                serKeyPropEntry.getValue(),
+                beanProperty
+            );
+            resolvedInitializers.add(ctx -> initProperty(resolvedJsonKey, ctx, serdeArgumentConf));
+            return resolvedJsonKey;
+        }
+        final BeanMethod<T, Object> serKeyMethod = introspection.getBeanMethods().stream()
+            .filter(m -> isJsonKey(m.getAnnotationMetadata()))
+            .findFirst().orElse(null);
+        if (serKeyMethod != null) {
+            SerProperty<T, Object> resolvedJsonKey = new MethodSerProperty<>(
+                SerBean.this,
+                serKeyMethod.getName(),
+                serKeyMethod.getName(),
+                serKeyMethod.getReturnType().asArgument(),
+                serKeyMethod.getAnnotationMetadata(),
+                serKeyMethod
+            );
+            resolvedInitializers.add(ctx -> initProperty(resolvedJsonKey, ctx, serdeArgumentConf));
+            return resolvedJsonKey;
+        }
+        return null;
+    }
+
+    private static boolean isJsonKey(AnnotationMetadata annotationMetadata) {
+        return annotationMetadata.hasAnnotation(SerdeConfig.SerKey.class)
+            || (annotationMetadata.hasAnnotation(JACKSON_KEY) && annotationMetadata.booleanValue(JACKSON_KEY).orElse(true));
+    }
+
+    private static AnnotationMetadata withoutJsonKey(AnnotationMetadata annotationMetadata) {
+        if (!annotationMetadata.hasAnnotation(SerdeConfig.SerKey.class) && !annotationMetadata.hasAnnotation(JACKSON_KEY)) {
+            return annotationMetadata;
+        }
+        MutableAnnotationMetadata mutableAnnotationMetadata = MutableAnnotationMetadata.of(annotationMetadata);
+        mutableAnnotationMetadata.removeAnnotation(SerdeConfig.SerKey.class.getName());
+        mutableAnnotationMetadata.removeAnnotation(JACKSON_KEY);
+        return mutableAnnotationMetadata;
     }
 
     private static <T> void sortPropertiesIfNeeded(@Nullable SerdeArgumentConf serdeArgumentConf,

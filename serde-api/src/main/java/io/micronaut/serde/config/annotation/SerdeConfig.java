@@ -427,6 +427,13 @@ public @interface SerdeConfig {
     }
 
     /**
+     * Meta-annotation used to model the value used during map key serialization.
+     */
+    @Internal
+    @interface SerKey {
+    }
+
+    /**
      * Meta-annotation used to model the enum constant to use for unknown values.
      *
      * @since 3.0
