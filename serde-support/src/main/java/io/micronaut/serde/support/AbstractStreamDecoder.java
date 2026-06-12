@@ -20,6 +20,7 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.LimitingStream;
+import io.micronaut.serde.exceptions.NullValueSerdeException;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
 import io.micronaut.serde.util.BinaryCodecUtil;
 import org.jspecify.annotations.Nullable;
@@ -85,6 +86,10 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
      */
     protected IOException unexpectedToken(TokenType expected) {
         return createDeserializationException("Unexpected token " + currentToken() + ", expected " + expected, null);
+    }
+
+    private NullValueSerdeException unexpectedNullToken(TokenType expected) throws IOException {
+        return NullValueSerdeException.unexpectedToken(expected, requireCurrentToken());
     }
 
     private TokenType requireCurrentToken() throws IOException {
@@ -253,6 +258,8 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
                 String value = coerceScalarToString(currentToken);
                 nextToken();
                 return value;
+            case NULL:
+                throw unexpectedNullToken(TokenType.STRING);
             case START_ARRAY:
                 if (beginUnwrapArray(currentToken)) {
                     String unwrapped = decodeString();
@@ -301,6 +308,8 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
                 String string = coerceScalarToString(currentToken);
                 nextToken();
                 return string.equals("true");
+            case NULL:
+                throw unexpectedNullToken(TokenType.BOOLEAN);
             case START_ARRAY:
                 if (beginUnwrapArray(currentToken)) {
                     boolean unwrapped = decodeBoolean();
@@ -478,6 +487,8 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
                 boolean bool = getBoolean();
                 nextToken();
                 return bool ? 1 : 0;
+            case NULL:
+                throw unexpectedNullToken(TokenType.NUMBER);
             case START_ARRAY:
                 if (beginUnwrapArray(currentToken)) {
                     int unwrapped = decodeInteger(min, max);
@@ -525,6 +536,8 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
                 boolean bool = getBoolean();
                 nextToken();
                 return bool ? 1 : 0;
+            case NULL:
+                throw unexpectedNullToken(TokenType.NUMBER);
             case START_ARRAY:
                 if (beginUnwrapArray(currentToken)) {
                     long unwrapped = decodeLong(min, max);
@@ -569,6 +582,8 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
                 boolean bool = getBoolean();
                 nextToken();
                 return bool ? 1 : 0;
+            case NULL:
+                throw unexpectedNullToken(TokenType.NUMBER);
             case START_ARRAY:
                 if (beginUnwrapArray(currentToken)) {
                     double unwrapped = decodeDouble();
@@ -604,6 +619,8 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
             case BOOLEAN:
                 value = getBoolean() ? BigInteger.ONE : BigInteger.ZERO;
                 break;
+            case NULL:
+                throw unexpectedNullToken(TokenType.NUMBER);
             case START_ARRAY:
                 if (beginUnwrapArray(currentToken)) {
                     BigInteger unwrapped = decodeBigInteger();
@@ -641,6 +658,8 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
             case BOOLEAN:
                 value = getBoolean() ? BigDecimal.ONE : BigDecimal.ZERO;
                 break;
+            case NULL:
+                throw unexpectedNullToken(TokenType.NUMBER);
             case START_ARRAY:
                 if (beginUnwrapArray(currentToken)) {
                     BigDecimal unwrapped = decodeBigDecimal();
@@ -691,6 +710,8 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
             case BOOLEAN:
                 value = getBoolean() ? one : zero;
                 break;
+            case NULL:
+                throw unexpectedNullToken(TokenType.NUMBER);
             case START_ARRAY:
                 if (beginUnwrapArray(currentToken)) {
                     T unwrapped = decodeNumber(currentToken, fromNumberToken, fromString, zero, one);

@@ -22,16 +22,24 @@ import io.micronaut.serde.jackson.shape.EnumObjectShapeBean
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
+import java.sql.Time
 import java.sql.Timestamp
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.Month
+import java.time.MonthDay
 import java.time.OffsetDateTime
+import java.time.OffsetTime
 import java.time.Year
+import java.time.YearMonth
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
+import java.util.Calendar
+import java.util.GregorianCalendar
+import java.util.TimeZone
 
 abstract class JsonFormatSpec extends JsonCompileSpec {
     private static final String LITERAL_Z_TIMESTAMP = '2026-05-07T08:22:23Z'
@@ -2015,8 +2023,12 @@ class Test {
             'java.time.LocalTime',
             'java.time.LocalDateTime',
             'java.time.OffsetDateTime',
+            'java.time.OffsetTime',
             'java.time.ZonedDateTime',
-            'java.time.Year'
+            'java.time.Year',
+            'java.time.YearMonth',
+            'java.time.MonthDay',
+            'java.time.Month'
         ] as Set
     }
 
@@ -2182,6 +2194,9 @@ class Test {
         'java.time.OffsetDateTime' | OffsetDateTime.of(2024, 9, 8, 12, 30, 45, 123000000, ZoneOffset.UTC)            | '{"value":"2024-09-08T12:30:45.123Z"}'
         'java.time.ZonedDateTime' | ZonedDateTime.of(2024, 9, 8, 12, 30, 45, 123000000, ZoneOffset.UTC)              | '{"value":"2024-09-08T12:30:45.123Z"}'
         'java.time.Year'          | Year.of(2024)                                                                   | '{"value":"2024"}'
+        'java.time.YearMonth'     | YearMonth.of(2024, 9)                                                           | '{"value":"2024-09"}'
+        'java.time.MonthDay'      | MonthDay.of(9, 8)                                                               | '{"value":"--09-08"}'
+        'java.sql.Time'           | Time.valueOf('12:30:45')                                                        | '{"value":"12:30:45"}'
     }
 
     void "test json format string shape overrides global numeric time shape"() {
@@ -2244,6 +2259,37 @@ class Test {
         context.close()
     }
 
+    void "test json format string shape with pattern for offset time"() {
+        given:
+        def context = buildContext('test.Test', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import java.time.OffsetTime;
+
+@Serdeable
+class Test {
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm XXX")
+    private OffsetTime value;
+    public void setValue(OffsetTime value) {
+        this.value = value;
+    }
+    public OffsetTime getValue() {
+        return value;
+    }
+}
+""", [value: OffsetTime.of(12, 30, 45, 123000000, ZoneOffset.ofHours(2))])
+
+        expect:
+        writeJson(jsonMapper, beanUnderTest) == '{"value":"12:30 +02:00"}'
+        jsonMapper.readValue('{"value":"13:45 +03:00"}', typeUnderTest).value ==
+            OffsetTime.of(13, 45, 0, 0, ZoneOffset.ofHours(3))
+
+        cleanup:
+        context.close()
+    }
+
     @Unroll
     void "test json format literal z pattern for temporal #typeName"() {
         given:
@@ -2280,6 +2326,41 @@ class Test {
         typeName = variation.typeName
         expectedValue = variation.expectedValue
         resolver = variation.resolver
+    }
+
+    @Unroll
+    void "test json format pattern for #typeName"() {
+        given:
+        def context = buildContext('test.Test', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+@Serdeable
+class Test {
+    @JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss Z", timezone = "UTC")
+    private $typeName value;
+    public void setValue($typeName value) {
+        this.value = value;
+    }
+    public $typeName getValue() {
+        return value;
+    }
+}
+""", [value: writeValue])
+
+        expect:
+        writeJson(jsonMapper, beanUnderTest) == '{"value":"2024/09/08 10:30:45 +0000"}'
+        resolver(jsonMapper.readValue('{"value":"2024/09/09 12:30:45 +0000"}', typeUnderTest).value) == 1725885045000L
+
+        cleanup:
+        context.close()
+
+        where:
+        typeName                      | writeValue               | resolver
+        'java.util.Calendar'          | calendar('Europe/Paris') | { Calendar c -> c.timeInMillis }
+        'java.util.GregorianCalendar' | calendar('Europe/Paris') | { GregorianCalendar c -> c.timeInMillis }
     }
 
     void "test json format nullable delegating temporal properties"() {
@@ -2346,6 +2427,41 @@ class Test {
     }
 
     @Unroll
+    void "test json format number shape for #typeName"() {
+        given:
+        def context = buildContext('test.Test', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+@Serdeable
+class Test {
+    @JsonFormat(shape = JsonFormat.Shape.NUMBER)
+    private $typeName value;
+    public void setValue($typeName value) {
+        this.value = value;
+    }
+    public $typeName getValue() {
+        return value;
+    }
+}
+""", [value: writeValue])
+
+        expect:
+        writeJson(jsonMapper, beanUnderTest) == '{"value":1725791445123}'
+        resolver(jsonMapper.readValue('{"value":1725885045000}', typeUnderTest).value) == 1725885045000L
+
+        cleanup:
+        context.close()
+
+        where:
+        typeName                      | writeValue                    | resolver
+        'java.util.Calendar'          | calendar('Europe/Paris', 123) | { Calendar c -> c.timeInMillis }
+        'java.util.GregorianCalendar' | calendar('Europe/Paris', 123) | { GregorianCalendar c -> c.timeInMillis }
+    }
+
+    @Unroll
     void "test json format pattern without explicit shape for temporal #typeName"() {
         given:
         def context = buildContext('test.Test', """
@@ -2385,6 +2501,43 @@ class Test {
         'java.time.OffsetDateTime' | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSX", timezone: 'UTC']             | OffsetDateTime.of(2024, 9, 8, 12, 30, 45, 123000000, ZoneOffset.UTC) | '{"value":"2024-09-08T12:30:45.123Z"}' | '{"value":"2024-09-09T12:30:45.123Z"}'    | OffsetDateTime.of(2024, 9, 9, 12, 30, 45, 123000000, ZoneOffset.UTC) | { OffsetDateTime t -> t.toInstant() }
         'java.time.ZonedDateTime'  | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSX", timezone: 'UTC']             | ZonedDateTime.of(2024, 9, 8, 12, 30, 45, 123000000, ZoneOffset.UTC) | '{"value":"2024-09-08T12:30:45.123Z"}'  | '{"value":"2024-09-09T12:30:45.123Z"}'    | ZonedDateTime.of(2024, 9, 9, 12, 30, 45, 123000000, ZoneOffset.UTC)  | { ZonedDateTime t -> t.toInstant() }
         'java.time.Year'           | [pattern: "'year:' yyyy"]                                            | Year.of(2024)                                                    | '{"value":"year: 2024"}'                  | '{"value":"year: 2025"}'                  | Year.of(2025)                                                | { Year y -> y }
+        'java.time.YearMonth'      | [pattern: 'uuuu/MM']                                                  | YearMonth.of(2024, 9)                                            | '{"value":"2024/09"}'                     | '{"value":"2025/10"}'                     | YearMonth.of(2025, 10)                                      | { YearMonth y -> y }
+        'java.time.MonthDay'       | [pattern: 'MM/dd']                                                    | MonthDay.of(9, 8)                                                | '{"value":"09/08"}'                       | '{"value":"10/09"}'                       | MonthDay.of(10, 9)                                          | { MonthDay m -> m }
+        'java.time.Month'          | [pattern: 'MMM', locale: 'en_US']                                     | Month.SEPTEMBER                                                  | '{"value":"Sep"}'                         | '{"value":"Oct"}'                         | Month.OCTOBER                                               | { Month m -> m }
+    }
+
+    @Unroll
+    void "test json format scalar sql time shape #shape"() {
+        given:
+        def context = buildContext('test.Test', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import java.sql.Time;
+
+@Serdeable
+class Test {
+    @JsonFormat(shape = JsonFormat.Shape.$shape)
+    private Time value;
+    public void setValue(Time value) {
+        this.value = value;
+    }
+    public Time getValue() {
+        return value;
+    }
+}
+""", [value: Time.valueOf('12:30:45')])
+
+        expect:
+        writeJson(jsonMapper, beanUnderTest) == '{"value":"12:30:45"}'
+        jsonMapper.readValue('{"value":"13:31:46"}', typeUnderTest).value == Time.valueOf('13:31:46')
+
+        cleanup:
+        context.close()
+
+        where:
+        shape << ['STRING', 'NUMBER', 'NUMBER_FLOAT', 'NUMBER_INT']
     }
 
     @Unroll
@@ -2511,6 +2664,37 @@ class Test {
         context.close()
     }
 
+    void "test json format array timestamp shape for offset time"() {
+        given:
+        def context = buildContext('test.Test', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import java.time.OffsetTime;
+
+@Serdeable
+class Test {
+    @JsonFormat(shape = JsonFormat.Shape.ARRAY)
+    private OffsetTime value;
+    public void setValue(OffsetTime value) {
+        this.value = value;
+    }
+    public OffsetTime getValue() {
+        return value;
+    }
+}
+""", [value: OffsetTime.of(12, 30, 45, 123456789, ZoneOffset.ofHours(2))])
+
+        expect:
+        writeJson(jsonMapper, beanUnderTest) == '{"value":[12,30,45,123456789,"+02:00"]}'
+        jsonMapper.readValue('{"value":[13,31,46,987654321,"+03:00"]}', typeUnderTest).value ==
+            OffsetTime.of(13, 31, 46, 987654321, ZoneOffset.ofHours(3))
+
+        cleanup:
+        context.close()
+    }
+
     @Unroll
     void "test json format temporal array timestamps as milliseconds for #typeName"() {
         given:
@@ -2550,6 +2734,44 @@ class Test {
         typeName                  | writeValue                                           | expectedWriteJson                    | readJson                             | readExpectedValue
         'java.time.LocalTime'     | LocalTime.of(12, 30, 45, 123456789)                  | '{"value":[12,30,45,123]}'           | '{"value":[12,30,45,123]}'           | LocalTime.of(12, 30, 45, 123000000)
         'java.time.LocalDateTime' | LocalDateTime.of(2024, 9, 8, 12, 30, 45, 123456789) | '{"value":[2024,9,8,12,30,45,123]}' | '{"value":[2024,9,8,12,30,45,123]}' | LocalDateTime.of(2024, 9, 8, 12, 30, 45, 123000000)
+        'java.time.OffsetTime'    | OffsetTime.of(12, 30, 45, 123456789, ZoneOffset.ofHours(2)) | '{"value":[12,30,45,123,"+02:00"]}' | '{"value":[12,30,45,123,"+02:00"]}' | OffsetTime.of(12, 30, 45, 123000000, ZoneOffset.ofHours(2))
+    }
+
+    @Unroll
+    void "test json format scalar timezone value for #typeName"() {
+        given:
+        def context = buildContext('test.Test', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+@Serdeable
+class Test {
+    @JsonFormat(shape = JsonFormat.Shape.$shape, pattern = "ignored")
+    private $typeName value;
+    public void setValue($typeName value) {
+        this.value = value;
+    }
+    public $typeName getValue() {
+        return value;
+    }
+}
+""", [value: writeValue])
+
+        expect:
+        writeJson(jsonMapper, beanUnderTest) == expectedWriteJson
+        resolver(jsonMapper.readValue(readJson, typeUnderTest).value) == expectedReadValue
+
+        cleanup:
+        context.close()
+
+        where:
+        typeName               | shape    | writeValue                           | expectedWriteJson          | readJson                       | expectedReadValue  | resolver
+        'java.time.ZoneOffset' | 'STRING' | ZoneOffset.ofHoursMinutes(5, 30)     | '{"value":"+05:30"}'       | '{"value":"+02:30"}'           | '+02:30'           | { ZoneOffset z -> z.toString() }
+        'java.time.ZoneOffset' | 'NUMBER' | ZoneOffset.ofHoursMinutes(5, 30)     | '{"value":"+05:30"}'       | '{"value":"+02:30"}'           | '+02:30'           | { ZoneOffset z -> z.toString() }
+        'java.util.TimeZone'   | 'STRING' | TimeZone.getTimeZone('Europe/Paris') | '{"value":"Europe/Paris"}' | '{"value":"America/New_York"}' | 'America/New_York' | { TimeZone t -> t.ID }
+        'java.util.TimeZone'   | 'NUMBER' | TimeZone.getTimeZone('Europe/Paris') | '{"value":"Europe/Paris"}' | '{"value":"America/New_York"}' | 'America/New_York' | { TimeZone t -> t.ID }
     }
 
     void "test json format write dates with zone id for zoned date time"() {
@@ -2744,6 +2966,14 @@ class Test {
                 resolver: { OffsetDateTime v -> v.toInstant() }
             ],
             [
+                typeName: 'java.time.OffsetTime',
+                writeValue: OffsetTime.of(12, 30, 45, 456789123, ZoneOffset.ofHours(2)),
+                writeExpectedByShape: temporalShapeExpected('"12:30:45.456789123+02:00"', '"12:30:45.456789123+02:00"', '[12,30,45,456789123,"+02:00"]', '[12,30,45,456789123,"+02:00"]'),
+                readByShape: temporalShapeExpected('"12:30:45+02:00"', '"12:30:45+02:00"', '[12,30,45,"+02:00"]', '[12,30,45,"+02:00"]'),
+                readExpectedValue: OffsetTime.of(12, 30, 45, 0, ZoneOffset.ofHours(2)),
+                resolver: { OffsetTime v -> v }
+            ],
+            [
                 typeName: 'java.time.ZonedDateTime',
                 writeValue: ZonedDateTime.of(1970, 1, 1, 0, 2, 3, 456789123, ZoneOffset.UTC),
                 writeExpectedByShape: temporalShapeExpected('"1970-01-01T00:02:03.456789123Z"', '"1970-01-01T00:02:03.456789123Z"', '123.456789123', '123456'),
@@ -2758,6 +2988,30 @@ class Test {
                 readByShape: temporalShapeExpected('2024', '"2024"', '2024', '2024'),
                 readExpectedValue: Year.of(2024),
                 resolver: { Year v -> v }
+            ],
+            [
+                typeName: 'java.time.YearMonth',
+                writeValue: YearMonth.of(2024, 9),
+                writeExpectedByShape: temporalShapeExpected('"2024-09"', '"2024-09"', '[2024,9]', '[2024,9]'),
+                readByShape: temporalShapeExpected('"2024-09"', '"2024-09"', '[2024,9]', '[2024,9]'),
+                readExpectedValue: YearMonth.of(2024, 9),
+                resolver: { YearMonth v -> v }
+            ],
+            [
+                typeName: 'java.time.MonthDay',
+                writeValue: MonthDay.of(9, 8),
+                writeExpectedByShape: temporalShapeExpected('"--09-08"', '"--09-08"', '[9,8]', '[9,8]'),
+                readByShape: temporalShapeExpected('"--09-08"', '"--09-08"', '[9,8]', '[9,8]'),
+                readExpectedValue: MonthDay.of(9, 8),
+                resolver: { MonthDay v -> v }
+            ],
+            [
+                typeName: 'java.time.Month',
+                writeValue: Month.SEPTEMBER,
+                writeExpectedByShape: temporalShapeExpected('9', '9', '[9]', '[9]'),
+                readByShape: temporalShapeExpected('9', '9', '[9]', '[9]'),
+                readExpectedValue: Month.SEPTEMBER,
+                resolver: { Month v -> v }
             ]
         ]
     }
@@ -2830,6 +3084,14 @@ class Test {
         SHAPE_PROPERTIES.every { property ->
             resolver.call(bean."${property.field}") == expectedValue
         }
+    }
+
+    private static GregorianCalendar calendar(String timeZoneId, int millis = 0) {
+        def calendar = new GregorianCalendar(TimeZone.getTimeZone(timeZoneId))
+        calendar.clear()
+        calendar.set(2024, Calendar.SEPTEMBER, 8, 12, 30, 45)
+        calendar.set(Calendar.MILLISECOND, millis)
+        calendar
     }
 
     private static List<Map<String, Object>> enumFormatShapeVariations() {

@@ -25,6 +25,8 @@ import io.micronaut.inject.ast.FieldElement;
 import io.micronaut.inject.ast.MethodElement;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.Keys;
+import io.micronaut.serde.KeysAwareDecoder;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
 import io.micronaut.serde.util.GeneratedSerdeExceptionUtil;
@@ -60,13 +62,16 @@ public final class BeanDeserializerSourceGen {
 
     private static final TypeDef ARGUMENT_TYPE = TypeDef.of(Argument.class);
     private static final TypeDef BOOLEAN_TYPE = TypeDef.primitive(boolean.class);
+    private static final TypeDef.Primitive INT_TYPE = TypeDef.Primitive.INT;
     private static final TypeDef DESERIALIZER_TYPE = TypeDef.of(Deserializer.class);
     private static final TypeDef STRING_TYPE = TypeDef.of(String.class);
+    private static final ClassTypeDef KEYS_TYPE = ClassTypeDef.of(Keys.class);
+    private static final ClassTypeDef KEYS_AWARE_DECODER_TYPE = ClassTypeDef.of(KeysAwareDecoder.class);
     private static final ClassTypeDef DISPATCH_RESULT_TYPE = ClassTypeDef.of(GeneratedSerdeExceptionUtil.PropertyDispatchResult.class);
-    private static final int STRING_SWITCH_PROPERTY_THRESHOLD = 2;
     private static final String CONTEXT_PARAMETER = "context";
     private static final String VALUE_LOCAL_PREFIX = "value";
     private static final String BEAN_LOCAL = "bean";
+    private static final String KEYS_FIELD = "KEYS";
     private static final String FAIL_ON_NULL_FOR_PRIMITIVES_FIELD = "failOnNullForPrimitives";
     private static final String IGNORE_UNKNOWN_FIELD = "ignoreUnknown";
     private static final String GENERATED_VALUE_MEMBER = "value";
@@ -74,8 +79,6 @@ public final class BeanDeserializerSourceGen {
     private static final String UNKNOWN_DISPATCH_RESULT = "UNKNOWN";
     private static final String DUPLICATE_DISPATCH_RESULT = "DUPLICATE";
     private static final String NULL_DISPATCH_RESULT = "NULL";
-
-    private static final Method STRING_EQUALS_METHOD = ReflectionUtils.getRequiredMethod(String.class, "equals", Object.class);
     private static final Method FIND_DESERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(Deserializer.DecoderContext.class, "findDeserializer", Argument.class);
     private static final Method CREATE_SPECIFIC_DESERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
         Deserializer.class,
@@ -90,10 +93,14 @@ public final class BeanDeserializerSourceGen {
         Deserializer.DecoderContext.class,
         Argument.class
     );
+    private static final Method KEYS_CREATE_METHOD = ReflectionUtils.getRequiredMethod(Keys.class, "create", String[].class);
     private static final Method DECODE_OBJECT_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeObject", Argument.class);
     private static final Method DECODE_KEY_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeKey");
-    private static final Method DECODE_NULL_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeNull");
+    private static final Method KEYS_AWARE_DECODER_OF_METHOD = ReflectionUtils.getRequiredMethod(KeysAwareDecoder.class, "of", Decoder.class);
+    private static final Method DECODE_KEY_KEYS_METHOD = ReflectionUtils.getRequiredMethod(KeysAwareDecoder.class, "decodeKey", Keys.class);
     private static final Method SKIP_VALUE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "skipValue");
+    private static final Method DECODE_NULL_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeNull");
+    private static final Method DECODE_STRING_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeString");
     private static final Method DECODE_STRING_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeStringNullable");
     private static final Method DECODE_BOOLEAN_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeBoolean");
     private static final Method DECODE_BOOLEAN_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeBooleanNullable");
@@ -234,6 +241,12 @@ public final class BeanDeserializerSourceGen {
             }
             index++;
         }
+        if (!keyFieldNames.isEmpty()) {
+            fields.add(FieldDef.builder(KEYS_FIELD, KEYS_TYPE)
+                .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                .initializer(keysCreateExpression(deserializerClassTypeDef, new ArrayList<>(keyFieldNames.values())))
+                .build());
+        }
         if (failOnNullForPrimitives) {
             fields.add(FieldDef.builder(FAIL_ON_NULL_FOR_PRIMITIVES_FIELD, BOOLEAN_TYPE)
                 .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
@@ -252,7 +265,18 @@ public final class BeanDeserializerSourceGen {
             .addSuperinterface(TypeDef.parameterized(Deserializer.class, beanTypeDef))
             .addFields(fields)
             .addMethod(generateCreateSpecificMethod(beanTypeDef))
-            .addMethod(generateDeserializeMethod(element, beanTypeDef, deserializerClassTypeDef, beanSerdeShape, keyFieldNames, argumentFieldNames, deserializerFieldNames));
+            .addMethod(generateDeserializeMethod(
+                "deserialize",
+                Modifier.PUBLIC,
+                element,
+                beanTypeDef,
+                deserializerClassTypeDef,
+                beanSerdeShape,
+                keyFieldNames,
+                argumentFieldNames,
+                deserializerFieldNames,
+                PrimitiveNullMode.DYNAMIC
+            ));
         classDefBuilder.addMethod(generateConstructor(deserializerClassTypeDef, argumentFieldNames, deserializerFieldNames, failOnNullForPrimitives));
 
         List<Object> suppressWarnings = new ArrayList<>();
@@ -328,108 +352,373 @@ public final class BeanDeserializerSourceGen {
             });
     }
 
-    private MethodDef generateDeserializeMethod(ClassElement element,
+    private MethodDef generateDeserializeMethod(String methodName,
+                                                Modifier modifier,
+                                                ClassElement element,
                                                 TypeDef beanTypeDef,
                                                 ClassTypeDef deserializerClassTypeDef,
                                                 BeanSerdeShape beanSerdeShape,
                                                 Map<String, String> keyFieldNames,
                                                 Map<String, String> argumentFieldNames,
-                                                Map<String, String> deserializerFieldNames) {
-        return MethodDef.builder("deserialize")
-            .addModifiers(Modifier.PUBLIC)
-            .overrides()
+                                                Map<String, String> deserializerFieldNames,
+                                                PrimitiveNullMode primitiveNullMode) {
+        MethodDef.MethodDefBuilder methodBuilder = MethodDef.builder(methodName)
+            .addModifiers(modifier)
             .returns(beanTypeDef)
             .addParameter("decoder", TypeDef.of(Decoder.class))
             .addParameter(CONTEXT_PARAMETER, TypeDef.of(Deserializer.DecoderContext.class))
             .addParameter("type", TypeDef.of(Argument.class))
-            .addThrows(TypeDef.of(IOException.class))
-            .build((aThis, methodParameters) -> {
-                VariableDef.MethodParameter decoder = methodParameters.get(0);
-                VariableDef.MethodParameter context = methodParameters.get(1);
-                VariableDef.MethodParameter type = methodParameters.get(2);
-
-                List<StatementDef> statements = new ArrayList<>();
-                StatementDef.DefineAndAssign objectDecoderDef = decoder.invoke(DECODE_OBJECT_METHOD, type).newLocal("objectDecoder");
-                statements.add(objectDecoderDef);
-                VariableDef objectDecoder = objectDecoderDef.variable();
-
-                StatementDef.DefineAndAssign beanDef = ClassTypeDef.of(element).instantiate().newLocal(BEAN_LOCAL);
-                statements.add(beanDef);
-                VariableDef beanVariable = beanDef.variable();
-
-                List<BeanSerdeShape.BeanProperty> properties = beanSerdeShape.properties();
-                List<VariableDef.Local> seenPropertyVariables = new ArrayList<>(properties.size());
-                for (int i = 0; i < properties.size(); i++) {
-                    StatementDef.DefineAndAssign seenPropertyDef = ExpressionDef.falseValue()
-                        .newLocal(BeanSerdeSourceGenUtils.localName("seenProperty", i));
-                    statements.add(seenPropertyDef);
-                    seenPropertyVariables.add(seenPropertyDef.variable());
-                }
-                int index = 0;
-                for (BeanSerdeShape.BeanProperty property : properties) {
-                    if (!property.deserializationType().isOptional()) {
-                        continue;
-                    }
-                    statements.add(assignProperty(beanVariable, property, BeanSerdeSourceGenUtils.optionalDefaultValueExpression(property.deserializationType())));
-                    index++;
-                }
-
-                List<StatementDef> propertyDeserializers = new ArrayList<>(properties.size());
-                if (properties.size() < STRING_SWITCH_PROPERTY_THRESHOLD) {
-                    index = 0;
-                    for (BeanSerdeShape.BeanProperty property : properties) {
-                        propertyDeserializers.add(deserializeAndAssignProperty(
-                            aThis,
-                            deserializerClassTypeDef,
-                            objectDecoder,
-                            context,
-                            type,
-                            beanVariable,
-                            property,
-                            index,
-                            argumentFieldNames,
-                            deserializerFieldNames,
-                            null
-                        ));
-                        index++;
-                    }
-                }
-
-                StatementDef.DefineAndAssign keyDef = objectDecoder.invoke(DECODE_KEY_METHOD).newLocal("key");
-                VariableDef keyVariable = keyDef.variable();
-                BeanDispatchInfo dispatchInfo = new BeanDispatchInfo(
-                    properties,
+            .addThrows(TypeDef.of(IOException.class));
+        if (modifier == Modifier.PUBLIC) {
+            methodBuilder.overrides();
+        }
+        return methodBuilder.build((aThis, methodParameters) -> {
+                return buildDeserializeBody(
+                    aThis,
+                    methodParameters.get(0),
+                    methodParameters.get(1),
+                    methodParameters.get(2),
+                    element,
+                    deserializerClassTypeDef,
+                    beanSerdeShape,
                     keyFieldNames,
                     argumentFieldNames,
                     deserializerFieldNames,
-                    seenPropertyVariables,
-                    propertyDeserializers
+                    primitiveNullMode
                 );
-                StatementDef switchStatement = buildPropertyDispatchStatement(
-                    aThis,
-                    deserializerClassTypeDef,
-                    objectDecoder,
-                    context,
-                    type,
-                    beanVariable,
-                    keyVariable,
-                    dispatchInfo
-                );
-                statements.add(ExpressionDef.trueValue().whileLoop(
-                    StatementDef.multi(
-                        keyDef,
-                        keyVariable.isNull().ifTrue(
-                            StatementDef.multi(
-                                objectDecoder.invoke(FINISH_STRUCTURE_METHOD),
-                                beanVariable.returning()
-                            )
-                        ),
-                        switchStatement
-                    )
-                ));
-
-                return StatementDef.multi(statements);
             });
+    }
+
+    @SuppressWarnings("java:S107")
+    private StatementDef buildDeserializeBody(VariableDef.This aThis,
+                                              VariableDef.MethodParameter decoder,
+                                              VariableDef.MethodParameter context,
+                                              VariableDef.MethodParameter type,
+                                              ClassElement element,
+                                              ClassTypeDef deserializerClassTypeDef,
+                                              BeanSerdeShape beanSerdeShape,
+                                              Map<String, String> keyFieldNames,
+                                              Map<String, String> argumentFieldNames,
+                                              Map<String, String> deserializerFieldNames,
+                                              PrimitiveNullMode primitiveNullMode) {
+        List<StatementDef> statements = new ArrayList<>();
+        StatementDef.DefineAndAssign objectDecoderDef = decoder.invoke(DECODE_OBJECT_METHOD, type).newLocal("objectDecoder");
+        statements.add(objectDecoderDef);
+        VariableDef objectDecoder = objectDecoderDef.variable();
+
+        StatementDef.DefineAndAssign beanDef = ClassTypeDef.of(element).instantiate().newLocal(BEAN_LOCAL);
+        statements.add(beanDef);
+        VariableDef beanVariable = beanDef.variable();
+
+        ExpressionDef ignoreUnknownExpression = aThis.field(IGNORE_UNKNOWN_FIELD, BOOLEAN_TYPE);
+
+        List<BeanSerdeShape.BeanProperty> properties = beanSerdeShape.properties();
+        List<VariableDef.Local> seenPropertyVariables = new ArrayList<>(properties.size());
+        VariableDef.@Nullable Local seenPropertiesMaskVariable = null;
+        boolean seenPropertiesMaskLong = false;
+        if (!properties.isEmpty() && properties.size() <= Long.SIZE) {
+            seenPropertiesMaskLong = true;
+            StatementDef.DefineAndAssign seenPropertiesMaskDef = ExpressionDef.constant(0L)
+                .newLocal("seenProperties");
+            statements.add(seenPropertiesMaskDef);
+            seenPropertiesMaskVariable = seenPropertiesMaskDef.variable();
+        } else {
+            for (int i = 0; i < properties.size(); i++) {
+                StatementDef.DefineAndAssign seenPropertyDef = ExpressionDef.falseValue()
+                    .newLocal(BeanSerdeSourceGenUtils.localName("seenProperty", i));
+                statements.add(seenPropertyDef);
+                seenPropertyVariables.add(seenPropertyDef.variable());
+            }
+        }
+        VariableDef.@Nullable Local seenPropertiesMask = seenPropertiesMaskVariable;
+        boolean useLongSeenPropertiesMask = seenPropertiesMaskLong;
+        for (BeanSerdeShape.BeanProperty property : properties) {
+            if (!property.deserializationType().isOptional()) {
+                continue;
+            }
+            statements.add(assignProperty(beanVariable, property, BeanSerdeSourceGenUtils.optionalDefaultValueExpression(property.deserializationType())));
+        }
+
+        StatementDef finishStatement = StatementDef.multi(
+            objectDecoder.invoke(FINISH_STRUCTURE_METHOD),
+            beanVariable.returning()
+        );
+        BeanDeserializeContext deserializeContext = new BeanDeserializeContext(
+            aThis,
+            deserializerClassTypeDef,
+            objectDecoder,
+            context,
+            type,
+            beanVariable,
+            primitiveNullMode
+        );
+        if (properties.isEmpty()) {
+            BeanDispatchInfo dispatchInfo = buildBeanDispatchInfo(
+                deserializeContext,
+                beanSerdeShape,
+                keyFieldNames,
+                argumentFieldNames,
+                deserializerFieldNames,
+                seenPropertiesMask,
+                useLongSeenPropertiesMask,
+                seenPropertyVariables
+            );
+            statements.add(buildStringPropertyDispatchLoop(
+                aThis,
+                deserializerClassTypeDef,
+                objectDecoder,
+                context,
+                type,
+                beanVariable,
+                ignoreUnknownExpression,
+                dispatchInfo,
+                finishStatement,
+                primitiveNullMode
+            ));
+        } else {
+            statements.add(KEYS_AWARE_DECODER_TYPE.invokeStatic(KEYS_AWARE_DECODER_OF_METHOD, objectDecoder)
+                .newLocal("keysAwareDecoder", keysAwareDecoder -> {
+                    BeanDispatchInfo dispatchInfo = buildBeanDispatchInfo(
+                        deserializeContext,
+                        beanSerdeShape,
+                        keyFieldNames,
+                        argumentFieldNames,
+                        deserializerFieldNames,
+                        seenPropertiesMask,
+                        useLongSeenPropertiesMask,
+                        seenPropertyVariables
+                    );
+                    return buildKeysAwarePropertyDispatchLoop(
+                        aThis,
+                        deserializerClassTypeDef,
+                        objectDecoder,
+                        keysAwareDecoder,
+                        context,
+                        type,
+                        beanVariable,
+                        ignoreUnknownExpression,
+                        dispatchInfo,
+                        finishStatement,
+                        primitiveNullMode
+                    );
+                })
+            );
+        }
+
+        return StatementDef.multi(statements);
+    }
+
+    private BeanDispatchInfo buildBeanDispatchInfo(BeanDeserializeContext deserializeContext,
+                                                   BeanSerdeShape beanSerdeShape,
+                                                   Map<String, String> keyFieldNames,
+                                                   Map<String, String> argumentFieldNames,
+                                                   Map<String, String> deserializerFieldNames,
+                                                   VariableDef.@Nullable Local seenPropertiesMaskVariable,
+                                                   boolean seenPropertiesMaskLong,
+                                                   List<VariableDef.Local> seenPropertyVariables) {
+        List<BeanSerdeShape.BeanProperty> properties = beanSerdeShape.properties();
+        List<StatementDef> propertyDeserializers = new ArrayList<>(properties.size());
+        for (int i = 0; i < properties.size(); i++) {
+            BeanSerdeShape.BeanProperty property = properties.get(i);
+            propertyDeserializers.add(deserializeAndAssignProperty(
+                deserializeContext.aThis(),
+                deserializeContext.deserializerClassTypeDef(),
+                deserializeContext.objectDecoder(),
+                deserializeContext.decoderContext(),
+                deserializeContext.type(),
+                deserializeContext.beanVariable(),
+                property,
+                i,
+                argumentFieldNames,
+                deserializerFieldNames,
+                null,
+                deserializeContext.primitiveNullMode()
+            ));
+        }
+        return new BeanDispatchInfo(
+            properties,
+            keyFieldNames,
+            argumentFieldNames,
+            deserializerFieldNames,
+            seenPropertiesMaskVariable,
+            seenPropertiesMaskLong,
+            seenPropertyVariables,
+            propertyDeserializers
+        );
+    }
+
+    @SuppressWarnings("java:S107")
+    private StatementDef buildStringPropertyDispatchLoop(VariableDef.This aThis,
+                                                         ClassTypeDef deserializerClassTypeDef,
+                                                         VariableDef objectDecoder,
+                                                         VariableDef.MethodParameter context,
+                                                         VariableDef.MethodParameter type,
+                                                         VariableDef beanVariable,
+                                                         ExpressionDef ignoreUnknownExpression,
+                                                         BeanDispatchInfo dispatchInfo,
+                                                         StatementDef finishStatement,
+                                                         PrimitiveNullMode primitiveNullMode) {
+        return ExpressionDef.trueValue().whileLoop(buildStringPropertyDispatchStep(
+            aThis,
+            deserializerClassTypeDef,
+            objectDecoder,
+            context,
+            type,
+            beanVariable,
+            ignoreUnknownExpression,
+            dispatchInfo,
+            finishStatement,
+            primitiveNullMode
+        ));
+    }
+
+    @SuppressWarnings("java:S107")
+    private StatementDef buildStringPropertyDispatchStep(VariableDef.This aThis,
+                                                         ClassTypeDef deserializerClassTypeDef,
+                                                         VariableDef objectDecoder,
+                                                         VariableDef.MethodParameter context,
+                                                         VariableDef.MethodParameter type,
+                                                         VariableDef beanVariable,
+                                                         ExpressionDef ignoreUnknownExpression,
+                                                         BeanDispatchInfo dispatchInfo,
+                                                         StatementDef finishStatement,
+                                                         PrimitiveNullMode primitiveNullMode) {
+        StatementDef.DefineAndAssign keyDef = objectDecoder.invoke(DECODE_KEY_METHOD).newLocal("key");
+        VariableDef keyVariable = keyDef.variable();
+        StatementDef switchStatement = buildPropertyDispatchStatement(
+            aThis,
+            deserializerClassTypeDef,
+            objectDecoder,
+            context,
+            type,
+            beanVariable,
+            keyVariable,
+            ignoreUnknownExpression,
+            dispatchInfo,
+            primitiveNullMode
+        );
+        return StatementDef.multi(
+            keyDef,
+            keyVariable.isNull().ifTrue(finishStatement),
+            switchStatement
+        );
+    }
+
+    @SuppressWarnings("java:S107")
+    private StatementDef buildKeysAwarePropertyDispatchLoop(VariableDef.This aThis,
+                                                            ClassTypeDef deserializerClassTypeDef,
+                                                            VariableDef objectDecoder,
+                                                            VariableDef keysAwareDecoder,
+                                                            VariableDef.MethodParameter context,
+                                                            VariableDef.MethodParameter type,
+                                                            VariableDef beanVariable,
+                                                            ExpressionDef ignoreUnknownExpression,
+                                                            BeanDispatchInfo dispatchInfo,
+                                                            StatementDef finishStatement,
+                                                            PrimitiveNullMode primitiveNullMode) {
+        ExpressionDef keyIndexExpression = keysAwareDecoder.invoke(
+            DECODE_KEY_KEYS_METHOD,
+            deserializerClassTypeDef.getStaticField(KEYS_FIELD, KEYS_TYPE)
+        );
+        List<StatementDef> loopStatements = new ArrayList<>();
+        loopStatements.add(buildKeyIndexPropertyDispatchStatement(
+            aThis,
+            deserializerClassTypeDef,
+            objectDecoder,
+            keysAwareDecoder,
+            context,
+            type,
+            beanVariable,
+            keyIndexExpression,
+            ignoreUnknownExpression,
+            dispatchInfo,
+            finishStatement,
+            primitiveNullMode
+        ));
+        return ExpressionDef.trueValue().whileLoop(StatementDef.multi(loopStatements));
+    }
+
+    @SuppressWarnings("java:S107")
+    private StatementDef buildKeyIndexPropertyDispatchStatement(VariableDef.This aThis,
+                                                                ClassTypeDef deserializerClassTypeDef,
+                                                                VariableDef objectDecoder,
+                                                                VariableDef keysAwareDecoder,
+                                                                VariableDef.MethodParameter context,
+                                                                VariableDef.MethodParameter type,
+                                                                VariableDef beanVariable,
+                                                                ExpressionDef keyIndexExpression,
+                                                                ExpressionDef ignoreUnknownExpression,
+                                                                BeanDispatchInfo dispatchInfo,
+                                                                StatementDef finishStatement,
+                                                                PrimitiveNullMode primitiveNullMode) {
+        Map<ExpressionDef.Constant, StatementDef> cases = buildKeyIndexLifecycleCases(
+            keysAwareDecoder,
+            ignoreUnknownExpression,
+            type,
+            finishStatement
+        );
+        for (int i = 0; i < dispatchInfo.properties().size(); i++) {
+            BeanSerdeShape.BeanProperty property = dispatchInfo.properties().get(i);
+            ExpressionDef argumentExpression = deserializerClassTypeDef.getStaticField(required(dispatchInfo.argumentFieldNames(), property.name()), ARGUMENT_TYPE);
+            StatementDef deserializeAndAssignProperty = wrapWithPropertyPath(deserializeAndAssignPropertyDirect(
+                aThis,
+                deserializerClassTypeDef,
+                objectDecoder,
+                context,
+                type,
+                beanVariable,
+                property,
+                i,
+                dispatchInfo.argumentFieldNames(),
+                dispatchInfo.deserializerFieldNames(),
+                primitiveNullMode
+            ), type, argumentExpression);
+            if (dispatchInfo.seenPropertiesMask() != null) {
+                deserializeAndAssignProperty = StatementDef.multi(
+                    isPropertySeen(dispatchInfo, i).ifTrue(duplicatePropertyStatement(argumentExpression, type)),
+                    markPropertySeen(dispatchInfo, i),
+                    deserializeAndAssignProperty
+                );
+            } else {
+                deserializeAndAssignProperty = isPropertySeen(dispatchInfo, i).doIfElse(
+                    duplicatePropertyStatement(argumentExpression, type),
+                    StatementDef.multi(
+                        markPropertySeen(dispatchInfo, i),
+                        deserializeAndAssignProperty
+                    )
+                );
+            }
+            cases.put(ExpressionDef.constant(i), deserializeAndAssignProperty);
+        }
+        return keyIndexExpression.asStatementSwitch(INT_TYPE, cases);
+    }
+
+    private Map<ExpressionDef.Constant, StatementDef> buildKeyIndexLifecycleCases(VariableDef keysAwareDecoder,
+                                                                                  ExpressionDef ignoreUnknownExpression,
+                                                                                  VariableDef.MethodParameter type,
+                                                                                  StatementDef finishStatement) {
+        Map<ExpressionDef.Constant, StatementDef> cases = new LinkedHashMap<>();
+        cases.put(ExpressionDef.constant(KeysAwareDecoder.MATCH_END_OBJECT), finishStatement);
+        cases.put(ExpressionDef.constant(KeysAwareDecoder.MATCH_UNKNOWN_NAME), buildUnknownKeyIndexPropertyDispatchStep(
+            keysAwareDecoder,
+            ignoreUnknownExpression,
+            type,
+            finishStatement
+        ));
+        return cases;
+    }
+
+    private StatementDef buildUnknownKeyIndexPropertyDispatchStep(VariableDef keysAwareDecoder,
+                                                                  ExpressionDef ignoreUnknownExpression,
+                                                                  VariableDef.MethodParameter type,
+                                                                  StatementDef finishStatement) {
+        StatementDef.DefineAndAssign keyDef = keysAwareDecoder.invoke(DECODE_KEY_METHOD).newLocal("key");
+        VariableDef keyVariable = keyDef.variable();
+        return StatementDef.multi(
+            keyDef,
+            keyVariable.isNull().ifTrue(finishStatement),
+            unknownPropertyStatement(ignoreUnknownExpression, keysAwareDecoder, dynamicPropertyArgument(keyVariable), type)
+        );
     }
 
     private StatementDef buildPropertyDispatchStatement(VariableDef.This aThis,
@@ -439,72 +728,45 @@ public final class BeanDeserializerSourceGen {
                                                         VariableDef.MethodParameter type,
                                                         VariableDef beanVariable,
                                                         VariableDef keyVariable,
-                                                        BeanDispatchInfo dispatchInfo) {
-        StatementDef unknownPropertyStatement = unknownPropertyStatement(aThis, objectDecoder, dynamicPropertyArgument(keyVariable), type);
+                                                        ExpressionDef ignoreUnknownExpression,
+                                                        BeanDispatchInfo dispatchInfo,
+                                                        PrimitiveNullMode primitiveNullMode) {
+        StatementDef unknownPropertyStatement = unknownPropertyStatement(ignoreUnknownExpression, objectDecoder, dynamicPropertyArgument(keyVariable), type);
         if (dispatchInfo.properties().isEmpty()) {
             return unknownPropertyStatement;
         }
-        if (dispatchInfo.properties().size() >= STRING_SWITCH_PROPERTY_THRESHOLD) {
-            return keyVariable.asExpressionSwitch(
-                    DISPATCH_RESULT_TYPE,
-                    buildSwitchCases(
+        return keyVariable.asExpressionSwitch(
+            DISPATCH_RESULT_TYPE,
+            buildSwitchCases(
+                    new BeanDeserializeContext(
                         aThis,
                         deserializerClassTypeDef,
                         objectDecoder,
                         context,
                         type,
                         beanVariable,
-                        dispatchInfo.properties(),
-                        dispatchInfo.argumentFieldNames(),
-                        dispatchInfo.deserializerFieldNames(),
-                        dispatchInfo.seenPropertyVariables()
+                        primitiveNullMode
                     ),
-                    dispatchResult(UNKNOWN_DISPATCH_RESULT)
-                )
-                .newLocal("propertyDispatchResult", dispatchResultVariable -> dispatchResultStatement(
-                    aThis,
-                    objectDecoder,
-                    keyVariable,
-                    type,
-                    dispatchResultVariable
-                )
-            );
-        }
-        StatementDef switchStatement = unknownPropertyStatement;
-        for (int i = dispatchInfo.properties().size() - 1; i >= 0; i--) {
-            BeanSerdeShape.BeanProperty property = dispatchInfo.properties().get(i);
-            ExpressionDef propertyNameExpression = deserializerClassTypeDef.getStaticField(required(dispatchInfo.keyFieldNames(), property.name()), STRING_TYPE);
-            ExpressionDef propertyArgumentExpression = deserializerClassTypeDef.getStaticField(required(dispatchInfo.argumentFieldNames(), property.name()), ARGUMENT_TYPE);
-            VariableDef.Local seenPropertyVariable = dispatchInfo.seenPropertyVariables().get(i);
-            switchStatement = keyVariable.invoke(STRING_EQUALS_METHOD, propertyNameExpression).ifTrue(
-                seenPropertyVariable.ifTrue(
-                    duplicatePropertyStatement(propertyArgumentExpression, type),
-                    StatementDef.multi(
-                        seenPropertyVariable.assign(ExpressionDef.trueValue()),
-                        dispatchInfo.propertyDeserializers().get(i)
-                    )
+                    dispatchInfo
                 ),
-                switchStatement
-            );
-        }
-        return switchStatement;
+                dispatchResult(UNKNOWN_DISPATCH_RESULT)
+            )
+            .newLocal("propertyDispatchResult", dispatchResultVariable -> dispatchResultStatement(
+                objectDecoder,
+                keyVariable,
+                ignoreUnknownExpression,
+                type,
+                dispatchResultVariable
+            )
+        );
     }
 
-    @SuppressWarnings("java:S107")
-    private Map<ExpressionDef.Constant, ExpressionDef> buildSwitchCases(VariableDef.This aThis,
-                                                                        ClassTypeDef deserializerClassTypeDef,
-                                                                        VariableDef objectDecoder,
-                                                                        VariableDef.MethodParameter context,
-                                                                        VariableDef.MethodParameter type,
-                                                                        VariableDef beanVariable,
-                                                                        List<BeanSerdeShape.BeanProperty> properties,
-                                                                        Map<String, String> argumentFieldNames,
-                                                                        Map<String, String> deserializerFieldNames,
-                                                                        List<VariableDef.Local> seenPropertyVariables) {
+    private Map<ExpressionDef.Constant, ExpressionDef> buildSwitchCases(BeanDeserializeContext deserializeContext,
+                                                                        BeanDispatchInfo dispatchInfo) {
         Map<ExpressionDef.Constant, ExpressionDef> switchCases = new LinkedHashMap<>();
+        List<BeanSerdeShape.BeanProperty> properties = dispatchInfo.properties();
         for (int i = 0; i < properties.size(); i++) {
             BeanSerdeShape.BeanProperty property = properties.get(i);
-            VariableDef.Local seenPropertyVariable = seenPropertyVariables.get(i);
             StatementDef.DefineAndAssign dispatchResultDef = dispatchResult(HANDLED_DISPATCH_RESULT).newLocal("dispatchResult");
             VariableDef.Local dispatchResultVariable = dispatchResultDef.variable();
             switchCases.put(ExpressionDef.constant(property.name()),
@@ -512,22 +774,23 @@ public final class BeanDeserializerSourceGen {
                     DISPATCH_RESULT_TYPE,
                     StatementDef.multi(
                         dispatchResultDef,
-                        seenPropertyVariable.ifTrue(
+                        isPropertySeen(dispatchInfo.seenPropertiesMask(), dispatchInfo.seenPropertiesMaskLong(), dispatchInfo.seenPropertyVariables(), i).doIfElse(
                             dispatchResultVariable.assign(dispatchResult(DUPLICATE_DISPATCH_RESULT)),
                             StatementDef.multi(
-                                seenPropertyVariable.assign(ExpressionDef.trueValue()),
+                                markPropertySeen(dispatchInfo.seenPropertiesMask(), dispatchInfo.seenPropertiesMaskLong(), dispatchInfo.seenPropertyVariables(), i),
                                 deserializeAndAssignProperty(
-                                    aThis,
-                                    deserializerClassTypeDef,
-                                    objectDecoder,
-                                    context,
-                                    type,
-                                    beanVariable,
+                                    deserializeContext.aThis(),
+                                    deserializeContext.deserializerClassTypeDef(),
+                                    deserializeContext.objectDecoder(),
+                                    deserializeContext.decoderContext(),
+                                    deserializeContext.type(),
+                                    deserializeContext.beanVariable(),
                                     property,
                                     i,
-                                    argumentFieldNames,
-                                    deserializerFieldNames,
-                                    dispatchResultVariable
+                                    dispatchInfo.argumentFieldNames(),
+                                    dispatchInfo.deserializerFieldNames(),
+                                    dispatchResultVariable,
+                                    deserializeContext.primitiveNullMode()
                                 )
                             )
                         ),
@@ -539,12 +802,12 @@ public final class BeanDeserializerSourceGen {
         return switchCases;
     }
 
-    private StatementDef dispatchResultStatement(VariableDef.This aThis,
-                                                 VariableDef objectDecoder,
+    private StatementDef dispatchResultStatement(VariableDef objectDecoder,
                                                  VariableDef keyVariable,
+                                                 ExpressionDef ignoreUnknownExpression,
                                                  VariableDef.MethodParameter type,
                                                  VariableDef dispatchResultVariable) {
-        StatementDef unknownStatement = unknownPropertyStatement(aThis, objectDecoder, dynamicPropertyArgument(keyVariable), type);
+        StatementDef unknownStatement = unknownPropertyStatement(ignoreUnknownExpression, objectDecoder, dynamicPropertyArgument(keyVariable), type);
         StatementDef duplicateStatement = duplicatePropertyStatement(dynamicPropertyArgument(keyVariable), type);
         StatementDef nullStatement = nullPropertyStatement(type, dynamicPropertyArgument(keyVariable));
         Map<ExpressionDef.Constant, StatementDef> cases = new LinkedHashMap<>();
@@ -555,11 +818,60 @@ public final class BeanDeserializerSourceGen {
         return dispatchResultVariable.asStatementSwitch(DISPATCH_RESULT_TYPE, cases);
     }
 
-    private StatementDef unknownPropertyStatement(VariableDef.This aThis,
+    private ExpressionDef.ConditionExpressionDef isPropertySeen(BeanDispatchInfo dispatchInfo, int propertyIndex) {
+        return isPropertySeen(
+            dispatchInfo.seenPropertiesMask(),
+            dispatchInfo.seenPropertiesMaskLong(),
+            dispatchInfo.seenPropertyVariables(),
+            propertyIndex
+        );
+    }
+
+    private ExpressionDef.ConditionExpressionDef isPropertySeen(VariableDef.@Nullable Local seenPropertiesMask,
+                                                                boolean seenPropertiesMaskLong,
+                                                                List<VariableDef.Local> seenPropertyVariables,
+                                                                int propertyIndex) {
+        if (seenPropertiesMask != null) {
+            return seenPropertiesMask.math(ExpressionDef.MathBinaryOperation.OpType.BITWISE_AND, seenPropertyMask(propertyIndex, seenPropertiesMaskLong))
+                .compare(ExpressionDef.ComparisonOperation.OpType.NOT_EQUAL_TO, seenPropertyZero(seenPropertiesMaskLong));
+        }
+        return seenPropertyVariables.get(propertyIndex).isTrue();
+    }
+
+    private StatementDef markPropertySeen(BeanDispatchInfo dispatchInfo, int propertyIndex) {
+        return markPropertySeen(
+            dispatchInfo.seenPropertiesMask(),
+            dispatchInfo.seenPropertiesMaskLong(),
+            dispatchInfo.seenPropertyVariables(),
+            propertyIndex
+        );
+    }
+
+    private StatementDef markPropertySeen(VariableDef.@Nullable Local seenPropertiesMask,
+                                          boolean seenPropertiesMaskLong,
+                                          List<VariableDef.Local> seenPropertyVariables,
+                                          int propertyIndex) {
+        if (seenPropertiesMask != null) {
+            return seenPropertiesMask.assign(
+                seenPropertiesMask.math(ExpressionDef.MathBinaryOperation.OpType.BITWISE_OR, seenPropertyMask(propertyIndex, seenPropertiesMaskLong))
+            );
+        }
+        return seenPropertyVariables.get(propertyIndex).assign(ExpressionDef.trueValue());
+    }
+
+    private ExpressionDef.Constant seenPropertyMask(int propertyIndex, boolean seenPropertiesMaskLong) {
+        return seenPropertiesMaskLong ? ExpressionDef.constant(1L << propertyIndex) : ExpressionDef.constant(1 << propertyIndex);
+    }
+
+    private ExpressionDef.Constant seenPropertyZero(boolean seenPropertiesMaskLong) {
+        return seenPropertiesMaskLong ? ExpressionDef.constant(0L) : ExpressionDef.constant(0);
+    }
+
+    private StatementDef unknownPropertyStatement(ExpressionDef ignoreUnknownExpression,
                                                   VariableDef objectDecoder,
                                                   ExpressionDef propertyArgumentExpression,
                                                   VariableDef.MethodParameter type) {
-        return aThis.field(IGNORE_UNKNOWN_FIELD, BOOLEAN_TYPE).ifTrue(
+        return ignoreUnknownExpression.ifTrue(
             objectDecoder.invoke(SKIP_VALUE_METHOD),
             ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
                 .invokeStatic(UNKNOWN_PROPERTY_METHOD, type, propertyArgumentExpression)
@@ -598,7 +910,8 @@ public final class BeanDeserializerSourceGen {
                                                       int index,
                                                       Map<String, String> argumentFieldNames,
                                                       Map<String, String> deserializerFieldNames,
-                                                      @Nullable VariableDef dispatchResultVariable) {
+                                                      @Nullable VariableDef dispatchResultVariable,
+                                                      PrimitiveNullMode primitiveNullMode) {
         ExpressionDef argumentExpression = deserializerClassTypeDef.getStaticField(required(argumentFieldNames, property.name()), ARGUMENT_TYPE);
         Method scalarDecodeMethod = scalarDecoderMethod(property.deserializationType());
         StatementDef deserializeAndAssign;
@@ -606,26 +919,29 @@ public final class BeanDeserializerSourceGen {
             deserializeAndAssign = deserializeAndAssignPrimitiveProperty(
                 aThis,
                 objectDecoder,
-                type,
                 beanVariable,
                 property,
                 index,
-                argumentExpression,
-                dispatchResultVariable
+                primitiveNullMode
             );
         } else if (scalarDecodeMethod != null) {
-            if (property.nonNull() && !property.nullable()) {
-                StatementDef.DefineAndAssign deserializedValueDef = objectDecoder.invoke(scalarDecodeMethod)
+            Method nonNullScalarDecodeMethod = nonNullScalarDecoderMethod(property.deserializationType());
+            if (property.nonNull() && !property.nullable() && nonNullScalarDecodeMethod != null) {
+                deserializeAndAssign = assignProperty(
+                    beanVariable,
+                    property,
+                    objectDecoder.invoke(nonNullScalarDecodeMethod)
+                );
+            } else if (property.nonNull() && !property.nullable()) {
+                StatementDef.DefineAndAssign decodedValueDef = objectDecoder.invoke(scalarDecodeMethod)
                     .cast(BeanSerdeSourceGenUtils.deserializedCastType(property.deserializationType()))
                     .newLocal(BeanSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, index));
-                StatementDef assignStatement = assignProperty(beanVariable, property, deserializedValueDef.variable());
-                StatementDef propertyAssignment = deserializedValueDef.variable().isNull().ifTrue(
-                    nullValueOrDispatchStatement(type, argumentExpression, dispatchResultVariable),
-                    assignStatement
-                );
                 deserializeAndAssign = StatementDef.multi(
-                    deserializedValueDef,
-                    propertyAssignment
+                    decodedValueDef,
+                    decodedValueDef.variable().isNull().ifTrue(
+                        nullValueOrDispatchStatement(type, argumentExpression, dispatchResultVariable),
+                        assignProperty(beanVariable, property, decodedValueDef.variable())
+                    )
                 );
             } else {
                 deserializeAndAssign = assignProperty(
@@ -672,32 +988,134 @@ public final class BeanDeserializerSourceGen {
             );
     }
 
+    @SuppressWarnings("java:S107")
+    private StatementDef deserializeAndAssignPropertyDirect(VariableDef.This aThis,
+                                                            ClassTypeDef deserializerClassTypeDef,
+                                                            VariableDef objectDecoder,
+                                                            VariableDef.MethodParameter context,
+                                                            VariableDef.MethodParameter type,
+                                                            VariableDef beanVariable,
+                                                            BeanSerdeShape.BeanProperty property,
+                                                            int index,
+                                                            Map<String, String> argumentFieldNames,
+                                                            Map<String, String> deserializerFieldNames,
+                                                            PrimitiveNullMode primitiveNullMode) {
+        ExpressionDef argumentExpression = deserializerClassTypeDef.getStaticField(required(argumentFieldNames, property.name()), ARGUMENT_TYPE);
+        Method scalarDecodeMethod = scalarDecoderMethod(property.deserializationType());
+        if (scalarDecodeMethod != null && property.deserializationType().isPrimitive() && !property.deserializationType().isArray()) {
+            return deserializeAndAssignPrimitiveProperty(
+                aThis,
+                objectDecoder,
+                beanVariable,
+                property,
+                index,
+                primitiveNullMode
+            );
+        }
+        if (scalarDecodeMethod != null) {
+            Method nonNullScalarDecodeMethod = nonNullScalarDecoderMethod(property.deserializationType());
+            if (property.nonNull() && !property.nullable() && nonNullScalarDecodeMethod != null) {
+                return assignProperty(
+                    beanVariable,
+                    property,
+                    objectDecoder.invoke(nonNullScalarDecodeMethod)
+                );
+            }
+            if (property.nonNull() && !property.nullable()) {
+                StatementDef.DefineAndAssign decodedValueDef = objectDecoder.invoke(scalarDecodeMethod)
+                    .cast(BeanSerdeSourceGenUtils.deserializedCastType(property.deserializationType()))
+                    .newLocal(BeanSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, index));
+                StatementDef assignStatement = assignProperty(beanVariable, property, decodedValueDef.variable());
+                return StatementDef.multi(
+                    decodedValueDef,
+                    decodedValueDef.variable().isNull().ifTrue(
+                        nullValueOrDispatchStatement(type, argumentExpression, null),
+                        assignStatement
+                    )
+                );
+            }
+            return assignProperty(
+                beanVariable,
+                property,
+                objectDecoder.invoke(scalarDecodeMethod)
+                    .cast(BeanSerdeSourceGenUtils.deserializedCastType(property.deserializationType()))
+            );
+        }
+        String deserializerFieldName = required(deserializerFieldNames, property.name());
+        StatementDef.DefineAndAssign deserializedValueDef = aThis.field(deserializerFieldName, DESERIALIZER_TYPE).invoke(
+            DESERIALIZE_NULLABLE_METHOD,
+            objectDecoder,
+            context,
+            argumentExpression
+        ).cast(BeanSerdeSourceGenUtils.deserializedCastType(property.deserializationType())).newLocal(BeanSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, index));
+        StatementDef assignStatement = assignProperty(beanVariable, property, deserializedValueDef.variable());
+        if (property.nonNull() && !property.nullable()) {
+            return StatementDef.multi(
+                deserializedValueDef,
+                deserializedValueDef.variable().isNull().ifTrue(
+                    nullValueOrDispatchStatement(type, argumentExpression, null),
+                    assignStatement
+                )
+            );
+        }
+        return StatementDef.multi(
+            deserializedValueDef,
+            assignStatement
+        );
+    }
+
     private StatementDef deserializeAndAssignPrimitiveProperty(VariableDef.This aThis,
                                                               VariableDef objectDecoder,
-                                                              VariableDef.MethodParameter type,
                                                               VariableDef beanVariable,
                                                               BeanSerdeShape.BeanProperty property,
                                                               int index,
-                                                              ExpressionDef argumentExpression,
-                                                              @Nullable VariableDef dispatchResultVariable) {
-        Method nullableScalarDecodeMethod = Objects.requireNonNull(scalarDecoderMethod(property.deserializationType(), true));
-        Method primitiveScalarDecodeMethod = Objects.requireNonNull(scalarDecoderMethod(property.deserializationType(), false));
-        StatementDef.DefineAndAssign nullableValueDef = objectDecoder.invoke(nullableScalarDecodeMethod)
-            .cast(BeanSerdeSourceGenUtils.deserializedCastType(property.deserializationType()))
-            .newLocal(BeanSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, index));
-        StatementDef failOnNullForPrimitivesStatement = StatementDef.multi(
-            nullableValueDef,
-            nullableValueDef.variable().isNull().ifTrue(
-                nullValueOrDispatchStatement(type, argumentExpression, dispatchResultVariable),
-                assignProperty(beanVariable, property, nullableValueDef.variable())
-            )
-        );
-        StatementDef usePrimitiveDefaultStatement = objectDecoder.invoke(DECODE_NULL_METHOD).ifTrue(
-            StatementDef.multi(),
-            assignProperty(beanVariable, property, objectDecoder.invoke(primitiveScalarDecodeMethod))
-        );
-        return aThis.field(FAIL_ON_NULL_FOR_PRIMITIVES_FIELD, BOOLEAN_TYPE)
-            .ifTrue(failOnNullForPrimitivesStatement, usePrimitiveDefaultStatement);
+                                                              PrimitiveNullMode primitiveNullMode) {
+        Method scalarDecodeMethod = Objects.requireNonNull(scalarDecoderMethod(property.deserializationType(), false));
+        StatementDef assignDecodedValueStatement = assignProperty(beanVariable, property, objectDecoder.invoke(scalarDecodeMethod));
+        StatementDef keepDefaultOnNullStatement;
+        if (useNullableScalarDecodeForDefaultPrimitive(property.deserializationType())) {
+            Method nullableScalarDecodeMethod = Objects.requireNonNull(nullableScalarDecoderMethod(property.deserializationType()));
+            StatementDef.DefineAndAssign nullableValueDef = objectDecoder.invoke(nullableScalarDecodeMethod)
+                .cast(BeanSerdeSourceGenUtils.deserializedCastType(property.deserializationType()))
+                .newLocal(BeanSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, index));
+            keepDefaultOnNullStatement = StatementDef.multi(
+                nullableValueDef,
+                nullableValueDef.variable().isNonNull()
+                    .doIf(assignProperty(beanVariable, property, nullableValueDef.variable()))
+            );
+        } else {
+            keepDefaultOnNullStatement = objectDecoder.invoke(DECODE_NULL_METHOD)
+                .ifFalse(assignDecodedValueStatement);
+        }
+        return switch (primitiveNullMode) {
+            case FAIL_ON_NULL -> deserializeAndAssignPrimitivePropertyFailOnNull(
+                objectDecoder,
+                beanVariable,
+                property,
+                scalarDecodeMethod
+            );
+            case KEEP_DEFAULT -> keepDefaultOnNullStatement;
+            case DYNAMIC -> aThis.field(FAIL_ON_NULL_FOR_PRIMITIVES_FIELD, BOOLEAN_TYPE).ifTrue(
+                deserializeAndAssignPrimitivePropertyFailOnNull(
+                    objectDecoder,
+                    beanVariable,
+                    property,
+                    scalarDecodeMethod
+                ),
+                keepDefaultOnNullStatement
+            );
+        };
+    }
+
+    private boolean useNullableScalarDecodeForDefaultPrimitive(ClassElement type) {
+        return "long".equals(type.getName());
+    }
+
+    private StatementDef deserializeAndAssignPrimitivePropertyFailOnNull(VariableDef objectDecoder,
+                                                                         VariableDef beanVariable,
+                                                                         BeanSerdeShape.BeanProperty property,
+                                                                         Method scalarDecodeMethod) {
+        return assignProperty(beanVariable, property, objectDecoder.invoke(scalarDecodeMethod));
     }
 
     private StatementDef nullValueOrDispatchStatement(VariableDef.MethodParameter type,
@@ -709,6 +1127,22 @@ public final class BeanDeserializerSourceGen {
                 .doThrow();
         }
         return dispatchResultVariable.assign(dispatchResult(NULL_DISPATCH_RESULT));
+    }
+
+    private StatementDef wrapWithPropertyPath(StatementDef statement,
+                                              VariableDef.MethodParameter type,
+                                              ExpressionDef argumentExpression) {
+        return StatementDef.doTry(statement)
+            .doCatch(ClassTypeDef.of(Throwable.class), exceptionVariable ->
+                ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
+                    .invokeStatic(
+                        WITH_PROPERTY_PATH_THROWABLE_METHOD,
+                        exceptionVariable,
+                        type,
+                        argumentExpression
+                    )
+                    .doThrow()
+            );
     }
 
     private StatementDef assignProperty(VariableDef beanVariable, BeanSerdeShape.BeanProperty property, ExpressionDef value) {
@@ -737,7 +1171,21 @@ public final class BeanDeserializerSourceGen {
         return prefix + "_" + index;
     }
 
+    private ExpressionDef keysCreateExpression(ClassTypeDef deserializerClassTypeDef, List<String> keyFieldNames) {
+        List<ExpressionDef> keyExpressions = keyFieldNames.stream()
+            .map(keyFieldName -> (ExpressionDef) deserializerClassTypeDef.getStaticField(keyFieldName, STRING_TYPE))
+            .toList();
+        return KEYS_TYPE.invokeStatic(
+            KEYS_CREATE_METHOD,
+            STRING_TYPE.array().instantiate(keyExpressions)
+        );
+    }
+
     private @Nullable Method scalarDecoderMethod(ClassElement type) {
+        return scalarDecoderMethod(type, true);
+    }
+
+    private @Nullable Method nullableScalarDecoderMethod(ClassElement type) {
         return scalarDecoderMethod(type, true);
     }
 
@@ -769,16 +1217,43 @@ public final class BeanDeserializerSourceGen {
         };
     }
 
+    private @Nullable Method nonNullScalarDecoderMethod(ClassElement type) {
+        if (type.isArray()) {
+            return null;
+        }
+        return switch (type.getName()) {
+            case "java.lang.String" -> DECODE_STRING_METHOD;
+            default -> null;
+        };
+    }
+
     private ParameterDef parameter(String name, TypeDef type) {
         return ParameterDef.builder(name, type)
             .addAnnotation(Parameter.class)
             .build();
     }
 
+    private enum PrimitiveNullMode {
+        DYNAMIC,
+        FAIL_ON_NULL,
+        KEEP_DEFAULT
+    }
+
+    private record BeanDeserializeContext(VariableDef.This aThis,
+                                          ClassTypeDef deserializerClassTypeDef,
+                                          VariableDef objectDecoder,
+                                          VariableDef.MethodParameter decoderContext,
+                                          VariableDef.MethodParameter type,
+                                          VariableDef beanVariable,
+                                          PrimitiveNullMode primitiveNullMode) {
+    }
+
     private record BeanDispatchInfo(List<BeanSerdeShape.BeanProperty> properties,
                                     Map<String, String> keyFieldNames,
                                     Map<String, String> argumentFieldNames,
                                     Map<String, String> deserializerFieldNames,
+                                    VariableDef.@Nullable Local seenPropertiesMask,
+                                    boolean seenPropertiesMaskLong,
                                     List<VariableDef.Local> seenPropertyVariables,
                                     List<StatementDef> propertyDeserializers) {
     }

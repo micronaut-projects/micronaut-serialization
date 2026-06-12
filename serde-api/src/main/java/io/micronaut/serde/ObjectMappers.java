@@ -22,6 +22,9 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.json.JsonStreamConfig;
 import io.micronaut.json.tree.JsonNode;
+import io.micronaut.serde.config.DeserializationConfiguration;
+import io.micronaut.serde.config.SerdeConfiguration;
+import io.micronaut.serde.config.SerializationConfiguration;
 import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Processor;
 
@@ -95,6 +98,19 @@ final class ObjectMappers {
             @Override
             public SerdeRegistry getSerdeRegistry() {
                 return objectMapper.getSerdeRegistry();
+            }
+
+            @Override
+            public ObjectMapper cloneWithConfiguration(@Nullable SerdeConfiguration configuration, @Nullable SerializationConfiguration serializationConfiguration, @Nullable DeserializationConfiguration deserializationConfiguration) {
+                return objectMapper.cloneWithConfiguration(configuration, serializationConfiguration, deserializationConfiguration);
+            }
+
+            @Override
+            public ObjectMapper cloneWithConfiguration(@Nullable SerdeConfiguration configuration,
+                                                       @Nullable SerializationConfiguration serializationConfiguration,
+                                                       @Nullable DeserializationConfiguration deserializationConfiguration,
+                                                       SerdeIntrospections introspections) {
+                return objectMapper.cloneWithConfiguration(configuration, serializationConfiguration, deserializationConfiguration, introspections);
             }
 
             @Override

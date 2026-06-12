@@ -1,6 +1,7 @@
 package io.micronaut.serde
 
 import io.micronaut.json.tree.JsonNode
+import io.micronaut.serde.exceptions.SerdeException
 import io.micronaut.serde.support.util.JsonNodeDecoder
 import spock.lang.Specification
 
@@ -89,6 +90,29 @@ class JsonNodeDecoderSpec extends Specification {
         objectDecoder.finishStructure()
     }
 
+    def 'object decode supports keys-aware matching'() {
+        given:
+        def decoder = create(JsonNode.createObjectNode([
+                f1: JsonNode.createNumberNode(42),
+                unknown: JsonNode.createNumberNode(13),
+                f2: JsonNode.createStringNode('foo'),
+        ]))
+        def objectDecoder = (KeysAwareDecoder) decoder.decodeObject()
+        def keys = Keys.create('f1', 'f2')
+
+        expect:
+        keys.indexOf('f1') == 0
+        objectDecoder.decodeKey(keys) == 0
+        objectDecoder.decodeInt() == 42
+        objectDecoder.decodeKey(keys) == KeysAwareDecoder.MATCH_UNKNOWN_NAME
+        objectDecoder.decodeKey() == 'unknown'
+        objectDecoder.skipValue()
+        objectDecoder.decodeKey(keys) == 1
+        objectDecoder.decodeString() == 'foo'
+        objectDecoder.decodeKey(keys) == KeysAwareDecoder.MATCH_END_OBJECT
+        objectDecoder.finishStructure()
+    }
+
     def 'arbitrary decode'() {
         given:
         def decoder = create(JsonNode.createObjectNode([
@@ -110,5 +134,37 @@ class JsonNodeDecoderSpec extends Specification {
                 f3: true,
                 f4: [56, [f5: 'bar']]
         ]
+    }
+
+    def "non-null scalar decoders keep unexpected null token message"() {
+        when:
+        decodeNullScalar(method)
+
+        then:
+        def e = thrown(SerdeException)
+        e.message == expectedMessage
+
+        where:
+        method             | expectedMessage
+        'decodeString'     | 'Unexpected token NULL, expected STRING'
+        'decodeDouble'     | 'Unexpected token NULL, expected NUMBER'
+        'decodeBigInteger' | 'Unexpected token NULL, expected NUMBER'
+        'decodeBigDecimal' | 'Unexpected token NULL, expected NUMBER'
+    }
+
+    private static Object decodeNullScalar(String method) throws IOException {
+        JsonNodeDecoder decoder = create(JsonNode.nullNode())
+        switch (method) {
+            case 'decodeString':
+                return decoder.decodeString()
+            case 'decodeDouble':
+                return decoder.decodeDouble()
+            case 'decodeBigInteger':
+                return decoder.decodeBigInteger()
+            case 'decodeBigDecimal':
+                return decoder.decodeBigDecimal()
+            default:
+                throw new IllegalArgumentException(method)
+        }
     }
 }

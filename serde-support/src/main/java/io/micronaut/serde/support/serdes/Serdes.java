@@ -47,7 +47,6 @@ public final class Serdes {
     public static final URLSerde URL_SERDE = new URLSerde();
     public static final URISerde URI_SERDE = new URISerde();
     public static final CharsetSerde CHARSET_SERDE = new CharsetSerde();
-    public static final TimeZoneSerde TIME_ZONE_SERDE = new TimeZoneSerde();
     public static final LocaleSerde LOCALE_SERDE = new LocaleSerde();
     public static final IntArraySerde INT_ARRAY_SERDE = new IntArraySerde();
     public static final LongArraySerde LONG_ARRAY_SERDE = new LongArraySerde();
@@ -81,7 +80,6 @@ public final class Serdes {
         URL_SERDE,
         URI_SERDE,
         CHARSET_SERDE,
-        TIME_ZONE_SERDE,
         LOCALE_SERDE,
         INT_ARRAY_SERDE,
         LONG_ARRAY_SERDE,
@@ -93,7 +91,6 @@ public final class Serdes {
     );
 
     private static final List<SerdeRegistrar<?>> SERDES = List.of(
-        new DurationSerde(),
         new JsonNodeSerde(),
         new PeriodSerde(),
         new ByteBufferSerde(),
@@ -107,7 +104,14 @@ public final class Serdes {
                                 SerdeIntrospections introspections,
                                 Consumer<SerdeRegistrar<?>> consumer) {
         LEGACY_DEFAULT_SERDES.forEach(consumer);
+        CalendarSerde calendarSerde = new CalendarSerde(serdeConfiguration);
+        consumer.accept(calendarSerde);
+        consumer.accept(new GregorianCalendarSerde(calendarSerde));
+        consumer.accept(new TimeZoneSerde(serdeConfiguration));
+        consumer.accept(new ZoneOffsetSerde());
+        consumer.accept(new OffsetTimeSerde(serdeConfiguration));
         consumer.accept(new ByteArraySerde(serdeConfiguration));
+        consumer.accept(new DurationSerde(serdeConfiguration));
         SERDES.forEach(consumer);
         InstantSerde instantSerde = new InstantSerde(serdeConfiguration);
         consumer.accept(instantSerde);
@@ -118,8 +122,12 @@ public final class Serdes {
         consumer.accept(new LocalDateTimeSerde(serdeConfiguration));
         consumer.accept(new OffsetDateTimeSerde(serdeConfiguration));
         consumer.accept(new SqlDateSerde(localDateSerde, instantSerde));
+        consumer.accept(new SqlTimeSerde());
         consumer.accept(new SqlTimestampSerde(instantSerde));
+        consumer.accept(new MonthSerde());
         consumer.accept(new YearSerde());
+        consumer.accept(new YearMonthSerde(serdeConfiguration));
+        consumer.accept(new MonthDaySerde(serdeConfiguration));
         consumer.accept(new ZonedDateTimeSerde(serdeConfiguration));
         consumer.accept(new EnumSerde<>(introspections));
         consumer.accept(new InetAddressSerde(serdeConfiguration));

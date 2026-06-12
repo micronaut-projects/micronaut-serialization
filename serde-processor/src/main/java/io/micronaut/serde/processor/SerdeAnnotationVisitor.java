@@ -48,6 +48,7 @@ import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.annotation.SerdeImport;
 import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.serde.annotation.SerdeableGenerated;
+import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
@@ -79,6 +80,7 @@ import java.util.stream.Stream;
 public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, SerdeConfig> {
 
     private static final String DEFAULT_REF_ALIAS_NAME = "defaultReference";
+    private static final String JSONB_NILLABLE = "jakarta.json.bind.annotation.JsonbNillable";
 
     private boolean failOnError = true;
     private @Nullable ClassElement currentClass;
@@ -88,6 +90,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     private @Nullable FieldElement anySetterField;
     private @Nullable MethodElement jsonValueMethod;
     private @Nullable FieldElement jsonValueField;
+    private @Nullable MethodElement jsonKeyMethod;
+    private @Nullable FieldElement jsonKeyField;
     private final Set<MethodElement> readMethods = new HashSet<>(20);
     private final Set<MethodElement> writeMethods = new HashSet<>(20);
     private final Set<String> elementVisitedAsSubtype = new HashSet<>(10);
@@ -108,7 +112,6 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
     private Set<String> getUnsupportedJacksonAnnotations() {
         return CollectionUtils.setOf(
-                "com.fasterxml.jackson.annotation.JsonKey",
                 "com.fasterxml.jackson.annotation.JsonAutoDetect",
                 "com.fasterxml.jackson.annotation.JsonMerge",
                 "com.fasterxml.jackson.annotation.JsonIdentityInfo",
@@ -165,6 +168,15 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 throw new ProcessingException(element, "A JsonValue method is already defined: " + jsonValueMethod);
             } else {
                 this.jsonValueField = element;
+            }
+        }
+        if (element.hasDeclaredAnnotation(SerdeConfig.SerKey.class)) {
+            if (jsonKeyField != null) {
+                throw new ProcessingException(element, "A JsonKey field is already defined: " + jsonKeyField);
+            } else if (jsonKeyMethod != null) {
+                throw new ProcessingException(element, "A JsonKey method is already defined: " + jsonKeyMethod);
+            } else {
+                this.jsonKeyField = element;
             }
         }
     }
@@ -258,6 +270,21 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 throw new ProcessingException(element, "A JsonValue method is already defined: " + jsonValueMethod);
             } else {
                 this.jsonValueMethod = element;
+            }
+        }
+        if (methodMetadata.hasDeclaredAnnotation(SerdeConfig.SerKey.class)) {
+            if (element.isStatic()) {
+                throw new ProcessingException(element, "A JsonKey method cannot be static");
+            } else if (element.getReturnType().getName().equals("void")) {
+                throw new ProcessingException(element, "A JsonKey method cannot return void");
+            } else if (element.hasParameters()) {
+                throw new ProcessingException(element, "A JsonKey method cannot define arguments");
+            } else if (jsonKeyField != null) {
+                throw new ProcessingException(element, "A JsonKey field is already defined: " + jsonKeyField);
+            } else if (jsonKeyMethod != null) {
+                throw new ProcessingException(element, "A JsonKey method is already defined: " + jsonKeyMethod);
+            } else {
+                this.jsonKeyMethod = element;
             }
         }
     }
@@ -690,6 +717,18 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             }
         }
 
+        List<TypePropertyDescriptor> typePropertyDescriptors = new ArrayList<>();
+        if (optionalDiscriminatorType.isPresent()
+            && optionalDiscriminatorType.get() == SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY) {
+            String directTypeProperty = resolveTypeProperty(supertype)
+                .orElseThrow(() -> new ProcessingException(subtype, "Cannot resolve type property for supertype: " + supertype));
+            typePropertyDescriptors = resolveTypePropertyDescriptors(subtype, supertype, directTypeProperty, allNames.get(0));
+        }
+        List<TypePropertyDescriptor> finalTypePropertyDescriptors = typePropertyDescriptors;
+        List<String> jsonbTypeInfoPropertyOrder = finalTypePropertyDescriptors.size() > 1 && isJsonbTypeInfoChain(subtype)
+            ? resolveJsonbTypeInfoPropertyOrder(subtype, finalTypePropertyDescriptors)
+            : List.of();
+
         subtype.annotate(SerdeConfig.class, builder -> {
             builder.member(SerdeConfig.TYPE_NAME, allNames.get(0));
             builder.member(SerdeConfig.TYPE_NAMES, allNames.toArray(new String[0]));
@@ -703,16 +742,158 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                     case WRAPPER_ARRAY ->
                         builder.member(SerdeConfig.ARRAY_WRAPPER_PROPERTY, allNames.get(0));
                     case PROPERTY ->
-                        builder.member(SerdeConfig.TYPE_PROPERTY, resolveTypeProperty(supertype).orElseThrow(() -> new ProcessingException(subtype, "Cannot resolve type property for supertype: " + supertype)));
+                        builder.member(SerdeConfig.TYPE_PROPERTY, finalTypePropertyDescriptors.get(finalTypePropertyDescriptors.size() - 1).propertyName());
                     case EXISTING_PROPERTY ->
                         builder.member(SerdeConfig.TYPE_DISCRIMINATOR_TYPE, discriminatorType);
                 }
+            }
+            if (finalTypePropertyDescriptors.size() > 1) {
+                builder.member(SerdeConfig.TYPE_PROPERTIES, finalTypePropertyDescriptors.stream().map(TypePropertyDescriptor::propertyName).toArray(String[]::new));
+                builder.member(SerdeConfig.TYPE_PROPERTY_VALUES, finalTypePropertyDescriptors.stream().map(TypePropertyDescriptor::propertyValue).toArray(String[]::new));
             }
 
             if (supertype.booleanValue(SerdeConfig.SerSubtyped.class, SerdeConfig.SerSubtyped.DISCRIMINATOR_VISIBLE).orElse(false)) {
                 builder.member(SerdeConfig.TYPE_PROPERTY_VISIBLE, true);
             }
         });
+        if (!jsonbTypeInfoPropertyOrder.isEmpty()) {
+            subtype.annotate(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER, builder ->
+                builder.values(jsonbTypeInfoPropertyOrder.toArray(new String[0]))
+            );
+        }
+    }
+
+    private boolean isJsonbTypeInfoChain(ClassElement element) {
+        return findTypeInfoChain(element).stream()
+            .anyMatch(typeInfoType -> typeInfoType.booleanValue(SerdeConfig.SerSubtyped.class, SerdeConfig.SerSubtyped.JSONB_TYPE_INFO).orElse(false));
+    }
+
+    @SuppressWarnings("java:S3776")
+    private List<String> resolveJsonbTypeInfoPropertyOrder(ClassElement subtype, List<TypePropertyDescriptor> typePropertyDescriptors) {
+        List<String> order = new ArrayList<>();
+        typePropertyDescriptors.stream()
+            .map(TypePropertyDescriptor::propertyName)
+            .forEach(order::add);
+        List<ClassElement> hierarchy = findTypeInfoChain(subtype);
+        if (hierarchy.stream().noneMatch(type -> type.getName().equals(subtype.getName()))) {
+            hierarchy.add(subtype);
+        }
+        for (ClassElement type : hierarchy) {
+            for (FieldElement field : type.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyInstance().onlyDeclared().modifiers(modifiers -> modifiers.contains(ElementModifier.PUBLIC)))) {
+                addIfAbsent(order, resolvePropertyName(field));
+            }
+            for (MethodElement method : type.getEnclosedElements(ElementQuery.ALL_METHODS.onlyInstance().onlyDeclared())) {
+                if (!method.hasParameters() && !method.getReturnType().isVoid()) {
+                    String methodName = method.getName();
+                    if (methodName.startsWith("get") && methodName.length() > 3) {
+                        addIfAbsent(order, NameUtils.decapitalize(methodName.substring(3)));
+                    } else if (methodName.startsWith("is") && methodName.length() > 2) {
+                        addIfAbsent(order, NameUtils.decapitalize(methodName.substring(2)));
+                    }
+                }
+            }
+        }
+        return order;
+    }
+
+    private void addIfAbsent(List<String> values, String value) {
+        if (!values.contains(value)) {
+            values.add(value);
+        }
+    }
+
+    private List<TypePropertyDescriptor> resolveTypePropertyDescriptors(ClassElement subtype,
+                                                                       ClassElement directSupertype,
+                                                                       String directTypeProperty,
+                                                                       String directTypeName) {
+        List<ClassElement> typeInfoTypes = findTypeInfoChain(subtype);
+        List<TypePropertyDescriptor> descriptors = new ArrayList<>(typeInfoTypes.size());
+        for (ClassElement typeInfoType : typeInfoTypes) {
+            boolean directTypeInfo = typeInfoType.getName().equals(directSupertype.getName());
+            String typeProperty = directTypeInfo
+                ? directTypeProperty
+                : typeInfoType.stringValue(SerdeConfig.SerSubtyped.class, SerdeConfig.SerSubtyped.DISCRIMINATOR_PROP).orElse(null);
+            if (typeProperty == null) {
+                continue;
+            }
+            String typeName = directTypeInfo
+                ? directTypeName
+                : resolveSubtypeName(typeInfoType, subtype).orElse(null);
+            if (typeName != null) {
+                descriptors.add(new TypePropertyDescriptor(typeProperty, typeName));
+            }
+        }
+        if (descriptors.isEmpty()) {
+            descriptors.add(new TypePropertyDescriptor(directTypeProperty, directTypeName));
+        }
+        return descriptors;
+    }
+
+    private List<ClassElement> findTypeInfoChain(ClassElement element) {
+        List<ClassElement> typeInfoTypes = new ArrayList<>();
+        collectTypeInfoTypes(element, typeInfoTypes, new HashSet<>());
+        typeInfoTypes.sort((left, right) -> {
+            if (left.equals(right)) {
+                return 0;
+            }
+            if (left.isAssignable(right)) {
+                return 1;
+            }
+            if (right.isAssignable(left)) {
+                return -1;
+            }
+            return left.getName().compareTo(right.getName());
+        });
+        return typeInfoTypes;
+    }
+
+    private void collectTypeInfoTypes(ClassElement element, List<ClassElement> typeInfoTypes, Set<String> seen) {
+        if (!seen.add(element.getName())) {
+            return;
+        }
+        if (element.hasDeclaredAnnotation(SerdeConfig.SerSubtyped.class)
+            && getDiscriminatorType(element).orElse(null) == SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY) {
+            typeInfoTypes.add(element);
+        }
+        for (ClassElement anInterface : element.getInterfaces()) {
+            collectTypeInfoTypes(anInterface, typeInfoTypes, seen);
+        }
+        element.getSuperType().ifPresent(superType -> collectTypeInfoTypes(superType, typeInfoTypes, seen));
+    }
+
+    private Optional<String> resolveSubtypeName(ClassElement typeInfoType, ClassElement subtype) {
+        for (AnnotationValue<SerdeConfig.SerSubtyped.SerSubtype> parentSubtype : typeInfoType.getDeclaredAnnotationValuesByType(SerdeConfig.SerSubtyped.SerSubtype.class)) {
+            Optional<AnnotationClassValue<?>> annotationClassValue = parentSubtype.annotationClassValue(AnnotationMetadata.VALUE_MEMBER);
+            if (annotationClassValue.isEmpty()) {
+                continue;
+            }
+            if (isTypeInHierarchy(subtype, annotationClassValue.get().getName(), new HashSet<>())) {
+                Optional<String> name = parentSubtype.stringValue("name");
+                if (name.isPresent()) {
+                    return name;
+                }
+                String[] names = parentSubtype.stringValues("names");
+                if (names.length > 0) {
+                    return Optional.of(names[0]);
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    private boolean isTypeInHierarchy(ClassElement element, String typeName, Set<String> seen) {
+        if (!seen.add(element.getName())) {
+            return false;
+        }
+        if (element.getName().equals(typeName)) {
+            return true;
+        }
+        for (ClassElement anInterface : element.getInterfaces()) {
+            if (isTypeInHierarchy(anInterface, typeName, seen)) {
+                return true;
+            }
+        }
+        return element.getSuperType().map(superType -> isTypeInHierarchy(superType, typeName, seen)).orElse(false);
     }
 
     private void visitClassInternal(ClassElement element, VisitorContext context, boolean isImport) {
@@ -784,6 +965,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 }
             }
 
+            inheritPackageFormat(element);
+            inheritPackageInclude(element);
             visitProperties(element, context);
 
             findTypeInfo(element, false)
@@ -795,6 +978,37 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         }
 
         applySourceGenDecision(element);
+    }
+
+    private void inheritPackageFormat(ClassElement element) {
+        AnnotationMetadata packageMetadata = element.getPackage().getAnnotationMetadata();
+        if (!packageMetadata.hasAnnotation(SerdeConfig.class) || FormatConfiguration.from(element.getAnnotationMetadata()) != null) {
+            return;
+        }
+        element.annotate(SerdeConfig.class, builder -> {
+            packageMetadata.stringValue(SerdeConfig.class, SerdeConfig.PATTERN)
+                .ifPresent(pattern -> builder.member(SerdeConfig.PATTERN, pattern));
+            packageMetadata.enumValue(SerdeConfig.class, SerdeConfig.SHAPE, FormatConfiguration.Shape.class)
+                .ifPresent(shape -> builder.member(SerdeConfig.SHAPE, shape));
+            packageMetadata.stringValue(SerdeConfig.class, SerdeConfig.LOCALE)
+                .ifPresent(locale -> builder.member(SerdeConfig.LOCALE, locale));
+            packageMetadata.stringValue(SerdeConfig.class, SerdeConfig.TIMEZONE)
+                .ifPresent(timezone -> builder.member(SerdeConfig.TIMEZONE, timezone));
+            packageMetadata.booleanValue(SerdeConfig.class, SerdeConfig.LENIENT)
+                .ifPresent(lenient -> builder.member(SerdeConfig.LENIENT, lenient));
+            packageMetadata.intValue(SerdeConfig.class, SerdeConfig.RADIX)
+                .ifPresent(radix -> builder.member(SerdeConfig.RADIX, radix));
+        });
+    }
+
+    private void inheritPackageInclude(ClassElement element) {
+        AnnotationMetadata packageMetadata = element.getPackage().getAnnotationMetadata();
+        if (!packageMetadata.hasAnnotation(SerdeConfig.class) ||
+            element.enumValue(SerdeConfig.class, SerdeConfig.INCLUDE, SerdeConfig.SerInclude.class).isPresent()) {
+            return;
+        }
+        packageMetadata.enumValue(SerdeConfig.class, SerdeConfig.INCLUDE, SerdeConfig.SerInclude.class)
+            .ifPresent(include -> element.annotate(SerdeConfig.class, builder -> builder.member(SerdeConfig.INCLUDE, include)));
     }
 
     private void applySourceGenDecision(ClassElement element) {
@@ -905,13 +1119,24 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         if (mixinType != null) {
             visitMixin(mixinType, type, context);
         } else {
+            ensureDefaultIntrospected(type);
             visitClassInternal(type, context, true);
         }
+        ensureDefaultIntrospected(type);
         AnnotationValue<Annotation> jsonPojoAnn = type.getAnnotation("tools.jackson.databind.annotation.JsonPOJOBuilder");
         if (jsonPojoAnn != null) {
             String buildMethod = jsonPojoAnn.stringValue("buildMethodName").orElse("build");
             type.getEnclosedElement(ElementQuery.ALL_METHODS.named(n -> n.equals(buildMethod)))
                 .ifPresent(m -> m.annotate(Executable.class));
+        }
+    }
+
+    private void ensureDefaultIntrospected(ClassElement type) {
+        if (!type.hasAnnotation(Introspected.class)) {
+            type.annotate(Introspected.class, i -> {
+                i.member("accessKind", Introspected.AccessKind.METHOD, Introspected.AccessKind.FIELD);
+                i.member("visibility", "PUBLIC");
+            });
         }
     }
 
@@ -1095,6 +1320,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         final List<String> order = new ArrayList<>(orderDef);
         for (TypedElement beanProperty : beanProperties) {
             checkForErrors(beanProperty, context);
+            applyJsonbNillablePrecedence(beanProperty);
 
             PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(beanProperty, namingStrategy);
 
@@ -1108,6 +1334,10 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             }
 
             final String propertyName = resolvePropertyName(beanProperty);
+            if (isStaticBackedProperty(beanProperty)) {
+                ignoreProperty(false, false, beanProperty);
+                continue;
+            }
             if (propertyNamingStrategy != null) {
                 beanProperty.annotate(SerdeConfig.class, (builder) ->
                     builder.member(SerdeConfig.PROPERTY, propertyNamingStrategy.translate(beanProperty))
@@ -1135,6 +1365,19 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 ignoreProperty(false, false, beanProperty);
             }
         }
+    }
+
+    private boolean isStaticBackedProperty(TypedElement beanProperty) {
+        return beanProperty instanceof PropertyElement propertyElement
+            && propertyElement.getField().map(FieldElement::isStatic).orElse(false);
+    }
+
+    private void applyJsonbNillablePrecedence(TypedElement beanProperty) {
+        beanProperty.booleanValue(JSONB_NILLABLE)
+            .filter(includeNull -> !includeNull)
+            .ifPresent(includeNull -> beanProperty.annotate(SerdeConfig.class, builder ->
+                builder.member(SerdeConfig.INCLUDE, SerdeConfig.SerInclude.NON_ABSENT)
+            ));
     }
 
     private void ignoreProperty(boolean ignoreOnlyDeserialization,
@@ -1197,6 +1440,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         this.anySetterField = null;
         this.jsonValueField = null;
         this.jsonValueMethod = null;
+        this.jsonKeyField = null;
+        this.jsonKeyMethod = null;
         this.readMethods.clear();
         this.writeMethods.clear();
     }
@@ -1318,5 +1563,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     @Override
     public VisitorKind getVisitorKind() {
         return VisitorKind.ISOLATING;
+    }
+
+    private record TypePropertyDescriptor(String propertyName, String propertyValue) {
     }
 }

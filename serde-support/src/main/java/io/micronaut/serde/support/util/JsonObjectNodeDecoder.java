@@ -16,13 +16,17 @@
 package io.micronaut.serde.support.util;
 
 import io.micronaut.json.tree.JsonNode;
+import io.micronaut.serde.Keys;
+import io.micronaut.serde.KeysAwareDecoder;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Iterator;
 import java.util.Map;
 
-final class JsonObjectNodeDecoder extends JsonNodeDecoder {
+final class JsonObjectNodeDecoder extends JsonNodeDecoder implements KeysAwareDecoder {
     private final Iterator<Map.Entry<String, JsonNode>> iterator;
+    @Nullable
+    private String nextKey = null;
     @Nullable
     private JsonNode nextValue = null;
 
@@ -41,7 +45,7 @@ final class JsonObjectNodeDecoder extends JsonNodeDecoder {
 
     @Override
     public void skipValue() {
-        if (nextValue == null) {
+        if (nextValue == null || nextKey != null) {
             throw new IllegalStateException("Field name not parsed yet");
         }
         nextValue = null;
@@ -54,6 +58,11 @@ final class JsonObjectNodeDecoder extends JsonNodeDecoder {
 
     @Override
     public @Nullable String decodeKey() {
+        if (nextKey != null) {
+            String key = nextKey;
+            nextKey = null;
+            return key;
+        }
         if (nextValue != null) {
             throw new IllegalStateException("Field value not parsed yet");
         }
@@ -67,8 +76,33 @@ final class JsonObjectNodeDecoder extends JsonNodeDecoder {
     }
 
     @Override
+    public int decodeKey(Keys keys) {
+        if (nextKey != null) {
+            return KeysAwareDecoder.MATCH_UNKNOWN_NAME;
+        }
+        if (nextValue != null) {
+            throw new IllegalStateException("Field value not parsed yet");
+        }
+        if (!iterator.hasNext()) {
+            return KeysAwareDecoder.MATCH_END_OBJECT;
+        }
+        Map.Entry<String, JsonNode> next = iterator.next();
+        String key = next.getKey();
+        int index = keys.indexOf(key);
+        if (index == -1) {
+            // MATCH_UNKNOWN_NAME means the current key did not match the supplied Keys.
+            // Store it so the next decodeKey() call returns the same unknown name.
+            nextKey = key;
+            nextValue = next.getValue();
+            return KeysAwareDecoder.MATCH_UNKNOWN_NAME;
+        }
+        nextValue = next.getValue();
+        return index;
+    }
+
+    @Override
     public void finishStructure(boolean consumeLeftElements) {
-        if (!consumeLeftElements && (nextValue != null || iterator.hasNext())) {
+        if (!consumeLeftElements && (nextKey != null || nextValue != null || iterator.hasNext())) {
             throw new IllegalStateException("Not all elements have been consumed yet");
         }
     }

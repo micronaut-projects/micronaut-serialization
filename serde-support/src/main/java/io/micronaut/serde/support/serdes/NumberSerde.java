@@ -91,7 +91,7 @@ public interface NumberSerde<N extends Number> extends FormattedSerde<N>, Serde<
     }
 
     private Serde<N> createSpecificSerde(FormatConfiguration format) {
-        if (format.pattern() != null) {
+        if (format.pattern() != null || format.locale() != null) {
             return new FormattedNumberSerde<>(format);
         }
         if (format.shape() == FormatConfiguration.Shape.STRING) {

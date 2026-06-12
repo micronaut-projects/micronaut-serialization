@@ -1,5 +1,6 @@
 package io.micronaut.serde.jackson
 
+import io.micronaut.context.annotation.Property
 import io.micronaut.context.annotation.Primary
 import io.micronaut.context.annotation.Secondary
 import org.jspecify.annotations.NonNull
@@ -12,6 +13,8 @@ import jakarta.inject.Inject
 import spock.lang.Specification
 
 @MicronautTest
+@Property(name = "micronaut.serde.serialization.disable-generated-serializer", value = "true")
+@Property(name = "micronaut.serde.deserialization.disable-generated-deserializer", value = "true")
 class CustomPrimitiveSerdeSpec extends Specification {
 
     @Inject ObjectMapper objectMapper

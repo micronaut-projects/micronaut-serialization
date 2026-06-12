@@ -115,7 +115,9 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
                 hasUnresolved = true;
                 continue;
             }
-            Deserializer<Object> subtypeDeserializer = findDeserializer(deserializationConfiguration, (DeserBean<? super Object>) subtypeDeserBean, disallowUnwrap);
+            Deserializer<Object> subtypeDeserializer = subtypeDeserBean.subtypeInfo == null
+                ? findDeserializer(deserializationConfiguration, (DeserBean<? super Object>) subtypeDeserBean, disallowUnwrap)
+                : createSubtypeDeserializer(context, deserializationConfiguration, (DeserBean<? super Object>) subtypeDeserBean, (Argument<? super Object>) subtypeDef.type());
             subtypeDeserializers.put(
                 e.getKey(),
                 subtypeDeserializer
@@ -162,7 +164,9 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
                         argument = defaultType.type();
                     }
                     DeserBean<?> subtypeDeserBean = getDeserializableBean(argument, type.getTypeVariables(), context);
-                    return ObjectDeserializer.this.findDeserializer(deserializationConfiguration, (DeserBean<Object>) subtypeDeserBean, disallowUnwrap);
+                    return subtypeDeserBean.subtypeInfo == null
+                        ? ObjectDeserializer.this.findDeserializer(deserializationConfiguration, (DeserBean<Object>) subtypeDeserBean, disallowUnwrap)
+                        : createSubtypeDeserializer(context, deserializationConfiguration, (DeserBean<? super Object>) subtypeDeserBean, (Argument<? super Object>) argument);
                 }
             };
         }

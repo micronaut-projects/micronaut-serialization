@@ -127,4 +127,28 @@ class CoreTypeSerdeSpec extends Specification {
         [0, 1]   | '[0,1]'
         [0, 1]   | '"' + Base64.encoder.encodeToString([0, 1] as byte[]) + '"'
     }
+
+    void "test read / write priority queue"() {
+        given:
+        def type = Argument.of(PriorityQueue, Argument.of(Integer))
+        def queue = new PriorityQueue<Integer>()
+        queue.add(3)
+        queue.add(1)
+
+        expect:
+        jsonMapper.writeValueAsString(type, queue) == '[1,3]'
+
+        when:
+        def read = jsonMapper.readValue('[3,1]', type)
+
+        then:
+        read.poll() == 1
+        read.poll() == 3
+
+        when:
+        jsonMapper.readValue('[1,null]', type)
+
+        then:
+        thrown(IOException)
+    }
 }

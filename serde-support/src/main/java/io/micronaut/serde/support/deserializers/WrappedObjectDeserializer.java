@@ -19,6 +19,8 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.Keys;
+import io.micronaut.serde.KeysAwareDecoder;
 import io.micronaut.serde.exceptions.SerdeException;
 import org.jspecify.annotations.Nullable;
 
@@ -36,6 +38,7 @@ final class WrappedObjectDeserializer implements Deserializer<Object> {
 
     private final Deserializer<Object> deserializer;
     private final String wrapperProperty;
+    private final Keys wrapperKeys;
     private final boolean ignoreUnknown;
 
     WrappedObjectDeserializer(Deserializer<Object> deserializer,
@@ -43,6 +46,7 @@ final class WrappedObjectDeserializer implements Deserializer<Object> {
                               boolean ignoreUnknown) {
         this.deserializer = deserializer;
         this.wrapperProperty = wrapperProperty;
+        this.wrapperKeys = Keys.create(wrapperProperty);
         this.ignoreUnknown = ignoreUnknown;
     }
 
@@ -67,15 +71,22 @@ final class WrappedObjectDeserializer implements Deserializer<Object> {
                                          Argument<? super Object> type,
                                          boolean isNullable) throws IOException {
 
-        Decoder unwrappedDecoder = decoder.decodeObject();
-        String key = unwrappedDecoder.decodeKey();
-        if (key == null) {
+        KeysAwareDecoder unwrappedDecoder = KeysAwareDecoder.of(decoder.decodeObject());
+        int keyIndex = unwrappedDecoder.decodeKey(wrapperKeys);
+        if (keyIndex == KeysAwareDecoder.MATCH_END_OBJECT) {
             if (isNullable) {
                 return null;
             }
             throw new SerdeException("Null wrapper property [" +  wrapperProperty + "] encountered during deserialization of type: " + type);
         }
-        if (!key.equals(wrapperProperty)) {
+        if (keyIndex == KeysAwareDecoder.MATCH_UNKNOWN_NAME) {
+            String key = unwrappedDecoder.decodeKey();
+            if (key == null) {
+                if (isNullable) {
+                    return null;
+                }
+                throw new SerdeException("Null wrapper property [" +  wrapperProperty + "] encountered during deserialization of type: " + type);
+            }
             throw unknownProperty(type, key);
         }
 
@@ -89,7 +100,15 @@ final class WrappedObjectDeserializer implements Deserializer<Object> {
         if (ignoreUnknown) {
             unwrappedDecoder.finishStructure(true);
         } else {
-            String unknownProp = unwrappedDecoder.decodeKey();
+            keyIndex = unwrappedDecoder.decodeKey(wrapperKeys);
+            String unknownProp;
+            if (keyIndex == KeysAwareDecoder.MATCH_END_OBJECT) {
+                unknownProp = null;
+            } else if (keyIndex == KeysAwareDecoder.MATCH_UNKNOWN_NAME) {
+                unknownProp = unwrappedDecoder.decodeKey();
+            } else {
+                unknownProp = wrapperProperty;
+            }
             if (unknownProp != null) {
                 throw unknownProperty(type, unknownProp);
             }

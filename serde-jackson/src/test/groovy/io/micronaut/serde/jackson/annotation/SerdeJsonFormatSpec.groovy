@@ -12,6 +12,7 @@ import io.micronaut.serde.config.SerializationConfiguration
 import io.micronaut.serde.jackson.JsonFormatSpec
 import spock.lang.Unroll
 
+import java.time.Duration
 import java.time.Instant
 import java.time.LocalDateTime
 
@@ -949,6 +950,60 @@ class Test {
 
         cleanup:
         context.close()
+    }
+
+    @Unroll
+    void "test json format duration shape overrides configured default for #config"() {
+        given:
+        def context = buildContext('test.Test', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import io.micronaut.serde.annotation.Serdeable;
+import java.time.Duration;
+
+@Serdeable
+class Test {
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private Duration stringValue;
+
+    @JsonFormat(shape = JsonFormat.Shape.NUMBER)
+    private Duration numericValue;
+
+    public Duration getStringValue() {
+        return stringValue;
+    }
+
+    public void setStringValue(Duration stringValue) {
+        this.stringValue = stringValue;
+    }
+
+    public Duration getNumericValue() {
+        return numericValue;
+    }
+
+    public void setNumericValue(Duration numericValue) {
+        this.numericValue = numericValue;
+    }
+}
+""", [
+            stringValue: Duration.ofHours(1).plusSeconds(1),
+            numericValue: Duration.ofHours(1).plusSeconds(1)
+        ], config)
+
+        expect:
+        writeJson(jsonMapper, beanUnderTest) == '{"stringValue":"PT1H1S","numericValue":3601000000000}'
+        jsonMapper.readValue('{"stringValue":"PT1H1S","numericValue":3601000000000}', typeUnderTest).stringValue == Duration.ofHours(1).plusSeconds(1)
+        jsonMapper.readValue('{"stringValue":"PT1H1S","numericValue":3601000000000}', typeUnderTest).numericValue == Duration.ofHours(1).plusSeconds(1)
+
+        cleanup:
+        context.close()
+
+        where:
+        config << [
+            [:],
+            ['micronaut.serde.write-durations-as-strings': true]
+        ]
     }
 
     void "test global json format date timestamp nanoseconds features"() {

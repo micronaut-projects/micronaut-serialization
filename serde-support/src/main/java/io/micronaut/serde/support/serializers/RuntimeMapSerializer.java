@@ -15,14 +15,18 @@
  */
 package io.micronaut.serde.support.serializers;
 
+import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.convert.exceptions.ConversionErrorException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
+import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
+import io.micronaut.inject.annotation.MutableAnnotationMetadata;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.JsonNodeEncoder;
 
@@ -39,6 +43,7 @@ import java.util.Objects;
  */
 @Internal
 final class RuntimeMapSerializer<K, V> extends AbstractMapObjectSerializer<K, V> {
+    private static final AnnotationMetadata MAP_KEY_SERIALIZATION_METADATA = mapKeySerializationMetadata();
 
     private final boolean isStringKey;
     private final Argument<K> keyGeneric;
@@ -49,10 +54,10 @@ final class RuntimeMapSerializer<K, V> extends AbstractMapObjectSerializer<K, V>
         final Argument<?>[] generics = type.getTypeParameters();
         final boolean hasGenerics = ArrayUtils.isNotEmpty(generics) && generics.length == 2;
         if (hasGenerics) {
-            keyGeneric = (Argument<K>) generics[0];
+            keyGeneric = asMapKeyArgument((Argument<K>) generics[0]);
             isStringKey = keyGeneric.getType() == String.class || CharSequence.class.isAssignableFrom(keyGeneric.getType());
         } else {
-            keyGeneric = (Argument<K>) Argument.OBJECT_ARGUMENT;
+            keyGeneric = asMapKeyArgument((Argument<K>) Argument.OBJECT_ARGUMENT);
             isStringKey = false;
         }
         keySerializer = findKeySerializer(context, keyGeneric);
@@ -60,13 +65,28 @@ final class RuntimeMapSerializer<K, V> extends AbstractMapObjectSerializer<K, V>
 
     @Override
     protected void encodeKey(Encoder encoder, EncoderContext context, K k) throws IOException {
-        if (k == null) {
-            encoder.encodeNull();
-        } else if (isStringKey || k instanceof CharSequence) {
+        if (isStringKey || k instanceof CharSequence) {
             encoder.encodeKey(k.toString());
         } else {
             encodeMapKey(context, encoder, keyGeneric, keySerializer, k);
         }
+    }
+
+    private static AnnotationMetadata mapKeySerializationMetadata() {
+        MutableAnnotationMetadata metadata = new MutableAnnotationMetadata();
+        metadata.addDeclaredAnnotation(SerdeConfig.SerKey.class.getName(), Map.of());
+        return metadata;
+    }
+
+    private static <K> Argument<K> asMapKeyArgument(Argument<K> keyGeneric) {
+        AnnotationMetadata annotationMetadata = keyGeneric.getAnnotationMetadata();
+        if (annotationMetadata.hasAnnotation(SerdeConfig.SerKey.class)) {
+            return keyGeneric;
+        }
+        AnnotationMetadata keyAnnotationMetadata = annotationMetadata.isEmpty()
+            ? MAP_KEY_SERIALIZATION_METADATA
+            : new AnnotationMetadataHierarchy(annotationMetadata, MAP_KEY_SERIALIZATION_METADATA);
+        return keyGeneric.withAnnotationMetadata(keyAnnotationMetadata);
     }
 
     private static <K> Serializer<K> findKeySerializer(EncoderContext context, Argument<K> keyGeneric) throws
@@ -110,14 +130,11 @@ final class RuntimeMapSerializer<K, V> extends AbstractMapObjectSerializer<K, V>
         }
     }
 
-    private static void convertMapKeyToStringAndEncode(EncoderContext context, Encoder
-        encoder, Object keyValue) throws IOException {
+    private static void convertMapKeyToStringAndEncode(EncoderContext context, Encoder encoder, Object keyValue) throws IOException {
         try {
-            final String result = context.getConversionService().convertRequired(keyValue, Argument.STRING);
-            if (result == null) {
-                throw new SerdeException("Null key for a Map not allowed in JSON");
-            }
-            encoder.encodeKey(result);
+            encoder.encodeKey(
+                context.getConversionService().convertRequired(keyValue, Argument.STRING)
+            );
         } catch (ConversionErrorException ce) {
             throw new SerdeException("Error converting Map key [" + keyValue + "] to String: " + ce.getMessage(), ce);
         }

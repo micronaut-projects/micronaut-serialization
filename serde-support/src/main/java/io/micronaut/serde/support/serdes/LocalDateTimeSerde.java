@@ -38,13 +38,15 @@ import java.time.temporal.TemporalQuery;
  */
 public final class LocalDateTimeSerde extends DefaultFormattedTemporalSerde<LocalDateTime>
         implements TemporalSerde<LocalDateTime>, SerdeRegistrar<LocalDateTime> {
+    private final boolean strictIJson;
 
     public LocalDateTimeSerde(SerdeConfiguration configuration) {
-        this(stringFormatter(configuration));
+        this(stringFormatter(configuration), configuration.isWriteDateTimesAsStrictIJson());
     }
 
-    private LocalDateTimeSerde(DateTimeFormatter stringFormatter) {
+    private LocalDateTimeSerde(DateTimeFormatter stringFormatter, boolean strictIJson) {
         super(stringFormatter);
+        this.strictIJson = strictIJson;
     }
 
     @Override
@@ -78,7 +80,24 @@ public final class LocalDateTimeSerde extends DefaultFormattedTemporalSerde<Loca
     protected DefaultFormattedTemporalSerde<LocalDateTime> createSpecific(DateTimeFormatter stringFormatter,
                                                                           SerdeConfiguration.TimeShape timeWriteShape,
                                                                           SerdeConfiguration.NumericTimeUnit numericUnit) {
-        return new LocalDateTimeSerde(stringFormatter);
+        return new LocalDateTimeSerde(stringFormatter, strictIJson);
+    }
+
+    @Override
+    void serialize0(Encoder encoder, LocalDateTime value) throws IOException {
+        if (strictIJson) {
+            encoder.encodeString(StrictIJsonDateTimeFormat.format(value));
+        } else {
+            super.serialize0(encoder, value);
+        }
+    }
+
+    @Override
+    LocalDateTime parseString(String text) {
+        if (strictIJson) {
+            return StrictIJsonDateTimeFormat.parseLocalDateTime(text);
+        }
+        return super.parseString(text);
     }
 
     @Override
