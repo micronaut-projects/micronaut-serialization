@@ -1,0 +1,124 @@
+TOML serialization support is maintained by the https://github.com/micronaut-projects/micronaut-toml[Micronaut TOML] project.
+Use that project when you need to read or write TOML with api:serde.ObjectMapper[].
+
+Add the following artifact to the `dependencies` block:
+
+dependency:toml-serde[groupId="io.micronaut.toml",scope="implementation"]
+
+The TOML module contributes a named mapper bean.
+Inject `@Named(TomlObjectMapper.NAME)` when an application has more than one api:serde.ObjectMapper[]:
+
+[source,java]
+----
+import io.micronaut.serde.ObjectMapper;
+import io.micronaut.serde.toml.TomlObjectMapper;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+
+@Singleton
+final class TomlService {
+    private final ObjectMapper tomlMapper;
+
+    TomlService(@Named(TomlObjectMapper.NAME) ObjectMapper tomlMapper) {
+        this.tomlMapper = tomlMapper;
+    }
+}
+----
+
+The TOML mapper uses the same Micronaut Serialization API as the JSON and BSON mappers:
+
+[source,java]
+----
+Book book = tomlMapper.readValue(toml, Book.class);
+String encoded = tomlMapper.writeValueAsString(book);
+----
+
+The mapper also supports the generic `Argument<T>` overloads when the target type has generic parameters.
+
+== TOML Mapper Configuration
+
+TOML-specific mapper configuration is under `micronaut.serde.toml`.
+The available settings are:
+
+* `micronaut.serde.toml.write-features.write-layout` - controls serialized TOML output layout. Supported values are `table` and `inline`; the default is `table`.
+* `micronaut.serde.toml.read-constraints.max-document-size` - maximum TOML document size in bytes before parsing. The default is `1048576` bytes, and a non-positive value disables the limit.
+* `micronaut.serde.toml.read-constraints.max-string-length` - maximum string value length. The default has no TOML-specific limit.
+* `micronaut.serde.toml.read-constraints.max-number-length` - maximum number token length. The default uses the parser default.
+
+[configuration]
+----
+micronaut:
+  serde:
+    toml:
+      write-features:
+        write-layout: table
+      read-constraints:
+        max-document-size: 1048576
+        max-string-length: 65536
+        max-number-length: 1000
+----
+
+The general Micronaut Serialization settings under `micronaut.serde.*` still apply to the TOML mapper where relevant.
+For example, serialization inclusion settings affect empty values, while TOML text still omits `null` properties because TOML has no `null` literal.
+
+== TOML Output Layout
+
+The TOML mapper writes nested object graphs in table layout by default.
+For example, a bean with an `author` property is written with a TOML table header:
+
+[source,toml]
+----
+title = 'Micronaut in Action'
+pages = 320
+
+[author]
+name = 'Ada'
+----
+
+Arrays of objects are written as arrays of tables:
+
+[source,toml]
+----
+[[products]]
+name = 'Hammer'
+sku = 738594937
+
+[[products]]
+name = 'Nail'
+sku = 284758393
+----
+
+Configure the mapper to write nested objects with TOML inline tables instead:
+
+[configuration]
+----
+micronaut:
+  serde:
+    toml:
+      write-features:
+        write-layout: inline
+----
+
+With inline layout, the same nested values are written as inline table values:
+
+[source,toml]
+----
+title = 'Micronaut in Action'
+pages = 320
+author = {name = 'Ada'}
+----
+
+An array of objects is written as a single inline array value:
+
+[source,toml]
+----
+products = [{name = 'Hammer', sku = 738594937}, {name = 'Nail', sku = 284758393}]
+----
+
+Set `micronaut.serde.toml.write-features.write-layout` to `table` to select the default table output explicitly.
+The write layout only controls serialization output.
+The mapper can read valid TOML that uses standard table headers, arrays of tables, inline tables, or inline arrays.
+
+TOML has no `null` literal.
+When writing TOML text, null object properties are omitted.
+The TOML mapper also expects the serialized root value to be an object, because a complete TOML document is a set of key/value pairs and tables.
