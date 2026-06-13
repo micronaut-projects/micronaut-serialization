@@ -18,7 +18,7 @@ package io.micronaut.serde.xml;
 import io.micronaut.core.naming.NameUtils;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
-import io.micronaut.serde.XmlNamespace;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -30,11 +30,12 @@ import java.math.BigInteger;
 import java.util.ArrayDeque;
 import java.util.Base64;
 import java.util.Deque;
+import java.util.Objects;
 
 /**
  * An {@link Encoder} that serializes objects to XML using a StAX {@link XMLStreamWriter}.
  */
-public final class XmlGenerator implements Encoder, XmlNamespace {
+public final class XmlGenerator implements Encoder {
 
     private final XMLStreamWriter xmlWriter;
     private final Deque<ContextProperties> propertyStack = new ArrayDeque<>();
@@ -47,19 +48,19 @@ public final class XmlGenerator implements Encoder, XmlNamespace {
     }
 
     private XmlGenerator(XMLStreamWriter xmlWriter, Boolean rootMapper) {
+        this(xmlWriter, rootMapper, null);
+    }
+
+    private XmlGenerator(XMLStreamWriter xmlWriter, Boolean rootMapper, @Nullable String rootNamespace) {
         this.xmlWriter = xmlWriter;
         this.rootMapper = rootMapper;
+        this.pendingRootNamespace = rootNamespace;
     }
 
     private XmlGenerator(XMLStreamWriter xmlWriter, Deque<ContextProperties> propertyStack) {
         this.xmlWriter = xmlWriter;
         this.propertyStack.addAll(propertyStack);
         this.rootMapper = false;
-    }
-
-    @Override
-    public void setPendingRootNamespace(@NonNull String namespaceUri) {
-        this.pendingRootNamespace = namespaceUri;
     }
 
     @Override
@@ -96,6 +97,12 @@ public final class XmlGenerator implements Encoder, XmlNamespace {
         if (type.equals(Argument.OBJECT_ARGUMENT)) {
             Boolean rootMapper = true;
             return new XmlGenerator(xmlWriter, rootMapper);
+        }
+        if (propertyStack.isEmpty() && type.getAnnotationMetadata().stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY).isPresent()) {
+            String rootNamespace = type.getAnnotationMetadata()
+                .stringValue(SerdeConfig.class, SerdeConfig.XML_NAMESPACE)
+                .orElse(null);
+            return new XmlGenerator(xmlWriter, Boolean.TRUE, rootNamespace);
         }
         try {
             if (rootMapper) {
@@ -372,8 +379,23 @@ public final class XmlGenerator implements Encoder, XmlNamespace {
         if (!(lastProperty instanceof KeyFrame keyFrame)) {
             throw new IllegalStateException("Expected a pending XML key before writing an attribute, but found: " + lastProperty);
         }
+        writeAttributeForCurrentKey(Objects.requireNonNull(keyFrame.key()), value);
+    }
+
+    /**
+     * Writes an XML attribute using the supplied local name.
+     *
+     * @param localName the attribute local name
+     * @param value the attribute value
+     * @throws IOException if writing fails
+     */
+    public void writeAttributeForCurrentKey(String localName, String value) throws IOException {
+        ContextProperties lastProperty = propertyStack.peekLast();
+        if (!(lastProperty instanceof KeyFrame keyFrame)) {
+            throw new IllegalStateException("Expected a pending XML key before writing an attribute, but found: " + lastProperty);
+        }
         try {
-            xmlWriter.writeAttribute(keyFrame.key(), value);
+            xmlWriter.writeAttribute(localName, value);
             propertyStack.removeLast();
             propertyStack.addLast(new KeyFrame(keyFrame.key(), true, keyFrame.arrayWrappingKey(), keyFrame.objectWrappingKey()));
         } catch (XMLStreamException e) {
@@ -393,8 +415,23 @@ public final class XmlGenerator implements Encoder, XmlNamespace {
         if (!(lastProperty instanceof KeyFrame keyFrame)) {
             throw new IllegalStateException("Expected a pending XML key before writing an attribute, but found: " + lastProperty);
         }
+        writeNamespacedAttributeForCurrentKey(namespaceUri, Objects.requireNonNull(keyFrame.key()), value);
+    }
+
+    /**
+     * Write a namespaced XML attribute for the current pending property key.
+     *
+     * @param namespaceUri the attribute namespace URI
+     * @param localName the attribute local name
+     * @param value the textual attribute value
+     */
+    public void writeNamespacedAttributeForCurrentKey(String namespaceUri, String localName, String value) throws IOException {
+        ContextProperties lastProperty = propertyStack.peekLast();
+        if (!(lastProperty instanceof KeyFrame keyFrame)) {
+            throw new IllegalStateException("Expected a pending XML key before writing an attribute, but found: " + lastProperty);
+        }
         try {
-            xmlWriter.writeAttribute(namespaceUri, keyFrame.key(), value);
+            xmlWriter.writeAttribute(namespaceUri, localName, value);
             propertyStack.removeLast();
             propertyStack.addLast(new KeyFrame(keyFrame.key(), true, keyFrame.arrayWrappingKey(), keyFrame.objectWrappingKey()));
         } catch (XMLStreamException e) {

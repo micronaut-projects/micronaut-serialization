@@ -19,6 +19,7 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.WrappedEncoder;
 import io.micronaut.serde.support.SerdeRegistrar;
 import io.micronaut.serde.xml.XmlGenerator;
 import org.jspecify.annotations.NonNull;
@@ -44,6 +45,6 @@ public final class XmlByteArraySerde implements SerdeRegistrar<byte[]> {
 
     @Override
     public void serialize(@NonNull Encoder encoder, @NonNull EncoderContext context, @NonNull Argument<? extends byte[]> type, @NonNull byte[] value) throws IOException {
-        ((XmlGenerator) encoder).encodeBinary(value);
+        ((XmlGenerator) WrappedEncoder.unwrap(encoder)).encodeBinary(value);
     }
 }

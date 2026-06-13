@@ -37,7 +37,6 @@ import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.FormattedDeserializer;
-import io.micronaut.serde.IterableWrapperSerde;
 import io.micronaut.serde.Keys;
 import io.micronaut.serde.UpdatingDeserializer;
 import io.micronaut.serde.config.DeserializationConfiguration;
@@ -51,6 +50,7 @@ import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
 import io.micronaut.serde.support.util.DecoderValueKind;
 import io.micronaut.serde.support.util.ObjectShapeSerdeHelper;
+import io.micronaut.serde.support.util.PropertySpecificSerde;
 import io.micronaut.serde.support.util.SerdeAnnotationUtil;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
 import io.micronaut.serde.support.util.SerdeFeatures;
@@ -601,8 +601,14 @@ final class DeserBean<T> {
         Deserializer<Object> deserializer = property.format == null
             ? findDeserializerWithoutFormat(propertyContext, property.argument)
             : findDeserializer(propertyContext, property.argument, property.format);
-        if (deserializer instanceof IterableWrapperSerde<?> configurableSerde) {
-            deserializer = (Deserializer<Object>) configurableSerde.withIterableWrapper(property.xmlUseWrapping, property.xmlWrapperName);
+        if (deserializer instanceof PropertySpecificSerde<?> propertySpecificSerde) {
+            deserializer = (Deserializer<Object>) propertySpecificSerde.forProperty(new PropertySpecificSerde.PropertyConfiguration(
+                property.argument.getName(),
+                null,
+                property.xmlUseWrapping,
+                property.xmlWrapperName,
+                false
+            ));
         }
         property.deserializer = unwrapErrorCatching(deserializer);
         if (property.format == null && !property.hasFeatureOverrides && property.deserializer instanceof DecoderValueKind.Provider decoderValueKind) {

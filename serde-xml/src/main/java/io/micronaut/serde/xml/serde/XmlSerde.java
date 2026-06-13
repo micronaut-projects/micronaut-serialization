@@ -19,6 +19,7 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serde;
+import io.micronaut.serde.WrappedEncoder;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.xml.XmlGenerator;
 import org.jspecify.annotations.NonNull;
@@ -42,6 +43,6 @@ public abstract class XmlSerde<T> implements Serde<T> {
 
     @Override
     public void serialize(@NonNull Encoder encoder, @NonNull EncoderContext context, @NonNull Argument<? extends T> type, @NonNull T value) throws IOException {
-        doSerialize((XmlGenerator) encoder, context, value, type);
+        doSerialize((XmlGenerator) WrappedEncoder.unwrap(encoder), context, value, type);
     }
 }

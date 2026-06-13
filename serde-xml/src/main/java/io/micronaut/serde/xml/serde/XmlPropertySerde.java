@@ -18,13 +18,15 @@ package io.micronaut.serde.xml.serde;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Serde;
-import io.micronaut.serde.XmlElementSerde;
+import io.micronaut.serde.WrappedDecoder;
+import io.micronaut.serde.support.util.PropertySpecificSerde;
 import io.micronaut.serde.xml.XmlGenerator;
 import io.micronaut.serde.xml.XmlReaderDecoder;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * XML serde for properties mapped to XML attributes, for example properties
@@ -34,31 +36,28 @@ import java.io.IOException;
  * @param <T> The property type
  * @since 3.0.0
  */
-public class XmlPropertySerde<T> extends XmlSerde<T> implements XmlElementSerde<T> {
+public class XmlPropertySerde<T> extends XmlSerde<T> implements PropertySpecificSerde<T> {
 
+    private final @Nullable String localName;
     private final @Nullable String namespace;
 
     public XmlPropertySerde() {
-        this(null);
+        this(null, null);
     }
 
-    private XmlPropertySerde(@Nullable String namespace) {
+    private XmlPropertySerde(@Nullable String localName, @Nullable String namespace) {
+        this.localName = localName;
         this.namespace = namespace;
     }
 
-    /**
-     * Returns a variant bound to the given namespace, or {@code this} when none is configured.
-     *
-     * @param localName The resolved local element name
-     * @param namespace The namespace URI, or {@code null}/empty when none
-     * @return The configured serde; never {@code null}
-     */
     @Override
-    public @NonNull Serde<T> withXmlElement(@NonNull String localName, @Nullable String namespace) {
-        if (namespace == null || namespace.isEmpty()) {
+    public @NonNull Serde<T> forProperty(PropertySpecificSerde.PropertyConfiguration configuration) {
+        String localName = configuration.name();
+        String resolvedNamespace = configuration.xmlNamespace();
+        if (localName.equals(this.localName) && Objects.equals(resolvedNamespace, this.namespace)) {
             return this;
         }
-        return new XmlPropertySerde<>(namespace);
+        return new XmlPropertySerde<>(localName, resolvedNamespace);
     }
 
     @Override
@@ -98,6 +97,7 @@ public class XmlPropertySerde<T> extends XmlSerde<T> implements XmlElementSerde<
      * @throws IOException If an error occurs while decoding
      */
     private static @Nullable String decodeAttributeValue(@NonNull Decoder decoder) throws IOException {
+        decoder = WrappedDecoder.unwrap(decoder);
         if (decoder instanceof XmlReaderDecoder xmlDecoder) {
             return xmlDecoder.decodeCurrentXmlAttribute();
         }
@@ -110,10 +110,11 @@ public class XmlPropertySerde<T> extends XmlSerde<T> implements XmlElementSerde<
             encoder.encodeNull();
             return;
         }
+        String attributeName = localName == null ? key.getName() : localName;
         if (namespace != null) {
-            encoder.writeNamespacedAttributeForCurrentKey(namespace, String.valueOf(value));
+            encoder.writeNamespacedAttributeForCurrentKey(namespace, attributeName, String.valueOf(value));
         } else {
-            encoder.writeAttributeForCurrentKey(String.valueOf(value));
+            encoder.writeAttributeForCurrentKey(attributeName, String.valueOf(value));
         }
     }
 }

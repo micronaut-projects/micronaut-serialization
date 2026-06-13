@@ -35,14 +35,12 @@ import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.inject.annotation.MutableAnnotationMetadata;
 import io.micronaut.inject.qualifiers.Qualifiers;
 import io.micronaut.serde.Encoder;
-import io.micronaut.serde.IterableWrapperSerde;
 import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.FormattedSerializer;
 import io.micronaut.serde.Keys;
 import io.micronaut.serde.PropertyFilter;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
-import io.micronaut.serde.XmlElementSerde;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.config.annotation.SerdeConfig;
@@ -51,6 +49,7 @@ import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
 import io.micronaut.serde.support.util.DecoderValueKind;
 import io.micronaut.serde.support.util.ObjectShapeSerdeHelper;
+import io.micronaut.serde.support.util.PropertySpecificSerde;
 import io.micronaut.serde.support.util.SerdeAnnotationUtil;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
 import io.micronaut.serde.support.util.SerdeFeatures;
@@ -103,8 +102,7 @@ final class SerBean<T> {
     public final Keys propertyKeys;
     @Nullable
     public final String wrapperProperty;
-    @Nullable
-    public final String wrapperNamespace;
+    public final Argument<?> wrapperArgument;
     @Nullable
     public final String arrayWrapperProperty;
     @Nullable
@@ -144,7 +142,7 @@ final class SerBean<T> {
         encoderContext = SerdeFeatures.withFeatures(encoderContext, introspection.getAnnotationMetadata());
         this.configuration = encoderContext.getSerializationConfiguration().orElse(serializationConfiguration);
         this.propertyFilter = getPropertyFilterIfPresent(beanContext, type.getSimpleName());
-        this.wrapperNamespace = introspection.stringValue(SerdeConfig.class, SerdeConfig.XML_NAMESPACE).orElse(null);
+        String wrapperNamespace = introspection.stringValue(SerdeConfig.class, SerdeConfig.XML_NAMESPACE).orElse(null);
         @Nullable SubtypeInfo resolvedSubtypeInfo = serdeArgumentConf == null ? null : serdeArgumentConf.getSubtypeInfo();
         this.subtypeInfo = resolvedSubtypeInfo;
         List<Initializer> resolvedInitializers = Objects.requireNonNull(initializers);
@@ -174,6 +172,7 @@ final class SerBean<T> {
         jsonKey = resolveJsonKey(properties, resolvedInitializers, serdeArgumentConf);
         if (serPropEntry != null) {
             wrapperProperty = null;
+            wrapperArgument = Argument.OBJECT_ARGUMENT;
             arrayWrapperProperty = null;
             dynamicWrapperProperty = null;
             dynamicArrayWrapperProperty = null;
@@ -198,6 +197,7 @@ final class SerBean<T> {
                     .findFirst().orElse(null);
             if (serMethod != null) {
                 wrapperProperty = null;
+                wrapperArgument = Argument.OBJECT_ARGUMENT;
                 arrayWrapperProperty = null;
                 dynamicWrapperProperty = null;
                 dynamicArrayWrapperProperty = null;
@@ -271,6 +271,9 @@ final class SerBean<T> {
                 }
 
                 this.wrapperProperty = wrapperProperty;
+                this.wrapperArgument = wrapperProperty != null && wrapperNamespace != null
+                    ? type.withAnnotationMetadata(introspection.getAnnotationMetadata())
+                    : Argument.OBJECT_ARGUMENT;
                 this.arrayWrapperProperty = arrayWrapperProperty;
                 this.dynamicWrapperProperty = dynamicWrapperProperty;
                 this.dynamicArrayWrapperProperty = dynamicArrayWrapperProperty;
@@ -435,6 +438,7 @@ final class SerBean<T> {
         } else if (annotationMetadata.booleanValue(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER, "alphabetic").orElse(false) || serializationConfiguration.sortPropertiesAlphabetically()) {
             writeProperties.sort(Comparator.comparing(p -> p.name));
         }
+        writeProperties.sort(Comparator.comparingInt(property -> property.xmlAttributeProperty ? 0 : 1));
     }
 
     private static boolean isInjectedSubtypeProperty(SerProperty<?, Object> property) {
@@ -816,11 +820,14 @@ final class SerBean<T> {
         Serializer<Z> specificSerializer = prop.format == null
             ? serializer.createSpecific(propertyContext, argument)
             : createSpecific(prop.format, serializer, propertyContext, argument);
-        if (specificSerializer instanceof IterableWrapperSerde<?> configurableSerde) {
-            specificSerializer = (Serializer<Z>) configurableSerde.withIterableWrapper(prop.xmlUseWrapping, prop.xmlWrapperName);
-        }
-        if (specificSerializer instanceof XmlElementSerde<?> configurableSerializer) {
-            specificSerializer = (Serializer<Z>) configurableSerializer.withXmlElement(prop.name, prop.xmlNamespace);
+        if (specificSerializer instanceof PropertySpecificSerde<?> propertySpecificSerde) {
+            specificSerializer = (Serializer<Z>) propertySpecificSerde.forProperty(new PropertySpecificSerde.PropertyConfiguration(
+                prop.name,
+                prop.xmlNamespace,
+                prop.xmlUseWrapping,
+                prop.xmlWrapperName,
+                prop.xmlAttributeProperty
+            ));
         }
         prop.serializer = specificSerializer;
 
@@ -1045,6 +1052,7 @@ final class SerBean<T> {
         public final boolean serializableInto;
         public final boolean primitive;
         public final boolean xmlUseWrapping;
+        public final boolean xmlAttributeProperty;
         public final @Nullable String xmlWrapperName;
         public final @Nullable String xmlNamespace;
         // Null when not initialized SerBean
@@ -1090,6 +1098,7 @@ final class SerBean<T> {
             this.backRef = annotationMetadata.stringValue(SerdeConfig.SerBackRef.class)
                     .orElse(null);
             this.xmlUseWrapping = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.META_ANNOTATION_PROPERTY).orElse(true);
+            this.xmlAttributeProperty = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.XML_ATTRIBUTE_PROPERTY).orElse(false);
             this.xmlWrapperName = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY).orElse(null);
             this.xmlNamespace = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.XML_NAMESPACE).orElse(null);
             this.annotationMetadata = annotationMetadata;

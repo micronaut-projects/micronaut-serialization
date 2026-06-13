@@ -16,9 +16,8 @@
 package io.micronaut.serde.xml.serde;
 
 import io.micronaut.core.type.Argument;
-import io.micronaut.serde.Serde;
-import io.micronaut.serde.XmlElementSerde;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.support.util.PropertySpecificSerde;
 import io.micronaut.serde.xml.XmlGenerator;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -28,9 +27,9 @@ import java.io.IOException;
 /**
  * XML serde for scalar properties serialized as a namespaced element. Only the serialize side is
  * used (the deserialize side is inherited from {@link XmlSerde}); the namespaced element name is
- * bound per property via {@link #withXmlElement(String, String)}.
+ * bound per property via {@link #forProperty(PropertySpecificSerde.PropertyConfiguration)}.
  */
-public class XmlNamespacedElementSerde extends XmlSerde<Object> implements XmlElementSerde<Object> {
+public class XmlNamespacedElementSerde extends XmlSerde<Object> implements PropertySpecificSerde<Object> {
 
     private final @Nullable String localName;
     private final @Nullable String namespace;
@@ -44,16 +43,9 @@ public class XmlNamespacedElementSerde extends XmlSerde<Object> implements XmlEl
         this.namespace = namespace;
     }
 
-    /**
-     * Returns a serde bound to the resolved namespaced element name.
-     *
-     * @param localName The resolved local element name
-     * @param namespace The namespace URI, or {@code null} when none
-     * @return The configured serde; never {@code null}
-     */
     @Override
-    public @NonNull Serde<Object> withXmlElement(@NonNull String localName, @Nullable String namespace) {
-        return new XmlNamespacedElementSerde(localName, namespace);
+    public @NonNull XmlNamespacedElementSerde forProperty(PropertySpecificSerde.PropertyConfiguration configuration) {
+        return new XmlNamespacedElementSerde(configuration.name(), configuration.xmlNamespace());
     }
 
     @Override

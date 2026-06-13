@@ -19,11 +19,11 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
-import io.micronaut.serde.IterableWrapperSerde;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
+import io.micronaut.serde.support.util.PropertySpecificSerde;
 import io.micronaut.serde.xml.XmlGenerator;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -42,7 +42,7 @@ import java.util.Set;
  * @since 3.0.0
  */
 public final class XmlWrapperSerde<T> extends XmlSerde<Iterable<T>> implements
-    IterableWrapperSerde<Iterable<T>> {
+    PropertySpecificSerde<Iterable<T>> {
 
     @Nullable
     private final Argument<T> generic;
@@ -108,11 +108,17 @@ public final class XmlWrapperSerde<T> extends XmlSerde<Iterable<T>> implements
     }
 
     @Override
-    public @NonNull XmlWrapperSerde<T> withIterableWrapper(boolean useWrapping, @Nullable String wrapperName) {
+    public @NonNull XmlWrapperSerde<T> forProperty(PropertySpecificSerde.PropertyConfiguration configuration) {
         if (generic == null || (componentSerializer == null && componentDeserializer == null)) {
             return this;
         }
-        return new XmlWrapperSerde<>(generic, componentSerializer, componentDeserializer, useWrapping, wrapperName);
+        return new XmlWrapperSerde<>(
+            generic,
+            componentSerializer,
+            componentDeserializer,
+            configuration.xmlUseWrapping(),
+            configuration.xmlWrapperName()
+        );
     }
 
     @Override
