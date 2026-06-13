@@ -10,7 +10,7 @@ import jakarta.inject.Named
 class XmlBasicSerdeSpec extends AbstractBasicSerdeSpec implements MicronautXmlSpec {
 
     @Inject
-    @Named("xml")
+    @Named(XmlObjectMapper.XML_MAPPER_NAME)
     XmlObjectMapper xmlMapper;
 
     @Override

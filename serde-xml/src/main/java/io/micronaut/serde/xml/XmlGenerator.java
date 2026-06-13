@@ -15,10 +15,12 @@
  */
 package io.micronaut.serde.xml;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.naming.NameUtils;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.config.annotation.SerdeConfig;
+import io.micronaut.serde.exceptions.SerdeException;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -34,7 +36,10 @@ import java.util.Objects;
 
 /**
  * An {@link Encoder} that serializes objects to XML using a StAX {@link XMLStreamWriter}.
+ *
+ * @since 3.1.0
  */
+@Internal
 public final class XmlGenerator implements Encoder {
 
     private final XMLStreamWriter xmlWriter;
@@ -42,6 +47,13 @@ public final class XmlGenerator implements Encoder {
     private Boolean rootMapper;
     private @Nullable String pendingRootNamespace;
 
+    /**
+     * Creates an XML encoder backed by the supplied StAX writer.
+     *
+     * <p>The writer is owned by the caller, typically {@link XmlObjectMapper}.</p>
+     *
+     * @param xmlWriter The XML stream writer to receive encoded events
+     */
     public XmlGenerator(XMLStreamWriter xmlWriter) {
         this.xmlWriter = xmlWriter;
         this.rootMapper = false;
@@ -86,7 +98,7 @@ public final class XmlGenerator implements Encoder {
                 xmlWriter.writeStartElement(collectionName);
             }
         } catch (XMLStreamException e) {
-            throw new RuntimeException(e);
+            throw new SerdeException("Error writing XML", e);
         }
         return this;
     }
@@ -138,7 +150,7 @@ public final class XmlGenerator implements Encoder {
             xmlWriter.writeStartElement(name);
 
         } catch (XMLStreamException e) {
-            throw new RuntimeException(e);
+            throw new SerdeException("Error writing XML", e);
         }
         return this;
     }
@@ -189,7 +201,7 @@ public final class XmlGenerator implements Encoder {
             }
 
         } catch (XMLStreamException e) {
-            throw new RuntimeException(e);
+            throw new SerdeException("Error writing XML", e);
         }
     }
 
@@ -221,7 +233,7 @@ public final class XmlGenerator implements Encoder {
             propertyStack.addLast(new KeyFrame(key, false, null, null));
 
         } catch (XMLStreamException e) {
-            throw new RuntimeException(e);
+            throw new SerdeException("Error writing XML", e);
         }
     }
 
@@ -237,7 +249,7 @@ public final class XmlGenerator implements Encoder {
         }
     }
 
-    private void writeScalar(String data) {
+    private void writeScalar(String data) throws IOException {
         try {
             ContextProperties lastProperty = propertyStack.getLast();
             switch (lastProperty) {
@@ -258,7 +270,7 @@ public final class XmlGenerator implements Encoder {
                 default -> throw new IllegalStateException("Unexpected value in writeScalar(): " + lastProperty + "\t " + lastProperty.getClass().getName());
             }
         } catch (XMLStreamException e) {
-            throw new RuntimeException(e);
+            throw new SerdeException("Error writing XML", e);
         }
     }
 
@@ -355,7 +367,7 @@ public final class XmlGenerator implements Encoder {
                 default -> xmlWriter.writeEndElement();
             }
         } catch (XMLStreamException e) {
-            throw new RuntimeException(e);
+            throw new SerdeException("Error writing XML", e);
         }
     }
 
@@ -399,7 +411,7 @@ public final class XmlGenerator implements Encoder {
             propertyStack.removeLast();
             propertyStack.addLast(new KeyFrame(keyFrame.key(), true, keyFrame.arrayWrappingKey(), keyFrame.objectWrappingKey()));
         } catch (XMLStreamException e) {
-            throw new IOException(e);
+            throw new SerdeException("Error writing XML", e);
         }
     }
 
@@ -435,7 +447,7 @@ public final class XmlGenerator implements Encoder {
             propertyStack.removeLast();
             propertyStack.addLast(new KeyFrame(keyFrame.key(), true, keyFrame.arrayWrappingKey(), keyFrame.objectWrappingKey()));
         } catch (XMLStreamException e) {
-            throw new IOException(e);
+            throw new SerdeException("Error writing XML", e);
         }
     }
 
@@ -463,7 +475,7 @@ public final class XmlGenerator implements Encoder {
             propertyStack.removeLast();
             propertyStack.addLast(new KeyFrame(keyFrame.key(), true, keyFrame.arrayWrappingKey(), keyFrame.objectWrappingKey()));
         } catch (XMLStreamException e) {
-            throw new IOException(e);
+            throw new SerdeException("Error writing XML", e);
         }
     }
 
@@ -471,12 +483,12 @@ public final class XmlGenerator implements Encoder {
      * Writes the start element for the current pending key. Closing the element is the
      * responsibility of the custom wrapper serializer.
      */
-    public void wrapElement() {
+    public void wrapElement() throws IOException {
         ContextProperties lastKey = propertyStack.peekLast();
         try {
             xmlWriter.writeStartElement(lastKey.key());
         } catch (XMLStreamException e) {
-            throw new RuntimeException(e);
+            throw new SerdeException("Error writing XML", e);
         }
     }
 

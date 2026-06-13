@@ -31,14 +31,14 @@ trait JacksonDatabindXmlSpec implements XmlSpec {
     /**
      * Interprets Micronaut-style configuration property keys and applies their
      * Jackson equivalent on a fresh {@link XmlMapper}. Only the
-     * {@code micronaut.serde.xml.xml-read-features.<NAME>} namespace is mapped
+     * {@code micronaut.serde.format.xml.xml-read-features.<NAME>} namespace is mapped
      * — the {@code <NAME>} segment is resolved to {@link XmlReadFeature}.
      * Other keys are silently ignored (no Jackson counterpart).
      */
     @Override
     def <T> T readXmlWithProperties(Map<String, Object> properties, String xml, Class<T> type) {
         def builder = XmlMapper.builder()
-        String prefix = "micronaut.serde.xml.xml-read-features."
+        String prefix = "micronaut.serde.format.xml.xml-read-features."
         properties.each { key, value ->
             if (key.startsWith(prefix)) {
                 String name = key.substring(prefix.length())

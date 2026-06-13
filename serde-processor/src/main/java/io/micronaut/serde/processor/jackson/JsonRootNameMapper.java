@@ -29,6 +29,9 @@ import java.util.List;
  * Support for JsonRootName.
  */
 public class JsonRootNameMapper implements NamedAnnotationMapper {
+
+    public static final String NAMESPACE = "namespace";
+
     @Override
     public String getName() {
         return "com.fasterxml.jackson.annotation.JsonRootName";
@@ -41,7 +44,7 @@ public class JsonRootNameMapper implements NamedAnnotationMapper {
         if (v != null) {
             builder.member(SerdeConfig.WRAPPER_PROPERTY, v);
         }
-        annotation.stringValue("namespace")
+        annotation.stringValue(NAMESPACE)
             .filter(ns -> !ns.isEmpty())
             .ifPresent(ns -> builder.member(SerdeConfig.XML_NAMESPACE, ns));
         return Collections.singletonList(

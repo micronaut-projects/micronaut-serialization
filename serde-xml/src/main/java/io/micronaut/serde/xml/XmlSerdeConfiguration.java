@@ -17,97 +17,108 @@ package io.micronaut.serde.xml;
 
 import io.micronaut.context.annotation.ConfigurationProperties;
 import io.micronaut.core.annotation.Internal;
-import io.micronaut.core.annotation.Nullable;
+import io.micronaut.serde.config.SerdeConfiguration;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.Map;
-import java.util.Set;
 
 /**
- * Configuration Properties for XML serialization/deserialization.
+ * XML-specific configuration.
  *
  * @author Mousrij Hamza
+ * @since 3.1.0
  */
-@ConfigurationProperties("micronaut.serde.xml")
 @Internal
+@ConfigurationProperties(XmlSerdeConfiguration.PREFIX)
 public final class XmlSerdeConfiguration {
+    static final String PREFIX = SerdeConfiguration.PREFIX + ".format.xml";
 
-    @Nullable
-    private String defaultRootName;
     private boolean repairingNamespaces = true;
     private boolean automaticEmptyElements;
-    /**
-     * Typed feature map.
-     *
-     * <p>Configuration keys land here as {@code Map<XmlReadFeature, Boolean>}
-     * <pre>{@code
-     * micronaut.serde.xml.xml-read-features.EMPTY_ELEMENT_AS_NULL: true
-     * }</pre>     *
-     */
     private Map<XmlReadFeature, Boolean> xmlReadFeatures = Collections.emptyMap();
-    private Map<String, Boolean> xmlWriteFeatures = Collections.emptyMap();
 
-    @Nullable
-    public String getDefaultRootName() {
-        return this.defaultRootName;
-    }
-
-    public void setDefaultRootName(String defaultRootName) {
-        this.defaultRootName = defaultRootName;
-    }
-
+    /**
+     * Returns whether namespace repairing is enabled.
+     *
+     * @return Whether namespace repairing is enabled for XML output
+     */
     public boolean isRepairingNamespaces() {
         return repairingNamespaces;
     }
 
+    /**
+     * Sets whether namespace repairing is enabled.
+     *
+     * @param repairingNamespaces Whether namespace repairing is enabled for XML output
+     */
     public void setRepairingNamespaces(boolean repairingNamespaces) {
         this.repairingNamespaces = repairingNamespaces;
     }
 
+    /**
+     * Returns whether the XML writer may use self-closing empty elements.
+     *
+     * @return Whether the XML writer may use self-closing empty elements
+     */
     public boolean isAutomaticEmptyElements() {
         return automaticEmptyElements;
     }
 
+    /**
+     * Sets whether the XML writer may use self-closing empty elements.
+     *
+     * @param automaticEmptyElements Whether the XML writer may use self-closing empty elements
+     */
     public void setAutomaticEmptyElements(boolean automaticEmptyElements) {
         this.automaticEmptyElements = automaticEmptyElements;
     }
 
+    /**
+     * Returns the XML read feature map.
+     *
+     * @return The XML read feature map
+     */
     public Map<XmlReadFeature, Boolean> getXmlReadFeatures() {
         return xmlReadFeatures;
     }
 
-    public void setXmlReadFeatures(Map<XmlReadFeature, Boolean> xmlReadFeatures) {
+    /**
+     * Sets the XML read feature map.
+     *
+     * @param xmlReadFeatures The XML read feature map
+     */
+    public void setXmlReadFeatures(@Nullable Map<XmlReadFeature, Boolean> xmlReadFeatures) {
         this.xmlReadFeatures = xmlReadFeatures == null ? Collections.emptyMap() : xmlReadFeatures;
     }
 
-    public Map<String, Boolean> getXmlWriteFeatures() {
-        return xmlWriteFeatures;
-    }
-
-    public void setXmlWriteFeatures(Map<String, Boolean> xmlWriteFeatures) {
-        this.xmlWriteFeatures = xmlWriteFeatures == null ? Collections.emptyMap() : xmlWriteFeatures;
+    /**
+     * Returns whether the given XML read feature is enabled.
+     *
+     * @param feature The XML read feature
+     * @return Whether the feature is enabled
+     */
+    public boolean isReadFeatureEnabled(XmlReadFeature feature) {
+        return Boolean.TRUE.equals(xmlReadFeatures.get(feature));
     }
 
     /**
-     * Resolves the {@link #getXmlReadFeatures() xml-read-features} map into the
-     * subset of {@link XmlReadFeature}s that are explicitly enabled
-     * (value {@code true}).
+     * Toggleable read-side features for the XML object mapper.
      *
-     * @return the set of enabled read features (never {@code null}); empty when
-     *         no feature has been opted in.
+     * <p>All features default to {@code disabled}. Enable a feature via the
+     * {@code micronaut.serde.format.xml.xml-read-features.<NAME>: true} Micronaut
+     * configuration property.</p>
      */
-    public Set<XmlReadFeature> getEnabledReadFeatures() {
-        if (xmlReadFeatures.isEmpty()) {
-            return Collections.emptySet();
-        }
-        EnumSet<XmlReadFeature> result = EnumSet.noneOf(XmlReadFeature.class);
-        for (Map.Entry<XmlReadFeature, Boolean> entry : xmlReadFeatures.entrySet()) {
-            if (entry.getKey() != null && Boolean.TRUE.equals(entry.getValue())) {
-                result.add(entry.getKey());
-            }
-        }
-        return result;
+    public enum XmlReadFeature {
+
+        /**
+         * When enabled, an empty XML element with no content is decoded as {@code null} instead of an empty string or
+         * empty bean.
+         *
+         * <p>Default ({@code disabled}) matches Jackson 3.x default behaviour: empty elements decode to {@code ""} for
+         * scalar fields and to an empty bean (constructor invoked with defaults) for object-typed fields.</p>
+         */
+        EMPTY_ELEMENT_AS_NULL
     }
 
 }

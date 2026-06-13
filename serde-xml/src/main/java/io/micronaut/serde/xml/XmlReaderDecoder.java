@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.xml;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
@@ -41,8 +42,11 @@ import java.util.Map;
 /**
  * Streaming {@link Decoder} over an {@link javax.xml.stream.XMLStreamReader}, with one concrete
  * variant per XML scope (document root, object element, array wrapper, synthetic root).
+ *
+ * @since 3.1.0
  */
-    public abstract sealed class XmlReaderDecoder extends LimitingStream implements Decoder
+@Internal
+public abstract sealed class XmlReaderDecoder extends LimitingStream implements Decoder
             permits XmlReaderDecoder.DocumentDecoder,
                     XmlReaderDecoder.ObjectDecoder,
                     XmlReaderDecoder.ArrayDecoder,
@@ -53,14 +57,22 @@ import java.util.Map;
     final Cursor cursor;
     /**
      * When {@code true}, an empty XML element with no content is
-     * surfaced as {@code null} by {@link ObjectDecoder#decodeNull()} via {@link XmlReadFeature#EMPTY_ELEMENT_AS_NULL}.
+     * surfaced as {@code null} by {@link ObjectDecoder#decodeNull()} via
+     * {@link XmlSerdeConfiguration.XmlReadFeature#EMPTY_ELEMENT_AS_NULL}.
      */
     final boolean emptyElementAsNull;
 
-    XmlReaderDecoder(@NonNull RemainingLimits limits, @NonNull Cursor cursor) {
-        this(limits, cursor, false);
-    }
-
+    /**
+     * Creates a decoder scope over an existing XML cursor.
+     *
+     * <p>The {@code emptyElementAsNull} flag is propagated from the root document decoder to every
+     * nested object, array, and synthetic-root decoder. Keeping it on the shared base scope avoids
+     * repeatedly consulting configuration while decoding each property.</p>
+     *
+     * @param limits The remaining stream limits inherited from the parent decoder scope
+     * @param cursor The shared cursor over the XML stream
+     * @param emptyElementAsNull Whether empty XML elements should be reported as {@code null}
+     */
     XmlReaderDecoder(@NonNull RemainingLimits limits, @NonNull Cursor cursor, boolean emptyElementAsNull) {
         super(limits);
         this.cursor = cursor;
@@ -352,7 +364,7 @@ import java.util.Map;
                 }
                 return XMLStreamConstants.END_DOCUMENT;
             } catch (XMLStreamException x) {
-                throw new IOException("XML stream error", x);
+                throw new SerdeException("Error reading XML", x);
             }
         }
     }
@@ -360,14 +372,34 @@ import java.util.Map;
     /**
      * Decoder for a complete XML document rooted at the current stream element.
      */
-    public static final class DocumentDecoder extends XmlReaderDecoder {
+    static final class DocumentDecoder extends XmlReaderDecoder {
 
         private boolean rootConsumed;
 
+        /**
+         * Creates a document decoder with the default empty-element behavior.
+         *
+         * @param limits The root stream limits
+         * @param reader The XML stream reader positioned anywhere before or at the document root
+         * @throws IOException If the reader cannot be advanced to a root element
+         */
         public DocumentDecoder(@NonNull RemainingLimits limits, @NonNull XMLStreamReader reader) throws IOException {
             this(limits, reader, false);
         }
 
+        /**
+         * Creates a document decoder and advances the cursor to the first root start element.
+         *
+         * <p>This is the entry point used by {@link XmlObjectMapper}. It owns the initial
+         * {@link Cursor} creation and normalizes reader position so the first decode operation sees
+         * the XML document root. Comments, processing instructions, DTDs, and entity references are
+         * skipped by the cursor.</p>
+         *
+         * @param limits The root stream limits
+         * @param reader The XML stream reader positioned anywhere before or at the document root
+         * @param emptyElementAsNull Whether empty XML elements should be reported as {@code null}
+         * @throws IOException If the reader cannot be advanced to a root element
+         */
         public DocumentDecoder(@NonNull RemainingLimits limits,
                                @NonNull XMLStreamReader reader,
                                boolean emptyElementAsNull) throws IOException {
@@ -436,7 +468,7 @@ import java.util.Map;
     /**
      * Decoder for XML elements represented as object properties.
      */
-    public static final class ObjectDecoder extends XmlReaderDecoder {
+    static final class ObjectDecoder extends XmlReaderDecoder {
 
         private final String ownerElement;
         private final List<XmlAttr> attrs;
@@ -448,14 +480,43 @@ import java.util.Map;
         private boolean pendingChildXsiNil;
         private boolean finished;
 
+        /**
+         * Creates an object decoder with no captured attributes and default empty-element behavior.
+         *
+         * @param limits The limits for this object scope
+         * @param cursor The shared cursor positioned inside the owner element
+         * @param ownerElement The local name of the element represented by this object decoder
+         */
         ObjectDecoder(@NonNull RemainingLimits limits, @NonNull Cursor cursor, @NonNull String ownerElement) {
             this(limits, cursor, ownerElement, Collections.emptyList(), false);
         }
 
+        /**
+         * Creates an object decoder with captured attributes and default empty-element behavior.
+         *
+         * @param limits The limits for this object scope
+         * @param cursor The shared cursor positioned inside the owner element
+         * @param ownerElement The local name of the element represented by this object decoder
+         * @param attrs Attributes captured from the owner element before its body was entered
+         */
         ObjectDecoder(@NonNull RemainingLimits limits, @NonNull Cursor cursor, @NonNull String ownerElement, @NonNull List<XmlAttr> attrs) {
             this(limits, cursor, ownerElement, attrs, false);
         }
 
+        /**
+         * Creates an object decoder for a single XML element.
+         *
+         * <p>The cursor is expected to be positioned after the owner's {@code START_ELEMENT}; the
+         * owner attributes are passed separately because StAX attributes are only available while
+         * the cursor is on that start event. Attribute values are emitted first from
+         * {@link #decodeKey()}, followed by child elements in stream order.</p>
+         *
+         * @param limits The limits for this object scope
+         * @param cursor The shared cursor positioned inside the owner element
+         * @param ownerElement The local name of the element represented by this object decoder
+         * @param attrs Attributes captured from the owner element before its body was entered
+         * @param emptyElementAsNull Whether empty XML elements should be reported as {@code null}
+         */
         ObjectDecoder(@NonNull RemainingLimits limits,
                       @NonNull Cursor cursor,
                       @NonNull String ownerElement,
@@ -688,7 +749,7 @@ import java.util.Map;
      * ({@code @JacksonXmlElementWrapper(useWrapping = false)}, where same-named sibling elements
      * are the items).
      */
-    public static final class ArrayDecoder extends XmlReaderDecoder {
+    static final class ArrayDecoder extends XmlReaderDecoder {
 
         private enum Mode {
             WRAPPED,
@@ -704,10 +765,32 @@ import java.util.Map;
         private boolean firstItemPending;
         private boolean finished;
 
+        /**
+         * Creates an array decoder with the default empty-element behavior.
+         *
+         * @param limits The limits for this array scope
+         * @param cursor The shared cursor positioned inside the wrapper or first item element
+         * @param wrapperOrItemElement The local name of the wrapper element or inline item element
+         * @throws IOException If the cursor cannot be advanced while detecting array mode
+         */
         ArrayDecoder(@NonNull RemainingLimits limits, @NonNull Cursor cursor, @NonNull String wrapperOrItemElement) throws IOException {
             this(limits, cursor, wrapperOrItemElement, false);
         }
 
+        /**
+         * Creates an array decoder and detects whether the XML uses wrapped or inline array layout.
+         *
+         * <p>For wrapped arrays, the cursor starts inside the wrapper element and child start
+         * elements become array items. For inline arrays, the cursor may start inside the first item
+         * element and the decoder treats same-named sibling elements as subsequent items. Scalar
+         * text encountered before a closing element is buffered as the first inline item.</p>
+         *
+         * @param limits The limits for this array scope
+         * @param cursor The shared cursor positioned inside the wrapper or first item element
+         * @param wrapperOrItemElement The local name of the wrapper element or inline item element
+         * @param emptyElementAsNull Whether empty XML elements should be reported as {@code null}
+         * @throws IOException If the cursor cannot be advanced while detecting array mode
+         */
         ArrayDecoder(@NonNull RemainingLimits limits,
                      @NonNull Cursor cursor,
                      @NonNull String wrapperOrItemElement,
@@ -981,17 +1064,37 @@ import java.util.Map;
      * its value. Used for untyped / {@code @JsonRootName} beans where the root element must be
      * surfaced as a wrapper property.
      */
-    public static final class SyntheticRootDecoder extends XmlReaderDecoder {
+    static final class SyntheticRootDecoder extends XmlReaderDecoder {
 
         private final String rootName;
         private boolean keyEmitted;
         private boolean valueConsumed;
         private boolean finished;
 
+        /**
+         * Creates a synthetic-root decoder with the default empty-element behavior.
+         *
+         * @param limits The limits for this synthetic object scope
+         * @param cursor The shared cursor positioned at the XML root element
+         * @param rootName The root element local name to expose as the synthetic object key
+         */
         SyntheticRootDecoder(@NonNull RemainingLimits limits, @NonNull Cursor cursor, @NonNull String rootName) {
             this(limits, cursor, rootName, false);
         }
 
+        /**
+         * Creates a decoder that exposes the document root name as a synthetic object key.
+         *
+         * <p>This scope is used when decoding untyped object values. XML has a required root
+         * element, while map/object decoding expects a key-value pair. The synthetic decoder bridges
+         * those models by returning the root element name from {@link #decodeKey()} and then
+         * delegating the value to a normal {@link ObjectDecoder}.</p>
+         *
+         * @param limits The limits for this synthetic object scope
+         * @param cursor The shared cursor positioned at the XML root element
+         * @param rootName The root element local name to expose as the synthetic object key
+         * @param emptyElementAsNull Whether empty XML elements should be reported as {@code null}
+         */
         SyntheticRootDecoder(@NonNull RemainingLimits limits,
                              @NonNull Cursor cursor,
                              @NonNull String rootName,

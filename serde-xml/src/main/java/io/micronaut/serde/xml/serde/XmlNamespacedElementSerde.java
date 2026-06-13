@@ -15,7 +15,11 @@
  */
 package io.micronaut.serde.xml.serde;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
+import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Encoder;
+import io.micronaut.serde.WrappedEncoder;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.PropertySpecificSerde;
 import io.micronaut.serde.xml.XmlGenerator;
@@ -26,15 +30,18 @@ import java.io.IOException;
 
 /**
  * XML serde for scalar properties serialized as a namespaced element. Only the serialize side is
- * used (the deserialize side is inherited from {@link XmlSerde}); the namespaced element name is
- * bound per property via {@link #forProperty(PropertySpecificSerde.PropertyConfiguration)}.
+ * used; the namespaced element name is bound per property via
+ * {@link #forProperty(PropertySpecificSerde.PropertyConfiguration)}.
+ *
+ * @since 3.1.0
  */
-public class XmlNamespacedElementSerde extends XmlSerde<Object> implements PropertySpecificSerde<Object> {
+@Internal
+public class XmlNamespacedElementSerde implements PropertySpecificSerde<Object> {
 
     private final @Nullable String localName;
     private final @Nullable String namespace;
 
-    public XmlNamespacedElementSerde() {
+    XmlNamespacedElementSerde() {
         this(null, null);
     }
 
@@ -49,14 +56,25 @@ public class XmlNamespacedElementSerde extends XmlSerde<Object> implements Prope
     }
 
     @Override
-    protected void doSerialize(XmlGenerator encoder, EncoderContext context, Object value, Argument<?> key) throws IOException {
+    public @NonNull Object deserialize(@NonNull Decoder decoder,
+                                       @NonNull DecoderContext context,
+                                       @NonNull Argument<? super Object> type) throws IOException {
+        throw new SerdeException(getClass().getName() + " does not support XML deserialization for: " + type);
+    }
+
+    @Override
+    public void serialize(@NonNull Encoder encoder,
+                          @NonNull EncoderContext context,
+                          @NonNull Argument<? extends Object> type,
+                          @NonNull Object value) throws IOException {
+        XmlGenerator generator = (XmlGenerator) WrappedEncoder.unwrap(encoder);
         if (value == null) {
-            encoder.encodeNull();
+            generator.encodeNull();
             return;
         }
         if (localName == null) {
-            throw new SerdeException("XmlNamespacedElementSerde was not configured for: " + key);
+            throw new SerdeException("XmlNamespacedElementSerde was not configured for: " + type);
         }
-        encoder.writeNamespacedScalarForCurrentKey(localName, namespace, String.valueOf(value));
+        generator.writeNamespacedScalarForCurrentKey(localName, namespace, String.valueOf(value));
     }
 }

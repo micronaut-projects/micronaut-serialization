@@ -28,10 +28,13 @@ import java.util.List;
 /**
  * Maps Jackson XML's {@code tools.jackson.dataformat.xml.annotation.JacksonXmlProperty}.
  *
- * @since 3.0.0
+ * @since 3.1.0
  */
-public class JacksonXmlPropertyMapper implements NamedAnnotationMapper {
+public final class JacksonXmlPropertyMapper implements NamedAnnotationMapper {
 
+    static final String NAMESPACE = "namespace";
+    static final String LOCAL_NAME = "localName";
+    static final String IS_ATTRIBUTE = "isAttribute";
     static final String XML_PROPERTY_SERDE_CLASS = "io.micronaut.serde.xml.serde.XmlPropertySerde";
     static final String XML_NAMESPACED_ELEMENT_SERDE_CLASS = "io.micronaut.serde.xml.serde.XmlNamespacedElementSerde";
 
@@ -51,17 +54,17 @@ public class JacksonXmlPropertyMapper implements NamedAnnotationMapper {
     @Override
     public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         AnnotationValueBuilder<SerdeConfig> builder = AnnotationValue.builder(SerdeConfig.class);
-        boolean isAttribute = annotation.booleanValue("isAttribute")
+        boolean isAttribute = annotation.booleanValue(IS_ATTRIBUTE)
             .orElse(false);
         if (isAttribute) {
             builder.member(SerdeConfig.XML_ATTRIBUTE_PROPERTY, true);
             builder.member(SerdeConfig.SERIALIZER_CLASS, new AnnotationClassValue<>(XML_PROPERTY_SERDE_CLASS));
             builder.member(SerdeConfig.DESERIALIZER_CLASS, new AnnotationClassValue<>(XML_PROPERTY_SERDE_CLASS));
         }
-        annotation.stringValue("localName")
+        annotation.stringValue(LOCAL_NAME)
             .filter(localName -> !localName.isEmpty())
             .ifPresent(localName -> builder.member(SerdeConfig.PROPERTY, localName));
-        annotation.stringValue("namespace")
+        annotation.stringValue(NAMESPACE)
             .filter(ns -> !ns.isEmpty())
             .ifPresent(ns -> {
                 builder.member(SerdeConfig.XML_NAMESPACE, ns);

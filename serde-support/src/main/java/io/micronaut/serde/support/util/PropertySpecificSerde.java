@@ -22,7 +22,9 @@ import org.jspecify.annotations.Nullable;
 /**
  * Serde that can create a property-specific variant from resolved property metadata.
  *
+ * @author Mousrij Hamza
  * @param <T> The serialized/deserialized type
+ * @since 3.1.0
  */
 @Internal
 public interface PropertySpecificSerde<T> extends Serde<T> {

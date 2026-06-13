@@ -15,10 +15,13 @@
  */
 package io.micronaut.serde.xml.serde;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serde;
 import io.micronaut.serde.WrappedDecoder;
+import io.micronaut.serde.WrappedEncoder;
 import io.micronaut.serde.support.util.PropertySpecificSerde;
 import io.micronaut.serde.xml.XmlGenerator;
 import io.micronaut.serde.xml.XmlReaderDecoder;
@@ -34,14 +37,15 @@ import java.util.Objects;
  * {@code <xml a=""/>}.
  *
  * @param <T> The property type
- * @since 3.0.0
+ * @since 3.1.0
  */
-public class XmlPropertySerde<T> extends XmlSerde<T> implements PropertySpecificSerde<T> {
+@Internal
+public class XmlPropertySerde<T> implements PropertySpecificSerde<T> {
 
     private final @Nullable String localName;
     private final @Nullable String namespace;
 
-    public XmlPropertySerde() {
+    XmlPropertySerde() {
         this(null, null);
     }
 
@@ -105,16 +109,20 @@ public class XmlPropertySerde<T> extends XmlSerde<T> implements PropertySpecific
     }
 
     @Override
-    protected void doSerialize(XmlGenerator encoder, EncoderContext context, T value, Argument<?> key) throws IOException {
+    public void serialize(@NonNull Encoder encoder,
+                          @NonNull EncoderContext context,
+                          @NonNull Argument<? extends T> type,
+                          @NonNull T value) throws IOException {
+        XmlGenerator generator = (XmlGenerator) WrappedEncoder.unwrap(encoder);
         if (value == null) {
-            encoder.encodeNull();
+            generator.encodeNull();
             return;
         }
-        String attributeName = localName == null ? key.getName() : localName;
+        String attributeName = localName == null ? type.getName() : localName;
         if (namespace != null) {
-            encoder.writeNamespacedAttributeForCurrentKey(namespace, attributeName, String.valueOf(value));
+            generator.writeNamespacedAttributeForCurrentKey(namespace, attributeName, String.valueOf(value));
         } else {
-            encoder.writeAttributeForCurrentKey(attributeName, String.valueOf(value));
+            generator.writeAttributeForCurrentKey(attributeName, String.valueOf(value));
         }
     }
 }

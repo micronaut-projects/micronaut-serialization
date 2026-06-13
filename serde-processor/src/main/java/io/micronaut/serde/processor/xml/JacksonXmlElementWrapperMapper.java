@@ -29,10 +29,12 @@ import java.util.List;
 /**
  * Maps Jackson XML's {@code tools.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper}.
  *
- * @since 3.0.0
+ * @since 3.1.0
  */
-public class JacksonXmlElementWrapperMapper implements NamedAnnotationMapper {
+public final class JacksonXmlElementWrapperMapper implements NamedAnnotationMapper {
 
+    static final String USE_WRAPPING = "useWrapping";
+    static final String LOCAL_NAME = "localName";
     static final String XML_WRAPPER_PROPERTY_SERDE_CLASS = "io.micronaut.serde.xml.serde.XmlWrapperSerde";
     private static final AnnotationClassValue<?> XML_WRAPPER_PROPERTY_SERDE_CLASS_VALUE =
         new AnnotationClassValue<>(XML_WRAPPER_PROPERTY_SERDE_CLASS);
@@ -53,12 +55,12 @@ public class JacksonXmlElementWrapperMapper implements NamedAnnotationMapper {
     @Override
     public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         AnnotationValueBuilder<SerdeConfig> builder = AnnotationValue.builder(SerdeConfig.class);
-        annotation.booleanValue("useWrapping").ifPresentOrElse(useWrapping -> {
+        annotation.booleanValue(USE_WRAPPING).ifPresentOrElse(useWrapping -> {
                 builder.member(SerdeConfig.META_ANNOTATION_PROPERTY, useWrapping);
                     configureWrapperSerde(builder);
             },
             () -> {
-                annotation.stringValue("localName")
+                annotation.stringValue(LOCAL_NAME)
                     .filter(localName -> !localName.isEmpty())
                     .ifPresent(localName -> {
                         builder.member(SerdeConfig.META_ANNOTATION_PROPERTY, true);
@@ -68,7 +70,7 @@ public class JacksonXmlElementWrapperMapper implements NamedAnnotationMapper {
             }
             );
 
-        annotation.stringValue("localName")
+        annotation.stringValue(LOCAL_NAME)
             .filter(localName -> !localName.isEmpty())
             .ifPresent(localName -> {
                 builder.member(SerdeConfig.WRAPPER_PROPERTY,  localName);

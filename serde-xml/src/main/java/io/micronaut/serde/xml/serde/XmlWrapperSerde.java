@@ -15,12 +15,14 @@
  */
 package io.micronaut.serde.xml.serde;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.WrappedEncoder;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
 import io.micronaut.serde.support.util.PropertySpecificSerde;
@@ -39,9 +41,10 @@ import java.util.Set;
  * @see io.micronaut.serde.support.serializers.CustomizedIterableSerializer
  *
  * @param <T> The iterable element type
- * @since 3.0.0
+ * @since 3.1.0
  */
-public final class XmlWrapperSerde<T> extends XmlSerde<Iterable<T>> implements
+@Internal
+public final class XmlWrapperSerde<T> implements
     PropertySpecificSerde<Iterable<T>> {
 
     @Nullable
@@ -54,7 +57,7 @@ public final class XmlWrapperSerde<T> extends XmlSerde<Iterable<T>> implements
     @Nullable
     private final String wrapperName;
 
-    public XmlWrapperSerde() {
+    XmlWrapperSerde() {
         this.generic = null;
         this.componentSerializer = null;
         this.componentDeserializer = null;
@@ -122,10 +125,11 @@ public final class XmlWrapperSerde<T> extends XmlSerde<Iterable<T>> implements
     }
 
     @Override
-    protected void doSerialize(XmlGenerator generator,
-                               EncoderContext context,
-                               Iterable<T> value,
-                               Argument<?> type) throws IOException {
+    public void serialize(@NonNull Encoder encoder,
+                          @NonNull EncoderContext context,
+                          @NonNull Argument<? extends Iterable<T>> type,
+                          @NonNull Iterable<T> value) throws IOException {
+        XmlGenerator generator = (XmlGenerator) WrappedEncoder.unwrap(encoder);
         if (!type.isContainerType()) {
             throw new SerdeException("Only wrapping container types, not: " + type.getTypeName());
         }

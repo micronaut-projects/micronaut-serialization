@@ -56,7 +56,7 @@ abstract class AbstractXmlEmptyStringSpec extends Specification implements XmlSp
     void "empty elements decode as null when EMPTY_ELEMENT_AS_NULL is enabled"() {
         when: "the same XML is read through a mapper configured with EMPTY_ELEMENT_AS_NULL enabled"
         def name = readXmlWithProperties(
-                ['micronaut.serde.xml.xml-read-features.EMPTY_ELEMENT_AS_NULL': true],
+                ['micronaut.serde.format.xml.xml-read-features.EMPTY_ELEMENT_AS_NULL': true],
                 "<Name><first/><last></last></Name>",
                 Name.class
         )

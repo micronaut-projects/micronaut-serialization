@@ -13,29 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.serde.xml.annotation;
-
-import io.micronaut.core.annotation.Introspected;
-
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 /**
- * Declares the XML root element name for a serde type.
- *
- * @author Mousrij Hamza
+ * XML-specific serializers and deserializers.
  */
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-@Introspected
-public @interface XmlRootName {
+@NullMarked
+package io.micronaut.serde.xml.serde;
 
-    /**
-     * @return The root element name.
-     */
-    String value();
-}
+import org.jspecify.annotations.NullMarked;

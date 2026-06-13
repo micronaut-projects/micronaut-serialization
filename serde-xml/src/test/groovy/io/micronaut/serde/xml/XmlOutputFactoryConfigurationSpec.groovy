@@ -19,7 +19,7 @@ class XmlOutputFactoryConfigurationSpec extends Specification {
 
     def "automatic empty elements can be enabled for Woodstox output"() {
         when:
-        def xml = withMapper(['micronaut.serde.xml.automatic-empty-elements': true]) { XmlObjectMapper mapper ->
+        def xml = withMapper(['micronaut.serde.format.xml.automatic-empty-elements': true]) { XmlObjectMapper mapper ->
             mapper.writeValueAsString(new AttributeOnlyBean())
         }
 
@@ -39,7 +39,7 @@ class XmlOutputFactoryConfigurationSpec extends Specification {
 
     def "namespace repairing can be disabled"() {
         when:
-        withMapper(['micronaut.serde.xml.repairing-namespaces': false]) { XmlObjectMapper mapper ->
+        withMapper(['micronaut.serde.format.xml.repairing-namespaces': false]) { XmlObjectMapper mapper ->
             mapper.writeValueAsString(new NamespacedChildBean())
         }
 

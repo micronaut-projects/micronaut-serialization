@@ -17,15 +17,16 @@ package io.micronaut.serde.xml.serde;
 
 import io.micronaut.context.annotation.Bean;
 import io.micronaut.context.annotation.Factory;
-import io.micronaut.context.annotation.Primary;
 import io.micronaut.core.annotation.Internal;
 
 /**
  * Factory for XML-specific serde beans.
+ *
+ * @since 3.1.0
  */
 @Factory
 @Internal
-public final class FactoryXmlSerde {
+final class FactoryXmlSerde {
 
     @Bean
     XmlPropertySerde xmlSerde() {
@@ -40,12 +41,6 @@ public final class FactoryXmlSerde {
     @Bean
     XmlNamespacedElementSerde xmlNamespacedElementSerde() {
         return new XmlNamespacedElementSerde();
-    }
-
-    @Bean
-    @Primary
-    XmlByteArraySerde xmlByteArraySerde() {
-        return new XmlByteArraySerde();
     }
 
 }
