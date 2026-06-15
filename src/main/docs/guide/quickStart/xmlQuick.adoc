@@ -1,0 +1,46 @@
+To serialize and deserialize XML with Micronaut Serialization, add the `micronaut-serde-xml` runtime. It provides a named XML api:serde.ObjectMapper[] bean and uses the same compile-time serialization metadata as the JSON, JSON-P, and BSON runtimes.
+
+Add the following artifact to the `dependencies` block:
+
+dependency:micronaut-serde-xml[groupId="io.micronaut.serde",scope="implementation"]
+
+If your source code uses Jackson XML annotations such as `@JacksonXmlProperty` or `@JacksonXmlElementWrapper`, keep the Jackson XML annotation types on the compile classpath. Micronaut Serialization maps those annotations at compilation time; XML serialization still goes through Micronaut Serialization's named XML mapper rather than a Jackson Databind `XmlMapper`.
+
+With the correct dependencies in place you can define an XML-serializable type:
+
+snippet::example.Book[project-base="doc-examples/example-xml", source="main"]
+
+<1> The type is annotated with ann:serde.annotation.Serdeable[] to enable serialization/deserialization.
+<2> `@JsonRootName` customizes the XML document root element.
+<3> `@JacksonXmlProperty(isAttribute = true)` writes and reads the value as an XML attribute.
+<4> `@JacksonXmlProperty(localName = "...")` customizes the element or attribute name.
+<5> `@JacksonXmlElementWrapper(localName = "...")` wraps collection entries in the named XML element.
+<6> `@JacksonXmlProperty(localName = "...")` customizes the XML element name used for each collection entry.
+
+Use `@JacksonXmlElementWrapper` when a collection should be represented by a container element. The `localName` member controls the wrapper element name. Set `useWrapping = false` when collection entries should be written directly without a containing wrapper element.
+
+The XML mapper is registered as a named bean. Inject it with `@Named` using `XmlObjectMapper.XML_MAPPER_NAME` or the literal name `xml`:
+
+snippet::example.BookTest[project-base="doc-examples/example-xml"]
+
+XML-specific behavior can be configured under `micronaut.serde.format.xml`:
+
+[configuration]
+----
+micronaut:
+  serde:
+    format:
+      xml:
+        repairing-namespaces: true
+        automatic-empty-elements: false
+        xml-read-features:
+          EMPTY_ELEMENT_AS_NULL: true
+----
+
+`repairing-namespaces` defaults to `true` and lets the XML writer declare namespace prefixes when a property or root element has a namespace. Set it to `false` only when the XML stream writer is expected to receive already-valid namespace bindings.
+
+`automatic-empty-elements` defaults to `false`. Enable it to allow the XML output factory to write self-closing empty elements such as `<book/>` when the configured StAX implementation supports that feature.
+
+`xml-read-features.EMPTY_ELEMENT_AS_NULL` defaults to `false`. Enable it when empty XML elements should deserialize as `null` instead of an empty string or empty bean.
+
+Micronaut Serialization also honors XML namespace metadata from `@JsonRootName`, `@JsonProperty`, and `@JacksonXmlProperty`, XML attributes through `@JacksonXmlProperty(isAttribute = true)`, and collection wrappers through `@JacksonXmlElementWrapper`.
