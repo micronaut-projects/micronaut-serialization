@@ -1,0 +1,3 @@
+TOML serialization support is provided by the https://github.com/micronaut-projects/micronaut-toml[Micronaut TOML] project through the `micronaut-toml-serde` module.
+
+See the https://micronaut-projects.github.io/micronaut-toml/latest/guide/#tomlQuick[Micronaut TOML serialization documentation] for dependency setup, the named TOML api:serde.ObjectMapper[] bean, source-backed examples, mapper configuration, and TOML output layout.
