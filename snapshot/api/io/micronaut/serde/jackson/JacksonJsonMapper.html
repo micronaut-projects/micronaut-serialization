@@ -82,6 +82,11 @@ loadScripts(document, 'script');</script>
 <li><a href="#createReactiveParser(java.util.function.Consumer,boolean)" tabindex="0">createReactiveParser(Consumer, boolean)</a></li>
 <li><a href="#cloneWithViewClass(java.lang.Class)" tabindex="0">cloneWithViewClass(Class)</a></li>
 <li><a href="#updateValueFromTree(java.lang.Object,io.micronaut.json.tree.JsonNode)" tabindex="0">updateValueFromTree(Object, JsonNode)</a></li>
+<li><a href="#updateValue(T,java.lang.Object)" tabindex="0">updateValue(T, Object)</a></li>
+<li><a href="#updateValue(T,io.micronaut.core.type.Argument,java.lang.Object)" tabindex="0">updateValue(T, Argument, Object)</a></li>
+<li><a href="#updateValue(T,io.micronaut.core.type.Argument,java.io.InputStream)" tabindex="0">updateValue(T, Argument, InputStream)</a></li>
+<li><a href="#updateValue(T,io.micronaut.core.type.Argument,byte%5B%5D)" tabindex="0">updateValue(T, Argument, byte[])</a></li>
+<li><a href="#updateValue(T,io.micronaut.core.type.Argument,io.micronaut.core.io.buffer.ByteBuffer)" tabindex="0">updateValue(T, Argument, ByteBuffer)</a></li>
 </ol>
 </li>
 </ol>
@@ -201,33 +206,67 @@ implements <a href="JacksonObjectMapper.html" title="interface in io.micronaut.s
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#readValueFromTree(io.micronaut.json.tree.JsonNode,io.micronaut.core.type.Argument)" class="member-name-link">readValueFromTree</a><wbr>(io.micronaut.json.tree.JsonNode&nbsp;tree,
  io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#updateValueFromTree(java.lang.Object,io.micronaut.json.tree.JsonNode)" class="member-name-link">updateValueFromTree</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;value,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;T&gt;&nbsp;T</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#updateValue(T,io.micronaut.core.type.Argument,byte%5B%5D)" class="member-name-link">updateValue</a><wbr>(T&nbsp;valueToUpdate,
+ io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
+ byte[]&nbsp;byteArray)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Update an existing mutable value from JSON read from the supplied byte array.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;T&gt;&nbsp;T</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#updateValue(T,io.micronaut.core.type.Argument,io.micronaut.core.io.buffer.ByteBuffer)" class="member-name-link">updateValue</a><wbr>(T&nbsp;valueToUpdate,
+ io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
+ io.micronaut.core.io.buffer.ByteBuffer&lt;?&gt;&nbsp;byteBuffer)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Update an existing mutable value from JSON read from the supplied byte buffer.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;T&gt;&nbsp;T</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#updateValue(T,io.micronaut.core.type.Argument,java.io.InputStream)" class="member-name-link">updateValue</a><wbr>(T&nbsp;valueToUpdate,
+ io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/InputStream.html" title="class or interface in java.io" class="external-link">InputStream</a>&nbsp;inputStream)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Update an existing mutable value from JSON read from the supplied input stream.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;T&gt;&nbsp;T</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#updateValue(T,io.micronaut.core.type.Argument,java.lang.Object)" class="member-name-link">updateValue</a><wbr>(T&nbsp;valueToUpdate,
+ io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
+ @Nullable <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;overrides)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Update an existing mutable value from the supplied override value.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;T&gt;&nbsp;T</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#updateValue(T,java.lang.Object)" class="member-name-link">updateValue</a><wbr>(T&nbsp;valueToUpdate,
+ @Nullable <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;overrides)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Update an existing mutable value from the supplied override value.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#updateValueFromTree(java.lang.Object,io.micronaut.json.tree.JsonNode)" class="member-name-link">updateValueFromTree</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;value,
  io.micronaut.json.tree.JsonNode&nbsp;tree)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;T&gt;&nbsp;void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#writeValue(java.io.OutputStream,io.micronaut.core.type.Argument,T)" class="member-name-link">writeValue</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/OutputStream.html" title="class or interface in java.io" class="external-link">OutputStream</a>&nbsp;outputStream,
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;T&gt;&nbsp;void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#writeValue(java.io.OutputStream,io.micronaut.core.type.Argument,T)" class="member-name-link">writeValue</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/OutputStream.html" title="class or interface in java.io" class="external-link">OutputStream</a>&nbsp;outputStream,
  io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
  @Nullable T&nbsp;object)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#writeValue(java.io.OutputStream,java.lang.Object)" class="member-name-link">writeValue</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/OutputStream.html" title="class or interface in java.io" class="external-link">OutputStream</a>&nbsp;outputStream,
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#writeValue(java.io.OutputStream,java.lang.Object)" class="member-name-link">writeValue</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/OutputStream.html" title="class or interface in java.io" class="external-link">OutputStream</a>&nbsp;outputStream,
  @Nullable <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;object)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;T&gt;&nbsp;byte[]</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#writeValueAsBytes(io.micronaut.core.type.Argument,T)" class="member-name-link">writeValueAsBytes</a><wbr>(io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;T&gt;&nbsp;byte[]</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#writeValueAsBytes(io.micronaut.core.type.Argument,T)" class="member-name-link">writeValueAsBytes</a><wbr>(io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
  @Nullable T&nbsp;object)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>byte[]</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#writeValueAsBytes(java.lang.Object)" class="member-name-link">writeValueAsBytes</a><wbr>(@Nullable <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;object)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;T&gt;&nbsp;io.micronaut.json.tree.JsonNode</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#writeValueToTree(io.micronaut.core.type.Argument,T)" class="member-name-link">writeValueToTree</a><wbr>(io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>byte[]</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#writeValueAsBytes(java.lang.Object)" class="member-name-link">writeValueAsBytes</a><wbr>(@Nullable <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;object)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;T&gt;&nbsp;io.micronaut.json.tree.JsonNode</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#writeValueToTree(io.micronaut.core.type.Argument,T)" class="member-name-link">writeValueToTree</a><wbr>(io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
  @Nullable T&nbsp;value)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>io.micronaut.json.tree.JsonNode</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#writeValueToTree(java.lang.Object)" class="member-name-link">writeValueToTree</a><wbr>(@Nullable <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;value)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>io.micronaut.json.tree.JsonNode</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#writeValueToTree(java.lang.Object)" class="member-name-link">writeValueToTree</a><wbr>(@Nullable <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;value)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 </div>
 </div>
 </div>
@@ -236,10 +275,10 @@ implements <a href="JacksonObjectMapper.html" title="interface in io.micronaut.s
 <code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#clone()" title="class or interface in java.lang" class="external-link">clone</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#equals(java.lang.Object)" title="class or interface in java.lang" class="external-link">equals</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#finalize()" title="class or interface in java.lang" class="external-link">finalize</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#getClass()" title="class or interface in java.lang" class="external-link">getClass</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#hashCode()" title="class or interface in java.lang" class="external-link">hashCode</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#notify()" title="class or interface in java.lang" class="external-link">notify</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#notifyAll()" title="class or interface in java.lang" class="external-link">notifyAll</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#toString()" title="class or interface in java.lang" class="external-link">toString</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#wait()" title="class or interface in java.lang" class="external-link">wait</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#wait(long)" title="class or interface in java.lang" class="external-link">wait</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#wait(long,int)" title="class or interface in java.lang" class="external-link">wait</a></code></div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-io.micronaut.json.JsonMapper">Methods inherited from interface&nbsp;io.micronaut.json.JsonMapper</h3>
-<code>detectFeatures, readValue, readValue, readValue, readValue, readValue, readValueFromTree, writeValueAsString, writeValueAsString</code></div>
+<code>detectFeatures, readValue, readValue, readValue, readValue, readValue, readValueFromTree, writeValueAsString, writeValueAsString, writeValueAsString</code></div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-io.micronaut.serde.ObjectMapper">Methods inherited from interface&nbsp;<a href="../ObjectMapper.html#method-summary" title="interface in io.micronaut.serde">ObjectMapper</a></h3>
-<code><a href="../ObjectMapper.html#cloneWithFeatures(io.micronaut.json.JsonFeatures)" title="cloneWithFeatures(JsonFeatures)">cloneWithFeatures</a>, <a href="../ObjectMapper.html#writeValueAsString(java.lang.Object)" title="writeValueAsString(Object)">writeValueAsString</a></code></div>
+<code><a href="../ObjectMapper.html#cloneWithFeatures(io.micronaut.json.JsonFeatures)" title="cloneWithFeatures(JsonFeatures)">cloneWithFeatures</a></code></div>
 </section>
 </li>
 </ul>
@@ -573,6 +612,147 @@ implements <a href="JacksonObjectMapper.html" title="interface in io.micronaut.s
 <dd><code>updateValueFromTree</code>&nbsp;in interface&nbsp;<code>io.micronaut.json.JsonMapper</code></dd>
 <dt>Throws:</dt>
 <dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code></dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="updateValue(T,java.lang.Object)">
+<h3 id="updateValue(java.lang.Object,java.lang.Object)">updateValue</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="type-parameters">&lt;T&gt;</span>&nbsp;<span class="return-type">T</span>&nbsp;<span class="element-name">updateValue</span><wbr><span class="parameters">(T&nbsp;valueToUpdate,
+ @Nullable <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;overrides)</span>
+                  throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block"><span class="description-from-type-label">Description copied from interface:&nbsp;<code><a href="../ObjectMapper.html#updateValue(T,java.lang.Object)">ObjectMapper</a></code></span></div>
+<div class="block">Update an existing mutable value from the supplied override value.
+
+<p>The override value is converted to a JSON tree and applied through
+<code>JsonMapper.updateValueFromTree(Object, JsonNode)</code>. Supported update semantics are implementation-specific;
+immutable, creator-only, and builder-only values may be rejected.</p></div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../ObjectMapper.html#updateValue(T,java.lang.Object)">updateValue</a></code>&nbsp;in interface&nbsp;<code><a href="../ObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper</a></code></dd>
+<dt>Type Parameters:</dt>
+<dd><span id="updateValue(T,java.lang.Object)-type-param-T"><code>T</code> - The value type</span></dd>
+<dt>Parameters:</dt>
+<dd><code>valueToUpdate</code> - The existing value to update</dd>
+<dd><code>overrides</code> - The override value containing fields to apply</dd>
+<dt>Returns:</dt>
+<dd>The updated <code>valueToUpdate</code></dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an I/O or decoding error occurs</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="updateValue(T,io.micronaut.core.type.Argument,java.lang.Object)">
+<h3 id="updateValue(java.lang.Object,io.micronaut.core.type.Argument,java.lang.Object)">updateValue</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="type-parameters">&lt;T&gt;</span>&nbsp;<span class="return-type">T</span>&nbsp;<span class="element-name">updateValue</span><wbr><span class="parameters">(T&nbsp;valueToUpdate,
+ io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
+ @Nullable <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;overrides)</span>
+                  throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block"><span class="description-from-type-label">Description copied from interface:&nbsp;<code><a href="../ObjectMapper.html#updateValue(T,io.micronaut.core.type.Argument,java.lang.Object)">ObjectMapper</a></code></span></div>
+<div class="block">Update an existing mutable value from the supplied override value.
+
+<p>The override value is converted to a JSON tree and applied through
+<code>JsonMapper.updateValueFromTree(Object, JsonNode)</code>. Supported update semantics are implementation-specific;
+immutable, creator-only, and builder-only values may be rejected.</p></div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../ObjectMapper.html#updateValue(T,io.micronaut.core.type.Argument,java.lang.Object)">updateValue</a></code>&nbsp;in interface&nbsp;<code><a href="../ObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper</a></code></dd>
+<dt>Type Parameters:</dt>
+<dd><span id="updateValue(T,io.micronaut.core.type.Argument,java.lang.Object)-type-param-T"><code>T</code> - The value type</span></dd>
+<dt>Parameters:</dt>
+<dd><code>valueToUpdate</code> - The existing value to update</dd>
+<dd><code>type</code> - The type of the value to update</dd>
+<dd><code>overrides</code> - The override value containing fields to apply</dd>
+<dt>Returns:</dt>
+<dd>The updated <code>valueToUpdate</code></dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an I/O or decoding error occurs</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="updateValue(T,io.micronaut.core.type.Argument,java.io.InputStream)">
+<h3 id="updateValue(java.lang.Object,io.micronaut.core.type.Argument,java.io.InputStream)">updateValue</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="type-parameters">&lt;T&gt;</span>&nbsp;<span class="return-type">T</span>&nbsp;<span class="element-name">updateValue</span><wbr><span class="parameters">(T&nbsp;valueToUpdate,
+ io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/InputStream.html" title="class or interface in java.io" class="external-link">InputStream</a>&nbsp;inputStream)</span>
+                  throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block"><span class="description-from-type-label">Description copied from interface:&nbsp;<code><a href="../ObjectMapper.html#updateValue(T,io.micronaut.core.type.Argument,java.io.InputStream)">ObjectMapper</a></code></span></div>
+<div class="block">Update an existing mutable value from JSON read from the supplied input stream.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../ObjectMapper.html#updateValue(T,io.micronaut.core.type.Argument,java.io.InputStream)">updateValue</a></code>&nbsp;in interface&nbsp;<code><a href="../ObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper</a></code></dd>
+<dt>Type Parameters:</dt>
+<dd><span id="updateValue(T,io.micronaut.core.type.Argument,java.io.InputStream)-type-param-T"><code>T</code> - The value type</span></dd>
+<dt>Parameters:</dt>
+<dd><code>valueToUpdate</code> - The existing value to update</dd>
+<dd><code>type</code> - The type of the value to update</dd>
+<dd><code>inputStream</code> - The input stream containing JSON fields to apply</dd>
+<dt>Returns:</dt>
+<dd>The updated <code>valueToUpdate</code></dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an I/O or decoding error occurs</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="updateValue(T,io.micronaut.core.type.Argument,byte[])">
+<h3 id="updateValue(java.lang.Object,io.micronaut.core.type.Argument,byte[])">updateValue</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="type-parameters">&lt;T&gt;</span>&nbsp;<span class="return-type">T</span>&nbsp;<span class="element-name">updateValue</span><wbr><span class="parameters">(T&nbsp;valueToUpdate,
+ io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
+ byte[]&nbsp;byteArray)</span>
+                  throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block"><span class="description-from-type-label">Description copied from interface:&nbsp;<code><a href="../ObjectMapper.html#updateValue(T,io.micronaut.core.type.Argument,byte%5B%5D)">ObjectMapper</a></code></span></div>
+<div class="block">Update an existing mutable value from JSON read from the supplied byte array.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../ObjectMapper.html#updateValue(T,io.micronaut.core.type.Argument,byte%5B%5D)">updateValue</a></code>&nbsp;in interface&nbsp;<code><a href="../ObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper</a></code></dd>
+<dt>Type Parameters:</dt>
+<dd><span id="updateValue(T,io.micronaut.core.type.Argument,byte[])-type-param-T"><code>T</code> - The value type</span></dd>
+<dt>Parameters:</dt>
+<dd><code>valueToUpdate</code> - The existing value to update</dd>
+<dd><code>type</code> - The type of the value to update</dd>
+<dd><code>byteArray</code> - The byte array containing JSON fields to apply</dd>
+<dt>Returns:</dt>
+<dd>The updated <code>valueToUpdate</code></dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an I/O or decoding error occurs</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="updateValue(T,io.micronaut.core.type.Argument,io.micronaut.core.io.buffer.ByteBuffer)">
+<h3 id="updateValue(java.lang.Object,io.micronaut.core.type.Argument,io.micronaut.core.io.buffer.ByteBuffer)">updateValue</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="type-parameters">&lt;T&gt;</span>&nbsp;<span class="return-type">T</span>&nbsp;<span class="element-name">updateValue</span><wbr><span class="parameters">(T&nbsp;valueToUpdate,
+ io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
+ io.micronaut.core.io.buffer.ByteBuffer&lt;?&gt;&nbsp;byteBuffer)</span>
+                  throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block"><span class="description-from-type-label">Description copied from interface:&nbsp;<code><a href="../ObjectMapper.html#updateValue(T,io.micronaut.core.type.Argument,io.micronaut.core.io.buffer.ByteBuffer)">ObjectMapper</a></code></span></div>
+<div class="block">Update an existing mutable value from JSON read from the supplied byte buffer.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../ObjectMapper.html#updateValue(T,io.micronaut.core.type.Argument,io.micronaut.core.io.buffer.ByteBuffer)">updateValue</a></code>&nbsp;in interface&nbsp;<code><a href="../ObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper</a></code></dd>
+<dt>Type Parameters:</dt>
+<dd><span id="updateValue(T,io.micronaut.core.type.Argument,io.micronaut.core.io.buffer.ByteBuffer)-type-param-T"><code>T</code> - The value type</span></dd>
+<dt>Parameters:</dt>
+<dd><code>valueToUpdate</code> - The existing value to update</dd>
+<dd><code>type</code> - The type of the value to update</dd>
+<dd><code>byteBuffer</code> - The byte buffer containing JSON fields to apply</dd>
+<dt>Returns:</dt>
+<dd>The updated <code>valueToUpdate</code></dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an I/O or decoding error occurs</dd>
 </dl>
 </div>
 </section>

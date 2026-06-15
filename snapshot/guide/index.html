@@ -1677,8 +1677,8 @@ If an unsupported annotation or member is used, a compilation error will result.
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonMerge.html">@JsonMerge</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
-<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Supported for explicit property-level merge during <code>ObjectMapper.updateValue</code> and <code>updateValueFromTree</code>; no public <code>readerForUpdating</code> API is provided.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonProperty.html">@JsonProperty</a></p></td>
@@ -1717,7 +1717,7 @@ If an unsupported annotation or member is used, a compilation error will result.
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonTypeId.html">@JsonTypeId</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
 <td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
@@ -1747,6 +1747,184 @@ If an unsupported annotation or member is used, a compilation error will result.
 </tr>
 </tbody>
 </table>
+<div class="sect2">
+<h3 id="_jsonmerge"><code>@JsonMerge</code></h3>
+<div class="paragraph">
+<p>The <a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonMerge.html">@JsonMerge</a> annotation enables merge behavior when updating an existing mutable object with <a href="../api/io/micronaut/serde/ObjectMapper.html">ObjectMapper</a>.</p>
+</div>
+<div class="paragraph">
+<p>Without <code>@JsonMerge</code>, an incoming nested object replaces the current property value. With <code>@JsonMerge</code>, Micronaut Serialization updates the existing nested value when possible: JSON fields present in the update replace matching fields, and fields absent from the update keep their current values.</p>
+</div>
+<div class="paragraph">
+<p>For example, this release configuration uses <code>@JsonMerge</code> on a nested deployment window and a labels map:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
+
+import com.fasterxml.jackson.annotation.JsonMerge;
+import io.micronaut.serde.annotation.Serdeable;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+@Serdeable
+public class ReleaseConfiguration {
+    private String service = "";
+    private String owner = "";
+    @JsonMerge
+    private DeploymentWindow deploymentWindow = new DeploymentWindow();
+    @JsonMerge
+    private Map&lt;String, String&gt; labels = new LinkedHashMap&lt;&gt;();
+
+    public String getService() {
+        return service;
+    }
+
+    public void setService(String service) {
+        this.service = service;
+    }
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
+    }
+
+    public DeploymentWindow getDeploymentWindow() {
+        return deploymentWindow;
+    }
+
+    public void setDeploymentWindow(DeploymentWindow deploymentWindow) {
+        this.deploymentWindow = deploymentWindow;
+    }
+
+    public Map&lt;String, String&gt; getLabels() {
+        return labels;
+    }
+
+    public void setLabels(Map&lt;String, String&gt; labels) {
+        this.labels = labels;
+    }
+
+    @Serdeable
+    public static class DeploymentWindow {
+        private String day = "";
+        private String timeZone = "";
+
+        public String getDay() {
+            return day;
+        }
+
+        public void setDay(String day) {
+            this.day = day;
+        }
+
+        public String getTimeZone() {
+            return timeZone;
+        }
+
+        public void setTimeZone(String timeZone) {
+            this.timeZone = timeZone;
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The update JSON can then include only the values that should change:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
+
+import io.micronaut.core.type.Argument;
+import io.micronaut.serde.ObjectMapper;
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+
+@MicronautTest
+public class JsonMergeExampleTest {
+
+    @Test
+    void testMergeNestedReleaseConfiguration(ObjectMapper objectMapper) throws IOException {
+        ReleaseConfiguration release = new ReleaseConfiguration();
+        release.setService("checkout");
+        release.setOwner("platform");
+
+        ReleaseConfiguration.DeploymentWindow window = new ReleaseConfiguration.DeploymentWindow();
+        window.setDay("Friday");
+        window.setTimeZone("UTC");
+        release.setDeploymentWindow(window);
+
+        objectMapper.updateValue(
+            release,
+            Argument.of(ReleaseConfiguration.class),
+            """
+            {
+              "owner": "growth",
+              "deploymentWindow": {
+                "day": "Tuesday"
+              }
+            }
+            """.getBytes(StandardCharsets.UTF_8)
+        );
+
+        assertEquals("growth", release.getOwner());
+        assertSame(window, release.getDeploymentWindow());
+        assertEquals("Tuesday", release.getDeploymentWindow().getDay());
+        assertEquals("UTC", release.getDeploymentWindow().getTimeZone());
+    }
+
+    @Test
+    void testMergeReleaseLabels(ObjectMapper objectMapper) throws IOException {
+        ReleaseConfiguration release = new ReleaseConfiguration();
+        release.setLabels(new java.util.LinkedHashMap&lt;&gt;(Map.of(
+            "environment", "production",
+            "region", "us-east"
+        )));
+
+        objectMapper.updateValue(
+            release,
+            Argument.of(ReleaseConfiguration.class),
+            """
+            {
+              "labels": {
+                "version": "2026.06",
+                "region": "eu-west"
+              }
+            }
+            """.getBytes(StandardCharsets.UTF_8)
+        );
+
+        assertEquals("production", release.getLabels().get("environment"));
+        assertEquals("eu-west", release.getLabels().get("region"));
+        assertEquals("2026.06", release.getLabels().get("version"));
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the nested object case, the update changes the deployment day but keeps the existing time zone.
+If the <code>deploymentWindow</code> property is not annotated with <code>@JsonMerge</code>, the incoming object replaces the current one and the absent time zone value is lost.
+In the map case, incoming labels update matching keys and add new keys while keys absent from the update remain in the map.</p>
+</div>
+<div class="paragraph">
+<p><code>@JsonMerge</code> is explicit and property-scoped.
+It is supported for mutable readable bean properties, mutable maps, mutable collections, and array properties.
+Immutable, creator-only, builder-only, and record-like values cannot be updated in place.
+Explicit JSON <code>null</code> values follow the normal null handling rules instead of attempting a merge.
+Micronaut Serialization does not provide a public Jackson-style <code>readerForUpdating</code> API; use <code>ObjectMapper.updateValue(&#8230;&#8203;)</code> or <code>updateValueFromTree(&#8230;&#8203;)</code> to update existing values.</p>
+</div>
 <div class="paragraph">
 <p>In addition, limited support for 3 <code>jackson-databind</code> annotations is included to allow portability for cases where both support for <code>jackson-databind</code> and Micronaut Serialization is required:</p>
 </div>
@@ -1796,6 +1974,7 @@ If an unsupported annotation or member is used, a compilation error will result.
   &lt;artifactId&gt;jackson-databind&lt;/artifactId&gt;
   &lt;scope&gt;provided&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
+</div>
 </div>
 </div>
 <div class="sect2">

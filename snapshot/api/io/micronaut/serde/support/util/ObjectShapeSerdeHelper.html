@@ -58,6 +58,7 @@ loadScripts(document, 'script');</script>
 <ol class="toc-list">
 <li><a href="#objectSerializer(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument)" tabindex="0">objectSerializer(Serializer.EncoderContext, Argument)</a></li>
 <li><a href="#objectDeserializer(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" tabindex="0">objectDeserializer(Deserializer.DecoderContext, Argument)</a></li>
+<li><a href="#updatingObjectDeserializer(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" tabindex="0">updatingObjectDeserializer(Deserializer.DecoderContext, Argument)</a></li>
 </ol>
 </li>
 </ol>
@@ -109,6 +110,12 @@ loadScripts(document, 'script');</script>
  io.micronaut.core.type.Argument&lt;? extends T&gt;&nbsp;type)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Select the generic object serializer for POJO-like shape handling.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static &lt;T&gt;&nbsp;@Nullable <a href="../../UpdatingDeserializer.html" title="interface in io.micronaut.serde">UpdatingDeserializer</a><wbr>&lt;T&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#updatingObjectDeserializer(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">updatingObjectDeserializer</a><wbr>(<a href="../../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context,
+ io.micronaut.core.type.Argument&lt;? super T&gt;&nbsp;type)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Select the generic object deserializer only when it supports updating this type.</div>
 </div>
 </div>
 </div>
@@ -165,6 +172,32 @@ loadScripts(document, 'script');</script>
 <dd><code>type</code> - The type</dd>
 <dt>Returns:</dt>
 <dd>The object deserializer</dd>
+<dt>Throws:</dt>
+<dd><code><a href="../../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></code></dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="updatingObjectDeserializer(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">
+<h3>updatingObjectDeserializer</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="type-parameters">&lt;T&gt;</span>&nbsp;<span class="return-type">@Nullable <a href="../../UpdatingDeserializer.html" title="interface in io.micronaut.serde">UpdatingDeserializer</a>&lt;T&gt;</span>&nbsp;<span class="element-name">updatingObjectDeserializer</span><wbr><span class="parameters">(<a href="../../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context,
+ io.micronaut.core.type.Argument&lt;? super T&gt;&nbsp;type)</span>
+                                                                        throws <span class="exceptions"><a href="../../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></span></div>
+<div class="block">Select the generic object deserializer only when it supports updating this type.
+
+<p>This is used as a merge fallback for generated deserializers that are replace-only. If the type is not
+object-shaped, the generic object deserializer may not be able to create a specific deserializer. In that case
+there is no updating fallback and callers should keep replacement semantics.</p></div>
+<dl class="notes">
+<dt>Type Parameters:</dt>
+<dd><span id="updatingObjectDeserializer(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)-type-param-T"><code>T</code> - The deserialized type</span></dd>
+<dt>Parameters:</dt>
+<dd><code>context</code> - The decoder context</dd>
+<dd><code>type</code> - The type</dd>
+<dt>Returns:</dt>
+<dd>The updating object deserializer, or <code>null</code> if the type cannot be updated through the object path</dd>
 <dt>Throws:</dt>
 <dd><code><a href="../../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></code></dd>
 </dl>
