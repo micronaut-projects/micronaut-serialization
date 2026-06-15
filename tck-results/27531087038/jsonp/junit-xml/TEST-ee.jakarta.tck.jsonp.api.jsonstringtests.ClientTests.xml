@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests" tests="3" skipped="0" failures="0" errors="0" timestamp="SANITIZED" hostname="SANITIZED" time="0">
+  <properties/>
+  <testcase name="jsonStringHashCodeTest()" classname="ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests" time="0"/>
+  <testcase name="jsonStringGetCharsTest()" classname="ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests" time="0"/>
+  <testcase name="jsonStringEqualsTest()" classname="ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests" time="0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests jsonStringHashCodeTest
+INFO: Create sample JsonString 1 for testing
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests jsonStringHashCodeTest
+INFO: string1="Hello World"
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests jsonStringHashCodeTest
+INFO: string1.hashCode()=-862545276
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests jsonStringHashCodeTest
+INFO: Create sample JsonString 2 for testing
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests jsonStringHashCodeTest
+INFO: string2="Hello World"
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests jsonStringHashCodeTest
+INFO: string2.hashCode()=-862545276
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests jsonStringHashCodeTest
+INFO: Call JsonString.hashCode() to compare 2 equal JsonStrings and expect true
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests jsonStringHashCodeTest
+INFO: JsonStrings hashCode are equal - expected.
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests jsonStringHashCodeTest
+INFO: Create sample JsonString 1 for testing
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests jsonStringHashCodeTest
+INFO: string1="Hello World"
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests jsonStringHashCodeTest
+INFO: string1.hashCode()=-862545276
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests jsonStringHashCodeTest
+INFO: Create sample JsonString 2 for testing
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests jsonStringHashCodeTest
+INFO: string2="Hello USA"
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests jsonStringHashCodeTest
+INFO: string2.hashCode()=-1095871243
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests jsonStringHashCodeTest
+INFO: Call JsonString.hashCode() to compare 2 equal JsonStrings and expect false
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests jsonStringHashCodeTest
+INFO: JsonStrings hashCode are not equal - expected.
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests jsonStringGetCharsTest
+INFO: Create sample JsonString for testing
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests jsonStringGetCharsTest
+INFO: string="Hello World"
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests jsonStringGetCharsTest
+INFO: Call JsonString.getChars() to return the char sequence for the JSON string
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests jsonStringGetCharsTest
+INFO: charSequence=Hello World
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests jsonStringGetCharsTest
+INFO: Checking char sequence for equality to expected string contents
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: Hello World
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   Hello World
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests jsonStringGetCharsTest
+INFO: Checking char sequence for expected equality to string length
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 11
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   11
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests jsonStringEqualsTest
+INFO: Create sample JsonString 1 for testing
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests jsonStringEqualsTest
+INFO: string1="Hello World"
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests jsonStringEqualsTest
+INFO: Create sample JsonString 2 for testing
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests jsonStringEqualsTest
+INFO: string2="Hello World"
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests jsonStringEqualsTest
+INFO: Call JsonString.equals() to compare 2 equal JsonStrings and expect true
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests jsonStringEqualsTest
+INFO: JsonStrings are equal - expected.
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests jsonStringEqualsTest
+INFO: Create sample JsonString 1 for testing
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests jsonStringEqualsTest
+INFO: string1="Hello World"
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests jsonStringEqualsTest
+INFO: Create sample JsonString 2 for testing
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests jsonStringEqualsTest
+INFO: string2="Hello USA"
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests jsonStringEqualsTest
+INFO: Call JsonString.equals() to compare 2 equal JsonStrings and expect false
+Jun 11, 2026 10:10:32 AM ee.jakarta.tck.jsonp.api.jsonstringtests.ClientTests jsonStringEqualsTest
+INFO: JsonStrings are not equal - expected.
+]]></system-err>
+</testsuite>
