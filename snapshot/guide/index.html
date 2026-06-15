@@ -111,6 +111,8 @@
         
         <div class="toc-item" style="margin-left:10px" id="toc-item-bsonQuick"><a href="#bsonQuick"><strong>3.3</strong><span>BSON Annotations and BSON</span></a></div>
         
+        <div class="toc-item" style="margin-left:10px" id="toc-item-propertiesQuick"><a href="#propertiesQuick"><strong>3.4</strong><span>Java Properties</span></a></div>
+        
         <div class="toc-item" style="margin-left:0px" id="toc-item-jacksonAnnotations"><a href="#jacksonAnnotations"><strong>4</strong><span>Jackson Annotations</span></a></div>
         
         <div class="toc-item" style="margin-left:10px" id="toc-item-jacksonFilter"><a href="#jacksonFilter"><strong>4.1</strong><span>Custom Property Filters</span></a></div>
@@ -1519,6 +1521,164 @@ class BookTest extends Specification {
 </div>
 </div>
 
+<h2 id="propertiesQuick"><a class="anchor" href="#propertiesQuick"></a>3.4 Java Properties</h2>
+
+<div class='contribute-btn'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.1.x/src/main/docs/guide/quickStart/propertiesQuick.adoc"'>
+        <i class='fa fa-pencil-square-o'></i> Improve this doc
+    </button>
+</div>
+
+
+<div class="paragraph">
+<p>Micronaut Serialization includes support for reading and writing Java <code>*.properties</code> documents with the <code>micronaut-serde-properties</code> module.</p>
+</div>
+<div class="paragraph">
+<p>Add the following artifact to the <code>dependencies</code> block:</p>
+</div>
+<div class="paragraph">
+<p>        <div class="listingblock multi-language-sample">
+<div class="title"></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">implementation(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-properties")</span></code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="maven">&lt;dependency&gt;
+    &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
+    &lt;artifactId&gt;micronaut-serde-properties&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></pre>
+</div>
+</div>
+</p>
+</div>
+<div class="paragraph">
+<p>The <code>*.properties</code> mapper is exposed as a named <a href="../api/io/micronaut/serde/ObjectMapper.html">ObjectMapper</a> bean. Inject it with the <code>properties</code> qualifier when you want to read or write <code>*.properties</code> data:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import io.micronaut.serde.ObjectMapper;
+import io.micronaut.serde.properties.PropertiesMapper;
+import jakarta.inject.Named;
+
+class BookService {
+    private final ObjectMapper propertiesMapper;
+
+    BookService(@Named(PropertiesMapper.NAME) ObjectMapper propertiesMapper) {
+        this.propertiesMapper = propertiesMapper;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Once you have a type that can be serialized and deserialized, the mapper flattens object paths into property keys:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">book.title=The Stand
+book.authors[0].name=Stephen King
+book.authors[0].age=60
+book.authors[1].name=JRR Tolkien
+book.authors[1].age=81</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>By default, arrays use zero-based bracketed indexes such as <code>authors[0]</code>.
+You can configure one-based dotted indexes instead:</p>
+</div>
+<div class="openblock">
+<div class="content">
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">micronaut.serde.format.properties.array-index-style=DOTTED</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">micronaut:
+  serde:
+    format:
+      properties:
+        array-index-style: DOTTED</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="toml">[micronaut]
+  [micronaut.serde]
+    [micronaut.serde.format]
+      [micronaut.serde.format.properties]
+        array-index-style="DOTTED"</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy-config hljs" data-lang="groovy-config">micronaut {
+  serde {
+    format {
+      properties {
+        arrayIndexStyle = "DOTTED"
+      }
+    }
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-hocon hljs" data-lang="hocon">{
+  micronaut {
+    serde {
+      format {
+        properties {
+          array-index-style = "DOTTED"
+        }
+      }
+    }
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json-config hljs" data-lang="json-config">{
+  "micronaut": {
+    "serde": {
+      "format": {
+        "properties": {
+          "array-index-style": "DOTTED"
+        }
+      }
+    }
+  }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>With dotted indexes, the same array paths are written as:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">book.authors.1.name=Stephen King
+book.authors.2.name=JRR Tolkien</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Java <code>*.properties</code> documents require keys. Root objects can be written as properties, but root arrays and root scalar values cannot be written directly.
+</td>
+</tr>
+</table>
+</div>
+
 <h1 id="jacksonAnnotations"><a class="anchor" href="#jacksonAnnotations"></a>4 Jackson Annotations</h1>
 
 <div class='contribute-btn'>
@@ -1717,7 +1877,7 @@ If an unsupported annotation or member is used, a compilation error will result.
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonTypeId.html">@JsonTypeId</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
 <td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>

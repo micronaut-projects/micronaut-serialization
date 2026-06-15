@@ -398,6 +398,10 @@ independent of value of the property.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/serdes/Serdes.html#BOOLEAN_SERDE" class="member-name-link">BOOLEAN_SERDE</a> - Static variable in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/Serdes.html" title="class in io.micronaut.serde.support.serdes">Serdes</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/properties/SerdePropertiesConfiguration.ArrayIndexStyle.html#BRACKETED" class="member-name-link">BRACKETED</a> - Enum constant in enum class io.micronaut.serde.properties.<a href="io/micronaut/serde/properties/SerdePropertiesConfiguration.ArrayIndexStyle.html" title="enum class in io.micronaut.serde.properties">SerdePropertiesConfiguration.ArrayIndexStyle</a></dt>
+<dd>
+<div class="block">Zero-based bracketed array indexes; <code>values[0]</code>.</div>
+</dd>
 <dt><a href="io/micronaut/serde/bson/BsonBinaryMapper.html" class="type-name-link" title="class in io.micronaut.serde.bson">BsonBinaryMapper</a> - Class in <a href="io/micronaut/serde/bson/package-summary.html">io.micronaut.serde.bson</a></dt>
 <dd>
 <div class="block">Binary Bson mapper.</div>
@@ -1898,6 +1902,10 @@ which looks up instrospections from <code>BeanIntrospector.SHARED</code>.</div>
 <dd>
 <div class="block">Serializes non null value.</div>
 </dd>
+<dt><a href="io/micronaut/serde/properties/SerdePropertiesConfiguration.ArrayIndexStyle.html#DOTTED" class="member-name-link">DOTTED</a> - Enum constant in enum class io.micronaut.serde.properties.<a href="io/micronaut/serde/properties/SerdePropertiesConfiguration.ArrayIndexStyle.html" title="enum class in io.micronaut.serde.properties">SerdePropertiesConfiguration.ArrayIndexStyle</a></dt>
+<dd>
+<div class="block">One-based dotted array indexes; <code>values.1</code>.</div>
+</dd>
 <dt><a href="io/micronaut/serde/support/util/DecoderValueKind.html#DOUBLE" class="member-name-link">DOUBLE</a> - Enum constant in enum class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/DecoderValueKind.html" title="enum class in io.micronaut.serde.support.util">DecoderValueKind</a></dt>
 <dd>
 <div class="block">A <code>double</code> value.</div>
@@ -2667,6 +2675,10 @@ which looks up instrospections from <code>BeanIntrospector.SHARED</code>.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/exceptions/path/ReferencePath.html#getArgument()" class="member-name-link">getArgument()</a> - Method in interface io.micronaut.serde.exceptions.path.<a href="io/micronaut/serde/exceptions/path/ReferencePath.html" title="interface in io.micronaut.serde.exceptions.path">ReferencePath</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/properties/SerdePropertiesConfiguration.html#getArrayIndexStyle()" class="member-name-link">getArrayIndexStyle()</a> - Method in class io.micronaut.serde.properties.<a href="io/micronaut/serde/properties/SerdePropertiesConfiguration.html" title="class in io.micronaut.serde.properties">SerdePropertiesConfiguration</a></dt>
+<dd>
+<div class="block">Returns the configured array index style.</div>
+</dd>
 <dt><a href="io/micronaut/serde/config/DeserializationConfiguration.html#getArraySizeThreshold()" class="member-name-link">getArraySizeThreshold()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/config/SerdeJsonConfiguration.html#getArraySizeThreshold()" class="member-name-link">getArraySizeThreshold()</a> - Method in class io.micronaut.serde.support.config.<a href="io/micronaut/serde/support/config/SerdeJsonConfiguration.html" title="class in io.micronaut.serde.support.config">SerdeJsonConfiguration</a></dt>
@@ -3008,6 +3020,8 @@ as serializable by default without the need to add the <a href="io/micronaut/ser
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/jackson/JsonSubTypesMapper.html#getName()" class="member-name-link">getName()</a> - Method in class io.micronaut.serde.processor.jackson.<a href="io/micronaut/serde/processor/jackson/JsonSubTypesMapper.html" title="class in io.micronaut.serde.processor.jackson">JsonSubTypesMapper</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/processor/jackson/JsonTypeIdMapper.html#getName()" class="member-name-link">getName()</a> - Method in class io.micronaut.serde.processor.jackson.<a href="io/micronaut/serde/processor/jackson/JsonTypeIdMapper.html" title="class in io.micronaut.serde.processor.jackson">JsonTypeIdMapper</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/jackson/JsonTypeInfoMapper.html#getName()" class="member-name-link">getName()</a> - Method in class io.micronaut.serde.processor.jackson.<a href="io/micronaut/serde/processor/jackson/JsonTypeInfoMapper.html" title="class in io.micronaut.serde.processor.jackson">JsonTypeInfoMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/jackson/JsonTypeNameMapper.html#getName()" class="member-name-link">getName()</a> - Method in class io.micronaut.serde.processor.jackson.<a href="io/micronaut/serde/processor/jackson/JsonTypeNameMapper.html" title="class in io.micronaut.serde.processor.jackson">JsonTypeNameMapper</a></dt>
@@ -3124,6 +3138,10 @@ as serializable by default without the need to add the <a href="io/micronaut/ser
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html#getSerdeRegistry()" class="member-name-link">getSerdeRegistry()</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonTextObjectMapper</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/properties/PropertiesMapper.html#getSerdeRegistry()" class="member-name-link">getSerdeRegistry()</a> - Method in class io.micronaut.serde.properties.<a href="io/micronaut/serde/properties/PropertiesMapper.html" title="class in io.micronaut.serde.properties">PropertiesMapper</a></dt>
+<dd>
+<div class="block">Returns the <a href="io/micronaut/serde/SerdeRegistry.html" title="interface in io.micronaut.serde"><code>SerdeRegistry</code></a> used by this object mapper, if possible.</div>
+</dd>
 <dt><a href="io/micronaut/serde/SerdeIntrospections.html#getSerializableIntrospection(io.micronaut.core.type.Argument)" class="member-name-link">getSerializableIntrospection(Argument)</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/SerdeIntrospections.html" title="interface in io.micronaut.serde">SerdeIntrospections</a></dt>
 <dd>
 <div class="block">Gets an introspection for the given type for serialization.</div>
@@ -3184,6 +3202,10 @@ as serializable by default without the need to add the <a href="io/micronaut/ser
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html#getStreamConfig()" class="member-name-link">getStreamConfig()</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonTextObjectMapper</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/properties/PropertiesMapper.html#getStreamConfig()" class="member-name-link">getStreamConfig()</a> - Method in class io.micronaut.serde.properties.<a href="io/micronaut/serde/properties/PropertiesMapper.html" title="class in io.micronaut.serde.properties">PropertiesMapper</a></dt>
+<dd>
+<div class="block">Returns the stream configuration used by this mapper.</div>
+</dd>
 <dt><a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.html#getStreamReadFeatures()" class="member-name-link">getStreamReadFeatures()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.html" title="class in io.micronaut.serde.jackson">SerdeJacksonConfiguration</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.html#getStreamWriteFeatures()" class="member-name-link">getStreamWriteFeatures()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.html" title="class in io.micronaut.serde.jackson">SerdeJacksonConfiguration</a></dt>
@@ -3723,6 +3745,14 @@ about the property that was incorrect.</div>
 <dd>
 <div class="block">Record serializer and deserializer source generation support.</div>
 </dd>
+<dt><a href="io/micronaut/serde/properties/package-summary.html">io.micronaut.serde.properties</a> - package io.micronaut.serde.properties</dt>
+<dd>
+<div class="block">Support for reading and writing the Java <code>.properties</code> format.</div>
+</dd>
+<dt><a href="io/micronaut/serde/properties/util/package-summary.html">io.micronaut.serde.properties.util</a> - package io.micronaut.serde.properties.util</dt>
+<dd>
+<div class="block">Internal utilities for Java <code>.properties</code> serialization support.</div>
+</dd>
 <dt><a href="io/micronaut/serde/reference/package-summary.html">io.micronaut.serde.reference</a> - package io.micronaut.serde.reference</dt>
 <dd>
 <div class="block">Reusable property reference metadata for serialization and error reporting.</div>
@@ -4244,6 +4274,12 @@ in-memory <code>JsonNode</code>.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/tck/tests/JsonSyntaxExceptionTest.html#%3Cinit%3E()" class="member-name-link">JsonSyntaxExceptionTest()</a> - Constructor for class io.micronaut.serde.tck.tests.<a href="io/micronaut/serde/tck/tests/JsonSyntaxExceptionTest.html" title="class in io.micronaut.serde.tck.tests">JsonSyntaxExceptionTest</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/processor/jackson/JsonTypeIdMapper.html" class="type-name-link" title="class in io.micronaut.serde.processor.jackson">JsonTypeIdMapper</a> - Class in <a href="io/micronaut/serde/processor/jackson/package-summary.html">io.micronaut.serde.processor.jackson</a></dt>
+<dd>
+<div class="block">Support for Jackson's JsonTypeId.</div>
+</dd>
+<dt><a href="io/micronaut/serde/processor/jackson/JsonTypeIdMapper.html#%3Cinit%3E()" class="member-name-link">JsonTypeIdMapper()</a> - Constructor for class io.micronaut.serde.processor.jackson.<a href="io/micronaut/serde/processor/jackson/JsonTypeIdMapper.html" title="class in io.micronaut.serde.processor.jackson">JsonTypeIdMapper</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/jackson/JsonTypeInfoMapper.html" class="type-name-link" title="class in io.micronaut.serde.processor.jackson">JsonTypeInfoMapper</a> - Class in <a href="io/micronaut/serde/processor/jackson/package-summary.html">io.micronaut.serde.processor.jackson</a></dt>
 <dd>
 <div class="block">Mapper for JsonTypeInfo.</div>
@@ -4556,6 +4592,8 @@ in-memory <code>JsonNode</code>.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/jackson/JsonSetterMapper.html#mapValid(io.micronaut.core.annotation.AnnotationValue,io.micronaut.inject.visitor.VisitorContext)" class="member-name-link">mapValid(AnnotationValue, VisitorContext)</a> - Method in class io.micronaut.serde.processor.jackson.<a href="io/micronaut/serde/processor/jackson/JsonSetterMapper.html" title="class in io.micronaut.serde.processor.jackson">JsonSetterMapper</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/processor/jackson/JsonTypeIdMapper.html#mapValid(io.micronaut.core.annotation.AnnotationValue,io.micronaut.inject.visitor.VisitorContext)" class="member-name-link">mapValid(AnnotationValue, VisitorContext)</a> - Method in class io.micronaut.serde.processor.jackson.<a href="io/micronaut/serde/processor/jackson/JsonTypeIdMapper.html" title="class in io.micronaut.serde.processor.jackson">JsonTypeIdMapper</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/jackson/JsonTypeInfoMapper.html#mapValid(io.micronaut.core.annotation.AnnotationValue,io.micronaut.inject.visitor.VisitorContext)" class="member-name-link">mapValid(AnnotationValue, VisitorContext)</a> - Method in class io.micronaut.serde.processor.jackson.<a href="io/micronaut/serde/processor/jackson/JsonTypeInfoMapper.html" title="class in io.micronaut.serde.processor.jackson">JsonTypeInfoMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/jackson/JsonValueMapper.html#mapValid(io.micronaut.core.annotation.AnnotationValue,io.micronaut.inject.visitor.VisitorContext)" class="member-name-link">mapValid(AnnotationValue, VisitorContext)</a> - Method in class io.micronaut.serde.processor.jackson.<a href="io/micronaut/serde/processor/jackson/JsonValueMapper.html" title="class in io.micronaut.serde.processor.jackson">JsonValueMapper</a></dt>
@@ -4663,6 +4701,10 @@ by the <a href="io/micronaut/serde/Keys.html" title="interface in io.micronaut.s
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/info/MicronautSerdeProcessorModuleInfo.html#%3Cinit%3E()" class="member-name-link">MicronautSerdeProcessorModuleInfo()</a> - Constructor for class io.micronaut.serde.info.<a href="io/micronaut/serde/info/MicronautSerdeProcessorModuleInfo.html" title="class in io.micronaut.serde.info">MicronautSerdeProcessorModuleInfo</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/info/MicronautSerdePropertiesModuleInfo.html" class="type-name-link" title="class in io.micronaut.serde.info">MicronautSerdePropertiesModuleInfo</a> - Class in <a href="io/micronaut/serde/info/package-summary.html">io.micronaut.serde.info</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/info/MicronautSerdePropertiesModuleInfo.html#%3Cinit%3E()" class="member-name-link">MicronautSerdePropertiesModuleInfo()</a> - Constructor for class io.micronaut.serde.info.<a href="io/micronaut/serde/info/MicronautSerdePropertiesModuleInfo.html" title="class in io.micronaut.serde.info">MicronautSerdePropertiesModuleInfo</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/info/MicronautSerdeSupportModuleInfo.html" class="type-name-link" title="class in io.micronaut.serde.info">MicronautSerdeSupportModuleInfo</a> - Class in <a href="io/micronaut/serde/info/package-summary.html">io.micronaut.serde.info</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/info/MicronautSerdeSupportModuleInfo.html#%3Cinit%3E()" class="member-name-link">MicronautSerdeSupportModuleInfo()</a> - Constructor for class io.micronaut.serde.info.<a href="io/micronaut/serde/info/MicronautSerdeSupportModuleInfo.html" title="class in io.micronaut.serde.info">MicronautSerdeSupportModuleInfo</a></dt>
@@ -4734,6 +4776,10 @@ by the <a href="io/micronaut/serde/Keys.html" title="interface in io.micronaut.s
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.SerUnwrapped.html#NAME" class="member-name-link">NAME</a> - Static variable in annotation interface io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.SerUnwrapped.html" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig.SerUnwrapped</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/properties/PropertiesMapper.html#NAME" class="member-name-link">NAME</a> - Static variable in class io.micronaut.serde.properties.<a href="io/micronaut/serde/properties/PropertiesMapper.html" title="class in io.micronaut.serde.properties">PropertiesMapper</a></dt>
+<dd>
+<div class="block">The qualifier name of the <code>.properties</code> <a href="io/micronaut/serde/ObjectMapper.html" title="interface in io.micronaut.serde"><code>ObjectMapper</code></a> bean.</div>
+</dd>
 <dt><a href="io/micronaut/serde/annotation/Serdeable.Deserializable.html#naming()" class="member-name-link">naming()</a> - Element in annotation interface io.micronaut.serde.annotation.<a href="io/micronaut/serde/annotation/Serdeable.Deserializable.html" title="annotation interface in io.micronaut.serde.annotation">Serdeable.Deserializable</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/annotation/Serdeable.html#naming()" class="member-name-link">naming()</a> - Element in annotation interface io.micronaut.serde.annotation.<a href="io/micronaut/serde/annotation/Serdeable.html" title="annotation interface in io.micronaut.serde.annotation">Serdeable</a></dt>
@@ -5060,6 +5106,10 @@ through <a href="io/micronaut/serde/util/NullableDeserializer.html#deserializeNu
 <dd>
 <div class="block">Specifies a package name where types can be found.</div>
 </dd>
+<dt><a href="io/micronaut/serde/properties/util/PropertiesTreeAdapter.html#parse(java.io.InputStream)" class="member-name-link">parse(InputStream)</a> - Method in class io.micronaut.serde.properties.util.<a href="io/micronaut/serde/properties/util/PropertiesTreeAdapter.html" title="class in io.micronaut.serde.properties.util">PropertiesTreeAdapter</a></dt>
+<dd>
+<div class="block">Parses a Java <code>.properties</code> stream into a JSON tree.</div>
+</dd>
 <dt><a href="io/micronaut/serde/FormatConfiguration.html#parseLocale()" class="member-name-link">parseLocale()</a> - Method in record class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/util/BufferingJsonNodeProcessor.html#parseOne(byte%5B%5D)" class="member-name-link">parseOne(byte[])</a> - Method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/BufferingJsonNodeProcessor.html" title="class in io.micronaut.serde.support.util">BufferingJsonNodeProcessor</a></dt>
@@ -5159,6 +5209,30 @@ through <a href="io/micronaut/serde/util/NullableDeserializer.html#deserializeNu
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.SerCreatorMode.html#PROPERTIES" class="member-name-link">PROPERTIES</a> - Enum constant in enum class io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.SerCreatorMode.html" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerCreatorMode</a></dt>
 <dd>
 <div class="block">From properties.</div>
+</dd>
+<dt><a href="io/micronaut/serde/properties/PropertiesMapper.html" class="type-name-link" title="class in io.micronaut.serde.properties">PropertiesMapper</a> - Class in <a href="io/micronaut/serde/properties/package-summary.html">io.micronaut.serde.properties</a></dt>
+<dd>
+<div class="block">A Java <code>.properties</code>-backed <a href="io/micronaut/serde/ObjectMapper.html" title="interface in io.micronaut.serde"><code>ObjectMapper</code></a>.</div>
+</dd>
+<dt><a href="io/micronaut/serde/properties/PropertiesMapper.html#%3Cinit%3E(io.micronaut.serde.SerdeRegistry,io.micronaut.serde.config.SerdeConfiguration,io.micronaut.serde.properties.util.PropertiesTreeAdapter,io.micronaut.serde.properties.util.PropertiesWriter,io.micronaut.serde.json.stream.JsonStreamMapper)" class="member-name-link">PropertiesMapper(SerdeRegistry, SerdeConfiguration, PropertiesTreeAdapter, PropertiesWriter, JsonStreamMapper)</a> - Constructor for class io.micronaut.serde.properties.<a href="io/micronaut/serde/properties/PropertiesMapper.html" title="class in io.micronaut.serde.properties">PropertiesMapper</a></dt>
+<dd>
+<div class="block">Creates a Java <code>.properties</code>-backed <a href="io/micronaut/serde/ObjectMapper.html" title="interface in io.micronaut.serde"><code>ObjectMapper</code></a>.</div>
+</dd>
+<dt><a href="io/micronaut/serde/properties/util/PropertiesTreeAdapter.html" class="type-name-link" title="class in io.micronaut.serde.properties.util">PropertiesTreeAdapter</a> - Class in <a href="io/micronaut/serde/properties/util/package-summary.html">io.micronaut.serde.properties.util</a></dt>
+<dd>
+<div class="block">Builds an intermediate JSON tree from flat Java <code>.properties</code> keys.</div>
+</dd>
+<dt><a href="io/micronaut/serde/properties/util/PropertiesTreeAdapter.html#%3Cinit%3E(io.micronaut.serde.json.stream.JsonStreamMapper,io.micronaut.serde.config.DeserializationConfiguration,io.micronaut.serde.properties.SerdePropertiesConfiguration)" class="member-name-link">PropertiesTreeAdapter(JsonStreamMapper, DeserializationConfiguration, SerdePropertiesConfiguration)</a> - Constructor for class io.micronaut.serde.properties.util.<a href="io/micronaut/serde/properties/util/PropertiesTreeAdapter.html" title="class in io.micronaut.serde.properties.util">PropertiesTreeAdapter</a></dt>
+<dd>
+<div class="block">Creates a properties tree adapter.</div>
+</dd>
+<dt><a href="io/micronaut/serde/properties/util/PropertiesWriter.html" class="type-name-link" title="class in io.micronaut.serde.properties.util">PropertiesWriter</a> - Class in <a href="io/micronaut/serde/properties/util/package-summary.html">io.micronaut.serde.properties.util</a></dt>
+<dd>
+<div class="block">Writes a JSON tree as a Java <code>.properties</code> document.</div>
+</dd>
+<dt><a href="io/micronaut/serde/properties/util/PropertiesWriter.html#%3Cinit%3E(io.micronaut.serde.properties.SerdePropertiesConfiguration)" class="member-name-link">PropertiesWriter(SerdePropertiesConfiguration)</a> - Constructor for class io.micronaut.serde.properties.util.<a href="io/micronaut/serde/properties/util/PropertiesWriter.html" title="class in io.micronaut.serde.properties.util">PropertiesWriter</a></dt>
+<dd>
+<div class="block">Creates a properties writer.</div>
 </dd>
 <dt><a href="io/micronaut/serde/exceptions/path/PropertyReferencePath.html#property()" class="member-name-link">property()</a> - Method in interface io.micronaut.serde.exceptions.path.<a href="io/micronaut/serde/exceptions/path/PropertyReferencePath.html" title="interface in io.micronaut.serde.exceptions.path">PropertyReferencePath</a></dt>
 <dd>&nbsp;</dd>
@@ -5298,6 +5372,10 @@ through <a href="io/micronaut/serde/util/NullableDeserializer.html#deserializeNu
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html#readValue(byte%5B%5D,io.micronaut.core.type.Argument)" class="member-name-link">readValue(byte[], Argument)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonTextObjectMapper</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/properties/PropertiesMapper.html#readValue(byte%5B%5D,io.micronaut.core.type.Argument)" class="member-name-link">readValue(byte[], Argument)</a> - Method in class io.micronaut.serde.properties.<a href="io/micronaut/serde/properties/PropertiesMapper.html" title="class in io.micronaut.serde.properties">PropertiesMapper</a></dt>
+<dd>
+<div class="block">Parse and map <code>.properties</code> data from the given byte array.</div>
+</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonJsonMapper.html#readValue(io.micronaut.core.io.buffer.ByteBuffer,io.micronaut.core.type.Argument)" class="member-name-link">readValue(ByteBuffer, Argument)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonJsonMapper.html" title="class in io.micronaut.serde.jackson">JacksonJsonMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/bson/AbstractBsonMapper.html#readValue(java.io.InputStream,io.micronaut.core.type.Argument)" class="member-name-link">readValue(InputStream, Argument)</a> - Method in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/AbstractBsonMapper.html" title="class in io.micronaut.serde.bson">AbstractBsonMapper</a></dt>
@@ -5310,6 +5388,10 @@ through <a href="io/micronaut/serde/util/NullableDeserializer.html#deserializeNu
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html#readValue(java.io.InputStream,io.micronaut.core.type.Argument)" class="member-name-link">readValue(InputStream, Argument)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonTextObjectMapper</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/properties/PropertiesMapper.html#readValue(java.io.InputStream,io.micronaut.core.type.Argument)" class="member-name-link">readValue(InputStream, Argument)</a> - Method in class io.micronaut.serde.properties.<a href="io/micronaut/serde/properties/PropertiesMapper.html" title="class in io.micronaut.serde.properties">PropertiesMapper</a></dt>
+<dd>
+<div class="block">Parse and map <code>.properties</code> data from the given stream.</div>
+</dd>
 <dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html#readValue(oracle.sql.json.OracleJsonParser,io.micronaut.core.type.Argument)" class="member-name-link">readValue(OracleJsonParser, Argument)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonBinaryObjectMapper</a></dt>
 <dd>
 <div class="block">Read the value using the oracle parser.</div>
@@ -5328,6 +5410,10 @@ through <a href="io/micronaut/serde/util/NullableDeserializer.html#deserializeNu
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html#readValueFromTree(io.micronaut.json.tree.JsonNode,io.micronaut.core.type.Argument)" class="member-name-link">readValueFromTree(JsonNode, Argument)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonTextObjectMapper</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/properties/PropertiesMapper.html#readValueFromTree(io.micronaut.json.tree.JsonNode,io.micronaut.core.type.Argument)" class="member-name-link">readValueFromTree(JsonNode, Argument)</a> - Method in class io.micronaut.serde.properties.<a href="io/micronaut/serde/properties/PropertiesMapper.html" title="class in io.micronaut.serde.properties">PropertiesMapper</a></dt>
+<dd>
+<div class="block">Transform a <code>JsonNode</code> to a value of the given type.</div>
+</dd>
 <dt><a href="io/micronaut/serde/support/util/SerdeArgumentConf.html#reconstructGenericWithParentMetadata(io.micronaut.core.type.Argument,io.micronaut.core.type.Argument)" class="member-name-link">reconstructGenericWithParentMetadata(Argument, Argument)</a> - Static method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/SerdeArgumentConf.html" title="class in io.micronaut.serde.support.util">SerdeArgumentConf</a></dt>
 <dd>
 <div class="block">Reconstruct the generic type with parent metadata if necessary.</div>
@@ -5619,6 +5705,10 @@ models can be bind to.</div>
 <dd>
 <div class="block">Meta annotation for a mapped subtype.</div>
 </dd>
+<dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.SerTypeId.html" class="type-name-link" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig.SerTypeId</a> - Annotation Interface in <a href="io/micronaut/serde/config/annotation/package-summary.html">io.micronaut.serde.config.annotation</a></dt>
+<dd>
+<div class="block">Meta-annotation used to model the property that provides the type id during serialization.</div>
+</dd>
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.SerUnwrapped.html" class="type-name-link" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig.SerUnwrapped</a> - Annotation Interface in <a href="io/micronaut/serde/config/annotation/package-summary.html">io.micronaut.serde.config.annotation</a></dt>
 <dd>
 <div class="block">Internal metadata type for wrapped settings.</div>
@@ -5715,6 +5805,16 @@ for the serialization project.</div>
 </dd>
 <dt><a href="io/micronaut/serde/SerdeJsonMapperSupplier.html#%3Cinit%3E()" class="member-name-link">SerdeJsonMapperSupplier()</a> - Constructor for class io.micronaut.serde.<a href="io/micronaut/serde/SerdeJsonMapperSupplier.html" title="class in io.micronaut.serde">SerdeJsonMapperSupplier</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/properties/SerdePropertiesConfiguration.html" class="type-name-link" title="class in io.micronaut.serde.properties">SerdePropertiesConfiguration</a> - Class in <a href="io/micronaut/serde/properties/package-summary.html">io.micronaut.serde.properties</a></dt>
+<dd>
+<div class="block">Java <code>.properties</code>-specific configuration.</div>
+</dd>
+<dt><a href="io/micronaut/serde/properties/SerdePropertiesConfiguration.html#%3Cinit%3E()" class="member-name-link">SerdePropertiesConfiguration()</a> - Constructor for class io.micronaut.serde.properties.<a href="io/micronaut/serde/properties/SerdePropertiesConfiguration.html" title="class in io.micronaut.serde.properties">SerdePropertiesConfiguration</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/properties/SerdePropertiesConfiguration.ArrayIndexStyle.html" class="type-name-link" title="enum class in io.micronaut.serde.properties">SerdePropertiesConfiguration.ArrayIndexStyle</a> - Enum Class in <a href="io/micronaut/serde/properties/package-summary.html">io.micronaut.serde.properties</a></dt>
+<dd>
+<div class="block">Array index path style.</div>
+</dd>
 <dt><a href="io/micronaut/serde/support/SerdeRegistrar.html" class="type-name-link" title="interface in io.micronaut.serde.support">SerdeRegistrar&lt;T&gt;</a> - Interface in <a href="io/micronaut/serde/support/package-summary.html">io.micronaut.serde.support</a></dt>
 <dd>
 <div class="block">The registrar of <a href="io/micronaut/serde/Serde.html" title="interface in io.micronaut.serde"><code>Serde</code></a>.</div>
@@ -5845,6 +5945,10 @@ for the serialization project.</div>
 <dt><a href="io/micronaut/serde/support/SerializerRegistrar.html" class="type-name-link" title="interface in io.micronaut.serde.support">SerializerRegistrar&lt;T&gt;</a> - Interface in <a href="io/micronaut/serde/support/package-summary.html">io.micronaut.serde.support</a></dt>
 <dd>
 <div class="block">The registrar of <a href="io/micronaut/serde/Serializer.html" title="interface in io.micronaut.serde"><code>Serializer</code></a>.</div>
+</dd>
+<dt><a href="io/micronaut/serde/properties/SerdePropertiesConfiguration.html#setArrayIndexStyle(io.micronaut.serde.properties.SerdePropertiesConfiguration.ArrayIndexStyle)" class="member-name-link">setArrayIndexStyle(SerdePropertiesConfiguration.ArrayIndexStyle)</a> - Method in class io.micronaut.serde.properties.<a href="io/micronaut/serde/properties/SerdePropertiesConfiguration.html" title="class in io.micronaut.serde.properties">SerdePropertiesConfiguration</a></dt>
+<dd>
+<div class="block">Sets the array index style.</div>
 </dd>
 <dt><a href="io/micronaut/serde/ConstructorArgs.html#setAuthor(java.lang.String)" class="member-name-link">setAuthor(String)</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/ConstructorArgs.html" title="class in io.micronaut.serde">ConstructorArgs</a></dt>
 <dd>&nbsp;</dd>
@@ -6682,6 +6786,10 @@ for the serialization project.</div>
 <dd>
 <div class="block">Returns the enum constant of this class with the specified name.</div>
 </dd>
+<dt><a href="io/micronaut/serde/properties/SerdePropertiesConfiguration.ArrayIndexStyle.html#valueOf(java.lang.String)" class="member-name-link">valueOf(String)</a> - Static method in enum class io.micronaut.serde.properties.<a href="io/micronaut/serde/properties/SerdePropertiesConfiguration.ArrayIndexStyle.html" title="enum class in io.micronaut.serde.properties">SerdePropertiesConfiguration.ArrayIndexStyle</a></dt>
+<dd>
+<div class="block">Returns the enum constant of this class with the specified name.</div>
+</dd>
 <dt><a href="io/micronaut/serde/SerdeIntrospections.RuntimeIntrospectionKind.html#valueOf(java.lang.String)" class="member-name-link">valueOf(String)</a> - Static method in enum class io.micronaut.serde.<a href="io/micronaut/serde/SerdeIntrospections.RuntimeIntrospectionKind.html" title="enum class in io.micronaut.serde">SerdeIntrospections.RuntimeIntrospectionKind</a></dt>
 <dd>
 <div class="block">Returns the enum constant of this class with the specified name.</div>
@@ -6769,6 +6877,11 @@ the order they are declared.</div>
 the order they are declared.</div>
 </dd>
 <dt><a href="io/micronaut/serde/processor/sourcegen/SimpleSerdeShapeDecision.ShapeKind.html#values()" class="member-name-link">values()</a> - Static method in enum class io.micronaut.serde.processor.sourcegen.<a href="io/micronaut/serde/processor/sourcegen/SimpleSerdeShapeDecision.ShapeKind.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.ShapeKind</a></dt>
+<dd>
+<div class="block">Returns an array containing the constants of this enum class, in
+the order they are declared.</div>
+</dd>
+<dt><a href="io/micronaut/serde/properties/SerdePropertiesConfiguration.ArrayIndexStyle.html#values()" class="member-name-link">values()</a> - Static method in enum class io.micronaut.serde.properties.<a href="io/micronaut/serde/properties/SerdePropertiesConfiguration.ArrayIndexStyle.html" title="enum class in io.micronaut.serde.properties">SerdePropertiesConfiguration.ArrayIndexStyle</a></dt>
 <dd>
 <div class="block">Returns an array containing the constants of this enum class, in
 the order they are declared.</div>
@@ -6894,6 +7007,11 @@ the order they are declared.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jsonb/MicronautJsonbProvider.NonClosingOutputStream.html#write(int)" class="member-name-link">write(int)</a> - Method in class io.micronaut.serde.jsonb.<a href="io/micronaut/serde/jsonb/MicronautJsonbProvider.NonClosingOutputStream.html" title="class in io.micronaut.serde.jsonb">MicronautJsonbProvider.NonClosingOutputStream</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/properties/util/PropertiesWriter.html#write(java.io.OutputStream,io.micronaut.json.tree.JsonNode)" class="member-name-link">write(OutputStream, JsonNode)</a> - Method in class io.micronaut.serde.properties.util.<a href="io/micronaut/serde/properties/util/PropertiesWriter.html" title="class in io.micronaut.serde.properties.util">PropertiesWriter</a></dt>
+<dd>
+<div class="block">Writes the given JSON tree to the output stream as a flattened
+<code>.properties</code> document.</div>
+</dd>
 <dt><a href="io/micronaut/serde/config/SerializationConfiguration.Feature.html#WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS" class="member-name-link">WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/SerializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">SerializationConfiguration.Feature</a></dt>
 <dd>
 <div class="block">Write numeric date/time timestamps using nanosecond precision when timestamps are enabled.</div>
@@ -6956,6 +7074,10 @@ the order they are declared.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html#writeValue(java.io.OutputStream,io.micronaut.core.type.Argument,T)" class="member-name-link">writeValue(OutputStream, Argument, T)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonTextObjectMapper</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/properties/PropertiesMapper.html#writeValue(java.io.OutputStream,io.micronaut.core.type.Argument,T)" class="member-name-link">writeValue(OutputStream, Argument, T)</a> - Method in class io.micronaut.serde.properties.<a href="io/micronaut/serde/properties/PropertiesMapper.html" title="class in io.micronaut.serde.properties">PropertiesMapper</a></dt>
+<dd>
+<div class="block">Write an object as <code>.properties</code> data.</div>
+</dd>
 <dt><a href="io/micronaut/serde/bson/AbstractBsonMapper.html#writeValue(java.io.OutputStream,java.lang.Object)" class="member-name-link">writeValue(OutputStream, Object)</a> - Method in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/AbstractBsonMapper.html" title="class in io.micronaut.serde.bson">AbstractBsonMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonJsonMapper.html#writeValue(java.io.OutputStream,java.lang.Object)" class="member-name-link">writeValue(OutputStream, Object)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonJsonMapper.html" title="class in io.micronaut.serde.jackson">JacksonJsonMapper</a></dt>
@@ -6966,6 +7088,10 @@ the order they are declared.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html#writeValue(java.io.OutputStream,java.lang.Object)" class="member-name-link">writeValue(OutputStream, Object)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonTextObjectMapper</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/properties/PropertiesMapper.html#writeValue(java.io.OutputStream,java.lang.Object)" class="member-name-link">writeValue(OutputStream, Object)</a> - Method in class io.micronaut.serde.properties.<a href="io/micronaut/serde/properties/PropertiesMapper.html" title="class in io.micronaut.serde.properties">PropertiesMapper</a></dt>
+<dd>
+<div class="block">Write an object as <code>.properties</code> data.</div>
+</dd>
 <dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html#writeValue(oracle.sql.json.OracleJsonGenerator,T,io.micronaut.core.type.Argument)" class="member-name-link">writeValue(OracleJsonGenerator, T, Argument)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonBinaryObjectMapper</a></dt>
 <dd>
 <div class="block">Writes the value to the json generator.</div>
@@ -6984,6 +7110,10 @@ the order they are declared.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html#writeValueAsBytes(io.micronaut.core.type.Argument,T)" class="member-name-link">writeValueAsBytes(Argument, T)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonTextObjectMapper</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/properties/PropertiesMapper.html#writeValueAsBytes(io.micronaut.core.type.Argument,T)" class="member-name-link">writeValueAsBytes(Argument, T)</a> - Method in class io.micronaut.serde.properties.<a href="io/micronaut/serde/properties/PropertiesMapper.html" title="class in io.micronaut.serde.properties">PropertiesMapper</a></dt>
+<dd>
+<div class="block">Write an object as <code>.properties</code> data.</div>
+</dd>
 <dt><a href="io/micronaut/serde/bson/AbstractBsonMapper.html#writeValueAsBytes(java.lang.Object)" class="member-name-link">writeValueAsBytes(Object)</a> - Method in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/AbstractBsonMapper.html" title="class in io.micronaut.serde.bson">AbstractBsonMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonJsonMapper.html#writeValueAsBytes(java.lang.Object)" class="member-name-link">writeValueAsBytes(Object)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonJsonMapper.html" title="class in io.micronaut.serde.jackson">JacksonJsonMapper</a></dt>
@@ -6994,6 +7124,10 @@ the order they are declared.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html#writeValueAsBytes(java.lang.Object)" class="member-name-link">writeValueAsBytes(Object)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonTextObjectMapper</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/properties/PropertiesMapper.html#writeValueAsBytes(java.lang.Object)" class="member-name-link">writeValueAsBytes(Object)</a> - Method in class io.micronaut.serde.properties.<a href="io/micronaut/serde/properties/PropertiesMapper.html" title="class in io.micronaut.serde.properties">PropertiesMapper</a></dt>
+<dd>
+<div class="block">Write an object as <code>.properties</code> data.</div>
+</dd>
 <dt><a href="io/micronaut/serde/bson/AbstractBsonMapper.html#writeValueToTree(io.micronaut.core.type.Argument,T)" class="member-name-link">writeValueToTree(Argument, T)</a> - Method in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/AbstractBsonMapper.html" title="class in io.micronaut.serde.bson">AbstractBsonMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonJsonMapper.html#writeValueToTree(io.micronaut.core.type.Argument,T)" class="member-name-link">writeValueToTree(Argument, T)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonJsonMapper.html" title="class in io.micronaut.serde.jackson">JacksonJsonMapper</a></dt>
@@ -7004,6 +7138,10 @@ the order they are declared.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html#writeValueToTree(io.micronaut.core.type.Argument,T)" class="member-name-link">writeValueToTree(Argument, T)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonTextObjectMapper</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/properties/PropertiesMapper.html#writeValueToTree(io.micronaut.core.type.Argument,T)" class="member-name-link">writeValueToTree(Argument, T)</a> - Method in class io.micronaut.serde.properties.<a href="io/micronaut/serde/properties/PropertiesMapper.html" title="class in io.micronaut.serde.properties">PropertiesMapper</a></dt>
+<dd>
+<div class="block">Transform an object value to a JSON tree.</div>
+</dd>
 <dt><a href="io/micronaut/serde/bson/AbstractBsonMapper.html#writeValueToTree(java.lang.Object)" class="member-name-link">writeValueToTree(Object)</a> - Method in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/AbstractBsonMapper.html" title="class in io.micronaut.serde.bson">AbstractBsonMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonJsonMapper.html#writeValueToTree(java.lang.Object)" class="member-name-link">writeValueToTree(Object)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonJsonMapper.html" title="class in io.micronaut.serde.jackson">JacksonJsonMapper</a></dt>
@@ -7014,6 +7152,10 @@ the order they are declared.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html#writeValueToTree(java.lang.Object)" class="member-name-link">writeValueToTree(Object)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonTextObjectMapper</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/properties/PropertiesMapper.html#writeValueToTree(java.lang.Object)" class="member-name-link">writeValueToTree(Object)</a> - Method in class io.micronaut.serde.properties.<a href="io/micronaut/serde/properties/PropertiesMapper.html" title="class in io.micronaut.serde.properties">PropertiesMapper</a></dt>
+<dd>
+<div class="block">Transform an object value to a JSON tree.</div>
+</dd>
 </dl>
 <h2 class="title" id="I:Y">Y</h2>
 <dl class="index">

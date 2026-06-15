@@ -33,6 +33,8 @@ io.micronaut.serde.processor.sourcegen
 io.micronaut.serde.processor.sourcegen.beans
 io.micronaut.serde.processor.sourcegen.enums
 io.micronaut.serde.processor.sourcegen.records
+io.micronaut.serde.properties
+io.micronaut.serde.properties.util
 io.micronaut.serde.reference
 io.micronaut.serde.support
 io.micronaut.serde.support.bind
