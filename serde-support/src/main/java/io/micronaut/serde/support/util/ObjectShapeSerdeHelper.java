@@ -16,10 +16,13 @@
 package io.micronaut.serde.support.util;
 
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.UpdatingDeserializer;
 import io.micronaut.serde.exceptions.SerdeException;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Common helpers for POJO-like shape handling.
@@ -61,5 +64,27 @@ public final class ObjectShapeSerdeHelper {
                                                          Argument<? super T> type) throws SerdeException {
         Deserializer<T> objectDeserializer = (Deserializer<T>) context.findDeserializer((Argument) Argument.OBJECT_ARGUMENT);
         return objectDeserializer.createSpecific(context, type);
+    }
+
+    /**
+     * Select the generic object deserializer only when it supports updating this type.
+     *
+     * <p>This is used as a merge fallback for generated deserializers that are replace-only. If the type is not
+     * object-shaped, the generic object deserializer may not be able to create a specific deserializer. In that case
+     * there is no updating fallback and callers should keep replacement semantics.</p>
+     *
+     * @param context The decoder context
+     * @param type The type
+     * @param <T> The deserialized type
+     * @return The updating object deserializer, or {@code null} if the type cannot be updated through the object path
+     */
+    public static <T> @Nullable UpdatingDeserializer<T> updatingObjectDeserializer(Deserializer.DecoderContext context,
+                                                                                   Argument<? super T> type) throws SerdeException {
+        try {
+            Deserializer<T> deserializer = objectDeserializer(context, type);
+            return deserializer instanceof UpdatingDeserializer<?> ? (UpdatingDeserializer<T>) deserializer : null;
+        } catch (IntrospectionException e) {
+            return null;
+        }
     }
 }

@@ -23,6 +23,7 @@ io.micronaut.serde.processor.jackson.JsonEnumDefaultValueMapper
 io.micronaut.serde.processor.jackson.JsonKeyMapper
 io.micronaut.serde.processor.jackson.JsonValueMapper
 io.micronaut.serde.processor.jackson.JsonTypeInfoMapper
+io.micronaut.serde.processor.jackson.JsonMergeMapper
 io.micronaut.serde.processor.jackson.JsonSetterMapper
 io.micronaut.serde.processor.jackson.JsonAnyGetterMapper
 io.micronaut.serde.processor.jackson.JsonTypeNameMapper

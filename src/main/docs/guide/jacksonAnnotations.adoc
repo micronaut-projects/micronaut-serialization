@@ -92,8 +92,8 @@ NOTE: If an unsupported annotation or member is used, a compilation error will r
 |
 
 |link:{jacksonAnnotationJavadoc}/JsonMerge.html[@JsonMerge]
-|❌
-|
+|✅
+|Supported for explicit property-level merge during `ObjectMapper.updateValue` and `updateValueFromTree`; no public `readerForUpdating` API is provided.
 
 |link:{jacksonAnnotationJavadoc}/JsonProperty.html[@JsonProperty]
 |✅
@@ -147,6 +147,30 @@ NOTE: If an unsupported annotation or member is used, a compilation error will r
 |✅
 |
 |===
+
+=== `@JsonMerge`
+
+The link:{jacksonAnnotationJavadoc}/JsonMerge.html[@JsonMerge] annotation enables merge behavior when updating an existing mutable object with api:serde.ObjectMapper[].
+
+Without `@JsonMerge`, an incoming nested object replaces the current property value. With `@JsonMerge`, Micronaut Serialization updates the existing nested value when possible: JSON fields present in the update replace matching fields, and fields absent from the update keep their current values.
+
+For example, this release configuration uses `@JsonMerge` on a nested deployment window and a labels map:
+
+snippet::example.ReleaseConfiguration[project-base="doc-examples/example", source="main"]
+
+The update JSON can then include only the values that should change:
+
+snippet::example.JsonMergeExampleTest[project-base="doc-examples/example"]
+
+In the nested object case, the update changes the deployment day but keeps the existing time zone.
+If the `deploymentWindow` property is not annotated with `@JsonMerge`, the incoming object replaces the current one and the absent time zone value is lost.
+In the map case, incoming labels update matching keys and add new keys while keys absent from the update remain in the map.
+
+`@JsonMerge` is explicit and property-scoped.
+It is supported for mutable readable bean properties, mutable maps, mutable collections, and array properties.
+Immutable, creator-only, builder-only, and record-like values cannot be updated in place.
+Explicit JSON `null` values follow the normal null handling rules instead of attempting a merge.
+Micronaut Serialization does not provide a public Jackson-style `readerForUpdating` API; use `ObjectMapper.updateValue(...)` or `updateValueFromTree(...)` to update existing values.
 
 In addition, limited support for 3 `jackson-databind` annotations is included to allow portability for cases where both support for `jackson-databind` and Micronaut Serialization is required:
 

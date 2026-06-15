@@ -21,6 +21,7 @@ import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.FormattedDeserializer;
 import io.micronaut.serde.FormatConfiguration;
+import io.micronaut.serde.UpdatingDeserializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
 import io.micronaut.serde.support.DeserializerRegistrar;
@@ -36,25 +37,33 @@ import java.util.ArrayList;
  * @author Denis Stepanov
  */
 @Internal
-final class StringListDeserializer implements FormattedDeserializer<ArrayList<String>>, DeserializerRegistrar<ArrayList<String>> {
+final class StringListDeserializer implements FormattedDeserializer<ArrayList<String>>, UpdatingDeserializer<ArrayList<String>>, DeserializerRegistrar<ArrayList<String>> {
     private static final int INITIAL_CAPACITY = 16;
 
     @Override
     public ArrayList<String> deserialize(Decoder decoder, DecoderContext context, Argument<? super ArrayList<String>> type) throws IOException {
-        final Decoder arrayDecoder = decoder.decodeArray();
         ArrayList<String> collection = new ArrayList<>(INITIAL_CAPACITY);
+        deserializeInto(decoder, context, type, collection);
+        return collection;
+    }
+
+    @Override
+    public void deserializeInto(Decoder decoder,
+                                DecoderContext context,
+                                Argument<? super ArrayList<String>> type,
+                                ArrayList<String> value) throws IOException {
+        final Decoder arrayDecoder = decoder.decodeArray();
         int index = 0;
         try {
             while (arrayDecoder.hasNextArrayValue()) {
-                collection.add(arrayDecoder.decodeStringNullable());
+                value.add(arrayDecoder.decodeStringNullable());
                 index++;
             }
         } catch (SerdeException e) {
-            e.getPath().add(ReferencePath.ofCollection(collection.getClass(), type, index));
+            e.getPath().add(ReferencePath.ofCollection(value.getClass(), type, index));
             throw e;
         }
         arrayDecoder.finishStructure();
-        return collection;
     }
 
     @Override

@@ -103,7 +103,7 @@ final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDe
             throw new SerdeException("Unable to deserialize type [" + beanType + "]: " + e.getMessage(), e);
         }
 
-        deserializeInto(decoder, decoderContext, beanType, obj);
+        deserializeInto(decoder, decoderContext, beanType, obj, true);
 
         return obj;
     }
@@ -111,20 +111,32 @@ final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDe
     @Override
     public void deserializeInto(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> beanType, Object beanInstance)
             throws IOException {
+        deserializeInto(decoder, decoderContext, beanType, beanInstance, false);
+    }
+
+    private void deserializeInto(Decoder decoder,
+                                 DecoderContext decoderContext,
+                                 Argument<? super Object> beanType,
+                                 Object beanInstance,
+                                 boolean applyDefaults) throws IOException {
         KeysAwareDecoder objectDecoder = KeysAwareDecoder.of(decoder.decodeObject(beanType));
         DeserBean.DerProperty<Object, Object>[] localProperties = propertiesArray;
         long consumedProperties = ~propertiesMask;
         while (true) {
             final int keyIndex = objectDecoder.decodeKey(propertyKeys);
             if (keyIndex == KeysAwareDecoder.MATCH_END_OBJECT) {
-                setDefaultPropertyValues(decoderContext, beanInstance, localProperties, consumedProperties);
+                if (applyDefaults) {
+                    setDefaultPropertyValues(decoderContext, beanInstance, localProperties, consumedProperties);
+                }
                 objectDecoder.finishStructure();
                 return;
             }
             if (keyIndex == KeysAwareDecoder.MATCH_UNKNOWN_NAME) {
                 String propertyName = objectDecoder.decodeKey();
                 if (propertyName == null) {
-                    setDefaultPropertyValues(decoderContext, beanInstance, localProperties, consumedProperties);
+                    if (applyDefaults) {
+                        setDefaultPropertyValues(decoderContext, beanInstance, localProperties, consumedProperties);
+                    }
                     objectDecoder.finishStructure();
                     return;
                 }
@@ -171,7 +183,7 @@ final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDe
         return serdeException;
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({"unchecked"})
     private static DeserBean.DerProperty<Object, Object>[] emptyProperties() {
         return new DeserBean.DerProperty[0];
     }

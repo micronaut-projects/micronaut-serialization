@@ -19,6 +19,7 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.UpdatingDeserializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
 
@@ -33,7 +34,7 @@ import java.util.Collection;
  * @author Denis Stepanov
  */
 @Internal
-abstract sealed class CollectionDeserializer<E, C extends Collection<E>> implements Deserializer<C>
+abstract sealed class CollectionDeserializer<E, C extends Collection<E>> implements Deserializer<C>, UpdatingDeserializer<C>
     permits ArrayDequeDeserializer, ArrayListDeserializer, HashSetDeserializer, LinkedHashSetDeserializer, LinkedListDeserializer, TreeSetDeserializer {
 
     private final Deserializer<? extends E> valueDeser;
@@ -65,6 +66,14 @@ abstract sealed class CollectionDeserializer<E, C extends Collection<E>> impleme
             e.getPath().add(ReferencePath.ofCollection(collection.getClass(), collectionArgument, index));
             throw e;
         }
+    }
+
+    @Override
+    public void deserializeInto(Decoder decoder,
+                                DecoderContext decoderContext,
+                                Argument<? super C> collectionArgument,
+                                C value) throws IOException {
+        doDeserialize(decoder, decoderContext, value, collectionArgument);
     }
 
 }

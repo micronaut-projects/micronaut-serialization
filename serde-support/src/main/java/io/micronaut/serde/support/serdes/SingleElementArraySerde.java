@@ -23,6 +23,7 @@ import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.UpdatingDeserializer;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
@@ -68,9 +69,13 @@ public final class SingleElementArraySerde {
      * @param <T> The deserialized type
      * @return The deserializer, wrapped when needed
      */
+    @SuppressWarnings("unchecked")
     public static <T> Deserializer<T> acceptSingleValueAsArray(Deserializer<T> deserializer,
                                                                Deserializer.DecoderContext context) {
         if (context.getFeatures().contains(DeserializationConfiguration.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)) {
+            if (deserializer instanceof UpdatingDeserializer<?> updatingDeserializer) {
+                return new SingleValueAsArrayUpdatingDeserializer<>((UpdatingDeserializer<T>) updatingDeserializer, deserializer, context);
+            }
             return new SingleValueAsArrayDeserializer<>(deserializer, context);
         }
         return deserializer;
@@ -159,6 +164,51 @@ public final class SingleElementArraySerde {
         public @Nullable T getDefaultValue(DecoderContext context,
                                            Argument<? super T> type) {
             return delegate.getDefaultValue(context, type);
+        }
+    }
+
+    private static final class SingleValueAsArrayUpdatingDeserializer<T> implements Deserializer<T>, UpdatingDeserializer<T> {
+        private final UpdatingDeserializer<T> updatingDelegate;
+        private final Deserializer<T> delegate;
+        private final LimitingStream.RemainingLimits remainingLimits;
+
+        private SingleValueAsArrayUpdatingDeserializer(UpdatingDeserializer<T> updatingDelegate,
+                                                       Deserializer<T> delegate,
+                                                       Deserializer.DecoderContext context) {
+            this.updatingDelegate = updatingDelegate;
+            this.delegate = delegate;
+            this.remainingLimits = decoderLimits(context);
+        }
+
+        @Override
+        public T deserialize(Decoder decoder,
+                             DecoderContext context,
+                             Argument<? super T> type) throws IOException {
+            JsonNode node = arrayNode(decoder);
+            return delegate.deserialize(JsonNodeDecoder.create(node, remainingLimits), context, type);
+        }
+
+        @Override
+        public void deserializeInto(Decoder decoder,
+                                    DecoderContext context,
+                                    Argument<? super T> type,
+                                    T value) throws IOException {
+            JsonNode node = arrayNode(decoder);
+            updatingDelegate.deserializeInto(JsonNodeDecoder.create(node, remainingLimits), context, type, value);
+        }
+
+        @Override
+        public @Nullable T getDefaultValue(DecoderContext context,
+                                           Argument<? super T> type) {
+            return delegate.getDefaultValue(context, type);
+        }
+
+        private JsonNode arrayNode(Decoder decoder) throws IOException {
+            JsonNode node = decoder.decodeNode();
+            if (!node.isArray()) {
+                node = JsonNode.createArrayNode(List.of(node));
+            }
+            return node;
         }
     }
 }

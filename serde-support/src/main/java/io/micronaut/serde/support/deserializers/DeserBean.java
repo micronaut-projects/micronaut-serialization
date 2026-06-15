@@ -22,6 +22,7 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.BeanMethod;
 import io.micronaut.core.beans.BeanProperty;
+import io.micronaut.core.beans.BeanReadProperty;
 import io.micronaut.core.beans.BeanWriteProperty;
 import io.micronaut.core.beans.UnsafeBeanWriteProperty;
 import io.micronaut.core.bind.annotation.Bindable;
@@ -37,6 +38,7 @@ import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.FormattedDeserializer;
 import io.micronaut.serde.Keys;
+import io.micronaut.serde.UpdatingDeserializer;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.annotation.SerdeConfig;
@@ -56,6 +58,7 @@ import io.micronaut.serde.util.GeneratedSerdeExceptionUtil;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -563,7 +566,7 @@ final class DeserBean<T> {
                 return false;
             }
             for (DerProperty<T, Object> property : injectProperties.getProperties()) {
-                if (property.unresolvedTypeVariableName != null || property.isAnySetter || property.views != null || property.aliases != null || property.managedRef != null || introspection != property.introspection || property.backRef != null || property.beanProperty == null) {
+                if (property.unresolvedTypeVariableName != null || property.isAnySetter || property.views != null || property.aliases != null || property.managedRef != null || introspection != property.introspection || property.backRef != null || property.beanProperty == null || property.merge) {
                     return false;
                 }
             }
@@ -596,6 +599,17 @@ final class DeserBean<T> {
                 : findDeserializer(propertyContext, property.argument, property.format));
             if (property.format == null && !property.hasFeatureOverrides && property.deserializer instanceof DecoderValueKind.Provider decoderValueKind) {
                 property.decoderValueKind = decoderValueKind.decoderValueKind().code();
+            }
+            if (property.merge
+                && property.beanReadProperty != null
+                && property.format == null
+                && !property.hasFeatureOverrides
+                && !property.argument.getType().isArray()
+                && !(property.deserializer instanceof UpdatingDeserializer)) {
+                UpdatingDeserializer<Object> mergeDeserializer = ObjectShapeSerdeHelper.updatingObjectDeserializer(propertyContext, property.argument);
+                if (mergeDeserializer != null) {
+                    property.mergeDeserializer = unwrapErrorCatching(mergeDeserializer);
+                }
             }
         }
     }
@@ -970,6 +984,8 @@ final class DeserBean<T> {
 
         @Nullable
         public final UnsafeBeanWriteProperty<B, P> beanProperty;
+        @Nullable
+        public final BeanReadProperty<B, P> beanReadProperty;
 
         @Nullable
         public final DeserBean<P> unwrapped;
@@ -987,10 +1003,13 @@ final class DeserBean<T> {
         public final Set<DeserializationConfiguration.Feature> featuresWith;
         public final Set<DeserializationConfiguration.Feature> featuresWithout;
         public final boolean hasFeatureOverrides;
+        public final boolean merge;
 
         // Null when DeserBean not initialized
         @Nullable
         public Deserializer<P> deserializer;
+        @Nullable
+        public Deserializer<P> mergeDeserializer;
         private byte decoderValueKind = DecoderValueKind.NONE_CODE;
 
         DerProperty(ConversionService conversionService,
@@ -1043,6 +1062,7 @@ final class DeserBean<T> {
             this.unresolvedTypeVariableName = unresolvedTypeVariableName;
             AnnotationMetadata annotationMetadata = resolveArgumentMetadata(introspection, argument, argumentMetadata);
             this.argument = annotationMetadata.isEmpty() ? argument : argument.withAnnotationMetadata(annotationMetadata);
+            this.merge = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.MERGE).orElse(false);
             this.failOnNullForPrimitives = failOnNullForPrimitives;
             FormatConfiguration propertyFormat = FormatConfiguration.from(annotationMetadata);
             if (propertyFormat == null) {
@@ -1072,10 +1092,13 @@ final class DeserBean<T> {
 
             if (beanProperty != null) {
                 this.beanProperty = (UnsafeBeanWriteProperty<B, P>) beanProperty;
+                this.beanReadProperty = resolveBeanReadProperty(introspection, property, beanProperty);
             } else if (beanMethod != null) {
                 this.beanProperty = new BeanMethodAsBeanProperty<>(property, beanMethod);
+                this.beanReadProperty = null;
             } else {
                 this.beanProperty = null;
+                this.beanReadProperty = null;
             }
             this.views = SerdeAnnotationUtil.resolveViews(introspection, annotationMetadata);
 
@@ -1103,6 +1126,17 @@ final class DeserBean<T> {
             this.explicitlyRequired = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.REQUIRED)
                 .orElse(false);
             this.explicitlyRequiredForConstructor = explicitlyRequired || deserializationConfiguration.isRequireAllCreatorParameters();
+        }
+
+        @SuppressWarnings("unchecked")
+        @Nullable
+        private static <B, P> BeanReadProperty<B, P> resolveBeanReadProperty(BeanIntrospection<B> introspection,
+                                                                             String property,
+                                                                             BeanWriteProperty<B, P> beanProperty) {
+            if (beanProperty instanceof BeanReadProperty<?, ?> beanReadProperty) {
+                return (BeanReadProperty<B, P>) beanReadProperty;
+            }
+            return (BeanReadProperty<B, P>) introspection.getProperty(property).orElse(null);
         }
 
         @SuppressWarnings("NullAway")
@@ -1174,6 +1208,10 @@ final class DeserBean<T> {
                                                    Decoder objectDecoder,
                                                    Deserializer.DecoderContext decoderContext,
                                                    B beanInstance) throws IOException {
+            if (merge && beanReadProperty != null && decoderValueKind == DecoderValueKind.NONE_CODE) {
+                deserializeAndMergePropertyValue(deserializer, objectDecoder, decoderContext, beanInstance);
+                return;
+            }
             try {
                 P value;
                 if (primitive && !failOnNullForPrimitives) {
@@ -1195,6 +1233,69 @@ final class DeserBean<T> {
             } catch (Exception e) {
                 throw convertException(e, true); // Only convert exceptions from `setUnsafe`
             }
+        }
+
+        @SuppressWarnings({"NullAway"})
+        private void deserializeAndMergePropertyValue(Deserializer<P> deserializer,
+                                                      Decoder objectDecoder,
+                                                      Deserializer.DecoderContext decoderContext,
+                                                      B beanInstance) throws IOException {
+            try {
+                decoderContext = resolveFeatures(decoderContext);
+                if (objectDecoder.decodeNull()) {
+                    setNullPropertyValue(beanInstance);
+                    return;
+                }
+                P currentValue = beanReadProperty.get(beanInstance);
+                if (currentValue == null) {
+                    P value = deserializeValue(deserializer, objectDecoder, decoderContext);
+                    beanProperty.setUnsafe(beanInstance, value);
+                    return;
+                }
+                if (argument.getType().isArray()) {
+                    P incomingValue = deserializeValue(deserializer, objectDecoder, decoderContext);
+                    if (incomingValue == null) {
+                        beanProperty.setUnsafe(beanInstance, null);
+                    } else {
+                        beanProperty.setUnsafe(beanInstance, concatenateArrays(currentValue, incomingValue));
+                    }
+                    return;
+                }
+                Deserializer<P> effectiveDeserializer = mergeDeserializer == null ? deserializer : mergeDeserializer;
+                if (effectiveDeserializer instanceof UpdatingDeserializer<P> updatingDeserializer) {
+                    updatingDeserializer.deserializeInto(objectDecoder, decoderContext, argument, currentValue);
+                } else {
+                    P value = deserializeValue(deserializer, objectDecoder, decoderContext);
+                    beanProperty.setUnsafe(beanInstance, value);
+                }
+            } catch (Exception e) {
+                throw convertException(e, true); // Only convert exceptions from `setUnsafe`
+            }
+        }
+
+        @SuppressWarnings("NullAway")
+        private void setNullPropertyValue(B beanInstance) throws SerdeException {
+            if (explicitlyRequired) {
+                throw new SerdeException("Unable to deserialize type [" + introspection.getBeanType().getName() + "]. Required property [" + argument +
+                    "] is not present or is null in the supplied data");
+            }
+            if (primitive && !failOnNullForPrimitives) {
+                return;
+            }
+            if (rejectsNullValue) {
+                throw GeneratedSerdeExceptionUtil.nullValue(Argument.of(introspection.getBeanType()), argument);
+            }
+            beanProperty.setUnsafe(beanInstance, null);
+        }
+
+        @SuppressWarnings("unchecked")
+        private P concatenateArrays(P currentValue, P incomingValue) {
+            int currentLength = Array.getLength(currentValue);
+            int incomingLength = Array.getLength(incomingValue);
+            Object mergedArray = Array.newInstance(currentValue.getClass().getComponentType(), currentLength + incomingLength);
+            System.arraycopy(currentValue, 0, mergedArray, 0, currentLength);
+            System.arraycopy(incomingValue, 0, mergedArray, currentLength, incomingLength);
+            return (P) mergedArray;
         }
 
         @SuppressWarnings("NullAway")

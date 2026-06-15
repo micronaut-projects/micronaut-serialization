@@ -21,8 +21,10 @@ import io.micronaut.core.convert.exceptions.ConversionErrorException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.UpdatingDeserializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
+import io.micronaut.serde.support.util.ObjectShapeSerdeHelper;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -37,14 +39,16 @@ import java.util.Map;
  * @author Denis Stepanov
  */
 @Internal
-abstract class MapDeserializer<K, V, M extends Map<K, V>> implements Deserializer<M> {
+abstract class MapDeserializer<K, V, M extends Map<K, @Nullable V>> implements Deserializer<M>, UpdatingDeserializer<M> {
 
     @Nullable
     private final Deserializer<? extends V> valueDeser;
     private final Argument<K> keyArgument;
     private final Argument<V> valueArgument;
 
-    MapDeserializer(@Nullable Deserializer<? extends V> valueDeser, Argument<K> keyArgument, Argument<V> valueArgument) {
+    MapDeserializer(@Nullable Deserializer<? extends V> valueDeser,
+                    Argument<K> keyArgument,
+                    Argument<V> valueArgument) {
         this.valueDeser = valueDeser;
         this.keyArgument = keyArgument;
         this.valueArgument = valueArgument;
@@ -53,10 +57,20 @@ abstract class MapDeserializer<K, V, M extends Map<K, V>> implements Deserialize
     protected final void doDeserialize(Decoder decoder,
                                        DecoderContext decoderContext,
                                        Argument<? super M> mapType,
-                                       Map<K, V> map) throws IOException {
+                                       Map<K, @Nullable V> map) throws IOException {
+        doDeserialize(decoder, decoderContext, mapType, map, false);
+    }
+
+    protected final void doDeserialize(Decoder decoder,
+                                       DecoderContext decoderContext,
+                                       Argument<? super M> mapType,
+                                       Map<K, @Nullable V> map,
+                                       boolean merge) throws IOException {
         final Decoder objectDecoder = decoder.decodeObject(mapType);
         String key = objectDecoder.decodeKey();
         ConversionService conversionService = decoderContext.getConversionService();
+        @Nullable UpdatingDeserializer<V> valueUpdatingDeser = null;
+        boolean valueUpdatingDeserResolved = false;
         try {
             while (key != null) {
                 K k;
@@ -71,6 +85,16 @@ abstract class MapDeserializer<K, V, M extends Map<K, V>> implements Deserialize
                 }
                 if (valueDeser == null) {
                     map.put(k, (V) objectDecoder.decodeArbitrary());
+                } else if (merge && map.containsKey(k)) {
+                    if (!valueUpdatingDeserResolved) {
+                        valueUpdatingDeserResolved = true;
+                        valueUpdatingDeser = resolveUpdatingValueDeserializer(decoderContext);
+                    }
+                    if (valueUpdatingDeser == null) {
+                        map.put(k, valueDeser.deserializeNullable(objectDecoder, decoderContext, valueArgument));
+                    } else {
+                        mergeValue(objectDecoder, decoderContext, map, k, valueDeser, valueUpdatingDeser);
+                    }
                 } else {
                     map.put(k, valueDeser.deserializeNullable(objectDecoder, decoderContext, valueArgument));
                 }
@@ -81,6 +105,43 @@ abstract class MapDeserializer<K, V, M extends Map<K, V>> implements Deserialize
             throw e;
         }
         objectDecoder.finishStructure();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Nullable
+    private UpdatingDeserializer<V> resolveUpdatingValueDeserializer(DecoderContext context) throws SerdeException {
+        if (valueDeser instanceof UpdatingDeserializer<?> updatingDeserializer) {
+            return (UpdatingDeserializer<V>) updatingDeserializer;
+        } else if (valueDeser != null) {
+            // Generated value deserializers may be replace-only; map merge needs the runtime object path
+            // to recursively update existing structured values in place.
+            return ObjectShapeSerdeHelper.updatingObjectDeserializer(context, valueArgument);
+        }
+        return null;
+    }
+
+    private void mergeValue(Decoder objectDecoder,
+                            DecoderContext decoderContext,
+                            Map<K, @Nullable V> map,
+                            K key,
+                            Deserializer<? extends V> valueDeserializer,
+                            UpdatingDeserializer<V> updatingDeserializer) throws IOException {
+        V existingValue = map.get(key);
+        if (existingValue == null) {
+            map.put(key, valueDeserializer.deserializeNullable(objectDecoder, decoderContext, valueArgument));
+        } else if (objectDecoder.decodeNull()) {
+            map.put(key, null);
+        } else {
+            updatingDeserializer.deserializeInto(objectDecoder, decoderContext, valueArgument, existingValue);
+        }
+    }
+
+    @Override
+    public void deserializeInto(Decoder decoder,
+                                DecoderContext decoderContext,
+                                Argument<? super M> mapType,
+                                M value) throws IOException {
+        doDeserialize(decoder, decoderContext, mapType, value, true);
     }
 
 }
