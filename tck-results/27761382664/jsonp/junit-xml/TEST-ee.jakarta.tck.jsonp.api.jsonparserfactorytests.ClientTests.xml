@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests" tests="7" skipped="0" failures="0" errors="0" timestamp="SANITIZED" hostname="SANITIZED" time="0">
+  <properties/>
+  <testcase name="jsonParserFactoryTest1()" classname="ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests" time="0"/>
+  <testcase name="jsonParserFactoryTest2()" classname="ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests" time="0"/>
+  <testcase name="jsonParserFactoryTest3()" classname="ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests" time="0"/>
+  <testcase name="jsonParserFactoryTest4()" classname="ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests" time="0"/>
+  <testcase name="jsonParserFactoryTest5()" classname="ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests" time="0"/>
+  <testcase name="jsonParserFactoryTest6()" classname="ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests" time="0"/>
+  <testcase name="jsonParserFactoryExceptionTest()" classname="ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests" time="0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest1
+INFO: Create JsonParserFactory with a configuration
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest1
+INFO: Checking factory configuration properties
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpConfigMap
+INFO: *** Beg: Dumping Config Map contents ***
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpConfigMap
+INFO: *** End: Dumping Config Map contents ***
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util doConfigCheck
+INFO: Checking factory configuration property size
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util doConfigCheck
+INFO: Expecting no of properties=0, got=0
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest1
+INFO: --------------------------------------------------
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest1
+INFO: TEST CASE [JsonParserFactory.createParser(Reader)]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest1
+INFO: --------------------------------------------------
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest1
+INFO: Create 1st JsonParser from the Reader using JsonParserFactory
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest1
+INFO: Parsing {"foo":"bar"}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest1
+INFO: Verify that JSON Parser Events/Data matches
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testEventType
+INFO: Got expected event: START_OBJECT
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testKeyStringValue
+INFO: Got expected event: KEY_NAME
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testKeyStringValue
+INFO: Got expected keyname: foo
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testKeyStringValue
+INFO: Got expected keyvalue: bar
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testEventType
+INFO: Got expected event: END_OBJECT
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest1
+INFO: Create 2nd JsonParser from the Reader using JsonParserFactory
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest1
+INFO: Parsing {"foo":"bar"}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest1
+INFO: Verify that JSON Parser Events/Data matches
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testEventType
+INFO: Got expected event: START_OBJECT
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testKeyStringValue
+INFO: Got expected event: KEY_NAME
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testKeyStringValue
+INFO: Got expected keyname: foo
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testKeyStringValue
+INFO: Got expected keyvalue: bar
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testEventType
+INFO: Got expected event: END_OBJECT
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest2
+INFO: Create JsonParserFactory with a configuration
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest2
+INFO: Checking factory configuration properties
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpConfigMap
+INFO: *** Beg: Dumping Config Map contents ***
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpConfigMap
+INFO: *** End: Dumping Config Map contents ***
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util doConfigCheck
+INFO: Checking factory configuration property size
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util doConfigCheck
+INFO: Expecting no of properties=0, got=0
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest2
+INFO: ------------------------------------------------------
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest2
+INFO: TEST CASE [JsonParserFactory.createParser(JsonObject)]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest2
+INFO: ------------------------------------------------------
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest2
+INFO: Create 1st JsonParser from the JsonObject using JsonParserFactory
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest2
+INFO: Parsing {"foo":"bar"}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest2
+INFO: Verify that JSON Parser Events/Data matches
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testEventType
+INFO: Got expected event: START_OBJECT
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testKeyStringValue
+INFO: Got expected event: KEY_NAME
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testKeyStringValue
+INFO: Got expected keyname: foo
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testKeyStringValue
+INFO: Got expected keyvalue: bar
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testEventType
+INFO: Got expected event: END_OBJECT
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest2
+INFO: Create 2nd JsonParser from the JsonObject using JsonParserFactory
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest2
+INFO: Parsing {"foo":"bar"}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest2
+INFO: Verify that JSON Parser Events/Data matches
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testEventType
+INFO: Got expected event: START_OBJECT
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testKeyStringValue
+INFO: Got expected event: KEY_NAME
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testKeyStringValue
+INFO: Got expected keyname: foo
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testKeyStringValue
+INFO: Got expected keyvalue: bar
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testEventType
+INFO: Got expected event: END_OBJECT
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest3
+INFO: Create JsonParserFactory with a configuration
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest3
+INFO: Checking factory configuration properties
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpConfigMap
+INFO: *** Beg: Dumping Config Map contents ***
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpConfigMap
+INFO: *** End: Dumping Config Map contents ***
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util doConfigCheck
+INFO: Checking factory configuration property size
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util doConfigCheck
+INFO: Expecting no of properties=0, got=0
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest3
+INFO: -----------------------------------------------------
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest3
+INFO: TEST CASE [JsonParserFactory.createParser(JsonArray)]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest3
+INFO: -----------------------------------------------------
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest3
+INFO: Create 1st JsonParser from the JsonArray using JsonParserFactory
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest3
+INFO: Parsing ["foo","bar"]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest3
+INFO: Verify that JSON Parser Events/Data matches
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testEventType
+INFO: Got expected event: START_ARRAY
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testStringValue
+INFO: Got expected event: VALUE_STRING
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testStringValue
+INFO: Got expected keyvalue: foo
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testStringValue
+INFO: Got expected event: VALUE_STRING
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testStringValue
+INFO: Got expected keyvalue: bar
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testEventType
+INFO: Got expected event: END_ARRAY
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest3
+INFO: Create 2nd JsonParser from the JsonArray using JsonParserFactory
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest3
+INFO: Parsing ["foo","bar"]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest3
+INFO: Verify that JSON Parser Events/Data matches
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testEventType
+INFO: Got expected event: START_ARRAY
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testStringValue
+INFO: Got expected event: VALUE_STRING
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testStringValue
+INFO: Got expected keyvalue: foo
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testStringValue
+INFO: Got expected event: VALUE_STRING
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testStringValue
+INFO: Got expected keyvalue: bar
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testEventType
+INFO: Got expected event: END_ARRAY
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest4
+INFO: Create JsonParserFactory with a configuration
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest4
+INFO: Checking factory configuration properties
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpConfigMap
+INFO: *** Beg: Dumping Config Map contents ***
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpConfigMap
+INFO: *** End: Dumping Config Map contents ***
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util doConfigCheck
+INFO: Checking factory configuration property size
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util doConfigCheck
+INFO: Expecting no of properties=0, got=0
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest4
+INFO: -------------------------------------------------------
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest4
+INFO: TEST CASE [JsonParserFactory.createParser(InputStream)]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest4
+INFO: -------------------------------------------------------
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest4
+INFO: Create 1st JsonParser from the InputStream using JsonParserFactory
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest4
+INFO: Parsing {"foo":"bar"}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest4
+INFO: Verify that JSON Parser Events/Data matches
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testEventType
+INFO: Got expected event: START_OBJECT
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testKeyStringValue
+INFO: Got expected event: KEY_NAME
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testKeyStringValue
+INFO: Got expected keyname: foo
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testKeyStringValue
+INFO: Got expected keyvalue: bar
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testEventType
+INFO: Got expected event: END_OBJECT
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest4
+INFO: Create 2nd JsonParser from the InputStream using JsonParserFactory
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest4
+INFO: Parsing {"foo":"bar"}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest4
+INFO: Verify that JSON Parser Events/Data matches
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testEventType
+INFO: Got expected event: START_OBJECT
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testKeyStringValue
+INFO: Got expected event: KEY_NAME
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testKeyStringValue
+INFO: Got expected keyname: foo
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testKeyStringValue
+INFO: Got expected keyvalue: bar
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testEventType
+INFO: Got expected event: END_OBJECT
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest5
+INFO: Create JsonParserFactory with a configuration
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest5
+INFO: Checking factory configuration properties
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpConfigMap
+INFO: *** Beg: Dumping Config Map contents ***
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpConfigMap
+INFO: *** End: Dumping Config Map contents ***
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util doConfigCheck
+INFO: Checking factory configuration property size
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util doConfigCheck
+INFO: Expecting no of properties=0, got=0
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest5
+INFO: ----------------------------------------------------------------
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest5
+INFO: TEST CASE [JsonParserFactory.createParser(InputStream, Charset)]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest5
+INFO: ----------------------------------------------------------------
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest5
+INFO: Create 1st JsonParser from the InputStream using JsonParserFactory
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest5
+INFO: Parsing {"foo":"bar"}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest5
+INFO: Verify that JSON Parser Events/Data matches
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testEventType
+INFO: Got expected event: START_OBJECT
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testKeyStringValue
+INFO: Got expected event: KEY_NAME
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testKeyStringValue
+INFO: Got expected keyname: foo
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testKeyStringValue
+INFO: Got expected keyvalue: bar
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testEventType
+INFO: Got expected event: END_OBJECT
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest5
+INFO: Create 2nd JsonParser from the InputStream using JsonParserFactory
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest5
+INFO: Parsing {"foo":"bar"}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest5
+INFO: Verify that JSON Parser Events/Data matches
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testEventType
+INFO: Got expected event: START_OBJECT
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testKeyStringValue
+INFO: Got expected event: KEY_NAME
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testKeyStringValue
+INFO: Got expected keyname: foo
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testKeyStringValue
+INFO: Got expected keyvalue: bar
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testEventType
+INFO: Got expected event: END_OBJECT
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest6
+INFO: ----------------------------------------------
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest6
+INFO: Test scenario1: no supported provider property
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest6
+INFO: ----------------------------------------------
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest6
+INFO: Create JsonParserFactory with Map<String, ?> with EMPTY config
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpConfigMap
+INFO: *** Beg: Dumping Config Map contents ***
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpConfigMap
+INFO: *** End: Dumping Config Map contents ***
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util doConfigCheck
+INFO: Checking factory configuration property size
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util doConfigCheck
+INFO: Expecting no of properties=0, got=0
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest6
+INFO: -----------------------------------------------
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest6
+INFO: Test scenario2: non supported provider property
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest6
+INFO: -----------------------------------------------
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryTest6
+INFO: Create JsonParserFactory with Map<String, ?> with FOO config
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util getFooConfig
+INFO: getFooConfig
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util getFooConfig
+INFO: Added property: JSONP_Util.FOO_CONFIG
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpConfigMap
+INFO: *** Beg: Dumping Config Map contents ***
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpConfigMap
+INFO: *** End: Dumping Config Map contents ***
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util doConfigCheck
+INFO: Checking factory configuration property size
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util doConfigCheck
+INFO: Expecting no of properties=0, got=0
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryExceptionTest
+INFO: Tests JsonParserFactory.createParser(InputStream) for JsonException if i/o error.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.MyBufferedInputStream checkToTripIOException
+INFO: MyBufferedInputStream->checkToTripIOException: *** tripping an IOException ***
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryExceptionTest
+INFO: Caught expected JsonException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryExceptionTest
+INFO: Tests JsonParserFactory.createParser(InputStream) for JsonException if unknown encoding.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonparserfactorytests.ClientTests jsonParserFactoryExceptionTest
+INFO: Caught expected JsonException
+]]></system-err>
+</testsuite>

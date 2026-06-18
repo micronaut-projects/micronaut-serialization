@@ -1,0 +1,843 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests" tests="9" skipped="0" failures="0" errors="0" timestamp="SANITIZED" hostname="SANITIZED" time="0">
+  <properties/>
+  <testcase name="jsonObjectExceptionTests()" classname="ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests" time="0"/>
+  <testcase name="jsonObjectNullNameValueExceptionTests()" classname="ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests" time="0"/>
+  <testcase name="jsonCreateObjectBuilder11Test()" classname="ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests" time="0"/>
+  <testcase name="jsonObjectBuilder11Test()" classname="ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests" time="0"/>
+  <testcase name="jsonObjectBuilderBuildTest()" classname="ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests" time="0"/>
+  <testcase name="jsonObjectTest1()" classname="ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests" time="0"/>
+  <testcase name="jsonObjectTest2()" classname="ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests" time="0"/>
+  <testcase name="jsonObjectTest3()" classname="ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests" time="0"/>
+  <testcase name="jsonObjectTest4()" classname="ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests" time="0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Create sample JsonObject for testing
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Create sample JsonArray for testing
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonObject to JsonNumber via getJsonNumber(String)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected ClassCastException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonObject to JsonString via getJsonString(String)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected ClassCastException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonObject to JsonArray via getJsonArray(String)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected ClassCastException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonArray to JsonNumber via getNumber(String)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected ClassCastException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonArray to JsonString via getJsonString(String)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected ClassCastException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonObject to String via getString(String)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected ClassCastException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonArray to String via getString(String)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected ClassCastException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonObject to int via getInt(String)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected ClassCastException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonArray to int via getInt(String)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected ClassCastException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonArray to JsonObject via getJsonObject(String)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected ClassCastException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonNumber to JsonString via getJsonString(String)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected ClassCastException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonNumber to JsonObject via getJsonNumber(String)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected ClassCastException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonNumber to JsonArray via getJsonArray(String)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected ClassCastException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonString to JsonNumber via getJsonNumber(String)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected ClassCastException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonString to int via getInt(String)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected ClassCastException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonString to JsonObject via getJsonString(String)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected ClassCastException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonString to JsonArray via getJsonArray(String)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected ClassCastException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonValue.FALSE to JsonNumber via getJsonNumber(String)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected ClassCastException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonValue.FALSE to JsonString via getJsonString(String)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected ClassCastException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonValue.FALSE to JsonObject via getJsonObject(String)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected ClassCastException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonValue.FALSE to JsonArray via getJsonArray(String)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected ClassCastException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip ClassCastException trying to cast a non JsonValue.FALSE|JsonValue.TRUE to boolean via getBoolean(String)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected ClassCastException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip ClassCastException trying to cast a non JsonValue.FALSE|JsonValue.TRUE to boolean via getBoolean(String)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected ClassCastException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip ClassCastException trying to cast a non JsonValue.FALSE|JsonValue.TRUE to boolean via getBoolean(String)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected ClassCastException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip ClassCastException trying to cast a non JsonValue.FALSE|JsonValue.TRUE to boolean via getBoolean(String)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected ClassCastException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip NumberFormatException calling add(String, Double.NaN)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected NumberFormatException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip NumberFormatException calling add(String, Double.NEGATIVE_INFINITY)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected NumberFormatException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip NumberFormatException calling add(String, Double.POSITIVE_INFINITY)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected NumberFormatException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip ArithmeticException calling add("number", 12345.12345) and attempting to extract as an exact integer value
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Call JsonObject.getJsonNumber("number").intValueExact()
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected ArithmeticException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip ArithmeticException calling add("number", 12345.12345) and attempting to extract as an exact long value
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Call JsonObject.getJsonNumber("number").longValueExact()
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected ArithmeticException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip ArithmeticException calling add("number", 12345.12345) and attempting to extract as an exact biginteger value
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Call JsonObject.getJsonNumber("number").bigIntegerValueExact()
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected ArithmeticException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip UnsupportedOperationException JsonObject.put(K,V) trying to modify JsonObject map which should be immutable
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected UnsupportedOperationException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip UnsupportedOperationException JsonObject.putAll(Map) trying to modify JsonObject map which should be immutable
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected UnsupportedOperationException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip UnsupportedOperationException JsonObject.clear() trying to modify JsonObject map which should be immutable
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected UnsupportedOperationException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip UnsupportedOperationException JsonObject.remove(K) trying to modify JsonObject map which should be immutable
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected UnsupportedOperationException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip NullPointerException for JsonObject.getBoolean(String) when no mapping exists for name.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected NullPointerException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip NullPointerException for JsonObject.getInt(String) when no mapping exists for name.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected NullPointerException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip NullPointerException for JsonObject.getString(String) when no mapping exists for name.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected NullPointerException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Trip NullPointerException for JsonObject.isNull(String) when no mapping exists for name.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectExceptionTests
+INFO: Got expected NullPointerException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectNullNameValueExceptionTests
+INFO: Trip NullPointerException for JsonObjectBuilder.add(String, JsonValue) when name is null.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectNullNameValueExceptionTests
+INFO: Got expected NullPointerException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectNullNameValueExceptionTests
+INFO: Trip NullPointerException for JsonObjectBuilder.add(String, JsonValue) when value is null.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectNullNameValueExceptionTests
+INFO: Got expected NullPointerException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectNullNameValueExceptionTests
+INFO: Trip NullPointerException for JsonObjectBuilder.add(String, String) when name is null.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectNullNameValueExceptionTests
+INFO: Got expected NullPointerException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectNullNameValueExceptionTests
+INFO: Trip NullPointerException for JsonObjectBuilder.add(String, String) when value is null.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectNullNameValueExceptionTests
+INFO: Got expected NullPointerException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectNullNameValueExceptionTests
+INFO: Trip NullPointerException for JsonObjectBuilder.add(String, BigInteger) when name is null.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectNullNameValueExceptionTests
+INFO: Got expected NullPointerException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectNullNameValueExceptionTests
+INFO: Trip NullPointerException for JsonObjectBuilder.add(String, BigInteger) when value is null.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectNullNameValueExceptionTests
+INFO: Got expected NullPointerException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectNullNameValueExceptionTests
+INFO: Trip NullPointerException for JsonObjectBuilder.add(String, BigDecimal) when name is null.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectNullNameValueExceptionTests
+INFO: Got expected NullPointerException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectNullNameValueExceptionTests
+INFO: Trip NullPointerException for JsonObjectBuilder.add(String, BigDecimal) when value is null.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectNullNameValueExceptionTests
+INFO: Got expected NullPointerException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectNullNameValueExceptionTests
+INFO: Trip NullPointerException for JsonObjectBuilder.add(String, int) when name is null.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectNullNameValueExceptionTests
+INFO: Got expected NullPointerException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectNullNameValueExceptionTests
+INFO: Trip NullPointerException for JsonObjectBuilder.add(String, long) when name is null.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectNullNameValueExceptionTests
+INFO: Got expected NullPointerException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectNullNameValueExceptionTests
+INFO: Trip NullPointerException for JsonObjectBuilder.add(String, double) when name is null.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectNullNameValueExceptionTests
+INFO: Got expected NullPointerException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectNullNameValueExceptionTests
+INFO: Trip NullPointerException for JsonObject.add(String, boolean) when name is null.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectNullNameValueExceptionTests
+INFO: Got expected NullPointerException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectNullNameValueExceptionTests
+INFO: Trip NullPointerException for JsonObject.addNull(String) when name is null.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectNullNameValueExceptionTests
+INFO: Got expected NullPointerException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectNullNameValueExceptionTests
+INFO: Trip NullPointerException for JsonObjectBuilder.add(String, JsonObjectBuilder) when name is null.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectNullNameValueExceptionTests
+INFO: Got expected NullPointerException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectNullNameValueExceptionTests
+INFO: Trip NullPointerException for JsonObjectBuilder.add(String, JsonObjectBuilder) when value is null.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectNullNameValueExceptionTests
+INFO: Got expected NullPointerException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectNullNameValueExceptionTests
+INFO: Trip NullPointerException for JsonArrayBuilder.add(String, JsonArrayBuilder) when name is null.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectNullNameValueExceptionTests
+INFO: Got expected NullPointerException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectNullNameValueExceptionTests
+INFO: Trip NullPointerException for JsonArrayBuilder.add(String, JsonArrayBuilder) when value is null.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectNullNameValueExceptionTests
+INFO: Got expected NullPointerException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.CreateObjectBuilder test
+INFO: JsonObjectBuilder API factory methods added in JSON-P 1.1.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.CreateObjectBuilder testCreateFromMap
+INFO:  - Json#createObjectBuilder(Map<String,Object>)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.CreateObjectBuilder testCreateFromJsonObject
+INFO:  - Json#createObjectBuilder(JsonObject)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ObjectBuild test
+INFO: JsonObjectBuilder API methods added in JSON-P 1.1.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ObjectBuild testAddString
+INFO:  - addAll(JsonObjectBuilder) for String
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ObjectBuild testAddInt
+INFO:  - addAll(JsonObjectBuilder) for int
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ObjectBuild testAddBool
+INFO:  - addAll(JsonObjectBuilder) for boolean
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ObjectBuild testAddObject
+INFO:  - addAll(JsonObjectBuilder) for JsonObject
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ObjectBuild testAddAllNull
+INFO:  - addAll(JsonObjectBuilder) for null builder argument
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ObjectBuild testAddAllNull
+INFO:     - Expected exception: Cannot invoke "jakarta.json.JsonObjectBuilder.build()" because "builder" is null
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ObjectBuild testRemoveString
+INFO:  - remove(String) for String
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ObjectBuild testRemoveInt
+INFO:  - remove(String) for int
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ObjectBuild testRemoveBool
+INFO:  - remove(String) for boolean
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ObjectBuild testRemoveObject
+INFO:  - remove(String) for JsonObject
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ObjectBuild testRemoveNull
+INFO:  - remove(String) for null name argument
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ObjectBuild testRemoveNull
+INFO:     - Expected exception: name
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest1
+INFO: Create sample JsonObject for testing
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest1
+INFO: Create sample JsonArray for testing
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest1
+INFO: Create the expected map of JsonObject values
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: *** Beg: Dumping Map contents ***
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: *** Message: Expected Map
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: Map: {
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: "doublemax":0
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: "longmax":9223372036854775807
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: "biginteger":123456789
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: "intmax":2147483647
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: "string":"string1"
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: "bigdecimal":123456789.12345679
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: "false":false
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: "null2":null
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: "doublemin":4.9E-324
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: "intmin":-2147483648
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: "null":null
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: "array":[{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: "false2":false
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: "true":true
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: "true2":true
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: "longmin":-9223372036854775808
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: "object":{"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: }
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: *** End: Dumping Map contents ***
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest1
+INFO: Create JsonObject using all JsonObjectBuilder API's
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: *** Beg: Dumping Map contents ***
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: *** Message: Actual Map
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: Map: {
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: "false":false
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: "true":true
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: "null":null
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: "doublemin":4.9E-324
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: "doublemax":0
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: "intmin":-2147483648
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: "intmax":2147483647
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: "longmin":-9223372036854775808
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: "longmax":9223372036854775807
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: "bigdecimal":123456789.12345679
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: "biginteger":123456789
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: "string":"string1"
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: "false2":false
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: "true2":true
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: "null2":null
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: "object":{"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: "array":[{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: }
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpMap
+INFO: *** End: Dumping Map contents ***
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest1
+INFO: Compare actual Map of JsonObject values with expected Map of JsonObject values
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsMap
+INFO: Maps are equal - match (Success)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsMap
+INFO: Expected: Map: {"doublemax":0,"longmax":9223372036854775807,"biginteger":123456789,"intmax":2147483647,"string":"string1","bigdecimal":123456789.12345679,"false":false,"null2":null,"doublemin":4.9E-324,"intmin":-2147483648,"null":null,"array":[{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]],"false2":false,"true":true,"true2":true,"longmin":-9223372036854775808,"object":{"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]}}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsMap
+INFO: Actual:   Map: {"false":false,"true":true,"null":null,"doublemin":4.9E-324,"doublemax":0,"intmin":-2147483648,"intmax":2147483647,"longmin":-9223372036854775808,"longmax":9223372036854775807,"bigdecimal":123456789.12345679,"biginteger":123456789,"string":"string1","false2":false,"true2":true,"null2":null,"object":{"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]},"array":[{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest2
+INFO: Create sample JsonObject for testing
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest2
+INFO: Create sample JsonArray for testing
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest2
+INFO: Create JsonObject 'myJsonObject1' using all JsonObjectBuilder API's
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest2
+INFO: Write the JsonObject 'myJsonObject1' out to a JsonWriter
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest2
+INFO: Close JsonWriter
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest2
+INFO: Save contents of the JsonWriter as a String
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest2
+INFO: Dump contents of JsonWriter as a String
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest2
+INFO: JsonWriterContents={"false":false,"true":true,"null":null,"doublemin":4.9E-324,"doublemax":1.7976931348623157E+308,"intmin":-2147483648,"intmax":2147483647,"longmin":-9223372036854775808,"longmax":9223372036854775807,"bigdecimal":123456789.12345679,"biginteger":123456789,"string":"string1","false2":false,"true2":true,"null2":null,"object":{"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]},"array":[{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest2
+INFO: Read the JsonObject back into 'myJsonObject2' using a JsonReader
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest2
+INFO: Save contents of the JsonReader as a String
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest2
+INFO: Dump contents of JsonReader as a String
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest2
+INFO: JsonReaderContents=io.micronaut.serde.jsonp.ReaderImpl@110844f6
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest2
+INFO: Compare myJsonObject1 and myJsonObject2 for equality
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonObjects
+INFO: JsonObject match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonObjects
+INFO: Expected: {"false":false,"true":true,"null":null,"doublemin":4.9E-324,"doublemax":0,"intmin":-2147483648,"intmax":2147483647,"longmin":-9223372036854775808,"longmax":9223372036854775807,"bigdecimal":123456789.12345679,"biginteger":123456789,"string":"string1","false2":false,"true2":true,"null2":null,"object":{"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]},"array":[{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonObjects
+INFO: Actual:   {"false":false,"true":true,"null":null,"doublemin":4.9E-324,"doublemax":0,"intmin":-2147483648,"intmax":2147483647,"longmin":-9223372036854775808,"longmax":9223372036854775807,"bigdecimal":123456789.12345679,"biginteger":123456789,"string":"string1","false2":false,"true2":true,"null2":null,"object":{"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]},"array":[{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: Create sample JsonObject for testing
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: Create sample JsonArray for testing
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: Create myObject JsonObject with 22 name/value pairs
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: Checking intValue of key0 for correctness
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: -1
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   -1
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: key0 via JsonNumber.toString()=-1
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: Checking intValue of key1 for correctness
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 1
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   1
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: key1 via JsonNumber.toString()=1
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: Checking intValue of key2 for correctness
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 1
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   1
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: key2 via JsonNumber.toString()=1
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: Checking intValue of key3 for correctness
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: -1000
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   -1000
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: key3 via JsonNumber.toString()=-1000.0
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: Checking intValue of key4 for correctness
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 1000
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   1000
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: key4 via JsonNumber.toString()=1000.0
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: Checking intValue of key5 for correctness
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 1000
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   1000
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: key5 via JsonNumber.toString()=1000.0
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: Checking intValue of key6 for correctness
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: -2000
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   -2000
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: key6 via JsonNumber.toString()=-2000.0
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: Checking intValue of key7 for correctness
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 2000
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   2000
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: key7 via JsonNumber.toString()=2000.0
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: Checking intValue of key8 for correctness
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 2000
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   2000
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: key8 via JsonNumber.toString()=2000.0
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: Checking longValue of key9 for correctness
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: long match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 9223372036854775807
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   9223372036854775807
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: LongMax via JsonNumber.toString()=9223372036854775807
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 9223372036854775807
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   9223372036854775807
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: Checking longValue of key10 for correctness
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: long match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: -9223372036854775808
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   -9223372036854775808
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: LongMin via JsonNumber.toString()=-9223372036854775808
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: -9223372036854775808
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   -9223372036854775808
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: Checking intValue of key11 for correctness
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 2147483647
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   2147483647
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: IntMax via JsonNumber.toString()=2147483647
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 2147483647
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   2147483647
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: Checking intValue of key12 for correctness
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: -2147483648
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   -2147483648
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: IntMin via JsonNumber.toString()=-2147483648
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: -2147483648
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   -2147483648
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: Checking doubleValue of key13 for correctness
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: double match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 1.7976931348623157E308
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   1.7976931348623157E308
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: Checking doubleValue of key14 for correctness
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: double match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 4.9E-324
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   4.9E-324
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: Checking bigDecimalValue of key15 for correctness
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: BigDecimal match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 123456789.12345679
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   123456789.12345679
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: Checking bigIntegerValue of key16 for correctness
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: BigInteger match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 123456789
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   123456789
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: Checking getBoolean of key17 for correctness
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: boolean match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: true
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   true
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: Checking getBoolean of key18 for correctness
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: boolean match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: false
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   false
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: Checking isNull of key19 for correctness
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: boolean match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: true
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   true
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: Checking getJsonString of key20 for correctness
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: !@#$%^&*()_+|~1234567890-=;',./<>? qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   !@#$%^&*()_+|~1234567890-=;',./<>? qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: Checking getString of key20 for correctness
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: !@#$%^&*()_+|~1234567890-=;',./<>? qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   !@#$%^&*()_+|~1234567890-=;',./<>? qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: Checking getBoolean of key21 for correctness
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: boolean match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: false
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   false
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: Checking getBoolean of key22 for correctness
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: boolean match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: true
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   true
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: Checking isNull of key23 for correctness
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: boolean match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: true
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   true
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: Checking getJsonObject of key24 for correctness
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonObjects
+INFO: JsonObject match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonObjects
+INFO: Expected: {"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonObjects
+INFO: Actual:   {"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: Checking getJsonArray of key25 for correctness
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonArrays
+INFO: JsonArray match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonArrays
+INFO: Expected: [{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonArrays
+INFO: Actual:   [{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: boolean match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: true
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   true
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: boolean match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: false
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   false
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: Testing JsonObject.getBoolean(String, boolean) with/without default value setting.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: boolean match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: true
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   true
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: boolean match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: false
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   false
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: boolean match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: true
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   true
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: boolean match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: true
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   true
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: boolean match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: true
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   true
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: boolean match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: true
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   true
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: boolean match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: true
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   true
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: Testing JsonObject.getInt(String, int) with/without default value setting.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: -1
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   -1
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 10
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   10
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 10
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   10
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 10
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   10
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 10
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   10
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 10
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   10
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest3
+INFO: Testing JsonObject.getString(String, String) with/without default value setting.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: !@#$%^&*()_+|~1234567890-=;',./<>? qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   !@#$%^&*()_+|~1234567890-=;',./<>? qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: foo
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   foo
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: foo
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   foo
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: foo
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   foo
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: foo
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   foo
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: foo
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   foo
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest4
+INFO: Create sample JsonObject for testing
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest4
+INFO: Write the JsonObject 'myJsonObject1' out to a JsonWriter
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest4
+INFO: Close JsonWriter
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest4
+INFO: Save contents of the JsonWriter as a String
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest4
+INFO: Dump contents of JsonWriter as a String
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest4
+INFO: JsonWriterContents={"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest4
+INFO: Remove whitespace from contents.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonobjecttests.ClientTests jsonObjectTest4
+INFO: Compare expected JsonObject text with actual JsonObject text for equality
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]}
+]]></system-err>
+</testsuite>
