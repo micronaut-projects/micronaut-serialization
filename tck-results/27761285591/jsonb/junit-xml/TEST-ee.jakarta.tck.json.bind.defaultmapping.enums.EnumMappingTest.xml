@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ee.jakarta.tck.json.bind.defaultmapping.enums.EnumMappingTest" tests="1" skipped="0" failures="0" errors="0" timestamp="SANITIZED" hostname="SANITIZED" time="0">
+  <properties/>
+  <testcase name="testEnum()" classname="ee.jakarta.tck.json.bind.defaultmapping.enums.EnumMappingTest" time="0"/>
+  <system-out><![CDATA[10:11:41.783 [Test worker] DEBUG io.micronaut.core.reflect.ClassUtils -- Reflectively retrieving hierarchy for class: class io.micronaut.serde.support.serdes.ZonedDateTimeSerde
+10:11:41.783 [Test worker] DEBUG io.micronaut.core.reflect.ClassUtils -- Reflectively retrieving hierarchy for class: class io.micronaut.serde.support.deserializers.ObjectDeserializer
+10:11:41.783 [Test worker] DEBUG io.micronaut.core.reflect.ClassUtils -- Reflectively retrieving hierarchy for class: class io.micronaut.serde.support.serdes.OffsetDateTimeSerde
+10:11:41.784 [Test worker] DEBUG io.micronaut.core.reflect.ClassUtils -- Reflectively retrieving hierarchy for class: class io.micronaut.serde.support.serdes.LocalTimeSerde
+10:11:41.784 [Test worker] DEBUG io.micronaut.core.reflect.ClassUtils -- Reflectively retrieving hierarchy for class: class io.micronaut.serde.support.serdes.InstantSerde
+10:11:41.784 [Test worker] DEBUG io.micronaut.context.env.DefaultEnvironment -- Starting environment io.micronaut.context.env.DefaultEnvironment@29f114e0 for active names []
+10:11:41.784 [Test worker] DEBUG io.micronaut.context.env.DefaultEnvironment -- Processing property source: config convention: JAVA_PROPERTIES
+10:11:41.784 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext -- Starting BeanContext
+10:11:41.784 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext -- Resolving beans for type: io.micronaut.core.convert.TypeConverter
+10:11:41.784 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext -- Finding candidate beans for type: TypeConverter
+10:11:41.784 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext -- No bean candidates found for type: TypeConverter
+10:11:41.784 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext -- Resolving beans for type: io.micronaut.core.convert.TypeConverterRegistrar
+10:11:41.784 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext -- Finding candidate beans for type: TypeConverterRegistrar
+10:11:41.784 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext -- No bean candidates found for type: TypeConverterRegistrar
+10:11:41.784 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext -- BeanContext Started.
+10:11:41.784 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext -- Finding candidate beans for type: ObjectMapper
+10:11:41.784 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   class io.micronaut.serde.jackson.JacksonJsonMapper null Definition: io.micronaut.serde.jackson.JacksonJsonMapper
+10:11:41.784 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext -- Found concrete candidate [Definition: io.micronaut.serde.jackson.JacksonJsonMapper] for type: objectMapper 
+10:11:41.784 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext -- Finding candidate beans for type: SerdeRegistry registry
+10:11:41.784 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   class io.micronaut.serde.support.DefaultSerdeRegistry null Definition: io.micronaut.serde.support.DefaultSerdeRegistry
+10:11:41.784 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext -- Found concrete candidate [Definition: io.micronaut.serde.support.DefaultSerdeRegistry] for type: registry 
+10:11:41.784 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext -- Finding candidate beans for type: SerdeIntrospections introspections
+10:11:41.784 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   class io.micronaut.serde.support.DefaultSerdeIntrospections null Definition: io.micronaut.serde.support.DefaultSerdeIntrospections
+10:11:41.784 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext -- Found concrete candidate [Definition: io.micronaut.serde.support.DefaultSerdeIntrospections] for type: introspections 
+10:11:41.784 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext -- Finding candidate beans for type: SerdeConfiguration configuration
+10:11:41.784 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   class io.micronaut.serde.config.DefaultSerdeConfiguration null Definition: io.micronaut.serde.config.DefaultSerdeConfiguration
+10:11:41.784 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext -- Found concrete candidate [Definition: io.micronaut.serde.config.DefaultSerdeConfiguration] for type: configuration 
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.lifecycle -- Created bean [io.micronaut.serde.config.DefaultSerdeConfiguration@209d0037] from definition [Definition: io.micronaut.serde.config.DefaultSerdeConfiguration] with qualifier [null]
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.lifecycle -- Created bean [io.micronaut.serde.support.DefaultSerdeIntrospections@22f0e329] from definition [Definition: io.micronaut.serde.support.DefaultSerdeIntrospections] with qualifier [null]
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext -- Finding candidate beans for type: SerializationConfiguration serializationConfiguration
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   class io.micronaut.serde.config.DefaultSerializationConfiguration null Definition: io.micronaut.serde.config.DefaultSerializationConfiguration
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext -- Found concrete candidate [Definition: io.micronaut.serde.config.DefaultSerializationConfiguration] for type: serializationConfiguration 
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.lifecycle -- Created bean [io.micronaut.serde.config.DefaultSerializationConfiguration@3b39bee2] from definition [Definition: io.micronaut.serde.config.DefaultSerializationConfiguration] with qualifier [null]
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext -- Finding candidate beans for type: DeserializationConfiguration deserializationConfiguration
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   class io.micronaut.serde.config.DefaultDeserializationConfiguration null Definition: io.micronaut.serde.config.DefaultDeserializationConfiguration
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext -- Found concrete candidate [Definition: io.micronaut.serde.config.DefaultDeserializationConfiguration] for type: deserializationConfiguration 
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.lifecycle -- Created bean [io.micronaut.serde.config.DefaultDeserializationConfiguration@20ddc780] from definition [Definition: io.micronaut.serde.config.DefaultDeserializationConfiguration] with qualifier [null]
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext -- Finding candidate beans for type: Serializer
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.condition.Condition -- Bean [Definition: io.micronaut.serde.support.serdes.HealthStatusSerde] will not be loaded due to failing conditions:
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.condition.Condition -- * Class [io.micronaut.health.HealthStatus] is not present
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   class io.micronaut.serde.support.serdes.LocalTimeSerde null Definition: io.micronaut.serde.support.serdes.LocalTimeSerde Factory: io.micronaut.serde.support.LegacyBeansFactory#localTimeSerde
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   interface io.micronaut.serde.Serializer @Any Definition: io.micronaut.serde.Serializer Factory: io.micronaut.serde.support.LegacyBeansFactory#provideSerializer
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   class io.micronaut.serde.support.deserializers.SerdeHealthResultDeserializer_HealthResultDtoSerializer null Definition: io.micronaut.serde.support.deserializers.SerdeHealthResultDeserializer_HealthResultDtoSerializer
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   class io.micronaut.serde.support.serdes.YearSerde null Definition: io.micronaut.serde.support.serdes.YearSerde Factory: io.micronaut.serde.support.LegacyBeansFactory#yearSerde
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   class io.micronaut.serde.support.serializers.ObjectSerializer null Definition: io.micronaut.serde.support.serializers.ObjectSerializer Factory: io.micronaut.serde.support.LegacyBeansFactory#provideObjectSerializer
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   interface io.micronaut.serde.Serde @Any Definition: io.micronaut.serde.Serde Factory: io.micronaut.serde.support.LegacyBeansFactory#provideSerde
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   class io.micronaut.serde.support.serdes.InetAddressSerde null Definition: io.micronaut.serde.support.serdes.InetAddressSerde Factory: io.micronaut.serde.support.LegacyBeansFactory#inetAddressSerde
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   class io.micronaut.serde.support.serdes.ObjectArraySerde null Definition: io.micronaut.serde.support.serdes.ObjectArraySerde Factory: io.micronaut.serde.support.LegacyBeansFactory#provideObjectArraySerde
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   class io.micronaut.serde.support.serdes.OffsetDateTimeSerde null Definition: io.micronaut.serde.support.serdes.OffsetDateTimeSerde Factory: io.micronaut.serde.support.LegacyBeansFactory#offsetDateTimeSerde
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   class io.micronaut.serde.support.serdes.LocalDateSerde null Definition: io.micronaut.serde.support.serdes.LocalDateSerde Factory: io.micronaut.serde.support.LegacyBeansFactory#localDateSerde
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   class io.micronaut.serde.support.serdes.InstantSerde null Definition: io.micronaut.serde.support.serdes.InstantSerde Factory: io.micronaut.serde.support.LegacyBeansFactory#instantSerde
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   class io.micronaut.serde.support.serdes.ZonedDateTimeSerde null Definition: io.micronaut.serde.support.serdes.ZonedDateTimeSerde Factory: io.micronaut.serde.support.LegacyBeansFactory#zonedDateTimeSerde
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   class io.micronaut.serde.support.serdes.PriorityQueueSerde null Definition: io.micronaut.serde.support.serdes.PriorityQueueSerde
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   class io.micronaut.serde.jsonb.JsonpValueSerde null Definition: io.micronaut.serde.jsonb.JsonpValueSerde
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   class io.micronaut.serde.support.serdes.LocalDateTimeSerde null Definition: io.micronaut.serde.support.serdes.LocalDateTimeSerde Factory: io.micronaut.serde.support.LegacyBeansFactory#localDateTimeSerde
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext -- Finding candidate beans for type: Deserializer
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.condition.Condition -- Bean [Definition: io.micronaut.serde.support.deserializers.HealthResultDeserializer] will not be loaded due to failing conditions:
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.condition.Condition -- * Class [io.micronaut.management.health.indicator.HealthResult] is not present
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   class io.micronaut.serde.support.serdes.LocalTimeSerde null Definition: io.micronaut.serde.support.serdes.LocalTimeSerde Factory: io.micronaut.serde.support.LegacyBeansFactory#localTimeSerde
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   class io.micronaut.serde.support.serdes.YearSerde null Definition: io.micronaut.serde.support.serdes.YearSerde Factory: io.micronaut.serde.support.LegacyBeansFactory#yearSerde
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   class io.micronaut.serde.support.deserializers.SerdeHealthResultDeserializer_HealthResultDtoDeserializer null Definition: io.micronaut.serde.support.deserializers.SerdeHealthResultDeserializer_HealthResultDtoDeserializer
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   interface io.micronaut.serde.Serde @Any Definition: io.micronaut.serde.Serde Factory: io.micronaut.serde.support.LegacyBeansFactory#provideSerde
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   interface io.micronaut.serde.Deserializer @Any Definition: io.micronaut.serde.Deserializer Factory: io.micronaut.serde.support.LegacyBeansFactory#provideDeserializer
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   class io.micronaut.serde.support.serdes.InetAddressSerde null Definition: io.micronaut.serde.support.serdes.InetAddressSerde Factory: io.micronaut.serde.support.LegacyBeansFactory#inetAddressSerde
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   class io.micronaut.serde.support.serdes.ObjectArraySerde null Definition: io.micronaut.serde.support.serdes.ObjectArraySerde Factory: io.micronaut.serde.support.LegacyBeansFactory#provideObjectArraySerde
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   class io.micronaut.serde.support.deserializers.ObjectDeserializer null Definition: io.micronaut.serde.support.deserializers.ObjectDeserializer Factory: io.micronaut.serde.support.LegacyBeansFactory#provideObjectDeserializer
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   class io.micronaut.serde.support.serdes.OffsetDateTimeSerde null Definition: io.micronaut.serde.support.serdes.OffsetDateTimeSerde Factory: io.micronaut.serde.support.LegacyBeansFactory#offsetDateTimeSerde
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   class io.micronaut.serde.support.serdes.LocalDateSerde null Definition: io.micronaut.serde.support.serdes.LocalDateSerde Factory: io.micronaut.serde.support.LegacyBeansFactory#localDateSerde
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   class io.micronaut.serde.support.serdes.InstantSerde null Definition: io.micronaut.serde.support.serdes.InstantSerde Factory: io.micronaut.serde.support.LegacyBeansFactory#instantSerde
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   class io.micronaut.serde.support.serdes.ZonedDateTimeSerde null Definition: io.micronaut.serde.support.serdes.ZonedDateTimeSerde Factory: io.micronaut.serde.support.LegacyBeansFactory#zonedDateTimeSerde
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   class io.micronaut.serde.support.serdes.PriorityQueueSerde null Definition: io.micronaut.serde.support.serdes.PriorityQueueSerde
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   class io.micronaut.serde.jsonb.JsonpValueSerde null Definition: io.micronaut.serde.jsonb.JsonpValueSerde
+10:11:41.785 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   class io.micronaut.serde.support.serdes.LocalDateTimeSerde null Definition: io.micronaut.serde.support.serdes.LocalDateTimeSerde Factory: io.micronaut.serde.support.LegacyBeansFactory#localDateTimeSerde
+10:11:41.786 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext -- Finding candidate beans for type: SerdeDeserializationPreInstantiateCallback
+10:11:41.786 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext -- No bean candidates found for type: SerdeDeserializationPreInstantiateCallback
+10:11:41.786 [Test worker] DEBUG io.micronaut.context.lifecycle -- Created bean [io.micronaut.serde.support.DefaultSerdeRegistry@6889e714] from definition [Definition: io.micronaut.serde.support.DefaultSerdeRegistry] with qualifier [null]
+10:11:41.786 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext -- Finding candidate beans for type: SerdeJacksonConfiguration jacksonConfiguration
+10:11:41.786 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext --   class io.micronaut.serde.jackson.SerdeJacksonConfiguration null Definition: io.micronaut.serde.jackson.SerdeJacksonConfiguration
+10:11:41.786 [Test worker] DEBUG io.micronaut.context.DefaultBeanContext -- Found concrete candidate [Definition: io.micronaut.serde.jackson.SerdeJacksonConfiguration] for type: jacksonConfiguration 
+10:11:41.786 [Test worker] DEBUG io.micronaut.context.lifecycle -- Created bean [io.micronaut.serde.jackson.SerdeJacksonConfiguration@4dc5b887] from definition [Definition: io.micronaut.serde.jackson.SerdeJacksonConfiguration] with qualifier [null]
+10:11:41.786 [Test worker] DEBUG io.micronaut.context.lifecycle -- Created bean [io.micronaut.serde.jackson.JacksonJsonMapper@7552f05b] from definition [Definition: io.micronaut.serde.jackson.JacksonJsonMapper] with qualifier [null]
+10:11:41.787 [Test worker] DEBUG io.micronaut.core.beans.DefaultBeanIntrospector -- Found BeanIntrospection for type: class ee.jakarta.tck.json.bind.defaultmapping.enums.model.EnumContainer,
+10:11:41.787 [Test worker] DEBUG io.micronaut.core.beans.DefaultBeanIntrospector -- Found BeanIntrospection for type: class ee.jakarta.tck.json.bind.defaultmapping.enums.model.EnumContainer,
+10:11:41.787 [Test worker] DEBUG io.micronaut.core.beans.DefaultBeanIntrospector -- Found BeanIntrospection for type: class ee.jakarta.tck.json.bind.defaultmapping.enums.model.EnumContainer,
+10:11:41.787 [Test worker] DEBUG io.micronaut.core.beans.DefaultBeanIntrospector -- Found BeanIntrospection for type: class ee.jakarta.tck.json.bind.defaultmapping.enums.model.EnumContainer$Enumeration,
+10:11:41.787 [Test worker] DEBUG io.micronaut.core.beans.DefaultBeanIntrospector -- No BeanIntrospection found for bean type: interface ee.jakarta.tck.json.bind.TypeContainer
+10:11:41.787 [Test worker] DEBUG io.micronaut.core.beans.DefaultBeanIntrospector -- No BeanIntrospection found for bean type: interface ee.jakarta.tck.json.bind.TypeContainer
+10:11:41.788 [Test worker] DEBUG io.micronaut.core.beans.DefaultBeanIntrospector -- Found BeanIntrospection for type: class ee.jakarta.tck.json.bind.defaultmapping.enums.model.EnumContainer,
+10:11:41.788 [Test worker] DEBUG io.micronaut.core.beans.DefaultBeanIntrospector -- Found BeanIntrospection for type: class ee.jakarta.tck.json.bind.defaultmapping.enums.model.EnumContainer,
+10:11:41.788 [Test worker] DEBUG io.micronaut.core.beans.DefaultBeanIntrospector -- Found BeanIntrospection for type: class ee.jakarta.tck.json.bind.defaultmapping.enums.model.EnumContainer,
+10:11:41.788 [Test worker] DEBUG io.micronaut.core.beans.DefaultBeanIntrospector -- Found BeanIntrospection for type: class ee.jakarta.tck.json.bind.defaultmapping.enums.model.EnumContainer$Enumeration,
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
