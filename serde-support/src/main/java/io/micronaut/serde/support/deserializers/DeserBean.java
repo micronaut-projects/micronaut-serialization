@@ -1155,7 +1155,7 @@ final class DeserBean<T> {
             }
             P value = provideDefaultValue(decoderContext);
             if (value != null) {
-                beanProperty.setUnsafe(bean, value);
+                setPropertyValue(bean, value);
             }
         }
 
@@ -1177,7 +1177,7 @@ final class DeserBean<T> {
             if (value == null) {
                 setDefaultPropertyValue(decoderContext, obj);
             } else {
-                beanProperty.setUnsafe(obj, value);
+                setPropertyValue(obj, value);
             }
         }
 
@@ -1197,6 +1197,10 @@ final class DeserBean<T> {
                 deserializeAndSetPropertyValue(objectDecoder, decoderContext, beanInstance);
                 return;
             }
+            if (primitive) {
+                deserializeAndSetDirectPrimitivePropertyValue(objectDecoder, beanInstance);
+                return;
+            }
             P value;
             try {
                 value = deserializeDirectNonNullValue(objectDecoder);
@@ -1204,7 +1208,7 @@ final class DeserBean<T> {
                 throw convertPropertyException(e);
             }
             try {
-                beanProperty.setUnsafe(beanInstance, value);
+                setPropertyValue(beanInstance, value);
             } catch (Exception e) {
                 throw convertException(e, true); // Only convert exceptions from `setUnsafe`
             }
@@ -1217,6 +1221,10 @@ final class DeserBean<T> {
                                                    B beanInstance) throws IOException {
             if (merge && beanReadProperty != null && decoderValueKind == DecoderValueKind.NONE_CODE) {
                 deserializeAndMergePropertyValue(deserializer, objectDecoder, decoderContext, beanInstance);
+                return;
+            }
+            if (primitive && failOnNullForPrimitives && decoderValueKind != DecoderValueKind.NONE_CODE) {
+                deserializeAndSetDirectPrimitivePropertyValue(objectDecoder, beanInstance);
                 return;
             }
             try {
@@ -1232,11 +1240,13 @@ final class DeserBean<T> {
                         if (value == null) {
                             return;
                         }
+                        setPropertyValue(beanInstance, value);
+                        return;
                     }
                 } else {
                     value = deserializeValue(deserializer, objectDecoder, decoderContext);
                 }
-                beanProperty.setUnsafe(beanInstance, value);
+                setPropertyValue(beanInstance, value);
             } catch (Exception e) {
                 throw convertException(e, true); // Only convert exceptions from `setUnsafe`
             }
@@ -1256,7 +1266,7 @@ final class DeserBean<T> {
                 P currentValue = beanReadProperty.get(beanInstance);
                 if (currentValue == null) {
                     P value = deserializeValue(deserializer, objectDecoder, decoderContext);
-                    beanProperty.setUnsafe(beanInstance, value);
+                    setPropertyValue(beanInstance, value);
                     return;
                 }
                 if (argument.getType().isArray()) {
@@ -1264,7 +1274,7 @@ final class DeserBean<T> {
                     if (incomingValue == null) {
                         beanProperty.setUnsafe(beanInstance, null);
                     } else {
-                        beanProperty.setUnsafe(beanInstance, concatenateArrays(currentValue, incomingValue));
+                        setPropertyValue(beanInstance, concatenateArrays(currentValue, incomingValue));
                     }
                     return;
                 }
@@ -1273,7 +1283,7 @@ final class DeserBean<T> {
                     updatingDeserializer.deserializeInto(objectDecoder, decoderContext, argument, currentValue);
                 } else {
                     P value = deserializeValue(deserializer, objectDecoder, decoderContext);
-                    beanProperty.setUnsafe(beanInstance, value);
+                    setPropertyValue(beanInstance, value);
                 }
             } catch (Exception e) {
                 throw convertException(e, true); // Only convert exceptions from `setUnsafe`
@@ -1392,12 +1402,142 @@ final class DeserBean<T> {
             return deserializeDirectPrimitiveValue(objectDecoder);
         }
 
+        @SuppressWarnings("NullAway")
+        private void deserializeAndSetDirectPrimitivePropertyValue(Decoder objectDecoder, B beanInstance) throws IOException {
+            switch (decoderValueKind) {
+                case DecoderValueKind.BOOLEAN_CODE -> {
+                    boolean value;
+                    try {
+                        value = objectDecoder.decodeBoolean();
+                    } catch (Exception e) {
+                        throw convertPropertyException(e);
+                    }
+                    try {
+                        beanProperty.setBooleanUnsafe(beanInstance, value);
+                    } catch (Exception e) {
+                        throw convertException(e, true);
+                    }
+                }
+                case DecoderValueKind.BYTE_CODE -> {
+                    byte value;
+                    try {
+                        value = objectDecoder.decodeByte();
+                    } catch (Exception e) {
+                        throw convertPropertyException(e);
+                    }
+                    try {
+                        beanProperty.setByteUnsafe(beanInstance, value);
+                    } catch (Exception e) {
+                        throw convertException(e, true);
+                    }
+                }
+                case DecoderValueKind.SHORT_CODE -> {
+                    short value;
+                    try {
+                        value = objectDecoder.decodeShort();
+                    } catch (Exception e) {
+                        throw convertPropertyException(e);
+                    }
+                    try {
+                        beanProperty.setShortUnsafe(beanInstance, value);
+                    } catch (Exception e) {
+                        throw convertException(e, true);
+                    }
+                }
+                case DecoderValueKind.CHAR_CODE -> {
+                    char value;
+                    try {
+                        value = objectDecoder.decodeChar();
+                    } catch (Exception e) {
+                        throw convertPropertyException(e);
+                    }
+                    try {
+                        beanProperty.setCharUnsafe(beanInstance, value);
+                    } catch (Exception e) {
+                        throw convertException(e, true);
+                    }
+                }
+                case DecoderValueKind.INT_CODE -> {
+                    int value;
+                    try {
+                        value = objectDecoder.decodeInt();
+                    } catch (Exception e) {
+                        throw convertPropertyException(e);
+                    }
+                    try {
+                        beanProperty.setIntUnsafe(beanInstance, value);
+                    } catch (Exception e) {
+                        throw convertException(e, true);
+                    }
+                }
+                case DecoderValueKind.LONG_CODE -> {
+                    long value;
+                    try {
+                        value = objectDecoder.decodeLong();
+                    } catch (Exception e) {
+                        throw convertPropertyException(e);
+                    }
+                    try {
+                        beanProperty.setLongUnsafe(beanInstance, value);
+                    } catch (Exception e) {
+                        throw convertException(e, true);
+                    }
+                }
+                case DecoderValueKind.FLOAT_CODE -> {
+                    float value;
+                    try {
+                        value = objectDecoder.decodeFloat();
+                    } catch (Exception e) {
+                        throw convertPropertyException(e);
+                    }
+                    try {
+                        beanProperty.setFloatUnsafe(beanInstance, value);
+                    } catch (Exception e) {
+                        throw convertException(e, true);
+                    }
+                }
+                case DecoderValueKind.DOUBLE_CODE -> {
+                    double value;
+                    try {
+                        value = objectDecoder.decodeDouble();
+                    } catch (Exception e) {
+                        throw convertPropertyException(e);
+                    }
+                    try {
+                        beanProperty.setDoubleUnsafe(beanInstance, value);
+                    } catch (Exception e) {
+                        throw convertException(e, true);
+                    }
+                }
+                default -> throw new IllegalStateException("Unsupported primitive decoder value kind: " + decoderValueKind);
+            }
+        }
+
         @Nullable
         private P deserializeDirectNullableValue(Decoder objectDecoder) throws IOException {
             try {
                 return deserializeDirectValue(objectDecoder);
             } catch (Exception e) {
                 throw convertException(e, false);
+            }
+        }
+
+        @SuppressWarnings("NullAway")
+        private void setPropertyValue(B beanInstance, P value) {
+            if (!primitive) {
+                beanProperty.setUnsafe(beanInstance, value);
+                return;
+            }
+            switch (decoderValueKind) {
+                case DecoderValueKind.BOOLEAN_CODE -> beanProperty.setBooleanUnsafe(beanInstance, (Boolean) value);
+                case DecoderValueKind.BYTE_CODE -> beanProperty.setByteUnsafe(beanInstance, (Byte) value);
+                case DecoderValueKind.SHORT_CODE -> beanProperty.setShortUnsafe(beanInstance, (Short) value);
+                case DecoderValueKind.CHAR_CODE -> beanProperty.setCharUnsafe(beanInstance, (Character) value);
+                case DecoderValueKind.INT_CODE -> beanProperty.setIntUnsafe(beanInstance, (Integer) value);
+                case DecoderValueKind.LONG_CODE -> beanProperty.setLongUnsafe(beanInstance, (Long) value);
+                case DecoderValueKind.FLOAT_CODE -> beanProperty.setFloatUnsafe(beanInstance, (Float) value);
+                case DecoderValueKind.DOUBLE_CODE -> beanProperty.setDoubleUnsafe(beanInstance, (Double) value);
+                default -> beanProperty.setUnsafe(beanInstance, value);
             }
         }
 
