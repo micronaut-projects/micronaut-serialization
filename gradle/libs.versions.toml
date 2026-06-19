@@ -16,7 +16,7 @@ nullaway = "0.13.4"
 error_prone_core = "2.49.0"
 
 micronaut-platform = "5.0.2"
-micronaut = "5.1.1"
+micronaut = "5.1.2"
 micronaut-discovery = "5.0.0"
 micronaut-oracle-cloud = "6.0.0"
 micronaut-reactor = "4.0.0"
