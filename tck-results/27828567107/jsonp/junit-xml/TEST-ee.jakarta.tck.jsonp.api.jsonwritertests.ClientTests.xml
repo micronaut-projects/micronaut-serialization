@@ -1,0 +1,582 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests" tests="14" skipped="0" failures="0" errors="0" timestamp="SANITIZED" hostname="SANITIZED" time="0">
+  <properties/>
+  <testcase name="jsonWriterExceptionTests()" classname="ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests" time="0"/>
+  <testcase name="jsonWriterWithConfigTest1()" classname="ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests" time="0"/>
+  <testcase name="jsonWriterWithConfigTest2()" classname="ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests" time="0"/>
+  <testcase name="jsonWriterUTFEncodedTests()" classname="ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests" time="0"/>
+  <testcase name="jsonWriterTest1()" classname="ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests" time="0"/>
+  <testcase name="jsonWriterTest2()" classname="ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests" time="0"/>
+  <testcase name="jsonWriterTest3()" classname="ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests" time="0"/>
+  <testcase name="jsonWriterTest4()" classname="ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests" time="0"/>
+  <testcase name="jsonWriterTest5()" classname="ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests" time="0"/>
+  <testcase name="jsonWriterTest6()" classname="ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests" time="0"/>
+  <testcase name="jsonWriterTest7()" classname="ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests" time="0"/>
+  <testcase name="jsonWriterTest8()" classname="ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests" time="0"/>
+  <testcase name="jsonWriter11Test()" classname="ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests" time="0"/>
+  <testcase name="jsonWriterIOErrorTests()" classname="ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests" time="0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: Create sample JsonArray for testing
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: Create JsonWriter, write something and close it
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: IllegalStateException if writer.close() already called before writer.writeArray(JsonArray)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: Got expected IllegalStateException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: Create sample JsonArray for testing
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: Create JsonWriter and write out array
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: IllegalStateException if writer.writeArray(JsonArray) called after writer.writeArray(JsonArray)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: Got expected IllegalStateException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: Create sample JsonArray for testing
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: Create sample JsonObject for testing
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: Create JsonWriter and write out array
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: IllegalStateException if writer.writeObject(JsonObject) called after writer.writeArray(JsonArray)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: Got expected IllegalStateException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: Create sample JsonObject for testing
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: Create JsonWriter, write something and close it
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: IllegalStateException if writer.close() already called before writer.writeObject(JsonObject)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: Got expected IllegalStateException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: Create sample JsonObject for testing
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: Create JsonWriter and write out object
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: IllegalStateException if writer.writeObject(JsonObject) called after writer.writeObject(JsonObject)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: Got expected IllegalStateException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: Create sample JsonArray for testing
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: Create sample JsonObject for testing
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: Create JsonWriter and write out object
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: IllegalStateException if writer.writeArray(JsonArray) called after writer.writeObject(JsonObject)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: Got expected IllegalStateException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: Create sample JsonArray for testing
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: Create JsonWriter, write something and close it
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: IllegalStateException if writer.close() already called before writer.write(JsonArray)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: Got expected IllegalStateException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: Create sample JsonArray for testing
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: Create JsonWriter and write out array
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: IllegalStateException if writer.write(JsonArray) called after writer.writeArray(JsonArray)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: Got expected IllegalStateException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: Create sample JsonObject for testing
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: Create JsonWriter and write out object
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: IllegalStateException if writer.write(JsonObject) called after writer.writeObject(JsonObject)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterExceptionTests
+INFO: Got expected IllegalStateException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterWithConfigTest1
+INFO: Create a configuration with PRETT_PRINTING enabled.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util getPrettyPrintingConfig
+INFO: getPrettyPrintConfig
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util getPrettyPrintingConfig
+INFO: Added property: JsonGenerator.PRETTY_PRINTING
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterWithConfigTest1
+INFO: Create sample JsonObject for testing
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterWithConfigTest1
+INFO: Write the JsonObject 'myJsonObject1' out to a JsonWriter
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterWithConfigTest1
+INFO: Close JsonWriter
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterWithConfigTest1
+INFO: Save contents of the JsonWriter as a String
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterWithConfigTest1
+INFO: Dump contents of JsonWriter as a String
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterWithConfigTest1
+INFO: JsonWriterContents={"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterWithConfigTest1
+INFO: Compare expected JsonObject text with actual JsonObject text for equality
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterWithConfigTest2
+INFO: Create a configuration with PRETT_PRINTING enabled.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util getPrettyPrintingConfig
+INFO: getPrettyPrintConfig
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util getPrettyPrintingConfig
+INFO: Added property: JsonGenerator.PRETTY_PRINTING
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterWithConfigTest2
+INFO: Create sample JsonArray for testing
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterWithConfigTest2
+INFO: Write the JsonArray 'myJsonArray1' out to a JsonWriter
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterWithConfigTest2
+INFO: Close JsonWriter
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterWithConfigTest2
+INFO: Save contents of the JsonWriter as a String
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterWithConfigTest2
+INFO: Dump contents of JsonWriter as a String
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterWithConfigTest2
+INFO: JsonWriterContents=[{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterWithConfigTest2
+INFO: Compare expected JsonArray text with actual JsonArray text for equality
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: [{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   [{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: Create expected JSON text with no whitespace for use in comparsion
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: -----------------------------------------------------------------------------------------------
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: TEST CASE [Json.createWriterFactory(Map<String,?>).createWriter(OutputStream, Charset) as UTF-8]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: -----------------------------------------------------------------------------------------------
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: Create JsonWriter using UTF-8 encoding
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: Generated Output={"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: Read the JSON text back from OutputStream using UTF-8 encoding removing whitespace
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: ------------------------------------------------------------------------------------------------
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: TEST CASE [Json.createWriterFactory(Map<String,?>).createWriter(OutputStream, Charset) as UTF-16]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: ------------------------------------------------------------------------------------------------
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: Create JsonWriter using UTF-16 encoding
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: Generated Output={"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: Read the JSON text back from OutputStream using UTF-16 encoding removing whitespace
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: --------------------------------------------------------------------------------------------------
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: TEST CASE [Json.createWriterFactory(Map<String,?>).createWriter(OutputStream, Charset) as UTF-16LE]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: --------------------------------------------------------------------------------------------------
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: Create JsonWriter using UTF-16LE encoding
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: Generated Output={"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: Read the JSON text back from OutputStream using UTF-16LE encoding removing whitespace
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: --------------------------------------------------------------------------------------------------
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: TEST CASE [Json.createWriterFactory(Map<String,?>).createWriter(OutputStream, Charset) as UTF-16BE]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: --------------------------------------------------------------------------------------------------
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: Create JsonWriter using UTF-16BE encoding
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: Generated Output={"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: Read the JSON text back from OutputStream using UTF-16BE encoding removing whitespace
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: --------------------------------------------------------------------------------------------------
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: TEST CASE [Json.createWriterFactory(Map<String,?>).createWriter(OutputStream, Charset) as UTF-32LE]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: --------------------------------------------------------------------------------------------------
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: Create JsonWriter using UTF-32LE encoding
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: Generated Output={"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: Read the JSON text back from OutputStream using UTF-32LE encoding removing whitespace
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: --------------------------------------------------------------------------------------------------
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: TEST CASE [Json.createWriterFactory(Map<String,?>).createWriter(OutputStream, Charset) as UTF-32BE]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: --------------------------------------------------------------------------------------------------
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: Create JsonWriter using UTF-32BE encoding
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: Generated Output={"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterUTFEncodedTests
+INFO: Read the JSON text back from OutputStream using UTF-32BE encoding removing whitespace
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest1
+INFO: Create sample JsonObject for testing
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest1
+INFO: Write the JsonObject 'myJsonObject1' out to a JsonWriter
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest1
+INFO: Close JsonWriter
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest1
+INFO: Save contents of the JsonWriter as a String
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest1
+INFO: Dump contents of JsonWriter as a String
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest1
+INFO: JsonWriterContents={"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest1
+INFO: Read the JsonObject back into 'myJsonObject2' using a JsonReader
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest1
+INFO: Compare myJsonObject1 and myJsonObject2 for equality
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonObjects
+INFO: JsonObject match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonObjects
+INFO: Expected: {"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonObjects
+INFO: Actual:   {"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest2
+INFO: Create sample JsonObject for testing
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest2
+INFO: Write the JsonObject 'myJsonObject1' out to a JsonWriter
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest2
+INFO: Close JsonWriter
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest2
+INFO: Save contents of the JsonWriter as a String
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest2
+INFO: Dump contents of JsonWriter as a String
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest2
+INFO: JsonWriterContents={"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest2
+INFO: Compare expected JsonObject text with actual JsonObject text for equality
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest3
+INFO: Create sample JsonArray for testing
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest3
+INFO: Write the JsonArray 'myJsonArray1' out to a JsonWriter
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest3
+INFO: Close JsonWriter
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest3
+INFO: Save contents of the JsonWriter as a String
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest3
+INFO: Dump contents of JsonWriter as a String
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest3
+INFO: JsonWriterContents=[{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest3
+INFO: Read the JsonArray back into 'myJsonArray2' using a JsonReader
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest3
+INFO: Close JsonReader
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest3
+INFO: Compare myJsonArray1 and myJsonArray2 for equality
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonArrays
+INFO: JsonArray match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonArrays
+INFO: Expected: [{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonArrays
+INFO: Actual:   [{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest4
+INFO: Create sample JsonArray for testing
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest4
+INFO: Write the JsonArray 'myJsonArray1' out to a JsonWriter
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest4
+INFO: Close JsonWriter
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest4
+INFO: Save contents of the JsonWriter as a String
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest4
+INFO: Dump contents of JsonWriter as a String
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest4
+INFO: JsonWriterContents=[{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest4
+INFO: Compare expected JsonArray text with actual JsonArray text for equality
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: [{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   [{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest5
+INFO: Create sample JsonObject for testing
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest5
+INFO: Write the JsonObject 'myJsonObject1' out to a JsonWriter
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest5
+INFO: Close JsonWriter
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest5
+INFO: Save contents of the JsonWriter as a String
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest5
+INFO: Dump contents of JsonWriter as a String
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest5
+INFO: JsonWriterContents={"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest5
+INFO: Compare expected JsonObject text with actual JsonObject text for equality
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest6
+INFO: Create a configuration with PRETT_PRINTING enabled.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util getPrettyPrintingConfig
+INFO: getPrettyPrintConfig
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util getPrettyPrintingConfig
+INFO: Added property: JsonGenerator.PRETTY_PRINTING
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest6
+INFO: Create sample JsonArray for testing
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest6
+INFO: Write the JsonArray 'myJsonArray1' out to a JsonWriter
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest6
+INFO: Close JsonWriter
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest6
+INFO: Save contents of the JsonWriter as a String
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest6
+INFO: Dump contents of JsonWriter as a String
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest6
+INFO: JsonWriterContents=[{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest6
+INFO: Compare expected JsonArray text with actual JsonArray text for equality
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: [{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   [{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest7
+INFO: Create sample JsonObject for testing
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest7
+INFO: Write the JsonObject 'myJsonObject1' out to a JsonWriter
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest7
+INFO: Close JsonWriter
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest7
+INFO: Save contents of the JsonWriter as a String
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest7
+INFO: Dump contents of JsonWriter as a String
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest7
+INFO: JsonWriterContents={"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest7
+INFO: Read the JsonObject back into 'myJsonObject2' using a JsonReader
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest7
+INFO: Compare myJsonObject1 and myJsonObject2 for equality
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonObjects
+INFO: JsonObject match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonObjects
+INFO: Expected: {"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonObjects
+INFO: Actual:   {"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest8
+INFO: Create sample JsonArray for testing
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest8
+INFO: Write the JsonArray 'myJsonArray1' out to a JsonWriter
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest8
+INFO: Close JsonWriter
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest8
+INFO: Save contents of the JsonWriter as a String
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest8
+INFO: Dump contents of JsonWriter as a String
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest8
+INFO: JsonWriterContents=[{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest8
+INFO: Read the JsonArray back into 'myJsonArray2' using a JsonReader
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterTest8
+INFO: Compare myJsonArray1 and myJsonArray2 for equality
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonArrays
+INFO: JsonArray match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonArrays
+INFO: Expected: [{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonArrays
+INFO: Actual:   [{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer test
+INFO: JsonWriter API methods added in JSON-P 1.1.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testWriteValue
+INFO:  - write(JsonValue) for JsonValue as an argument
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testWriteValue
+INFO:     - Data: {"name":"Sarah Connor","age":32}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testWriteValue
+INFO:  - write(JsonValue) for JsonValue as an argument
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testWriteValue
+INFO:     - Data: ["In a galaxy far far away"]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testWriteValue
+INFO:  - write(JsonValue) for String as an argument
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testWriteValue
+INFO:     - Data: "In a galaxy far far away"
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testWriteValue
+INFO:  - write(JsonValue) for Integer as an argument
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testWriteValue
+INFO:     - Data: 42
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testWriteValue
+INFO:  - write(JsonValue) for Long as an argument
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testWriteValue
+INFO:     - Data: 9223372036854775765
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testWriteValue
+INFO:  - write(JsonValue) for Double as an argument
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testWriteValue
+INFO:     - Data: 3.441073578556931E+305
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testWriteValue
+INFO:  - write(JsonValue) for BigInteger as an argument
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testWriteValue
+INFO:     - Data: 123456789012345678901234567890
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testWriteValue
+INFO:  - write(JsonValue) for BigDecimal as an argument
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testWriteValue
+INFO:     - Data: 123456789012345678901234567890.1234567890
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testWriteValue
+INFO:  - write(JsonValue) for Boolean as an argument
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testWriteValue
+INFO:     - Data: true
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testWriteValue
+INFO:  - write(JsonValue) for Null as an argument
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testWriteValue
+INFO:     - Data: null
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testDoubleWriteValue
+INFO:  - duplicate write(JsonValue) for JsonValue as an argument
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testDoubleWriteValue
+INFO:     - Expected exception: JsonWriter can only write one value
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testDoubleWriteValue
+INFO:  - duplicate write(JsonValue) for JsonValue as an argument
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testDoubleWriteValue
+INFO:     - Expected exception: JsonWriter can only write one value
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testDoubleWriteValue
+INFO:  - duplicate write(JsonValue) for String as an argument
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testDoubleWriteValue
+INFO:     - Expected exception: JsonWriter can only write one value
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testDoubleWriteValue
+INFO:  - duplicate write(JsonValue) for Integer as an argument
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testDoubleWriteValue
+INFO:     - Expected exception: JsonWriter can only write one value
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testDoubleWriteValue
+INFO:  - duplicate write(JsonValue) for Long as an argument
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testDoubleWriteValue
+INFO:     - Expected exception: JsonWriter can only write one value
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testDoubleWriteValue
+INFO:  - duplicate write(JsonValue) for Double as an argument
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testDoubleWriteValue
+INFO:     - Expected exception: JsonWriter can only write one value
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testDoubleWriteValue
+INFO:  - duplicate write(JsonValue) for BigInteger as an argument
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testDoubleWriteValue
+INFO:     - Expected exception: JsonWriter can only write one value
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testDoubleWriteValue
+INFO:  - duplicate write(JsonValue) for BigDecimal as an argument
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testDoubleWriteValue
+INFO:     - Expected exception: JsonWriter can only write one value
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testDoubleWriteValue
+INFO:  - duplicate write(JsonValue) for Boolean as an argument
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testDoubleWriteValue
+INFO:     - Expected exception: JsonWriter can only write one value
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testDoubleWriteValue
+INFO:  - duplicate write(JsonValue) for Null as an argument
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testDoubleWriteValue
+INFO:     - Expected exception: JsonWriter can only write one value
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testIOExceptionOnWriteValue
+INFO:  - write(JsonValue) into already closed file writer
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testIOExceptionOnWriteValue
+INFO:     - Temporary file: /tmp/testIOExceptionOnWriteValue15532188821603867944.txt
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.Writer testIOExceptionOnWriteValue
+INFO:     - Expected exception: Cannot flush JSON generator
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterIOErrorTests
+INFO: Create sample JsonObject for testing
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterIOErrorTests
+INFO: Trip JsonException if there is an i/o error on JsonWriter.close().
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterIOErrorTests
+INFO: Calling JsonWriter.close()
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.MyBufferedWriter checkToTripIOException
+INFO: *** tripping an IOException ***
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterIOErrorTests
+INFO: Caught expected JsonException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterIOErrorTests
+INFO: Create sample JsonObject for testing
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterIOErrorTests
+INFO: Trip JsonException if there is an i/o error on JsonWriter.writeObject(JsonObject).
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterIOErrorTests
+INFO: Calling JsonWriter.writeObject(JsonObject)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.MyBufferedWriter checkToTripIOException
+INFO: *** tripping an IOException ***
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.MyBufferedWriter checkToTripIOException
+INFO: *** tripping an IOException ***
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterIOErrorTests
+INFO: Caught expected JsonException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterIOErrorTests
+INFO: Create sample JsonArray for testing
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterIOErrorTests
+INFO: Trip JsonException if there is an i/o error on JsonWriter.writeArray(JsonArray).
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterIOErrorTests
+INFO: Calling JsonWriter.writeArray(JsonArray)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.MyBufferedWriter checkToTripIOException
+INFO: *** tripping an IOException ***
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.MyBufferedWriter checkToTripIOException
+INFO: *** tripping an IOException ***
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterIOErrorTests
+INFO: Caught expected JsonException
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterIOErrorTests
+INFO: Create sample JsonObject for testing
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterIOErrorTests
+INFO: Trip JsonException if there is an i/o error on JsonWriter.write(JsonStructure).
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterIOErrorTests
+INFO: Calling JsonWriter.write(JsonStructure)
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.MyBufferedWriter checkToTripIOException
+INFO: *** tripping an IOException ***
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.MyBufferedWriter checkToTripIOException
+INFO: *** tripping an IOException ***
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonwritertests.ClientTests jsonWriterIOErrorTests
+INFO: Caught expected JsonException
+]]></system-err>
+</testsuite>
