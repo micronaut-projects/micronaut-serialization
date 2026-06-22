@@ -1,3 +1,18 @@
+/*
+ * Copyright 2017-2026 original authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.micronaut.serde.yaml;
 
 import io.micronaut.serde.support.AbstractStreamDecoder;
@@ -18,8 +33,16 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
+/**
+ * YAML implementation of the {@link io.micronaut.serde.Decoder} interface.
+ *
+ * @since 3.1.0
+ */
+@SuppressWarnings("NullAway")
 public class YamlDecoder extends AbstractStreamDecoder {
 
     private final Iterator<Event> events;
@@ -27,11 +50,14 @@ public class YamlDecoder extends AbstractStreamDecoder {
     private Event currrentEvent;
     private boolean inDocument = false;
     private final Resolver resolver = new Resolver();
+    private final Map<String, ScalarEvent> anchoredScalars = new HashMap<>();
 
-    public static YamlDecoder create(@NonNull InputStream in, @NonNull RemainingLimits limits) {
-        return new YamlDecoder(in, limits);
-    }
-
+    /**
+     * Creates a YAML decoder with the supplied input stream and stream limits.
+     *
+     * @param inputStream The YAML input stream
+     * @param remainingLimits The remaining stream limits
+     */
     public YamlDecoder(@NonNull InputStream inputStream, @NonNull RemainingLimits remainingLimits) {
         super(remainingLimits);
         events = new Yaml().parse(new UnicodeReader(inputStream)).iterator();
@@ -46,6 +72,17 @@ public class YamlDecoder extends AbstractStreamDecoder {
                 return;
             }
         }
+    }
+
+    /**
+     * Creates a YAML decoder.
+     *
+     * @param in The YAML input stream
+     * @param limits The remaining stream limits
+     * @return The YAML decoder
+     */
+    public static YamlDecoder create(@NonNull InputStream in, @NonNull RemainingLimits limits) {
+        return new YamlDecoder(in, limits);
     }
 
     @Override
@@ -71,11 +108,16 @@ public class YamlDecoder extends AbstractStreamDecoder {
     protected void nextToken() throws IOException {
         if (!events.hasNext()) {
             this.currrentEvent = null;
+            return;
         }
         if (inDocument) {
             Event nextEvent = events.next();
             Event.ID eventId = nextEvent.getEventId();
 
+            if (eventId == Event.ID.Comment) {
+                nextToken();
+                return;
+            }
             if (eventId == Event.ID.StreamStart || eventId == Event.ID.DocumentStart) {
                 throw createDeserializationException("Multiple documents encounter, deserialization failed.", null);
             }
@@ -89,8 +131,11 @@ public class YamlDecoder extends AbstractStreamDecoder {
                 mappingContextStack.push(new CollectionContext(true));
             }
             if (eventId == Event.ID.StreamEnd || eventId == Event.ID.DocumentEnd) {
+                if (eventId == Event.ID.DocumentEnd) {
+                    failIfAnotherDocumentExists();
+                }
                 inDocument = false;
-                 finishStructure();
+                finishStructure();
             }
             if (eventId == Event.ID.Scalar) {
                 assert !mappingContextStack.isEmpty() : "Mapping context can't be empty while decoding a scalar.";
@@ -102,6 +147,16 @@ public class YamlDecoder extends AbstractStreamDecoder {
             this.currrentEvent = nextEvent;
         }
 
+    }
+
+    private void failIfAnotherDocumentExists() throws IOException {
+        while (events.hasNext()) {
+            Event nextEvent = events.next();
+            if (nextEvent.getEventId() == Event.ID.StreamEnd || nextEvent.getEventId() == Event.ID.Comment) {
+                continue;
+            }
+            throw createDeserializationException("Multiple documents encounter, deserialization failed.", null);
+        }
     }
 
     @Override
@@ -190,6 +245,7 @@ public class YamlDecoder extends AbstractStreamDecoder {
             return TokenType.STRING;
         }
     }
+
     @Override
     public void finishStructure(boolean consumeLeftElements) throws IOException {
         super.finishStructure(consumeLeftElements);

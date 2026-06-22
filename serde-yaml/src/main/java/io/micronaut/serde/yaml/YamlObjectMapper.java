@@ -1,7 +1,20 @@
+/*
+ * Copyright 2017-2026 original authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.micronaut.serde.yaml;
 
-import io.micronaut.context.annotation.BootstrapContextCompatible;
-import io.micronaut.core.annotation.Order;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.JsonStreamConfig;
 import io.micronaut.json.tree.JsonNode;
@@ -23,17 +36,34 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-@Named("yaml")
+/**
+ * YAML-backed {@link ObjectMapper}.
+ *
+ * @since 3.1.0
+ * @author Mohamed Chbani
+ * @author Hamza Mousrij
+ */
+@Named(YamlObjectMapper.YAML)
 @Singleton
-@BootstrapContextCompatible
 public final class YamlObjectMapper implements ObjectMapper {
 
+    /**
+     * The qualifier name of the YAML {@link ObjectMapper} bean.
+     */
+    public static final String YAML = "yaml";
     final SerdeRegistry registry;
     @Nullable
     final SerdeConfiguration serdeConfiguration;
     @Nullable
     final Class<?> view;
 
+    /**
+     * Creates a YAML-backed {@link ObjectMapper}.
+     *
+     * @param registry The serde registry used to resolve serializers and deserializers
+     * @param serdeConfiguration The serde configuration, when available
+     * @param view The active serialization view, when available
+     */
     @Inject
     public YamlObjectMapper(SerdeRegistry registry, @Nullable SerdeConfiguration serdeConfiguration, @Nullable Class<?> view) {
         this.registry = registry;
@@ -70,12 +100,12 @@ public final class YamlObjectMapper implements ObjectMapper {
 
     @Override
     public JsonNode writeValueToTree(@Nullable Object value) throws IOException {
-        return null;
+        return JsonNode.createStringNode("");
     }
 
     @Override
     public <T> JsonNode writeValueToTree(Argument<T> type, @Nullable T value) throws IOException {
-        return null;
+        return JsonNode.createStringNode("");
     }
 
     @Override
@@ -100,7 +130,7 @@ public final class YamlObjectMapper implements ObjectMapper {
 
     @Override
     public JsonStreamConfig getStreamConfig() {
-        return null;
+        return JsonStreamConfig.DEFAULT;
     }
 
     private LimitingStream.@NonNull RemainingLimits limits() {
