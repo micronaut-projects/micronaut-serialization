@@ -19,7 +19,6 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import jakarta.inject.Singleton;
-import jakarta.json.Json;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,7 +33,6 @@ import java.util.stream.Collectors;
  * Jackson dataformat csv behaviour returns List<List<String>> for non defined schema table
  *
  * @see <a href="https://github.com/FasterXML/jackson-dataformats-text/blob/3.x/csv/src/test/java/tools/jackson/dataformat/csv/deser/BlogPost2021AprilTest.java">Csv without schema</a>
- * @see <a href="https://github.com/FasterXML/jackson-dataformats-text/blob/3.x/csv/src/test/java/tools/jackson/dataformat/csv/deser/BlogPost2021AprilTest.java">Jackson Test behavior</a>
  */
 @Internal
 @Singleton
@@ -52,15 +50,19 @@ public class CsvConverter {
         return parseNoSchema(csv);
     }
 
-    /*
-    * return line-delimited Json (Jsonl) where the keys are integers counted from zero.
-    *  i.e :
-    *    [
-    *      {"0": "1", "1": "2", "2": "true"},
-    *      {"0": "2", "1": "9", "2": "false"}
-    *    ]
-    *
-    * */
+    /**
+     * Returns CSV rows as JSON objects where keys are column indexes counted from zero.
+     * For example:
+     * <pre>
+     * [
+     *   {"0": "1", "1": "2", "2": "true"},
+     *   {"0": "2", "1": "9", "2": "false"}
+     * ]
+     * </pre>
+     *
+     * @param csv The CSV content
+     * @return The indexed object rows
+     */
     private static JsonNode parseNoSchema(String csv) {
         List<JsonNode> rows = parseRows(csv).stream()
             .map(cells -> {
@@ -91,7 +93,7 @@ public class CsvConverter {
 
         var row = rows.stream()
             .skip(1)
-            .map(cells-> {
+            .map(cells -> {
                 var index = new AtomicInteger(0);
 
                 Map<String, JsonNode> rowMap = cells.stream()
@@ -108,15 +110,19 @@ public class CsvConverter {
 
     }
 
-    /*
-     * return List<List<String>>, so csv values stays as list of cell values
-     *  i.e :
-     *    [
-     *      {"0": "1", "1": "2", "2": "true"},
-     *      {"0": "2", "1": "9", "2": "false"}
-     *    ]
+    /**
+     * Returns CSV rows as JSON arrays so each CSV value stays as a cell value.
+     * For example:
+     * <pre>
+     * [
+     *   ["1", "2", "true"],
+     *   ["2", "9", "false"]
+     * ]
+     * </pre>
      *
-     * */
+     * @param csv The CSV content
+     * @return The array rows
+     */
     private static JsonNode parseNoSchemaRows(String csv) {
         var rows = parseRows(csv).stream()
             .map(cells -> {

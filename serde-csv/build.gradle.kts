@@ -24,6 +24,7 @@ dependencies {
     testCompileOnly(mn.micronaut.inject.groovy)
 
     testImplementation(projects.micronautSerdeProcessor)
+    testImplementation(projects.micronautSerdeCsvTck)
     testImplementation(projects.micronautSerdeTck)
     testImplementation(projects.micronautSerdePropertiesTck)
     testImplementation(mn.micronaut.inject.java.test)

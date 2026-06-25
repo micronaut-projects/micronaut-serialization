@@ -25,7 +25,6 @@ import java.util.Objects;
 /**
  * CSV-specific configuration.
  */
-@BootstrapContextCompatible
 @Internal
 @ConfigurationProperties(SerdeCsvConfiguration.PREFIX)
 public final class SerdeCsvConfiguration {
