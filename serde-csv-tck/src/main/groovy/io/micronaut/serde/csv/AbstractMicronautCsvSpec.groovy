@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.csv
 
+import io.micronaut.core.annotation.Nullable
 import io.micronaut.core.type.Argument
 import io.micronaut.serde.ObjectMapper
 
@@ -23,6 +24,11 @@ import java.nio.charset.StandardCharsets
 abstract class AbstractMicronautCsvSpec extends AbstractCsvSerdeSpec {
 
     abstract ObjectMapper getCsvMapper()
+
+    // Overridden in Micronaut tests
+    ObjectMapper getCsvMapperWithWriteHeader() {
+        csvMapper
+    }
 
     @Override
     def <T> T readCsv(String csv, Argument<T> type) {
@@ -42,5 +48,30 @@ abstract class AbstractMicronautCsvSpec extends AbstractCsvSerdeSpec {
     @Override
     def <T> T readCsvWithHeader(String header, String csv, Argument<T> type) {
         readCsv(header + "\n" + csv, type)
+    }
+
+    @Override
+    def <T> T readCsvDirect(String csv, Argument<T> type) {
+        readCsv(csv, type)
+    }
+
+    @Override
+    def <T> T readCsvWithHeaderDirect(String header, String csv, Argument<T> type) {
+        readCsvWithHeader(header, csv, type)
+    }
+
+    @Override
+    def <T> String writeCsv(Argument<T> type, T value) {
+        new String(csvMapper.writeValueAsBytes(type, value), StandardCharsets.UTF_8)
+    }
+
+    @Override
+    def <T> String writeCsvWithHeader(@Nullable String header, Argument<T> type, T value) {
+        new String(csvMapperWithWriteHeader.writeValueAsBytes(type, value), StandardCharsets.UTF_8)
+    }
+
+    @Override
+    def <T> String writeCsvWithInferredHeader(Argument<T> type, T value) {
+        writeCsvWithHeader(null, type, value)
     }
 }

@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.csv
 
+import io.micronaut.core.beans.BeanIntrospection
 import io.micronaut.core.type.Argument
 import tools.jackson.databind.JavaType
 import tools.jackson.dataformat.csv.CsvMapper
@@ -31,6 +32,7 @@ abstract class AbstractJacksonDatabindCsvSpec extends AbstractCsvSerdeSpec {
     def <T> T readCsv(String csv, Argument<T> type) {
         databindCsvMapper.readerFor(toJavaType(type))
             .with(CsvReadFeature.WRAP_AS_ARRAY)
+            .with(CsvReadFeature.SKIP_EMPTY_LINES)
             .readValue(csv)
     }
 
@@ -43,21 +45,89 @@ abstract class AbstractJacksonDatabindCsvSpec extends AbstractCsvSerdeSpec {
     def <T> T readCsv(InputStream csv, Argument<T> type) {
         databindCsvMapper.readerFor(toJavaType(type))
             .with(CsvReadFeature.WRAP_AS_ARRAY)
+            .with(CsvReadFeature.SKIP_EMPTY_LINES)
             .readValue(csv)
     }
 
     @Override
     def <T> T readCsvWithHeader(String header, String csv, Argument<T> type) {
+        def schema = schema(header)
         def rowType = rowType(type)
         if (rowType != null) {
             return (T) databindCsvMapper.readerFor(rowType)
-                .with(CsvSchema.emptySchema().withHeader())
-                .readValues(header + "\n" + csv)
+                .with(schema)
+                .with(CsvReadFeature.SKIP_EMPTY_LINES)
+                .readValues(csv)
                 .readAll()
         }
         databindCsvMapper.readerFor(toJavaType(type))
-            .with(CsvSchema.emptySchema().withHeader())
-            .readValue(header + "\n" + csv)
+            .with(schema)
+            .with(CsvReadFeature.SKIP_EMPTY_LINES)
+            .readValue(csv)
+    }
+
+    @Override
+    def <T> T readCsvDirect(String csv, Argument<T> type) {
+        databindCsvMapper.rebuild()
+            .enable(CsvReadFeature.WRAP_AS_ARRAY)
+            .enable(CsvReadFeature.SKIP_EMPTY_LINES)
+            .build()
+            .readValue(csv, toJavaType(type))
+    }
+
+    @Override
+    def <T> T readCsvWithHeaderDirect(String header, String csv, Argument<T> type) {
+        def schema = schema(header)
+        def rowType = rowType(type)
+        if (rowType != null) {
+            return (T) databindCsvMapper.reader(schema)
+                .with(CsvReadFeature.SKIP_EMPTY_LINES)
+                .forType(rowType)
+                .readValues(csv)
+                .readAll()
+        }
+        databindCsvMapper.reader(schema)
+            .with(CsvReadFeature.SKIP_EMPTY_LINES)
+            .forType(toJavaType(type))
+            .readValue(csv)
+    }
+
+    @Override
+    def <T> String writeCsv(Argument<T> type, T value) {
+        databindCsvMapper.writer(CsvSchema.emptySchema().withLineSeparator("\n"))
+            .forType(toJavaType(type))
+            .writeValueAsString(value)
+    }
+
+    @Override
+    def <T> String writeCsvWithHeader(String header, Argument<T> type, T value) {
+        databindCsvMapper.writer(schema(header).withHeader())
+            .forType(toJavaType(type))
+            .writeValueAsString(value)
+    }
+
+    @Override
+    def <T> String writeCsvWithInferredHeader(Argument<T> type, T value) {
+        databindCsvMapper.writer(schema(type).withHeader())
+            .forType(toJavaType(type))
+            .writeValueAsString(value)
+    }
+
+    private CsvSchema schema(String header) {
+        def schemaBuilder = CsvSchema.builder()
+        header.split(",", -1)
+            .collect { it.trim() }
+            .each { schemaBuilder.addColumn(it) }
+        schemaBuilder.build().withLineSeparator("\n")
+    }
+
+    private CsvSchema schema(Argument<?> type) {
+        def rowArgument = rowArgument(type) ?: type
+        def schemaBuilder = CsvSchema.builder()
+        BeanIntrospection.getIntrospection(rowArgument.type)
+            .beanProperties
+            .each { schemaBuilder.addColumn(it.name) }
+        schemaBuilder.build().withLineSeparator("\n")
     }
 
     private JavaType rowType(Argument<?> type) {

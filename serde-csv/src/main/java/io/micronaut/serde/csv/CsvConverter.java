@@ -19,9 +19,11 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import jakarta.inject.Singleton;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,9 +32,11 @@ import java.util.stream.Collectors;
 
 /**
  * Converts comma-separated rows to {@code List<List<String>>} arguments.
- * Jackson dataformat csv behaviour returns List<List<String>> for non defined schema table
+ * Jackson dataformat csv behavior returns List<List<String>> for non defined schema table
  *
- * @see <a href="https://github.com/FasterXML/jackson-dataformats-text/blob/3.x/csv/src/test/java/tools/jackson/dataformat/csv/deser/BlogPost2021AprilTest.java">Csv without schema</a>
+ * @see <a href="https://github.com/FasterXML/jackson-dataformats-text/tree/3.x/csv#data-binding-with-schema">Csv without schema</a>
+ * @since 3.1.0
+ * @author Hamza Mousrij
  */
 @Internal
 @Singleton
@@ -48,6 +52,51 @@ public class CsvConverter {
             return parseWithSchema(csv);
         }
         return parseNoSchema(csv);
+    }
+
+    static String write(JsonNode tree, SerdeCsvConfiguration csvConfiguration) {
+        return write(tree, csvConfiguration, null);
+    }
+
+    static String write(JsonNode tree, SerdeCsvConfiguration csvConfiguration, @Nullable List<String> headers) {
+        if (tree.isNull()) {
+            return "";
+        }
+        var builder = new StringBuilder();
+        appendCsvDocument(builder, tree, csvConfiguration, headers);
+        return builder.toString();
+    }
+
+    private static void appendCsvDocument(StringBuilder builder,
+                                          JsonNode tree,
+                                          SerdeCsvConfiguration csvConfiguration,
+                                          @Nullable List<String> configuredHeaders) {
+        if (tree.isArray()) {
+            if (csvConfiguration.getWriteHeader() == SerdeCsvConfiguration.Header.FIRST_ROW) {
+                List<String> headers = configuredHeaders == null ? headersFromRows(tree) : configuredHeaders;
+                if (!headers.isEmpty()) {
+                    appendRow(builder, headers);
+                }
+                for (JsonNode row : tree.values()) {
+                    appendSchemaRow(builder, row, headers);
+                }
+            } else {
+                for (JsonNode row : tree.values()) {
+                    appendRow(builder, row);
+                }
+            }
+        } else if (tree.isObject()) {
+            if (csvConfiguration.getWriteHeader() == SerdeCsvConfiguration.Header.FIRST_ROW) {
+                List<String> headers = configuredHeaders == null ? headersFromRow(tree) : configuredHeaders;
+                appendRow(builder, headers);
+                appendObjectRow(builder, tree, headers);
+            } else {
+                appendRow(builder, tree);
+            }
+        } else {
+            appendCell(builder, cell(tree));
+            builder.append('\n');
+        }
     }
 
     /**
@@ -143,6 +192,103 @@ public class CsvConverter {
                 .map(String::trim)
                 .collect(Collectors.toList()))
             .collect(Collectors.toList());
+    }
+
+    private static void appendRow(StringBuilder builder, JsonNode node) {
+        if (node.isArray()) {
+            var index = 0;
+            for (JsonNode value : node.values()) {
+                appendSeparator(builder, index++);
+                appendCell(builder, cell(value));
+            }
+        } else if (node.isObject()) {
+            var index = 0;
+            for (Map.Entry<String, JsonNode> entry : node.entries()) {
+                appendSeparator(builder, index++);
+                appendCell(builder, cell(entry.getValue()));
+            }
+        } else {
+            appendCell(builder, cell(node));
+        }
+        builder.append('\n');
+    }
+
+    private static void appendRow(StringBuilder builder, List<String> row) {
+        for (int i = 0; i < row.size(); i++) {
+            appendSeparator(builder, i);
+            appendCell(builder, row.get(i));
+        }
+        builder.append('\n');
+    }
+
+    private static void appendObjectRow(StringBuilder builder, JsonNode node, List<String> headers) {
+        for (int i = 0; i < headers.size(); i++) {
+            String header = headers.get(i);
+            appendSeparator(builder, i);
+            JsonNode cell = node.get(header);
+            appendCell(builder, cell == null ? "" : cell(cell));
+        }
+        builder.append('\n');
+    }
+
+    private static void appendSchemaRow(StringBuilder builder, JsonNode node, List<String> headers) {
+        if (node.isObject()) {
+            appendObjectRow(builder, node, headers);
+        } else {
+            appendRow(builder, node);
+        }
+    }
+
+    private static void appendSeparator(StringBuilder builder, int index) {
+        if (index > 0) {
+            builder.append(',');
+        }
+    }
+
+    // Applying Csv escaping i.e:  a "quoted" value -> "a ""quoted"" value"
+    private static void appendCell(StringBuilder builder, String value) {
+        if (value.indexOf(',') < 0 && value.indexOf('"') < 0 && value.indexOf('\n') < 0 && value.indexOf('\r') < 0) {
+            builder.append(value);
+            return;
+        }
+        builder.append('"');
+        for (int i = 0; i < value.length(); i++) {
+            char c = value.charAt(i);
+            if (c == '"') {
+                builder.append('"');
+            }
+            builder.append(c);
+        }
+        builder.append('"');
+    }
+
+    // Builds the header list for an array of object rows.
+    private static List<String> headersFromRows(JsonNode rows) {
+        var headers = new LinkedHashSet<String>();
+        for (JsonNode row : rows.values()) {
+            if (row.isObject()) {
+                for (Map.Entry<String, JsonNode> entry : row.entries()) {
+                    headers.add(entry.getKey());
+                }
+            }
+        }
+        return List.copyOf(headers);
+    }
+
+    // Builds headers from a single object.
+    private static List<String> headersFromRow(JsonNode row) {
+        var headers = new ArrayList<String>();
+        for (Map.Entry<String, JsonNode> entry : row.entries()) {
+            headers.add(entry.getKey());
+        }
+        return headers;
+    }
+
+    private static String cell(JsonNode node) {
+        if (node.isNull()) {
+            return "";
+        }
+        return node.coerceStringValue();
     }
 
 }

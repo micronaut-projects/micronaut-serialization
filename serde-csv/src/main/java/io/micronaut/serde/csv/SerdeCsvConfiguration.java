@@ -15,7 +15,6 @@
  */
 package io.micronaut.serde.csv;
 
-import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.ConfigurationProperties;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.serde.config.SerdeConfiguration;
@@ -31,6 +30,7 @@ public final class SerdeCsvConfiguration {
     static final String PREFIX = SerdeConfiguration.PREFIX + ".csv";
 
     private ReadFeatures readFeatures = new ReadFeatures();
+    private WriteFeatures writeFeatures = new WriteFeatures();
 
     /**
      * Returns the CSV read features.
@@ -51,6 +51,24 @@ public final class SerdeCsvConfiguration {
     }
 
     /**
+     * Returns the CSV write features.
+     *
+     * @return The CSV write features
+     */
+    public WriteFeatures getWriteFeatures() {
+        return writeFeatures;
+    }
+
+    /**
+     * Sets the CSV write features.
+     *
+     * @param writeFeatures The CSV write features
+     */
+    public void setWriteFeatures(WriteFeatures writeFeatures) {
+        this.writeFeatures = Objects.requireNonNull(writeFeatures, "writeFeatures");
+    }
+
+    /**
      * Returns the configured header handling.
      *
      * @return The configured header handling
@@ -60,7 +78,16 @@ public final class SerdeCsvConfiguration {
     }
 
     /**
-     * CSV header handling.
+     * Returns the configured write header handling.
+     *
+     * @return The configured write header handling
+     */
+    public Header getWriteHeader() {
+        return writeFeatures.getHeader();
+    }
+
+    /**
+     * CSV header handling for reading and writing.
      */
     public enum Header {
         /**
@@ -69,7 +96,8 @@ public final class SerdeCsvConfiguration {
         NONE,
 
         /**
-         * The first CSV row contains column names used as object row keys.
+         * When reading, the first CSV row contains column names used as object row keys.
+         * When writing, column names are emitted as the first CSV row.
          */
         FIRST_ROW
     }
@@ -85,6 +113,32 @@ public final class SerdeCsvConfiguration {
          * Returns the configured header handling.
          *
          * @return The configured header handling
+         */
+        public Header getHeader() {
+            return header;
+        }
+
+        /**
+         * Sets the header handling.
+         *
+         * @param header The header handling
+         */
+        public void setHeader(Header header) {
+            this.header = Objects.requireNonNull(header, "header");
+        }
+    }
+
+    /**
+     * Controls CSV serialization behavior.
+     */
+    @ConfigurationProperties("write-features")
+    public static final class WriteFeatures {
+        private Header header = Header.NONE;
+
+        /**
+         * Returns the configured header handling.
+         *
+         * @return The header handling
          */
         public Header getHeader() {
             return header;

@@ -26,4 +26,15 @@ interface CsvSpec {
     def <T> T readCsv(InputStream csv, Argument<T> type)
 
     def <T> T readCsvWithHeader(String header, String csv, Argument<T> type)
+
+    def <T> T readCsvDirect(String csv, Argument<T> type)
+
+    def <T> T readCsvWithHeaderDirect(String header, String csv, Argument<T> type)
+
+    def <T> String writeCsv(Argument<T> type, T value)
+
+    def <T> String writeCsvWithHeader(String header, Argument<T> type, T value)
+
+    // Infer the header from bean properties.
+    def <T> String writeCsvWithInferredHeader(Argument<T> type, T value)
 }
