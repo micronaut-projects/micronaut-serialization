@@ -16,57 +16,118 @@
 package io.micronaut.serde.csv;
 
 import io.micronaut.core.annotation.Internal;
-import io.micronaut.core.bind.annotation.Bindable;
-import io.micronaut.core.convert.ArgumentConversionContext;
-import io.micronaut.core.convert.ConversionContext;
-import io.micronaut.core.convert.format.Format;
-import io.micronaut.core.convert.format.FormattingTypeConverter;
-import io.micronaut.core.convert.converters.MultiValuesConverterFactory;
-import io.micronaut.core.convert.value.ConvertibleMultiValues;
 import io.micronaut.core.type.Argument;
+import io.micronaut.json.tree.JsonNode;
 import jakarta.inject.Singleton;
-import org.jspecify.annotations.Nullable;
+import jakarta.json.Json;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
  * Converts comma-separated rows to {@code List<List<String>>} arguments.
  * Jackson dataformat csv behaviour returns List<List<String>> for non defined schema table
  *
+ * @see <a href="https://github.com/FasterXML/jackson-dataformats-text/blob/3.x/csv/src/test/java/tools/jackson/dataformat/csv/deser/BlogPost2021AprilTest.java">Csv without schema</a>
  * @see <a href="https://github.com/FasterXML/jackson-dataformats-text/blob/3.x/csv/src/test/java/tools/jackson/dataformat/csv/deser/BlogPost2021AprilTest.java">Jackson Test behavior</a>
  */
 @Internal
 @Singleton
-public class CsvConverter implements FormattingTypeConverter<ConvertibleMultiValues<String>, List, Format> {
+public class CsvConverter {
 
-    @Override
-    public Optional<List> convert(ConvertibleMultiValues<String> object,
-                                  Class<List> targetType,
-                                  ConversionContext context) {
-
-        String name = context.getAnnotationMetadata()
-            .stringValue(Bindable.class)
-            .orElseGet(() -> argument(context).map(Argument::getName).orElse(MultiValuesConverterFactory.FORMAT_CSV));
-        String csv = object.get(name);
-
-        if (csv == null) {
-            return Optional.empty();
+    static JsonNode parse(String csv, Argument<?> type, SerdeCsvConfiguration csvConfiguration) {
+        if (type.getFirstTypeVariable()
+            .filter(typeVariable -> Iterable.class.isAssignableFrom(typeVariable.getType()))
+            .isPresent()) {
+            return parseNoSchemaRows(csv);
         }
-
-        return Optional.of(parse(csv, argument(context).orElse(Argument.listOf(String.class))));
+        if (csvConfiguration.getHeader() == SerdeCsvConfiguration.Header.FIRST_ROW) {
+            return parseWithSchema(csv);
+        }
+        return parseNoSchema(csv);
     }
 
-    @Override
-    public Class<Format> annotationType() {
-        return Format.class;
+    /*
+    * return line-delimited Json (Jsonl) where the keys are integers counted from zero.
+    *  i.e :
+    *    [
+    *      {"0": "1", "1": "2", "2": "true"},
+    *      {"0": "2", "1": "9", "2": "false"}
+    *    ]
+    *
+    * */
+    private static JsonNode parseNoSchema(String csv) {
+        List<JsonNode> rows = parseRows(csv).stream()
+            .map(cells -> {
+                var index = new AtomicInteger(0);
+
+                Map<String, JsonNode> rowMap = cells.stream()
+                    .collect(Collectors.toMap(
+                        cell -> Integer.toString(index.getAndIncrement()),
+                        JsonNode::createStringNode,
+                        (oldValue, newValue) -> oldValue,
+                        LinkedHashMap::new
+                    ));
+
+                return JsonNode.createObjectNode(rowMap);
+            })
+            .toList();
+
+        return JsonNode.createArrayNode(rows);
     }
 
-    static List parse(String csv, Argument<?> targetType) {
+    private static JsonNode parseWithSchema(String csv) {
         List<List<String>> rows = parseRows(csv);
-        return rows;
+        var objects = new ArrayList<JsonNode>();
+        if (rows.isEmpty()) {
+            return JsonNode.createArrayNode(objects);
+        }
+        List<String> headers = rows.get(0);
+
+        var row = rows.stream()
+            .skip(1)
+            .map(cells-> {
+                var index = new AtomicInteger(0);
+
+                Map<String, JsonNode> rowMap = cells.stream()
+                    .collect(Collectors.toMap(
+                        cell -> headers.get(index.getAndIncrement()),
+                        JsonNode::createStringNode,
+                        (oldValue, newValue) -> oldValue,
+                        LinkedHashMap::new
+                    ));
+                return JsonNode.createObjectNode(rowMap);
+            })
+            .toList();
+        return JsonNode.createArrayNode(row);
+
+    }
+
+    /*
+     * return List<List<String>>, so csv values stays as list of cell values
+     *  i.e :
+     *    [
+     *      {"0": "1", "1": "2", "2": "true"},
+     *      {"0": "2", "1": "9", "2": "false"}
+     *    ]
+     *
+     * */
+    private static JsonNode parseNoSchemaRows(String csv) {
+        var rows = parseRows(csv).stream()
+            .map(cells -> {
+                var row = cells.stream()
+                    .map(JsonNode::createStringNode)
+                    .toList();
+                return JsonNode.createArrayNode(row);
+            })
+            .toList();
+
+        return JsonNode.createArrayNode(rows);
     }
 
     static List<List<String>> parseRows(String csv) {
@@ -78,10 +139,4 @@ public class CsvConverter implements FormattingTypeConverter<ConvertibleMultiVal
             .collect(Collectors.toList());
     }
 
-    private static Optional<Argument<?>> argument(ConversionContext context) {
-        if (context instanceof ArgumentConversionContext<?> argumentConversionContext) {
-            return Optional.of(argumentConversionContext.getArgument());
-        }
-        return Optional.empty();
-    }
 }

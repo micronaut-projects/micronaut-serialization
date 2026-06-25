@@ -15,61 +15,47 @@
  */
 package io.micronaut.serde.csv
 
-import io.micronaut.core.annotation.AnnotationMetadata
-import io.micronaut.core.convert.ConversionContext
-import io.micronaut.core.convert.DefaultMutableConversionService
-import io.micronaut.core.convert.format.Format
-import io.micronaut.core.convert.value.ConvertibleMultiValues
-import io.micronaut.core.convert.value.MutableConvertibleMultiValuesMap
+import io.micronaut.context.ApplicationContext
 import io.micronaut.core.type.Argument
-import io.micronaut.inject.annotation.MutableAnnotationMetadata
+import io.micronaut.json.tree.JsonNode
 import spock.lang.Specification
 
 class CsvConverterSpec extends Specification {
 
-    void "test convert CSV to List<List<String>> using conversion service"() {
+    void "test parse CSV without schema to indexed object rows"() {
         given:
-        def conversionService = new DefaultMutableConversionService()
-        conversionService.addConverter(ConvertibleMultiValues, List, new CsvConverter())
-
-        def metadata = new MutableAnnotationMetadata()
-        metadata.addAnnotation(
-            Format.class.name,
-            [(AnnotationMetadata.VALUE_MEMBER): "CSV"]
-        )
-
-        def values = new MutableConvertibleMultiValuesMap<String>()
-        values.add("p", "1,2,true\n" +
-            "2,9,false\n" +
-            "-13,0,true\n")
-
-        Argument<List<List<String>>> target = (Argument<List<List<String>>>) Argument.of(
-            List,
-            "p",
-            metadata,
-            Argument.listOf(String)
-        )
-
-        when:
-        def converted = conversionService.convert(values, ConversionContext.of(target))
-
-        then:
-        converted.isPresent()
-        converted.get() == [
-            ["1", "2", "true"],
-            ["2", "9", "false"],
-            ["-13", "0", "true"]
-        ]
-    }
-
-    void "test read CSV to List<List<String>> using CSV mapper"() {
-        given:
-        def mapper = new CsvMapper(null, null)
         def csv = "1,2,true\n" +
             "2,9,false\n" +
             "-13,0,true\n"
-        Argument<List<List<String>>> target = (Argument<List<List<String>>>) Argument.of(
-            List,
+
+        expect:
+        CsvConverter.parseNoSchema(csv) == JsonNode.createArrayNode([
+            JsonNode.createObjectNode([
+                "0": JsonNode.createStringNode("1"),
+                "1": JsonNode.createStringNode("2"),
+                "2": JsonNode.createStringNode("true")
+            ]),
+            JsonNode.createObjectNode([
+                "0": JsonNode.createStringNode("2"),
+                "1": JsonNode.createStringNode("9"),
+                "2": JsonNode.createStringNode("false")
+            ]),
+            JsonNode.createObjectNode([
+                "0": JsonNode.createStringNode("-13"),
+                "1": JsonNode.createStringNode("0"),
+                "2": JsonNode.createStringNode("true")
+            ])
+        ])
+    }
+
+    void "test read CSV without schema to List<List<String>> using CSV mapper"() {
+        given:
+        def context = ApplicationContext.run()
+        def mapper = context.getBean(CsvMapper)
+        def csv = "1,2,true\n" +
+            "2,9,false\n" +
+            "-13,0,true\n"
+        Argument<List<List<String>>> target = (Argument<List<List<String>>>) Argument.listOf(
             Argument.listOf(String)
         )
 
@@ -82,5 +68,86 @@ class CsvConverterSpec extends Specification {
             ["2", "9", "false"],
             ["-13", "0", "true"]
         ]
+
+        cleanup:
+        context?.close()
+    }
+
+    void "test read CSV without schema to List<Map<String, String>> using CSV mapper"() {
+        given:
+        def context = ApplicationContext.run()
+        def mapper = context.getBean(CsvMapper)
+        def csv = "1,2,true\n" +
+            "2,9,false\n" +
+            "-13,0,true\n"
+        Argument<List<Map<String, String>>> target = (Argument<List<Map<String, String>>>) Argument.listOf(
+            Argument.mapOf(String, String)
+        )
+
+        when:
+        def result = mapper.readValue(csv.bytes, target)
+
+        then:
+        result == [
+            ["0": "1", "1": "2", "2": "true"],
+            ["0": "2", "1": "9", "2": "false"],
+            ["0": "-13", "1": "0", "2": "true"]
+        ]
+
+        cleanup:
+        context?.close()
+    }
+
+    void "test read CSV with first row schema to List<Map<String, String>> using CSV mapper"() {
+        given:
+        def context = ApplicationContext.run([
+            "micronaut.serde.csv.read-features.header": "FIRST_ROW"
+        ])
+        def mapper = context.getBean(CsvMapper)
+        def csv = "A,B,C\n" +
+            "1,2,true\n" +
+            "2,9,false\n" +
+            "-13,0,true\n"
+        Argument<List<Map<String, String>>> target = (Argument<List<Map<String, String>>>) Argument.listOf(
+            Argument.mapOf(String, String)
+        )
+
+        when:
+        def result = mapper.readValue(csv.bytes, target)
+
+        then:
+        result == [
+            [A: "1", B: "2", C: "true"],
+            [A: "2", B: "9", C: "false"],
+            [A: "-13", B: "0", C: "true"]
+        ]
+
+        cleanup:
+        context?.close()
+    }
+
+    void "test read CSV without schema to List<Map<String, JsonNode>> using CSV mapper"() {
+        given:
+        def context = ApplicationContext.run()
+        def mapper = context.getBean(CsvMapper)
+        def csv = "1,2,true\n" +
+            "2,9,false\n" +
+            "-13,0,true\n"
+        Argument<List<Map<String, JsonNode>>> target = (Argument<List<Map<String, JsonNode>>>) Argument.listOf(
+            Argument.mapOf(String, JsonNode)
+        )
+
+        when:
+        def result = mapper.readValue(csv.bytes, target)
+
+        then:
+        result == [
+            ["0": JsonNode.createStringNode("1"), "1": JsonNode.createStringNode("2"), "2": JsonNode.createStringNode("true")],
+            ["0": JsonNode.createStringNode("2"), "1": JsonNode.createStringNode("9"), "2": JsonNode.createStringNode("false")],
+            ["0": JsonNode.createStringNode("-13"), "1": JsonNode.createStringNode("0"), "2": JsonNode.createStringNode("true")]
+        ]
+
+        cleanup:
+        context?.close()
     }
 }

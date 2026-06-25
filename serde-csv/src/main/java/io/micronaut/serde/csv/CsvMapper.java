@@ -15,15 +15,15 @@
  */
 package io.micronaut.serde.csv;
 
-import io.micronaut.core.annotation.AnnotationMetadata;
-import io.micronaut.core.convert.format.Format;
 import io.micronaut.core.type.Argument;
-import io.micronaut.inject.annotation.MutableAnnotationMetadata;
 import io.micronaut.json.JsonStreamConfig;
 import io.micronaut.json.tree.JsonNode;
+import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.ObjectMapper;
 import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.config.SerdeConfiguration;
+import io.micronaut.serde.support.util.JsonNodeDecoder;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import org.jspecify.annotations.Nullable;
@@ -32,8 +32,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -44,21 +42,29 @@ import java.util.Objects;
 public final class CsvMapper implements ObjectMapper {
 
     public static final String NAME = "csv";
-    private final MutableAnnotationMetadata annotationMetadata = new MutableAnnotationMetadata();
+    private final SerdeRegistry registry;
+    @Nullable
+    private final SerdeConfiguration serdeConfiguration;
+    private final SerdeCsvConfiguration csvConfiguration;
 
     public CsvMapper(SerdeRegistry serdeRegistry,
-                     SerdeConfiguration serdeConfiguration) {
-        support();
-    }
-
-    private void support() {
-        annotationMetadata.addAnnotation(Format.class.getName(),
-            Map.of(AnnotationMetadata.VALUE_MEMBER, "CSV"));
+                     @Nullable SerdeConfiguration serdeConfiguration,
+                     @Nullable SerdeCsvConfiguration csvConfiguration) {
+        this.registry = serdeRegistry;
+        this.serdeConfiguration = serdeConfiguration;
+        this.csvConfiguration = csvConfiguration == null ? new SerdeCsvConfiguration() : csvConfiguration;
     }
 
     @Override
-    public @Nullable <T> T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
-        return null;
+    public SerdeRegistry getSerdeRegistry() {
+        return registry;
+    }
+
+    @Override
+    public <T> @Nullable T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
+        Deserializer.DecoderContext decoderContext = registry.newDecoderContext(null);
+        Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, type);
+        return deserializer.deserializeNullable(JsonNodeDecoder.create(tree, limits()), decoderContext, type);
     }
 
     @Override
@@ -68,14 +74,11 @@ public final class CsvMapper implements ObjectMapper {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public @Nullable <T> T readValue(byte[] byteArray, Argument<T> type) throws IOException {
+    public <T> @Nullable T readValue(byte[] byteArray, Argument<T> type) throws IOException {
         Objects.requireNonNull(byteArray, "Byte array cannot be null");
         Objects.requireNonNull(type, "Type cannot be null");
-        if (!List.class.isAssignableFrom(type.getType())) {
-            throw new IOException("CSV mapper only supports List targets");
-        }
-        return (T) CsvConverter.parse(new String(byteArray, StandardCharsets.UTF_8), type);
+        JsonNode tree = CsvConverter.parse(new String(byteArray, StandardCharsets.UTF_8), type, csvConfiguration);
+        return readValueFromTree(tree, type);
     }
 
     @Override
@@ -111,5 +114,9 @@ public final class CsvMapper implements ObjectMapper {
     @Override
     public JsonStreamConfig getStreamConfig() {
         return JsonStreamConfig.DEFAULT;
+    }
+
+    private LimitingStream.RemainingLimits limits() {
+        return serdeConfiguration == null ? LimitingStream.DEFAULT_LIMITS : LimitingStream.limitsFromConfiguration(serdeConfiguration);
     }
 }
