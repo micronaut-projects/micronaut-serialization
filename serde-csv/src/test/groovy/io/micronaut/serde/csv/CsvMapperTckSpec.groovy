@@ -32,7 +32,7 @@ class CsvMapperTckSpec extends AbstractMicronautCsvSpec {
 
     @AutoCleanup
     ApplicationContext writeHeaderContext = ApplicationContext.run([
-        "micronaut.serde.csv.write-features.header": "FIRST_ROW"
+        "micronaut.serde.format.csv.write-features.header": "FIRST_ROW"
     ])
 
     @Override

@@ -28,6 +28,25 @@ public final class CsvPoint {
     private String visible;
 
     /**
+     * Creates an empty CSV point.
+     */
+    public CsvPoint() {
+    }
+
+    /**
+     * Creates a CSV point.
+     *
+     * @param x The x coordinate
+     * @param y The y coordinate
+     * @param visible Whether the point is visible
+     */
+    public CsvPoint(String x, String y, String visible) {
+        this.x = x;
+        this.y = y;
+        this.visible = visible;
+    }
+
+    /**
      * @return The x coordinate
      */
     public String getX() {

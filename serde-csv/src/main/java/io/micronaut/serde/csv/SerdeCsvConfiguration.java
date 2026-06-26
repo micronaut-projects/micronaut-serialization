@@ -27,7 +27,7 @@ import java.util.Objects;
 @Internal
 @ConfigurationProperties(SerdeCsvConfiguration.PREFIX)
 public final class SerdeCsvConfiguration {
-    static final String PREFIX = SerdeConfiguration.PREFIX + ".csv";
+    static final String PREFIX = SerdeConfiguration.PREFIX + ".format.csv";
 
     private ReadFeatures readFeatures = new ReadFeatures();
     private WriteFeatures writeFeatures = new WriteFeatures();

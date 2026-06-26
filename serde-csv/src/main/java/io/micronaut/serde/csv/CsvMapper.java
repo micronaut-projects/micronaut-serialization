@@ -43,11 +43,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * {@link ObjectMapper} implementation for CSV payloads.
+ * CSV implementation of the Micronaut Serialization object mapper.
  * <p>
- * Deserialization parses CSV input into an intermediate {@index io.micronaut.json.tree.JsonContainer} tree and then delegates
+ * Deserialization parses CSV input into an intermediate JSON tree and then delegates
  * value binding to Micronaut Serialization. Serialization first encodes values into a
- * {@link JsonNode} tree and then renders that tree as CSV using {@link SerdeCsvConfiguration}.
+ * JSON tree and then renders that tree as CSV using {@link SerdeCsvConfiguration}.
  * Header handling for reading and writing is controlled by the CSV-specific configuration.
  *
  * @since 3.1.0

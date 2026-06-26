@@ -101,7 +101,7 @@ class CsvConverterSpec extends Specification {
     void "test read CSV with first row schema to List<Map<String, String>> using CSV mapper"() {
         given:
         def context = ApplicationContext.run([
-            "micronaut.serde.csv.read-features.header": "FIRST_ROW"
+            "micronaut.serde.format.csv.read-features.header": "FIRST_ROW"
         ])
         def mapper = context.getBean(CsvMapper)
         def csv = "A,B,C\n" +
