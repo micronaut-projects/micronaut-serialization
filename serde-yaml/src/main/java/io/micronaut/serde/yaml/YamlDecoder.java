@@ -20,6 +20,7 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.events.AliasEvent;
 import org.yaml.snakeyaml.events.Event;
 import org.yaml.snakeyaml.events.ScalarEvent;
 import org.yaml.snakeyaml.nodes.NodeId;
@@ -121,8 +122,16 @@ public class YamlDecoder extends AbstractStreamDecoder {
             if (eventId == Event.ID.StreamStart || eventId == Event.ID.DocumentStart) {
                 throw createDeserializationException("Multiple documents encounter, deserialization failed.", null);
             }
+            if (eventId == Event.ID.Alias) {
+                nextEvent = resolveAlias((AliasEvent) nextEvent);
+                eventId = nextEvent.getEventId();
+            }
             if (eventId == Event.ID.MappingEnd || eventId == Event.ID.SequenceEnd) {
                 mappingContextStack.removeFirst();
+                CollectionContext ctx = mappingContextStack.peekFirst();
+                if (ctx != null && !ctx.isSequence() && ctx.isExpectingKey()) {
+                    ctx.setExpectingKey(false);
+                }
             }
             if (eventId == Event.ID.MappingStart) {
                 mappingContextStack.push(new CollectionContext(false));
@@ -138,6 +147,10 @@ public class YamlDecoder extends AbstractStreamDecoder {
                 finishStructure();
             }
             if (eventId == Event.ID.Scalar) {
+                ScalarEvent scalarEvent = (ScalarEvent) nextEvent;
+                if (scalarEvent.getAnchor() != null) {
+                    anchoredScalars.put(scalarEvent.getAnchor(), scalarEvent);
+                }
                 assert !mappingContextStack.isEmpty() : "Mapping context can't be empty while decoding a scalar.";
                 CollectionContext ctx = mappingContextStack.peekFirst();
                 if (!ctx.isSequence()) {
@@ -244,6 +257,17 @@ public class YamlDecoder extends AbstractStreamDecoder {
         } else {
             return TokenType.STRING;
         }
+    }
+
+    /**
+     * SnakeYaml resolve very well alias via {@link org.yaml.snakeyaml.composer.Composer} class
+     */
+    private ScalarEvent resolveAlias(AliasEvent aliasEvent) throws IOException {
+        ScalarEvent scalarEvent = anchoredScalars.get(aliasEvent.getAnchor());
+        if (scalarEvent == null) {
+            throw createDeserializationException("Unsupported YAML alias: " + aliasEvent.getAnchor(), null);
+        }
+        return scalarEvent;
     }
 
     @Override
