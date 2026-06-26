@@ -352,7 +352,7 @@ class YamlDeserializationSpec extends YamlCompileSpec {
         context.close()
     }
 
-    void "deserialization - alias/anchor usage (if unsupported, should fail fast)"() {
+    void "deserialization - scalar alias anchor usage"() {
         given:
         def context = buildContext('test.Test', '''
         package test;
@@ -362,11 +362,40 @@ class YamlDeserializationSpec extends YamlCompileSpec {
         record Test(String value1, String value2) {}
     ''')
 
-        when:
-        yamlMapper.readValue("value1: &x A\nvalue2: *x\n", Argument.of(typeUnderTest.type))
+        expect:
+        def obj = yamlMapper.readValue("value1: &x A\nvalue2: *x\n", Argument.of(typeUnderTest.type))
+        obj.value1() == "A"
+        obj.value2() == "A"
 
-        then:
-        thrown(Exception)
+        cleanup:
+        context.close()
+    }
+
+    void "deserialization - yaml specification example 2.10 repeated scalar node"() {
+        given:
+        def context = buildContext('test.Test', '''
+        package test;
+        import io.micronaut.serde.annotation.Serdeable;
+        import java.util.List;
+
+        @Serdeable
+        record Test(List<String> hr, List<String> rbi) {}
+    ''')
+
+        expect:
+        def obj = yamlMapper.readValue(
+                "---\n" +
+                "hr:\n" +
+                "  - Mark McGwire\n" +
+                "  # Following node labeled SS\n" +
+                "  - &SS Sammy Sosa\n" +
+                "rbi:\n" +
+                "  - *SS # Subsequent occurrence\n" +
+                "  - Ken Griffey\n",
+                Argument.of(typeUnderTest.type)
+        )
+        obj.hr() == ["Mark McGwire", "Sammy Sosa"]
+        obj.rbi() == ["Sammy Sosa", "Ken Griffey"]
 
         cleanup:
         context.close()
