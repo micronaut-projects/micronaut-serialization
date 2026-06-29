@@ -242,12 +242,22 @@ public final class RecordDeserializerSourceGen {
             .addFields(fields)
             .addMethod(generateCreateSpecificMethod(recordTypeDef))
             .addMethod(generateDeserializeMethod(element, recordTypeDef, deserializerClassTypeDef, recordSerdeShape, keyFieldNames, argumentFieldNames, deserializerFieldNames));
-        classDefBuilder.addMethod(generateConstructor(deserializerClassTypeDef, argumentFieldNames, deserializerFieldNames, failOnNullForPrimitives, strictNullable));
+        classDefBuilder.addMethod(generateConstructor(
+            element,
+            deserializerClassTypeDef,
+            recordSerdeShape,
+            argumentFieldNames,
+            deserializerFieldNames,
+            failOnNullForPrimitives,
+            strictNullable
+        ));
 
         return classDefBuilder.build();
     }
 
-    private MethodDef generateConstructor(ClassTypeDef deserializerClassTypeDef,
+    private MethodDef generateConstructor(ClassElement element,
+                                          ClassTypeDef deserializerClassTypeDef,
+                                          RecordSerdeShape recordSerdeShape,
                                           Map<String, String> argumentFieldNames,
                                           Map<String, String> deserializerFieldNames,
                                           boolean failOnNullForPrimitives,
@@ -280,9 +290,13 @@ public final class RecordDeserializerSourceGen {
                 String componentName = deserializerFieldEntry.getKey();
                 String deserializerFieldName = deserializerFieldEntry.getValue();
                 ExpressionDef argumentExpression = deserializerClassTypeDef.getStaticField(required(argumentFieldNames, componentName), ARGUMENT_TYPE);
+                ExpressionDef deserializerExpression = isSelfReferentialComponent(element, recordSerdeShape, componentName)
+                    ? ClassTypeDef.of(GeneratedSerdeFallbackUtil.class)
+                        .invokeStatic(WITH_RUNTIME_FALLBACK_DESERIALIZER_METHOD, aThis, context, argumentExpression)
+                    : context.invoke(FIND_DESERIALIZER_METHOD, argumentExpression)
+                        .invoke(CREATE_SPECIFIC_DESERIALIZER_METHOD, context, argumentExpression);
                 statements.add(aThis.field(deserializerFieldName, DESERIALIZER_TYPE).put(
-                    context.invoke(FIND_DESERIALIZER_METHOD, argumentExpression)
-                        .invoke(CREATE_SPECIFIC_DESERIALIZER_METHOD, context, argumentExpression)
+                    deserializerExpression
                 ));
             }
             return StatementDef.multi(statements);
@@ -711,6 +725,17 @@ public final class RecordDeserializerSourceGen {
             return collectionType;
         }
         return type;
+    }
+
+    private boolean isSelfReferentialComponent(ClassElement element,
+                                               RecordSerdeShape recordSerdeShape,
+                                               String componentName) {
+        for (RecordSerdeShape.RecordComponent component : recordSerdeShape.components()) {
+            if (component.name().equals(componentName) && component.type().getName().equals(element.getName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private @Nullable Method scalarDecoderMethod(ClassElement type) {

@@ -253,7 +253,14 @@ public final class BeanDeserializerSourceGen {
             .addFields(fields)
             .addMethod(generateCreateSpecificMethod(beanTypeDef))
             .addMethod(generateDeserializeMethod(element, beanTypeDef, deserializerClassTypeDef, beanSerdeShape, keyFieldNames, argumentFieldNames, deserializerFieldNames));
-        classDefBuilder.addMethod(generateConstructor(deserializerClassTypeDef, argumentFieldNames, deserializerFieldNames, failOnNullForPrimitives));
+        classDefBuilder.addMethod(generateConstructor(
+            element,
+            deserializerClassTypeDef,
+            beanSerdeShape,
+            argumentFieldNames,
+            deserializerFieldNames,
+            failOnNullForPrimitives
+        ));
 
         List<Object> suppressWarnings = new ArrayList<>();
         if (fieldAccessProperties) {
@@ -270,7 +277,9 @@ public final class BeanDeserializerSourceGen {
         return classDefBuilder.build();
     }
 
-    private MethodDef generateConstructor(ClassTypeDef deserializerClassTypeDef,
+    private MethodDef generateConstructor(ClassElement element,
+                                          ClassTypeDef deserializerClassTypeDef,
+                                          BeanSerdeShape beanSerdeShape,
                                           Map<String, String> argumentFieldNames,
                                           Map<String, String> deserializerFieldNames,
                                           boolean failOnNullForPrimitives) {
@@ -296,10 +305,12 @@ public final class BeanDeserializerSourceGen {
                 String propertyName = deserializerFieldEntry.getKey();
                 String deserializerFieldName = deserializerFieldEntry.getValue();
                 ExpressionDef argumentExpression = deserializerClassTypeDef.getStaticField(required(argumentFieldNames, propertyName), ARGUMENT_TYPE);
-                statements.add(aThis.field(deserializerFieldName, DESERIALIZER_TYPE).put(
-                    context.invoke(FIND_DESERIALIZER_METHOD, argumentExpression)
-                        .invoke(CREATE_SPECIFIC_DESERIALIZER_METHOD, context, argumentExpression)
-                ));
+                ExpressionDef deserializerExpression = isSelfReferentialProperty(element, beanSerdeShape, propertyName)
+                    ? ClassTypeDef.of(GeneratedSerdeFallbackUtil.class)
+                        .invokeStatic(WITH_RUNTIME_FALLBACK_DESERIALIZER_METHOD, aThis, context, argumentExpression)
+                    : context.invoke(FIND_DESERIALIZER_METHOD, argumentExpression)
+                        .invoke(CREATE_SPECIFIC_DESERIALIZER_METHOD, context, argumentExpression);
+                statements.add(aThis.field(deserializerFieldName, DESERIALIZER_TYPE).put(deserializerExpression));
             }
             return StatementDef.multi(statements);
         });
@@ -767,6 +778,17 @@ public final class BeanDeserializerSourceGen {
             case "java.math.BigDecimal" -> DECODE_BIG_DECIMAL_NULLABLE_METHOD;
             default -> null;
         };
+    }
+
+    private boolean isSelfReferentialProperty(ClassElement element,
+                                             BeanSerdeShape beanSerdeShape,
+                                             String propertyName) {
+        for (BeanSerdeShape.BeanProperty property : beanSerdeShape.properties()) {
+            if (property.name().equals(propertyName) && property.deserializationType().getName().equals(element.getName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private ParameterDef parameter(String name, TypeDef type) {

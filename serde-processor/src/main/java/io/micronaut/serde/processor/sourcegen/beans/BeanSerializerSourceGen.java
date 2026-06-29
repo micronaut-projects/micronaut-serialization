@@ -167,7 +167,14 @@ public final class BeanSerializerSourceGen {
             .addMethod(generateSerializeMethod(beanTypeDef))
             .addMethod(generateSerializeIntoMethod(beanTypeDef, serializerClassTypeDef, beanSerdeShape, keyFieldNames, argumentFieldNames, serializerFieldNames));
         if (!serializerFieldNames.isEmpty()) {
-            classDefBuilder.addMethod(generateConstructor(beanTypeDef, serializerClassTypeDef, argumentFieldNames, serializerFieldNames));
+            classDefBuilder.addMethod(generateConstructor(
+                element,
+                beanTypeDef,
+                serializerClassTypeDef,
+                beanSerdeShape,
+                argumentFieldNames,
+                serializerFieldNames
+            ));
         }
 
         if (fieldAccessProperties) {
@@ -179,8 +186,10 @@ public final class BeanSerializerSourceGen {
         return classDefBuilder.build();
     }
 
-    private MethodDef generateConstructor(TypeDef beanTypeDef,
+    private MethodDef generateConstructor(ClassElement element,
+                                          TypeDef beanTypeDef,
                                           ClassTypeDef serializerClassTypeDef,
+                                          BeanSerdeShape beanSerdeShape,
                                           Map<String, String> argumentFieldNames,
                                           Map<String, String> serializerFieldNames) {
         MethodDef.MethodDefBuilder constructorBuilder = MethodDef.constructor()
@@ -198,10 +207,12 @@ public final class BeanSerializerSourceGen {
                 String propertyName = serializerFieldEntry.getKey();
                 String serializerFieldName = serializerFieldEntry.getValue();
                 ExpressionDef argumentExpression = serializerClassTypeDef.getStaticField(required(argumentFieldNames, propertyName), ARGUMENT_TYPE);
-                statements.add(aThis.field(serializerFieldName, SERIALIZER_TYPE).put(
-                    context.invoke(FIND_SERIALIZER_METHOD, argumentExpression)
-                        .invoke(CREATE_SPECIFIC_SERIALIZER_METHOD, context, argumentExpression)
-                ));
+                ExpressionDef serializerExpression = isSelfReferentialProperty(element, beanSerdeShape, propertyName)
+                    ? ClassTypeDef.of(GeneratedSerdeFallbackUtil.class)
+                        .invokeStatic(WITH_RUNTIME_FALLBACK_SERIALIZER_METHOD, aThis, context, argumentExpression)
+                    : context.invoke(FIND_SERIALIZER_METHOD, argumentExpression)
+                        .invoke(CREATE_SPECIFIC_SERIALIZER_METHOD, context, argumentExpression);
+                statements.add(aThis.field(serializerFieldName, SERIALIZER_TYPE).put(serializerExpression));
             }
             return StatementDef.multi(statements);
         });
@@ -387,6 +398,17 @@ public final class BeanSerializerSourceGen {
             case "java.math.BigDecimal" -> type.isArray() ? null : ENCODE_BIG_DECIMAL_METHOD;
             default -> null;
         };
+    }
+
+    private boolean isSelfReferentialProperty(ClassElement element,
+                                             BeanSerdeShape beanSerdeShape,
+                                             String propertyName) {
+        for (BeanSerdeShape.BeanProperty property : beanSerdeShape.properties()) {
+            if (property.name().equals(propertyName) && property.serializationType().getName().equals(element.getName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private StatementDef wrapWithPropertyPath(StatementDef statement,

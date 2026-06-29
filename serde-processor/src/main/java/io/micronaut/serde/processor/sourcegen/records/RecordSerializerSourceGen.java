@@ -156,14 +156,23 @@ public final class RecordSerializerSourceGen {
             .addMethod(generateSerializeMethod(recordTypeDef))
             .addMethod(generateSerializeIntoMethod(recordTypeDef, serializerClassTypeDef, recordSerdeShape, keyFieldNames, argumentFieldNames, serializerFieldNames));
         if (!serializerFieldNames.isEmpty()) {
-            classDefBuilder.addMethod(generateConstructor(recordTypeDef, serializerClassTypeDef, argumentFieldNames, serializerFieldNames));
+            classDefBuilder.addMethod(generateConstructor(
+                element,
+                recordTypeDef,
+                serializerClassTypeDef,
+                recordSerdeShape,
+                argumentFieldNames,
+                serializerFieldNames
+            ));
         }
 
         return classDefBuilder.build();
     }
 
-    private MethodDef generateConstructor(TypeDef recordTypeDef,
+    private MethodDef generateConstructor(ClassElement element,
+                                          TypeDef recordTypeDef,
                                           ClassTypeDef serializerClassTypeDef,
+                                          RecordSerdeShape recordSerdeShape,
                                           Map<String, String> argumentFieldNames,
                                           Map<String, String> serializerFieldNames) {
         MethodDef.MethodDefBuilder constructorBuilder = MethodDef.constructor()
@@ -181,9 +190,13 @@ public final class RecordSerializerSourceGen {
                 String componentName = serializerFieldEntry.getKey();
                 String serializerFieldName = serializerFieldEntry.getValue();
                 ExpressionDef argumentExpression = serializerClassTypeDef.getStaticField(required(argumentFieldNames, componentName), ARGUMENT_TYPE);
+                ExpressionDef serializerExpression = isSelfReferentialComponent(element, recordSerdeShape, componentName)
+                    ? ClassTypeDef.of(GeneratedSerdeFallbackUtil.class)
+                        .invokeStatic(WITH_RUNTIME_FALLBACK_SERIALIZER_METHOD, aThis, context, argumentExpression)
+                    : context.invoke(FIND_SERIALIZER_METHOD, argumentExpression)
+                        .invoke(CREATE_SPECIFIC_SERIALIZER_METHOD, context, argumentExpression);
                 statements.add(aThis.field(serializerFieldName, SERIALIZER_TYPE).put(
-                    context.invoke(FIND_SERIALIZER_METHOD, argumentExpression)
-                        .invoke(CREATE_SPECIFIC_SERIALIZER_METHOD, context, argumentExpression)
+                    serializerExpression
                 ));
             }
             return StatementDef.multi(statements);
@@ -361,6 +374,17 @@ public final class RecordSerializerSourceGen {
             case "java.math.BigDecimal" -> type.isArray() ? null : ENCODE_BIG_DECIMAL_METHOD;
             default -> null;
         };
+    }
+
+    private boolean isSelfReferentialComponent(ClassElement element,
+                                               RecordSerdeShape recordSerdeShape,
+                                               String componentName) {
+        for (RecordSerdeShape.RecordComponent component : recordSerdeShape.components()) {
+            if (component.name().equals(componentName) && component.type().getName().equals(element.getName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private StatementDef wrapWithPropertyPath(StatementDef statement,
