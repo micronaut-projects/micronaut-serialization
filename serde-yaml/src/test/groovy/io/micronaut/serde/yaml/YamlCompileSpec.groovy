@@ -17,14 +17,16 @@ class YamlCompileSpec extends AbstractTypeElementSpec implements YamlSpec {
     Argument<?> typeUnderTest
 
     ApplicationContext buildContext(String className, @Language("java") String source, Map<String, Object> properties) {
-        ApplicationContext context = buildContext(className, source, true)
+        return buildContext(className, source, properties, [:])
+    }
 
-        setupSerdeRegistry(context)
-        yamlObjectMapper = context.getBean(YamlObjectMapper)
+    ApplicationContext buildContext(String className, @Language("java") String source, Map<String, Object> properties, Map contextProperties) {
+        ApplicationContext context = buildContext(className, source, true, contextProperties)
+
 
         def t = context.classLoader.loadClass(className)
         typeUnderTest = Argument.of(t)
-        beanUnderTest = t.newInstance(properties)
+        beanUnderTest = properties.isEmpty() ? null : t.newInstance(properties)
         return context
     }
 
@@ -45,6 +47,13 @@ class YamlCompileSpec extends AbstractTypeElementSpec implements YamlSpec {
 
         def t = context.classLoader.loadClass(className)
         typeUnderTest = Argument.of(t)
+        return context
+    }
+
+    ApplicationContext buildContext(String className, @Language("java") String source, boolean includeAllBeans, Map contextProperties) {
+        def context = super.buildContext(className, source, includeAllBeans, contextProperties)
+        setupSerdeRegistry(context)
+        yamlObjectMapper = context.getBean(YamlObjectMapper)
         return context
     }
 

@@ -22,6 +22,7 @@ import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.ObjectMapper;
 import io.micronaut.serde.SerdeRegistry;
+import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
 import io.micronaut.serde.support.util.JsonViewUtil;
@@ -32,6 +33,7 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -54,6 +56,7 @@ public final class YamlObjectMapper implements ObjectMapper {
     final SerdeRegistry registry;
     @Nullable
     final SerdeConfiguration serdeConfiguration;
+    final SerdeYamlConfiguration yamlConfiguration;
     @Nullable
     final Class<?> view;
 
@@ -62,13 +65,29 @@ public final class YamlObjectMapper implements ObjectMapper {
      *
      * @param registry The serde registry used to resolve serializers and deserializers
      * @param serdeConfiguration The serde configuration, when available
+     * @param yamlConfiguration The YAML configuration
      * @param view The active serialization view, when available
      */
     @Inject
-    public YamlObjectMapper(SerdeRegistry registry, @Nullable SerdeConfiguration serdeConfiguration, @Nullable Class<?> view) {
+    public YamlObjectMapper(SerdeRegistry registry,
+                            @Nullable SerdeConfiguration serdeConfiguration,
+                            SerdeYamlConfiguration yamlConfiguration,
+                            @Nullable Class<?> view) {
         this.registry = registry;
         this.serdeConfiguration = serdeConfiguration;
+        this.yamlConfiguration = yamlConfiguration;
         this.view = view;
+    }
+
+    /**
+     * Creates a YAML-backed {@link ObjectMapper}.
+     *
+     * @param registry The serde registry used to resolve serializers and deserializers
+     * @param serdeConfiguration The serde configuration, when available
+     * @param view The active serialization view, when available
+     */
+    public YamlObjectMapper(SerdeRegistry registry, @Nullable SerdeConfiguration serdeConfiguration, @Nullable Class<?> view) {
+        this(registry, serdeConfiguration, new SerdeYamlConfiguration(), view);
     }
 
     @Override
@@ -110,22 +129,47 @@ public final class YamlObjectMapper implements ObjectMapper {
 
     @Override
     public void writeValue(OutputStream outputStream, @Nullable Object object) throws IOException {
-
+        if (object == null) {
+            try (YamlEncoder encoder = newEncoder(outputStream)) {
+                encoder.encodeNull();
+            }
+        } else {
+            try (YamlEncoder encoder = newEncoder(outputStream)) {
+                serialize(encoder, object, Argument.of(object.getClass()));
+            }
+        }
     }
 
     @Override
     public <T> void writeValue(OutputStream outputStream, Argument<T> type, @Nullable T object) throws IOException {
+        try (YamlEncoder encoder = newEncoder(outputStream)) {
+            if (object == null) {
+                encoder.encodeNull();
+                return;
+            }
+            serialize(encoder, object, type);
+        }
+    }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private void serialize(YamlEncoder encoder, Object object, Argument type) throws IOException {
+        Serializer.EncoderContext context = registry.newEncoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view));
+        final Serializer<Object> serializer = context.findSerializer(type).createSpecific(context, type);
+        serializer.serialize(encoder, context, type, object);
     }
 
     @Override
     public byte[] writeValueAsBytes(@Nullable Object object) throws IOException {
-        return new byte[0];
+        final ByteArrayOutputStream output = new ByteArrayOutputStream();
+        writeValue(output, object);
+        return output.toByteArray();
     }
 
     @Override
     public <T> byte[] writeValueAsBytes(Argument<T> type, @Nullable T object) throws IOException {
-        return new byte[0];
+        final ByteArrayOutputStream output = new ByteArrayOutputStream();
+        writeValue(output, type, object);
+        return output.toByteArray();
     }
 
     @Override
@@ -135,6 +179,10 @@ public final class YamlObjectMapper implements ObjectMapper {
 
     private LimitingStream.@NonNull RemainingLimits limits() {
         return serdeConfiguration == null ? LimitingStream.DEFAULT_LIMITS : LimitingStream.limitsFromConfiguration(serdeConfiguration);
+    }
+
+    private YamlEncoder newEncoder(OutputStream outputStream) {
+        return new YamlEncoder(outputStream, limits(), yamlConfiguration);
     }
 
 }
