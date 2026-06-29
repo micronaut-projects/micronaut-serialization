@@ -18,6 +18,7 @@ package io.micronaut.serde.jsonb;
 import example.jsonb.AdditionalBook;
 import example.jsonb.ExcludedStartupBean;
 import io.micronaut.context.ApplicationContext;
+import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.json.Json;
 import jakarta.json.JsonValue;
@@ -292,6 +293,16 @@ class MicronautJsonbProviderTest {
             RuntimeBook decoded = jsonb.fromJson("{\"name\":\"It\",\"ignored\":\"secret\"}", RuntimeBook.class);
             assertEquals("It", decoded.title);
             assertEquals("initial", decoded.ignored);
+        }
+    }
+
+    @Test
+    void privateAccessorsHidePublicFieldForJsonbDefaultMapping() throws Exception {
+        try (Jsonb jsonb = JsonbBuilder.create()) {
+            assertEquals("{}", jsonb.toJson(new PublicFieldPrivateAccessors()));
+
+            PublicFieldPrivateAccessors decoded = jsonb.fromJson("{\"instance\":\"New Test String\"}", PublicFieldPrivateAccessors.class);
+            assertEquals("Test String", decoded.instance);
         }
     }
 
@@ -762,6 +773,24 @@ class MicronautJsonbProviderTest {
 
     @Serdeable
     record GeneratedNested(GeneratedNested value) {
+    }
+
+    @Serdeable
+    @Introspected(accessKind = {Introspected.AccessKind.METHOD, Introspected.AccessKind.FIELD}, visibility = Introspected.Visibility.PUBLIC)
+    @SuppressWarnings("unused")
+    static final class PublicFieldPrivateAccessors {
+        public String instance = "Test String";
+
+        public PublicFieldPrivateAccessors() {
+        }
+
+        private String getInstance() {
+            return instance;
+        }
+
+        private void setInstance(String instance) {
+            this.instance = instance;
+        }
     }
 
     static final class RuntimeNested {
