@@ -684,7 +684,8 @@ class Test {
 """, [value: 'test'])
         then:
         def e = thrown(RuntimeException)
-        e.message.contains("JSON annotations cannot be used on private methods")
+        e.message.contains("JSON annotations cannot be used on private methods") ||
+                e.message.contains("Element annotated with @Introspected.Property cannot be used as an introspected property")
     }
 
     void "test JsonProperty on protected methods"() {

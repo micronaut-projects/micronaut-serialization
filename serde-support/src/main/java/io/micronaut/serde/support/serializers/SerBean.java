@@ -51,6 +51,7 @@ import io.micronaut.serde.support.util.SerdeAnnotationUtil;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
 import io.micronaut.serde.support.util.SerdeFeatures;
 import io.micronaut.serde.support.util.SubtypeInfo;
+import io.micronaut.serde.util.SerdePropertyAccess;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.LoggerFactory;
 
@@ -142,7 +143,6 @@ final class SerBean<T> {
 
         final Collection<Map.Entry<BeanReadProperty<T, Object>, AnnotationMetadata>> properties =
             introspection.getBeanReadProperties().stream()
-                .filter(this::filterProperty)
                 .sorted(BEAN_PROPERTY_COMPARATOR)
                 .map(beanProperty -> {
                     Optional<Argument<?>> constructorArgument = Arrays.stream(introspection.getConstructor().getArguments())
@@ -156,6 +156,7 @@ final class SerBean<T> {
                         beanProperty.getAnnotationMetadata()
                     ));
                 })
+                .filter(this::filterProperty)
                 .toList();
         SerProperty<T, Object> resolvedTypeIdProperty = findTypeIdProperty(this, properties);
         this.typeIdProperty = resolvedTypeIdProperty;
@@ -483,8 +484,12 @@ final class SerBean<T> {
 
         final List<BeanMethod<T, Object>> jsonGetters = new ArrayList<>(introspection.getBeanMethods().size());
         for (BeanMethod<T, Object> beanMethod : introspection.getBeanMethods()) {
-            if (beanMethod.isAnnotationPresent(SerdeConfig.SerGetter.class)
-                || beanMethod.isAnnotationPresent(SerdeConfig.SerAnyGetter.class)) {
+            AnnotationMetadata annotationMetadata = beanMethod.getAnnotationMetadata();
+            if ((beanMethod.isAnnotationPresent(SerdeConfig.SerGetter.class)
+                || beanMethod.isAnnotationPresent(SerdeConfig.SerAnyGetter.class))
+                && !annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false)
+                && !annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED_SERIALIZATION).orElse(false)
+                && SerdePropertyAccess.canSerialize(annotationMetadata)) {
                 jsonGetters.add(beanMethod);
             }
         }
@@ -896,10 +901,11 @@ final class SerBean<T> {
         return null;
     }
 
-    private boolean filterProperty(BeanReadProperty<T, Object> property) {
-        return !property.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false)
-            && !property.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED_SERIALIZATION).orElse(false)
-            && !property.booleanValue(SerdeConfig.class, SerdeConfig.WRITE_ONLY).orElse(false);
+    private boolean filterProperty(Map.Entry<BeanReadProperty<T, Object>, AnnotationMetadata> property) {
+        AnnotationMetadata annotationMetadata = property.getValue();
+        return !annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false)
+            && !annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED_SERIALIZATION).orElse(false)
+            && SerdePropertyAccess.canSerialize(property.getKey(), annotationMetadata);
     }
 
     static final class PropSerProperty<B, P> extends SerProperty<B, P> {

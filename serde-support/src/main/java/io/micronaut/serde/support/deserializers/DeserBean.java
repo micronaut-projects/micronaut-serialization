@@ -55,6 +55,7 @@ import io.micronaut.serde.support.util.SerdeArgumentConf;
 import io.micronaut.serde.support.util.SerdeFeatures;
 import io.micronaut.serde.support.util.SubtypeInfo;
 import io.micronaut.serde.util.GeneratedSerdeExceptionUtil;
+import io.micronaut.serde.util.SerdePropertyAccess;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -338,7 +339,7 @@ final class DeserBean<T> {
                         || (unwrappedParams != null && unwrappedParams.contains(propertyName))) {
                         continue;
                     }
-                    if (isIgnored(beanProperty) || (allowPropertyPredicate != null && !allowPropertyPredicate.test(propertyName))) {
+                    if (isIgnored(beanProperty, annotationMetadata) || (allowPropertyPredicate != null && !allowPropertyPredicate.test(propertyName))) {
                         ignoredProperties.add(propertyName);
                         continue;
                     }
@@ -809,7 +810,13 @@ final class DeserBean<T> {
     }
 
     private boolean isIgnored(AnnotationMetadata annotationMetadata) {
-        return annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.READ_ONLY).orElse(false)
+        return !SerdePropertyAccess.canDeserialize(annotationMetadata)
+            || annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false)
+            || annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED_DESERIALIZATION).orElse(false);
+    }
+
+    private boolean isIgnored(BeanWriteProperty<T, Object> beanProperty, AnnotationMetadata annotationMetadata) {
+        return !SerdePropertyAccess.canDeserialize(beanProperty, annotationMetadata)
             || annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false)
             || annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED_DESERIALIZATION).orElse(false);
     }

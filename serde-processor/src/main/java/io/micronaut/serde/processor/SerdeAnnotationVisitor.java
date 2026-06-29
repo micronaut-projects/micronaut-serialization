@@ -81,6 +81,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
     private static final String DEFAULT_REF_ALIAS_NAME = "defaultReference";
     private static final String JSONB_NILLABLE = "jakarta.json.bind.annotation.JsonbNillable";
+    private static final String JSON_AUTO_DETECT = "com.fasterxml.jackson.annotation.JsonAutoDetect";
+    private static final String JSON_AUTO_DETECT_ANY = "ANY";
 
     private boolean failOnError = true;
     private @Nullable ClassElement currentClass;
@@ -112,7 +114,6 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
     private Set<String> getUnsupportedJacksonAnnotations() {
         return CollectionUtils.setOf(
-                "com.fasterxml.jackson.annotation.JsonAutoDetect",
                 "com.fasterxml.jackson.annotation.JsonIdentityInfo",
                 "com.fasterxml.jackson.annotation.JsonIdentityReference"
         );
@@ -305,6 +306,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         if (element instanceof MethodElement && element.hasDeclaredAnnotation(SerdeConfig.class) && element.isPrivate()) {
             throw new ProcessingException(element, "JSON annotations cannot be used on private methods and constructors");
         }
+        checkJsonAutoDetect(element);
         for (String annotation : getUnsupportedJacksonAnnotations()) {
             if (element.hasDeclaredAnnotation(annotation)) {
                 throw new ProcessingException(element, "Annotation @" + NameUtils.getSimpleName(annotation) + " is not supported");
@@ -616,6 +618,29 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             return propertyElement.getGenericType();
         }
         return type;
+    }
+
+    private void checkJsonAutoDetect(Element element) {
+        if (!element.hasDeclaredAnnotation(JSON_AUTO_DETECT)) {
+            return;
+        }
+        for (String member : List.of("fieldVisibility", "getterVisibility", "isGetterVisibility", "setterVisibility", "creatorVisibility")) {
+            String visibility = element.stringValue(JSON_AUTO_DETECT, member).orElse(null);
+            if (JSON_AUTO_DETECT_ANY.equals(enumName(visibility))) {
+                throw new ProcessingException(element, "JsonAutoDetect.Visibility.ANY is not supported");
+            }
+        }
+    }
+
+    private static @Nullable String enumName(@Nullable String value) {
+        if (value == null) {
+            return null;
+        }
+        int lastDot = value.lastIndexOf('.');
+        if (lastDot > -1) {
+            return value.substring(lastDot + 1);
+        }
+        return value;
     }
 
     @Override
