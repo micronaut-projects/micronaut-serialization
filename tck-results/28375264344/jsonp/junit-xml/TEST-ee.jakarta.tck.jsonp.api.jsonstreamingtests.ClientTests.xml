@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests" tests="4" skipped="0" failures="0" errors="0" timestamp="SANITIZED" hostname="SANITIZED" time="0">
+  <properties/>
+  <testcase name="streamingTest1()" classname="ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests" time="0"/>
+  <testcase name="streamingTest2()" classname="ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests" time="0"/>
+  <testcase name="streamingTest3()" classname="ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests" time="0"/>
+  <testcase name="streamingTest4()" classname="ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests" time="0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests streamingTest1
+INFO: expJsonText=[1,2,3,4,5,6,7,8,9,10]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests streamingTest1
+INFO: Generate stream of Json Text containing a JsonArray
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests streamingTest1
+INFO: actJsonText=[1,2,3,4,5,6,7,8,9,10]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests streamingTest1
+INFO: Compare expJsonText and actJsonText for equality
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: [1,2,3,4,5,6,7,8,9,10]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   [1,2,3,4,5,6,7,8,9,10]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests streamingTest2
+INFO: Generate data containing a JsonArray
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests streamingTest2
+INFO: Read data from Writer stream containing a JsonArray
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests streamingTest2
+INFO: Dump of expJsonArray
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpJsonArray
+INFO: dumpJsonArray->[2,4,6,8,10]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests streamingTest2
+INFO: Write JsonArray out to a Writer stream
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests streamingTest2
+INFO: Close JsonWriter
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests streamingTest2
+INFO: Save contents of the JsonWriter as a String
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests streamingTest2
+INFO: writerContents=[2,4,6,8,10]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests streamingTest2
+INFO: Re-read data from Writer stream containing a JsonArray
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests streamingTest2
+INFO: Dump of actJsonArray
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpJsonArray
+INFO: dumpJsonArray->[2,4,6,8,10]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests streamingTest2
+INFO: Compare expJsonArray and actJsonArray for equality
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonArrays
+INFO: JsonArray match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonArrays
+INFO: Expected: [2,4,6,8,10]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonArrays
+INFO: Actual:   [2,4,6,8,10]
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests streamingTest3
+INFO: Generate data containing a JsonObject
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests streamingTest3
+INFO: Read data from Writer stream containing a JsonObject
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests streamingTest3
+INFO: Dump of expJsonObject
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpJsonObject
+INFO: dumpJsonObject->{"two":2,"false":false}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests streamingTest3
+INFO: Write JsonObject out to a Writer stream
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests streamingTest3
+INFO: Close JsonWriter
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests streamingTest3
+INFO: Save contents of the JsonWriter as a String
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests streamingTest3
+INFO: writerContents={"two":2,"false":false}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests streamingTest3
+INFO: Parse data from Writer stream containing a JsonObject
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testEventType
+INFO: Got expected event: START_OBJECT
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testKeyIntegerValue
+INFO: Got expected event: KEY_NAME
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testKeyIntegerValue
+INFO: Got expected keyname: two
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testKeyIntegerValue
+INFO: Got expected event: VALUE_NUMBER
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testKeyIntegerValue
+INFO: Got expected keyvalue: 2
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testKeyFalseValue
+INFO: Got expected event: KEY_NAME
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testKeyFalseValue
+INFO: Got expected keyname: false
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testKeyFalseValue
+INFO: Got expected event: VALUE_FALSE
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util testEventType
+INFO: Got expected event: END_OBJECT
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests streamingTest4
+INFO: Generate data containing a JsonObject to an OutputStream
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests streamingTest4
+INFO: Compare JSON text generated to what is expected.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {"two":2,"false":false}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {"two":2,"false":false}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests streamingTest4
+INFO: Read data from InputStream containing a JsonObject
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests streamingTest4
+INFO: Close JsonReader
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests streamingTest4
+INFO: Dump of expJsonObject
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpJsonObject
+INFO: dumpJsonObject->{"two":2,"false":false}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests streamingTest4
+INFO: Write JsonObject back out to an OutputStream
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests streamingTest4
+INFO: Close JsonWriter
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests streamingTest4
+INFO: Save contents of the JsonWriter as a String
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests streamingTest4
+INFO: writerContents={"two":2,"false":false}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.api.jsonstreamingtests.ClientTests streamingTest4
+INFO: Compare again JSON text generated to what is expected.
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {"two":2,"false":false}
+Jun 15, 2026 10:10:40 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {"two":2,"false":false}
+]]></system-err>
+</testsuite>
