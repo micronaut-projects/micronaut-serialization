@@ -782,6 +782,7 @@ class MicronautJsonbProviderTest {
         public String instance = "Test String";
 
         public PublicFieldPrivateAccessors() {
+            // Required for construction by the JSON-B provider test fixture.
         }
 
         private String getInstance() {

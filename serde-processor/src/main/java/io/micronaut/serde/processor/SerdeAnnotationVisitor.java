@@ -83,6 +83,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     private static final String JSONB_NILLABLE = "jakarta.json.bind.annotation.JsonbNillable";
     private static final String JSON_AUTO_DETECT = "com.fasterxml.jackson.annotation.JsonAutoDetect";
     private static final String JSON_AUTO_DETECT_ANY = "ANY";
+    private static final String VISIBILITY = "visibility";
 
     private boolean failOnError = true;
     private @Nullable ClassElement currentClass;
@@ -955,7 +956,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 element.annotate(Serdeable.class);
                 element.annotate(Introspected.class, i -> {
                     i.member("accessKind", Introspected.AccessKind.METHOD, Introspected.AccessKind.FIELD);
-                    i.member("visibility", "PUBLIC");
+                    i.member(VISIBILITY, Introspected.Visibility.PUBLIC);
                 });
             }
 
@@ -1171,7 +1172,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 } else {
                     i.member("accessKind", Introspected.AccessKind.METHOD);
                 }
-                i.member("visibility", "PUBLIC");
+                i.member(VISIBILITY, Introspected.Visibility.PUBLIC);
             });
         }
     }
@@ -1187,7 +1188,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             && field.hasAnnotation("com.fasterxml.jackson.annotation.JsonProperty")
             && field.hasAnnotation(Introspected.Property.class)
             && field.getOwningType()
-                .enumValue(Introspected.class, "visibility", Introspected.Visibility.class)
+                .enumValue(Introspected.class, VISIBILITY, Introspected.Visibility.class)
                 .filter(Introspected.Visibility.ANY::equals)
                 .isEmpty()) {
             // Micronaut Core maps @JsonProperty to @Introspected.Property.
@@ -1598,7 +1599,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                         "com.fasterxml.jackson.annotation.JsonTypeInfo",
                         "com.fasterxml.jackson.annotation.JsonRootName",
                         "com.fasterxml.jackson.annotation.JsonTypeName",
-                        "com.fasterxml.jackson.annotation.JsonAutoDetect",
+                        JSON_AUTO_DETECT,
                         "com.fasterxml.jackson.annotation.JsonIgnoreProperties",
                         "com.fasterxml.jackson.annotation.JsonIncludeProperties"
             ).anyMatch(element::hasDeclaredAnnotation) ||

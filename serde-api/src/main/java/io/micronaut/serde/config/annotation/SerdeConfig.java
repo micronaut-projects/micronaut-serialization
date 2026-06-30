@@ -16,6 +16,7 @@
 package io.micronaut.serde.config.annotation;
 
 import io.micronaut.context.annotation.Executable;
+import io.micronaut.core.annotation.BuildTimeInit;
 import io.micronaut.core.annotation.Internal;
 
 import java.lang.annotation.ElementType;
@@ -412,6 +413,7 @@ public @interface SerdeConfig {
         /**
          * The discriminator value kind.
          */
+        @BuildTimeInit("io.micronaut.serde.config.annotation.SerdeConfig$SerSubtyped$DiscriminatorValueKind")
         enum DiscriminatorValueKind {
             CLASS_NAME, CLASS_SIMPLE_NAME, NAME, MINIMAL_CLASS, DEDUCTION
         }
