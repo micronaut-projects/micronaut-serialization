@@ -4,6 +4,12 @@ plugins {
     id("io.micronaut.build.internal.serde-module")
 }
 
+micronautBuild {
+    binaryCompatibility {
+        enabledAfter("3.1.0")
+    }
+}
+
 dependencies {
     annotationProcessor(projects.micronautSerdeProcessor)
 
