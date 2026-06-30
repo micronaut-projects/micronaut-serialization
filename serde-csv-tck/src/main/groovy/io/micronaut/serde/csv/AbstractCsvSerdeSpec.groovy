@@ -16,6 +16,8 @@
 package io.micronaut.serde.csv
 
 import io.micronaut.core.type.Argument
+import io.micronaut.serde.csv.fixture.CsvBeanWithList
+import io.micronaut.serde.csv.fixture.CsvBeanWithMap
 import io.micronaut.serde.csv.fixture.CsvBook
 import io.micronaut.serde.csv.fixture.CsvPoint
 import spock.lang.Specification
@@ -475,9 +477,9 @@ abstract class AbstractCsvSerdeSpec extends Specification implements CsvSpec {
     void "writes CSV with first row schema inferred from bean properties"() {
         given:
         def points = [
-            point("1", "2", "true"),
-            point("2", "9", "false"),
-            point("-13", "0", "true")
+            new CsvPoint("1", "2", "true"),
+            new CsvPoint("2", "9", "false"),
+            new CsvPoint("-13", "0", "true")
         ]
         Argument<List<CsvPoint>> target = (Argument<List<CsvPoint>>) Argument.listOf(CsvPoint)
 
@@ -488,6 +490,35 @@ abstract class AbstractCsvSerdeSpec extends Specification implements CsvSpec {
             "-13,0,true\n"
     }
 
+    void "writes CSV from bean with list property"() {
+        given:
+        def rows = [
+            new CsvBeanWithList("alpha", ["one", "two"]),
+            new CsvBeanWithList("beta", ["three"])
+        ]
+        Argument<List<CsvBeanWithList>> target = (Argument<List<CsvBeanWithList>>) Argument.listOf(CsvBeanWithList)
+
+        expect:
+        writeCsvWithInferredHeader(target, rows) == "name,values\n" +
+            'alpha,one;two' + "\n" +
+            'beta,three' + "\n"
+    }
+
+    void "rejects CSV from bean with nested property"() {
+        given:
+        def rows = [
+            new CsvBeanWithMap("alpha", [first: "one", second: "two"]),
+            new CsvBeanWithMap("beta", [third: "three"])
+        ]
+        Argument<List<CsvBeanWithMap>> target = (Argument<List<CsvBeanWithMap>>) Argument.listOf(CsvBeanWithMap)
+
+        when:
+        writeCsvWithInferredHeader(target, rows)
+
+        then:
+        thrown(Exception)
+    }
+
     void "writes CSV with first row schema inferred from empty bean rows"() {
         given:
         Argument<List<CsvPoint>> target = (Argument<List<CsvPoint>>) Argument.listOf(CsvPoint)
@@ -496,11 +527,4 @@ abstract class AbstractCsvSerdeSpec extends Specification implements CsvSpec {
         writeCsvWithInferredHeader(target, []) == "x,y,visible\n"
     }
 
-    private static CsvPoint point(String x, String y, String visible) {
-        def point = new CsvPoint()
-        point.x = x
-        point.y = y
-        point.visible = visible
-        point
-    }
 }

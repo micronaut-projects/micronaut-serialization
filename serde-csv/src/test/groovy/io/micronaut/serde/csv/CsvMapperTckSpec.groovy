@@ -18,6 +18,8 @@ package io.micronaut.serde.csv
 import io.micronaut.context.ApplicationContext
 import io.micronaut.core.type.Argument
 import io.micronaut.serde.ObjectMapper
+import io.micronaut.serde.csv.fixture.CsvBeanWithMap
+import io.micronaut.serde.exceptions.SerdeException
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 import jakarta.inject.Named
@@ -70,4 +72,19 @@ class CsvMapperTckSpec extends AbstractMicronautCsvSpec {
             "2,9,false\n" +
             "-13,0,true\n"
     }
+
+    void "throws serde exception for bean map property"() {
+        given:
+        def rows = [
+            new CsvBeanWithMap("alpha", [first: "one", second: "two"])
+        ]
+        Argument<List<CsvBeanWithMap>> target = (Argument<List<CsvBeanWithMap>>) Argument.listOf(CsvBeanWithMap)
+
+        when:
+        writeCsvWithInferredHeader(target, rows)
+
+        then:
+        thrown(SerdeException)
+    }
+
 }

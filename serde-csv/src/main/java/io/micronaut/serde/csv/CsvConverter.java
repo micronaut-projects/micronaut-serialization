@@ -18,6 +18,7 @@ package io.micronaut.serde.csv;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
+import io.micronaut.serde.exceptions.SerdeException;
 import jakarta.inject.Singleton;
 import org.jspecify.annotations.Nullable;
 
@@ -32,7 +33,8 @@ import java.util.stream.Collectors;
 
 /**
  * Converts comma-separated rows to {@code List<List<String>>} arguments.
- * Jackson dataformat csv behavior returns List<List<String>> for non defined schema table
+ * Jackson dataformat csv behavior returns List<List<String>> for non defined schema table as well Serde-csv, whereas it returns List<Map<String, String>> when the CSV has a header row and first-row header handling is enabled.
+ * Each Map<String, String> represents one row keyed by the header names. We can use a bean type such as Argument.listOf(CsvPointRow.class) when the schema is fixed and should bind to bean properties.
  *
  * @see <a href="https://github.com/FasterXML/jackson-dataformats-text/tree/3.x/csv#data-binding-with-schema">Csv without schema</a>
  * @since 3.1.0
@@ -54,11 +56,11 @@ public class CsvConverter {
         return parseNoSchema(csv);
     }
 
-    static String write(JsonNode tree, SerdeCsvConfiguration csvConfiguration) {
+    static String write(JsonNode tree, SerdeCsvConfiguration csvConfiguration) throws SerdeException {
         return write(tree, csvConfiguration, null);
     }
 
-    static String write(JsonNode tree, SerdeCsvConfiguration csvConfiguration, @Nullable List<String> headers) {
+    static String write(JsonNode tree, SerdeCsvConfiguration csvConfiguration, @Nullable List<String> headers) throws SerdeException {
         if (tree.isNull()) {
             return "";
         }
@@ -70,7 +72,7 @@ public class CsvConverter {
     private static void appendCsvDocument(StringBuilder builder,
                                           JsonNode tree,
                                           SerdeCsvConfiguration csvConfiguration,
-                                          @Nullable List<String> configuredHeaders) {
+                                          @Nullable List<String> configuredHeaders) throws SerdeException {
         if (tree.isArray()) {
             if (csvConfiguration.getWriteHeader() == SerdeCsvConfiguration.Header.FIRST_ROW) {
                 List<String> headers = configuredHeaders == null ? headersFromRows(tree) : configuredHeaders;
@@ -194,7 +196,7 @@ public class CsvConverter {
             .collect(Collectors.toList());
     }
 
-    private static void appendRow(StringBuilder builder, JsonNode node) {
+    private static void appendRow(StringBuilder builder, JsonNode node) throws SerdeException {
         if (node.isArray()) {
             var index = 0;
             for (JsonNode value : node.values()) {
@@ -221,7 +223,7 @@ public class CsvConverter {
         builder.append('\n');
     }
 
-    private static void appendObjectRow(StringBuilder builder, JsonNode node, List<String> headers) {
+    private static void appendObjectRow(StringBuilder builder, JsonNode node, List<String> headers) throws SerdeException {
         for (int i = 0; i < headers.size(); i++) {
             String header = headers.get(i);
             appendSeparator(builder, i);
@@ -231,7 +233,7 @@ public class CsvConverter {
         builder.append('\n');
     }
 
-    private static void appendSchemaRow(StringBuilder builder, JsonNode node, List<String> headers) {
+    private static void appendSchemaRow(StringBuilder builder, JsonNode node, List<String> headers) throws SerdeException {
         if (node.isObject()) {
             appendObjectRow(builder, node, headers);
         } else {
@@ -284,11 +286,29 @@ public class CsvConverter {
         return headers;
     }
 
-    private static String cell(JsonNode node) {
+    private static String cell(JsonNode node) throws SerdeException {
         if (node.isNull()) {
             return "";
         }
+        if (node.isObject()) {
+            throw new SerdeException("CSV does not support object values for properties (nested objects)");
+        }
+        if (node.isArray()) {
+            var builder = new StringBuilder();
+            var index = 0;
+            for (JsonNode value : node.values()) {
+                appendCellSeparator(builder, index++);
+                builder.append(cell(value));
+            }
+            return builder.toString();
+        }
         return node.coerceStringValue();
+    }
+
+    private static void appendCellSeparator(StringBuilder builder, int index) {
+        if (index > 0) {
+            builder.append(';');
+        }
     }
 
 }
