@@ -573,9 +573,25 @@ independent of value of the property.</div>
 <dd>
 <div class="block">Checks whether a generated serializer can be created for the argument.</div>
 </dd>
+<dt><a href="io/micronaut/serde/util/SerdePropertyAccess.html#canDeserialize(io.micronaut.core.annotation.AnnotationMetadata)" class="member-name-link">canDeserialize(AnnotationMetadata)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/SerdePropertyAccess.html" title="class in io.micronaut.serde.util">SerdePropertyAccess</a></dt>
+<dd>
+<div class="block">Determines whether the property can be deserialized.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/SerdePropertyAccess.html#canDeserialize(io.micronaut.core.beans.BeanWriteProperty,io.micronaut.core.annotation.AnnotationMetadata)" class="member-name-link">canDeserialize(BeanWriteProperty, AnnotationMetadata)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/SerdePropertyAccess.html" title="class in io.micronaut.serde.util">SerdePropertyAccess</a></dt>
+<dd>
+<div class="block">Determines whether the property can be deserialized.</div>
+</dd>
 <dt><a href="io/micronaut/serde/processor/sourcegen/records/RecordSerdeShape.html#canonicalConstructor()" class="member-name-link">canonicalConstructor()</a> - Method in record class io.micronaut.serde.processor.sourcegen.records.<a href="io/micronaut/serde/processor/sourcegen/records/RecordSerdeShape.html" title="class in io.micronaut.serde.processor.sourcegen.records">RecordSerdeShape</a></dt>
 <dd>
 <div class="block">Returns the value of the <a href="./io/micronaut/serde/processor/sourcegen/records/RecordSerdeShape.html#param-canonicalConstructor"><code>canonicalConstructor</code></a> record component.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/SerdePropertyAccess.html#canSerialize(io.micronaut.core.annotation.AnnotationMetadata)" class="member-name-link">canSerialize(AnnotationMetadata)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/SerdePropertyAccess.html" title="class in io.micronaut.serde.util">SerdePropertyAccess</a></dt>
+<dd>
+<div class="block">Determines whether the property can be serialized.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/SerdePropertyAccess.html#canSerialize(io.micronaut.core.beans.BeanReadProperty,io.micronaut.core.annotation.AnnotationMetadata)" class="member-name-link">canSerialize(BeanReadProperty, AnnotationMetadata)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/SerdePropertyAccess.html" title="class in io.micronaut.serde.util">SerdePropertyAccess</a></dt>
+<dd>
+<div class="block">Determines whether the property can be serialized.</div>
 </dd>
 <dt><a href="io/micronaut/serde/Keys.html#caseInsensitive()" class="member-name-link">caseInsensitive()</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Keys.html" title="interface in io.micronaut.serde">Keys</a></dt>
 <dd>
@@ -3463,6 +3479,10 @@ as serializable by default without the need to add the <a href="io/micronaut/ser
 <dd>
 <div class="block">Returns the value of the <a href="./io/micronaut/serde/processor/sourcegen/enums/EnumSerdeShape.html#param-hasPropertyOverrides"><code>hasPropertyOverrides</code></a> record component.</div>
 </dd>
+<dt><a href="io/micronaut/serde/util/SerdePropertyAccess.html#hasRestrictedAccess(io.micronaut.core.annotation.AnnotationMetadata)" class="member-name-link">hasRestrictedAccess(AnnotationMetadata)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/SerdePropertyAccess.html" title="class in io.micronaut.serde.util">SerdePropertyAccess</a></dt>
+<dd>
+<div class="block">Determines whether the property is restricted to only read or only write access.</div>
+</dd>
 <dt><a href="io/micronaut/serde/Deserializer.DecoderContext.html#hasView(java.lang.Class...)" class="member-name-link">hasView(Class...)</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/Serializer.EncoderContext.html#hasView(java.lang.Class...)" class="member-name-link">hasView(Class...)</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a></dt>
@@ -5814,6 +5834,10 @@ for the serialization project.</div>
 <dt><a href="io/micronaut/serde/properties/SerdePropertiesConfiguration.ArrayIndexStyle.html" class="type-name-link" title="enum class in io.micronaut.serde.properties">SerdePropertiesConfiguration.ArrayIndexStyle</a> - Enum Class in <a href="io/micronaut/serde/properties/package-summary.html">io.micronaut.serde.properties</a></dt>
 <dd>
 <div class="block">Array index path style.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/SerdePropertyAccess.html" class="type-name-link" title="class in io.micronaut.serde.util">SerdePropertyAccess</a> - Class in <a href="io/micronaut/serde/util/package-summary.html">io.micronaut.serde.util</a></dt>
+<dd>
+<div class="block">Utility for resolving serde property access from serde and core introspection metadata.</div>
 </dd>
 <dt><a href="io/micronaut/serde/support/SerdeRegistrar.html" class="type-name-link" title="interface in io.micronaut.serde.support">SerdeRegistrar&lt;T&gt;</a> - Interface in <a href="io/micronaut/serde/support/package-summary.html">io.micronaut.serde.support</a></dt>
 <dd>
