@@ -81,6 +81,9 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
     private static final String DEFAULT_REF_ALIAS_NAME = "defaultReference";
     private static final String JSONB_NILLABLE = "jakarta.json.bind.annotation.JsonbNillable";
+    private static final String JSON_AUTO_DETECT = "com.fasterxml.jackson.annotation.JsonAutoDetect";
+    private static final String JSON_AUTO_DETECT_ANY = "ANY";
+    private static final String VISIBILITY = "visibility";
 
     private boolean failOnError = true;
     private @Nullable ClassElement currentClass;
@@ -112,7 +115,6 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
     private Set<String> getUnsupportedJacksonAnnotations() {
         return CollectionUtils.setOf(
-                "com.fasterxml.jackson.annotation.JsonAutoDetect",
                 "com.fasterxml.jackson.annotation.JsonIdentityInfo",
                 "com.fasterxml.jackson.annotation.JsonIdentityReference"
         );
@@ -120,6 +122,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
     @Override
     public void visitField(FieldElement element, VisitorContext context) {
+        sanitizeCoreJsonPropertyFieldAnnotation(element);
         checkForErrors(element, context);
         checkForFieldErrors(element);
     }
@@ -305,6 +308,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         if (element instanceof MethodElement && element.hasDeclaredAnnotation(SerdeConfig.class) && element.isPrivate()) {
             throw new ProcessingException(element, "JSON annotations cannot be used on private methods and constructors");
         }
+        checkJsonAutoDetect(element);
         for (String annotation : getUnsupportedJacksonAnnotations()) {
             if (element.hasDeclaredAnnotation(annotation)) {
                 throw new ProcessingException(element, "Annotation @" + NameUtils.getSimpleName(annotation) + " is not supported");
@@ -618,6 +622,29 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         return type;
     }
 
+    private void checkJsonAutoDetect(Element element) {
+        if (!element.hasDeclaredAnnotation(JSON_AUTO_DETECT)) {
+            return;
+        }
+        for (String member : List.of("fieldVisibility", "getterVisibility", "isGetterVisibility", "setterVisibility", "creatorVisibility")) {
+            String visibility = element.stringValue(JSON_AUTO_DETECT, member).orElse(null);
+            if (JSON_AUTO_DETECT_ANY.equals(enumName(visibility))) {
+                throw new ProcessingException(element, "JsonAutoDetect.Visibility.ANY is not supported");
+            }
+        }
+    }
+
+    private static @Nullable String enumName(@Nullable String value) {
+        if (value == null) {
+            return null;
+        }
+        int lastDot = value.lastIndexOf('.');
+        if (lastDot > -1) {
+            return value.substring(lastDot + 1);
+        }
+        return value;
+    }
+
     @Override
     public void visitClass(ClassElement element, VisitorContext context) {
         // reset
@@ -914,7 +941,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                  value.stringValue("packageName").ifPresent(packageName -> {
                      ClassElement[] classElements = context.getClassElements(packageName, "*");
                      for (ClassElement c : classElements) {
-                         if (c.isPublic()) {
+                         if (c.isPublic() && !c.isInner()) {
                              handleClassImport(context, value, c, classValues);
                          }
                      }
@@ -929,7 +956,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 element.annotate(Serdeable.class);
                 element.annotate(Introspected.class, i -> {
                     i.member("accessKind", Introspected.AccessKind.METHOD, Introspected.AccessKind.FIELD);
-                    i.member("visibility", "PUBLIC");
+                    i.member(VISIBILITY, Introspected.Visibility.PUBLIC);
                 });
             }
 
@@ -1117,11 +1144,14 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         }
         if (mixinType != null) {
             visitMixin(mixinType, type, context);
+            sanitizeCoreJsonPropertyFieldAnnotations(type);
+            ensureDefaultIntrospected(type, false);
         } else {
+            sanitizeCoreJsonPropertyFieldAnnotations(type);
             ensureDefaultIntrospected(type);
             visitClassInternal(type, context, true);
+            ensureDefaultIntrospected(type);
         }
-        ensureDefaultIntrospected(type);
         AnnotationValue<Annotation> jsonPojoAnn = type.getAnnotation("tools.jackson.databind.annotation.JsonPOJOBuilder");
         if (jsonPojoAnn != null) {
             String buildMethod = jsonPojoAnn.stringValue("buildMethodName").orElse("build");
@@ -1131,11 +1161,39 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     }
 
     private void ensureDefaultIntrospected(ClassElement type) {
+        ensureDefaultIntrospected(type, true);
+    }
+
+    private void ensureDefaultIntrospected(ClassElement type, boolean includeFields) {
         if (!type.hasAnnotation(Introspected.class)) {
             type.annotate(Introspected.class, i -> {
-                i.member("accessKind", Introspected.AccessKind.METHOD, Introspected.AccessKind.FIELD);
-                i.member("visibility", "PUBLIC");
+                if (includeFields) {
+                    i.member("accessKind", Introspected.AccessKind.METHOD, Introspected.AccessKind.FIELD);
+                } else {
+                    i.member("accessKind", Introspected.AccessKind.METHOD);
+                }
+                i.member(VISIBILITY, Introspected.Visibility.PUBLIC);
             });
+        }
+    }
+
+    private void sanitizeCoreJsonPropertyFieldAnnotations(ClassElement type) {
+        for (FieldElement field : type.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyInstance())) {
+            sanitizeCoreJsonPropertyFieldAnnotation(field);
+        }
+    }
+
+    private void sanitizeCoreJsonPropertyFieldAnnotation(FieldElement field) {
+        if (!field.isPublic()
+            && field.hasAnnotation("com.fasterxml.jackson.annotation.JsonProperty")
+            && field.hasAnnotation(Introspected.Property.class)
+            && field.getOwningType()
+                .enumValue(Introspected.class, VISIBILITY, Introspected.Visibility.class)
+                .filter(Introspected.Visibility.ANY::equals)
+                .isEmpty()) {
+            // Micronaut Core maps @JsonProperty to @Introspected.Property.
+            // Keep Jackson metadata for Serde, but don't force inaccessible field access.
+            field.removeAnnotation(Introspected.Property.class);
         }
     }
 
@@ -1216,7 +1274,6 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                         if (serdeMethod.getName().equals(readMethod.getName())) {
                             if (argumentsMatch(serdeMethod, readMethod)) {
                                 i.remove();
-                                replicateAnnotations(serdeMethod, beanProperty);
                                 replicateAnnotations(serdeMethod, readMethod);
                                 visitMethod(readMethod, context);
                             }
@@ -1226,7 +1283,6 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                         if (serdeMethod.getName().equals(writeMethod.getName())) {
                             if (argumentsMatch(serdeMethod, writeMethod)) {
                                 i.remove();
-                                replicateAnnotations(serdeMethod, beanProperty);
                                 replicateAnnotations(serdeMethod, writeMethod);
                                 visitMethod(writeMethod, context);
                             }
@@ -1543,7 +1599,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                         "com.fasterxml.jackson.annotation.JsonTypeInfo",
                         "com.fasterxml.jackson.annotation.JsonRootName",
                         "com.fasterxml.jackson.annotation.JsonTypeName",
-                        "com.fasterxml.jackson.annotation.JsonAutoDetect",
+                        JSON_AUTO_DETECT,
                         "com.fasterxml.jackson.annotation.JsonIgnoreProperties",
                         "com.fasterxml.jackson.annotation.JsonIncludeProperties"
             ).anyMatch(element::hasDeclaredAnnotation) ||

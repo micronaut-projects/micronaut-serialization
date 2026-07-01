@@ -30,6 +30,7 @@ import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.serde.annotation.SerdeableGenerated;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
+import io.micronaut.serde.util.SerdePropertyAccess;
 
 import java.lang.annotation.Annotation;
 import java.util.LinkedHashMap;
@@ -802,6 +803,7 @@ public final class SimpleSerdeShapeAnalyzer {
             || element.booleanValue(SerdeConfig.class, SerdeConfig.REQUIRED).orElse(false)
             || element.booleanValue(SerdeConfig.class, SerdeConfig.READ_ONLY).orElse(false)
             || element.booleanValue(SerdeConfig.class, SerdeConfig.WRITE_ONLY).orElse(false)
+            || SerdePropertyAccess.hasRestrictedAccess(element.getAnnotationMetadata())
             || element.booleanValue(SerdeConfig.class, SerdeConfig.MERGE).orElse(false)
             || FormatConfiguration.from(element.getAnnotationMetadata()) != null
             || hasFeatureOverrides(element.getAnnotationMetadata())
@@ -820,6 +822,7 @@ public final class SimpleSerdeShapeAnalyzer {
             || annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.REQUIRED).orElse(false)
             || annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.READ_ONLY).orElse(false)
             || annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.WRITE_ONLY).orElse(false)
+            || SerdePropertyAccess.hasRestrictedAccess(annotationMetadata)
             || annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.MERGE).orElse(false)
             || FormatConfiguration.from(annotationMetadata) != null
             || hasFeatureOverrides(annotationMetadata)

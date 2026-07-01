@@ -89,6 +89,25 @@ final class JsonbReflectionUtil {
     }
 
     /**
+     * Returns declared methods from the full class hierarchy in subclass-first
+     * order. Runtime property discovery uses this instead of
+     * {@link Class#getMethods()} so non-public accessors can still suppress a
+     * same-name public field under JSON-B default visibility rules.
+     *
+     * @param type The type to inspect
+     * @return The hierarchy methods
+     */
+    static List<Method> methods(Class<?> type) {
+        List<Method> methods = new ArrayList<>();
+        Class<?> current = type;
+        while (current != null && current != Object.class) {
+            Collections.addAll(methods, current.getDeclaredMethods());
+            current = current.getSuperclass();
+        }
+        return methods;
+    }
+
+    /**
      * Tests whether a type should be treated as a scalar by JSON-B model
      * discovery. Scalar values are handled by registered Serde codecs instead of
      * runtime bean introspection.
@@ -156,7 +175,7 @@ final class JsonbReflectionUtil {
      * @return Whether the getter is visible
      */
     static boolean isVisible(Method method, @Nullable PropertyVisibilityStrategy visibilityStrategy) {
-        return visibilityStrategy == null || visibilityStrategy.isVisible(method);
+        return visibilityStrategy == null ? Modifier.isPublic(method.getModifiers()) : visibilityStrategy.isVisible(method);
     }
 
     /**
@@ -167,7 +186,7 @@ final class JsonbReflectionUtil {
      * @return Whether the setter is visible
      */
     static boolean isVisibleSetter(Method method, @Nullable PropertyVisibilityStrategy visibilityStrategy) {
-        return visibilityStrategy == null || visibilityStrategy.isVisible(method);
+        return isVisible(method, visibilityStrategy);
     }
 
     /**

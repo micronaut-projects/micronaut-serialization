@@ -105,24 +105,33 @@ final class JsonbRuntimeBeanIntrospection<T> implements BeanIntrospection<T> {
         this.hasTypeInfo = !typeInfoProperties.isEmpty() || JsonbTypeInfoSupport.hasTypeInfo(type);
         Map<String, JsonbRuntimeProperty<T>> allModels = new LinkedHashMap<>();
         int[] allPropertyIndex = {0};
+        Set<String> hiddenAccessorPropertyNames = new HashSet<>();
         for (Field field : JsonbReflectionUtil.fields(type)) {
             if (field.isSynthetic() || Modifier.isStatic(field.getModifiers())) {
                 continue;
             }
             allModels.computeIfAbsent(field.getName(), n -> new JsonbRuntimeProperty<>(this, n, namingStrategy, allPropertyIndex[0]++)).field = field;
         }
-        for (Method method : type.getMethods()) {
+        for (Method method : JsonbReflectionUtil.methods(type)) {
             if (JsonbReflectionUtil.isGetterName(method) && method.getParameterCount() == 0 && !method.isSynthetic() && !method.isBridge() && method.getDeclaringClass() != Object.class) {
-                allModels.computeIfAbsent(JsonbReflectionUtil.implicitPropertyName(method), n -> new JsonbRuntimeProperty<>(this, n, namingStrategy, allPropertyIndex[0]++)).getter = method;
+                String name = JsonbReflectionUtil.implicitPropertyName(method);
+                if (visibilityStrategy == null && !JsonbReflectionUtil.isVisible(method, null)) {
+                    hiddenAccessorPropertyNames.add(name);
+                }
+                allModels.computeIfAbsent(name, n -> new JsonbRuntimeProperty<>(this, n, namingStrategy, allPropertyIndex[0]++)).getter = method;
             } else if (method.getName().startsWith("set") && method.getName().length() > 3 && method.getParameterCount() == 1 && !method.isSynthetic() && !method.isBridge()) {
-                allModels.computeIfAbsent(JsonbReflectionUtil.implicitPropertyName(method), n -> new JsonbRuntimeProperty<>(this, n, namingStrategy, allPropertyIndex[0]++)).setter = method;
+                String name = JsonbReflectionUtil.implicitPropertyName(method);
+                if (visibilityStrategy == null && !JsonbReflectionUtil.isVisibleSetter(method, null)) {
+                    hiddenAccessorPropertyNames.add(name);
+                }
+                allModels.computeIfAbsent(name, n -> new JsonbRuntimeProperty<>(this, n, namingStrategy, allPropertyIndex[0]++)).setter = method;
             }
         }
         this.validationProperties = List.copyOf(allModels.values());
         Map<String, JsonbRuntimeProperty<T>> models = new LinkedHashMap<>();
         Set<String> transientProperties = JsonbReflectionUtil.transientProperties(type);
         int[] propertyIndex = {0};
-        for (Method method : type.getMethods()) {
+        for (Method method : JsonbReflectionUtil.methods(type)) {
             if (JsonbReflectionUtil.isGetter(method) && JsonbReflectionUtil.isVisible(method, visibilityStrategy)) {
                 String name = JsonbReflectionUtil.implicitPropertyName(method);
                 if (!transientProperties.contains(name) && !JsonbReflectionUtil.isStaticBackedAccessor(type, name)) {
@@ -135,8 +144,13 @@ final class JsonbRuntimeBeanIntrospection<T> implements BeanIntrospection<T> {
                 }
             }
         }
+        boolean hiddenAccessorBackedField = false;
         for (Field field : JsonbReflectionUtil.fields(type)) {
             if (JsonbReflectionUtil.isFieldProperty(field) && JsonbReflectionUtil.isVisible(field, visibilityStrategy) && !transientProperties.contains(field.getName())) {
+                if (visibilityStrategy == null && hiddenAccessorPropertyNames.contains(field.getName())) {
+                    hiddenAccessorBackedField = true;
+                    continue;
+                }
                 models.computeIfAbsent(field.getName(), n -> new JsonbRuntimeProperty<>(this, n, namingStrategy, propertyIndex[0]++)).field = field;
             }
         }
@@ -163,6 +177,7 @@ final class JsonbRuntimeBeanIntrospection<T> implements BeanIntrospection<T> {
             || hasTypeOrPackageFormat(type)
             || hasAsymmetricAccessorNames()
             || hasAsymmetricAccessorFormats()
+            || hiddenAccessorBackedField
             || hasStaticBackedAccessor();
         boolean hasGeneratedWriteFallbackProperty = hasGeneratedWriteFallbackProperty();
         this.canWriteGeneratedDirectly = MicronautJsonbReflectionProvider.MicronautJsonb.canResolveGeneratedSerde(type)

@@ -23,6 +23,13 @@ dependencies {
 application {
     mainClass.set("example.Application")
 }
+
+graalvmNative {
+    metadataRepository {
+        // Jackson 2.21.2 is newer than the available repository metadata, which still references stale Databind types.
+        excludedModules.add("com.fasterxml.jackson.core:jackson-databind")
+    }
+}
 //
 //tasks {
 //    compileJava {
