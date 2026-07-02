@@ -1,9 +1,23 @@
+/*
+ * Copyright 2017-2026 original authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.micronaut.serde.yaml
 
-import io.micronaut.core.type.Argument
 import io.micronaut.serde.config.annotation.SerdeConfig
 
-class YamlSerializationSpec extends YamlCompileSpec {
+abstract class AbstractYamlSerializationSpec extends AbstractYamlDeserializationSpec {
 
     void "serialization - record object"() {
         given:
@@ -18,7 +32,7 @@ class YamlSerializationSpec extends YamlCompileSpec {
 
         when:
         def result = writeYaml(bean)
-        def obj = yamlMapper.readValue(result.bytes, Argument.of(typeUnderTest.type))
+        def obj = readYaml(result.bytes, typeUnderTest)
 
         then:
         obj.value1() == "A"
@@ -44,7 +58,7 @@ class YamlSerializationSpec extends YamlCompileSpec {
 
         when:
         def result = writeYaml(bean)
-        def obj = yamlMapper.readValue(result.bytes, Argument.of(typeUnderTest.type))
+        def obj = readYaml(result.bytes, typeUnderTest)
 
         then:
         obj.values() == ["A", "B"]
@@ -68,14 +82,14 @@ class YamlSerializationSpec extends YamlCompileSpec {
 
         when:
         def result = writeYaml(bean)
-        def obj = yamlMapper.readValue(result.bytes, Argument.of(typeUnderTest.type))
+        def obj = readYaml(result.bytes, typeUnderTest)
 
         then:
         result == "booleanValue: true\n" +
                 "integerValue: 1\n" +
                 "decimalValue: 0.288\n" +
                 "nullValue: null\n" +
-                "dateValue: '2024-01-01'\n"
+                "dateValue: 2024-01-01\n"
         obj.booleanValue()
         obj.integerValue() == 1
         obj.decimalValue() == 0.288d

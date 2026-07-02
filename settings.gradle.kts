@@ -37,6 +37,7 @@ include("test-suite-jaxb-tck-stax")
 include("test-suite-jaxb-tck-impl")
 include("serde-jackson-cbor")
 include("serde-yaml")
+include("serde-yaml-tck")
 
 include("doc-examples:example-bson-java")
 include("doc-examples:example-jackson-cbor-java")
@@ -55,6 +56,7 @@ include("test-suite-tck-jackson-databind")
 include("test-suite-tck-serde")
 include("test-suite-http-server-tck-netty")
 include("test-suite-properties-jackson-databind")
+include("test-suite-yaml-jackson-databind")
 
 include("tests:jsonp-tck")
 include("tests:jsonb-tck")
@@ -68,5 +70,3 @@ configure<io.micronaut.build.MicronautBuildSettingsExtension> {
     importMicronautCatalog("micronaut-oracle-cloud")
     importMicronautCatalog("micronaut-validation")
 }
-
-include("serde-yaml")

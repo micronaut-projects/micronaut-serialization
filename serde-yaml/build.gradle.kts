@@ -29,6 +29,7 @@ dependencies {
 
     testImplementation(projects.micronautSerdeProcessor)
     testImplementation(projects.micronautSerdeTck)
+    testImplementation(projects.micronautSerdeYamlTck)
     testImplementation(mn.micronaut.inject.java.test)
     testImplementation(mn.micronaut.inject.kotlin.test)
     testImplementation(mn.micronaut.inject.kotlin)

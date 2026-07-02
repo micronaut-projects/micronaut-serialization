@@ -202,9 +202,10 @@ public class YamlEncoder extends LimitingStream implements Encoder {
     public void encodeString(@NonNull String value) throws IOException {
         Tag detectedTag = resolver.resolve(NodeId.scalar, value, true);
         Tag defaultTag = resolver.resolve(NodeId.scalar, value, false);
+        boolean timestamp = Tag.TIMESTAMP.equals(detectedTag);
         emitScalar(
             value,
-            new ImplicitTuple(Tag.STR.equals(detectedTag), Tag.STR.equals(defaultTag)),
+            new ImplicitTuple(timestamp || Tag.STR.equals(detectedTag), Tag.STR.equals(defaultTag)),
             DumperOptions.ScalarStyle.PLAIN
         );
     }

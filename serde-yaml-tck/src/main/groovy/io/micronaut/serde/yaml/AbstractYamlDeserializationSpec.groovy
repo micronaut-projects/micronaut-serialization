@@ -1,8 +1,24 @@
-package io.micronaut.serde.yaml;
+/*
+ * Copyright 2017-2026 original authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.micronaut.serde.yaml
 
-import io.micronaut.core.type.Argument;
+import io.micronaut.core.type.Argument
+import spock.lang.IgnoreIf
 
-class YamlDeserializationSpec extends YamlCompileSpec {
+abstract class AbstractYamlDeserializationSpec extends AbstractYamlCompileSpec {
 
     void "deserialization - root mapping with record name wrapper"() {
         given:
@@ -14,10 +30,10 @@ class YamlDeserializationSpec extends YamlCompileSpec {
     ''')
 
         expect:
-        def obj = yamlMapper.readValue('Test:\n' +
+        def obj = readYamlWithRootWrapper('Test:\n' +
                 '  value1: A\n' +
                 '  value2: B\n' +
-                '  value3: C\n', Argument.of(typeUnderTest.type))
+                '  value3: C\n', typeUnderTest)
         obj.value1() == "A"
         obj.value2() == "B"
         obj.value3() == "C"
@@ -36,9 +52,9 @@ class YamlDeserializationSpec extends YamlCompileSpec {
     ''')
 
         expect:
-        def obj = yamlMapper.readValue(
+        def obj = readYaml(
                 'value1: A\nvalue2: B\nvalue3: C\n',
-                Argument.of(typeUnderTest.type)
+                typeUnderTest
         )
         obj.value1() == "A"
         obj.value2() == "B"
@@ -59,9 +75,9 @@ class YamlDeserializationSpec extends YamlCompileSpec {
     ''')
 
         expect:
-        def obj = yamlMapper.readValue(
+        def obj = readYaml(
                 'value1: A\nvalue3: C\n',
-                Argument.of(typeUnderTest.type)
+                typeUnderTest
         )
         obj.value1() == "A"
         obj.value2() == null
@@ -81,9 +97,9 @@ class YamlDeserializationSpec extends YamlCompileSpec {
     ''')
 
         expect:
-        def obj = yamlMapper.readValue(
+        def obj = readYaml(
                 'value1: A\nvalue2: B\nvalue3: C\nextra: Z\n',
-                Argument.of(typeUnderTest.type)
+                typeUnderTest
         )
         obj.value1() == "A"
         obj.value2() == "B"
@@ -104,9 +120,9 @@ class YamlDeserializationSpec extends YamlCompileSpec {
     ''')
 
         expect:
-        def obj = yamlMapper.readValue(
+        def obj = readYaml(
                 "value1: ''\nvalue2: ~\nvalue3: null\n",
-                Argument.of(typeUnderTest.type)
+                typeUnderTest
         )
         obj.value1() == ""
         obj.value3() == null
@@ -126,9 +142,9 @@ class YamlDeserializationSpec extends YamlCompileSpec {
     ''')
 
         expect:
-        def obj = yamlMapper.readValue(
+        def obj = readYaml(
                 "value1: 'true'\nvalue2: \"123\"\nvalue3: '001'\n",
-                Argument.of(typeUnderTest.type)
+                typeUnderTest
         )
         obj.value1() == "true"
         obj.value2() == "123"
@@ -148,9 +164,9 @@ class YamlDeserializationSpec extends YamlCompileSpec {
     ''')
 
         expect:
-        def obj = yamlMapper.readValue(
+        def obj = readYaml(
                 "value1: |\n  line1\n  line2\n",
-                Argument.of(typeUnderTest.type)
+                typeUnderTest
         )
         obj.value1() == "line1\nline2\n"
 
@@ -172,9 +188,9 @@ class YamlDeserializationSpec extends YamlCompileSpec {
     ''')
 
         expect:
-        def obj = yamlMapper.readValue(
+        def obj = readYaml(
                 "name: X\ninner:\n  a: A\n  b: B\n",
-                Argument.of(typeUnderTest.type)
+                typeUnderTest
         )
         obj.name() == "X"
         obj.inner().a() == "A"
@@ -196,9 +212,9 @@ class YamlDeserializationSpec extends YamlCompileSpec {
     ''')
 
         expect:
-        def obj = yamlMapper.readValue(
+        def obj = readYaml(
                 "values:\n  - A\n  - B\n  - C\n",
-                Argument.of(typeUnderTest.type)
+                typeUnderTest
         )
         obj.values() == ["A", "B", "C"]
 
@@ -218,9 +234,9 @@ class YamlDeserializationSpec extends YamlCompileSpec {
     ''')
 
         expect:
-        def obj = yamlMapper.readValue(
+        def obj = readYaml(
                 "values:\n  k1: v1\n  k2: v2\n",
-                Argument.of(typeUnderTest.type)
+                typeUnderTest
         )
         obj.values() == [k1: "v1", k2: "v2"]
 
@@ -239,9 +255,9 @@ class YamlDeserializationSpec extends YamlCompileSpec {
     ''')
 
         expect:
-        def obj = yamlMapper.readValue(
+        def obj = readYaml(
                 "i: 1\nl: 9223372036854775807\nb: true\nd: 1.25\n",
-                Argument.of(typeUnderTest.type)
+                typeUnderTest
         )
         obj.i() == 1
         obj.l() == 9223372036854775807L
@@ -263,7 +279,7 @@ class YamlDeserializationSpec extends YamlCompileSpec {
     ''')
 
         when:
-        yamlMapper.readValue("i: notANumber\n", Argument.of(typeUnderTest.type))
+        readYaml("i: notANumber\n", typeUnderTest)
 
         then:
         thrown(Exception)
@@ -285,7 +301,7 @@ class YamlDeserializationSpec extends YamlCompileSpec {
     ''')
 
         expect:
-        def obj = yamlMapper.readValue("color: RED\n", Argument.of(typeUnderTest.type))
+        def obj = readYaml("color: RED\n", typeUnderTest)
         obj.color().name() == "RED"
 
         cleanup:
@@ -303,7 +319,7 @@ class YamlDeserializationSpec extends YamlCompileSpec {
     ''')
 
         when:
-        yamlMapper.readValue("", Argument.of(typeUnderTest.type))
+        readYaml("", typeUnderTest)
 
         then:
         thrown(Exception)
@@ -323,7 +339,7 @@ class YamlDeserializationSpec extends YamlCompileSpec {
     ''')
 
         when:
-        yamlMapper.readValue("---\nvalue1: A\n---\nvalue1: B\n", Argument.of(typeUnderTest.type))
+        readYaml("---\nvalue1: A\n---\nvalue1: B\n", typeUnderTest)
 
         then:
         thrown(Exception)
@@ -343,7 +359,7 @@ class YamlDeserializationSpec extends YamlCompileSpec {
     ''')
 
         when:
-        yamlMapper.readValue("value1:\n   - A\n  - B\n", Argument.of(typeUnderTest.type))
+        readYaml("value1:\n   - A\n  - B\n", typeUnderTest)
 
         then:
         thrown(Exception)
@@ -352,6 +368,10 @@ class YamlDeserializationSpec extends YamlCompileSpec {
         context.close()
     }
 
+    @IgnoreIf(
+        reason = 'Jackson YAML relies on the low-level SnakeYAML Engine parser and does not compose alias references',
+        value = { instance.ignoreYamlAliases() }
+    )
     void "deserialization - scalar alias anchor usage"() {
         given:
         def context = buildContext('test.Test', '''
@@ -363,7 +383,7 @@ class YamlDeserializationSpec extends YamlCompileSpec {
     ''')
 
         expect:
-        def obj = yamlMapper.readValue("value1: &x A\nvalue2: *x\n", Argument.of(typeUnderTest.type))
+        def obj = readYaml("value1: &x A\nvalue2: *x\n", typeUnderTest)
         obj.value1() == "A"
         obj.value2() == "A"
 
@@ -371,6 +391,10 @@ class YamlDeserializationSpec extends YamlCompileSpec {
         context.close()
     }
 
+    @IgnoreIf(
+        reason = 'Jackson YAML relies on the low-level SnakeYAML Engine parser and does not compose alias references',
+        value = { instance.ignoreYamlAliases() }
+    )
     void "deserialization - yaml specification example 2.10 repeated scalar node"() {
         given:
         def context = buildContext('test.Test', '''
@@ -383,7 +407,7 @@ class YamlDeserializationSpec extends YamlCompileSpec {
     ''')
 
         expect:
-        def obj = yamlMapper.readValue(
+        def obj = readYaml(
                 "---\n" +
                 "hr:\n" +
                 "  - Mark McGwire\n" +
@@ -392,7 +416,7 @@ class YamlDeserializationSpec extends YamlCompileSpec {
                 "rbi:\n" +
                 "  - *SS # Subsequent occurrence\n" +
                 "  - Ken Griffey\n",
-                Argument.of(typeUnderTest.type)
+                typeUnderTest
         )
         obj.hr() == ["Mark McGwire", "Sammy Sosa"]
         obj.rbi() == ["Sammy Sosa", "Ken Griffey"]
@@ -400,4 +424,13 @@ class YamlDeserializationSpec extends YamlCompileSpec {
         cleanup:
         context.close()
     }
+
+    protected boolean ignoreYamlAliases() {
+        false
+    }
+
+    protected <T> T readYamlWithRootWrapper(String yaml, Argument<T> type) {
+        readYaml(yaml, type)
+    }
+
 }
