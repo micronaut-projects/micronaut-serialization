@@ -20,7 +20,6 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.events.AliasEvent;
 import org.yaml.snakeyaml.events.Event;
 import org.yaml.snakeyaml.events.ScalarEvent;
 import org.yaml.snakeyaml.nodes.NodeId;
@@ -34,9 +33,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 
 /**
  * YAML implementation of the {@link io.micronaut.serde.Decoder} interface.
@@ -46,12 +43,11 @@ import java.util.Map;
 @SuppressWarnings("NullAway")
 public class YamlDecoder extends AbstractStreamDecoder {
 
-    private final Iterator<Event> events;
+    private final YAMLAnchorReplayingParser eventReader;
     private final Deque<CollectionContext> mappingContextStack = new ArrayDeque<>();
     private Event currrentEvent;
     private boolean inDocument = false;
     private final Resolver resolver = new Resolver();
-    private final Map<String, ScalarEvent> anchoredScalars = new HashMap<>();
 
     /**
      * Creates a YAML decoder with the supplied input stream and stream limits.
@@ -61,18 +57,20 @@ public class YamlDecoder extends AbstractStreamDecoder {
      */
     public YamlDecoder(@NonNull InputStream inputStream, @NonNull RemainingLimits remainingLimits) {
         super(remainingLimits);
-        events = new Yaml().parse(new UnicodeReader(inputStream)).iterator();
+        Iterator<Event> events = new Yaml().parse(new UnicodeReader(inputStream)).iterator();
         while (events.hasNext()) {
             Event nextEvent = events.next();
             if (nextEvent.getEventId() == Event.ID.DocumentStart) {
                 inDocument = true;
             }
             if (nextEvent.getEventId() == Event.ID.MappingStart) {
+                eventReader = new YAMLAnchorReplayingParser(events);
                 mappingContextStack.push(new CollectionContext(false));
                 this.currrentEvent = nextEvent;
                 return;
             }
         }
+        eventReader = new YAMLAnchorReplayingParser(events);
     }
 
     /**
@@ -107,12 +105,12 @@ public class YamlDecoder extends AbstractStreamDecoder {
 
     @Override
     protected void nextToken() throws IOException {
-        if (!events.hasNext()) {
+        Event nextEvent = eventReader.getEvent();
+        if (nextEvent == null) {
             this.currrentEvent = null;
             return;
         }
         if (inDocument) {
-            Event nextEvent = events.next();
             Event.ID eventId = nextEvent.getEventId();
 
             if (eventId == Event.ID.Comment) {
@@ -121,10 +119,6 @@ public class YamlDecoder extends AbstractStreamDecoder {
             }
             if (eventId == Event.ID.StreamStart || eventId == Event.ID.DocumentStart) {
                 throw createDeserializationException("Multiple documents encounter, deserialization failed.", null);
-            }
-            if (eventId == Event.ID.Alias) {
-                nextEvent = resolveAlias((AliasEvent) nextEvent);
-                eventId = nextEvent.getEventId();
             }
             if (eventId == Event.ID.MappingEnd || eventId == Event.ID.SequenceEnd) {
                 mappingContextStack.removeFirst();
@@ -147,10 +141,6 @@ public class YamlDecoder extends AbstractStreamDecoder {
                 finishStructure();
             }
             if (eventId == Event.ID.Scalar) {
-                ScalarEvent scalarEvent = (ScalarEvent) nextEvent;
-                if (scalarEvent.getAnchor() != null) {
-                    anchoredScalars.put(scalarEvent.getAnchor(), scalarEvent);
-                }
                 assert !mappingContextStack.isEmpty() : "Mapping context can't be empty while decoding a scalar.";
                 CollectionContext ctx = mappingContextStack.peekFirst();
                 if (!ctx.isSequence()) {
@@ -163,8 +153,8 @@ public class YamlDecoder extends AbstractStreamDecoder {
     }
 
     private void failIfAnotherDocumentExists() throws IOException {
-        while (events.hasNext()) {
-            Event nextEvent = events.next();
+        Event nextEvent;
+        while ((nextEvent = eventReader.getEvent()) != null) {
             if (nextEvent.getEventId() == Event.ID.StreamEnd || nextEvent.getEventId() == Event.ID.Comment) {
                 continue;
             }
@@ -259,17 +249,6 @@ public class YamlDecoder extends AbstractStreamDecoder {
         }
     }
 
-    /**
-     * SnakeYaml resolve very well alias via {@link org.yaml.snakeyaml.composer.Composer} class
-     */
-    private ScalarEvent resolveAlias(AliasEvent aliasEvent) throws IOException {
-        ScalarEvent scalarEvent = anchoredScalars.get(aliasEvent.getAnchor());
-        if (scalarEvent == null) {
-            throw createDeserializationException("Unsupported YAML alias: " + aliasEvent.getAnchor(), null);
-        }
-        return scalarEvent;
-    }
-
     @Override
     public void finishStructure(boolean consumeLeftElements) throws IOException {
         super.finishStructure(consumeLeftElements);
@@ -296,4 +275,5 @@ public class YamlDecoder extends AbstractStreamDecoder {
             return sequence;
         }
     }
+
 }
