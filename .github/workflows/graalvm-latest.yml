@@ -37,7 +37,7 @@ jobs:
     strategy:
       max-parallel: 6
       matrix:
-        java: ['25.0.2']
+        java: ['25']
         native_test_task: ${{ fromJson(needs.build_matrix.outputs.matrix).native_test_task }}
     steps:
       - name: Remove system JDKs
