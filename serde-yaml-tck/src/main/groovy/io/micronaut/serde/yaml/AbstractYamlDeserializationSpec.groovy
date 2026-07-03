@@ -16,7 +16,6 @@
 package io.micronaut.serde.yaml
 
 import io.micronaut.core.type.Argument
-import spock.lang.IgnoreIf
 
 abstract class AbstractYamlDeserializationSpec extends AbstractYamlCompileSpec {
 
@@ -368,10 +367,6 @@ abstract class AbstractYamlDeserializationSpec extends AbstractYamlCompileSpec {
         context.close()
     }
 
-    @IgnoreIf(
-        reason = 'Jackson YAML relies on the low-level SnakeYAML Engine parser and does not compose alias references',
-        value = { instance.ignoreYamlAliases() }
-    )
     void "deserialization - scalar alias anchor usage"() {
         given:
         def context = buildContext('test.Test', '''
@@ -383,7 +378,10 @@ abstract class AbstractYamlDeserializationSpec extends AbstractYamlCompileSpec {
     ''')
 
         expect:
-        def obj = readYaml("value1: &x A\nvalue2: *x\n", typeUnderTest)
+        def obj = readYamlWithAliases('''
+value1: &x A
+value2: *x
+''', typeUnderTest)
         obj.value1() == "A"
         obj.value2() == "A"
 
@@ -391,10 +389,6 @@ abstract class AbstractYamlDeserializationSpec extends AbstractYamlCompileSpec {
         context.close()
     }
 
-    @IgnoreIf(
-        reason = 'Jackson YAML relies on the low-level SnakeYAML Engine parser and does not compose alias references',
-        value = { instance.ignoreYamlAliases() }
-    )
     void "deserialization - yaml specification example 2.10 repeated scalar node"() {
         given:
         def context = buildContext('test.Test', '''
@@ -407,15 +401,17 @@ abstract class AbstractYamlDeserializationSpec extends AbstractYamlCompileSpec {
     ''')
 
         expect:
-        def obj = readYaml(
-                "---\n" +
-                "hr:\n" +
-                "  - Mark McGwire\n" +
-                "  # Following node labeled SS\n" +
-                "  - &SS Sammy Sosa\n" +
-                "rbi:\n" +
-                "  - *SS # Subsequent occurrence\n" +
-                "  - Ken Griffey\n",
+        def obj = readYamlWithAliases(
+                '''
+---
+hr:
+  - Mark McGwire
+  # Following node labeled SS
+  - &SS Sammy Sosa
+rbi:
+  - *SS # Subsequent occurrence
+  - Ken Griffey
+''',
                 typeUnderTest
         )
         obj.hr() == ["Mark McGwire", "Sammy Sosa"]
@@ -425,10 +421,174 @@ abstract class AbstractYamlDeserializationSpec extends AbstractYamlCompileSpec {
         context.close()
     }
 
-    protected boolean ignoreYamlAliases() {
-        false
+    void "deserialization - sequence alias anchor usage"() {
+        given:
+        def context = buildContext('test.Test', '''
+        package test;
+        import io.micronaut.serde.annotation.Serdeable;
+        import java.util.List;
+
+        @Serdeable
+        record Test(List<Integer> list1, List<Integer> list2) {}
+    ''')
+
+        expect:
+        def obj = readYamlWithAliases(
+                '''
+list1: &listAnchor
+  - 1
+  - 2
+  - 3
+list2: *listAnchor
+''',
+                typeUnderTest
+        )
+        obj.list1() == [1, 2, 3]
+        obj.list2() == [1, 2, 3]
+
+        cleanup:
+        context.close()
     }
 
+    void "deserialization - mapping alias anchor usage"() {
+        given:
+        def context = buildContext('test.Test', '''
+        package test;
+        import io.micronaut.serde.annotation.Serdeable;
+
+        @Serdeable
+        record Obj(String string, boolean bool) {}
+
+        @Serdeable
+        record Test(Obj obj1, Obj obj2) {}
+    ''')
+
+        expect:
+        def obj = readYamlWithAliases(
+                '''
+obj1: &objAnchor
+  string: 'text'
+  bool: True
+obj2: *objAnchor
+''',
+                typeUnderTest
+        )
+        obj.obj1().string() == "text"
+        obj.obj1().bool()
+        obj.obj2().string() == "text"
+        obj.obj2().bool()
+
+        cleanup:
+        context.close()
+    }
+
+    void "deserialization - mapping merge alias usage"() {
+        given:
+        def context = buildContext('test.Test', '''
+        package test;
+        import io.micronaut.core.annotation.Nullable;
+        import io.micronaut.serde.annotation.Serdeable;
+
+        @Serdeable
+        record Obj(String string, boolean bool, @Nullable Integer i) {}
+
+        @Serdeable
+        record Test(Obj obj1, Obj obj2) {}
+    ''')
+
+        expect:
+        def obj = readYamlWithAliases(
+                '''
+obj1: &objAnchor
+  string: 'text'
+  bool: True
+obj2:
+  <<: *objAnchor
+  i: 123
+''',
+                typeUnderTest
+        )
+        obj.obj1().string() == "text"
+        obj.obj1().bool()
+        obj.obj1().i() == null
+        obj.obj2().string() == "text"
+        obj.obj2().bool()
+        obj.obj2().i() == 123
+
+        cleanup:
+        context.close()
+    }
+
+    void "deserialization - nested collections in mapping alias"() {
+        given:
+        def context = buildContext('test.Test', '''
+        package test;
+        import io.micronaut.serde.annotation.Serdeable;
+        import java.util.List;
+
+        @Serdeable
+        record Nested(boolean enabled) {}
+
+        @Serdeable
+        record Obj(List<String> values, Nested nested) {}
+
+        @Serdeable
+        record Test(Obj obj1, Obj obj2) {}
+    ''')
+
+        expect:
+        def obj = readYamlWithAliases(
+                '''
+obj1: &objAnchor
+  values:
+    - one
+    - two
+  nested:
+    enabled: true
+obj2: *objAnchor
+''',
+                typeUnderTest
+        )
+        obj.obj1().values() == ["one", "two"]
+        obj.obj1().nested().enabled()
+        obj.obj2().values() == ["one", "two"]
+        obj.obj2().nested().enabled()
+
+        cleanup:
+        context.close()
+    }
+
+    void "deserialization - alias without anchor should fail"() {
+        given:
+        def context = buildContext('test.Test', '''
+        package test;
+        import io.micronaut.serde.annotation.Serdeable;
+
+        @Serdeable
+        record Test(String value) {}
+    ''')
+
+        when:
+        readYamlWithAliases('''
+value: *missing
+''', typeUnderTest)
+
+        then:
+        thrown(Exception)
+
+        cleanup:
+        context.close()
+    }
+
+    /*
+    * This method will be overridden only in the jackson-databind TCK YAML module.
+    * since Jackson ObjectCodec wrap —> new ObjectMapper(new YAMLAnchorReplayingFactory()) to resolve anchors.
+    */
+    protected <T> T readYamlWithAliases(String yaml, Argument<T> type) {
+        readYaml(yaml, type)
+    }
+
+    // This method will be overridden in the jackson-databind TCK YAML module
     protected <T> T readYamlWithRootWrapper(String yaml, Argument<T> type) {
         readYaml(yaml, type)
     }

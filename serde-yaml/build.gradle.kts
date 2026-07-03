@@ -5,9 +5,7 @@ plugins {
 }
 
 micronautBuild {
-    binaryCompatibility {
-        enabledAfter("3.1.0")
-    }
+    binaryCompatibility.enabledAfter("3.2.0")
 }
 
 dependencies {

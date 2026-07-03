@@ -20,6 +20,8 @@ import io.micronaut.core.type.Argument
 import org.snakeyaml.engine.v2.api.DumpSettings
 import org.snakeyaml.engine.v2.common.FlowStyle
 import tools.jackson.databind.JavaType
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.dataformat.yaml.YAMLAnchorReplayingFactory
 import tools.jackson.dataformat.yaml.YAMLFactory
 import tools.jackson.dataformat.yaml.YAMLMapper
 import tools.jackson.dataformat.yaml.YAMLReadFeature
@@ -31,14 +33,10 @@ import java.nio.charset.StandardCharsets
 abstract class AbstractJacksonDatabindYamlSpec extends AbstractYamlSerializationSpec {
 
     private YAMLMapper configuredYamlMapper
+    private final ObjectMapper anchorReplayingMapper = new ObjectMapper(new YAMLAnchorReplayingFactory())
     private boolean writeExplicitEnd
 
     abstract YAMLMapper getDatabindYamlMapper()
-
-    @Override
-    protected boolean ignoreYamlAliases() {
-        true
-    }
 
     @Override
     protected void initializeMapper(ApplicationContext context) {
@@ -107,6 +105,11 @@ abstract class AbstractJacksonDatabindYamlSpec extends AbstractYamlSerialization
     @Override
     def <T> T readYaml(InputStream yaml, Argument<T> type) {
         readYaml(yaml.readAllBytes(), type)
+    }
+
+    @Override
+    protected <T> T readYamlWithAliases(String yaml, Argument<T> type) {
+        anchorReplayingMapper.readValue(yaml, toJavaType(type))
     }
 
     @Override
