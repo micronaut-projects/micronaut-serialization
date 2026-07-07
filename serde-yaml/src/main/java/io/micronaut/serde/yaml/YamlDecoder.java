@@ -48,6 +48,7 @@ public class YamlDecoder extends AbstractStreamDecoder {
     private Event currrentEvent;
     private boolean inDocument = false;
     private final Resolver resolver = new Resolver();
+    private final boolean booleanAsStrings;
 
     /**
      * Creates a YAML decoder with the supplied input stream and stream limits.
@@ -56,7 +57,14 @@ public class YamlDecoder extends AbstractStreamDecoder {
      * @param remainingLimits The remaining stream limits
      */
     public YamlDecoder(@NonNull InputStream inputStream, @NonNull RemainingLimits remainingLimits) {
+        this(inputStream, remainingLimits, new SerdeYamlConfiguration());
+    }
+
+    YamlDecoder(@NonNull InputStream inputStream,
+                @NonNull RemainingLimits remainingLimits,
+                @NonNull SerdeYamlConfiguration yamlConfiguration) {
         super(remainingLimits);
+        booleanAsStrings = yamlConfiguration.isBooleanAsStrings();
         Iterator<Event> events = new Yaml().parse(new UnicodeReader(inputStream)).iterator();
         while (events.hasNext()) {
             Event nextEvent = events.next();
@@ -71,17 +79,6 @@ public class YamlDecoder extends AbstractStreamDecoder {
             }
         }
         eventReader = new YAMLAnchorReplayingParser(events);
-    }
-
-    /**
-     * Creates a YAML decoder.
-     *
-     * @param in The YAML input stream
-     * @param limits The remaining stream limits
-     * @return The YAML decoder
-     */
-    public static YamlDecoder create(@NonNull InputStream in, @NonNull RemainingLimits limits) {
-        return new YamlDecoder(in, limits);
     }
 
     @Override
@@ -188,7 +185,11 @@ public class YamlDecoder extends AbstractStreamDecoder {
 
     @Override
     protected boolean getBoolean() throws IOException {
-        return Boolean.parseBoolean(getString());
+        String value = getString();
+        return "true".equalsIgnoreCase(value)
+            || "yes".equalsIgnoreCase(value)
+            || "y".equalsIgnoreCase(value)
+            || "on".equalsIgnoreCase(value);
     }
 
     @Override
@@ -240,6 +241,9 @@ public class YamlDecoder extends AbstractStreamDecoder {
 
         if (tag == Tag.FLOAT || tag == Tag.INT) {
             return TokenType.NUMBER;
+        // yes —> false and TRUE —> true
+        } else if (tag == Tag.BOOL && booleanAsStrings && !isCanonicalBoolean(value)) {
+            return TokenType.STRING;
         } else if (tag == Tag.BOOL) {
             return TokenType.BOOLEAN;
         } else if (tag == Tag.NULL) {
@@ -247,6 +251,11 @@ public class YamlDecoder extends AbstractStreamDecoder {
         } else {
             return TokenType.STRING;
         }
+    }
+
+    private boolean isCanonicalBoolean(String value) {
+        // yes —> false and TRUE —> true
+        return "true".equalsIgnoreCase(value) || "false".equalsIgnoreCase(value);
     }
 
     @Override

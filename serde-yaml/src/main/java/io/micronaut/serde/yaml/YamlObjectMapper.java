@@ -110,7 +110,7 @@ public final class YamlObjectMapper implements ObjectMapper {
         Deserializer.DecoderContext context = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view));
         final Deserializer<? extends T> deserializer = context.findDeserializer(type).createSpecific(context, type);
         return deserializer.deserialize(
-            YamlDecoder.create(inputStream, limits()),
+            new YamlDecoder(inputStream, limits(), yamlConfiguration),
             context,
             type
         );

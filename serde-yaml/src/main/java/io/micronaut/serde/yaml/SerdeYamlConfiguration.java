@@ -34,6 +34,25 @@ public final class SerdeYamlConfiguration {
     static final String PREFIX = SerdeConfiguration.PREFIX + ".format.yaml";
 
     private WriteFeatures writeFeatures = new WriteFeatures();
+    private ReadFeatures readFeatures = new ReadFeatures();
+
+    /**
+     * Returns the YAML read features.
+     *
+     * @return The YAML read features
+     */
+    public ReadFeatures getReadFeatures() {
+        return readFeatures;
+    }
+
+    /**
+     * Sets the YAML read features.
+     *
+     * @param readFeatures The YAML read features
+     */
+    public void setReadFeatures(ReadFeatures readFeatures) {
+        this.readFeatures = Objects.requireNonNull(readFeatures, "readFeatures");
+    }
 
     /**
      * Returns the YAML write features.
@@ -96,6 +115,46 @@ public final class SerdeYamlConfiguration {
      */
     public boolean isMinimizeQuotes() {
         return writeFeatures.isMinimizeQuotes();
+    }
+
+    /**
+     * Returns whether YAML boolean-like words should be parsed as strings.
+     *
+     * @return Whether boolean-like words should be parsed as strings
+     */
+    public boolean isBooleanAsStrings() {
+        return readFeatures.isBooleanAsStrings();
+    }
+
+    /**
+     * Controls YAML deserialization behavior.
+     *
+     * @since 3.0.1
+     */
+    @ConfigurationProperties("read-features")
+    public static final class ReadFeatures {
+        private boolean booleanAsStrings = true;
+
+        /**
+         * Returns whether YAML boolean-like words such as {@code yes}, {@code no},
+         * {@code on}, and {@code off} should be parsed as strings. The canonical
+         * {@code true} and {@code false} values are still parsed as booleans.
+         * This feature is enabled by default to match Jackson 3 behavior.
+         *
+         * @return Whether boolean-like words should be parsed as strings
+         */
+        public boolean isBooleanAsStrings() {
+            return booleanAsStrings;
+        }
+
+        /**
+         * Sets whether YAML boolean-like words should be parsed as strings.
+         *
+         * @param booleanAsStrings Whether boolean-like words should be parsed as strings
+         */
+        public void setBooleanAsStrings(boolean booleanAsStrings) {
+            this.booleanAsStrings = booleanAsStrings;
+        }
     }
 
     /**

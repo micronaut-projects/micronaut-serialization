@@ -18,7 +18,6 @@ package io.micronaut.serde.yaml
 import io.micronaut.context.ApplicationContext
 import io.micronaut.core.type.Argument
 import io.micronaut.serde.config.annotation.SerdeConfig
-import spock.lang.PendingFeature
 
 abstract class AbstractYamlSerializationSpec extends AbstractYamlDeserializationSpec {
 
@@ -132,11 +131,13 @@ abstract class AbstractYamlSerializationSpec extends AbstractYamlDeserialization
         ]
     }
 
-    @PendingFeature(reason = "next commit we need to add Yaml configuration to support it as well jackson does")
+    // NOTE: Jackson 3.0 behavior differs from 2.x due to changes in the
+    // underlying "snakeyaml-engine" behavior
     void "deserialization - accepts reserved YAML values without quotes"() {
         given:
         def context = ApplicationContext.run(getContextProperties())
         initializeMapper(context)
+        // serde-default : ['micronaut.serde.format.yaml.read-features.boolean-as-strings': true]
 
         expect:
         readYaml('key: ' + value + '\n', Argument.mapOf(String, Object)).key == expected
@@ -155,23 +156,22 @@ abstract class AbstractYamlSerializationSpec extends AbstractYamlDeserialization
         "false" || false
         "False" || false
         "FALSE" || false
-        //Pending Feature
-        "yes"   || true
-        "Yes"   || true
-        "YES"   || true
-        "no"    || false
-        "No"    || false
-        "NO"    || false
-        "y"     || true
-        "Y"     || true
-        "n"     || false
-        "N"     || false
-        "on"    || true
-        "On"    || true
-        "ON"    || true
-        "off"   || false
-        "Off"   || false
-        "OFF"   || false
+        "yes"   || "yes"
+        "Yes"   || "Yes"
+        "YES"   || "YES"
+        "no"    || "no"
+        "No"    || "No"
+        "NO"    || "NO"
+        "y"     || "y"
+        "Y"     || "Y"
+        "n"     || "n"
+        "N"     || "N"
+        "on"    || "on"
+        "On"    || "On"
+        "ON"    || "ON"
+        "off"   || "off"
+        "Off"   || "Off"
+        "OFF"   || "OFF"
     }
 
     protected Map<String, Object> minimizeQuotesConfiguration(boolean enabled) {
