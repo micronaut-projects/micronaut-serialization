@@ -18,6 +18,7 @@ package io.micronaut.serde.yaml
 import io.micronaut.context.ApplicationContext
 import io.micronaut.core.type.Argument
 import io.micronaut.serde.config.annotation.SerdeConfig
+import spock.lang.Ignore
 
 abstract class AbstractYamlSerializationSpec extends AbstractYamlDeserializationSpec {
 
@@ -270,6 +271,49 @@ booleanValue: true
 
         cleanup:
         context.close()
+    }
+
+    @Ignore("The Jackson Yaml Databind fail as well, sice this feature was merged into 2.19, not the released Jackson 3 we use")
+    void "serialization - configured literal block style multiline with trailing space"() {
+        given:
+        def context = ApplicationContext.run(getContextProperties() + [
+                'micronaut.serde.format.yaml.write-features.literal-block-style': true
+        ])
+        initializeMapper(context)
+
+        when:
+        def yaml = writeYaml([text: "Hello\nWorld "]).trim()
+
+        then:
+        yaml == "text: |-\n  Hello\n  World "
+
+        cleanup:
+        context.close()
+    }
+
+    void "serialization - configured split lines"() {
+        given:
+        def context = ApplicationContext.run(getContextProperties() + [
+                'micronaut.serde.format.yaml.write-features.minimize-quotes': false,
+                'micronaut.serde.format.yaml.write-features.split-lines'    : splitLines
+        ])
+        initializeMapper(context)
+
+        when:
+        def yaml = writeYaml([
+                "1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890"
+        ]).trim()
+
+        then:
+        yaml == expected
+
+        cleanup:
+        context.close()
+
+        where:
+        splitLines || expected
+        true       || "- \"1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890\\\n  \\ 1234567890\""
+        false      || "- \"1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890\""
     }
 
     void "serialization - configured write style"() {

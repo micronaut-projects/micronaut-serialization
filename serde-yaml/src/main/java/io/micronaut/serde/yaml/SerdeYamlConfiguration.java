@@ -118,6 +118,24 @@ public final class SerdeYamlConfiguration {
     }
 
     /**
+     * Returns whether multiline strings should be emitted using YAML literal block style.
+     *
+     * @return Whether to use literal block style
+     */
+    public boolean isLiteralBlockStyle() {
+        return writeFeatures.isLiteralBlockStyle();
+    }
+
+    /**
+     * Returns whether long textual content should be split into multiple lines.
+     *
+     * @return Whether long lines should be split
+     */
+    public boolean isSplitLines() {
+        return writeFeatures.isSplitLines();
+    }
+
+    /**
      * Returns whether YAML boolean-like words should be parsed as strings.
      *
      * @return Whether boolean-like words should be parsed as strings
@@ -225,6 +243,8 @@ public final class SerdeYamlConfiguration {
         private boolean explicitStart;
         private boolean explicitEnd;
         private boolean minimizeQuotes = true;
+        private boolean literalBlockStyle;
+        private boolean splitLines = true;
 
         /**
          * Returns the configured write style.
@@ -314,6 +334,42 @@ public final class SerdeYamlConfiguration {
          */
         public void setMinimizeQuotes(boolean minimizeQuotes) {
             this.minimizeQuotes = minimizeQuotes;
+        }
+
+        /**
+         * Returns whether multiline strings should be emitted using YAML literal block style.
+         *
+         * @return Whether to use literal block style
+         */
+        public boolean isLiteralBlockStyle() {
+            return literalBlockStyle;
+        }
+
+        /**
+         * Sets whether multiline strings should be emitted using YAML literal block style.
+         *
+         * @param literalBlockStyle Whether to use literal block style
+         */
+        public void setLiteralBlockStyle(boolean literalBlockStyle) {
+            this.literalBlockStyle = literalBlockStyle;
+        }
+
+        /**
+         * Returns whether long textual content should be split into multiple lines.
+         *
+         * @return Whether long lines should be split
+         */
+        public boolean isSplitLines() {
+            return splitLines;
+        }
+
+        /**
+         * Sets whether long textual content should be split into multiple lines.
+         *
+         * @param splitLines Whether long lines should be split
+         */
+        public void setSplitLines(boolean splitLines) {
+            this.splitLines = splitLines;
         }
     }
 }

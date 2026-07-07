@@ -64,6 +64,7 @@ public class YamlEncoder extends LimitingStream implements Encoder {
     private final boolean explicitStart;
     private final boolean explicitEnd;
     private final boolean minimizeQuotes;
+    private final boolean literalBlockStyle;
     private final YamlStringQuotingChecker quotingChecker;
     private final Resolver resolver = new Resolver();
     private final Deque<CollectionContext> contextStack = new ArrayDeque<>();
@@ -105,15 +106,17 @@ public class YamlEncoder extends LimitingStream implements Encoder {
         explicitStart = configuration.isExplicitStart();
         explicitEnd = configuration.isExplicitEnd();
         minimizeQuotes = configuration.isMinimizeQuotes();
+        literalBlockStyle = configuration.isLiteralBlockStyle();
         writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
-        emitter = new Emitter(writer, createEmitterOptions(configuration.getIndent()));
+        emitter = new Emitter(writer, createEmitterOptions(configuration));
         this.quotingChecker = Objects.requireNonNull(quotingChecker, "quotingChecker");
     }
 
-    private static DumperOptions createEmitterOptions(int indent) {
+    private static DumperOptions createEmitterOptions(SerdeYamlConfiguration configuration) {
         DumperOptions options = new DumperOptions();
-        options.setIndent(indent);
+        options.setIndent(configuration.getIndent());
         options.setLineBreak(DumperOptions.LineBreak.getPlatformLineBreak());
+        options.setSplitLines(configuration.isSplitLines());
         return options;
     }
 
@@ -218,11 +221,18 @@ public class YamlEncoder extends LimitingStream implements Encoder {
         Tag detectedTag = resolver.resolve(NodeId.scalar, value, true);
         Tag defaultTag = resolver.resolve(NodeId.scalar, value, false);
         boolean timestamp = Tag.TIMESTAMP.equals(detectedTag);
-        DumperOptions.ScalarStyle style = minimizeQuotes
-            && !Tag.BOOL.equals(detectedTag)
-            && !quotingChecker.needToQuoteValue(value)
-            ? DumperOptions.ScalarStyle.PLAIN
-            : DumperOptions.ScalarStyle.DOUBLE_QUOTED;
+        DumperOptions.ScalarStyle style;
+        if ((literalBlockStyle || minimizeQuotes) && value.indexOf('\n') != -1) {  // matches Jackson’s behavior where MINIMIZE_QUOTES also enables literal block style.
+            style = DumperOptions.ScalarStyle.LITERAL;
+        } else {
+            if (minimizeQuotes
+                && !Tag.BOOL.equals(detectedTag) // YAML boolean representations from spec
+                && !quotingChecker.needToQuoteValue(value)) {   // Quoting checker
+                style = DumperOptions.ScalarStyle.PLAIN;
+            } else {
+                style = DumperOptions.ScalarStyle.DOUBLE_QUOTED;
+            }
+        }
         emitScalar(
             value,
             new ImplicitTuple(timestamp || Tag.STR.equals(detectedTag), Tag.STR.equals(defaultTag)),
