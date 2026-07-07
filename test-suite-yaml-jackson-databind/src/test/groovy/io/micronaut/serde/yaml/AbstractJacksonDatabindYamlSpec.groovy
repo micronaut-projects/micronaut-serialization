@@ -46,9 +46,18 @@ abstract class AbstractJacksonDatabindYamlSpec extends AbstractYamlSerialization
                 .yamlSchema(YAMLSchema.CORE)
                 .enable(YAMLReadFeature.EMPTY_STRING_AS_NULL)
                 .disable(YAMLWriteFeature.WRITE_DOC_START_MARKER)
-                .enable(YAMLWriteFeature.MINIMIZE_QUOTES)
         def dumpSettings = DumpSettings.builder()
         def hasDumpSettings = false
+
+        def minimizeQuotes = environment.getProperty(
+                'micronaut.serde.format.yaml.write-features.minimize-quotes',
+                Boolean
+        )
+        if (minimizeQuotes.present) {
+            factoryBuilder.configure(YAMLWriteFeature.MINIMIZE_QUOTES, minimizeQuotes.get())
+        } else {
+            factoryBuilder.enable(YAMLWriteFeature.MINIMIZE_QUOTES)
+        }
 
         def writeStyle = environment.getProperty(
                 'micronaut.serde.format.yaml.write-features.write-style',
