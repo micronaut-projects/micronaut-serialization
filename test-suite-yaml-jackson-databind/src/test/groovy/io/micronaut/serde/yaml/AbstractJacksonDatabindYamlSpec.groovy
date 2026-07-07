@@ -65,6 +65,22 @@ abstract class AbstractJacksonDatabindYamlSpec extends AbstractYamlSerialization
             factoryBuilder.enable(YAMLWriteFeature.MINIMIZE_QUOTES)
         }
 
+        def literalBlockStyle = environment.getProperty(
+                'micronaut.serde.format.yaml.write-features.literal-block-style',
+                Boolean
+        )
+        if (literalBlockStyle.present) {
+            factoryBuilder.configure(YAMLWriteFeature.LITERAL_BLOCK_STYLE, literalBlockStyle.get())
+        }
+
+        def splitLines = environment.getProperty(
+                'micronaut.serde.format.yaml.write-features.split-lines',
+                Boolean
+        )
+        if (splitLines.present) {
+            factoryBuilder.configure(YAMLWriteFeature.SPLIT_LINES, splitLines.get())
+        }
+
         def writeStyle = environment.getProperty(
                 'micronaut.serde.format.yaml.write-features.write-style',
                 String
