@@ -127,6 +127,15 @@ public final class SerdeYamlConfiguration {
     }
 
     /**
+     * Returns whether empty YAML strings should be parsed as {@code null}.
+     *
+     * @return Whether empty strings should be parsed as {@code null}
+     */
+    public boolean isEmptyStringAsNull() {
+        return readFeatures.isEmptyStringAsNull();
+    }
+
+    /**
      * Controls YAML deserialization behavior.
      *
      * @since 3.0.1
@@ -134,6 +143,7 @@ public final class SerdeYamlConfiguration {
     @ConfigurationProperties("read-features")
     public static final class ReadFeatures {
         private boolean booleanAsStrings = true;
+        private boolean emptyStringAsNull = true;
 
         /**
          * Returns whether YAML boolean-like words such as {@code yes}, {@code no},
@@ -154,6 +164,25 @@ public final class SerdeYamlConfiguration {
          */
         public void setBooleanAsStrings(boolean booleanAsStrings) {
             this.booleanAsStrings = booleanAsStrings;
+        }
+
+        /**
+         * Returns whether an empty plain YAML scalar should be parsed as {@code null}.
+         * This feature is enabled by default.
+         *
+         * @return Whether an empty plain scalar should be parsed as {@code null}
+         */
+        public boolean isEmptyStringAsNull() {
+            return emptyStringAsNull;
+        }
+
+        /**
+         * Sets whether an empty plain YAML scalar should be parsed as {@code null}.
+         *
+         * @param emptyStringAsNull Whether an empty plain scalar should be parsed as {@code null}
+         */
+        public void setEmptyStringAsNull(boolean emptyStringAsNull) {
+            this.emptyStringAsNull = emptyStringAsNull;
         }
     }
 

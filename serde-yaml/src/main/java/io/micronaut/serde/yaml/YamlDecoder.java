@@ -49,6 +49,7 @@ public class YamlDecoder extends AbstractStreamDecoder {
     private boolean inDocument = false;
     private final Resolver resolver = new Resolver();
     private final boolean booleanAsStrings;
+    private final boolean emptyStringAsNull;
 
     /**
      * Creates a YAML decoder with the supplied input stream and stream limits.
@@ -65,6 +66,7 @@ public class YamlDecoder extends AbstractStreamDecoder {
                 @NonNull SerdeYamlConfiguration yamlConfiguration) {
         super(remainingLimits);
         booleanAsStrings = yamlConfiguration.isBooleanAsStrings();
+        emptyStringAsNull = yamlConfiguration.isEmptyStringAsNull();
         Iterator<Event> events = new Yaml().parse(new UnicodeReader(inputStream)).iterator();
         while (events.hasNext()) {
             Event nextEvent = events.next();
@@ -231,7 +233,9 @@ public class YamlDecoder extends AbstractStreamDecoder {
         DumperOptions.ScalarStyle scalarStyle = event.getScalarStyle();
         Tag tag;
 
-        if (event.getTag() != null) {
+        if (!emptyStringAsNull && value.isEmpty()) {
+            tag = Tag.STR;
+        } else if (event.getTag() != null) {
             tag = new Tag(event.getTag());
         } else if (scalarStyle != DumperOptions.ScalarStyle.PLAIN) {
             tag = Tag.STR;
