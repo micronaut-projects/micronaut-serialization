@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.yaml
 
+import io.micronaut.context.ApplicationContext
 import io.micronaut.core.type.Argument
 
 abstract class AbstractYamlDeserializationSpec extends AbstractYamlCompileSpec {
@@ -129,6 +130,40 @@ abstract class AbstractYamlDeserializationSpec extends AbstractYamlCompileSpec {
 
         cleanup:
         context.close()
+    }
+
+    void "deserialization - empty plain scalar as null. Default behaviour"() {
+        given:
+        def context = ApplicationContext.run(getContextProperties())
+        initializeMapper(context)
+
+        expect:
+        readYaml(yaml, Argument.mapOf(String, Object)).key == null
+
+        cleanup:
+        context.close()
+
+        where:
+        yaml << ['key:\n', 'key:   \n']
+    }
+
+    void "deserialization - empty plain scalar as string when configured"() {
+        given:
+        def context = ApplicationContext.run(getContextProperties() + emptyStringAsNullConfiguration(false))
+        initializeMapper(context)
+
+        expect:
+        readYaml(yaml, Argument.mapOf(String, Object)).key == ''
+
+        cleanup:
+        context.close()
+
+        where:
+        yaml << ['key:\n', 'key:   \n']
+    }
+
+    protected Map<String, Object> emptyStringAsNullConfiguration(boolean enabled) {
+        ['micronaut.serde.format.yaml.read-features.empty-string-as-null': enabled]
     }
 
     void "deserialization - quoted scalars that look like booleans/numbers should remain strings"() {
