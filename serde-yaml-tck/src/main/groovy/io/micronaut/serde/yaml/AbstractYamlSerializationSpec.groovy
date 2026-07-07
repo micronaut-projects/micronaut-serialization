@@ -15,7 +15,10 @@
  */
 package io.micronaut.serde.yaml
 
+import io.micronaut.context.ApplicationContext
+import io.micronaut.core.type.Argument
 import io.micronaut.serde.config.annotation.SerdeConfig
+import spock.lang.PendingFeature
 
 abstract class AbstractYamlSerializationSpec extends AbstractYamlDeserializationSpec {
 
@@ -100,6 +103,175 @@ abstract class AbstractYamlSerializationSpec extends AbstractYamlDeserialization
         context.close()
     }
 
+    void "serialization - quote reserved YAML string values"() {
+        given:
+        def context = ApplicationContext.run(getContextProperties())
+        initializeMapper(context)
+
+        when:
+        def yaml = writeYaml([key: value])
+        def roundTrip = readYaml(yaml, Argument.mapOf(String, Object))
+
+        then:
+        yaml == 'key: "' + value + '"\n'
+        roundTrip.key == value
+
+        cleanup:
+        context.close()
+
+        where:
+        value << [
+                "null", "Null", "NULL",
+                "true", "True", "TRUE",
+                "false", "False", "FALSE",
+                "yes", "Yes", "YES",
+                "no", "No", "NO",
+                "y", "Y", "n", "N",
+                "on", "On", "ON",
+                "off", "Off", "OFF"
+        ]
+    }
+
+    @PendingFeature(reason = "next commit we need to add Yaml configuration to support it as well jackson does")
+    void "deserialization - accepts reserved YAML values without quotes"() {
+        given:
+        def context = ApplicationContext.run(getContextProperties())
+        initializeMapper(context)
+
+        expect:
+        readYaml('key: ' + value + '\n', Argument.mapOf(String, Object)).key == expected
+
+        cleanup:
+        context.close()
+
+        where:
+        value   || expected
+        "null"  || null
+        "Null"  || null
+        "NULL"  || null
+        "true"  || true
+        "True"  || true
+        "TRUE"  || true
+        "false" || false
+        "False" || false
+        "FALSE" || false
+        //Pending Feature
+        "yes"   || true
+        "Yes"   || true
+        "YES"   || true
+        "no"    || false
+        "No"    || false
+        "NO"    || false
+        "y"     || true
+        "Y"     || true
+        "n"     || false
+        "N"     || false
+        "on"    || true
+        "On"    || true
+        "ON"    || true
+        "off"   || false
+        "Off"   || false
+        "OFF"   || false
+    }
+
+    protected Map<String, Object> minimizeQuotesConfiguration(boolean enabled) {
+        ['micronaut.serde.format.yaml.write-features.minimize-quotes': enabled]
+    }
+
+    void "serialization - quoting special yaml characters under minimizing quote configuration"() {
+        given:
+        def context = buildContext('''
+        package test;
+        import io.micronaut.serde.annotation.Serdeable;
+
+        @Serdeable
+        record Test() {}
+        ''', minimizeQuotesConfiguration(true))
+
+        expect:
+        writeYaml([key: value]) in expected
+
+        cleanup:
+        context.close()
+
+        where:
+        value || expected
+        // these are safe plain scalars. they submit to configuration
+        // will be quoted if —> minimizeQuotesConfiguration(false)
+        'a:b' || ['key: a:b\n']      // : followed by b not blank
+        'f:off' || ['key: f:off\n']
+        'a#b' || ['key: a#b\n']     //  # — Have to be first to be a comment
+        'a# b' || ['key: a# b\n']
+
+         132 || ['key: 132\n']
+        '"132"' || ['key: \'"132"\'\n']
+
+        // these don't submit to configuration
+        'a: b' || ['key: "a: b"\n']
+        '::' || ['key: "::"\n']
+        '#' || ['key: "#"\n']
+        '#a' || ['key: "#a"\n']
+        'a[b' || ['key: "a[b"\n']
+        'a]b' || ['key: "a]b"\n']
+        'a{b' || ['key: "a{b"\n']
+        'a}b' || ['key: "a}b"\n']
+        'a,b' || ['key: "a,b"\n']
+    }
+
+    void "serialization - minimize quotes preserves boolean-like strings"() {
+        given:
+        def context = buildContext('test.Test', '''
+        package test;
+        import io.micronaut.serde.annotation.Serdeable;
+
+        @Serdeable
+        record Test(String trueString, String falseString, String text, boolean booleanValue) {}
+    ''', [:],
+                minimizeQuotesConfiguration(true))
+
+        def bean = newInstance(context, 'test.Test', ["true", "false", "something else", true] as Object[])
+
+        when:
+        def result = writeYaml(bean)
+        def obj = readYaml(result.bytes, typeUnderTest)
+
+        then:
+        result == '''trueString: "true"
+falseString: "false"
+text: something else
+booleanValue: true
+'''
+        obj.trueString() == "true"
+        obj.falseString() == "false"
+        obj.text() == "something else"
+        obj.booleanValue()
+
+        cleanup:
+        context.close()
+    }
+
+    void "serialization - configured minimize quotes"() {
+        given:
+        def context = buildContext('test.Test', '''
+        package test;
+        import io.micronaut.serde.annotation.Serdeable;
+
+        @Serdeable
+        record Test(String value, boolean booleanValue) {}
+    ''', [:],
+                minimizeQuotesConfiguration(false))
+
+        def bean = newInstance(context, 'test.Test', ["something else", true] as Object[])
+
+        expect:
+        writeYaml(bean) == '''value: "something else"
+booleanValue: true
+'''
+
+        cleanup:
+        context.close()
+    }
+
     void "serialization - configured write style"() {
         given:
         def context = buildContext('test.Test', '''
@@ -111,6 +283,7 @@ abstract class AbstractYamlSerializationSpec extends AbstractYamlDeserialization
         @Serdeable
         record Test(List<String> values, Map<String, Integer> counts) {}
     ''', [:], ['micronaut.serde.format.yaml.write-features.write-style': writeStyle])
+
         def bean = newInstance(context, 'test.Test', [["A", "B"], [one: 1, two: 2]] as Object[])
 
         expect:

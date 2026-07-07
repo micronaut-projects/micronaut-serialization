@@ -90,6 +90,15 @@ public final class SerdeYamlConfiguration {
     }
 
     /**
+     * Returns whether quotes should be omitted from strings when YAML permits it.
+     *
+     * @return Whether to minimize quotes
+     */
+    public boolean isMinimizeQuotes() {
+        return writeFeatures.isMinimizeQuotes();
+    }
+
+    /**
      * YAML collection write style.
      *
      * @since 3.1.0
@@ -127,6 +136,7 @@ public final class SerdeYamlConfiguration {
         private int indent = 2;
         private boolean explicitStart;
         private boolean explicitEnd;
+        private boolean minimizeQuotes = true;
 
         /**
          * Returns the configured write style.
@@ -198,6 +208,24 @@ public final class SerdeYamlConfiguration {
          */
         public void setExplicitEnd(boolean explicitEnd) {
             this.explicitEnd = explicitEnd;
+        }
+
+        /**
+         * Returns whether quotes should be omitted from strings when YAML permits it.
+         *
+         * @return Whether to minimize quotes
+         */
+        public boolean isMinimizeQuotes() {
+            return minimizeQuotes;
+        }
+
+        /**
+         * Sets whether quotes should be omitted from strings when YAML permits it.
+         *
+         * @param minimizeQuotes Whether to minimize quotes
+         */
+        public void setMinimizeQuotes(boolean minimizeQuotes) {
+            this.minimizeQuotes = minimizeQuotes;
         }
     }
 }

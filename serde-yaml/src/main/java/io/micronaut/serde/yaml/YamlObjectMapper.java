@@ -57,6 +57,7 @@ public final class YamlObjectMapper implements ObjectMapper {
     @Nullable
     final SerdeConfiguration serdeConfiguration;
     final SerdeYamlConfiguration yamlConfiguration;
+    final YamlStringQuotingChecker quotingChecker;
     @Nullable
     final Class<?> view;
 
@@ -66,16 +67,19 @@ public final class YamlObjectMapper implements ObjectMapper {
      * @param registry The serde registry used to resolve serializers and deserializers
      * @param serdeConfiguration The serde configuration, when available
      * @param yamlConfiguration The YAML configuration
+     * @param quotingChecker The YAML string quoting checker
      * @param view The active serialization view, when available
      */
     @Inject
     public YamlObjectMapper(SerdeRegistry registry,
                             @Nullable SerdeConfiguration serdeConfiguration,
                             SerdeYamlConfiguration yamlConfiguration,
+                            YamlStringQuotingChecker quotingChecker,
                             @Nullable Class<?> view) {
         this.registry = registry;
         this.serdeConfiguration = serdeConfiguration;
         this.yamlConfiguration = yamlConfiguration;
+        this.quotingChecker = quotingChecker;
         this.view = view;
     }
 
@@ -87,7 +91,7 @@ public final class YamlObjectMapper implements ObjectMapper {
      * @param view The active serialization view, when available
      */
     public YamlObjectMapper(SerdeRegistry registry, @Nullable SerdeConfiguration serdeConfiguration, @Nullable Class<?> view) {
-        this(registry, serdeConfiguration, new SerdeYamlConfiguration(), view);
+        this(registry, serdeConfiguration, new SerdeYamlConfiguration(), new YamlStringQuotingChecker(), view);
     }
 
     @Override
@@ -182,7 +186,7 @@ public final class YamlObjectMapper implements ObjectMapper {
     }
 
     private YamlEncoder newEncoder(OutputStream outputStream) {
-        return new YamlEncoder(outputStream, limits(), yamlConfiguration);
+        return new YamlEncoder(outputStream, limits(), yamlConfiguration, quotingChecker);
     }
 
 }

@@ -50,7 +50,8 @@ import java.util.Deque;
 import java.util.Objects;
 
 /**
- * YAML implementation of the {@link Encoder} interface.
+ * YAML implementation of the {@link Encoder} interface. <br/>
+ * ImplicitTuple(true, true) means that (type) tags won't be shown. and sometimes we specifically DO want explicit tag we specify ImplicitTuple(false, false)
  *
  * @since 3.1.0
  */
@@ -62,6 +63,8 @@ public class YamlEncoder extends LimitingStream implements Encoder {
     private final DumperOptions.FlowStyle flowStyle;
     private final boolean explicitStart;
     private final boolean explicitEnd;
+    private final boolean minimizeQuotes;
+    private final YamlStringQuotingChecker quotingChecker;
     private final Resolver resolver = new Resolver();
     private final Deque<CollectionContext> contextStack = new ArrayDeque<>();
     private boolean streamStarted;
@@ -83,19 +86,28 @@ public class YamlEncoder extends LimitingStream implements Encoder {
      * @param remainingLimits The remaining stream limits
      */
     public YamlEncoder(@NonNull OutputStream outputStream, @NonNull RemainingLimits remainingLimits) {
-        this(outputStream, remainingLimits, new SerdeYamlConfiguration());
+        this(outputStream, remainingLimits, new SerdeYamlConfiguration(), new YamlStringQuotingChecker());
     }
 
     YamlEncoder(@NonNull OutputStream outputStream,
                 @NonNull RemainingLimits remainingLimits,
                 @NonNull SerdeYamlConfiguration yamlConfiguration) {
+        this(outputStream, remainingLimits, yamlConfiguration, new YamlStringQuotingChecker());
+    }
+
+    YamlEncoder(@NonNull OutputStream outputStream,
+                @NonNull RemainingLimits remainingLimits,
+                @NonNull SerdeYamlConfiguration yamlConfiguration,
+                @NonNull YamlStringQuotingChecker quotingChecker) {
         super(remainingLimits);
         SerdeYamlConfiguration configuration = Objects.requireNonNull(yamlConfiguration, "yamlConfiguration");
         flowStyle = configuration.getWriteStyle().toFlowStyle();
         explicitStart = configuration.isExplicitStart();
         explicitEnd = configuration.isExplicitEnd();
+        minimizeQuotes = configuration.isMinimizeQuotes();
         writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
         emitter = new Emitter(writer, createEmitterOptions(configuration.getIndent()));
+        this.quotingChecker = Objects.requireNonNull(quotingChecker, "quotingChecker");
     }
 
     private static DumperOptions createEmitterOptions(int indent) {
@@ -194,7 +206,10 @@ public class YamlEncoder extends LimitingStream implements Encoder {
         if (!context.expectingKey) {
             throw new SerdeException("Encoder expected a value, got a key.");
         }
-        emit(new ScalarEvent(null, null, new ImplicitTuple(true, true), key, null, null, DumperOptions.ScalarStyle.PLAIN));
+        DumperOptions.ScalarStyle style = quotingChecker.needToQuoteName(key)
+            ? DumperOptions.ScalarStyle.DOUBLE_QUOTED
+            : DumperOptions.ScalarStyle.PLAIN;
+        emit(new ScalarEvent(null, null, new ImplicitTuple(true, true), key, null, null, style));
         context.expectingKey = false;
     }
 
@@ -203,10 +218,15 @@ public class YamlEncoder extends LimitingStream implements Encoder {
         Tag detectedTag = resolver.resolve(NodeId.scalar, value, true);
         Tag defaultTag = resolver.resolve(NodeId.scalar, value, false);
         boolean timestamp = Tag.TIMESTAMP.equals(detectedTag);
+        DumperOptions.ScalarStyle style = minimizeQuotes
+            && !Tag.BOOL.equals(detectedTag)
+            && !quotingChecker.needToQuoteValue(value)
+            ? DumperOptions.ScalarStyle.PLAIN
+            : DumperOptions.ScalarStyle.DOUBLE_QUOTED;
         emitScalar(
             value,
             new ImplicitTuple(timestamp || Tag.STR.equals(detectedTag), Tag.STR.equals(defaultTag)),
-            DumperOptions.ScalarStyle.PLAIN
+            style
         );
     }
 
