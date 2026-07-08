@@ -18,7 +18,7 @@ package io.micronaut.serde.yaml;
 import io.micronaut.context.annotation.ConfigurationProperties;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.serde.config.SerdeConfiguration;
-import org.yaml.snakeyaml.DumperOptions;
+import org.snakeyaml.engine.v2.common.FlowStyle;
 
 import java.util.Objects;
 
@@ -213,20 +213,20 @@ public final class SerdeYamlConfiguration {
         /**
          * Write collections using YAML block style.
          */
-        BLOCK(DumperOptions.FlowStyle.BLOCK),
+        BLOCK(FlowStyle.BLOCK),
 
         /**
          * Write collections using YAML flow style.
          */
-        FLOW(DumperOptions.FlowStyle.FLOW);
+        FLOW(FlowStyle.FLOW);
 
-        private final DumperOptions.FlowStyle flowStyle;
+        private final FlowStyle flowStyle;
 
-        WriteStyle(DumperOptions.FlowStyle flowStyle) {
+        WriteStyle(FlowStyle flowStyle) {
             this.flowStyle = flowStyle;
         }
 
-        DumperOptions.FlowStyle toFlowStyle() {
+        FlowStyle toFlowStyle() {
             return flowStyle;
         }
     }

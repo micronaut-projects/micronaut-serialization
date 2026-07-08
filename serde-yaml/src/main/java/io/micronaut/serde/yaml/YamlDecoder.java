@@ -18,14 +18,14 @@ package io.micronaut.serde.yaml;
 import io.micronaut.serde.support.AbstractStreamDecoder;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.yaml.snakeyaml.DumperOptions;
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.events.Event;
-import org.yaml.snakeyaml.events.ScalarEvent;
-import org.yaml.snakeyaml.nodes.NodeId;
-import org.yaml.snakeyaml.nodes.Tag;
-import org.yaml.snakeyaml.reader.UnicodeReader;
-import org.yaml.snakeyaml.resolver.Resolver;
+import org.snakeyaml.engine.v2.api.LoadSettings;
+import org.snakeyaml.engine.v2.api.lowlevel.Parse;
+import org.snakeyaml.engine.v2.common.ScalarStyle;
+import org.snakeyaml.engine.v2.events.Event;
+import org.snakeyaml.engine.v2.events.ScalarEvent;
+import org.snakeyaml.engine.v2.nodes.Tag;
+import org.snakeyaml.engine.v2.resolver.ScalarResolver;
+import org.snakeyaml.engine.v2.schema.CoreSchema;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,7 +47,7 @@ public class YamlDecoder extends AbstractStreamDecoder {
     private final Deque<CollectionContext> mappingContextStack = new ArrayDeque<>();
     private Event currrentEvent;
     private boolean inDocument = false;
-    private final Resolver resolver = new Resolver();
+    private final ScalarResolver resolver;
     private final boolean booleanAsStrings;
     private final boolean emptyStringAsNull;
 
@@ -67,7 +67,12 @@ public class YamlDecoder extends AbstractStreamDecoder {
         super(remainingLimits);
         booleanAsStrings = yamlConfiguration.isBooleanAsStrings();
         emptyStringAsNull = yamlConfiguration.isEmptyStringAsNull();
-        Iterator<Event> events = new Yaml().parse(new UnicodeReader(inputStream)).iterator();
+        LoadSettings loadSettings = LoadSettings.builder()
+            .setSchema(new CoreSchema())
+            .setParseComments(true)
+            .build();
+        resolver = loadSettings.getSchema().getScalarResolver();
+        Iterator<Event> events = new Parse(loadSettings).parseInputStream(inputStream).iterator();
         while (events.hasNext()) {
             Event nextEvent = events.next();
             if (nextEvent.getEventId() == Event.ID.DocumentStart) {
@@ -230,27 +235,29 @@ public class YamlDecoder extends AbstractStreamDecoder {
 
     private TokenType resolveScalarType(ScalarEvent event) {
         String value = event.getValue();
-        DumperOptions.ScalarStyle scalarStyle = event.getScalarStyle();
+        ScalarStyle scalarStyle = event.getScalarStyle();
         Tag tag;
 
         if (!emptyStringAsNull && value.isEmpty()) {
             tag = Tag.STR;
-        } else if (event.getTag() != null) {
-            tag = new Tag(event.getTag());
-        } else if (scalarStyle != DumperOptions.ScalarStyle.PLAIN) {
+        } else if (event.getTag().isPresent()) {
+            tag = new Tag(event.getTag().get());
+        } else if (scalarStyle != ScalarStyle.PLAIN) {
             tag = Tag.STR;
         } else {
-            tag = resolver.resolve(NodeId.scalar, value, event.getImplicit().canOmitTagInPlainScalar());
+            tag = resolver.resolve(value, event.getImplicit().canOmitTagInPlainScalar());
         }
 
-        if (tag == Tag.FLOAT || tag == Tag.INT) {
+        if (Tag.FLOAT.equals(tag) || Tag.INT.equals(tag)) {
             return TokenType.NUMBER;
-        // yes —> false and TRUE —> true
-        } else if (tag == Tag.BOOL && booleanAsStrings && !isCanonicalBoolean(value)) {
-            return TokenType.STRING;
-        } else if (tag == Tag.BOOL) {
+        } else if (!booleanAsStrings && isLegacyBoolean(value)) {
             return TokenType.BOOLEAN;
-        } else if (tag == Tag.NULL) {
+        // yes —> false and TRUE —> true
+        } else if (Tag.BOOL.equals(tag) && booleanAsStrings && !isCanonicalBoolean(value)) {
+            return TokenType.STRING;
+        } else if (Tag.BOOL.equals(tag)) {
+            return TokenType.BOOLEAN;
+        } else if (Tag.NULL.equals(tag)) {
             return TokenType.NULL;
         } else {
             return TokenType.STRING;
@@ -260,6 +267,13 @@ public class YamlDecoder extends AbstractStreamDecoder {
     private boolean isCanonicalBoolean(String value) {
         // yes —> false and TRUE —> true
         return "true".equalsIgnoreCase(value) || "false".equalsIgnoreCase(value);
+    }
+
+    private boolean isLegacyBoolean(String value) {
+        return "yes".equalsIgnoreCase(value)
+            || "no".equalsIgnoreCase(value)
+            || "on".equalsIgnoreCase(value)
+            || "off".equalsIgnoreCase(value);
     }
 
     @Override
