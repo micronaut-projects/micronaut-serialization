@@ -20,34 +20,38 @@ import io.micronaut.serde.Encoder;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.exceptions.SerdeException;
 import org.jspecify.annotations.NonNull;
-import org.yaml.snakeyaml.DumperOptions;
-import org.yaml.snakeyaml.emitter.Emitter;
-import org.yaml.snakeyaml.error.YAMLException;
-import org.yaml.snakeyaml.events.DocumentEndEvent;
-import org.yaml.snakeyaml.events.DocumentStartEvent;
-import org.yaml.snakeyaml.events.Event;
-import org.yaml.snakeyaml.events.ImplicitTuple;
-import org.yaml.snakeyaml.events.MappingEndEvent;
-import org.yaml.snakeyaml.events.MappingStartEvent;
-import org.yaml.snakeyaml.events.ScalarEvent;
-import org.yaml.snakeyaml.events.SequenceEndEvent;
-import org.yaml.snakeyaml.events.SequenceStartEvent;
-import org.yaml.snakeyaml.events.StreamEndEvent;
-import org.yaml.snakeyaml.events.StreamStartEvent;
-import org.yaml.snakeyaml.nodes.NodeId;
-import org.yaml.snakeyaml.nodes.Tag;
-import org.yaml.snakeyaml.resolver.Resolver;
+import org.snakeyaml.engine.v2.api.DumpSettings;
+import org.snakeyaml.engine.v2.api.YamlOutputStreamWriter;
+import org.snakeyaml.engine.v2.common.FlowStyle;
+import org.snakeyaml.engine.v2.common.ScalarStyle;
+import org.snakeyaml.engine.v2.emitter.Emitter;
+import org.snakeyaml.engine.v2.events.DocumentEndEvent;
+import org.snakeyaml.engine.v2.events.DocumentStartEvent;
+import org.snakeyaml.engine.v2.events.Event;
+import org.snakeyaml.engine.v2.events.ImplicitTuple;
+import org.snakeyaml.engine.v2.events.MappingEndEvent;
+import org.snakeyaml.engine.v2.events.MappingStartEvent;
+import org.snakeyaml.engine.v2.events.ScalarEvent;
+import org.snakeyaml.engine.v2.events.SequenceEndEvent;
+import org.snakeyaml.engine.v2.events.SequenceStartEvent;
+import org.snakeyaml.engine.v2.events.StreamEndEvent;
+import org.snakeyaml.engine.v2.events.StreamStartEvent;
+import org.snakeyaml.engine.v2.exceptions.YamlEngineException;
+import org.snakeyaml.engine.v2.nodes.Tag;
+import org.snakeyaml.engine.v2.resolver.CoreScalarResolver;
+import org.snakeyaml.engine.v2.resolver.ScalarResolver;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+import java.io.UncheckedIOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * YAML implementation of the {@link Encoder} interface. <br/>
@@ -58,15 +62,15 @@ import java.util.Objects;
 @SuppressWarnings("NullAway")
 public class YamlEncoder extends LimitingStream implements Encoder {
 
-    private final Writer writer;
+    private final YamlOutputStreamWriter writer;
     private final Emitter emitter;
-    private final DumperOptions.FlowStyle flowStyle;
+    private final FlowStyle flowStyle;
     private final boolean explicitStart;
     private final boolean explicitEnd;
     private final boolean minimizeQuotes;
     private final boolean literalBlockStyle;
     private final YamlStringQuotingChecker quotingChecker;
-    private final Resolver resolver = new Resolver();
+    private final ScalarResolver resolver = new CoreScalarResolver(true);
     private final Deque<CollectionContext> contextStack = new ArrayDeque<>();
     private boolean streamStarted;
     private boolean documentClosed;
@@ -107,17 +111,17 @@ public class YamlEncoder extends LimitingStream implements Encoder {
         explicitEnd = configuration.isExplicitEnd();
         minimizeQuotes = configuration.isMinimizeQuotes();
         literalBlockStyle = configuration.isLiteralBlockStyle();
-        writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
-        emitter = new Emitter(writer, createEmitterOptions(configuration));
+        writer = new YamlOutputStreamWriter(outputStream, StandardCharsets.UTF_8);
+        emitter = new Emitter(createEmitterOptions(configuration), writer);
         this.quotingChecker = Objects.requireNonNull(quotingChecker, "quotingChecker");
     }
 
-    private static DumperOptions createEmitterOptions(SerdeYamlConfiguration configuration) {
-        DumperOptions options = new DumperOptions();
-        options.setIndent(configuration.getIndent());
-        options.setLineBreak(DumperOptions.LineBreak.getPlatformLineBreak());
-        options.setSplitLines(configuration.isSplitLines());
-        return options;
+    private static DumpSettings createEmitterOptions(SerdeYamlConfiguration configuration) {
+        return DumpSettings.builder()
+            .setIndent(configuration.getIndent())
+            .setBestLineBreak(System.lineSeparator())
+            .setSplitLines(configuration.isSplitLines())
+            .build();
     }
 
     private void ensureDocumentOpen() throws IOException {
@@ -125,8 +129,8 @@ public class YamlEncoder extends LimitingStream implements Encoder {
             throw new SerdeException("Multiple documents encountered, serialization rejected.");
         }
         if (!streamStarted) {
-            emit(new StreamStartEvent(null, null));
-            emit(new DocumentStartEvent(null, null, explicitStart, null, null));
+            emit(new StreamStartEvent());
+            emit(new DocumentStartEvent(explicitStart, Optional.empty(), Map.of()));
             streamStarted = true;
         }
     }
@@ -134,7 +138,7 @@ public class YamlEncoder extends LimitingStream implements Encoder {
     private void emit(Event event) throws IOException {
         try {
             emitter.emit(event);
-        } catch (YAMLException e) {
+        } catch (YamlEngineException e) {
             throw new SerdeException("YAML emission failed: " + e.getMessage(), e);
         }
     }
@@ -144,7 +148,7 @@ public class YamlEncoder extends LimitingStream implements Encoder {
         ensureDocumentOpen();
         increaseDepth();
         contextStack.push(new CollectionContext(true));
-        emit(new SequenceStartEvent(null, null, true, null, null, flowStyle));
+        emit(new SequenceStartEvent(Optional.empty(), Optional.empty(), true, flowStyle));
         return this;
     }
 
@@ -153,7 +157,7 @@ public class YamlEncoder extends LimitingStream implements Encoder {
         ensureDocumentOpen();
         increaseDepth();
         contextStack.push(new CollectionContext(false));
-        emit(new MappingStartEvent(null, null, true, null, null, flowStyle));
+        emit(new MappingStartEvent(Optional.empty(), Optional.empty(), true, flowStyle));
         return this;
     }
 
@@ -165,8 +169,8 @@ public class YamlEncoder extends LimitingStream implements Encoder {
         }
         CollectionContext context = contextStack.pop();
         emit(context.isSequence
-            ? new SequenceEndEvent(null, null)
-            : new MappingEndEvent(null, null));
+            ? new SequenceEndEvent()
+            : new MappingEndEvent());
         decreaseDepth();
         if (contextStack.isEmpty()) {
             closeDocumentIfOpen();
@@ -184,10 +188,10 @@ public class YamlEncoder extends LimitingStream implements Encoder {
 
     private void closeDocumentIfOpen() throws IOException {
         if (streamStarted && !documentClosed) {
-            emit(new DocumentEndEvent(null, null, explicitEnd));
-            emit(new StreamEndEvent(null, null));
+            emit(new DocumentEndEvent(explicitEnd));
+            emit(new StreamEndEvent());
             documentClosed = true;
-            writer.flush();
+            flushWriter();
         }
     }
 
@@ -197,7 +201,15 @@ public class YamlEncoder extends LimitingStream implements Encoder {
             finishStructure();
         }
         closeDocumentIfOpen();
-        writer.flush();
+        flushWriter();
+    }
+
+    private void flushWriter() throws IOException {
+        try {
+            writer.flush();
+        } catch (UncheckedIOException e) {
+            throw new SerdeException("YAML writer failed: " + e.getMessage(), e);
+        }
     }
 
     @Override
@@ -209,99 +221,98 @@ public class YamlEncoder extends LimitingStream implements Encoder {
         if (!context.expectingKey) {
             throw new SerdeException("Encoder expected a value, got a key.");
         }
-        DumperOptions.ScalarStyle style = quotingChecker.needToQuoteName(key)
-            ? DumperOptions.ScalarStyle.DOUBLE_QUOTED
-            : DumperOptions.ScalarStyle.PLAIN;
-        emit(new ScalarEvent(null, null, new ImplicitTuple(true, true), key, null, null, style));
+        ScalarStyle style = quotingChecker.needToQuoteName(key)
+            ? ScalarStyle.DOUBLE_QUOTED
+            : ScalarStyle.PLAIN;
+        emit(new ScalarEvent(Optional.empty(), Optional.empty(), new ImplicitTuple(true, true), key, style));
         context.expectingKey = false;
     }
 
     @Override
     public void encodeString(@NonNull String value) throws IOException {
-        Tag detectedTag = resolver.resolve(NodeId.scalar, value, true);
-        Tag defaultTag = resolver.resolve(NodeId.scalar, value, false);
-        boolean timestamp = Tag.TIMESTAMP.equals(detectedTag);
-        DumperOptions.ScalarStyle style;
+        Tag detectedTag = resolver.resolve(value, true);
+        Tag defaultTag = resolver.resolve(value, false);
+        ScalarStyle style;
         if ((literalBlockStyle || minimizeQuotes) && value.indexOf('\n') != -1) {  // matches Jackson’s behavior where MINIMIZE_QUOTES also enables literal block style.
-            style = DumperOptions.ScalarStyle.LITERAL;
+            style = ScalarStyle.LITERAL;
         } else {
             if (minimizeQuotes
                 && !Tag.BOOL.equals(detectedTag) // YAML boolean representations from spec
                 && !quotingChecker.needToQuoteValue(value)) {   // Quoting checker
-                style = DumperOptions.ScalarStyle.PLAIN;
+                style = ScalarStyle.PLAIN;
             } else {
-                style = DumperOptions.ScalarStyle.DOUBLE_QUOTED;
+                style = ScalarStyle.DOUBLE_QUOTED;
             }
         }
         emitScalar(
             value,
-            new ImplicitTuple(timestamp || Tag.STR.equals(detectedTag), Tag.STR.equals(defaultTag)),
+            new ImplicitTuple(Tag.STR.equals(detectedTag), Tag.STR.equals(defaultTag)),
             style
         );
     }
 
     @Override
     public void encodeBoolean(boolean value) throws IOException {
-        emitScalar(Boolean.toString(value), DumperOptions.ScalarStyle.PLAIN);
+        emitScalar(Boolean.toString(value), ScalarStyle.PLAIN);
     }
 
     @Override
     public void encodeByte(byte value) throws IOException {
-        emitScalar(Byte.toString(value), DumperOptions.ScalarStyle.PLAIN);
+        emitScalar(Byte.toString(value), ScalarStyle.PLAIN);
     }
 
     @Override
     public void encodeShort(short value) throws IOException {
-        emitScalar(Short.toString(value), DumperOptions.ScalarStyle.PLAIN);
+        emitScalar(Short.toString(value), ScalarStyle.PLAIN);
     }
 
     @Override
     public void encodeChar(char value) throws IOException {
-        emitScalar(String.valueOf(value), DumperOptions.ScalarStyle.SINGLE_QUOTED);
+        emitScalar(String.valueOf(value), ScalarStyle.SINGLE_QUOTED);
     }
 
     @Override
     public void encodeInt(int value) throws IOException {
-        emitScalar(Integer.toString(value), DumperOptions.ScalarStyle.PLAIN);
+        emitScalar(Integer.toString(value), ScalarStyle.PLAIN);
     }
 
     @Override
     public void encodeLong(long value) throws IOException {
-        emitScalar(Long.toString(value), DumperOptions.ScalarStyle.PLAIN);
+        emitScalar(Long.toString(value), ScalarStyle.PLAIN);
     }
 
     @Override
     public void encodeFloat(float value) throws IOException {
-        emitScalar(formatDouble(value), DumperOptions.ScalarStyle.PLAIN);
+        emitScalar(formatDouble(value), ScalarStyle.PLAIN);
     }
 
     @Override
     public void encodeDouble(double value) throws IOException {
-        emitScalar(formatDouble(value), DumperOptions.ScalarStyle.PLAIN);
+        emitScalar(formatDouble(value), ScalarStyle.PLAIN);
     }
 
     @Override
     public void encodeBigInteger(@NonNull BigInteger value) throws IOException {
-        emitScalar(value.toString(), DumperOptions.ScalarStyle.PLAIN);
+        emitScalar(value.toString(), ScalarStyle.PLAIN);
     }
 
     @Override
     public void encodeBigDecimal(@NonNull BigDecimal value) throws IOException {
-        emitScalar(value.toPlainString(), DumperOptions.ScalarStyle.PLAIN);
+        emitScalar(value.toPlainString(), ScalarStyle.PLAIN);
     }
 
     @Override
     public void encodeNull() throws IOException {
-        emitScalar("null", DumperOptions.ScalarStyle.PLAIN);
+        emitScalar("null", ScalarStyle.PLAIN);
     }
 
-    private void emitScalar(String value, DumperOptions.ScalarStyle style) throws IOException {
+    private void emitScalar(String value, ScalarStyle style) throws IOException {
         emitScalar(value, new ImplicitTuple(true, true), style);
     }
 
-    private void emitScalar(String value, ImplicitTuple implicit, DumperOptions.ScalarStyle style) throws IOException {
+    private void emitScalar(String value, ImplicitTuple implicit, ScalarStyle style) throws IOException {
         ensureDocumentOpen();
-        emit(new ScalarEvent(null, null, implicit, value, null, null, style));
+        emit(new ScalarEvent(Optional.empty(), Optional.empty(), implicit, value, style));
         flipKeyIfInMapping();
     }
 

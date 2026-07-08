@@ -18,14 +18,14 @@ package io.micronaut.serde.yaml;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.serde.exceptions.SerdeException;
 import org.jspecify.annotations.Nullable;
-import org.yaml.snakeyaml.events.AliasEvent;
-import org.yaml.snakeyaml.events.CollectionEndEvent;
-import org.yaml.snakeyaml.events.CollectionStartEvent;
-import org.yaml.snakeyaml.events.Event;
-import org.yaml.snakeyaml.events.MappingEndEvent;
-import org.yaml.snakeyaml.events.MappingStartEvent;
-import org.yaml.snakeyaml.events.NodeEvent;
-import org.yaml.snakeyaml.events.ScalarEvent;
+import org.snakeyaml.engine.v2.events.AliasEvent;
+import org.snakeyaml.engine.v2.events.CollectionEndEvent;
+import org.snakeyaml.engine.v2.events.CollectionStartEvent;
+import org.snakeyaml.engine.v2.events.Event;
+import org.snakeyaml.engine.v2.events.MappingEndEvent;
+import org.snakeyaml.engine.v2.events.MappingStartEvent;
+import org.snakeyaml.engine.v2.events.NodeEvent;
+import org.snakeyaml.engine.v2.events.ScalarEvent;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -131,7 +131,8 @@ final class YAMLAnchorReplayingParser {
         }
 
         if (event instanceof AliasEvent alias) {
-            List<Event> events = referencedObjects.get(alias.getAnchor());
+            String anchor = alias.getAlias().getValue();
+            List<Event> events = referencedObjects.get(anchor);
             if (events != null) {
                 if (refEvents.size() + events.size() > MAX_EVENTS) {
                     throw new SerdeException("too many events to replay");
@@ -139,12 +140,13 @@ final class YAMLAnchorReplayingParser {
                 refEvents.addAll(events);
                 return refEvents.removeFirst();
             }
-            throw new SerdeException("invalid alias " + alias.getAnchor());
+            throw new SerdeException("invalid alias " + anchor);
         }
 
         if (event instanceof NodeEvent nodeEvent) {
-            String anchor = nodeEvent.getAnchor();
-            if (anchor != null) {
+            Boolean present = nodeEvent.getAnchor().isPresent();
+            if (present) {
+                String anchor = nodeEvent.getAnchor().get().getValue();
                 AnchorContext context = new AnchorContext(anchor);
                 context.events.add(event);
                 if (event instanceof CollectionStartEvent) {
