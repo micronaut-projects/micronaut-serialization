@@ -65,6 +65,7 @@ final class SimpleObjectSerializer<T> implements ObjectSerializer<T> {
     private final Argument<Object>[] arguments;
     private final ReferencePath[] referencePaths;
     private final byte[] valueKinds;
+    private final byte[] primitiveValueKinds;
     private final Keys keys;
     private final boolean serializersResolved;
 
@@ -75,6 +76,7 @@ final class SimpleObjectSerializer<T> implements ObjectSerializer<T> {
         this.arguments = new Argument[writeProperties.length];
         this.referencePaths = new ReferencePath[writeProperties.length];
         this.valueKinds = new byte[writeProperties.length];
+        this.primitiveValueKinds = new byte[writeProperties.length];
         boolean resolved = true;
         for (int i = 0; i < writeProperties.length; i++) {
             SerBean.SerProperty<T, Object> property = writeProperties[i];
@@ -84,6 +86,7 @@ final class SimpleObjectSerializer<T> implements ObjectSerializer<T> {
             referencePaths[i] = property.getReferencePath();
             byte valueKind = serializer == null ? DecoderValueKind.NONE_CODE : directValueKind(property, serializer);
             valueKinds[i] = valueKind;
+            primitiveValueKinds[i] = property.primitive ? valueKind : DecoderValueKind.NONE_CODE;
             resolved &= serializer != null;
         }
         this.keys = serBean.propertyKeys;
@@ -240,14 +243,23 @@ final class SimpleObjectSerializer<T> implements ObjectSerializer<T> {
 
     private void serializePropertyInto(KeysAwareEncoder encoder, EncoderContext context, T value, int index) throws IOException {
         encoder.encodeKey(keys, index);
-        Object v = writeProperties[index].get(value);
+        SerBean.SerProperty<T, Object> property = writeProperties[index];
+        byte valueKind = valueKinds[index];
+        Serializer<Object> serializer = serializers[index];
+        byte primitiveValueKind = primitiveValueKinds[index];
+        if (valueKind == DecoderValueKind.NONE_CODE && serializer == null && property.primitive) {
+            serializer = Objects.requireNonNull(property.serializer);
+            valueKind = directValueKind(property, serializer);
+            primitiveValueKind = valueKind;
+        }
+        if (primitiveValueKind != DecoderValueKind.NONE_CODE && property.serializeDirectPrimitive(encoder, value, primitiveValueKind)) {
+            return;
+        }
+        Object v = property.get(value);
         if (v == null) {
             encoder.encodeNull();
         } else {
-            Serializer<Object> serializer = serializers[index];
-            byte valueKind = valueKinds[index];
             if (serializer == null) {
-                SerBean.SerProperty<T, Object> property = writeProperties[index];
                 serializer = Objects.requireNonNull(property.serializer);
                 valueKind = directValueKind(property, serializer);
             }
@@ -262,7 +274,12 @@ final class SimpleObjectSerializer<T> implements ObjectSerializer<T> {
     @SuppressWarnings("NullAway")
     private void serializeResolvedPropertyInto(KeysAwareEncoder encoder, EncoderContext context, T value, int index) throws IOException {
         encoder.encodeKey(keys, index);
-        Object v = writeProperties[index].get(value);
+        SerBean.SerProperty<T, Object> property = writeProperties[index];
+        byte primitiveValueKind = primitiveValueKinds[index];
+        if (primitiveValueKind != DecoderValueKind.NONE_CODE && property.serializeDirectPrimitive(encoder, value, primitiveValueKind)) {
+            return;
+        }
+        Object v = property.get(value);
         if (v == null) {
             encoder.encodeNull();
             return;

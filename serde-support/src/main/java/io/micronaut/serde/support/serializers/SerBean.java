@@ -34,6 +34,7 @@ import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.inject.annotation.MutableAnnotationMetadata;
 import io.micronaut.inject.qualifiers.Qualifiers;
+import io.micronaut.serde.Encoder;
 import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.FormattedSerializer;
 import io.micronaut.serde.Keys;
@@ -46,6 +47,7 @@ import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
+import io.micronaut.serde.support.util.DecoderValueKind;
 import io.micronaut.serde.support.util.ObjectShapeSerdeHelper;
 import io.micronaut.serde.support.util.SerdeAnnotationUtil;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
@@ -55,6 +57,7 @@ import io.micronaut.serde.util.SerdePropertyAccess;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -923,6 +926,27 @@ final class SerBean<T> {
         }
 
         @Override
+        public boolean serializeDirectPrimitive(Encoder encoder, B bean, byte valueKind) throws IOException {
+            if (!primitive) {
+                return false;
+            }
+            switch (valueKind) {
+                case DecoderValueKind.BOOLEAN_CODE -> encoder.encodeBoolean(beanProperty.getBooleanUnsafe(bean));
+                case DecoderValueKind.BYTE_CODE -> encoder.encodeByte(beanProperty.getByteUnsafe(bean));
+                case DecoderValueKind.SHORT_CODE -> encoder.encodeShort(beanProperty.getShortUnsafe(bean));
+                case DecoderValueKind.CHAR_CODE -> encoder.encodeChar(beanProperty.getCharUnsafe(bean));
+                case DecoderValueKind.INT_CODE -> encoder.encodeInt(beanProperty.getIntUnsafe(bean));
+                case DecoderValueKind.LONG_CODE -> encoder.encodeLong(beanProperty.getLongUnsafe(bean));
+                case DecoderValueKind.FLOAT_CODE -> encoder.encodeFloat(beanProperty.getFloatUnsafe(bean));
+                case DecoderValueKind.DOUBLE_CODE -> encoder.encodeDouble(beanProperty.getDoubleUnsafe(bean));
+                default -> {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        @Override
         public Class<?> getDeclaringType() {
             return beanProperty.getDeclaringType();
         }
@@ -1007,6 +1031,7 @@ final class SerBean<T> {
         public final String backRef;
         public final SerdeConfig.SerInclude include;
         public final boolean serializableInto;
+        public final boolean primitive;
         // Null when not initialized SerBean
         @Nullable
         public Serializer<P> serializer;
@@ -1037,6 +1062,7 @@ final class SerBean<T> {
             this.name = name;
             this.originalName = originalName;
             this.argument = annotationMetadata.isEmpty() ? argument : argument.withAnnotationMetadata(annotationMetadata);
+            this.primitive = argument.isPrimitive();
             final AnnotationMetadata beanMetadata = bean.introspection.getAnnotationMetadata();
             final AnnotationMetadata hierarchy =
                     annotationMetadata.isEmpty() ? beanMetadata : new AnnotationMetadataHierarchy(beanMetadata, annotationMetadata);
@@ -1074,6 +1100,10 @@ final class SerBean<T> {
         }
 
         public abstract @Nullable P get(B bean);
+
+        public boolean serializeDirectPrimitive(Encoder encoder, B bean, byte valueKind) throws IOException {
+            return false;
+        }
 
         String getRequiredString(B bean) throws SerdeException {
             P value = get(bean);
