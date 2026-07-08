@@ -7,7 +7,6 @@ plugins {
 micronautBuild {
     binaryCompatibility.enabledAfter("3.2.0")
 }
-
 dependencies {
     annotationProcessor(projects.micronautSerdeProcessor)
 
@@ -17,7 +16,8 @@ dependencies {
     implementation(mn.micronaut.context)
     implementation(mn.micronaut.core)
     implementation(projects.micronautSerdeApi)
-    implementation(mn.snakeyaml)
+    implementation(libs.managed.snakeyaml.engine)
+
     implementation(projects.micronautSerdeSupport)
 
     testAnnotationProcessor(mn.micronaut.inject.java)
