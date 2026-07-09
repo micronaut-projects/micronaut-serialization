@@ -8,6 +8,7 @@ quickStart:
   jsonpQuick: JSON-B Annotations & JSON-P
   bsonQuick: BSON Annotations and BSON
   cborQuick: CBOR
+  yamlQuick: YAML
   tomlQuick: TOML
   propertiesQuick: Java Properties
   xmlQuick: XML
