@@ -81,6 +81,46 @@ abstract class AbstractJacksonDatabindYamlSpec extends AbstractYamlSerialization
             factoryBuilder.configure(YAMLWriteFeature.SPLIT_LINES, splitLines.get())
         }
 
+        def canonicalOutput = environment.getProperty(
+                'micronaut.serde.format.yaml.write-features.canonical-output',
+                Boolean
+        )
+        if (canonicalOutput.present) {
+            factoryBuilder.configure(YAMLWriteFeature.CANONICAL_OUTPUT, canonicalOutput.get())
+        }
+
+        def indentArrays = environment.getProperty(
+                'micronaut.serde.format.yaml.write-features.indent-arrays',
+                Boolean
+        )
+        if (indentArrays.present) {
+            factoryBuilder.configure(YAMLWriteFeature.INDENT_ARRAYS, indentArrays.get())
+        }
+
+        def indentArraysWithIndicator = environment.getProperty(
+                'micronaut.serde.format.yaml.write-features.indent-arrays-with-indicator',
+                Boolean
+        )
+        if (indentArraysWithIndicator.present) {
+            factoryBuilder.configure(YAMLWriteFeature.INDENT_ARRAYS_WITH_INDICATOR, indentArraysWithIndicator.get())
+        }
+
+        def allowLongKeys = environment.getProperty(
+                'micronaut.serde.format.yaml.write-features.allow-long-keys',
+                Boolean
+        )
+        if (allowLongKeys.present) {
+            factoryBuilder.configure(YAMLWriteFeature.ALLOW_LONG_KEYS, allowLongKeys.get())
+        }
+
+        def useYamlNonfiniteNotation = environment.getProperty(
+                'micronaut.serde.format.yaml.write-features.use-yaml-nonfinite-notation',
+                Boolean
+        )
+        if (useYamlNonfiniteNotation.present) {
+            factoryBuilder.configure(YAMLWriteFeature.USE_YAML_NONFINITE_NOTATION, useYamlNonfiniteNotation.get())
+        }
+
         def writeStyle = environment.getProperty(
                 'micronaut.serde.format.yaml.write-features.write-style',
                 String
