@@ -7,6 +7,7 @@ quickStart:
   jacksonQuick: Jackson Annotations & Jackson Core
   jsonpQuick: JSON-B Annotations & JSON-P
   bsonQuick: BSON Annotations and BSON
+  yamlQuick: YAML
   tomlQuick: TOML
   propertiesQuick: Java Properties
 jacksonAnnotations:

@@ -1,0 +1,125 @@
+Micronaut Serialization includes support for reading and writing YAML documents with the `micronaut-serde-yaml` module.
+
+Add the following artifact to the `dependencies` block:
+
+dependency:micronaut-serde-yaml[groupId="io.micronaut.serde",scope="implementation"]
+
+The YAML mapper is exposed as a named api:serde.ObjectMapper[] bean. Inject it with the `yaml` qualifier when you want to read or write YAML data:
+
+snippet::example.YamlReportService[project-base="doc-examples/example", source="main"]
+
+With the correct dependencies in place, define a serializable type:
+
+snippet::example.YamlLibrary[project-base="doc-examples/example", source="main"]
+
+The mapper reads and writes the same types supported by Micronaut Serialization. The example model is written as:
+
+[source,yaml]
+----
+name: City Library
+books:
+- The Stand
+- VALIS
+----
+
+The following executable example writes and reads this model:
+
+snippet::example.YamlQuickStartTest[project-base="doc-examples/example"]
+
+== Read Features
+
+YAML read behavior is configured under `micronaut.serde.format.yaml.read-features`:
+
+[configuration]
+----
+micronaut:
+  serde:
+    format:
+      yaml:
+        read-features:
+          boolean-as-strings: true
+          empty-string-as-null: true
+----
+
+`boolean-as-strings`:: When enabled, legacy YAML boolean-like values such as `yes`, `no`, `on`, and `off` are read as strings. The canonical `true` and `false` values remain booleans. Disable it to interpret the legacy values as booleans.
+
+`empty-string-as-null`:: When enabled, an empty plain scalar such as `key:` is read as `null`. Disable it to read the value as an empty string. Quoted empty strings remain strings.
+
+== Write Features
+
+YAML write behavior is configured under `micronaut.serde.format.yaml.write-features`. All available settings can be configured together as follows; normally, only settings that differ from their defaults need to be specified:
+
+[configuration]
+----
+micronaut:
+  serde:
+    format:
+      yaml:
+        write-features:
+          write-style: BLOCK
+          indent: 2
+          explicit-start: false
+          explicit-end: false
+          minimize-quotes: true
+          split-lines: true
+          canonical-output: false
+          indent-arrays: false
+          indent-arrays-with-indicator: false
+          allow-long-keys: false
+          use-yaml-nonfinite-notation: true
+----
+
+=== Document and Collection Layout
+
+`write-style`:: Selects `BLOCK` or `FLOW` collection output. For example, flow style writes a mapping containing a sequence as `{values: [A, B]}`.
+
+`indent`:: Controls the number of spaces used for each nested mapping level. The default is two.
+
+`explicit-start` and `explicit-end`:: Add the YAML document markers `---` and `...`, respectively:
+
+[source,yaml]
+----
+---
+key: value
+...
+----
+
+`canonical-output`:: Forces canonical YAML output. Collections use explicit flow syntax, scalars are quoted, mapping keys use `?`, and the document starts with `---`:
+
+[source,yaml]
+----
+---
+{
+  ? "key"
+  : "value",
+}
+----
+
+`indent-arrays`:: Adds one space before block sequence indicators:
+
+[source,yaml]
+----
+values:
+ - A
+ - B
+----
+
+`indent-arrays-with-indicator`:: Indents sequence indicators by two spaces and includes that offset when aligning nested sequence content. When both array indentation features are enabled, this setting takes precedence:
+
+[source,yaml]
+----
+values:
+  - A
+  - B
+----
+
+`allow-long-keys`:: Raises the simple-key limit from 128 to 1024 characters. Without it, longer keys are written with YAML's explicit `?` key syntax; with it, eligible long keys remain in `key: value` form.
+
+=== Scalar Formatting
+
+`minimize-quotes`:: Omits quotes from strings when YAML permits. Disable it to write strings such as `hello world` as `"hello world"`.
+
+`split-lines`:: Allows long double-quoted strings to wrap across lines. Disable it when quoted strings must remain on one output line.
+
+`use-yaml-nonfinite-notation`:: Writes non-finite floating-point values as `.nan`, `.inf`, and `-.inf`. Disable it to use `NaN`, `Infinity`, and `-Infinity` for compatibility with Java-oriented consumers.
+
