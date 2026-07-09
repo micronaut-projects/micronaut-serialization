@@ -273,6 +273,94 @@ booleanValue: true
         context.close()
     }
 
+    void "serialization - configured YAML non-finite notation"() {
+        given:
+        def properties = [:]
+        if (useYamlNonfiniteNotation != null) {
+            properties['micronaut.serde.format.yaml.write-features.use-yaml-nonfinite-notation'] = useYamlNonfiniteNotation
+        }
+        def context = ApplicationContext.run(properties)
+        initializeMapper(context)
+
+        expect:
+        writeYaml([key: value]) == "key: ${expected}\n"
+
+        cleanup:
+        context.close()
+
+        where:
+        useYamlNonfiniteNotation | value                     || expected
+        true                     | Double.NaN                || ".nan"
+        true                     | Double.POSITIVE_INFINITY  || ".inf"
+        true                     | Double.NEGATIVE_INFINITY  || "-.inf"
+        true                     | Float.NaN                 || ".nan"
+        false                    | Double.NaN                || "NaN"
+        false                    | Double.POSITIVE_INFINITY  || "Infinity"
+        false                    | Double.NEGATIVE_INFINITY  || "-Infinity"
+        false                    | Float.NEGATIVE_INFINITY   || "-Infinity"
+    }
+
+    void "serialization - configured allow long keys"() {
+        given:
+        def context = ApplicationContext.run([
+                'micronaut.serde.format.yaml.write-features.allow-long-keys': allowLongKeys
+        ])
+        initializeMapper(context)
+        def key = 'a' * 129
+
+        expect:
+        writeYaml([(key): 'value']) == expectedPrefix + key + expectedSuffix
+
+        cleanup:
+        context.close()
+
+        where:
+        allowLongKeys || expectedPrefix | expectedSuffix
+        false         || '? '           | '\n: value\n'
+        true          || ''             | ': value\n'
+    }
+
+    void "serialization - configured array indentation"() {
+        given:
+        def context = ApplicationContext.run([
+                'micronaut.serde.format.yaml.write-features.indent-arrays'               : indentArrays,
+                'micronaut.serde.format.yaml.write-features.indent-arrays-with-indicator': indentArraysWithIndicator
+        ])
+        initializeMapper(context)
+
+        expect:
+        writeYaml([values: ['A', 'B']]) == expected
+
+        cleanup:
+        context.close()
+
+        where:
+        indentArrays | indentArraysWithIndicator || expected
+        false        | false                     || "values:\n- A\n- B\n"
+        true         | false                     || "values:\n - A\n - B\n"
+        false        | true                      || "values:\n  - A\n  - B\n"
+        true         | true                      || "values:\n  - A\n  - B\n"
+    }
+
+    void "serialization - configured canonical output"() {
+        given:
+        def context = ApplicationContext.run([
+                'micronaut.serde.format.yaml.write-features.canonical-output': canonicalOutput
+        ])
+        initializeMapper(context)
+
+        expect:
+        writeYaml([key: 'value']) == expected
+
+        cleanup:
+        context.close()
+
+        where:
+        canonicalOutput || expected
+        false           || "key: value\n"
+        true            || "---\n{\n  ? \"key\"\n  : \"value\",\n}\n"
+    }
+
     @Ignore("The Jackson Yaml Databind fail as well, sice this feature was merged into 2.19, not the released Jackson 3 we use")
     void "serialization - configured literal block style multiline with trailing space"() {
         given:

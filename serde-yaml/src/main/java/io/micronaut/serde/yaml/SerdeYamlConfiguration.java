@@ -136,6 +136,56 @@ public final class SerdeYamlConfiguration {
     }
 
     /**
+     * Returns whether YAML should be emitted in canonical form.
+     *
+     * @return Whether to use canonical output
+     * @since 3.0.1
+     */
+    public boolean isCanonicalOutput() {
+        return writeFeatures.isCanonicalOutput();
+    }
+
+    /**
+     * Returns whether sequence indicators should be indented.
+     *
+     * @return Whether to indent arrays
+     * @since 3.0.1
+     */
+    public boolean isIndentArrays() {
+        return writeFeatures.isIndentArrays();
+    }
+
+    /**
+     * Returns whether sequence indicators should be indented by two spaces.
+     *
+     * @return Whether to indent arrays with the indicator
+     * @since 3.0.1
+     */
+    public boolean isIndentArraysWithIndicator() {
+        return writeFeatures.isIndentArraysWithIndicator();
+    }
+
+    /**
+     * Returns whether simple YAML keys may be up to 1024 characters long.
+     *
+     * @return Whether to allow long keys
+     * @since 3.0.1
+     */
+    public boolean isAllowLongKeys() {
+        return writeFeatures.isAllowLongKeys();
+    }
+
+    /**
+     * Returns whether non-finite numbers should use YAML notation.
+     *
+     * @return Whether to use YAML notation for non-finite numbers
+     * @since 3.0.1
+     */
+    public boolean isUseYamlNonfiniteNotation() {
+        return writeFeatures.isUseYamlNonfiniteNotation();
+    }
+
+    /**
      * Returns whether YAML boolean-like words should be parsed as strings.
      *
      * @return Whether boolean-like words should be parsed as strings
@@ -245,6 +295,11 @@ public final class SerdeYamlConfiguration {
         private boolean minimizeQuotes = true;
         private boolean literalBlockStyle;
         private boolean splitLines = true;
+        private boolean canonicalOutput;
+        private boolean indentArrays;
+        private boolean indentArraysWithIndicator;
+        private boolean allowLongKeys;
+        private boolean useYamlNonfiniteNotation = true;
 
         /**
          * Returns the configured write style.
@@ -370,6 +425,106 @@ public final class SerdeYamlConfiguration {
          */
         public void setSplitLines(boolean splitLines) {
             this.splitLines = splitLines;
+        }
+
+        /**
+         * Returns whether YAML should be emitted in canonical form.
+         *
+         * @return Whether to use canonical output
+         * @since 3.0.1
+         */
+        public boolean isCanonicalOutput() {
+            return canonicalOutput;
+        }
+
+        /**
+         * Sets whether YAML should be emitted in canonical form.
+         *
+         * @param canonicalOutput Whether to use canonical output
+         * @since 3.0.1
+         */
+        public void setCanonicalOutput(boolean canonicalOutput) {
+            this.canonicalOutput = canonicalOutput;
+        }
+
+        /**
+         * Returns whether sequence indicators should be indented.
+         *
+         * @return Whether to indent arrays
+         * @since 3.0.1
+         */
+        public boolean isIndentArrays() {
+            return indentArrays;
+        }
+
+        /**
+         * Sets whether sequence indicators should be indented.
+         *
+         * @param indentArrays Whether to indent arrays
+         * @since 3.0.1
+         */
+        public void setIndentArrays(boolean indentArrays) {
+            this.indentArrays = indentArrays;
+        }
+
+        /**
+         * Returns whether sequence indicators should be indented by two spaces.
+         *
+         * @return Whether to indent arrays with the indicator
+         * @since 3.0.1
+         */
+        public boolean isIndentArraysWithIndicator() {
+            return indentArraysWithIndicator;
+        }
+
+        /**
+         * Sets whether sequence indicators should be indented by two spaces.
+         *
+         * @param indentArraysWithIndicator Whether to indent arrays with the indicator
+         * @since 3.0.1
+         */
+        public void setIndentArraysWithIndicator(boolean indentArraysWithIndicator) {
+            this.indentArraysWithIndicator = indentArraysWithIndicator;
+        }
+
+        /**
+         * Returns whether simple YAML keys may be up to 1024 characters long.
+         *
+         * @return Whether to allow long keys
+         * @since 3.0.1
+         */
+        public boolean isAllowLongKeys() {
+            return allowLongKeys;
+        }
+
+        /**
+         * Sets whether simple YAML keys may be up to 1024 characters long.
+         *
+         * @param allowLongKeys Whether to allow long keys
+         * @since 3.0.1
+         */
+        public void setAllowLongKeys(boolean allowLongKeys) {
+            this.allowLongKeys = allowLongKeys;
+        }
+
+        /**
+         * Returns whether non-finite numbers should use YAML notation.
+         *
+         * @return Whether to use YAML notation for non-finite numbers
+         * @since 3.0.1
+         */
+        public boolean isUseYamlNonfiniteNotation() {
+            return useYamlNonfiniteNotation;
+        }
+
+        /**
+         * Sets whether non-finite numbers should use YAML notation.
+         *
+         * @param useYamlNonfiniteNotation Whether to use YAML notation for non-finite numbers
+         * @since 3.0.1
+         */
+        public void setUseYamlNonfiniteNotation(boolean useYamlNonfiniteNotation) {
+            this.useYamlNonfiniteNotation = useYamlNonfiniteNotation;
         }
     }
 }

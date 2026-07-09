@@ -69,6 +69,7 @@ public class YamlEncoder extends LimitingStream implements Encoder {
     private final boolean explicitEnd;
     private final boolean minimizeQuotes;
     private final boolean literalBlockStyle;
+    private final boolean useYamlNonfiniteNotation;
     private final YamlStringQuotingChecker quotingChecker;
     private final ScalarResolver resolver = new CoreScalarResolver(true);
     private final Deque<CollectionContext> contextStack = new ArrayDeque<>();
@@ -111,16 +112,22 @@ public class YamlEncoder extends LimitingStream implements Encoder {
         explicitEnd = configuration.isExplicitEnd();
         minimizeQuotes = configuration.isMinimizeQuotes();
         literalBlockStyle = configuration.isLiteralBlockStyle();
+        useYamlNonfiniteNotation = configuration.isUseYamlNonfiniteNotation();
         writer = new YamlOutputStreamWriter(outputStream, StandardCharsets.UTF_8);
         emitter = new Emitter(createEmitterOptions(configuration), writer);
         this.quotingChecker = Objects.requireNonNull(quotingChecker, "quotingChecker");
     }
 
     private static DumpSettings createEmitterOptions(SerdeYamlConfiguration configuration) {
+        boolean indentArraysWithIndicator = configuration.isIndentArraysWithIndicator();
         return DumpSettings.builder()
+            .setCanonical(configuration.isCanonicalOutput())
             .setIndent(configuration.getIndent())
+            .setIndicatorIndent(indentArraysWithIndicator ? 2 : configuration.isIndentArrays() ? 1 : 0)
+            .setIndentWithIndicator(indentArraysWithIndicator)
             .setBestLineBreak(System.lineSeparator())
             .setSplitLines(configuration.isSplitLines())
+            .setMaxSimpleKeyLength(configuration.isAllowLongKeys() ? 1024 : 128)
             .build();
     }
 
@@ -316,9 +323,12 @@ public class YamlEncoder extends LimitingStream implements Encoder {
         flipKeyIfInMapping();
     }
 
-    private static String formatDouble(double value) {
+    private String formatDouble(double value) {
+        if (!useYamlNonfiniteNotation) {
+            return Double.toString(value);
+        }
         if (Double.isNaN(value)) {
-            return ".NaN";
+            return ".nan";
         }
         if (Double.isInfinite(value)) {
             return value > 0 ? ".inf" : "-.inf";
