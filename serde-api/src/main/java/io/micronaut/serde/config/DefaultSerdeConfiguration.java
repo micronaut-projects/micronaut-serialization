@@ -42,6 +42,10 @@ final class DefaultSerdeConfiguration implements SerdeConfiguration {
     private final TimeShape timeWriteShape;
     private final NumericTimeUnit numericTimeUnit;
     private final boolean writeBinaryAsArray;
+    private final boolean writeDurationsAsStrings;
+    private final boolean writeJavaUtilDatesWithZoneId;
+    private final boolean rejectDeprecatedThreeLetterTimeZoneIds;
+    private final boolean writeDateTimesAsStrictIJson;
     private final Optional<Locale> locale;
     private final Optional<TimeZone> timeZone;
     private final List<String> includedIntrospectionPackages;
@@ -52,10 +56,15 @@ final class DefaultSerdeConfiguration implements SerdeConfiguration {
     private final boolean jsonViewEnabled;
 
     @ConfigurationInject
+    @SuppressWarnings("checkstyle:ParameterNumber")
     DefaultSerdeConfiguration(Optional<String> dateFormat,
                               @Bindable(defaultValue = "STRING") TimeShape timeWriteShape,
                               @Bindable(defaultValue = "SECONDS") NumericTimeUnit numericTimeUnit,
                               @Bindable(defaultValue = "true") boolean writeBinaryAsArray,
+                              @Bindable(defaultValue = "false") boolean writeDurationsAsStrings,
+                              @Bindable(defaultValue = "false") boolean writeJavaUtilDatesWithZoneId,
+                              @Bindable(defaultValue = "false") boolean rejectDeprecatedThreeLetterTimeZoneIds,
+                              @Bindable(defaultValue = "false") boolean writeDateTimesAsStrictIJson,
                               Optional<Locale> locale,
                               Optional<TimeZone> timeZone,
                               @Bindable(defaultValue = "io.micronaut") List<String> includedIntrospectionPackages,
@@ -68,6 +77,10 @@ final class DefaultSerdeConfiguration implements SerdeConfiguration {
         this.timeWriteShape = timeWriteShape;
         this.numericTimeUnit = numericTimeUnit;
         this.writeBinaryAsArray = writeBinaryAsArray;
+        this.writeDurationsAsStrings = writeDurationsAsStrings;
+        this.writeJavaUtilDatesWithZoneId = writeJavaUtilDatesWithZoneId;
+        this.rejectDeprecatedThreeLetterTimeZoneIds = rejectDeprecatedThreeLetterTimeZoneIds;
+        this.writeDateTimesAsStrictIJson = writeDateTimesAsStrictIJson;
         this.locale = locale;
         this.timeZone = timeZone;
         this.includedIntrospectionPackages = includedIntrospectionPackages;
@@ -106,6 +119,26 @@ final class DefaultSerdeConfiguration implements SerdeConfiguration {
     @Override
     public boolean isWriteBinaryAsArray() {
         return writeBinaryAsArray;
+    }
+
+    @Override
+    public boolean isWriteDurationsAsStrings() {
+        return writeDurationsAsStrings;
+    }
+
+    @Override
+    public boolean isWriteJavaUtilDatesWithZoneId() {
+        return writeJavaUtilDatesWithZoneId;
+    }
+
+    @Override
+    public boolean isRejectDeprecatedThreeLetterTimeZoneIds() {
+        return rejectDeprecatedThreeLetterTimeZoneIds;
+    }
+
+    @Override
+    public boolean isWriteDateTimesAsStrictIJson() {
+        return writeDateTimesAsStrictIJson;
     }
 
     @Override

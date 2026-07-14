@@ -8,33 +8,34 @@ The elimination of reflection and smaller footprint also results in reduced runt
 
 ==== Runtime Performance
 
-The `UserBeanSerdeBenchmark` JMH benchmark compares Jackson Databind, Jackson Databind with Blackbird, Micronaut Serialization using generated serializers/deserializers, and Micronaut Serialization with generated serializers/deserializers disabled. A local run on JDK 25 used 3 forks, 5 warmup iterations, and 10 measurement iterations with 1-second iterations.
+The `UserBeanSerdeBenchmark` JMH benchmark compares Jackson Databind, Jackson Databind with Blackbird, Micronaut Serialization using generated serializers/deserializers, and Micronaut Serialization with generated serializers/deserializers disabled. A full local `:micronaut-benchmarks:jmh` run on GraalVM Java 25 used 3 forks, 5 warmup iterations, and 5 measurement iterations with 1-second iterations and `-prof gc`.
 
 |===
 | Operation | Jackson Databind | Jackson Databind Blackbird | Micronaut Serialization generated | Micronaut Serialization runtime
 
 | Serialize throughput
-| 389,166 ops/s
-| 389,564 ops/s
-| 510,335 ops/s
-| 414,885 ops/s
+| 394,478 ops/s
+| 391,556 ops/s
+| 527,497 ops/s
+| 409,800 ops/s
 
 | Deserialize average time
-| 3,294 ns/op
-| 3,320 ns/op
-| 3,060 ns/op
-| 3,559 ns/op
+| 3,282 ns/op
+| 3,165 ns/op
+| 3,026 ns/op
+| 3,120 ns/op
 
 | Round-trip average time
-| 6,546 ns/op
-| 6,528 ns/op
-| 5,113 ns/op
-| 6,096 ns/op
+| 6,399 ns/op
+| 6,117 ns/op
+| 4,865 ns/op
+| 5,165 ns/op
+
 |===
 
 image::user-bean-benchmark-results.svg[UserBeanSerdeBenchmark local results]
 
-In this run, generated Micronaut Serialization had the highest serialization throughput, about 31.1% faster than Jackson Databind and about 23.0% faster than the runtime fallback. It was also the fastest deserialization path, about 7.1% faster than Jackson Databind, and the fastest combined serialize-and-deserialize round trip, about 21.9% faster than Jackson Databind. The runtime fallback remained slower than generated Micronaut Serialization across all measured operations, which is expected because it uses runtime serializer/deserializer selection instead of generated classes.
+In this run, generated Micronaut Serialization had the highest serialization throughput, about 33.7% faster than Jackson Databind and about 28.7% faster than the runtime fallback. It was also the fastest deserialization path, about 7.8% faster than Jackson Databind and about 3.0% faster than the runtime fallback, and the fastest combined serialize-and-deserialize round trip, about 24.0% faster than Jackson Databind and about 5.8% faster than the runtime fallback. The runtime fallback remained slower than generated Micronaut Serialization across all measured operations, which is expected because it uses runtime serializer/deserializer selection instead of generated classes.
 
 ==== Security
 

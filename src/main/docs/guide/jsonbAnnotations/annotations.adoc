@@ -1,0 +1,60 @@
+Micronaut Serialization supports JSON-B annotations for generated serialization metadata and JSON-B runtime compatibility features.
+
+snippet::example.Book[project-base="doc-examples/example-jsonb", source="main"]
+
+|===
+|JSON-B API |Supported |Notes
+
+|link:{jsonbApi}/JsonbCreator.html[@JsonbCreator]
+|Yes
+|
+
+|link:{jsonbApi}/JsonbDateFormat.html[@JsonbDateFormat]
+|Yes
+|
+
+|link:{jsonbApi}/JsonbNillable.html[@JsonbNillable]
+|Yes
+|
+
+|link:{jsonbApi}/JsonbNumberFormat.html[@JsonbNumberFormat]
+|Yes
+|
+
+|link:{jsonbApi}/JsonbProperty.html[@JsonbProperty]
+|Yes
+|
+
+|link:{jsonbApi}/JsonbPropertyOrder.html[@JsonbPropertyOrder]
+|Yes
+|
+
+|link:{jsonbApi}/JsonbTransient.html[@JsonbTransient]
+|Yes
+|
+
+|link:{jsonbApi}/JsonbTypeAdapter.html[@JsonbTypeAdapter]
+|Yes
+|Supported by the JSON-B runtime compatibility provider.
+
+|link:{jsonbApi}/JsonbTypeDeserializer.html[@JsonbTypeDeserializer]
+|Yes
+|Supported by the JSON-B runtime compatibility provider.
+
+|link:{jsonbApi}/JsonbTypeInfo.html[@JsonbTypeInfo]
+|Yes
+|Subtype aliases are read from `@JsonbSubtype` declarations.
+
+|link:{jsonbApi}/JsonbSubtype.html[@JsonbSubtype]
+|Yes
+|Used with `@JsonbTypeInfo`.
+
+|link:{jsonbApi}/JsonbTypeSerializer.html[@JsonbTypeSerializer]
+|Yes
+|Supported by the JSON-B runtime compatibility provider.
+
+|link:{jsonbApi}/JsonbVisibility.html[@JsonbVisibility]
+|Yes
+|Supported by the JSON-B runtime compatibility provider.
+
+|===

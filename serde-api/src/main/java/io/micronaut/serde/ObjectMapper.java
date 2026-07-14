@@ -15,15 +15,19 @@
  */
 package io.micronaut.serde;
 
+import io.micronaut.core.annotation.Experimental;
+import io.micronaut.core.io.buffer.ByteBuffer;
+import io.micronaut.core.type.Argument;
 import io.micronaut.json.JsonFeatures;
 import io.micronaut.json.JsonMapper;
+import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.SerializationConfiguration;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.io.InputStream;
 import java.util.Map;
 import java.util.Objects;
 
@@ -34,11 +38,117 @@ import java.util.Objects;
  */
 public interface ObjectMapper extends JsonMapper {
 
-    // Delete when this is merged and core is released in RC2 https://github.com/micronaut-projects/micronaut-core/pull/9453
-    @Override
-    default String writeValueAsString(@Nullable Object object) throws IOException {
-        Objects.requireNonNull(object, "Object cannot be null");
-        return new String(writeValueAsBytes(object), StandardCharsets.UTF_8);
+    /**
+     * Update an existing mutable value from the supplied override value.
+     *
+     * <p>The override value is converted to a JSON tree and applied through
+     * {@link #updateValueFromTree(Object, JsonNode)}. Supported update semantics are implementation-specific;
+     * immutable, creator-only, and builder-only values may be rejected.</p>
+     *
+     * @param valueToUpdate The existing value to update
+     * @param overrides The override value containing fields to apply
+     * @param <T> The value type
+     * @return The updated {@code valueToUpdate}
+     * @throws IOException If an I/O or decoding error occurs
+     * @since 3.1
+     */
+    @Experimental
+    @SuppressWarnings("unchecked")
+    default <T> T updateValue(T valueToUpdate, @Nullable Object overrides) throws IOException {
+        Objects.requireNonNull(valueToUpdate, "Value to update cannot be null");
+        return updateValue(valueToUpdate, (Argument<T>) Argument.of(valueToUpdate.getClass()), overrides);
+    }
+
+    /**
+     * Update an existing mutable value from the supplied override value.
+     *
+     * <p>The override value is converted to a JSON tree and applied through
+     * {@link #updateValueFromTree(Object, JsonNode)}. Supported update semantics are implementation-specific;
+     * immutable, creator-only, and builder-only values may be rejected.</p>
+     *
+     * @param valueToUpdate The existing value to update
+     * @param type The type of the value to update
+     * @param overrides The override value containing fields to apply
+     * @param <T> The value type
+     * @return The updated {@code valueToUpdate}
+     * @throws IOException If an I/O or decoding error occurs
+     * @since 3.1
+     */
+    @Experimental
+    default <T> T updateValue(T valueToUpdate, Argument<T> type, @Nullable Object overrides) throws IOException {
+        Objects.requireNonNull(valueToUpdate, "Value to update cannot be null");
+        Objects.requireNonNull(type, "Type cannot be null");
+        if (overrides == null) {
+            return valueToUpdate;
+        }
+        JsonNode tree = overrides instanceof JsonNode jsonNode ? jsonNode : writeValueToTree(overrides);
+        updateValueFromTree(valueToUpdate, tree);
+        return valueToUpdate;
+    }
+
+    /**
+     * Update an existing mutable value from JSON read from the supplied input stream.
+     *
+     * @param valueToUpdate The existing value to update
+     * @param inputStream The input stream containing JSON fields to apply
+     * @param <T> The value type
+     * @return The updated {@code valueToUpdate}
+     * @throws IOException If an I/O or decoding error occurs
+     * @param type The type of the value to update
+     * @since 3.1
+     */
+    @Experimental
+    default <T> T updateValue(T valueToUpdate, Argument<T> type, InputStream inputStream) throws IOException {
+        Objects.requireNonNull(valueToUpdate, "Value to update cannot be null");
+        Objects.requireNonNull(type, "Type cannot be null");
+        Objects.requireNonNull(inputStream, "Input stream cannot be null");
+        JsonNode tree = readValue(inputStream, JsonNode.class);
+        if (tree != null) {
+            updateValueFromTree(valueToUpdate, tree);
+        }
+        return valueToUpdate;
+    }
+
+    /**
+     * Update an existing mutable value from JSON read from the supplied byte array.
+     *
+     * @param valueToUpdate The existing value to update
+     * @param byteArray The byte array containing JSON fields to apply
+     * @param <T> The value type
+     * @return The updated {@code valueToUpdate}
+     * @throws IOException If an I/O or decoding error occurs
+     * @param type The type of the value to update
+     * @since 3.1
+     */
+    @Experimental
+    default <T> T updateValue(T valueToUpdate, Argument<T> type, byte[] byteArray) throws IOException {
+        Objects.requireNonNull(valueToUpdate, "Value to update cannot be null");
+        Objects.requireNonNull(type, "Type cannot be null");
+        Objects.requireNonNull(byteArray, "Byte array cannot be null");
+        JsonNode tree = readValue(byteArray, JsonNode.class);
+        if (tree != null) {
+            updateValueFromTree(valueToUpdate, tree);
+        }
+        return valueToUpdate;
+    }
+
+    /**
+     * Update an existing mutable value from JSON read from the supplied byte buffer.
+     *
+     * @param valueToUpdate The existing value to update
+     * @param byteBuffer The byte buffer containing JSON fields to apply
+     * @param <T> The value type
+     * @return The updated {@code valueToUpdate}
+     * @throws IOException If an I/O or decoding error occurs
+     * @param type The type of the value to update
+     * @since 3.1
+     */
+    @Experimental
+    default <T> T updateValue(T valueToUpdate, Argument<T> type, ByteBuffer<?> byteBuffer) throws IOException {
+        Objects.requireNonNull(valueToUpdate, "Value to update cannot be null");
+        Objects.requireNonNull(type, "Type cannot be null");
+        Objects.requireNonNull(byteBuffer, "Byte buffer cannot be null");
+        return updateValue(valueToUpdate, type, byteBuffer.toByteArray());
     }
 
     @Override
@@ -62,6 +172,26 @@ public interface ObjectMapper extends JsonMapper {
         @Nullable DeserializationConfiguration deserializationConfiguration
     ) {
         return this;
+    }
+
+    /**
+     * Optional feature. Create a new {@link ObjectMapper} with the given configuration values and introspections. A
+     * {@code null} configuration parameter indicates the old configuration should be used.
+     *
+     * @param configuration The {@link SerdeConfiguration}
+     * @param serializationConfiguration The {@link SerializationConfiguration}
+     * @param deserializationConfiguration The {@link DeserializationConfiguration}
+     * @param introspections The {@link SerdeIntrospections}
+     * @return A new {@link JsonMapper} with the updated config and introspections
+     * @since 3.1.0
+     */
+    default ObjectMapper cloneWithConfiguration(
+        @Nullable SerdeConfiguration configuration,
+        @Nullable SerializationConfiguration serializationConfiguration,
+        @Nullable DeserializationConfiguration deserializationConfiguration,
+        SerdeIntrospections introspections
+    ) {
+        return cloneWithConfiguration(configuration, serializationConfiguration, deserializationConfiguration);
     }
 
     /**

@@ -21,12 +21,13 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.support.SerdeRegistrar;
+import io.micronaut.serde.support.util.DecoderValueKind;
 
 import java.io.IOException;
 import java.util.Arrays;
 
 @Internal
-final class DoubleSerde implements SerdeRegistrar<Double>, NumberSerde<Double> {
+final class DoubleSerde implements SerdeRegistrar<Double>, NumberSerde<Double>, DecoderValueKind.Provider {
 
     @Override
     public Double deserialize(Decoder decoder,
@@ -38,6 +39,11 @@ final class DoubleSerde implements SerdeRegistrar<Double>, NumberSerde<Double> {
     @Override
     public @Nullable Double deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super Double> type) throws IOException {
         return decoder.decodeDoubleNullable();
+    }
+
+    @Override
+    public DecoderValueKind decoderValueKind() {
+        return DecoderValueKind.DOUBLE;
     }
 
     @Override

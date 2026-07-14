@@ -18,7 +18,6 @@ package io.micronaut.serde.support.serializers;
 import io.micronaut.context.BeanContext;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.type.GenericPlaceholder;
@@ -32,6 +31,7 @@ import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
 import io.micronaut.serde.support.util.SubtypeInfo;
 import io.micronaut.serde.util.CustomizableSerializer;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -93,6 +93,7 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
 
     private io.micronaut.serde.Serializer<Object> createSpecificInternal(EncoderContext encoderContext,
                                                                          Argument<?> type) throws SerdeException {
+        boolean keySerialization = type.getAnnotationMetadata().hasAnnotation(SerdeConfig.SerKey.class);
         SerBean<Object> serBean;
         try {
             serBean = (SerBean<Object>) getSerializableBean(type, encoderContext);
@@ -102,18 +103,30 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
         }
 
         io.micronaut.serde.Serializer<Object> serializer;
-        if (serBean.simpleBean) {
+        SerBean.SerProperty<Object, Object> jsonKey = serBean.jsonKey;
+        boolean jsonKeySerialization;
+        if (keySerialization && jsonKey != null) {
+            serializer = new JsonValueSerializer<>(jsonKey);
+            jsonKeySerialization = true;
+        } else if (serBean.simpleBean) {
             serializer = new SimpleObjectSerializer<>(serBean);
+            jsonKeySerialization = false;
         } else if (serBean.jsonValue != null) {
             serializer = new JsonValueSerializer<>(serBean.jsonValue);
+            jsonKeySerialization = false;
         } else {
             serializer = new CustomizedObjectSerializer<>(serBean);
+            jsonKeySerialization = false;
         }
-        boolean subtyped = serBean.subtyped;
+        boolean subtyped = !jsonKeySerialization && serBean.subtyped;
         if (subtyped) {
             serializer = new RuntimeTypeSerializer(encoderContext, serializer, type);
-        } else {
-            if (serBean.wrapperProperty != null) {
+        } else if (!jsonKeySerialization) {
+            if (serBean.dynamicWrapperProperty != null) {
+                serializer = new DynamicWrappedObjectSerializer<>(serializer, serBean.dynamicWrapperProperty);
+            } else if (serBean.dynamicArrayWrapperProperty != null) {
+                serializer = new DynamicWrappedArraySerializer<>(serializer, serBean.dynamicArrayWrapperProperty);
+            } else if (serBean.wrapperProperty != null) {
                 serializer = new WrappedObjectSerializer<>(serializer, serBean.wrapperProperty);
             } else if (serBean.arrayWrapperProperty != null) {
                 serializer = new WrappedArraySerializer<>(serializer, serBean.arrayWrapperProperty);

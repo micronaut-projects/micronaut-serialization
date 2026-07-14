@@ -148,6 +148,17 @@ public interface DeserializationConfiguration {
     }
 
     /**
+     * Determines whether every creator parameter must be present in the JSON input.
+     *
+     * @return {@code true} if all creator parameters are required
+     * @since 3.1.0
+     */
+    @Bindable(defaultValue = StringUtils.FALSE)
+    default boolean isRequireAllCreatorParameters() {
+        return false;
+    }
+
+    /**
      * Determines whether generated deserializers should fall back to the runtime deserializer.
      *
      * @return {@code true} if generated deserializers should be disabled

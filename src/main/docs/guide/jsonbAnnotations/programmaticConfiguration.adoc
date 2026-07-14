@@ -1,0 +1,13 @@
+Programmatic JSON-B configuration is supported by defining a `JsonbConfig` bean.
+
+snippet::example.ProgrammaticJsonbConfigFactory[project-base="doc-examples/example-jsonb", source="main"]
+
+The configured serializers, deserializers, and adapters are applied in the order passed to `JsonbConfig`. If more than one callback matches a type, the first matching configured callback wins.
+
+When you provide a custom `JsonbConfig` bean, it replaces the default Micronaut-provided config that collects extension beans. Register every JSON-B runtime customization needed by the application on that config.
+
+The serializer and deserializer used by the programmatic config are ordinary JSON-B callback implementations:
+
+snippet::example.ProgrammaticCodeSerializer[project-base="doc-examples/example-jsonb", source="main"]
+
+snippet::example.ProgrammaticCodeDeserializer[project-base="doc-examples/example-jsonb", source="main"]

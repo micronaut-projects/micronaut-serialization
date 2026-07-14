@@ -19,6 +19,8 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.Keys;
+import io.micronaut.serde.KeysAwareDecoder;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 
 import java.io.IOException;
@@ -33,6 +35,7 @@ import java.io.IOException;
 final class SubtypedPropertyObjectDeserializer implements Deserializer<Object> {
 
     private final DeserializerSubtypeInfo<? super Object> subtypeInfo;
+    private final Keys discriminatorKeys;
 
     public SubtypedPropertyObjectDeserializer(DeserializerSubtypeInfo<? super Object> subtypeInfo) {
         this.subtypeInfo = subtypeInfo;
@@ -41,6 +44,7 @@ final class SubtypedPropertyObjectDeserializer implements Deserializer<Object> {
             && discriminatorType != SerdeConfig.SerSubtyped.DiscriminatorType.EXISTING_PROPERTY) {
             throw new IllegalStateException("Unsupported discriminator type: " + discriminatorType);
         }
+        this.discriminatorKeys = Keys.create(subtypeInfo.parent().info().discriminatorName());
     }
 
     @Override
@@ -64,23 +68,23 @@ final class SubtypedPropertyObjectDeserializer implements Deserializer<Object> {
         }
     }
 
-    private Deserializer<? super Object> findDeserializer(Decoder objectDecoder) throws IOException {
-        final DeserBeanSubtypeInfo<?> deserBeanSubtypeInfo = subtypeInfo.parent();
-        final String discriminatorName = deserBeanSubtypeInfo.info().discriminatorName();
+    private Deserializer<? super Object> findDeserializer(Decoder decoder) throws IOException {
+        final KeysAwareDecoder objectDecoder = KeysAwareDecoder.of(decoder);
 
         while (true) {
-            final String key = objectDecoder.decodeKey();
-            if (key == null) {
+            final int keyIndex = objectDecoder.decodeKey(discriminatorKeys);
+            if (keyIndex == KeysAwareDecoder.MATCH_END_OBJECT) {
                 break;
             }
 
-            if (key.equals(discriminatorName)) {
+            if (keyIndex == 0) {
                 if (objectDecoder.decodeNull()) {
                     return subtypeInfo.findDeserializer(null);
                 }
                 String discriminatorValue = objectDecoder.decodeString();
                 return subtypeInfo.findDeserializer(discriminatorValue);
             } else {
+                objectDecoder.decodeKey();
                 objectDecoder.skipValue();
             }
         }

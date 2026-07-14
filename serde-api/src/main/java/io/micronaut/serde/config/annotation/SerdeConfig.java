@@ -16,6 +16,7 @@
 package io.micronaut.serde.config.annotation;
 
 import io.micronaut.context.annotation.Executable;
+import io.micronaut.core.annotation.BuildTimeInit;
 import io.micronaut.core.annotation.Internal;
 
 import java.lang.annotation.ElementType;
@@ -98,6 +99,11 @@ public @interface SerdeConfig {
     String INCLUDE_CONTENT = "includeContent";
 
     /**
+     * Whether an existing value should be updated instead of replaced.
+     */
+    String MERGE = "merge";
+
+    /**
      * Property filter name.
      */
     String FILTER = "filter";
@@ -133,6 +139,16 @@ public @interface SerdeConfig {
      * The type property used for subtype binding.
      */
     String TYPE_PROPERTY = "typeProperty";
+
+    /**
+     * Type properties used for subtype binding when multiple discriminator properties apply.
+     */
+    String TYPE_PROPERTIES = "typeProperties";
+
+    /**
+     * Type property values used for subtype binding when multiple discriminator properties apply.
+     */
+    String TYPE_PROPERTY_VALUES = "typePropertyValues";
 
     /**
      * The type discriminator type.
@@ -383,6 +399,11 @@ public @interface SerdeConfig {
         String DISCRIMINATOR_PROP = "dp";
 
         /**
+         * Whether the subtype metadata came from JSON-B type information.
+         */
+        String JSONB_TYPE_INFO = "jsonbTypeInfo";
+
+        /**
          * The discriminator type.
          */
         enum DiscriminatorType {
@@ -392,6 +413,7 @@ public @interface SerdeConfig {
         /**
          * The discriminator value kind.
          */
+        @BuildTimeInit("io.micronaut.serde.config.annotation.SerdeConfig$SerSubtyped$DiscriminatorValueKind")
         enum DiscriminatorValueKind {
             CLASS_NAME, CLASS_SIMPLE_NAME, NAME, MINIMAL_CLASS, DEDUCTION
         }
@@ -409,6 +431,20 @@ public @interface SerdeConfig {
      */
     @Internal
     @interface SerValue {
+    }
+
+    /**
+     * Meta-annotation used to model the value used during map key serialization.
+     */
+    @Internal
+    @interface SerKey {
+    }
+
+    /**
+     * Meta-annotation used to model the property that provides the type id during serialization.
+     */
+    @Internal
+    @interface SerTypeId {
     }
 
     /**

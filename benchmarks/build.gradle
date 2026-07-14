@@ -30,12 +30,87 @@ dependencies {
 
 jmh {
     includes = [
-        ".*(StartupBenchmark|SourceGenRoutingBenchmark|UserBeanSerdeBenchmark).*"
+        ".*(StartupBenchmark|SourceGenRoutingBenchmark|UserBeanSerdeBenchmark|PropertyAccessShapeBenchmark|PropertyAccessOrderBenchmark|PropertyValueKindBenchmark|PropertyValueKindSerializationCeilingBenchmark|PropertyValueKindSerializationLifecycleBenchmark|BeanIntrospectionAccessBenchmark|SpecificObjectDeserializerComplexShapeBenchmark).*"
     ]
     fork = 10
     iterations = 1
     warmupIterations = 0
     duplicateClassesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.named("jmh").configure { task ->
+    def csvProperty = { String name ->
+        def value = providers.gradleProperty(name).orNull
+        if (value == null || value.isBlank()) {
+            return null
+        }
+        return value.split(",").collect { it.trim() }.findAll { !it.isEmpty() }
+    }
+    def stringProperty = { String name ->
+        def value = providers.gradleProperty(name).orNull
+        value == null || value.isBlank() ? null : value
+    }
+    def intProperty = { String name ->
+        def value = stringProperty(name)
+        value == null ? null : Integer.parseInt(value)
+    }
+    def listProperty = { List<String> values ->
+        def property = objects.listProperty(String)
+        property.set(values)
+        return property
+    }
+
+    def includesOverride = csvProperty("jmh.includes")
+    if (includesOverride != null) {
+        task.includes.set(includesOverride)
+    }
+    def forksOverride = intProperty("jmh.forks")
+    if (forksOverride != null) {
+        task.fork.set(forksOverride)
+    }
+    def warmupIterationsOverride = intProperty("jmh.warmupIterations")
+    if (warmupIterationsOverride != null) {
+        task.warmupIterations.set(warmupIterationsOverride)
+    }
+    def iterationsOverride = intProperty("jmh.iterations")
+    if (iterationsOverride != null) {
+        task.iterations.set(iterationsOverride)
+    }
+    def warmupOverride = stringProperty("jmh.warmup")
+    if (warmupOverride != null) {
+        task.warmup.set(warmupOverride)
+    }
+    def measurementOverride = stringProperty("jmh.timeOnIteration")
+    if (measurementOverride != null) {
+        task.timeOnIteration.set(measurementOverride)
+    }
+    def timeUnitOverride = stringProperty("jmh.timeUnit")
+    if (timeUnitOverride != null) {
+        task.timeUnit.set(timeUnitOverride)
+    }
+    def resultFormatOverride = stringProperty("jmh.resultFormat")
+    if (resultFormatOverride != null) {
+        task.resultFormat.set(resultFormatOverride)
+    }
+    def resultsFileOverride = stringProperty("jmh.resultsFile")
+    if (resultsFileOverride != null) {
+        task.resultsFile.set(layout.projectDirectory.file(resultsFileOverride))
+    }
+    def profilersOverride = csvProperty("jmh.profilers")
+    if (profilersOverride != null) {
+        task.profilers.set(profilersOverride)
+    }
+
+    def benchmarkParametersOverride = [:]
+    ["stack", "shape", "valueKind", "failOnNullForPrimitives"].each { parameterName ->
+        def values = csvProperty("jmh.param.${parameterName}")
+        if (values != null) {
+            benchmarkParametersOverride[parameterName] = listProperty(values)
+        }
+    }
+    if (!benchmarkParametersOverride.isEmpty()) {
+        task.benchmarkParameters.set(benchmarkParametersOverride)
+    }
 }
 
 shadowJar {

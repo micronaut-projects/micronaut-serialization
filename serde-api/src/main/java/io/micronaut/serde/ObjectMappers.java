@@ -18,10 +18,14 @@ package io.micronaut.serde;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.ApplicationContextBuilder;
 import io.micronaut.context.env.PropertySource;
+import io.micronaut.core.io.buffer.ByteBuffer;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.json.JsonStreamConfig;
 import io.micronaut.json.tree.JsonNode;
+import io.micronaut.serde.config.DeserializationConfiguration;
+import io.micronaut.serde.config.SerdeConfiguration;
+import io.micronaut.serde.config.SerializationConfiguration;
 import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Processor;
 
@@ -95,6 +99,44 @@ final class ObjectMappers {
             @Override
             public SerdeRegistry getSerdeRegistry() {
                 return objectMapper.getSerdeRegistry();
+            }
+
+            @Override
+            public ObjectMapper cloneWithConfiguration(@Nullable SerdeConfiguration configuration, @Nullable SerializationConfiguration serializationConfiguration, @Nullable DeserializationConfiguration deserializationConfiguration) {
+                return objectMapper.cloneWithConfiguration(configuration, serializationConfiguration, deserializationConfiguration);
+            }
+
+            @Override
+            public ObjectMapper cloneWithConfiguration(@Nullable SerdeConfiguration configuration,
+                                                       @Nullable SerializationConfiguration serializationConfiguration,
+                                                       @Nullable DeserializationConfiguration deserializationConfiguration,
+                                                       SerdeIntrospections introspections) {
+                return objectMapper.cloneWithConfiguration(configuration, serializationConfiguration, deserializationConfiguration, introspections);
+            }
+
+            @Override
+            public <T> T updateValue(T valueToUpdate, @Nullable Object overrides) throws IOException {
+                return objectMapper.updateValue(valueToUpdate, overrides);
+            }
+
+            @Override
+            public <T> T updateValue(T valueToUpdate, Argument<T> type, @Nullable Object overrides) throws IOException {
+                return objectMapper.updateValue(valueToUpdate, type, overrides);
+            }
+
+            @Override
+            public <T> T updateValue(T valueToUpdate, Argument<T> type, InputStream inputStream) throws IOException {
+                return objectMapper.updateValue(valueToUpdate, type, inputStream);
+            }
+
+            @Override
+            public <T> T updateValue(T valueToUpdate, Argument<T> type, byte[] byteArray) throws IOException {
+                return objectMapper.updateValue(valueToUpdate, type, byteArray);
+            }
+
+            @Override
+            public <T> T updateValue(T valueToUpdate, Argument<T> type, ByteBuffer<?> byteBuffer) throws IOException {
+                return objectMapper.updateValue(valueToUpdate, type, byteBuffer);
             }
 
             @Override

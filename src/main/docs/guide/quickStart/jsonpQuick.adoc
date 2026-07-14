@@ -1,8 +1,27 @@
-To completely remove all dependencies on Jackson and use JSON-B annotations in your source code combined with JSON-P at a runtime replace the `micronaut-jackson-databind` and `micronaut-jackson-core` modules with `micronaut-serde-jsonp`.
+To completely remove all dependencies on Jackson Databind and use JSON-B annotations in your source code combined with JSON-P at runtime, replace `micronaut-jackson-databind` with Micronaut Serialization.
+
+Micronaut Serialization provides three Jakarta JSON artifacts with different purposes:
+
+* `micronaut-serde-jsonp` is the existing JSON-P stream integration backed by Eclipse Parsson.
+* `micronaut-serde-jsonp-impl` is the Micronaut-native JSON-P provider. It implements `jakarta.json.spi.JsonProvider` without depending on Parsson and does not use reflection.
+* `micronaut-serde-jsonb` is the Micronaut Serialization backed JSON-B runtime provider. It implements `jakarta.json.bind.spi.JsonbProvider`; JSON-B compatibility behavior may use reflection only as an isolated fallback when Micronaut introspection and serialization metadata cannot satisfy a spec-required runtime type.
 
 Add the following artifact to the `dependencies` block:
 
 dependency:micronaut-serde-jsonp[groupId="io.micronaut.serde",scope="implementation"]
+
+Use the Micronaut-native JSON-P provider when your application or library calls the Jakarta JSON-P provider APIs directly:
+
+dependency:micronaut-serde-jsonp-impl[groupId="io.micronaut.serde",scope="implementation"]
+
+Use the JSON-B runtime provider when your application or library calls `JsonbBuilder` or `JsonbProvider`:
+
+dependency:micronaut-serde-jsonb[groupId="io.micronaut.serde",scope="implementation"]
+
+The providers are loaded through the standard Jakarta service loader files:
+
+* `META-INF/services/jakarta.json.spi.JsonProvider`
+* `META-INF/services/jakarta.json.bind.spi.JsonbProvider`
 
 WARNING: If your third-party dependencies have direct dependencies on Jackson Databind it may not be an option to omit it.
 

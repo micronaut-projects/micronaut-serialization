@@ -26,6 +26,7 @@ import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.ObjectMapper;
+import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.DeserializationConfiguration;
@@ -80,7 +81,18 @@ public class JsonStreamMapper implements ObjectMapper {
 
     @Override
     public ObjectMapper cloneWithConfiguration(@Nullable SerdeConfiguration configuration, @Nullable SerializationConfiguration serializationConfiguration, @Nullable DeserializationConfiguration deserializationConfiguration) {
-        return new JsonStreamMapper(registry.cloneWithConfiguration(configuration, serializationConfiguration, deserializationConfiguration), configuration == null ? serdeConfiguration : configuration, view);
+        return cloneWithConfiguration(configuration, serializationConfiguration, deserializationConfiguration, null);
+    }
+
+    @Override
+    public ObjectMapper cloneWithConfiguration(@Nullable SerdeConfiguration configuration,
+                                               @Nullable SerializationConfiguration serializationConfiguration,
+                                               @Nullable DeserializationConfiguration deserializationConfiguration,
+                                               @Nullable SerdeIntrospections introspections) {
+        SerdeRegistry registry = introspections == null
+            ? this.registry.cloneWithConfiguration(configuration, serializationConfiguration, deserializationConfiguration)
+            : this.registry.cloneWithConfiguration(configuration, serializationConfiguration, deserializationConfiguration, introspections);
+        return new JsonStreamMapper(registry, configuration == null ? serdeConfiguration : configuration, view);
     }
 
     @Override
