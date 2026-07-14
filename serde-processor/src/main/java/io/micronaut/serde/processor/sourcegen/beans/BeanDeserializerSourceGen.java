@@ -220,7 +220,7 @@ public final class BeanDeserializerSourceGen {
             ClassElement lookupType = resolveLookupType(property.deserializationType());
             fields.add(FieldDef.builder(keyFieldName, STRING_TYPE)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                .initializer(ExpressionDef.constant(property.name()))
+                .initializer(ExpressionDef.constant(property.deserializationName()))
                 .build());
             fields.add(FieldDef.builder(argumentFieldName, ARGUMENT_TYPE)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
@@ -769,7 +769,7 @@ public final class BeanDeserializerSourceGen {
             BeanSerdeShape.BeanProperty property = properties.get(i);
             StatementDef.DefineAndAssign dispatchResultDef = dispatchResult(HANDLED_DISPATCH_RESULT).newLocal("dispatchResult");
             VariableDef.Local dispatchResultVariable = dispatchResultDef.variable();
-            switchCases.put(ExpressionDef.constant(property.name()),
+            switchCases.put(ExpressionDef.constant(property.deserializationName()),
                 new ExpressionDef.SwitchYieldCase(
                     DISPATCH_RESULT_TYPE,
                     StatementDef.multi(

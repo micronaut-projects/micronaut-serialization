@@ -35,11 +35,15 @@ public record RecordSerdeShape(
      * Record component metadata used by source generation.
      *
      * @param name The component name.
+     * @param serializationName The component name used for serialization.
+     * @param deserializationName The component name used for deserialization.
      * @param type The component type.
      * @param propertyElement The associated bean property element.
      */
     public record RecordComponent(
         String name,
+        String serializationName,
+        String deserializationName,
         ClassElement type,
         PropertyElement propertyElement
     ) {
