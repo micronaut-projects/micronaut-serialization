@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ee.jakarta.tck.jsonp.api.jsoncoding.ClientTests" tests="1" skipped="0" failures="0" errors="0" timestamp="SANITIZED" hostname="SANITIZED" time="0">
+  <properties/>
+  <testcase name="jsonEncodeTest()" classname="ee.jakarta.tck.jsonp.api.jsoncoding.ClientTests" time="0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Jul 03, 2026 10:17:13 AM ee.jakarta.tck.jsonp.api.jsoncoding.ClientTests jsonEncodeTest
+INFO: ----------------------------------------------
+Jul 03, 2026 10:17:13 AM ee.jakarta.tck.jsonp.api.jsoncoding.ClientTests jsonEncodeTest
+INFO: Test encode /a/~b/c
+Jul 03, 2026 10:17:13 AM ee.jakarta.tck.jsonp.api.jsoncoding.ClientTests jsonEncodeTest
+INFO: ----------------------------------------------
+Jul 03, 2026 10:17:13 AM ee.jakarta.tck.jsonp.api.jsoncoding.ClientTests jsonEncodeTest
+INFO: ----------------------------------------------
+Jul 03, 2026 10:17:13 AM ee.jakarta.tck.jsonp.api.jsoncoding.ClientTests jsonEncodeTest
+INFO: Test decode ~1a~1~0b~1c
+Jul 03, 2026 10:17:13 AM ee.jakarta.tck.jsonp.api.jsoncoding.ClientTests jsonEncodeTest
+INFO: ----------------------------------------------
+]]></system-err>
+</testsuite>
