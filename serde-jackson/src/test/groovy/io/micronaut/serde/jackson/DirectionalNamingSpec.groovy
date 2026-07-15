@@ -118,6 +118,46 @@ class UserDto {
         context.close()
     }
 
+    void "test directional naming uses runtime serde when source generation is skipped"() {
+        given:
+        def context = buildContext('test.UserDto', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+import io.micronaut.serde.config.naming.UpperCamelCaseStrategy;
+
+@SerdeableGenerated(skip = true)
+@Serdeable.Serializable(naming = SnakeCaseStrategy.class)
+@Serdeable.Deserializable(naming = UpperCamelCaseStrategy.class)
+class UserDto {
+    private String firstName;
+    private String lastName;
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
+}
+''', [firstName: 'John', lastName: 'Doe'])
+
+        when:
+        def result = writeJson(jsonMapper, beanUnderTest)
+
+        then:
+        result == '{"first_name":"John","last_name":"Doe"}'
+
+        when:
+        def bean = jsonMapper.readValue('{"FirstName":"Jane","LastName":"Smith"}', typeUnderTest)
+
+        then:
+        bean.firstName == 'Jane'
+        bean.lastName == 'Smith'
+
+        cleanup:
+        context.close()
+    }
+
     void "test unified naming with directional override - directional takes precedence"() {
         given:
         def context = buildContext('test.UserDto', """
