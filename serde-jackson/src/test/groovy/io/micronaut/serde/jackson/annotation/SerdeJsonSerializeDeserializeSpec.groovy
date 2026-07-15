@@ -5,6 +5,85 @@ import io.micronaut.serde.jackson.JsonSerializeDeserializeSpec
 
 class SerdeJsonSerializeDeserializeSpec extends JsonSerializeDeserializeSpec {
 
+    void 'test recursive serdeable bean'() {
+        given:
+            def context = buildContext('test.RecursiveView', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class RecursiveView {
+    private String id;
+    private RecursiveView view;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public RecursiveView getView() {
+        return view;
+    }
+
+    public void setView(RecursiveView view) {
+        this.view = view;
+    }
+}
+""")
+            def recursiveType = argumentOf(context, 'test.RecursiveView')
+            def root = newInstance(context, 'test.RecursiveView', [id: 'root'])
+            def child = newInstance(context, 'test.RecursiveView', [id: 'child'])
+            root.view = child
+
+        expect:
+            writeJson(jsonMapper, root) == '{"id":"root","view":{"id":"child","view":null}}'
+
+        when:
+            def result = jsonMapper.readValue('{"id":"root","view":{"id":"child"}}', recursiveType)
+
+        then:
+            result.id == 'root'
+            result.view.id == 'child'
+
+        cleanup:
+            context.close()
+    }
+
+    void 'test recursive serdeable record'() {
+        given:
+            def context = buildContext('test.RecursiveRecordView', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+public record RecursiveRecordView(String id, RecursiveRecordView view) {
+}
+""")
+            def recursiveType = argumentOf(context, 'test.RecursiveRecordView')
+            def recursiveClass = recursiveType.type
+            def constructor = recursiveClass.getDeclaredConstructor(String, recursiveClass)
+            def child = constructor.newInstance('child', null)
+            def root = constructor.newInstance('root', child)
+
+        expect:
+            writeJson(jsonMapper, root) == '{"id":"root","view":{"id":"child","view":null}}'
+
+        when:
+            def result = jsonMapper.readValue('{"id":"root","view":{"id":"child"}}', recursiveType)
+
+        then:
+            result.id() == 'root'
+            result.view().id() == 'child'
+
+        cleanup:
+            context.close()
+    }
+
     void 'test errors'() {
         when:
             buildContext('test.Test', """
