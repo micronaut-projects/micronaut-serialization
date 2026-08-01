@@ -90,10 +90,28 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
         }
         DeserializationConfiguration deserializationConfiguration = context.getDeserializationConfiguration().orElse(this.deserializationConfiguration);
         DeserBean<? super Object> deserBean = getDeserializableBean(type, null, context);
-        if (deserBean.subtypeInfo != null) {
+        if (requiresSubtypeResolution(deserBean)) {
             return createSubtypeDeserializer(context, deserializationConfiguration, deserBean, type);
         }
         return findDeserializer(deserializationConfiguration, deserBean, false);
+    }
+
+    /**
+     * Whether the bean should go through polymorphic subtype resolution.
+     * <p>
+     * Types annotated with {@code @BsonDiscriminator} (and similar) are marked
+     * {@link SerdeConfig.SerSubtyped} even when they are leaf classes with no
+     * further subtypes. Re-running subtype resolution for those leaves fails under
+     * {@code micronaut.serde.deserialization.subtypes-require-default-impl=true}
+     * because the subtype map is empty and there is no {@code defaultImpl}. Skip
+     * resolution when there are neither registered subtypes nor a default type.
+     */
+    private static boolean requiresSubtypeResolution(DeserBean<?> deserBean) {
+        DeserBeanSubtypeInfo<?> subtypeInfo = deserBean.subtypeInfo;
+        if (subtypeInfo == null) {
+            return false;
+        }
+        return !subtypeInfo.subtypes().isEmpty() || subtypeInfo.defaultType() != null;
     }
 
     private Deserializer<Object> createSubtypeDeserializer(DecoderContext context,
@@ -115,9 +133,12 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
                 hasUnresolved = true;
                 continue;
             }
-            Deserializer<Object> subtypeDeserializer = subtypeDeserBean.subtypeInfo == null
-                ? findDeserializer(deserializationConfiguration, (DeserBean<? super Object>) subtypeDeserBean, disallowUnwrap)
-                : createSubtypeDeserializer(context, deserializationConfiguration, (DeserBean<? super Object>) subtypeDeserBean, (Argument<? super Object>) subtypeDef.type());
+            // Leaf subtypes may still carry SerSubtyped metadata (e.g. @BsonDiscriminator
+            // on every level as required by the MongoDB POJO docs) without registering any
+            // further children. Do not nest another subtype resolution pass for those.
+            Deserializer<Object> subtypeDeserializer = requiresSubtypeResolution(subtypeDeserBean)
+                ? createSubtypeDeserializer(context, deserializationConfiguration, (DeserBean<? super Object>) subtypeDeserBean, (Argument<? super Object>) subtypeDef.type())
+                : findDeserializer(deserializationConfiguration, (DeserBean<? super Object>) subtypeDeserBean, disallowUnwrap);
             subtypeDeserializers.put(
                 e.getKey(),
                 subtypeDeserializer
@@ -164,9 +185,9 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
                         argument = defaultType.type();
                     }
                     DeserBean<?> subtypeDeserBean = getDeserializableBean(argument, type.getTypeVariables(), context);
-                    return subtypeDeserBean.subtypeInfo == null
-                        ? ObjectDeserializer.this.findDeserializer(deserializationConfiguration, (DeserBean<Object>) subtypeDeserBean, disallowUnwrap)
-                        : createSubtypeDeserializer(context, deserializationConfiguration, (DeserBean<? super Object>) subtypeDeserBean, (Argument<? super Object>) argument);
+                    return requiresSubtypeResolution(subtypeDeserBean)
+                        ? createSubtypeDeserializer(context, deserializationConfiguration, (DeserBean<? super Object>) subtypeDeserBean, (Argument<? super Object>) argument)
+                        : ObjectDeserializer.this.findDeserializer(deserializationConfiguration, (DeserBean<Object>) subtypeDeserBean, disallowUnwrap);
                 }
             };
         }
