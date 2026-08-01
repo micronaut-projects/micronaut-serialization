@@ -24,9 +24,18 @@ import tools.jackson.core.json.JsonFactory
 
 class CompileTimeSourceGenSpec extends JsonCompileSpec {
 
+    /**
+     * Compile-time sourcegen tests that assert explicit {@code null} property output need
+     * {@code ALWAYS} inclusion. Production default is {@code NON_EMPTY}; generated serializers
+     * now honor that setting (see micronaut-core#12838).
+     */
+    private static ApplicationContext runWithAlwaysInclusion(Map extra = [:]) {
+        ApplicationContext.run(['micronaut.serde.serialization.inclusion': 'ALWAYS'] + extra)
+    }
+
     void 'test generated serializers use object encoder and generated classes use indexed fields'() {
         given:
-        def context = ApplicationContext.run()
+        def context = runWithAlwaysInclusion()
         Class<?> beanType = SourceGenIndexedShapeBean.class
         Class<?> recordType = SourceGenIndexedShapeRecord.class
         def introspections = context.getBean(SerdeIntrospections)
@@ -92,7 +101,7 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
 
     void 'test generated serializers and deserializers are selected for bean and record shapes'() {
         given:
-        def context = ApplicationContext.run()
+        def context = runWithAlwaysInclusion()
         jsonMapper = context.getBean(JsonMapper)
         def registry = context.getBean(SerdeRegistry)
         Class<?> beanType = SourceGenIndexedShapeBean.class
@@ -132,7 +141,7 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
 
     void 'test generated property serdes fall back for customised property metadata'() {
         given:
-        def context = ApplicationContext.run()
+        def context = runWithAlwaysInclusion()
         jsonMapper = context.getBean(JsonMapper)
         def registry = context.getBean(SerdeRegistry)
         Argument payloadArgument = Argument.of(SourceGenPropertyAnnotationPayload)
@@ -158,7 +167,7 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
 
     void 'test generated bean shape supports field properties'() {
         given:
-        def context = ApplicationContext.run()
+        def context = runWithAlwaysInclusion()
         jsonMapper = context.getBean(JsonMapper)
         def registry = context.getBean(SerdeRegistry)
         Class<?> beanType = SourceGenFieldShapeBean.class
@@ -186,7 +195,7 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
 
     void 'test generated default serializers are selected and functional'() {
         given:
-        def context = ApplicationContext.run()
+        def context = runWithAlwaysInclusion()
         jsonMapper = context.getBean(JsonMapper)
         def registry = context.getBean(SerdeRegistry)
 
@@ -245,7 +254,7 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
 
     void 'test generated field default serdes are selected and functional'() {
         given:
-        def context = ApplicationContext.run([
+        def context = runWithAlwaysInclusion([
             'micronaut.serde.deserialization.fail-on-null-for-primitives': false
         ])
         jsonMapper = context.getBean(JsonMapper)
@@ -331,7 +340,7 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
 
     void 'test generated enum serializer object and formatted branches are functional'() {
         given:
-        def context = ApplicationContext.run()
+        def context = runWithAlwaysInclusion()
         jsonMapper = context.getBean(JsonMapper)
         def registry = context.getBean(SerdeRegistry)
         Argument enumArgument = Argument.of(SourceGenFeatureEnum)
@@ -362,7 +371,7 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
 
     void 'test generated enum deserializer reports unknown values'() {
         given:
-        def context = ApplicationContext.run()
+        def context = runWithAlwaysInclusion()
         jsonMapper = context.getBean(JsonMapper)
         def registry = context.getBean(SerdeRegistry)
         Argument enumArgument = Argument.of(SourceGenFeatureEnum)
@@ -381,7 +390,7 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
 
     void 'test generated serializers can be disabled with serialization feature'() {
         given:
-        def context = ApplicationContext.run([
+        def context = runWithAlwaysInclusion([
             'micronaut.serde.serialization.disable-generated-serializer': true
         ])
         jsonMapper = context.getBean(JsonMapper)
@@ -410,9 +419,64 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
         context.close()
     }
 
-    void 'test generated deserializers can be disabled with deserialization feature'() {
+    void 'test generated serializers honor global inclusion NON_NULL'() {
         given:
         def context = ApplicationContext.run([
+            'micronaut.serde.serialization.inclusion': 'NON_NULL'
+        ])
+        jsonMapper = context.getBean(JsonMapper)
+        def registry = context.getBean(SerdeRegistry)
+        Argument recordArgument = Argument.of(SourceGenIndexedShapeRecord)
+        Argument beanArgument = Argument.of(SourceGenIndexedShapeBean)
+
+        when:
+        def record = new SourceGenIndexedShapeRecord(null, null)
+        def bean = new SourceGenIndexedShapeBean()
+        bean.value = null
+        bean.tags = null
+        String recordJson = serializeToString(jsonMapper, record)
+        String beanJson = serializeToString(jsonMapper, bean)
+        String recordPresentJson = serializeToString(jsonMapper, new SourceGenIndexedShapeRecord('hi', ['x']))
+        def beanPresent = new SourceGenIndexedShapeBean()
+        beanPresent.value = 'hi'
+        beanPresent.tags = ['x']
+        String beanPresentJson = serializeToString(jsonMapper, beanPresent)
+
+        then:
+        assertGeneratedSerializer(registry, recordArgument)
+        assertGeneratedSerializer(registry, beanArgument)
+        recordJson == '{}'
+        beanJson == '{}'
+        validateJsonWithoutOrder(jsonMapper, '{"value":"hi","tags":["x"]}', recordPresentJson)
+        validateJsonWithoutOrder(jsonMapper, '{"value":"hi","tags":["x"]}', beanPresentJson)
+
+        cleanup:
+        context.close()
+    }
+
+    void 'test generated serializers honor default inclusion NON_EMPTY for null properties'() {
+        given:
+        def context = ApplicationContext.run()
+        jsonMapper = context.getBean(JsonMapper)
+        def registry = context.getBean(SerdeRegistry)
+        Argument recordArgument = Argument.of(SourceGenIndexedShapeRecord)
+
+        when:
+        String nullJson = serializeToString(jsonMapper, new SourceGenIndexedShapeRecord(null, null))
+        String emptyJson = serializeToString(jsonMapper, new SourceGenIndexedShapeRecord('', []))
+
+        then:
+        assertGeneratedSerializer(registry, recordArgument)
+        nullJson == '{}'
+        emptyJson == '{}'
+
+        cleanup:
+        context.close()
+    }
+
+    void 'test generated deserializers can be disabled with deserialization feature'() {
+        given:
+        def context = runWithAlwaysInclusion([
             'micronaut.serde.deserialization.disable-generated-deserializer': true
         ])
         jsonMapper = context.getBean(JsonMapper)
@@ -444,7 +508,7 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
     @SuppressWarnings('JsonDuplicatePropertyKeys')
     void 'test generated bean deserializer dispatch source for small boundary and large property sets'() {
         given:
-        def context = ApplicationContext.run()
+        def context = runWithAlwaysInclusion()
         jsonMapper = context.getBean(JsonMapper)
         def registry = context.getBean(SerdeRegistry)
         def decoderContext = registry.newDecoderContext(Object)
@@ -530,7 +594,7 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
 
     void 'test generated large bean serializer wraps property exceptions'() {
         given:
-        def context = ApplicationContext.run()
+        def context = runWithAlwaysInclusion()
         def registry = context.getBean(SerdeRegistry)
         def encoderContext = registry.newEncoderContext(Object)
         Argument argument = Argument.of(SourceGenLargeDispatchBean)
@@ -568,7 +632,7 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
 
     void 'test generated large record serializers cover nullable branches'() {
         given:
-        def context = ApplicationContext.run()
+        def context = runWithAlwaysInclusion()
         jsonMapper = context.getBean(JsonMapper)
         def registry = context.getBean(SerdeRegistry)
         Argument argument = Argument.of(type)
@@ -595,7 +659,7 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
 
     void 'test generated large record serializers wrap property exceptions'() {
         given:
-        def context = ApplicationContext.run()
+        def context = runWithAlwaysInclusion()
         def registry = context.getBean(SerdeRegistry)
         def encoderContext = registry.newEncoderContext(Object)
         Argument argument = Argument.of(type)
@@ -639,7 +703,7 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
 
     void 'test generated record deserializer dispatch source for small boundary and large property sets'() {
         given:
-        def context = ApplicationContext.run()
+        def context = runWithAlwaysInclusion()
         jsonMapper = context.getBean(JsonMapper)
         def registry = context.getBean(SerdeRegistry)
         def decoderContext = registry.newDecoderContext(Object)
@@ -700,7 +764,7 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
 
     void 'test generated non null record serializers are selected and functional'() {
         given:
-        def context = ApplicationContext.run()
+        def context = runWithAlwaysInclusion()
         jsonMapper = context.getBean(JsonMapper)
         def registry = context.getBean(SerdeRegistry)
         Argument smallArgument = Argument.of(SourceGenSmallDispatchNonNullRecord)
@@ -730,7 +794,7 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
 
     void 'test generated record constructor failures match runtime for small and large property sets'() {
         given:
-        def context = ApplicationContext.run(['micronaut.serde.deserialization.strict-nullable': true])
+        def context = runWithAlwaysInclusion(['micronaut.serde.deserialization.strict-nullable': true])
         jsonMapper = context.getBean(JsonMapper)
 
         expect:

@@ -29,6 +29,7 @@ import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
 import io.micronaut.serde.util.GeneratedSerdeExceptionUtil;
 import io.micronaut.serde.util.GeneratedSerdeFallbackUtil;
+import io.micronaut.serde.util.GeneratedSerdeInclusionUtil;
 import io.micronaut.sourcegen.model.AnnotationDef;
 import io.micronaut.sourcegen.model.ClassDef;
 import io.micronaut.sourcegen.model.ClassTypeDef;
@@ -113,6 +114,26 @@ public final class RecordSerializerSourceGen {
         Argument.class,
         Argument.class
     );
+    private static final Method SHOULD_SERIALIZE_METHOD = ReflectionUtils.getRequiredMethod(
+        GeneratedSerdeInclusionUtil.class,
+        "shouldSerialize",
+        Serializer.EncoderContext.class,
+        Serializer.class,
+        Object.class
+    );
+    private static final Method SHOULD_SERIALIZE_SCALAR_METHOD = ReflectionUtils.getRequiredMethod(
+        GeneratedSerdeInclusionUtil.class,
+        "shouldSerializeScalar",
+        Serializer.EncoderContext.class,
+        Object.class
+    );
+    private static final Method SHOULD_SERIALIZE_PRIMITIVE_METHOD = ReflectionUtils.getRequiredMethod(
+        GeneratedSerdeInclusionUtil.class,
+        "shouldSerializePrimitive",
+        Serializer.EncoderContext.class,
+        boolean.class
+    );
+    private static final ClassTypeDef INCLUSION_UTIL_TYPE = ClassTypeDef.of(GeneratedSerdeInclusionUtil.class);
 
     public ClassDef generate(ClassElement element, RecordSerdeShape recordSerdeShape) {
         TypeDef recordTypeDef = TypeDef.of(element);
@@ -326,8 +347,19 @@ public final class RecordSerializerSourceGen {
         List<StatementDef> statements = new ArrayList<>();
         int index = 0;
         for (RecordSerdeShape.RecordComponent component : recordSerdeShape.components()) {
-            statements.add(encodeKeyStatement(serializerClassTypeDef, keyEncoder, index));
-            statements.add(serializeComponent(aThis, serializerClassTypeDef, valueEncoder, context, type, value, component, index++, argumentFieldNames, serializerFieldNames));
+            statements.add(serializeComponent(
+                aThis,
+                serializerClassTypeDef,
+                valueEncoder,
+                keyEncoder,
+                context,
+                type,
+                value,
+                component,
+                index++,
+                argumentFieldNames,
+                serializerFieldNames
+            ));
         }
         return statements;
     }
@@ -346,6 +378,7 @@ public final class RecordSerializerSourceGen {
     private StatementDef serializeComponent(VariableDef.This aThis,
                                             ClassTypeDef serializerClassTypeDef,
                                             VariableDef objectEncoder,
+                                            VariableDef keyEncoder,
                                             VariableDef.MethodParameter context,
                                             VariableDef.MethodParameter type,
                                             VariableDef.MethodParameter value,
@@ -356,38 +389,63 @@ public final class RecordSerializerSourceGen {
         ExpressionDef argumentExpression = serializerClassTypeDef.getStaticField(required(argumentFieldNames, component.name()), ARGUMENT_TYPE);
         Method scalarMethod = scalarEncoderMethod(component.type());
         ExpressionDef propertyValue = value.getPropertyValue(component.propertyElement());
+        StatementDef encodeKey = encodeKeyStatement(serializerClassTypeDef, keyEncoder, index);
         if (scalarMethod != null) {
-            StatementDef scalarStatement;
             if (component.type().isPrimitive() && !component.type().isArray()) {
-                scalarStatement = objectEncoder.invoke(scalarMethod, propertyValue);
-            } else {
-                StatementDef.DefineAndAssign propertyValueDef = propertyValue.newLocal(RecordSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, index));
-                scalarStatement = StatementDef.multi(
-                    propertyValueDef,
-                    propertyValueDef.variable().isNull().ifTrue(
-                        objectEncoder.invoke(ENCODE_NULL_METHOD),
-                        StatementDef.multi(objectEncoder.invoke(scalarMethod, propertyValueDef.variable()))
-                    )
+                ExpressionDef isDefault = primitiveIsDefaultExpression(component.type(), propertyValue);
+                StatementDef writePrimitive = StatementDef.multi(
+                    encodeKey,
+                    objectEncoder.invoke(scalarMethod, propertyValue)
+                );
+                return wrapWithPropertyPath(
+                    INCLUSION_UTIL_TYPE.invokeStatic(SHOULD_SERIALIZE_PRIMITIVE_METHOD, context, isDefault)
+                        .ifTrue(writePrimitive),
+                    type,
+                    argumentExpression
                 );
             }
-            return wrapWithPropertyPath(scalarStatement, type, argumentExpression);
+            StatementDef.DefineAndAssign propertyValueDef = propertyValue.newLocal(RecordSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, index));
+            StatementDef writeScalar = StatementDef.multi(
+                encodeKey,
+                propertyValueDef.variable().isNull().ifTrue(
+                    objectEncoder.invoke(ENCODE_NULL_METHOD),
+                    StatementDef.multi(objectEncoder.invoke(scalarMethod, propertyValueDef.variable()))
+                )
+            );
+            return wrapWithPropertyPath(StatementDef.multi(
+                propertyValueDef,
+                INCLUSION_UTIL_TYPE.invokeStatic(
+                    SHOULD_SERIALIZE_SCALAR_METHOD,
+                    context,
+                    propertyValueDef.variable().cast(TypeDef.OBJECT)
+                ).ifTrue(writeScalar)
+            ), type, argumentExpression);
         }
         String serializerFieldName = required(serializerFieldNames, component.name());
         ExpressionDef serializer = aThis.field(serializerFieldName, SERIALIZER_TYPE);
 
-        StatementDef serializeStatement = serializer.invoke(
-            SERIALIZE_METHOD,
-            objectEncoder,
-            context,
-            argumentExpression,
-            propertyValue.cast(TypeDef.OBJECT)
-        );
         if (component.type().isPrimitive() && !component.type().isArray()) {
-            return wrapWithPropertyPath(serializeStatement, type, argumentExpression);
+            ExpressionDef isDefault = primitiveIsDefaultExpression(component.type(), propertyValue);
+            StatementDef writePrimitive = StatementDef.multi(
+                encodeKey,
+                serializer.invoke(
+                    SERIALIZE_METHOD,
+                    objectEncoder,
+                    context,
+                    argumentExpression,
+                    propertyValue.cast(TypeDef.OBJECT)
+                )
+            );
+            return wrapWithPropertyPath(
+                INCLUSION_UTIL_TYPE.invokeStatic(SHOULD_SERIALIZE_PRIMITIVE_METHOD, context, isDefault)
+                    .ifTrue(writePrimitive),
+                type,
+                argumentExpression
+            );
         }
         StatementDef.DefineAndAssign propertyValueDef = propertyValue.newLocal(RecordSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, index));
-        return wrapWithPropertyPath(StatementDef.multi(
-            propertyValueDef,
+        StatementDef writeValue = StatementDef.multi(
+            encodeKey,
             propertyValueDef.variable().isNull().ifTrue(
                 objectEncoder.invoke(ENCODE_NULL_METHOD),
                 StatementDef.multi(
@@ -400,7 +458,29 @@ public final class RecordSerializerSourceGen {
                     )
                 )
             )
+        );
+        return wrapWithPropertyPath(StatementDef.multi(
+            propertyValueDef,
+            INCLUSION_UTIL_TYPE.invokeStatic(
+                SHOULD_SERIALIZE_METHOD,
+                context,
+                serializer,
+                propertyValueDef.variable().cast(TypeDef.OBJECT)
+            ).ifTrue(writeValue)
         ), type, argumentExpression);
+    }
+
+    private ExpressionDef primitiveIsDefaultExpression(ClassElement type, ExpressionDef propertyValue) {
+        return switch (type.getName()) {
+            case "boolean" -> propertyValue.isFalse();
+            case "char" -> propertyValue.equalsStructurally(ExpressionDef.constant(0).cast(TypeDef.Primitive.CHAR));
+            case "float" -> propertyValue.equalsStructurally(ExpressionDef.constant(0f));
+            case "double" -> propertyValue.equalsStructurally(ExpressionDef.constant(0d));
+            case "long" -> propertyValue.equalsStructurally(ExpressionDef.constant(0L));
+            case "byte" -> propertyValue.equalsStructurally(ExpressionDef.constant(0).cast(TypeDef.Primitive.BYTE));
+            case "short" -> propertyValue.equalsStructurally(ExpressionDef.constant(0).cast(TypeDef.Primitive.SHORT));
+            default -> propertyValue.equalsStructurally(ExpressionDef.constant(0));
+        };
     }
 
     private String indexedName(String prefix, int index) {
