@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ee.jakarta.tck.jsonp.api.exceptiontests.ClientTests" tests="6" skipped="0" failures="0" errors="0" timestamp="SANITIZED" hostname="SANITIZED" time="0">
+  <properties/>
+  <testcase name="jsonGenerationExceptionConstructorTest1()" classname="ee.jakarta.tck.jsonp.api.exceptiontests.ClientTests" time="0"/>
+  <testcase name="jsonGenerationExceptionConstructorTest2()" classname="ee.jakarta.tck.jsonp.api.exceptiontests.ClientTests" time="0"/>
+  <testcase name="jsonExceptionConstructorTest1()" classname="ee.jakarta.tck.jsonp.api.exceptiontests.ClientTests" time="0"/>
+  <testcase name="jsonExceptionConstructorTest2()" classname="ee.jakarta.tck.jsonp.api.exceptiontests.ClientTests" time="0"/>
+  <testcase name="jsonParsingExceptionConstructorTest1()" classname="ee.jakarta.tck.jsonp.api.exceptiontests.ClientTests" time="0"/>
+  <testcase name="jsonParsingExceptionConstructorTest2()" classname="ee.jakarta.tck.jsonp.api.exceptiontests.ClientTests" time="0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Jul 03, 2026 10:17:13 AM ee.jakarta.tck.jsonp.api.exceptiontests.ClientTests jsonGenerationExceptionConstructorTest1
+INFO: Test JsonGenerationException(String)
+Jul 03, 2026 10:17:13 AM ee.jakarta.tck.jsonp.api.exceptiontests.ClientTests jsonGenerationExceptionConstructorTest2
+INFO: Test JsonGenerationException(String, Throwable)
+Jul 03, 2026 10:17:13 AM ee.jakarta.tck.jsonp.api.exceptiontests.ClientTests jsonExceptionConstructorTest1
+INFO: Test JsonException(String)
+Jul 03, 2026 10:17:13 AM ee.jakarta.tck.jsonp.api.exceptiontests.ClientTests jsonExceptionConstructorTest2
+INFO: Test JsonException(String, Throwable)
+Jul 03, 2026 10:17:13 AM ee.jakarta.tck.jsonp.api.exceptiontests.ClientTests jsonParsingExceptionConstructorTest1
+INFO: MyJsonLocation
+Jul 03, 2026 10:17:13 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpLocation
+INFO: JsonLocation info: lineNumber=10, columnNumber=20, streamOffset=30
+Jul 03, 2026 10:17:13 AM ee.jakarta.tck.jsonp.api.exceptiontests.ClientTests jsonParsingExceptionConstructorTest1
+INFO: Test JsonParsingException(String, JsonLocation)
+Jul 03, 2026 10:17:13 AM ee.jakarta.tck.jsonp.api.exceptiontests.ClientTests jsonParsingExceptionConstructorTest1
+INFO: JsonParsingException.getLocation()
+Jul 03, 2026 10:17:13 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpLocation
+INFO: JsonLocation info: lineNumber=10, columnNumber=20, streamOffset=30
+Jul 03, 2026 10:17:13 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: JsonLocations equal - match (Success)
+Jul 03, 2026 10:17:13 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: JsonLocation info: lineNumber=10, columnNumber=20, streamOffset=30
+Jul 03, 2026 10:17:13 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   JsonLocation info: lineNumber=10, columnNumber=20, streamOffset=30
+Jul 03, 2026 10:17:13 AM ee.jakarta.tck.jsonp.api.exceptiontests.ClientTests jsonParsingExceptionConstructorTest2
+INFO: MyJsonLocation
+Jul 03, 2026 10:17:13 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpLocation
+INFO: JsonLocation info: lineNumber=10, columnNumber=20, streamOffset=30
+Jul 03, 2026 10:17:13 AM ee.jakarta.tck.jsonp.api.exceptiontests.ClientTests jsonParsingExceptionConstructorTest2
+INFO: Test JsonParsingException(String, Throwable)
+Jul 03, 2026 10:17:13 AM ee.jakarta.tck.jsonp.api.exceptiontests.ClientTests jsonParsingExceptionConstructorTest2
+INFO: JsonParsingException.getLocation()
+Jul 03, 2026 10:17:13 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpLocation
+INFO: JsonLocation info: lineNumber=10, columnNumber=20, streamOffset=30
+Jul 03, 2026 10:17:13 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: JsonLocations equal - match (Success)
+Jul 03, 2026 10:17:13 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: JsonLocation info: lineNumber=10, columnNumber=20, streamOffset=30
+Jul 03, 2026 10:17:13 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   JsonLocation info: lineNumber=10, columnNumber=20, streamOffset=30
+]]></system-err>
+</testsuite>
