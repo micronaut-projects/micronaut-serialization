@@ -454,6 +454,39 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
         context.close()
     }
 
+    void 'test generated serializers honor global inclusion NON_DEFAULT for BigInteger and BigDecimal zero'() {
+        given:
+        def context = ApplicationContext.run([
+            'micronaut.serde.serialization.inclusion': 'NON_DEFAULT'
+        ])
+        jsonMapper = context.getBean(JsonMapper)
+        def registry = context.getBean(SerdeRegistry)
+        Argument beanArgument = Argument.of(SourceGenNonDefaultScalarBean)
+
+        when:
+        def zeroBean = new SourceGenNonDefaultScalarBean()
+        zeroBean.count = 0
+        zeroBean.bigCount = BigInteger.ZERO
+        zeroBean.bigAmount = BigDecimal.ZERO
+        String zeroJson = serializeToString(jsonMapper, zeroBean)
+        def nonZeroBean = new SourceGenNonDefaultScalarBean()
+        nonZeroBean.count = 1
+        nonZeroBean.bigCount = BigInteger.ONE
+        nonZeroBean.bigAmount = BigDecimal.ONE
+        String nonZeroJson = serializeToString(jsonMapper, nonZeroBean)
+
+        then:
+        assertGeneratedSerializer(registry, beanArgument)
+        // Integer/int zero is the language default and is omitted, but BigInteger/BigDecimal
+        // ZERO is not treated as a default value (matches CustomizedObjectSerializer, which
+        // relies on Serializer#isDefault, unset for BigInteger/BigDecimal).
+        validateJsonWithoutOrder(jsonMapper, '{"bigCount":0,"bigAmount":0}', zeroJson)
+        validateJsonWithoutOrder(jsonMapper, '{"count":1,"bigCount":1,"bigAmount":1}', nonZeroJson)
+
+        cleanup:
+        context.close()
+    }
+
     void 'test generated serializers honor default inclusion NON_EMPTY for null properties'() {
         given:
         def context = ApplicationContext.run()
