@@ -112,13 +112,21 @@ public final class GeneratedSerdeInclusionUtil {
      * Default-value check for scalar wrappers encoded without a property serializer field.
      * Empty char sequences are treated as default (matches {@code NON_DEFAULT} vs {@code NON_EMPTY}
      * for strings); numeric zero / false / NUL match the corresponding number/boolean serdes.
+     * Only the boxed primitive-wrapper number types (Byte/Short/Integer/Long/Float/Double) treat
+     * zero as default, matching {@link io.micronaut.serde.support.serdes.NumberSerde} subtypes such
+     * as {@code IntegerSerde}/{@code LongSerde}. {@link java.math.BigInteger} and
+     * {@link java.math.BigDecimal} (and any other {@code Number}) don't override
+     * {@link Serializer#isDefault}, so their runtime-serializer default is {@code false} regardless
+     * of value; treating {@code BigInteger.ZERO}/{@code BigDecimal.ZERO} as default here would
+     * incorrectly omit them under {@code NON_DEFAULT} where the runtime path would not.
      */
     private static boolean isDefaultScalar(Object value) {
         if (value instanceof CharSequence charSequence) {
             return charSequence.isEmpty();
         }
-        if (value instanceof Number number) {
-            return number.doubleValue() == 0d;
+        if (value instanceof Byte || value instanceof Short || value instanceof Integer
+            || value instanceof Long || value instanceof Float || value instanceof Double) {
+            return ((Number) value).doubleValue() == 0d;
         }
         if (value instanceof Boolean bool) {
             return !bool;
