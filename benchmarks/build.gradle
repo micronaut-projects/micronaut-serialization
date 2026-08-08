@@ -20,6 +20,8 @@ dependencies {
     jmhAnnotationProcessor(projects.micronautSerdeProcessor)
 
     implementation(projects.micronautSerdeJackson)
+    implementation(projects.micronautSerdeBson)
+    implementation(projects.micronautSerdeCbor)
     implementation(projects.micronautSerdeSupport)
     implementation(mn.micronaut.jackson.databind)
     implementation(libs.jackson.module.blackbird)

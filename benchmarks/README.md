@@ -18,6 +18,81 @@ Additional benchmark sources may exist for focused local investigation, but
 the checked-in results below are limited to Micronaut Serialization and Jackson
 Databind/Blackbird comparisons.
 
+### Format comparison: JSON vs BSON vs CBOR (`FormatComparisonBenchmark`)
+
+Same `Users` payload (java-json-benchmark style) across Micronaut Serde format
+runtimes only (no Jackson Databind). Not part of the default JMH includes list.
+
+```bash
+./gradlew :micronaut-benchmarks:jmh \
+  -Pjmh.includes='.*FormatComparisonBenchmark.*' \
+  -Pjmh.forks=3 \
+  -Pjmh.warmupIterations=5 \
+  -Pjmh.iterations=10 \
+  -Pjmh.warmup=1s \
+  -Pjmh.timeOnIteration=1s
+```
+
+#### Latest Local Results (`FormatComparisonBenchmark`)
+
+Environment and JMH settings:
+
+- JDK: Temurin OpenJDK 25.0.4
+- Forks: 3
+- Warmup iterations: 5 × 1s
+- Measurement iterations: 10 × 1s
+- Mode: throughput (`ops/s`, higher is better)
+- Total run time: ~6m 56s
+- Payload: `Users` (one user, nested friends/tags)
+
+**Encoded size** (bytes after `writeValueAsBytes`, same object):
+
+| Stack | Encoded size |
+| --- | ---: |
+| Serde JSON | 2153 bytes |
+| Serde BSON Binary | 2460 bytes |
+| Serde CBOR | **1852 bytes** |
+
+**Throughput:**
+
+| Operation | Serde JSON | Serde BSON Binary | Serde CBOR |
+| --- | ---: | ---: | ---: |
+| `serialize` | 276307.257 ops/s | 175418.104 ops/s | **516586.278 ops/s** |
+| `deserialize` | **324051.390 ops/s** | 172018.477 ops/s | 299655.718 ops/s |
+| `roundTrip` | 145548.614 ops/s | 84372.112 ops/s | **185160.443 ops/s** |
+
+Relative to Serde JSON (1.00×):
+
+| Operation | JSON | BSON Binary | CBOR |
+| --- | ---: | ---: | ---: |
+| `serialize` | 1.00× | 0.63× | **1.87×** |
+| `deserialize` | 1.00× | 0.53× | 0.92× |
+| `roundTrip` | 1.00× | 0.58× | **1.27×** |
+| Encoded size | 1.00× | 1.14× | **0.86×** |
+
+99.9% confidence intervals:
+
+| Benchmark | Stack | Score ± Error |
+| --- | --- | ---: |
+| `serialize` | Serde JSON | 276307.257 ± 1635.828 ops/s |
+| `serialize` | Serde BSON Binary | 175418.104 ± 1177.031 ops/s |
+| `serialize` | Serde CBOR | 516586.278 ± 1449.930 ops/s |
+| `deserialize` | Serde JSON | 324051.390 ± 849.133 ops/s |
+| `deserialize` | Serde BSON Binary | 172018.477 ± 1999.295 ops/s |
+| `deserialize` | Serde CBOR | 299655.718 ± 1179.970 ops/s |
+| `roundTrip` | Serde JSON | 145548.614 ± 2460.030 ops/s |
+| `roundTrip` | Serde BSON Binary | 84372.112 ± 405.257 ops/s |
+| `roundTrip` | Serde CBOR | 185160.443 ± 729.726 ops/s |
+
+### CBOR micro (`CborBenchmark`)
+
+Single-format smoke numbers for small beans, not the multi-format comparison above. Not part of
+the default JMH includes list.
+
+```bash
+./gradlew :micronaut-benchmarks:jmh -Pjmh.includes='.*CborBenchmark.*' -Pjmh.forks=1
+```
+
 ## Run
 
 From repository root:
