@@ -19,6 +19,7 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.Serializer;
 import io.micronaut.serde.WrappedEncoder;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.PropertySpecificSerde;
@@ -65,15 +66,24 @@ public class XmlNamespacedElementSerde implements PropertySpecificSerde<Object> 
     public void serialize(Encoder encoder,
                           EncoderContext context,
                           Argument<? extends Object> type,
-                          Object value) throws IOException {
-        XmlGenerator generator = (XmlGenerator) WrappedEncoder.unwrap(encoder);
-        if (value == null) {
-            generator.encodeNull();
+        Object value) throws IOException {
+        Encoder unwrapped = WrappedEncoder.unwrap(encoder);
+        Serializer<Object> delegate = defaultSerializer(context, type);
+        if (!(unwrapped instanceof XmlGenerator generator)) {
+            delegate.serialize(encoder, context, type, value);
             return;
         }
         if (localName == null) {
             throw new SerdeException("XmlNamespacedElementSerde was not configured for: " + type);
         }
-        generator.writeNamespacedScalarForCurrentKey(localName, namespace, String.valueOf(value));
+        generator.namespaceCurrentKey(namespace);
+        delegate.serialize(encoder, context, type, value);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static Serializer<Object> defaultSerializer(EncoderContext context,
+                                                        Argument<? extends Object> type) throws SerdeException {
+        Serializer serializer = context.findSerializer(type);
+        return serializer.createSpecific(context, type);
     }
 }

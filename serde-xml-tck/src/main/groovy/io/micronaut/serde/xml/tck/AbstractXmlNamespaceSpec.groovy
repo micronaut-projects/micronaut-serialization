@@ -90,6 +90,20 @@ abstract class AbstractXmlNamespaceSpec extends Specification implements XmlSpec
         bean.child == "v"
     }
 
+    def "namespaced nested object keeps its normal serializer"() {
+        given:
+        def bean = new NamespacedObjectBean(child: new NestedBean(value: "v"))
+
+        when:
+        def xml = writeXml(bean)
+        def decoded = readXml(xml, NamespacedObjectBean)
+
+        then:
+        xml.contains("<value>v</value>")
+        !xml.contains(NestedBean.name + "@")
+        decoded.child.value == "v"
+    }
+
     @Serdeable
     static class MergedNsAttrBean {
         @JsonProperty(value = "value", namespace = "uri:ns1")
@@ -149,5 +163,16 @@ abstract class AbstractXmlNamespaceSpec extends Specification implements XmlSpec
         void setChild(String child) {
             this.child = child
         }
+    }
+
+    @Serdeable
+    static class NamespacedObjectBean {
+        @JacksonXmlProperty(namespace = "uri:child", localName = "child")
+        NestedBean child
+    }
+
+    @Serdeable
+    static class NestedBean {
+        String value
     }
 }

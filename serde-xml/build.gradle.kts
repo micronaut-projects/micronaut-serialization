@@ -21,9 +21,6 @@ dependencies {
     testAnnotationProcessor(mn.micronaut.inject.java)
     testAnnotationProcessor(projects.micronautSerdeProcessor)
 
-    testAnnotationProcessor(mn.micronaut.inject.java)
-    testAnnotationProcessor(projects.micronautSerdeProcessor)
-
     testImplementation(projects.micronautSerdeProcessor)
     testImplementation(projects.micronautSerdeXmlTck)
     testImplementation(mn.micronaut.inject.java.test)
@@ -40,6 +37,6 @@ tasks {
 
 micronautBuild {
     binaryCompatibility {
-        enabledAfter("5.0.0")
+        enabledAfter("5.2.0")
     }
 }

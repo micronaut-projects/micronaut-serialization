@@ -22,11 +22,13 @@ import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.WrappedDecoder;
 import io.micronaut.serde.WrappedEncoder;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
 import io.micronaut.serde.support.util.PropertySpecificSerde;
 import io.micronaut.serde.xml.XmlGenerator;
+import io.micronaut.serde.xml.XmlReaderDecoder;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -55,6 +57,8 @@ public final class XmlWrapperSerde<T> implements
     private final boolean useWrapping;
     @Nullable
     private final String wrapperName;
+    @Nullable
+    private final String namespace;
 
     XmlWrapperSerde() {
         this.generic = null;
@@ -62,18 +66,21 @@ public final class XmlWrapperSerde<T> implements
         this.componentDeserializer = null;
         this.useWrapping = true;
         this.wrapperName = null;
+        this.namespace = null;
     }
 
     private XmlWrapperSerde(Argument<T> generic,
                             @Nullable Serializer<? super T> componentSerializer,
                             @Nullable Deserializer<? extends T> componentDeserializer,
                             boolean useWrapping,
-                            @Nullable String wrapperName) {
+                            @Nullable String wrapperName,
+                            @Nullable String namespace) {
         this.generic = generic;
         this.componentSerializer = componentSerializer;
         this.componentDeserializer = componentDeserializer;
         this.useWrapping = useWrapping;
         this.wrapperName = wrapperName;
+        this.namespace = namespace;
     }
 
     @Override
@@ -89,7 +96,8 @@ public final class XmlWrapperSerde<T> implements
             specificComponentSerializer,
             null,
             useWrapping,
-            wrapperName
+            wrapperName,
+            namespace
         );
     }
 
@@ -105,7 +113,8 @@ public final class XmlWrapperSerde<T> implements
             null,
             specificComponentDeserializer,
             useWrapping,
-            wrapperName
+            wrapperName,
+            namespace
         );
     }
 
@@ -119,7 +128,8 @@ public final class XmlWrapperSerde<T> implements
             componentSerializer,
             componentDeserializer,
             configuration.xmlUseWrapping(),
-            configuration.xmlWrapperName()
+            configuration.xmlWrapperName(),
+            configuration.xmlNamespace()
         );
     }
 
@@ -127,13 +137,21 @@ public final class XmlWrapperSerde<T> implements
     public void serialize(Encoder encoder,
                           EncoderContext context,
                           Argument<? extends Iterable<T>> type,
-                          Iterable<T> value) throws IOException {
-        XmlGenerator generator = (XmlGenerator) WrappedEncoder.unwrap(encoder);
+        Iterable<T> value) throws IOException {
+        Encoder unwrapped = WrappedEncoder.unwrap(encoder);
+        if (!(unwrapped instanceof XmlGenerator generator)) {
+            Serializer<Iterable<T>> delegate = defaultSerializer(context, type);
+            delegate.serialize(encoder, context, type, value);
+            return;
+        }
         if (!type.isContainerType()) {
             throw new SerdeException("Only wrapping container types, not: " + type.getTypeName());
         }
         if (componentSerializer == null || generic == null) {
             throw new SerdeException("XmlWrapperSerde was not specialized for serialization: " + type);
+        }
+        if (namespace != null) {
+            generator.namespaceCurrentKey(namespace);
         }
 
         boolean inlineObjectItems = !(useWrapping && wrapperName != null) && componentSerializer instanceof ObjectSerializer<?>;
@@ -157,6 +175,11 @@ public final class XmlWrapperSerde<T> implements
     public Iterable<T> deserialize(Decoder decoder,
                                             DecoderContext context,
                                             Argument<? super Iterable<T>> type) throws IOException {
+        Decoder unwrapped = WrappedDecoder.unwrap(decoder);
+        if (!(unwrapped instanceof XmlReaderDecoder)) {
+            Deserializer<Iterable<T>> delegate = defaultDeserializer(context, type);
+            return delegate.deserialize(decoder, context, type);
+        }
         if (componentDeserializer == null || generic == null) {
             throw new SerdeException("XmlWrapperSerde was not specialized for deserialization: " + type);
         }
@@ -212,5 +235,19 @@ public final class XmlWrapperSerde<T> implements
             return new LinkedHashSet<>();
         }
         return new ArrayList<>();
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static <T> Serializer<Iterable<T>> defaultSerializer(EncoderContext context,
+                                                                 Argument<? extends Iterable<T>> type) throws SerdeException {
+        Serializer serializer = context.findSerializer(type);
+        return serializer.createSpecific(context, type);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static <T> Deserializer<Iterable<T>> defaultDeserializer(DecoderContext context,
+                                                                     Argument<? super Iterable<T>> type) throws SerdeException {
+        Deserializer deserializer = context.findDeserializer((Argument) type);
+        return deserializer.createSpecific(context, type);
     }
 }

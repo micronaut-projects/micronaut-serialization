@@ -18,10 +18,13 @@ package io.micronaut.serde.xml.serde;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serde;
+import io.micronaut.serde.Serializer;
 import io.micronaut.serde.WrappedDecoder;
 import io.micronaut.serde.WrappedEncoder;
+import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.PropertySpecificSerde;
 import io.micronaut.serde.xml.XmlGenerator;
 import io.micronaut.serde.xml.XmlReaderDecoder;
@@ -67,6 +70,11 @@ public class XmlPropertySerde<T> implements PropertySpecificSerde<T> {
     public T deserialize(Decoder decoder,
                                   DecoderContext context,
                                   Argument<? super T> type) throws IOException {
+        Decoder unwrapped = WrappedDecoder.unwrap(decoder);
+        if (!(unwrapped instanceof XmlReaderDecoder)) {
+            Deserializer<T> delegate = defaultDeserializer(context, type);
+            return delegate.deserialize(decoder, context, type);
+        }
         String value = decodeAttributeValue(decoder);
         if (value == null) {
             throw decoder.createDeserializationException("Missing XML attribute value for: " + type, null);
@@ -78,6 +86,11 @@ public class XmlPropertySerde<T> implements PropertySpecificSerde<T> {
     public @Nullable T deserializeNullable(Decoder decoder,
                                            DecoderContext context,
                                            Argument<? super T> type) throws IOException {
+        Decoder unwrapped = WrappedDecoder.unwrap(decoder);
+        if (!(unwrapped instanceof XmlReaderDecoder)) {
+            Deserializer<T> delegate = defaultDeserializer(context, type);
+            return delegate.deserializeNullable(decoder, context, type);
+        }
         String value = decodeAttributeValue(decoder);
         return value == null ? null : convert(value, context, type);
     }
@@ -112,7 +125,12 @@ public class XmlPropertySerde<T> implements PropertySpecificSerde<T> {
                           EncoderContext context,
                           Argument<? extends T> type,
                           T value) throws IOException {
-        XmlGenerator generator = (XmlGenerator) WrappedEncoder.unwrap(encoder);
+        Encoder unwrapped = WrappedEncoder.unwrap(encoder);
+        if (!(unwrapped instanceof XmlGenerator generator)) {
+            Serializer<T> delegate = defaultSerializer(context, type);
+            delegate.serialize(encoder, context, type, value);
+            return;
+        }
         if (value == null) {
             generator.encodeNull();
             return;
@@ -123,5 +141,19 @@ public class XmlPropertySerde<T> implements PropertySpecificSerde<T> {
         } else {
             generator.writeAttributeForCurrentKey(attributeName, String.valueOf(value));
         }
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static <T> Serializer<T> defaultSerializer(EncoderContext context,
+                                                       Argument<? extends T> type) throws SerdeException {
+        Serializer serializer = context.findSerializer(type);
+        return serializer.createSpecific(context, type);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static <T> Deserializer<T> defaultDeserializer(DecoderContext context,
+                                                           Argument<? super T> type) throws SerdeException {
+        Deserializer deserializer = context.findDeserializer((Argument) type);
+        return deserializer.createSpecific(context, type);
     }
 }

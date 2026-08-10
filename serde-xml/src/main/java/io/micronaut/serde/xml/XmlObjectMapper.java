@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.xml;
 
+import io.micronaut.core.naming.NameUtils;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.JsonStreamConfig;
 import io.micronaut.json.tree.JsonNode;
@@ -25,6 +26,7 @@ import io.micronaut.serde.ObjectMapper;
 import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerdeConfiguration;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
 import io.micronaut.serde.support.util.JsonNodeEncoder;
@@ -62,8 +64,8 @@ public final class XmlObjectMapper implements ObjectMapper {
     @Nullable
     private final SerdeConfiguration serdeConfiguration;
     private final boolean emptyElementAsNull;
-        private final XMLInputFactory xmlInputFactory;
-        private final XMLOutputFactory xmlOutputFactory;
+    private final XMLInputFactory xmlInputFactory;
+    private final XMLOutputFactory xmlOutputFactory;
 
     /**
      * Constructs an XML object mapper.
@@ -83,6 +85,11 @@ public final class XmlObjectMapper implements ObjectMapper {
         boolean repairingNamespaces = xmlConfiguration == null || xmlConfiguration.isRepairingNamespaces();
         boolean automaticEmptyElements = xmlConfiguration != null && xmlConfiguration.isAutomaticEmptyElements();
         this.xmlInputFactory = XMLInputFactory.newInstance();
+        this.xmlInputFactory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
+        this.xmlInputFactory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
+        this.xmlInputFactory.setXMLResolver((publicId, systemId, baseUri, namespace) -> {
+            throw new XMLStreamException("External XML entities are disabled");
+        });
         this.xmlOutputFactory = XMLOutputFactory.newInstance();
         this.xmlOutputFactory.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, repairingNamespaces);
         try {
@@ -205,6 +212,10 @@ public final class XmlObjectMapper implements ObjectMapper {
     @Override
     public <T> JsonNode writeValueToTree(Argument<T> type, @Nullable T value) throws IOException {
         JsonNodeEncoder encoder = JsonNodeEncoder.create(limits());
+        if (value == null) {
+            encoder.encodeNull();
+            return encoder.getCompletedValue();
+        }
         serialize(encoder, value, type);
         return encoder.getCompletedValue();
     }
@@ -226,11 +237,14 @@ public final class XmlObjectMapper implements ObjectMapper {
         XMLStreamWriter xmlWriter = null;
         try {
             xmlWriter = xmlOutputFactory.createXMLStreamWriter(outputStream);
-            XmlGenerator encoder = new XmlGenerator(xmlWriter);
+            XmlGenerator encoder = new XmlGenerator(xmlWriter, resolveRootName(type));
             serialize(encoder, object, type);
             xmlWriter.close();
+            xmlWriter = null;
         } catch (XMLStreamException e) {
             throw new SerdeException("Error writing XML", e);
+        } finally {
+            closeQuietly(xmlWriter);
         }
     }
 
@@ -246,14 +260,21 @@ public final class XmlObjectMapper implements ObjectMapper {
     @Override
     public <T> void writeValue(OutputStream outputStream, Argument<T> type, @Nullable T object)
         throws IOException {
+        if (object == null) {
+            writeNullDocument(outputStream);
+            return;
+        }
         XMLStreamWriter xmlWriter = null;
         try {
             xmlWriter = xmlOutputFactory.createXMLStreamWriter(outputStream);
-            XmlGenerator encoder = new XmlGenerator(xmlWriter);
+            XmlGenerator encoder = new XmlGenerator(xmlWriter, resolveRootName(type));
             serialize(encoder, object, type);
             xmlWriter.close();
+            xmlWriter = null;
         } catch (XMLStreamException e) {
             throw new SerdeException("Error writing XML", e);
+        } finally {
+            closeQuietly(xmlWriter);
         }
     }
 
@@ -309,17 +330,23 @@ public final class XmlObjectMapper implements ObjectMapper {
         return JsonStreamConfig.DEFAULT;
     }
 
-        private LimitingStream.RemainingLimits limits() {
+    private LimitingStream.RemainingLimits limits() {
         return serdeConfiguration == null
             ? LimitingStream.DEFAULT_LIMITS
             : LimitingStream.limitsFromConfiguration(serdeConfiguration);
     }
 
-    @SuppressWarnings({"unchecked", "NullAway"})
-    private void serialize(Encoder encoder, @Nullable Object object, Argument type) throws IOException {
+    @SuppressWarnings("unchecked")
+    private void serialize(Encoder encoder, Object object, Argument type) throws IOException {
         Serializer.EncoderContext encoderContext = registry.newEncoderContext(null);
         Serializer<Object> serializer = encoderContext.findSerializer(type).createSpecific(encoderContext, type);
         serializer.serialize(encoder, encoderContext, type, object);
+    }
+
+    private static String resolveRootName(Argument<?> type) {
+        return type.getAnnotationMetadata()
+            .stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY)
+            .orElseGet(() -> NameUtils.camelCase(type.getName(), false));
     }
 
     private void writeNullDocument(OutputStream outputStream) throws IOException {
@@ -330,15 +357,21 @@ public final class XmlObjectMapper implements ObjectMapper {
             xmlWriter.writeEmptyElement("null");
             xmlWriter.writeEndDocument();
             xmlWriter.flush();
+            xmlWriter.close();
+            xmlWriter = null;
         } catch (XMLStreamException e) {
             throw new SerdeException("Error writing XML", e);
         } finally {
-            if (xmlWriter != null) {
-                try {
-                    xmlWriter.close();
-                } catch (XMLStreamException ignored) {
-                    // ignore close failures
-                }
+            closeQuietly(xmlWriter);
+        }
+    }
+
+    private static void closeQuietly(@Nullable XMLStreamWriter xmlWriter) {
+        if (xmlWriter != null) {
+            try {
+                xmlWriter.close();
+            } catch (XMLStreamException ignored) {
+                // The original serialization failure is more useful to the caller.
             }
         }
     }
