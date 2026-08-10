@@ -15,6 +15,8 @@
  */
 /**
  * Annotation mappers that translate Jackson XML annotations into Micronaut Serialization metadata.
+ *
+ * @since 3.2
  */
 @NullMarked
 package io.micronaut.serde.processor.xml;

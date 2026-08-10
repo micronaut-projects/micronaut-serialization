@@ -27,7 +27,6 @@ import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
 import io.micronaut.serde.support.util.PropertySpecificSerde;
 import io.micronaut.serde.xml.XmlGenerator;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -41,7 +40,7 @@ import java.util.Set;
  * @see io.micronaut.serde.support.serializers.CustomizedIterableSerializer
  *
  * @param <T> The iterable element type
- * @since 3.1.0
+ * @since 3.2
  */
 @Internal
 public final class XmlWrapperSerde<T> implements
@@ -65,7 +64,7 @@ public final class XmlWrapperSerde<T> implements
         this.wrapperName = null;
     }
 
-    private XmlWrapperSerde(@NonNull Argument<T> generic,
+    private XmlWrapperSerde(Argument<T> generic,
                             @Nullable Serializer<? super T> componentSerializer,
                             @Nullable Deserializer<? extends T> componentDeserializer,
                             boolean useWrapping,
@@ -78,8 +77,8 @@ public final class XmlWrapperSerde<T> implements
     }
 
     @Override
-    public @NonNull Serializer<Iterable<T>> createSpecific(@NonNull EncoderContext context,
-                                                            @NonNull Argument<? extends Iterable<T>> type) throws SerdeException {
+    public Serializer<Iterable<T>> createSpecific(EncoderContext context,
+                                                            Argument<? extends Iterable<T>> type) throws SerdeException {
 
         final Argument<T> specificGeneric = resolveGeneric(type);
         final Serializer<? super T> specificComponentSerializer = context.findSerializer(specificGeneric)
@@ -95,8 +94,8 @@ public final class XmlWrapperSerde<T> implements
     }
 
     @Override
-    public @NonNull Deserializer<Iterable<T>> createSpecific(@NonNull DecoderContext context,
-                                                             @NonNull Argument<? super Iterable<T>> type) throws SerdeException {
+    public Deserializer<Iterable<T>> createSpecific(DecoderContext context,
+                                                             Argument<? super Iterable<T>> type) throws SerdeException {
         final Argument<T> specificGeneric = resolveGeneric(type);
         final Deserializer<? extends T> specificComponentDeserializer = context.findDeserializer(specificGeneric)
             .createSpecific(context, specificGeneric);
@@ -111,7 +110,7 @@ public final class XmlWrapperSerde<T> implements
     }
 
     @Override
-    public @NonNull XmlWrapperSerde<T> forProperty(PropertySpecificSerde.PropertyConfiguration configuration) {
+    public XmlWrapperSerde<T> forProperty(PropertySpecificSerde.PropertyConfiguration configuration) {
         if (generic == null || (componentSerializer == null && componentDeserializer == null)) {
             return this;
         }
@@ -125,10 +124,10 @@ public final class XmlWrapperSerde<T> implements
     }
 
     @Override
-    public void serialize(@NonNull Encoder encoder,
-                          @NonNull EncoderContext context,
-                          @NonNull Argument<? extends Iterable<T>> type,
-                          @NonNull Iterable<T> value) throws IOException {
+    public void serialize(Encoder encoder,
+                          EncoderContext context,
+                          Argument<? extends Iterable<T>> type,
+                          Iterable<T> value) throws IOException {
         XmlGenerator generator = (XmlGenerator) WrappedEncoder.unwrap(encoder);
         if (!type.isContainerType()) {
             throw new SerdeException("Only wrapping container types, not: " + type.getTypeName());
@@ -155,9 +154,9 @@ public final class XmlWrapperSerde<T> implements
     }
 
     @Override
-    public @NonNull Iterable<T> deserialize(@NonNull Decoder decoder,
-                                            @NonNull DecoderContext context,
-                                            @NonNull Argument<? super Iterable<T>> type) throws IOException {
+    public Iterable<T> deserialize(Decoder decoder,
+                                            DecoderContext context,
+                                            Argument<? super Iterable<T>> type) throws IOException {
         if (componentDeserializer == null || generic == null) {
             throw new SerdeException("XmlWrapperSerde was not specialized for deserialization: " + type);
         }

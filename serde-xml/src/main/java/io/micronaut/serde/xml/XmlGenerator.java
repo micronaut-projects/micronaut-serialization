@@ -21,7 +21,6 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import javax.xml.stream.XMLStreamException;
@@ -37,7 +36,7 @@ import java.util.Objects;
 /**
  * An {@link Encoder} that serializes objects to XML using a StAX {@link XMLStreamWriter}.
  *
- * @since 3.1.0
+ * @since 3.2
  */
 @Internal
 public final class XmlGenerator implements Encoder {
@@ -76,7 +75,7 @@ public final class XmlGenerator implements Encoder {
     }
 
     @Override
-    public @NonNull Encoder encodeArray(@NonNull Argument<?> type) throws IOException {
+    public Encoder encodeArray(Argument<?> type) throws IOException {
         try {
             if (!propertyStack.isEmpty()) {
                 ContextProperties lastPropertyKey = propertyStack.peekLast();
@@ -104,7 +103,7 @@ public final class XmlGenerator implements Encoder {
     }
 
     @Override
-    public @NonNull Encoder encodeObject(@NonNull Argument<?> type) throws IOException {
+    public Encoder encodeObject(Argument<?> type) throws IOException {
         String name = type.getSimpleName();
         if (type.equals(Argument.OBJECT_ARGUMENT)) {
             Boolean rootMapper = true;
@@ -206,7 +205,7 @@ public final class XmlGenerator implements Encoder {
     }
 
     @Override
-    public void encodeKey(@NonNull String key) throws IOException {
+    public void encodeKey(String key) throws IOException {
         try {
             if (rootMapper) {
                 propertyStack.addLast(new ObjectFrame(key, Boolean.TRUE));
@@ -282,7 +281,7 @@ public final class XmlGenerator implements Encoder {
      * @return this encoder
      * @throws IOException if encoding fails
      */
-    public @NonNull Encoder encodeInlineArray(@NonNull Argument<?> type) throws IOException {
+    public Encoder encodeInlineArray(Argument<?> type) throws IOException {
         ContextProperties lastProperty = propertyStack.peekLast();
         if (!(lastProperty instanceof KeyFrame keyFrame) || keyFrame.consumed()) {
             throw new IllegalStateException("Expected a pending key before starting an inline array, but found: " + lastProperty);
@@ -294,7 +293,7 @@ public final class XmlGenerator implements Encoder {
     }
 
     @Override
-    public void encodeString(@NonNull String value) throws IOException {
+    public void encodeString(String value) throws IOException {
         writeScalar(value);
     }
 
@@ -309,7 +308,7 @@ public final class XmlGenerator implements Encoder {
     }
 
     @Override
-    public void encodeBinary(byte @NonNull [] data) throws IOException {
+    public void encodeBinary(byte [] data) throws IOException {
         writeScalar(Base64.getEncoder().encodeToString(data));
     }
 
@@ -344,12 +343,12 @@ public final class XmlGenerator implements Encoder {
     }
 
     @Override
-    public void encodeBigInteger(@NonNull BigInteger value) throws IOException {
+    public void encodeBigInteger(BigInteger value) throws IOException {
         writeScalar(String.valueOf(value));
     }
 
     @Override
-    public void encodeBigDecimal(@NonNull BigDecimal value) throws IOException {
+    public void encodeBigDecimal(BigDecimal value) throws IOException {
         writeScalar(String.valueOf(value));
     }
 

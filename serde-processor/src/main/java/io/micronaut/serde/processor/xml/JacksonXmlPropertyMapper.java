@@ -28,7 +28,7 @@ import java.util.List;
 /**
  * Maps Jackson XML's {@code tools.jackson.dataformat.xml.annotation.JacksonXmlProperty}.
  *
- * @since 3.1.0
+ * @since 3.2
  */
 public final class JacksonXmlPropertyMapper implements NamedAnnotationMapper {
 

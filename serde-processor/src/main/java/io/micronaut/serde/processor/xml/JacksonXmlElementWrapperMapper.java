@@ -18,7 +18,6 @@ package io.micronaut.serde.processor.xml;
 import io.micronaut.core.annotation.AnnotationClassValue;
 import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.core.annotation.AnnotationValueBuilder;
-import io.micronaut.core.annotation.NonNull;
 import io.micronaut.inject.annotation.NamedAnnotationMapper;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.config.annotation.SerdeConfig;
@@ -29,7 +28,7 @@ import java.util.List;
 /**
  * Maps Jackson XML's {@code tools.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper}.
  *
- * @since 3.1.0
+ * @since 3.2
  */
 public final class JacksonXmlElementWrapperMapper implements NamedAnnotationMapper {
 
@@ -40,7 +39,7 @@ public final class JacksonXmlElementWrapperMapper implements NamedAnnotationMapp
         new AnnotationClassValue<>(XML_WRAPPER_PROPERTY_SERDE_CLASS);
 
     @Override
-    public @NonNull String getName() {
+    public String getName() {
         return "tools.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper";
     }
 

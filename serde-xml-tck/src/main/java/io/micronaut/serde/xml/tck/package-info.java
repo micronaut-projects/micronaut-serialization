@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 /**
- * XML-specific serializers and deserializers.
+ * Shared XML serialization test fixtures.
  *
  * @since 3.2
  */
 @NullMarked
-package io.micronaut.serde.xml.serde;
+package io.micronaut.serde.xml.tck;
 
 import org.jspecify.annotations.NullMarked;

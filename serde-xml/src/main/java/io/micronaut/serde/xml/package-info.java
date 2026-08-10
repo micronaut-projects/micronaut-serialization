@@ -15,6 +15,8 @@
  */
 /**
  * XML object mapper, reader, writer, and configuration support.
+ *
+ * @since 3.2
  */
 @NullMarked
 package io.micronaut.serde.xml;

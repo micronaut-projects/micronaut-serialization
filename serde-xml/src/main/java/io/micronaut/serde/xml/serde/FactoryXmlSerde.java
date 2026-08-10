@@ -22,7 +22,7 @@ import io.micronaut.core.annotation.Internal;
 /**
  * Factory for XML-specific serde beans.
  *
- * @since 3.1.0
+ * @since 3.2
  */
 @Factory
 @Internal

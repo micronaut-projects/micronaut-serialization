@@ -25,7 +25,6 @@ import io.micronaut.serde.WrappedEncoder;
 import io.micronaut.serde.support.util.PropertySpecificSerde;
 import io.micronaut.serde.xml.XmlGenerator;
 import io.micronaut.serde.xml.XmlReaderDecoder;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -37,7 +36,7 @@ import java.util.Objects;
  * {@code <xml a=""/>}.
  *
  * @param <T> The property type
- * @since 3.1.0
+ * @since 3.2
  */
 @Internal
 public class XmlPropertySerde<T> implements PropertySpecificSerde<T> {
@@ -55,7 +54,7 @@ public class XmlPropertySerde<T> implements PropertySpecificSerde<T> {
     }
 
     @Override
-    public @NonNull Serde<T> forProperty(PropertySpecificSerde.PropertyConfiguration configuration) {
+    public Serde<T> forProperty(PropertySpecificSerde.PropertyConfiguration configuration) {
         String localName = configuration.name();
         String resolvedNamespace = configuration.xmlNamespace();
         if (localName.equals(this.localName) && Objects.equals(resolvedNamespace, this.namespace)) {
@@ -65,9 +64,9 @@ public class XmlPropertySerde<T> implements PropertySpecificSerde<T> {
     }
 
     @Override
-    public @NonNull T deserialize(@NonNull Decoder decoder,
-                                  @NonNull DecoderContext context,
-                                  @NonNull Argument<? super T> type) throws IOException {
+    public T deserialize(Decoder decoder,
+                                  DecoderContext context,
+                                  Argument<? super T> type) throws IOException {
         String value = decodeAttributeValue(decoder);
         if (value == null) {
             throw decoder.createDeserializationException("Missing XML attribute value for: " + type, null);
@@ -76,16 +75,16 @@ public class XmlPropertySerde<T> implements PropertySpecificSerde<T> {
     }
 
     @Override
-    public @Nullable T deserializeNullable(@NonNull Decoder decoder,
-                                           @NonNull DecoderContext context,
-                                           @NonNull Argument<? super T> type) throws IOException {
+    public @Nullable T deserializeNullable(Decoder decoder,
+                                           DecoderContext context,
+                                           Argument<? super T> type) throws IOException {
         String value = decodeAttributeValue(decoder);
         return value == null ? null : convert(value, context, type);
     }
 
-    private static <T> @NonNull T convert(@NonNull String value,
-                                          @NonNull DecoderContext context,
-                                          @NonNull Argument<? super T> type) {
+    private static <T> T convert(String value,
+                                          DecoderContext context,
+                                          Argument<? super T> type) {
         if (type.isInstance(value)) {
             return (T) value;
         }
@@ -100,7 +99,7 @@ public class XmlPropertySerde<T> implements PropertySpecificSerde<T> {
      * @return The attribute value, or {@code null} if absent
      * @throws IOException If an error occurs while decoding
      */
-    private static @Nullable String decodeAttributeValue(@NonNull Decoder decoder) throws IOException {
+    private static @Nullable String decodeAttributeValue(Decoder decoder) throws IOException {
         decoder = WrappedDecoder.unwrap(decoder);
         if (decoder instanceof XmlReaderDecoder xmlDecoder) {
             return xmlDecoder.decodeCurrentXmlAttribute();
@@ -109,10 +108,10 @@ public class XmlPropertySerde<T> implements PropertySpecificSerde<T> {
     }
 
     @Override
-    public void serialize(@NonNull Encoder encoder,
-                          @NonNull EncoderContext context,
-                          @NonNull Argument<? extends T> type,
-                          @NonNull T value) throws IOException {
+    public void serialize(Encoder encoder,
+                          EncoderContext context,
+                          Argument<? extends T> type,
+                          T value) throws IOException {
         XmlGenerator generator = (XmlGenerator) WrappedEncoder.unwrap(encoder);
         if (value == null) {
             generator.encodeNull();

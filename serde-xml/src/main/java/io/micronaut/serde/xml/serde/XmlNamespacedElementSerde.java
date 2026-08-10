@@ -23,7 +23,6 @@ import io.micronaut.serde.WrappedEncoder;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.PropertySpecificSerde;
 import io.micronaut.serde.xml.XmlGenerator;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -33,7 +32,7 @@ import java.io.IOException;
  * used; the namespaced element name is bound per property via
  * {@link #forProperty(PropertySpecificSerde.PropertyConfiguration)}.
  *
- * @since 3.1.0
+ * @since 3.2
  */
 @Internal
 public class XmlNamespacedElementSerde implements PropertySpecificSerde<Object> {
@@ -51,22 +50,22 @@ public class XmlNamespacedElementSerde implements PropertySpecificSerde<Object> 
     }
 
     @Override
-    public @NonNull XmlNamespacedElementSerde forProperty(PropertySpecificSerde.PropertyConfiguration configuration) {
+    public XmlNamespacedElementSerde forProperty(PropertySpecificSerde.PropertyConfiguration configuration) {
         return new XmlNamespacedElementSerde(configuration.name(), configuration.xmlNamespace());
     }
 
     @Override
-    public @NonNull Object deserialize(@NonNull Decoder decoder,
-                                       @NonNull DecoderContext context,
-                                       @NonNull Argument<? super Object> type) throws IOException {
+    public Object deserialize(Decoder decoder,
+                                       DecoderContext context,
+                                       Argument<? super Object> type) throws IOException {
         throw new SerdeException(getClass().getName() + " does not support XML deserialization for: " + type);
     }
 
     @Override
-    public void serialize(@NonNull Encoder encoder,
-                          @NonNull EncoderContext context,
-                          @NonNull Argument<? extends Object> type,
-                          @NonNull Object value) throws IOException {
+    public void serialize(Encoder encoder,
+                          EncoderContext context,
+                          Argument<? extends Object> type,
+                          Object value) throws IOException {
         XmlGenerator generator = (XmlGenerator) WrappedEncoder.unwrap(encoder);
         if (value == null) {
             generator.encodeNull();

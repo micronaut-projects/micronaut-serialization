@@ -24,7 +24,7 @@ import org.jspecify.annotations.Nullable;
  *
  * @author Mousrij Hamza
  * @param <T> The serialized/deserialized type
- * @since 3.1.0
+ * @since 3.2
  */
 @Internal
 public interface PropertySpecificSerde<T> extends Serde<T> {

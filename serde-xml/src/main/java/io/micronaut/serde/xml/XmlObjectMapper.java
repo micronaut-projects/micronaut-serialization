@@ -15,8 +15,6 @@
  */
 package io.micronaut.serde.xml;
 
-import io.micronaut.core.annotation.NonNull;
-import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.JsonStreamConfig;
 import io.micronaut.json.tree.JsonNode;
@@ -32,6 +30,7 @@ import io.micronaut.serde.support.util.JsonNodeDecoder;
 import io.micronaut.serde.support.util.JsonNodeEncoder;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import org.jspecify.annotations.Nullable;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -49,7 +48,7 @@ import java.nio.charset.StandardCharsets;
  * {@link ObjectMapper} interface, utilizing XML serialization and deserialization.
  *
  * @author Mousrij Hamza
- * @since 3.1.0
+ * @since 3.2
  */
 @Singleton
 @Named(XmlObjectMapper.XML_MAPPER_NAME)
@@ -63,10 +62,8 @@ public final class XmlObjectMapper implements ObjectMapper {
     @Nullable
     private final SerdeConfiguration serdeConfiguration;
     private final boolean emptyElementAsNull;
-    @NonNull
-    private final XMLInputFactory xmlInputFactory;
-    @NonNull
-    private final XMLOutputFactory xmlOutputFactory;
+        private final XMLInputFactory xmlInputFactory;
+        private final XMLOutputFactory xmlOutputFactory;
 
     /**
      * Constructs an XML object mapper.
@@ -108,7 +105,7 @@ public final class XmlObjectMapper implements ObjectMapper {
      */
     @Override
     @SuppressWarnings("NullAway")
-    public <T> T readValue(@NonNull InputStream inputStream, @NonNull Argument<T> type) throws IOException {
+    public <T> T readValue(InputStream inputStream, Argument<T> type) throws IOException {
         Deserializer.DecoderContext decoderContext = registry.newDecoderContext(null);
         Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext,
             type);
@@ -142,7 +139,7 @@ public final class XmlObjectMapper implements ObjectMapper {
      * @throws IOException If an error occurs reading or decoding XML
      */
     @Override
-    public <T> T readValue(byte @NonNull [] byteArray, @NonNull Argument<T> type) throws IOException {
+    public <T> T readValue(byte [] byteArray, Argument<T> type) throws IOException {
         return readValue(new ByteArrayInputStream(byteArray), type);
     }
 
@@ -156,7 +153,7 @@ public final class XmlObjectMapper implements ObjectMapper {
      * @throws IOException If an error occurs reading or decoding XML
      */
     @Override
-    public <T> T readValue(@NonNull String string, @NonNull Argument<T> type) throws IOException {
+    public <T> T readValue(String string, Argument<T> type) throws IOException {
         return readValue(string.getBytes(StandardCharsets.UTF_8), type);
     }
 
@@ -171,7 +168,7 @@ public final class XmlObjectMapper implements ObjectMapper {
      */
     @Override
     @SuppressWarnings("NullAway")
-    public <T> T readValueFromTree(@NonNull JsonNode tree, @NonNull Argument<T> type) throws IOException {
+    public <T> T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
         Deserializer.DecoderContext decoderContext = registry.newDecoderContext(null);
         Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext,
             type);
@@ -186,7 +183,7 @@ public final class XmlObjectMapper implements ObjectMapper {
      * @throws IOException If an error occurs serializing the value
      */
     @Override
-    public @NonNull JsonNode writeValueToTree(@Nullable Object value) throws IOException {
+    public JsonNode writeValueToTree(@Nullable Object value) throws IOException {
         JsonNodeEncoder encoder = JsonNodeEncoder.create(limits());
         if (value == null) {
             encoder.encodeNull();
@@ -206,7 +203,7 @@ public final class XmlObjectMapper implements ObjectMapper {
      * @throws IOException If an error occurs serializing the value
      */
     @Override
-    public @NonNull <T> JsonNode writeValueToTree(@NonNull Argument<T> type, @Nullable T value) throws IOException {
+    public <T> JsonNode writeValueToTree(Argument<T> type, @Nullable T value) throws IOException {
         JsonNodeEncoder encoder = JsonNodeEncoder.create(limits());
         serialize(encoder, value, type);
         return encoder.getCompletedValue();
@@ -220,7 +217,7 @@ public final class XmlObjectMapper implements ObjectMapper {
      * @throws IOException If an error occurs writing or encoding XML
      */
     @Override
-    public void writeValue(@NonNull OutputStream outputStream, @Nullable Object object) throws IOException {
+    public void writeValue(OutputStream outputStream, @Nullable Object object) throws IOException {
         if (object == null) {
             writeNullDocument(outputStream);
             return;
@@ -247,7 +244,7 @@ public final class XmlObjectMapper implements ObjectMapper {
      * @throws IOException If an error occurs writing or encoding XML
      */
     @Override
-    public <T> void writeValue(@NonNull OutputStream outputStream, @NonNull Argument<T> type, @Nullable T object)
+    public <T> void writeValue(OutputStream outputStream, Argument<T> type, @Nullable T object)
         throws IOException {
         XMLStreamWriter xmlWriter = null;
         try {
@@ -284,7 +281,7 @@ public final class XmlObjectMapper implements ObjectMapper {
      * @throws IOException If an error occurs writing or encoding XML
      */
     @Override
-    public <T> byte[] writeValueAsBytes(@NonNull Argument<T> type, @Nullable T object) throws IOException {
+    public <T> byte[] writeValueAsBytes(Argument<T> type, @Nullable T object) throws IOException {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         writeValue(output, type, object);
         return output.toByteArray();
@@ -298,7 +295,7 @@ public final class XmlObjectMapper implements ObjectMapper {
      * @throws IOException If an error occurs writing or encoding XML
      */
     @Override
-    public @NonNull String writeValueAsString(@Nullable Object object) throws IOException {
+    public String writeValueAsString(@Nullable Object object) throws IOException {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         writeValue(output, object);
         return new String(output.toByteArray(), StandardCharsets.UTF_8);
@@ -308,12 +305,11 @@ public final class XmlObjectMapper implements ObjectMapper {
      * @return The stream configuration used by this mapper
      */
     @Override
-    public @NonNull JsonStreamConfig getStreamConfig() {
+    public JsonStreamConfig getStreamConfig() {
         return JsonStreamConfig.DEFAULT;
     }
 
-    @NonNull
-    private LimitingStream.RemainingLimits limits() {
+        private LimitingStream.RemainingLimits limits() {
         return serdeConfiguration == null
             ? LimitingStream.DEFAULT_LIMITS
             : LimitingStream.limitsFromConfiguration(serdeConfiguration);
@@ -326,7 +322,7 @@ public final class XmlObjectMapper implements ObjectMapper {
         serializer.serialize(encoder, encoderContext, type, object);
     }
 
-    private void writeNullDocument(@NonNull OutputStream outputStream) throws IOException {
+    private void writeNullDocument(OutputStream outputStream) throws IOException {
         XMLStreamWriter xmlWriter = null;
         try {
             xmlWriter = xmlOutputFactory.createXMLStreamWriter(outputStream);

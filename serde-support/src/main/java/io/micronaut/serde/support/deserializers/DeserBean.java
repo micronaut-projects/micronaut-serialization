@@ -1345,14 +1345,9 @@ final class DeserBean<T> {
         P deserializeValue(Deserializer<P> deserializer, Decoder objectDecoder, Deserializer.DecoderContext decoderContext) throws IOException {
             decoderContext = resolveFeatures(decoderContext);
             try {
-                boolean coercedNullForAbstractType = isCoercedNullForAbstractType(objectDecoder);
                 P value = decoderValueKind == DecoderValueKind.NONE_CODE
                     ? deserializer.deserializeNullable(objectDecoder, decoderContext, argument)
                     : deserializeDirectValue(objectDecoder);
-                if (value == null && coercedNullForAbstractType) {
-                    throw new SerdeException("Unable to deserialize abstract property [" + argument +
-                        "] in type [" + introspection.getBeanType().getName() + "] from an empty value without subtype information");
-                }
                 if (value != null || nullable) {
                     return value;
                 }
@@ -1566,7 +1561,6 @@ final class DeserBean<T> {
         P deserializeConstructorValue(Deserializer<P> deserializer, Decoder objectDecoder, Deserializer.DecoderContext decoderContext) throws IOException {
             decoderContext = resolveFeatures(decoderContext);
             try {
-                boolean coercedNullForAbstractType = isCoercedNullForAbstractType(objectDecoder);
                 P value;
                 if (primitive && !failOnNullForPrimitives) {
                     if (decoderValueKind == DecoderValueKind.NONE_CODE) {
@@ -1584,10 +1578,6 @@ final class DeserBean<T> {
                     value = decoderValueKind == DecoderValueKind.NONE_CODE
                         ? deserializer.deserializeNullable(objectDecoder, decoderContext, argument)
                         : deserializeDirectValue(objectDecoder);
-                }
-                if (value == null && coercedNullForAbstractType) {
-                    throw new SerdeException("Unable to deserialize abstract constructor parameter [" + argument +
-                        "] in type [" + introspection.getBeanType().getName() + "] from an empty value without subtype information");
                 }
                 if (value != null || nullable) {
                     return value;

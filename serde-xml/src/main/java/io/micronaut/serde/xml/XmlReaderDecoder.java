@@ -21,7 +21,6 @@ import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.exceptions.SerdeException;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import javax.xml.stream.XMLStreamConstants;
@@ -43,7 +42,7 @@ import java.util.Map;
  * Streaming {@link Decoder} over an {@link javax.xml.stream.XMLStreamReader}, with one concrete
  * variant per XML scope (document root, object element, array wrapper, synthetic root).
  *
- * @since 3.1.0
+ * @since 3.2
  */
 @Internal
 public abstract sealed class XmlReaderDecoder extends LimitingStream implements Decoder
@@ -73,14 +72,14 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
      * @param cursor The shared cursor over the XML stream
      * @param emptyElementAsNull Whether empty XML elements should be reported as {@code null}
      */
-    XmlReaderDecoder(@NonNull RemainingLimits limits, @NonNull Cursor cursor, boolean emptyElementAsNull) {
+    XmlReaderDecoder(RemainingLimits limits, Cursor cursor, boolean emptyElementAsNull) {
         super(limits);
         this.cursor = cursor;
         this.emptyElementAsNull = emptyElementAsNull;
     }
 
     @Override
-    public @NonNull Decoder decodeArray(Argument<?> type) throws IOException {
+    public Decoder decodeArray(Argument<?> type) throws IOException {
         throw createDeserializationException("Array decoding not supported in current XML decoder.", null);
     }
 
@@ -95,7 +94,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
     }
 
     @Override
-    public @NonNull String decodeString() throws IOException {
+    public String decodeString() throws IOException {
         throw new IllegalStateException("No scalar value available at current XML position");
     }
 
@@ -154,7 +153,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
     }
 
     @Override
-    public @NonNull BigInteger decodeBigInteger() throws IOException {
+    public BigInteger decodeBigInteger() throws IOException {
         String s = decodeString().trim();
         try {
             return new BigInteger(s);
@@ -164,7 +163,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
     }
 
     @Override
-    public @NonNull BigDecimal decodeBigDecimal() throws IOException {
+    public BigDecimal decodeBigDecimal() throws IOException {
         return new BigDecimal(decodeString().trim());
     }
 
@@ -179,7 +178,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
     }
 
     @Override
-    public @NonNull JsonNode decodeNode() throws IOException {
+    public JsonNode decodeNode() throws IOException {
         throw createDeserializationException("decodeNode() not supported in current XML decoder.", null);
     }
 
@@ -198,7 +197,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
     }
 
     @Override
-    public @NonNull IOException createDeserializationException(@NonNull String message, @Nullable Object invalidValue) {
+    public IOException createDeserializationException(String message, @Nullable Object invalidValue) {
         return new SerdeException(message + (invalidValue == null ? "" : " (value: " + invalidValue + ")"));
     }
 
@@ -213,7 +212,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         return null;
     }
 
-    static @Nullable Object readArbitraryValue(@NonNull Cursor cursor) throws IOException {
+    static @Nullable Object readArbitraryValue(Cursor cursor) throws IOException {
         StringBuilder text = null;
         while (true) {
             int e = cursor.current();
@@ -243,7 +242,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         }
     }
 
-    private static Map<String, Object> readArbitraryObject(@NonNull Cursor cursor) throws IOException {
+    private static Map<String, Object> readArbitraryObject(Cursor cursor) throws IOException {
         Map<String, Object> map = new LinkedHashMap<>();
         while (true) {
             int e = cursor.current();
@@ -287,7 +286,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
      * @param name
      * @param value
      */
-    record XmlAttr(@NonNull String name, @NonNull String value) { }
+    record XmlAttr(String name, String value) { }
 
     static final class Cursor {
         private final XMLStreamReader reader;
@@ -319,7 +318,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
          * exposed via {@link #lastCaptureXsiNilTrue()} so the calling decoder can treat the
          * element body as an explicit null per the XML schema convention.
          */
-        @NonNull List<XmlAttr> captureAttributes() {
+        List<XmlAttr> captureAttributes() {
             lastCaptureXsiNilTrue = false;
             int n = reader.getAttributeCount();
             if (n == 0) {
@@ -383,7 +382,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
          * @param reader The XML stream reader positioned anywhere before or at the document root
          * @throws IOException If the reader cannot be advanced to a root element
          */
-        public DocumentDecoder(@NonNull RemainingLimits limits, @NonNull XMLStreamReader reader) throws IOException {
+        public DocumentDecoder(RemainingLimits limits, XMLStreamReader reader) throws IOException {
             this(limits, reader, false);
         }
 
@@ -400,8 +399,8 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
          * @param emptyElementAsNull Whether empty XML elements should be reported as {@code null}
          * @throws IOException If the reader cannot be advanced to a root element
          */
-        public DocumentDecoder(@NonNull RemainingLimits limits,
-                               @NonNull XMLStreamReader reader,
+        public DocumentDecoder(RemainingLimits limits,
+                               XMLStreamReader reader,
                                boolean emptyElementAsNull) throws IOException {
             super(limits, new Cursor(reader), emptyElementAsNull);
             int e = cursor.current();
@@ -414,7 +413,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         }
 
         @Override
-        public @NonNull Decoder decodeObject(@NonNull Argument<?> type) throws IOException {
+        public Decoder decodeObject(Argument<?> type) throws IOException {
             if (rootConsumed) {
                 throw new IllegalStateException("XML root already consumed");
             }
@@ -430,7 +429,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         }
 
         @Override
-        public @NonNull Decoder decodeArray(Argument<?> type) throws IOException {
+        public Decoder decodeArray(Argument<?> type) throws IOException {
             if (rootConsumed) {
                 throw new IllegalStateException("XML root already consumed");
             }
@@ -441,7 +440,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         }
 
         @Override
-        public @NonNull String decodeString() throws IOException {
+        public String decodeString() throws IOException {
             if (rootConsumed) {
                 throw new IllegalStateException("XML root already consumed");
             }
@@ -487,7 +486,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
          * @param cursor The shared cursor positioned inside the owner element
          * @param ownerElement The local name of the element represented by this object decoder
          */
-        ObjectDecoder(@NonNull RemainingLimits limits, @NonNull Cursor cursor, @NonNull String ownerElement) {
+        ObjectDecoder(RemainingLimits limits, Cursor cursor, String ownerElement) {
             this(limits, cursor, ownerElement, Collections.emptyList(), false);
         }
 
@@ -499,7 +498,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
          * @param ownerElement The local name of the element represented by this object decoder
          * @param attrs Attributes captured from the owner element before its body was entered
          */
-        ObjectDecoder(@NonNull RemainingLimits limits, @NonNull Cursor cursor, @NonNull String ownerElement, @NonNull List<XmlAttr> attrs) {
+        ObjectDecoder(RemainingLimits limits, Cursor cursor, String ownerElement, List<XmlAttr> attrs) {
             this(limits, cursor, ownerElement, attrs, false);
         }
 
@@ -517,10 +516,10 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
          * @param attrs Attributes captured from the owner element before its body was entered
          * @param emptyElementAsNull Whether empty XML elements should be reported as {@code null}
          */
-        ObjectDecoder(@NonNull RemainingLimits limits,
-                      @NonNull Cursor cursor,
-                      @NonNull String ownerElement,
-                      @NonNull List<XmlAttr> attrs,
+        ObjectDecoder(RemainingLimits limits,
+                      Cursor cursor,
+                      String ownerElement,
+                      List<XmlAttr> attrs,
                       boolean emptyElementAsNull) {
             super(limits, cursor, emptyElementAsNull);
             this.ownerElement = ownerElement;
@@ -579,7 +578,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         }
 
         @Override
-        public @NonNull String decodeString() throws IOException {
+        public String decodeString() throws IOException {
             requireKey();
             StringBuilder sb = new StringBuilder();
             while (true) {
@@ -643,7 +642,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         }
 
         @Override
-        public byte @NonNull [] decodeBinary() throws IOException {
+        public byte [] decodeBinary() throws IOException {
             String text = decodeString();
             if (text.isEmpty()) {
                 return new byte[0];
@@ -664,7 +663,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         }
 
         @Override
-        public @NonNull Decoder decodeObject(@NonNull Argument<?> type) throws IOException {
+        public Decoder decodeObject(Argument<?> type) throws IOException {
             requireKey();
             String childOwner = Objects.requireNonNull(currentKey, "currentKey");
             List<XmlAttr> childAttrs = pendingChildAttrs;
@@ -673,7 +672,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         }
 
         @Override
-        public @NonNull Decoder decodeArray(Argument<?> type) throws IOException {
+        public Decoder decodeArray(Argument<?> type) throws IOException {
             requireKey();
             String wrapper = Objects.requireNonNull(currentKey, "currentKey");
             clearKeyState();
@@ -773,7 +772,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
          * @param wrapperOrItemElement The local name of the wrapper element or inline item element
          * @throws IOException If the cursor cannot be advanced while detecting array mode
          */
-        ArrayDecoder(@NonNull RemainingLimits limits, @NonNull Cursor cursor, @NonNull String wrapperOrItemElement) throws IOException {
+        ArrayDecoder(RemainingLimits limits, Cursor cursor, String wrapperOrItemElement) throws IOException {
             this(limits, cursor, wrapperOrItemElement, false);
         }
 
@@ -791,9 +790,9 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
          * @param emptyElementAsNull Whether empty XML elements should be reported as {@code null}
          * @throws IOException If the cursor cannot be advanced while detecting array mode
          */
-        ArrayDecoder(@NonNull RemainingLimits limits,
-                     @NonNull Cursor cursor,
-                     @NonNull String wrapperOrItemElement,
+        ArrayDecoder(RemainingLimits limits,
+                     Cursor cursor,
+                     String wrapperOrItemElement,
                      boolean emptyElementAsNull) throws IOException {
             super(limits, cursor, emptyElementAsNull);
             this.wrapperElement = wrapperOrItemElement;
@@ -901,7 +900,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         }
 
         @Override
-        public byte @NonNull [] decodeBinary() throws IOException {
+        public byte [] decodeBinary() throws IOException {
             String text = decodeString();
             if (text.isEmpty()) {
                 return new byte[0];
@@ -914,7 +913,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         }
 
         @Override
-        public @NonNull Decoder decodeObject(@NonNull Argument<?> type) throws IOException {
+        public Decoder decodeObject(Argument<?> type) throws IOException {
             if (firstItemPending) {
                 throw createDeserializationException(
                         "Inline array first item carried scalar text and cannot be decoded as object", firstScalarText);
@@ -927,7 +926,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         }
 
         @Override
-        public @NonNull Decoder decodeArray(Argument<?> type) throws IOException {
+        public Decoder decodeArray(Argument<?> type) throws IOException {
             if (firstItemPending) {
                 throw createDeserializationException(
                         "Inline array first item carried scalar text and cannot be decoded as nested array", firstScalarText);
@@ -939,7 +938,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         }
 
         @Override
-        public @NonNull String decodeString() throws IOException {
+        public String decodeString() throws IOException {
             if (firstItemPending) {
                 String v = firstScalarText == null ? "" : firstScalarText;
                 firstScalarText = null;
@@ -1078,7 +1077,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
          * @param cursor The shared cursor positioned at the XML root element
          * @param rootName The root element local name to expose as the synthetic object key
          */
-        SyntheticRootDecoder(@NonNull RemainingLimits limits, @NonNull Cursor cursor, @NonNull String rootName) {
+        SyntheticRootDecoder(RemainingLimits limits, Cursor cursor, String rootName) {
             this(limits, cursor, rootName, false);
         }
 
@@ -1095,9 +1094,9 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
          * @param rootName The root element local name to expose as the synthetic object key
          * @param emptyElementAsNull Whether empty XML elements should be reported as {@code null}
          */
-        SyntheticRootDecoder(@NonNull RemainingLimits limits,
-                             @NonNull Cursor cursor,
-                             @NonNull String rootName,
+        SyntheticRootDecoder(RemainingLimits limits,
+                             Cursor cursor,
+                             String rootName,
                              boolean emptyElementAsNull) {
             super(limits, cursor, emptyElementAsNull);
             this.rootName = rootName;
@@ -1113,7 +1112,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         }
 
         @Override
-        public @NonNull Decoder decodeObject(@NonNull Argument<?> type) throws IOException {
+        public Decoder decodeObject(Argument<?> type) throws IOException {
             if (!keyEmitted || valueConsumed) {
                 throw new IllegalStateException("SyntheticRootDecoder.decodeObject called out of order");
             }
@@ -1124,7 +1123,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         }
 
         @Override
-        public @NonNull String decodeString() throws IOException {
+        public String decodeString() throws IOException {
             if (!keyEmitted || valueConsumed) {
                 throw new IllegalStateException("SyntheticRootDecoder.decodeString called out of order");
             }

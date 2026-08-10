@@ -27,7 +27,7 @@ import java.util.Map;
  * XML-specific configuration.
  *
  * @author Mousrij Hamza
- * @since 3.1.0
+ * @since 3.2
  */
 @Internal
 @ConfigurationProperties(XmlSerdeConfiguration.PREFIX)

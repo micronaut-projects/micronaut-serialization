@@ -16,17 +16,18 @@
 package io.micronaut.serde.xml.tck;
 
 import io.micronaut.serde.annotation.Serdeable;
+import org.jspecify.annotations.Nullable;
 
 @Serdeable
 public class ObjectOnlyBean {
 
-    private Object object;
+    private @Nullable Object object;
 
-    public Object getObject() {
+    public @Nullable Object getObject() {
         return object;
     }
 
-    public void setObject(Object object) {
+    public void setObject(@Nullable Object object) {
         this.object = object;
     }
 }
