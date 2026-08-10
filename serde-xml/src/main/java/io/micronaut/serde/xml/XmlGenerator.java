@@ -107,7 +107,14 @@ public final class XmlGenerator implements Encoder {
                 propertyStack.addLast(new ArrayFrame(lastProperty, null, itemNamespace));
                 return this;
             } else {
-                String collectionName = NameUtils.camelCase(type.getName(), false);
+                String collectionName = rootName;
+                if (collectionName == null) {
+                    Class<?> javaType = type.getType();
+                    String typeName = javaType.isArray()
+                        ? javaType.getComponentType().getSimpleName() + "s"
+                        : type.getName();
+                    collectionName = NameUtils.camelCase(typeName, false);
+                }
                 ArrayFrame arrayFrame = new ArrayFrame(collectionName, "item", null);
                 propertyStack.addLast(arrayFrame);
 

@@ -176,7 +176,7 @@ public final class XmlWrapperSerde<T> implements
                                             DecoderContext context,
                                             Argument<? super Iterable<T>> type) throws IOException {
         Decoder unwrapped = WrappedDecoder.unwrap(decoder);
-        if (!(unwrapped instanceof XmlReaderDecoder)) {
+        if (!(unwrapped instanceof XmlReaderDecoder xmlReaderDecoder)) {
             Deserializer<Iterable<T>> delegate = defaultDeserializer(context, type);
             return delegate.deserialize(decoder, context, type);
         }
@@ -184,7 +184,9 @@ public final class XmlWrapperSerde<T> implements
             throw new SerdeException("XmlWrapperSerde was not specialized for deserialization: " + type);
         }
         Collection<T> collection = createCollection(type);
-        Decoder arrayDecoder = decoder.decodeArray(type);
+        Decoder arrayDecoder = useWrapping
+            ? decoder.decodeArray(type)
+            : xmlReaderDecoder.decodeInlineArray(type);
         int index = 0;
         try {
             while (arrayDecoder.hasNextArrayValue()) {

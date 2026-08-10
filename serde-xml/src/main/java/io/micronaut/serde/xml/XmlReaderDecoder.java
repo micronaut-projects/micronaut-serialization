@@ -83,6 +83,17 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         throw createDeserializationException("Array decoding not supported in current XML decoder.", null);
     }
 
+    /**
+     * Decodes sibling elements as an unwrapped array, retaining the first item's element context.
+     *
+     * @param type The array or collection type
+     * @return The inline array decoder
+     * @throws IOException If the array cannot be decoded
+     */
+    public Decoder decodeInlineArray(Argument<?> type) throws IOException {
+        throw createDeserializationException("Inline array decoding not supported in current XML decoder.", null);
+    }
+
     @Override
     public boolean hasNextArrayValue() throws IOException {
         return false;
@@ -680,6 +691,15 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         }
 
         @Override
+        public Decoder decodeInlineArray(Argument<?> type) throws IOException {
+            requireKey();
+            String itemName = Objects.requireNonNull(currentKey, "currentKey");
+            List<XmlAttr> itemAttrs = pendingChildAttrs;
+            clearKeyState();
+            return new ArrayDecoder(childLimits(), cursor, itemName, itemAttrs, emptyElementAsNull);
+        }
+
+        @Override
         public void skipValue() throws IOException {
             if (currentAttrValue != null) {
                 clearKeyState();
@@ -832,6 +852,29 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
                 cursor.advance();
             }
             this.mode = detected;
+        }
+
+        /**
+         * Creates an explicitly inline array whose first item start element was consumed by the
+         * parent object decoder.
+         *
+         * @param limits The limits for this array scope
+         * @param cursor The shared cursor positioned inside the first item element
+         * @param itemElement The repeated inline item element name
+         * @param firstItemAttrs Attributes captured from the first item start element
+         * @param emptyElementAsNull Whether empty XML elements should be reported as {@code null}
+         */
+        ArrayDecoder(RemainingLimits limits,
+                     Cursor cursor,
+                     String itemElement,
+                     List<XmlAttr> firstItemAttrs,
+                     boolean emptyElementAsNull) {
+            super(limits, cursor, emptyElementAsNull);
+            this.wrapperElement = itemElement;
+            this.mode = Mode.INLINE;
+            this.itemPending = true;
+            this.currentItemName = itemElement;
+            this.currentItemAttrs = firstItemAttrs;
         }
 
         private static boolean isBlank(CharSequence s) {

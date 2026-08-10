@@ -346,7 +346,13 @@ public final class XmlObjectMapper implements ObjectMapper {
     private static String resolveRootName(Argument<?> type) {
         return type.getAnnotationMetadata()
             .stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY)
-            .orElseGet(() -> NameUtils.camelCase(type.getName(), false));
+            .orElseGet(() -> {
+                Class<?> javaType = type.getType();
+                if (javaType.isArray()) {
+                    return NameUtils.camelCase(javaType.getComponentType().getSimpleName() + "s", false);
+                }
+                return NameUtils.camelCase(type.getName(), false);
+            });
     }
 
     private void writeNullDocument(OutputStream outputStream) throws IOException {

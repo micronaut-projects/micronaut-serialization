@@ -2,11 +2,14 @@ package io.micronaut.serde.xml
 
 import io.micronaut.core.type.Argument
 import io.micronaut.json.tree.JsonNode
+import io.micronaut.serde.Encoder
+import io.micronaut.serde.Serializer
 import io.micronaut.serde.annotation.Serdeable
 import io.micronaut.serde.exceptions.SerdeException
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 import jakarta.inject.Named
+import jakarta.inject.Singleton
 import spock.lang.Specification
 
 @MicronautTest
@@ -51,8 +54,30 @@ class XmlObjectMapperRegressionSpec extends Specification {
         thrown(SerdeException)
     }
 
+    def "custom root serializers can write scalar XML values"() {
+        expect:
+        xmlMapper.writeValueAsString(new CustomValue(value: "foo")) ==
+            "<CustomValue>custom:foo</CustomValue>"
+    }
+
     @Serdeable
     static class ExternalEntityBean {
         String value
+    }
+
+    @Serdeable.Serializable(using = PrefixSerializer)
+    static class CustomValue {
+        String value
+    }
+
+    @Singleton
+    static class PrefixSerializer implements Serializer<CustomValue> {
+        @Override
+        void serialize(Encoder encoder,
+                       Serializer.EncoderContext context,
+                       Argument<? extends CustomValue> type,
+                       CustomValue value) throws IOException {
+            encoder.encodeString("custom:" + value.value)
+        }
     }
 }

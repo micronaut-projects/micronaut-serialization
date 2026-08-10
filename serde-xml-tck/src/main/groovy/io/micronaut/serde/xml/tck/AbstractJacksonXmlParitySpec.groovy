@@ -1,0 +1,253 @@
+/*
+ * Copyright 2017-2026 original authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.micronaut.serde.xml.tck
+
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonPropertyOrder
+import com.fasterxml.jackson.annotation.JsonUnwrapped
+import com.fasterxml.jackson.annotation.JsonValue
+import io.micronaut.core.type.Argument
+import io.micronaut.serde.annotation.Serdeable
+import spock.lang.Specification
+import tools.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
+import tools.jackson.dataformat.xml.annotation.JacksonXmlProperty
+
+/**
+ * Portable scenarios adapted from the Jackson Dataformat XML 3.1 test suite.
+ *
+ * <p>The scenarios in this spec exercise data-binding behavior shared by Jackson XML and
+ * Micronaut Serialization. Jackson-only streaming, tree-model, JAXB, schema-validation,
+ * mapper-lifecycle, and pretty-printing behavior remains in Jackson's own test suite.</p>
+ *
+ * @since 3.2
+ */
+abstract class AbstractJacksonXmlParitySpec extends Specification implements XmlSpec {
+
+    def "root numeric values round trip"() {
+        when:
+        def xml = writeXml(value)
+        def decoded = readXml(xml, Argument.of(value.class))
+
+        then:
+        decoded == value
+
+        where:
+        value << [
+            42,
+            -137L,
+            0.25d,
+            BigInteger.valueOf(31337),
+            new BigDecimal("2e308")
+        ]
+    }
+
+    def "enums round trip as root values and bean properties"() {
+        given:
+        def bean = new EnumBean(value: TestEnum.B)
+
+        when:
+        def rootXml = writeXml(TestEnum.B)
+        def beanXml = writeXml(bean)
+
+        then:
+        readXml(rootXml, TestEnum) == TestEnum.B
+        readXml(beanXml, EnumBean).value == TestEnum.B
+    }
+
+    def "enum JsonValue and delegating JsonCreator are honored"() {
+        when:
+        def xml = writeXml(Country.ITALY)
+
+        then:
+        xml == "<Country>Italy</Country>"
+        readXml(xml, Country) == Country.ITALY
+    }
+
+    def "root POJO arrays round trip"() {
+        given:
+        def type = Argument.of(ParityResource[])
+        def input = [
+            new ParityResource(id: 1, name: "first"),
+            new ParityResource(id: 2, name: "second")
+        ] as ParityResource[]
+
+        when:
+        def xml = writeXml(type, input)
+        ParityResource[] decoded = readXml(xml, type)
+
+        then:
+        decoded*.id == [1L, 2L]
+        decoded*.name == ["first", "second"]
+    }
+
+    def "empty wrapped list with whitespace decodes as an empty list"() {
+        when:
+        def decoded = readXml(
+            "<ChannelSet><setId>2</setId><channels>\n  </channels></ChannelSet>",
+            ChannelSet
+        )
+
+        then:
+        decoded.setId == "2"
+        decoded.channels != null
+        decoded.channels.empty
+    }
+
+    def "empty strings and null string list items retain their positions"() {
+        given:
+        def type = Argument.listOf(String)
+        def input = ["", "test", null, "test2"]
+
+        when:
+        def decoded = readXml(writeXml(type, input), type)
+
+        then:
+        decoded.size() == 4
+        decoded[0] == ""
+        decoded[1] == "test"
+        decoded[2] == null || decoded[2] == ""
+        decoded[3] == "test2"
+    }
+
+    def "JsonUnwrapped nested properties round trip"() {
+        given:
+        def input = new Unwrapping(name: "Joe", location: new Location(x: 15, y: 27))
+
+        when:
+        def xml = writeXml(input)
+        def decoded = readXml(xml, Unwrapping)
+
+        then:
+        xml.contains("<loc.x>15</loc.x>")
+        xml.contains("<loc.y>27</loc.y>")
+        !xml.contains("<location>")
+        decoded.name == "Joe"
+        decoded.location.x == 15
+        decoded.location.y == 27
+    }
+
+    def "multiple unwrapped lists preserve attributes and stay distinct"() {
+        given:
+        def input = new UnwrappedLists(
+            firstBar: [new Bar(id: 1, value: "FIRST")],
+            secondBar: [new Bar(id: 2, value: "SECOND")]
+        )
+
+        when:
+        def xml = writeXml(input)
+        def decoded = readXml(xml, UnwrappedLists)
+
+        then:
+        decoded.firstBar*.id == [1]
+        decoded.firstBar*.value == ["FIRST"]
+        decoded.secondBar*.id == [2]
+        decoded.secondBar*.value == ["SECOND"]
+    }
+
+    def "empty beans deserialize from an empty root element"() {
+        expect:
+        readXml("<EmptyBean/>", EmptyBean) != null
+    }
+
+    enum TestEnum {
+        A,
+        B,
+        C
+    }
+
+    @Serdeable
+    static class EnumBean {
+        TestEnum value
+    }
+
+    @Serdeable
+    enum Country {
+        ITALY("Italy"),
+        NETHERLANDS("Netherlands")
+
+        private final String value
+
+        Country(String value) {
+            this.value = value
+        }
+
+        @JsonValue
+        String getValue() {
+            return value
+        }
+
+        @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+        static Country fromValue(String value) {
+            return values().find { it.value == value }
+        }
+    }
+
+    @Serdeable
+    static class ParityResource {
+        long id
+        String name
+    }
+
+    @Serdeable
+    static class ChannelSet {
+        String setId
+
+        @JacksonXmlElementWrapper(useWrapping = true)
+        List<Channel> channels
+    }
+
+    @Serdeable
+    static class Channel {
+        String channelId
+    }
+
+    @Serdeable
+    @JsonPropertyOrder(["name", "location"])
+    static class Unwrapping {
+        String name
+
+        @JsonUnwrapped(prefix = "loc.")
+        Location location
+    }
+
+    @Serdeable
+    @JsonPropertyOrder(["x", "y"])
+    static class Location {
+        int x
+        int y
+    }
+
+    @Serdeable
+    static class UnwrappedLists {
+        @JacksonXmlElementWrapper(useWrapping = false)
+        List<Bar> firstBar
+
+        @JacksonXmlElementWrapper(useWrapping = false)
+        List<Bar> secondBar
+    }
+
+    @Serdeable
+    static class Bar {
+        @JacksonXmlProperty(isAttribute = true)
+        int id
+
+        String value
+    }
+
+    @Serdeable
+    static class EmptyBean {
+    }
+}
