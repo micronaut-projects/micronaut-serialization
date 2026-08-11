@@ -489,20 +489,24 @@ final class DeserBean<T> {
     }
 
     private Keys createPropertyKeys(List<String> keyNames, boolean caseInsensitive) {
-        boolean hasMetadata = false;
-        List<KeyDescriptor> descriptors = new ArrayList<>(keyNames.size());
+        @Nullable List<KeyDescriptor> descriptors = null;
         for (int i = 0; i < keyNames.size(); i++) {
             DerProperty<T, Object> property = propertyForKeyIndex(i);
-            if (property == null || !hasKeyMetadata(property)) {
-                descriptors.add(new KeyDescriptor(keyNames.get(i)));
-            } else {
-                hasMetadata = true;
+            if (descriptors != null) {
+                descriptors.add(property == null || !hasKeyMetadata(property)
+                    ? new KeyDescriptor(keyNames.get(i))
+                    : keyDescriptor(keyNames.get(i), property));
+            } else if (property != null && hasKeyMetadata(property)) {
+                descriptors = new ArrayList<>(keyNames.size());
+                for (int j = 0; j < i; j++) {
+                    descriptors.add(new KeyDescriptor(keyNames.get(j)));
+                }
                 descriptors.add(keyDescriptor(keyNames.get(i), property));
             }
         }
-        return hasMetadata
-            ? Keys.createWithMetadata(descriptors, caseInsensitive)
-            : Keys.create(keyNames, caseInsensitive);
+        return descriptors == null
+            ? Keys.create(keyNames, caseInsensitive)
+            : Keys.createWithMetadata(descriptors, caseInsensitive);
     }
 
     private @Nullable DerProperty<T, Object> propertyForKeyIndex(int keyIndex) {

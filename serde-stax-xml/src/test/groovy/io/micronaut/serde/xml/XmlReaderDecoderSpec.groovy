@@ -15,6 +15,31 @@ import javax.xml.stream.XMLInputFactory
 
 class XmlReaderDecoderSpec extends Specification {
 
+    def "default XML keys do not duplicate the primary key index"() {
+        when:
+        def contribution = new XmlKeysProvider().create(['name', 'age'], false)
+
+        then:
+        ((XmlKey[]) contribution[XmlKeysProvider.XML_KEYS_INDEX])*.name() == ['name', 'age']
+        ((Map<?, ?>) contribution[XmlKeysProvider.INPUT_NAME_INDEXES_INDEX]).isEmpty()
+        contribution[XmlKeysProvider.TEXT_KEY_INDEX] == Keys.UNKNOWN_KEY
+    }
+
+    def "XML keys retain only wrapper aliases in the fallback index"() {
+        when:
+        def contribution = new XmlKeysProvider().createWithMetadata([
+            new KeyDescriptor('name'),
+            KeyDescriptor.create(
+                'values',
+                SerdeConfig.META_ANNOTATION_PROPERTY, 'true',
+                SerdeConfig.WRAPPER_PROPERTY, 'Entries'
+            )
+        ], true)
+
+        then:
+        contribution[XmlKeysProvider.INPUT_NAME_INDEXES_INDEX] == [entries: 1]
+    }
+
     private static Decoder createDecoder(@Language('xml') String xml, boolean emptyElementAsNull = false) {
         def reader = XMLInputFactory.newFactory()
             .createXMLStreamReader(new StringReader(xml))

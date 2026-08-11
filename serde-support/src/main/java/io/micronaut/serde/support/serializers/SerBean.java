@@ -296,11 +296,21 @@ final class SerBean<T> {
     }
 
     private static Keys createPropertyKeys(List<? extends SerProperty<?, ?>> properties) {
-        boolean hasMetadata = properties.stream().anyMatch(SerBean::hasKeyMetadata);
-        if (!hasMetadata) {
-            return Keys.create(properties.stream().map(property -> property.name).toList());
+        List<String> names = new ArrayList<>(properties.size());
+        @Nullable List<KeyDescriptor> descriptors = null;
+        for (SerProperty<?, ?> property : properties) {
+            names.add(property.name);
+            if (descriptors != null) {
+                descriptors.add(hasKeyMetadata(property) ? keyDescriptor(property) : new KeyDescriptor(property.name));
+            } else if (hasKeyMetadata(property)) {
+                descriptors = new ArrayList<>(properties.size());
+                for (int i = 0; i < names.size() - 1; i++) {
+                    descriptors.add(new KeyDescriptor(names.get(i)));
+                }
+                descriptors.add(keyDescriptor(property));
+            }
         }
-        return Keys.createWithMetadata(properties.stream().map(SerBean::keyDescriptor).toList());
+        return descriptors == null ? Keys.create(names) : Keys.createWithMetadata(descriptors);
     }
 
     private static boolean hasKeyMetadata(SerProperty<?, ?> property) {
@@ -488,7 +498,9 @@ final class SerBean<T> {
         } else if (annotationMetadata.booleanValue(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER, "alphabetic").orElse(false) || serializationConfiguration.sortPropertiesAlphabetically()) {
             writeProperties.sort(Comparator.comparing(p -> p.name));
         }
-        writeProperties.sort(Comparator.comparingInt(property -> property.xmlAttributeProperty ? 0 : 1));
+        if (writeProperties.stream().anyMatch(property -> property.xmlAttributeProperty)) {
+            writeProperties.sort(Comparator.comparingInt(property -> property.xmlAttributeProperty ? 0 : 1));
+        }
     }
 
     private static boolean isInjectedSubtypeProperty(SerProperty<?, Object> property) {

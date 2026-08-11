@@ -64,6 +64,9 @@ public record KeyDescriptor(String name, Map<String, String> metadata) {
         if ((metadata.length & 1) != 0) {
             throw new IllegalArgumentException("Key metadata must contain alternating names and values");
         }
+        if (metadata.length == 0) {
+            return new KeyDescriptor(name);
+        }
         Map<String, String> values = new HashMap<>(metadata.length / 2);
         for (int i = 0; i < metadata.length; i += 2) {
             values.put(metadata[i], metadata[i + 1]);

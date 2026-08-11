@@ -1014,11 +1014,13 @@ public final class RecordDeserializerSourceGen {
                     ExpressionDef.constant(entry.getValue())
                 ))
                 .toList();
-            descriptorExpressions.add(KEY_DESCRIPTOR_TYPE.invokeStatic(
-                KEY_DESCRIPTOR_CREATE_METHOD,
-                keyExpressions.get(i),
-                STRING_TYPE.array().instantiate(metadataExpressions)
-            ));
+            descriptorExpressions.add(metadataExpressions.isEmpty()
+                ? KEY_DESCRIPTOR_TYPE.instantiate(keyExpressions.get(i))
+                : KEY_DESCRIPTOR_TYPE.invokeStatic(
+                    KEY_DESCRIPTOR_CREATE_METHOD,
+                    keyExpressions.get(i),
+                    STRING_TYPE.array().instantiate(metadataExpressions)
+                ));
         }
         return KEYS_TYPE.invokeStatic(
             KEYS_CREATE_WITH_METADATA_METHOD,

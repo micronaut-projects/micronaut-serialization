@@ -16,6 +16,7 @@
 package io.micronaut.serde.bson;
 
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.serde.KeyDescriptor;
 import io.micronaut.serde.KeysProvider;
 
 import java.util.List;
@@ -39,5 +40,14 @@ public final class BsonKeysProvider implements KeysProvider {
     @Override
     public Object[] create(List<String> keys) {
         return new Object[] { keys.toArray(String[]::new) };
+    }
+
+    @Override
+    public Object[] createWithMetadata(List<KeyDescriptor> keys, boolean caseInsensitive) {
+        String[] names = new String[keys.size()];
+        for (int i = 0; i < keys.size(); i++) {
+            names[i] = keys.get(i).name();
+        }
+        return new Object[] { names };
     }
 }

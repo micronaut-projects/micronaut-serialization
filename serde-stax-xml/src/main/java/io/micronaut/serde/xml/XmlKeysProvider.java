@@ -51,13 +51,26 @@ public final class XmlKeysProvider implements KeysProvider {
 
     @Override
     public Object[] create(List<String> keys, boolean caseInsensitive) {
-        return createWithMetadata(keys.stream().map(KeyDescriptor::new).toList(), caseInsensitive);
+        XmlKey[] xmlKeys = new XmlKey[keys.size()];
+        for (int i = 0; i < keys.size(); i++) {
+            xmlKeys[i] = new XmlKey(
+                keys.get(i),
+                null,
+                false,
+                false,
+                false,
+                XmlCollectionLayout.DEFAULT,
+                null,
+                null
+            );
+        }
+        return new Object[] { xmlKeys, Map.of(), Keys.UNKNOWN_KEY };
     }
 
     @Override
     public Object[] createWithMetadata(List<KeyDescriptor> keys, boolean caseInsensitive) {
         XmlKey[] xmlKeys = new XmlKey[keys.size()];
-        Map<String, Integer> inputNameIndexes = new HashMap<>(keys.size());
+        @Nullable Map<String, Integer> inputNameIndexes = null;
         int textKeyIndex = Keys.UNKNOWN_KEY;
         for (int i = 0; i < keys.size(); i++) {
             KeyDescriptor key = keys.get(i);
@@ -81,12 +94,18 @@ public final class XmlKeysProvider implements KeysProvider {
             if (xmlKey.text() && textKeyIndex == Keys.UNKNOWN_KEY) {
                 textKeyIndex = i;
             }
-            inputNameIndexes.putIfAbsent(normalize(key.name(), caseInsensitive), i);
             if (collectionLayout == XmlCollectionLayout.WRAPPED && wrapperName != null) {
+                if (inputNameIndexes == null) {
+                    inputNameIndexes = new HashMap<>();
+                }
                 inputNameIndexes.putIfAbsent(normalize(wrapperName, caseInsensitive), i);
             }
         }
-        return new Object[] { xmlKeys, Map.copyOf(inputNameIndexes), textKeyIndex };
+        return new Object[] {
+            xmlKeys,
+            inputNameIndexes == null ? Map.of() : Map.copyOf(inputNameIndexes),
+            textKeyIndex
+        };
     }
 
     static String normalize(String name, boolean caseInsensitive) {
