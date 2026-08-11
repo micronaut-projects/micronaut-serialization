@@ -1,14 +1,14 @@
-To serialize and deserialize XML with Micronaut Serialization, add the `micronaut-serde-xml` runtime. It provides a named XML api:serde.ObjectMapper[] bean and uses the same compile-time serialization metadata as the JSON, JSON-P, and BSON runtimes.
+To serialize and deserialize XML with Micronaut Serialization, add the `micronaut-serde-stax-xml` runtime. It provides a named XML api:serde.ObjectMapper[] bean and uses the same compile-time serialization metadata as the JSON, JSON-P, and BSON runtimes.
 
 Add the following artifact to the `dependencies` block:
 
-dependency:micronaut-serde-xml[groupId="io.micronaut.serde",scope="implementation"]
+dependency:micronaut-serde-stax-xml[groupId="io.micronaut.serde",scope="implementation"]
 
 If your source code uses Jackson XML annotations such as `@JacksonXmlProperty` or `@JacksonXmlElementWrapper`, keep the Jackson XML annotation types on the compile classpath. Micronaut Serialization maps those annotations at compilation time; XML serialization still goes through Micronaut Serialization's named XML mapper rather than a Jackson Databind `XmlMapper`.
 
 With the correct dependencies in place you can define an XML-serializable type:
 
-snippet::example.Book[project-base="doc-examples/example-xml", source="main"]
+snippet::example.Book[project-base="doc-examples/example-stax-xml", source="main"]
 
 <1> The type is annotated with ann:serde.annotation.Serdeable[] to enable serialization/deserialization.
 <2> `@JsonRootName` customizes the XML document root element.
@@ -21,7 +21,7 @@ Use `@JacksonXmlElementWrapper` when a collection should be represented by a con
 
 The XML mapper is registered as a named bean. Inject it with `@Named` using `XmlObjectMapper.XML_MAPPER_NAME` or the literal name `xml`:
 
-snippet::example.BookTest[project-base="doc-examples/example-xml"]
+snippet::example.BookTest[project-base="doc-examples/example-stax-xml"]
 
 XML-specific behavior can be configured under `micronaut.serde.format.xml`:
 

@@ -113,7 +113,7 @@ class XmlObjectMapperRegressionSpec extends Specification {
         String sourcePath = "io/micronaut/serde/xml/bean/${simpleName}.java"
         def sourceFile = new File("build/generated/sources/annotationProcessor/java/test/${sourcePath}")
         if (!sourceFile.exists()) {
-            sourceFile = new File("serde-xml/build/generated/sources/annotationProcessor/java/test/${sourcePath}")
+            sourceFile = new File("serde-stax-xml/build/generated/sources/annotationProcessor/java/test/${sourcePath}")
         }
         assert sourceFile.exists() : "Generated test source not found: ${sourcePath}"
         sourceFile.text

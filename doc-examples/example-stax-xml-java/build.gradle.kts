@@ -11,7 +11,7 @@ micronaut {
 dependencies {
     annotationProcessor(projects.micronautSerdeProcessor)
 
-    implementation(projects.micronautSerdeXml)
+    implementation(projects.micronautSerdeStaxXml)
     implementation(mn.jackson.dataformat.xml)
     implementation(mn.micronaut.http.client)
 
