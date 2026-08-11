@@ -1,8 +1,12 @@
-To serialize and deserialize XML with Micronaut Serialization, add the `micronaut-serde-stax-xml` runtime. It provides a named XML api:serde.ObjectMapper[] bean and uses the same compile-time serialization metadata as the JSON, JSON-P, and BSON runtimes.
+To serialize and deserialize XML with Micronaut Serialization, choose either the JDK StAX runtime or the Woodstox runtime. Both provide a named XML api:serde.ObjectMapper[] bean and use the same compile-time serialization metadata as the JSON, JSON-P, and BSON runtimes.
 
-Add the following artifact to the `dependencies` block:
+For the StAX implementation included with the JDK, add the following artifact to the `dependencies` block:
 
 dependency:micronaut-serde-stax-xml[groupId="io.micronaut.serde",scope="implementation"]
+
+For Woodstox, use the following artifact instead. It includes the StAX integration transitively and selects Woodstox as the XML input and output factory implementation:
+
+dependency:micronaut-serde-woodstox-xml[groupId="io.micronaut.serde",scope="implementation"]
 
 If your source code uses Jackson XML annotations such as `@JacksonXmlProperty` or `@JacksonXmlElementWrapper`, keep the Jackson XML annotation types on the compile classpath. Micronaut Serialization maps those annotations at compilation time; XML serialization still goes through Micronaut Serialization's named XML mapper rather than a Jackson Databind `XmlMapper`.
 
@@ -19,7 +23,7 @@ snippet::example.Book[project-base="doc-examples/example-stax-xml", source="main
 
 Use `@JacksonXmlElementWrapper` when a collection should be represented by a container element. The `localName` member controls the wrapper element name. Set `useWrapping = false` when collection entries should be written directly without a containing wrapper element.
 
-The XML mapper is registered as a named bean. Inject it with `@Named` using `XmlObjectMapper.XML_MAPPER_NAME` or the literal name `xml`:
+The XML mapper is registered as a named bean in both runtimes. Inject it with `@Named` using `XmlObjectMapper.XML_MAPPER_NAME` or the literal name `xml`:
 
 snippet::example.BookTest[project-base="doc-examples/example-stax-xml"]
 

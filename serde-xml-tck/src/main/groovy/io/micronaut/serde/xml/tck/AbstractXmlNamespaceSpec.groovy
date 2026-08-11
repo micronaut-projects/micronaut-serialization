@@ -36,9 +36,13 @@ abstract class AbstractXmlNamespaceSpec extends Specification implements XmlSpec
 
         when:
         String xml = writeXml(bean)
+        def root = parseXmlRoot(xml)
+        def child = root.getElementsByTagNameNS("uri:child", "ChildXML").item(0)
 
         then:
-        xml == '<NamespacedChildBean><wstxns1:ChildXML xmlns:wstxns1="uri:child">v</wstxns1:ChildXML></NamespacedChildBean>'
+        root.localName == "NamespacedChildBean"
+        child != null
+        child.textContent == "v"
     }
 
     def "namespaced attribute - namespace + isAttribute on a property"() {
@@ -47,9 +51,10 @@ abstract class AbstractXmlNamespaceSpec extends Specification implements XmlSpec
 
         when:
         String xml = writeXml(bean)
+        def root = parseXmlRoot(xml)
 
         then: "the attribute is emitted with a namespaced prefix on the owning element"
-        xml == '<NamespacedAttrBean xmlns:wstxns1="http://foo" wstxns1:other="3"></NamespacedAttrBean>'
+        root.getAttributeNS("http://foo", "other") == "3"
     }
 
     def "namespaced root - JsonRootName(value, namespace) round trips"() {
@@ -77,9 +82,10 @@ abstract class AbstractXmlNamespaceSpec extends Specification implements XmlSpec
         when:
         String xml = writeXml(bean)
         def decoded = readXml(xml, MergedNsAttrBean)
+        def root = parseXmlRoot(xml)
 
         then: "the namespace from JsonProperty is honoured on the attribute"
-        xml == '<MergedNsAttrBean xmlns:wstxns1="uri:ns1" wstxns1:value="3"></MergedNsAttrBean>'
+        root.getAttributeNS("uri:ns1", "value") == "3"
         decoded.attr == "3"
     }
 
@@ -224,4 +230,5 @@ abstract class AbstractXmlNamespaceSpec extends Specification implements XmlSpec
     static class NestedBean {
         String value
     }
+
 }

@@ -1,6 +1,7 @@
 package io.micronaut.serde.xml
 
 import io.micronaut.context.ApplicationContext
+import io.micronaut.context.exceptions.BeanInstantiationException
 import io.micronaut.serde.annotation.Serdeable
 import spock.lang.Specification
 import tools.jackson.dataformat.xml.annotation.JacksonXmlProperty
@@ -17,14 +18,15 @@ class XmlOutputFactoryConfigurationSpec extends Specification {
         xml == '<AttributeOnlyBean other="3"></AttributeOnlyBean>'
     }
 
-    def "automatic empty elements can be enabled for Woodstox output"() {
+    def "automatic empty elements require a supporting output factory"() {
         when:
-        def xml = withMapper(['micronaut.serde.format.xml.automatic-empty-elements': true]) { XmlObjectMapper mapper ->
+        withMapper(['micronaut.serde.format.xml.automatic-empty-elements': true]) { XmlObjectMapper mapper ->
             mapper.writeValueAsString(new AttributeOnlyBean())
         }
 
         then:
-        xml == '<AttributeOnlyBean other="3"/>'
+        def e = thrown(BeanInstantiationException)
+        e.message.contains("XML output factory does not support automatic empty elements")
     }
 
     def "default output factory configuration repairs namespaces"() {
@@ -34,7 +36,10 @@ class XmlOutputFactoryConfigurationSpec extends Specification {
         }
 
         then:
-        xml == '<NamespacedChildBean><wstxns1:ChildXML xmlns:wstxns1="uri:child">v</wstxns1:ChildXML></NamespacedChildBean>'
+        xml.startsWith('<NamespacedChildBean><')
+        xml.contains(':ChildXML')
+        xml.contains('="uri:child"')
+        xml.endsWith('</NamespacedChildBean>')
     }
 
     def "namespace repairing can be disabled"() {

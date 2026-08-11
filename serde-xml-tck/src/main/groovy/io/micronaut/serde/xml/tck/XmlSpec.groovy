@@ -20,6 +20,8 @@ import tools.jackson.databind.JsonNode
 
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
+import javax.xml.XMLConstants
+import javax.xml.parsers.DocumentBuilderFactory
 
 trait XmlSpec {
 
@@ -68,6 +70,17 @@ trait XmlSpec {
 
     byte[] xmlBytes(String xml) {
         return xml.getBytes(StandardCharsets.UTF_8)
+    }
+
+    org.w3c.dom.Element parseXmlRoot(String xml) {
+        def factory = DocumentBuilderFactory.newInstance()
+        factory.namespaceAware = true
+        factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
+        factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "")
+        factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "")
+        factory.newDocumentBuilder()
+            .parse(new ByteArrayInputStream(xml.bytes))
+            .documentElement
     }
 
     boolean xmlMatches(String result, String expected) {
