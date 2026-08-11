@@ -21,7 +21,46 @@ snippet::example.Book[project-base="doc-examples/example-stax-xml", source="main
 <5> `@JacksonXmlElementWrapper(localName = "...")` wraps collection entries in the named XML element.
 <6> `@JacksonXmlProperty(localName = "...")` customizes the XML element name used for each collection entry.
 
-Use `@JacksonXmlElementWrapper` when a collection should be represented by a container element. The `localName` member controls the wrapper element name. Set `useWrapping = false` when collection entries should be written directly without a containing wrapper element.
+=== Supported XML Annotations
+
+Micronaut Serialization supports every annotation in the `tools.jackson.dataformat.xml.annotation` package. The standard Jackson `@JsonRootName` and `@JsonProperty` annotations also supply names and namespaces used by the XML mapper. The supported XML-specific members are described below.
+
+[cols="1,1,3", options="header"]
+|===
+|Annotation
+|Supported members
+|XML behavior
+
+|`@JacksonXmlProperty`
+|`isAttribute`, `localName`, `namespace`
+|By default, the property is an XML element. Set `isAttribute = true` to write and read it as an attribute. `localName` changes the element or attribute name, and `namespace` supplies its namespace URI.
+
+|`@JacksonXmlElementWrapper`
+|`useWrapping`, `localName`, `namespace`
+|Controls the container element for an array or collection. Wrapping is enabled by default and uses the property name when `localName` is empty. Set `useWrapping = false` to write entries directly under the parent; `localName` and `namespace` configure the wrapper when wrapping is enabled.
+
+|`@JacksonXmlRootElement`
+|`localName`, `namespace`
+|Changes the document root element name and namespace. It affects only the root value. This annotation is deprecated in Jackson 3; prefer `@JsonRootName` unless the XML root must differ from other formats.
+
+|`@JacksonXmlText`
+|`value`
+|With `value = true` (the default), writes and reads the property as direct text inside its owning element. Attributes may be present on that element. Set `value = false` to retain normal property-element handling.
+
+|`@JacksonXmlCData`
+|`value`
+|With `value = true` (the default), writes `String` properties and `String` collection entries as CDATA. It can be combined with `@JacksonXmlText` for direct CDATA content. Deserialization accepts both CDATA and ordinary character data. Set `value = false` to use normal escaped text.
+
+|`@JsonRootName`
+|`value`, `namespace`
+|`value` changes the document root element name and `namespace` supplies its namespace URI.
+
+|`@JsonProperty`
+|`value`, `namespace`
+|For XML, `value` changes the property element or attribute name and `namespace` supplies its namespace URI. It can be combined with `@JacksonXmlProperty(isAttribute = true)` to create a named, namespaced attribute. Other `@JsonProperty` behavior is shared with the non-XML runtimes.
+|===
+
+An empty `localName` or `value` keeps the inferred property or type name. An empty `namespace` means that no explicit namespace URI is applied.
 
 The XML mapper is registered as a named bean in both runtimes. Inject it with `@Named` using `XmlObjectMapper.XML_MAPPER_NAME` or the literal name `xml`:
 
@@ -46,5 +85,3 @@ micronaut:
 `automatic-empty-elements` defaults to `false`. Enable it to allow the XML output factory to write self-closing empty elements such as `<book/>` when the configured StAX implementation supports that feature.
 
 `xml-read-features.EMPTY_ELEMENT_AS_NULL` defaults to `false`. Enable it when empty XML elements should deserialize as `null` instead of an empty string or empty bean.
-
-Micronaut Serialization also honors XML namespace metadata from `@JsonRootName`, `@JsonProperty`, and `@JacksonXmlProperty`, XML attributes through `@JacksonXmlProperty(isAttribute = true)`, and collection wrappers through `@JacksonXmlElementWrapper`.
