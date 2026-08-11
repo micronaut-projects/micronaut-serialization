@@ -37,6 +37,7 @@ import io.micronaut.inject.qualifiers.Qualifiers;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.FormattedSerializer;
+import io.micronaut.serde.KeyDescriptor;
 import io.micronaut.serde.Keys;
 import io.micronaut.serde.PropertyFilter;
 import io.micronaut.serde.SerdeIntrospections;
@@ -49,7 +50,6 @@ import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
 import io.micronaut.serde.support.util.DecoderValueKind;
 import io.micronaut.serde.support.util.ObjectShapeSerdeHelper;
-import io.micronaut.serde.support.util.PropertySpecificSerde;
 import io.micronaut.serde.support.util.SerdeAnnotationUtil;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
 import io.micronaut.serde.support.util.SerdeFeatures;
@@ -66,6 +66,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -280,13 +281,45 @@ final class SerBean<T> {
             }
         }
         sortPropertiesIfNeeded(serdeArgumentConf, introspection.getAnnotationMetadata(), serializationConfiguration, writeProperties);
-        propertyKeys = Keys.create(writeProperties.stream().map(property -> property.name).toList());
+        propertyKeys = createPropertyKeys(writeProperties);
 
         simpleBean = isSimpleBean();
         boolean isAbstractIntrospection = Modifier.isAbstract(introspection.getBeanType().getModifiers());
         subtyped = isAbstractIntrospection
             || (resolvedSubtypeInfo != null && !resolvedSubtypeInfo.subtypes().isEmpty() && !resolvedSubtypeInfo.subtypes().containsKey(type.getType()))
             || introspection.getAnnotationMetadata().hasDeclaredAnnotation(SerdeConfig.SerSubtyped.class);
+    }
+
+    private static Keys createPropertyKeys(List<? extends SerProperty<?, ?>> properties) {
+        boolean hasMetadata = properties.stream().anyMatch(SerBean::hasKeyMetadata);
+        if (!hasMetadata) {
+            return Keys.create(properties.stream().map(property -> property.name).toList());
+        }
+        return Keys.createWithMetadata(properties.stream().map(SerBean::keyDescriptor).toList());
+    }
+
+    private static boolean hasKeyMetadata(SerProperty<?, ?> property) {
+        return property.xmlAttributeProperty
+            || property.xmlNamespace != null
+            || property.xmlWrappingConfigured
+            || property.xmlWrapperName != null;
+    }
+
+    private static KeyDescriptor keyDescriptor(SerProperty<?, ?> property) {
+        Map<String, String> metadata = new HashMap<>(4);
+        if (property.xmlAttributeProperty) {
+            metadata.put(SerdeConfig.XML_ATTRIBUTE_PROPERTY, "true");
+        }
+        if (property.xmlNamespace != null) {
+            metadata.put(SerdeConfig.XML_NAMESPACE, property.xmlNamespace);
+        }
+        if (property.xmlWrappingConfigured) {
+            metadata.put(SerdeConfig.META_ANNOTATION_PROPERTY, Boolean.toString(property.xmlUseWrapping));
+        }
+        if (property.xmlWrapperName != null) {
+            metadata.put(SerdeConfig.WRAPPER_PROPERTY, property.xmlWrapperName);
+        }
+        return new KeyDescriptor(property.name, metadata);
     }
 
     @Nullable
@@ -817,19 +850,9 @@ final class SerBean<T> {
             serializer = (Serializer<Z>) encoderContext.findSerializer(argument);
         }
         Serializer.EncoderContext propertyContext = encoderContext.withFeatures(prop.featuresWith, prop.featuresWithout);
-        Serializer<Z> specificSerializer = prop.format == null
+        prop.serializer = prop.format == null
             ? serializer.createSpecific(propertyContext, argument)
             : createSpecific(prop.format, serializer, propertyContext, argument);
-        if (specificSerializer instanceof PropertySpecificSerde<?> propertySpecificSerde) {
-            specificSerializer = (Serializer<Z>) propertySpecificSerde.forProperty(new PropertySpecificSerde.PropertyConfiguration(
-                prop.name,
-                prop.xmlNamespace,
-                prop.xmlUseWrapping,
-                prop.xmlWrapperName,
-                prop.xmlAttributeProperty
-            ));
-        }
-        prop.serializer = specificSerializer;
 
         if (prop.serializableInto) {
             if (prop.serializer instanceof io.micronaut.serde.ObjectSerializer<Z> objectSerializer) {
@@ -1052,6 +1075,7 @@ final class SerBean<T> {
         public final boolean serializableInto;
         public final boolean primitive;
         public final boolean xmlUseWrapping;
+        public final boolean xmlWrappingConfigured;
         public final boolean xmlAttributeProperty;
         public final @Nullable String xmlWrapperName;
         public final @Nullable String xmlNamespace;
@@ -1097,7 +1121,9 @@ final class SerBean<T> {
                     .orElse(null);
             this.backRef = annotationMetadata.stringValue(SerdeConfig.SerBackRef.class)
                     .orElse(null);
-            this.xmlUseWrapping = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.META_ANNOTATION_PROPERTY).orElse(true);
+            Optional<Boolean> xmlUseWrapping = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.META_ANNOTATION_PROPERTY);
+            this.xmlUseWrapping = xmlUseWrapping.orElse(true);
+            this.xmlWrappingConfigured = xmlUseWrapping.isPresent();
             this.xmlAttributeProperty = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.XML_ATTRIBUTE_PROPERTY).orElse(false);
             this.xmlWrapperName = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY).orElse(null);
             this.xmlNamespace = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.XML_NAMESPACE).orElse(null);

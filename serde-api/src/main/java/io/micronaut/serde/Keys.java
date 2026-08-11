@@ -76,6 +76,52 @@ public interface Keys {
     }
 
     /**
+     * Create a key set with metadata available to backend-specific key providers.
+     *
+     * @param keys The key descriptors
+     * @return The key set
+     * @since 3.2
+     */
+    static Keys createWithMetadata(List<KeyDescriptor> keys) {
+        return KeysSupport.createWithMetadata(keys);
+    }
+
+    /**
+     * Create a key set with metadata available to backend-specific key providers.
+     *
+     * @param keys The key descriptors
+     * @param caseInsensitive Whether key matching should be case-insensitive
+     * @return The key set
+     * @since 3.2
+     */
+    static Keys createWithMetadata(List<KeyDescriptor> keys, boolean caseInsensitive) {
+        return KeysSupport.createWithMetadata(keys, caseInsensitive);
+    }
+
+    /**
+     * Create a key set with metadata available to backend-specific key providers.
+     *
+     * @param keys The key descriptors
+     * @return The key set
+     * @since 3.2
+     */
+    static Keys createWithMetadata(KeyDescriptor... keys) {
+        return KeysSupport.createWithMetadata(List.of(keys));
+    }
+
+    /**
+     * Create a key set with metadata available to backend-specific key providers.
+     *
+     * @param keys The key descriptors
+     * @param caseInsensitive Whether key matching should be case-insensitive
+     * @return The key set
+     * @since 3.2
+     */
+    static Keys createWithMetadata(KeyDescriptor[] keys, boolean caseInsensitive) {
+        return KeysSupport.createWithMetadata(List.of(keys), caseInsensitive);
+    }
+
+    /**
      * Find the index of the supplied key.
      *
      * @param key The key

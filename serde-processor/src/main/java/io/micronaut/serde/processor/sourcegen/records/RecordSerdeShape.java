@@ -20,6 +20,7 @@ import io.micronaut.inject.ast.MethodElement;
 import io.micronaut.inject.ast.PropertyElement;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Shape model for record-based source generation.
@@ -35,13 +36,27 @@ public record RecordSerdeShape(
      * Record component metadata used by source generation.
      *
      * @param name The component name.
+     * @param serializedName The serialized component name.
      * @param type The component type.
+     * @param keyMetadata Pre-resolved metadata contributed with the component key.
      * @param propertyElement The associated bean property element.
      */
     public record RecordComponent(
         String name,
+        String serializedName,
         ClassElement type,
+        Map<String, String> keyMetadata,
         PropertyElement propertyElement
     ) {
+        /**
+         * Creates a component whose serialized name matches its Java name and has no key metadata.
+         *
+         * @param name The component name.
+         * @param type The component type.
+         * @param propertyElement The associated bean property element.
+         */
+        public RecordComponent(String name, ClassElement type, PropertyElement propertyElement) {
+            this(name, name, type, Map.of(), propertyElement);
+        }
     }
 }

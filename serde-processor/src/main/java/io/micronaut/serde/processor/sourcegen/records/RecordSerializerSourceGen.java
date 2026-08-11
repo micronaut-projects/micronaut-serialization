@@ -21,10 +21,12 @@ import io.micronaut.context.annotation.Parameter;
 import io.micronaut.context.annotation.Prototype;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.KeyDescriptor;
 import io.micronaut.serde.Keys;
 import io.micronaut.serde.KeysAwareEncoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
 import io.micronaut.serde.util.GeneratedSerdeExceptionUtil;
@@ -50,6 +52,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 /**
  * Generates optimized source serializers for records.
@@ -65,6 +68,7 @@ public final class RecordSerializerSourceGen {
     private static final TypeDef SERIALIZER_TYPE = TypeDef.of(Serializer.class);
     private static final TypeDef STRING_TYPE = TypeDef.of(String.class);
     private static final ClassTypeDef KEYS_TYPE = ClassTypeDef.of(Keys.class);
+    private static final ClassTypeDef KEY_DESCRIPTOR_TYPE = ClassTypeDef.of(KeyDescriptor.class);
     private static final ClassTypeDef KEYS_AWARE_ENCODER_TYPE = ClassTypeDef.of(KeysAwareEncoder.class);
 
     private static final Method SERIALIZE_METHOD = ReflectionUtils.getRequiredMethod(
@@ -90,6 +94,8 @@ public final class RecordSerializerSourceGen {
         Argument.class
     );
     private static final Method KEYS_CREATE_METHOD = ReflectionUtils.getRequiredMethod(Keys.class, "create", String[].class);
+    private static final Method KEYS_CREATE_WITH_METADATA_METHOD = ReflectionUtils.getRequiredMethod(Keys.class, "createWithMetadata", KeyDescriptor[].class);
+    private static final Method KEY_DESCRIPTOR_CREATE_METHOD = ReflectionUtils.getRequiredMethod(KeyDescriptor.class, "create", String.class, String[].class);
     private static final Method ENCODE_OBJECT_METHOD = ReflectionUtils.getRequiredMethod(Encoder.class, "encodeObject", Argument.class);
     private static final Method KEYS_AWARE_ENCODER_OF_METHOD = ReflectionUtils.getRequiredMethod(KeysAwareEncoder.class, "of", Encoder.class);
     private static final Method ENCODE_KEY_KEYS_METHOD = ReflectionUtils.getRequiredMethod(KeysAwareEncoder.class, "encodeKey", Keys.class, int.class);
@@ -115,6 +121,12 @@ public final class RecordSerializerSourceGen {
     );
 
     public ClassDef generate(ClassElement element, RecordSerdeShape recordSerdeShape) {
+        recordSerdeShape = new RecordSerdeShape(
+            recordSerdeShape.canonicalConstructor(),
+            recordSerdeShape.components().stream()
+                .sorted((left, right) -> Boolean.compare(isXmlAttribute(right), isXmlAttribute(left)))
+                .toList()
+        );
         TypeDef recordTypeDef = TypeDef.of(element);
         ClassTypeDef serializerClassTypeDef = ClassTypeDef.of(SerdeSourceGenClassNaming.generatedSerializerClassName(element));
         Map<String, String> keyFieldNames = new LinkedHashMap<>();
@@ -131,7 +143,7 @@ public final class RecordSerializerSourceGen {
 
             fields.add(FieldDef.builder(keyFieldName, STRING_TYPE)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                .initializer(ExpressionDef.constant(component.name()))
+                .initializer(ExpressionDef.constant(component.serializedName()))
                 .build());
             fields.add(FieldDef.builder(argumentFieldName, ARGUMENT_TYPE)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
@@ -152,7 +164,7 @@ public final class RecordSerializerSourceGen {
         if (!keyFieldNames.isEmpty()) {
             fields.add(FieldDef.builder(KEYS_FIELD, KEYS_TYPE)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                .initializer(keysCreateExpression(serializerClassTypeDef, new ArrayList<>(keyFieldNames.values())))
+                .initializer(keysCreateExpression(serializerClassTypeDef, recordSerdeShape.components(), new ArrayList<>(keyFieldNames.values())))
                 .build());
         }
         ClassDef.ClassDefBuilder classDefBuilder = ClassDef.builder(SerdeSourceGenClassNaming.generatedSerializerClassName(element))
@@ -407,14 +419,41 @@ public final class RecordSerializerSourceGen {
         return prefix + "_" + index;
     }
 
-    private ExpressionDef keysCreateExpression(ClassTypeDef serializerClassTypeDef, List<String> keyFieldNames) {
+    private ExpressionDef keysCreateExpression(ClassTypeDef serializerClassTypeDef,
+                                               List<RecordSerdeShape.RecordComponent> components,
+                                               List<String> keyFieldNames) {
         List<ExpressionDef> keyExpressions = keyFieldNames.stream()
             .map(keyFieldName -> (ExpressionDef) serializerClassTypeDef.getStaticField(keyFieldName, STRING_TYPE))
             .toList();
+        if (components.stream().noneMatch(component -> !component.keyMetadata().isEmpty())) {
+            return KEYS_TYPE.invokeStatic(
+                KEYS_CREATE_METHOD,
+                STRING_TYPE.array().instantiate(keyExpressions)
+            );
+        }
+        List<ExpressionDef> descriptorExpressions = new ArrayList<>(components.size());
+        for (int i = 0; i < components.size(); i++) {
+            List<ExpressionDef> metadataExpressions = components.get(i).keyMetadata().entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .flatMap(entry -> Stream.<ExpressionDef>of(
+                    RecordSerdeSourceGenUtils.keyMetadataPropertyExpression(entry.getKey()),
+                    ExpressionDef.constant(entry.getValue())
+                ))
+                .toList();
+            descriptorExpressions.add(KEY_DESCRIPTOR_TYPE.invokeStatic(
+                KEY_DESCRIPTOR_CREATE_METHOD,
+                keyExpressions.get(i),
+                STRING_TYPE.array().instantiate(metadataExpressions)
+            ));
+        }
         return KEYS_TYPE.invokeStatic(
-            KEYS_CREATE_METHOD,
-            STRING_TYPE.array().instantiate(keyExpressions)
+            KEYS_CREATE_WITH_METADATA_METHOD,
+            KEY_DESCRIPTOR_TYPE.array().instantiate(descriptorExpressions)
         );
+    }
+
+    private static boolean isXmlAttribute(RecordSerdeShape.RecordComponent component) {
+        return Boolean.parseBoolean(component.keyMetadata().get(SerdeConfig.XML_ATTRIBUTE_PROPERTY));
     }
 
     private static String required(Map<String, String> names, String key) {

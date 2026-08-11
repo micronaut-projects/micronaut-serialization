@@ -111,7 +111,6 @@ public final class XmlObjectMapper implements ObjectMapper {
      * @throws IOException If an error occurs reading or decoding XML
      */
     @Override
-    @SuppressWarnings("NullAway")
     public <T> T readValue(InputStream inputStream, Argument<T> type) throws IOException {
         Deserializer.DecoderContext decoderContext = registry.newDecoderContext(null);
         Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext,
@@ -174,7 +173,6 @@ public final class XmlObjectMapper implements ObjectMapper {
      * @throws IOException If an error occurs decoding the tree
      */
     @Override
-    @SuppressWarnings("NullAway")
     public <T> T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
         Deserializer.DecoderContext decoderContext = registry.newDecoderContext(null);
         Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext,
@@ -191,13 +189,7 @@ public final class XmlObjectMapper implements ObjectMapper {
      */
     @Override
     public JsonNode writeValueToTree(@Nullable Object value) throws IOException {
-        JsonNodeEncoder encoder = JsonNodeEncoder.create(limits());
-        if (value == null) {
-            encoder.encodeNull();
-            return encoder.getCompletedValue();
-        }
-        serialize(encoder, value, Argument.of(value.getClass()));
-        return encoder.getCompletedValue();
+        return writeValueToTree0(argumentOf(value), value);
     }
 
     /**
@@ -211,12 +203,16 @@ public final class XmlObjectMapper implements ObjectMapper {
      */
     @Override
     public <T> JsonNode writeValueToTree(Argument<T> type, @Nullable T value) throws IOException {
+        return writeValueToTree0(type, value);
+    }
+
+    private JsonNode writeValueToTree0(Argument<?> type, @Nullable Object value) throws IOException {
         JsonNodeEncoder encoder = JsonNodeEncoder.create(limits());
         if (value == null) {
             encoder.encodeNull();
-            return encoder.getCompletedValue();
+        } else {
+            serialize(encoder, value, type);
         }
-        serialize(encoder, value, type);
         return encoder.getCompletedValue();
     }
 
@@ -229,23 +225,7 @@ public final class XmlObjectMapper implements ObjectMapper {
      */
     @Override
     public void writeValue(OutputStream outputStream, @Nullable Object object) throws IOException {
-        if (object == null) {
-            writeNullDocument(outputStream);
-            return;
-        }
-        Argument<?> type = Argument.of(object.getClass());
-        XMLStreamWriter xmlWriter = null;
-        try {
-            xmlWriter = xmlOutputFactory.createXMLStreamWriter(outputStream);
-            XmlGenerator encoder = new XmlGenerator(xmlWriter, resolveRootName(type));
-            serialize(encoder, object, type);
-            xmlWriter.close();
-            xmlWriter = null;
-        } catch (XMLStreamException e) {
-            throw new SerdeException("Error writing XML", e);
-        } finally {
-            closeQuietly(xmlWriter);
-        }
+        writeValue0(outputStream, argumentOf(object), object);
     }
 
     /**
@@ -260,15 +240,22 @@ public final class XmlObjectMapper implements ObjectMapper {
     @Override
     public <T> void writeValue(OutputStream outputStream, Argument<T> type, @Nullable T object)
         throws IOException {
-        if (object == null) {
-            writeNullDocument(outputStream);
-            return;
-        }
+        writeValue0(outputStream, type, object);
+    }
+
+    private void writeValue0(OutputStream outputStream, Argument<?> type, @Nullable Object object) throws IOException {
         XMLStreamWriter xmlWriter = null;
         try {
             xmlWriter = xmlOutputFactory.createXMLStreamWriter(outputStream);
-            XmlGenerator encoder = new XmlGenerator(xmlWriter, resolveRootName(type));
-            serialize(encoder, object, type);
+            if (object == null) {
+                xmlWriter.writeStartDocument();
+                xmlWriter.writeEmptyElement("null");
+                xmlWriter.writeEndDocument();
+                xmlWriter.flush();
+            } else {
+                XmlGenerator encoder = new XmlGenerator(xmlWriter, resolveRootName(type));
+                serialize(encoder, object, type);
+            }
             xmlWriter.close();
             xmlWriter = null;
         } catch (XMLStreamException e) {
@@ -287,8 +274,12 @@ public final class XmlObjectMapper implements ObjectMapper {
      */
     @Override
     public byte[] writeValueAsBytes(@Nullable Object object) throws IOException {
+        return writeValueAsBytes0(argumentOf(object), object);
+    }
+
+    private byte[] writeValueAsBytes0(Argument<?> type, @Nullable Object object) throws IOException {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
-        writeValue(output, object);
+        writeValue0(output, type, object);
         return output.toByteArray();
     }
 
@@ -303,9 +294,7 @@ public final class XmlObjectMapper implements ObjectMapper {
      */
     @Override
     public <T> byte[] writeValueAsBytes(Argument<T> type, @Nullable T object) throws IOException {
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        writeValue(output, type, object);
-        return output.toByteArray();
+        return writeValueAsBytes0(type, object);
     }
 
     /**
@@ -317,9 +306,7 @@ public final class XmlObjectMapper implements ObjectMapper {
      */
     @Override
     public String writeValueAsString(@Nullable Object object) throws IOException {
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        writeValue(output, object);
-        return new String(output.toByteArray(), StandardCharsets.UTF_8);
+        return new String(writeValueAsBytes(object), StandardCharsets.UTF_8);
     }
 
     /**
@@ -334,6 +321,10 @@ public final class XmlObjectMapper implements ObjectMapper {
         return serdeConfiguration == null
             ? LimitingStream.DEFAULT_LIMITS
             : LimitingStream.limitsFromConfiguration(serdeConfiguration);
+    }
+
+    private static Argument<?> argumentOf(@Nullable Object object) {
+        return object == null ? Argument.OBJECT_ARGUMENT : Argument.of(object.getClass());
     }
 
     @SuppressWarnings("unchecked")
@@ -353,23 +344,6 @@ public final class XmlObjectMapper implements ObjectMapper {
                 }
                 return NameUtils.camelCase(type.getName(), false);
             });
-    }
-
-    private void writeNullDocument(OutputStream outputStream) throws IOException {
-        XMLStreamWriter xmlWriter = null;
-        try {
-            xmlWriter = xmlOutputFactory.createXMLStreamWriter(outputStream);
-            xmlWriter.writeStartDocument();
-            xmlWriter.writeEmptyElement("null");
-            xmlWriter.writeEndDocument();
-            xmlWriter.flush();
-            xmlWriter.close();
-            xmlWriter = null;
-        } catch (XMLStreamException e) {
-            throw new SerdeException("Error writing XML", e);
-        } finally {
-            closeQuietly(xmlWriter);
-        }
     }
 
     private static void closeQuietly(@Nullable XMLStreamWriter xmlWriter) {

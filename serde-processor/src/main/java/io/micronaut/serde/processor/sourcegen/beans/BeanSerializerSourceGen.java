@@ -24,6 +24,7 @@ import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.FieldElement;
 import io.micronaut.inject.ast.MethodElement;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.KeyDescriptor;
 import io.micronaut.serde.Keys;
 import io.micronaut.serde.KeysAwareEncoder;
 import io.micronaut.serde.ObjectSerializer;
@@ -53,6 +54,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 /**
  * Generates optimized source serializers for bean types.
@@ -68,6 +70,7 @@ public final class BeanSerializerSourceGen {
     private static final TypeDef SERIALIZER_TYPE = TypeDef.of(Serializer.class);
     private static final TypeDef STRING_TYPE = TypeDef.of(String.class);
     private static final ClassTypeDef KEYS_TYPE = ClassTypeDef.of(Keys.class);
+    private static final ClassTypeDef KEY_DESCRIPTOR_TYPE = ClassTypeDef.of(KeyDescriptor.class);
     private static final ClassTypeDef KEYS_AWARE_ENCODER_TYPE = ClassTypeDef.of(KeysAwareEncoder.class);
 
     private static final Method SERIALIZE_METHOD = ReflectionUtils.getRequiredMethod(
@@ -93,6 +96,8 @@ public final class BeanSerializerSourceGen {
         Argument.class
     );
     private static final Method KEYS_CREATE_METHOD = ReflectionUtils.getRequiredMethod(Keys.class, "create", String[].class);
+    private static final Method KEYS_CREATE_WITH_METADATA_METHOD = ReflectionUtils.getRequiredMethod(Keys.class, "createWithMetadata", KeyDescriptor[].class);
+    private static final Method KEY_DESCRIPTOR_CREATE_METHOD = ReflectionUtils.getRequiredMethod(KeyDescriptor.class, "create", String.class, String[].class);
     private static final Method ENCODE_OBJECT_METHOD = ReflectionUtils.getRequiredMethod(Encoder.class, "encodeObject", Argument.class);
     private static final Method KEYS_AWARE_ENCODER_OF_METHOD = ReflectionUtils.getRequiredMethod(KeysAwareEncoder.class, "of", Encoder.class);
     private static final Method ENCODE_KEY_KEYS_METHOD = ReflectionUtils.getRequiredMethod(KeysAwareEncoder.class, "encodeKey", Keys.class, int.class);
@@ -163,7 +168,7 @@ public final class BeanSerializerSourceGen {
         if (!keyFieldNames.isEmpty()) {
             fields.add(FieldDef.builder(KEYS_FIELD, KEYS_TYPE)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                .initializer(keysCreateExpression(serializerClassTypeDef, new ArrayList<>(keyFieldNames.values())))
+                .initializer(keysCreateExpression(serializerClassTypeDef, beanSerdeShape.properties(), new ArrayList<>(keyFieldNames.values())))
                 .build());
         }
         ClassDef.ClassDefBuilder classDefBuilder = ClassDef.builder(SerdeSourceGenClassNaming.generatedSerializerClassName(element))
@@ -441,13 +446,36 @@ public final class BeanSerializerSourceGen {
         return prefix + "_" + index;
     }
 
-    private ExpressionDef keysCreateExpression(ClassTypeDef serializerClassTypeDef, List<String> keyFieldNames) {
+    private ExpressionDef keysCreateExpression(ClassTypeDef serializerClassTypeDef,
+                                               List<BeanSerdeShape.BeanProperty> properties,
+                                               List<String> keyFieldNames) {
         List<ExpressionDef> keyExpressions = keyFieldNames.stream()
             .map(keyFieldName -> (ExpressionDef) serializerClassTypeDef.getStaticField(keyFieldName, STRING_TYPE))
             .toList();
+        if (properties.stream().noneMatch(property -> !property.keyMetadata().isEmpty())) {
+            return KEYS_TYPE.invokeStatic(
+                KEYS_CREATE_METHOD,
+                STRING_TYPE.array().instantiate(keyExpressions)
+            );
+        }
+        List<ExpressionDef> descriptorExpressions = new ArrayList<>(properties.size());
+        for (int i = 0; i < properties.size(); i++) {
+            List<ExpressionDef> metadataExpressions = properties.get(i).keyMetadata().entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .flatMap(entry -> Stream.<ExpressionDef>of(
+                    BeanSerdeSourceGenUtils.keyMetadataPropertyExpression(entry.getKey()),
+                    ExpressionDef.constant(entry.getValue())
+                ))
+                .toList();
+            descriptorExpressions.add(KEY_DESCRIPTOR_TYPE.invokeStatic(
+                KEY_DESCRIPTOR_CREATE_METHOD,
+                keyExpressions.get(i),
+                STRING_TYPE.array().instantiate(metadataExpressions)
+            ));
+        }
         return KEYS_TYPE.invokeStatic(
-            KEYS_CREATE_METHOD,
-            STRING_TYPE.array().instantiate(keyExpressions)
+            KEYS_CREATE_WITH_METADATA_METHOD,
+            KEY_DESCRIPTOR_TYPE.array().instantiate(descriptorExpressions)
         );
     }
 

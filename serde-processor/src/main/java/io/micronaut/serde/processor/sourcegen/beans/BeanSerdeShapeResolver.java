@@ -20,10 +20,13 @@ import io.micronaut.inject.ast.ConstructorElement;
 import io.micronaut.inject.ast.FieldElement;
 import io.micronaut.inject.ast.MethodElement;
 import io.micronaut.inject.ast.PropertyElement;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -69,7 +72,12 @@ public final class BeanSerdeShapeResolver {
             }
             properties.add(beanProperty);
         }
+        properties.sort((left, right) -> Boolean.compare(isXmlAttribute(right), isXmlAttribute(left)));
         return Optional.of(properties);
+    }
+
+    private static boolean isXmlAttribute(BeanSerdeShape.BeanProperty property) {
+        return Boolean.parseBoolean(property.keyMetadata().get(SerdeConfig.XML_ATTRIBUTE_PROPERTY));
     }
 
     private static Optional<BeanSerdeShape.BeanProperty> resolveProperty(ClassElement element, PropertyElement property) {
@@ -86,16 +94,59 @@ public final class BeanSerdeShapeResolver {
             return Optional.empty();
         }
         return Optional.of(new BeanSerdeShape.BeanProperty(
-            property.getName(),
+            stringValue(property, SerdeConfig.PROPERTY).orElse(property.getName()),
             serializationType,
             deserializationType,
             property.isNonNull(),
             property.isNullable(),
+            resolveKeyMetadata(property),
             propertyAccess.readMethod(),
             propertyAccess.writeMethod(),
             propertyAccess.readField(),
             propertyAccess.writeField()
         ));
+    }
+
+    private static Map<String, String> resolveKeyMetadata(PropertyElement property) {
+        Map<String, String> metadata = new HashMap<>(4);
+        booleanValue(property, SerdeConfig.XML_ATTRIBUTE_PROPERTY)
+            .filter(Boolean::booleanValue)
+            .ifPresent(value -> metadata.put(SerdeConfig.XML_ATTRIBUTE_PROPERTY, "true"));
+        stringValue(property, SerdeConfig.XML_NAMESPACE)
+            .ifPresent(value -> metadata.put(SerdeConfig.XML_NAMESPACE, value));
+        booleanValue(property, SerdeConfig.META_ANNOTATION_PROPERTY)
+            .ifPresent(value -> metadata.put(SerdeConfig.META_ANNOTATION_PROPERTY, value.toString()));
+        stringValue(property, SerdeConfig.WRAPPER_PROPERTY)
+            .ifPresent(value -> metadata.put(SerdeConfig.WRAPPER_PROPERTY, value));
+        return Map.copyOf(metadata);
+    }
+
+    private static Optional<String> stringValue(PropertyElement property, String member) {
+        Optional<String> value = property.stringValue(SerdeConfig.class, member);
+        if (value.isEmpty()) {
+            value = property.getReadMethod().flatMap(method -> method.stringValue(SerdeConfig.class, member));
+        }
+        if (value.isEmpty()) {
+            value = property.getWriteMethod().flatMap(method -> method.stringValue(SerdeConfig.class, member));
+        }
+        if (value.isEmpty()) {
+            value = property.getField().flatMap(field -> field.stringValue(SerdeConfig.class, member));
+        }
+        return value;
+    }
+
+    private static Optional<Boolean> booleanValue(PropertyElement property, String member) {
+        Optional<Boolean> value = property.booleanValue(SerdeConfig.class, member);
+        if (value.isEmpty()) {
+            value = property.getReadMethod().flatMap(method -> method.booleanValue(SerdeConfig.class, member));
+        }
+        if (value.isEmpty()) {
+            value = property.getWriteMethod().flatMap(method -> method.booleanValue(SerdeConfig.class, member));
+        }
+        if (value.isEmpty()) {
+            value = property.getField().flatMap(field -> field.booleanValue(SerdeConfig.class, member));
+        }
+        return value;
     }
 
     private static Optional<PropertyAccess> resolvePropertyAccess(ClassElement element, PropertyElement property) {

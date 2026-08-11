@@ -15,7 +15,6 @@
  */
 package io.micronaut.serde.processor.xml;
 
-import io.micronaut.core.annotation.AnnotationClassValue;
 import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.core.annotation.AnnotationValueBuilder;
 import io.micronaut.inject.annotation.NamedAnnotationMapper;
@@ -34,9 +33,6 @@ public final class JacksonXmlElementWrapperMapper implements NamedAnnotationMapp
 
     static final String USE_WRAPPING = "useWrapping";
     static final String LOCAL_NAME = "localName";
-    static final String XML_WRAPPER_PROPERTY_SERDE_CLASS = "io.micronaut.serde.xml.serde.XmlWrapperSerde";
-    private static final AnnotationClassValue<?> XML_WRAPPER_PROPERTY_SERDE_CLASS_VALUE =
-        new AnnotationClassValue<>(XML_WRAPPER_PROPERTY_SERDE_CLASS);
 
     @Override
     public String getName() {
@@ -54,20 +50,14 @@ public final class JacksonXmlElementWrapperMapper implements NamedAnnotationMapp
     @Override
     public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         AnnotationValueBuilder<SerdeConfig> builder = AnnotationValue.builder(SerdeConfig.class);
-        annotation.booleanValue(USE_WRAPPING).ifPresentOrElse(useWrapping -> {
-                builder.member(SerdeConfig.META_ANNOTATION_PROPERTY, useWrapping);
-                    configureWrapperSerde(builder);
-            },
+        annotation.booleanValue(USE_WRAPPING).ifPresentOrElse(
+            useWrapping -> builder.member(SerdeConfig.META_ANNOTATION_PROPERTY, useWrapping),
             () -> {
                 annotation.stringValue(LOCAL_NAME)
                     .filter(localName -> !localName.isEmpty())
-                    .ifPresent(localName -> {
-                        builder.member(SerdeConfig.META_ANNOTATION_PROPERTY, true);
-                        configureWrapperSerde(builder);
-
-                    });
+                    .ifPresent(localName -> builder.member(SerdeConfig.META_ANNOTATION_PROPERTY, true));
             }
-            );
+        );
 
         annotation.stringValue(LOCAL_NAME)
             .filter(localName -> !localName.isEmpty())
@@ -77,16 +67,5 @@ public final class JacksonXmlElementWrapperMapper implements NamedAnnotationMapp
             });
 
         return Collections.singletonList(builder.build());
-    }
-
-    /**
-     * Registers {@code XmlWrapperSerde} as both the serializer and deserializer so the wrapper
-     * element is written and read.
-     *
-     * @param builder The {@link SerdeConfig} builder to configure
-     */
-    private static void configureWrapperSerde(AnnotationValueBuilder<SerdeConfig> builder) {
-        builder.member(SerdeConfig.SERIALIZER_CLASS, XML_WRAPPER_PROPERTY_SERDE_CLASS_VALUE);
-        builder.member(SerdeConfig.DESERIALIZER_CLASS, XML_WRAPPER_PROPERTY_SERDE_CLASS_VALUE);
     }
 }

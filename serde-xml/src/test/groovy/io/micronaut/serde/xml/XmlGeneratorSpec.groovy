@@ -2,6 +2,10 @@ package io.micronaut.serde.xml
 
 import io.micronaut.core.type.Argument
 import io.micronaut.serde.Encoder
+import io.micronaut.serde.KeyDescriptor
+import io.micronaut.serde.Keys
+import io.micronaut.serde.KeysAwareEncoder
+import io.micronaut.serde.config.annotation.SerdeConfig
 import spock.lang.Specification
 
 import javax.xml.stream.XMLOutputFactory
@@ -13,7 +17,7 @@ class XmlGeneratorSpec extends Specification {
         def output = new ByteArrayOutputStream()
         def writer = XMLOutputFactory.newFactory()
             .createXMLStreamWriter(output, StandardCharsets.UTF_8.name())
-        def encoder = new XmlGenerator(writer)
+        def encoder = new XmlGenerator(writer, (String) null)
 
         closure.call(encoder)
 
@@ -48,33 +52,39 @@ class XmlGeneratorSpec extends Specification {
         } == '<Root><items><items>a</items><items>b</items></items></Root>'
     }
 
-    def "encode inline array"() {
+    def "encode XML property layout from reusable keys"() {
+        given:
+        def keys = Keys.createWithMetadata(
+            KeyDescriptor.create('id', SerdeConfig.XML_ATTRIBUTE_PROPERTY, 'true'),
+            KeyDescriptor.create('item', SerdeConfig.META_ANNOTATION_PROPERTY, 'false'),
+            KeyDescriptor.create(
+                'values',
+                SerdeConfig.META_ANNOTATION_PROPERTY, 'true',
+                SerdeConfig.WRAPPER_PROPERTY, 'entries'
+            )
+        )
+
         expect:
         writeXml { Encoder encoder ->
             def object = encoder.encodeObject(Argument.of(Root))
-            object.encodeKey('item')
+            def keyEncoder = (KeysAwareEncoder) object
 
-            def array = ((XmlGenerator) object).encodeInlineArray(Argument.of(List))
-            array.encodeString('a')
-            array.encodeString('b')
-            array.finishStructure()
+            keyEncoder.encodeKey(keys, 0)
+            object.encodeInt(7)
 
-            object.finishStructure()
-        } == '<Root><item>a</item><item>b</item></Root>'
-    }
+            keyEncoder.encodeKey(keys, 1)
+            def inline = object.encodeArray(Argument.of(List))
+            inline.encodeString('a')
+            inline.encodeString('b')
+            inline.finishStructure()
 
-    def "encode attribute and child element"() {
-        expect:
-        writeXml { Encoder encoder ->
-            def object = encoder.encodeObject(Argument.of(Root))
-            object.encodeKey('id')
-            ((XmlGenerator) object).writeAttributeForCurrentKey('123')
-
-            object.encodeKey('name')
-            object.encodeString('Bob')
+            keyEncoder.encodeKey(keys, 2)
+            def wrapped = object.encodeArray(Argument.of(List))
+            wrapped.encodeString('x')
+            wrapped.finishStructure()
 
             object.finishStructure()
-        } == '<Root id="123"><name>Bob</name></Root>'
+        } == '<Root id="7"><item>a</item><item>b</item><entries><values>x</values></entries></Root>'
     }
 
     def "encode null as empty element"() {

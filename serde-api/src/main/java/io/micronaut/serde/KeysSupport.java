@@ -18,6 +18,7 @@ package io.micronaut.serde;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.io.service.SoftServiceLoader;
 import io.micronaut.core.util.StringIntMap;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -58,7 +59,32 @@ public final class KeysSupport {
      */
     public static Keys create(List<String> keys, boolean caseInsensitive) {
         List<String> keyList = List.copyOf(Objects.requireNonNull(keys, "keys"));
-        return new DefaultKeys(keyList, caseInsensitive, createContributedKeys(keyList, caseInsensitive));
+        return new DefaultKeys(keyList, caseInsensitive, createContributedKeys(keyList, null, caseInsensitive));
+    }
+
+    /**
+     * Create a key set with metadata available to backend-specific key providers.
+     *
+     * @param keys The key descriptors
+     * @return The key set
+     * @since 3.2
+     */
+    public static Keys createWithMetadata(List<KeyDescriptor> keys) {
+        return createWithMetadata(keys, false);
+    }
+
+    /**
+     * Create a key set with metadata available to backend-specific key providers.
+     *
+     * @param keys The key descriptors
+     * @param caseInsensitive Whether key matching should be case-insensitive
+     * @return The key set
+     * @since 3.2
+     */
+    public static Keys createWithMetadata(List<KeyDescriptor> keys, boolean caseInsensitive) {
+        List<KeyDescriptor> descriptors = List.copyOf(Objects.requireNonNull(keys, "keys"));
+        List<String> keyList = descriptors.stream().map(KeyDescriptor::name).toList();
+        return new DefaultKeys(keyList, caseInsensitive, createContributedKeys(keyList, descriptors, caseInsensitive));
     }
 
     /**
@@ -94,14 +120,22 @@ public final class KeysSupport {
         return ((DefaultKeys) keys).keyAt(keyIndex);
     }
 
-    private static Object[][] createContributedKeys(List<String> keys, boolean caseInsensitive) {
+    private static Object[][] createContributedKeys(List<String> keys,
+                                                    @Nullable List<KeyDescriptor> descriptors,
+                                                    boolean caseInsensitive) {
         List<KeysProvider> providers = LazyKeysProviders.PROVIDERS;
         if (providers.isEmpty()) {
             return EMPTY_CONTRIBUTIONS;
         }
         Object[][] contributions = new Object[providers.size()][];
         for (int i = 0; i < providers.size(); i++) {
-            contributions[i] = Objects.requireNonNull(providers.get(i).create(keys, caseInsensitive), "keys contribution");
+            KeysProvider provider = providers.get(i);
+            contributions[i] = Objects.requireNonNull(
+                descriptors == null
+                    ? provider.create(keys, caseInsensitive)
+                    : provider.createWithMetadata(descriptors, caseInsensitive),
+                "keys contribution"
+            );
         }
         return contributions;
     }

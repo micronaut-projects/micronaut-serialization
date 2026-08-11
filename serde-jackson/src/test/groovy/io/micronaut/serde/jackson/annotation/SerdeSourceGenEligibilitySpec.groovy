@@ -387,7 +387,7 @@ class JsonIncludePropertyBean {
         context.close()
     }
 
-    void 'test jackson dataformat xml annotations fall back from sourcegen'(){
+    void 'test supported jackson dataformat xml property annotations use sourcegen'() {
         given:
         def context = buildContext('test.XmlWrapperBean', '''
 package test;
@@ -454,8 +454,8 @@ class XmlTextBean {
 ''')
 
         expect:
-        assertRegistrySelection(context, 'test.XmlWrapperBean', false, false)
-        assertRegistrySelection(context, 'test.XmlPropertyBean', false, false)
+        assertRegistrySelection(context, 'test.XmlWrapperBean', true, true)
+        assertRegistrySelection(context, 'test.XmlPropertyBean', true, true)
         assertRegistrySelection(context, 'test.XmlRootBean', false, false)
         assertRegistrySelection(context, 'test.XmlTextBean', false, false)
 

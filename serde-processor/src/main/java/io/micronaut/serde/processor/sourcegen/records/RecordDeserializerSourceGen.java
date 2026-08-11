@@ -22,6 +22,7 @@ import io.micronaut.context.annotation.Prototype;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.KeyDescriptor;
 import io.micronaut.serde.Keys;
 import io.micronaut.serde.KeysAwareDecoder;
 import io.micronaut.serde.exceptions.SerdeException;
@@ -51,6 +52,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 /**
  * Generates optimized source deserializers for records.
@@ -63,6 +65,7 @@ public final class RecordDeserializerSourceGen {
     private static final TypeDef DESERIALIZER_TYPE = TypeDef.of(Deserializer.class);
     private static final TypeDef STRING_TYPE = TypeDef.of(String.class);
     private static final ClassTypeDef KEYS_TYPE = ClassTypeDef.of(Keys.class);
+    private static final ClassTypeDef KEY_DESCRIPTOR_TYPE = ClassTypeDef.of(KeyDescriptor.class);
     private static final ClassTypeDef KEYS_AWARE_DECODER_TYPE = ClassTypeDef.of(KeysAwareDecoder.class);
     private static final ClassTypeDef DISPATCH_RESULT_TYPE = ClassTypeDef.of(GeneratedSerdeExceptionUtil.PropertyDispatchResult.class);
     private static final String CONTEXT_PARAMETER = "context";
@@ -90,6 +93,8 @@ public final class RecordDeserializerSourceGen {
         Argument.class
     );
     private static final Method KEYS_CREATE_METHOD = ReflectionUtils.getRequiredMethod(Keys.class, "create", String[].class);
+    private static final Method KEYS_CREATE_WITH_METADATA_METHOD = ReflectionUtils.getRequiredMethod(Keys.class, "createWithMetadata", KeyDescriptor[].class);
+    private static final Method KEY_DESCRIPTOR_CREATE_METHOD = ReflectionUtils.getRequiredMethod(KeyDescriptor.class, "create", String.class, String[].class);
     private static final Method DECODE_OBJECT_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeObject", Argument.class);
     private static final Method DECODE_KEY_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeKey");
     private static final Method KEYS_AWARE_DECODER_OF_METHOD = ReflectionUtils.getRequiredMethod(KeysAwareDecoder.class, "of", Decoder.class);
@@ -207,7 +212,7 @@ public final class RecordDeserializerSourceGen {
             ClassElement lookupType = resolveLookupType(component.type());
             fields.add(FieldDef.builder(keyFieldName, STRING_TYPE)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                .initializer(ExpressionDef.constant(component.name()))
+                .initializer(ExpressionDef.constant(component.serializedName()))
                 .build());
             fields.add(FieldDef.builder(argumentFieldName, ARGUMENT_TYPE)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
@@ -228,7 +233,7 @@ public final class RecordDeserializerSourceGen {
         if (!keyFieldNames.isEmpty()) {
             fields.add(FieldDef.builder(KEYS_FIELD, KEYS_TYPE)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                .initializer(keysCreateExpression(deserializerClassTypeDef, new ArrayList<>(keyFieldNames.values())))
+                .initializer(keysCreateExpression(deserializerClassTypeDef, recordSerdeShape.components(), new ArrayList<>(keyFieldNames.values())))
                 .build());
         }
         if (failOnNullForPrimitives) {
@@ -691,7 +696,7 @@ public final class RecordDeserializerSourceGen {
             RecordSerdeShape.RecordComponent component = components.get(i);
             StatementDef.DefineAndAssign dispatchResultDef = dispatchResult(HANDLED_DISPATCH_RESULT).newLocal("dispatchResult");
             VariableDef.Local dispatchResultVariable = dispatchResultDef.variable();
-            switchCases.put(ExpressionDef.constant(component.name()),
+            switchCases.put(ExpressionDef.constant(component.serializedName()),
                 new ExpressionDef.SwitchYieldCase(
                     DISPATCH_RESULT_TYPE,
                     StatementDef.multi(
@@ -988,13 +993,36 @@ public final class RecordDeserializerSourceGen {
         return prefix + "_" + index;
     }
 
-    private ExpressionDef keysCreateExpression(ClassTypeDef deserializerClassTypeDef, List<String> keyFieldNames) {
+    private ExpressionDef keysCreateExpression(ClassTypeDef deserializerClassTypeDef,
+                                               List<RecordSerdeShape.RecordComponent> components,
+                                               List<String> keyFieldNames) {
         List<ExpressionDef> keyExpressions = keyFieldNames.stream()
             .map(keyFieldName -> (ExpressionDef) deserializerClassTypeDef.getStaticField(keyFieldName, STRING_TYPE))
             .toList();
+        if (components.stream().noneMatch(component -> !component.keyMetadata().isEmpty())) {
+            return KEYS_TYPE.invokeStatic(
+                KEYS_CREATE_METHOD,
+                STRING_TYPE.array().instantiate(keyExpressions)
+            );
+        }
+        List<ExpressionDef> descriptorExpressions = new ArrayList<>(components.size());
+        for (int i = 0; i < components.size(); i++) {
+            List<ExpressionDef> metadataExpressions = components.get(i).keyMetadata().entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .flatMap(entry -> Stream.<ExpressionDef>of(
+                    RecordSerdeSourceGenUtils.keyMetadataPropertyExpression(entry.getKey()),
+                    ExpressionDef.constant(entry.getValue())
+                ))
+                .toList();
+            descriptorExpressions.add(KEY_DESCRIPTOR_TYPE.invokeStatic(
+                KEY_DESCRIPTOR_CREATE_METHOD,
+                keyExpressions.get(i),
+                STRING_TYPE.array().instantiate(metadataExpressions)
+            ));
+        }
         return KEYS_TYPE.invokeStatic(
-            KEYS_CREATE_METHOD,
-            STRING_TYPE.array().instantiate(keyExpressions)
+            KEYS_CREATE_WITH_METADATA_METHOD,
+            KEY_DESCRIPTOR_TYPE.array().instantiate(descriptorExpressions)
         );
     }
 

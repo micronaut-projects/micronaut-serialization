@@ -55,4 +55,18 @@ public interface KeysProvider {
     default Object[] create(List<String> keys, boolean caseInsensitive) {
         return create(keys);
     }
+
+    /**
+     * Create backend-specific data for keys with pre-resolved serde configuration.
+     *
+     * <p>The default implementation preserves compatibility with providers that only need key names.</p>
+     *
+     * @param keys The key descriptors
+     * @param caseInsensitive Whether key matching should be case-insensitive
+     * @return The backend-specific data
+     * @since 3.2
+     */
+    default Object[] createWithMetadata(List<KeyDescriptor> keys, boolean caseInsensitive) {
+        return create(keys.stream().map(KeyDescriptor::name).toList(), caseInsensitive);
+    }
 }

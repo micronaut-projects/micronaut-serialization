@@ -19,6 +19,9 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Keys;
+import io.micronaut.serde.KeysAwareDecoder;
+import io.micronaut.serde.KeysSupport;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.exceptions.SerdeException;
 import org.jspecify.annotations.Nullable;
@@ -52,6 +55,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
                     XmlReaderDecoder.SyntheticRootDecoder {
 
     private static final String XSI_NS = "http://www.w3.org/2001/XMLSchema-instance";
+    private static final int XML_KEYS_CONTRIBUTION_INDEX = KeysSupport.indexOf(new XmlKeysProvider());
 
     final Cursor cursor;
     /**
@@ -83,17 +87,6 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         throw createDeserializationException("Array decoding not supported in current XML decoder.", null);
     }
 
-    /**
-     * Decodes sibling elements as an unwrapped array, retaining the first item's element context.
-     *
-     * @param type The array or collection type
-     * @return The inline array decoder
-     * @throws IOException If the array cannot be decoded
-     */
-    public Decoder decodeInlineArray(Argument<?> type) throws IOException {
-        throw createDeserializationException("Inline array decoding not supported in current XML decoder.", null);
-    }
-
     @Override
     public boolean hasNextArrayValue() throws IOException {
         return false;
@@ -117,6 +110,19 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
     @Override
     public byte decodeByte() throws IOException {
         return (byte) decodeInt();
+    }
+
+    @Override
+    public byte [] decodeBinary() throws IOException {
+        String text = decodeString();
+        if (text.isEmpty()) {
+            return new byte[0];
+        }
+        try {
+            return Base64.getDecoder().decode(text.trim());
+        } catch (IllegalArgumentException ex) {
+            throw createDeserializationException("Invalid base64 binary content: " + ex.getMessage(), text);
+        }
     }
 
     @Override
@@ -212,17 +218,6 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         return new SerdeException(message + (invalidValue == null ? "" : " (value: " + invalidValue + ")"));
     }
 
-    /**
-     * Returns and consumes the value of the XML attribute the decoder is currently positioned on
-     * (the key just returned by {@link #decodeKey()}). The single entry point for attribute
-     * decoding; {@code null} unless the current key is an attribute.
-     *
-     * @return the current attribute value, or {@code null} if the current key is not an attribute
-     */
-    public @Nullable String decodeCurrentXmlAttribute() {
-        return null;
-    }
-
     static @Nullable Object readArbitraryValue(Cursor cursor) throws IOException {
         StringBuilder text = null;
         while (true) {
@@ -250,6 +245,25 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
                 default:
                     cursor.advance();
             }
+        }
+    }
+
+    final void skipCurrentElement(String operation) throws IOException {
+        int depth = 1;
+        while (depth > 0) {
+            int e = cursor.current();
+            if (e == XMLStreamConstants.START_ELEMENT) {
+                depth++;
+            } else if (e == XMLStreamConstants.END_ELEMENT) {
+                depth--;
+                if (depth == 0) {
+                    cursor.advance();
+                    return;
+                }
+            } else if (e == XMLStreamConstants.END_DOCUMENT) {
+                throw new EOFException("Unexpected end of XML document while " + operation);
+            }
+            cursor.advance();
         }
     }
 
@@ -387,17 +401,6 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         private boolean rootConsumed;
 
         /**
-         * Creates a document decoder with the default empty-element behavior.
-         *
-         * @param limits The root stream limits
-         * @param reader The XML stream reader positioned anywhere before or at the document root
-         * @throws IOException If the reader cannot be advanced to a root element
-         */
-        public DocumentDecoder(RemainingLimits limits, XMLStreamReader reader) throws IOException {
-            this(limits, reader, false);
-        }
-
-        /**
          * Creates a document decoder and advances the cursor to the first root start element.
          *
          * <p>This is the entry point used by {@link XmlObjectMapper}. It owns the initial
@@ -478,7 +481,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
     /**
      * Decoder for XML elements represented as object properties.
      */
-    static final class ObjectDecoder extends XmlReaderDecoder {
+    static final class ObjectDecoder extends XmlReaderDecoder implements KeysAwareDecoder {
 
         private final String ownerElement;
         private final List<XmlAttr> attrs;
@@ -486,32 +489,11 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
 
         private @Nullable String currentAttrValue;
         private @Nullable String currentKey;
+        private @Nullable String pendingUnknownKey;
+        private @Nullable XmlKey currentXmlKey;
         private List<XmlAttr> pendingChildAttrs = Collections.emptyList();
         private boolean pendingChildXsiNil;
         private boolean finished;
-
-        /**
-         * Creates an object decoder with no captured attributes and default empty-element behavior.
-         *
-         * @param limits The limits for this object scope
-         * @param cursor The shared cursor positioned inside the owner element
-         * @param ownerElement The local name of the element represented by this object decoder
-         */
-        ObjectDecoder(RemainingLimits limits, Cursor cursor, String ownerElement) {
-            this(limits, cursor, ownerElement, Collections.emptyList(), false);
-        }
-
-        /**
-         * Creates an object decoder with captured attributes and default empty-element behavior.
-         *
-         * @param limits The limits for this object scope
-         * @param cursor The shared cursor positioned inside the owner element
-         * @param ownerElement The local name of the element represented by this object decoder
-         * @param attrs Attributes captured from the owner element before its body was entered
-         */
-        ObjectDecoder(RemainingLimits limits, Cursor cursor, String ownerElement, List<XmlAttr> attrs) {
-            this(limits, cursor, ownerElement, attrs, false);
-        }
 
         /**
          * Creates an object decoder for a single XML element.
@@ -539,9 +521,15 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
 
         @Override
         public @Nullable String decodeKey() throws IOException {
+            if (pendingUnknownKey != null) {
+                String key = pendingUnknownKey;
+                pendingUnknownKey = null;
+                return key;
+            }
             if (finished) {
                 return null;
             }
+            currentXmlKey = null;
             if (attrIndex < attrs.size()) {
                 XmlAttr a = attrs.get(attrIndex++);
                 currentAttrValue = a.value();
@@ -572,24 +560,41 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
             }
         }
 
-        /**
-         * Returns the current attribute's value and clears the attribute key-state, or
-         * {@code null} when the current key is a child element rather than an attribute.
-         *
-         * @return the attribute value, or {@code null} if the current key is not an attribute
-         */
         @Override
-        public @Nullable String decodeCurrentXmlAttribute() {
-            if (currentAttrValue == null) {
-                return null;
+        @SuppressWarnings("unchecked")
+        public int decodeKey(Keys keys) throws IOException {
+            if (pendingUnknownKey != null) {
+                return MATCH_UNKNOWN_NAME;
             }
-            String v = currentAttrValue;
-            clearKeyState();
-            return v;
+            String key = decodeKey();
+            if (key == null) {
+                return MATCH_END_OBJECT;
+            }
+            Object[] xmlContribution = KeysSupport.get(keys, XML_KEYS_CONTRIBUTION_INDEX);
+            int keyIndex = keys.indexOf(key);
+            if (keyIndex == Keys.UNKNOWN_KEY) {
+                Map<String, Integer> inputNameIndexes =
+                    (Map<String, Integer>) xmlContribution[XmlKeysProvider.INPUT_NAME_INDEXES_INDEX];
+                keyIndex = inputNameIndexes.getOrDefault(
+                    XmlKeysProvider.normalize(key, keys.caseInsensitive()),
+                    Keys.UNKNOWN_KEY
+                );
+            }
+            if (keyIndex == Keys.UNKNOWN_KEY) {
+                pendingUnknownKey = key;
+                return MATCH_UNKNOWN_NAME;
+            }
+            currentXmlKey = ((XmlKey[]) xmlContribution[XmlKeysProvider.XML_KEYS_INDEX])[keyIndex];
+            return keyIndex;
         }
 
         @Override
         public String decodeString() throws IOException {
+            if (currentAttrValue != null) {
+                String value = currentAttrValue;
+                clearKeyState();
+                return value;
+            }
             requireKey();
             StringBuilder sb = new StringBuilder();
             while (true) {
@@ -620,7 +625,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         @Override
         public boolean decodeNull() throws IOException {
             if (pendingChildXsiNil) {
-                drainCurrentElementBody();
+                skipCurrentElement("draining xsi:nil element <" + currentKey + ">");
                 clearKeyState();
                 return true;
             }
@@ -630,39 +635,6 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
                 return true;
             }
             return false;
-        }
-
-        /** Skip every event up to and including the END_ELEMENT that closes the currently-open child. */
-        private void drainCurrentElementBody() throws IOException {
-            int depth = 1;
-            while (depth > 0) {
-                int e = cursor.current();
-                if (e == XMLStreamConstants.START_ELEMENT) {
-                    depth++;
-                } else if (e == XMLStreamConstants.END_ELEMENT) {
-                    depth--;
-                    if (depth == 0) {
-                        cursor.advance();
-                        return;
-                    }
-                } else if (e == XMLStreamConstants.END_DOCUMENT) {
-                    throw new EOFException("Unexpected end of XML document while draining xsi:nil element <" + currentKey + ">");
-                }
-                cursor.advance();
-            }
-        }
-
-        @Override
-        public byte [] decodeBinary() throws IOException {
-            String text = decodeString();
-            if (text.isEmpty()) {
-                return new byte[0];
-            }
-            try {
-                return Base64.getDecoder().decode(text.trim());
-            } catch (IllegalArgumentException ex) {
-                throw createDeserializationException("Invalid base64 binary content: " + ex.getMessage(), text);
-            }
         }
 
         @Override
@@ -684,19 +656,17 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
 
         @Override
         public Decoder decodeArray(Argument<?> type) throws IOException {
+            if (currentXmlKey != null && currentXmlKey.collectionLayout() == XmlCollectionLayout.INLINE) {
+                requireKey();
+                String itemName = Objects.requireNonNull(currentKey, "currentKey");
+                List<XmlAttr> itemAttrs = pendingChildAttrs;
+                clearKeyState();
+                return new ArrayDecoder(childLimits(), cursor, itemName, itemAttrs, emptyElementAsNull);
+            }
             requireKey();
             String wrapper = Objects.requireNonNull(currentKey, "currentKey");
             clearKeyState();
             return new ArrayDecoder(childLimits(), cursor, wrapper, emptyElementAsNull);
-        }
-
-        @Override
-        public Decoder decodeInlineArray(Argument<?> type) throws IOException {
-            requireKey();
-            String itemName = Objects.requireNonNull(currentKey, "currentKey");
-            List<XmlAttr> itemAttrs = pendingChildAttrs;
-            clearKeyState();
-            return new ArrayDecoder(childLimits(), cursor, itemName, itemAttrs, emptyElementAsNull);
         }
 
         @Override
@@ -705,22 +675,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
                 clearKeyState();
                 return;
             }
-            int depth = 1;
-            while (depth > 0) {
-                int e = cursor.current();
-                if (e == XMLStreamConstants.START_ELEMENT) {
-                    depth++;
-                } else if (e == XMLStreamConstants.END_ELEMENT) {
-                    depth--;
-                    if (depth == 0) {
-                        cursor.advance();
-                        break;
-                    }
-                } else if (e == XMLStreamConstants.END_DOCUMENT) {
-                    throw new EOFException("Unexpected end of XML document while skipping <" + currentKey + ">");
-                }
-                cursor.advance();
-            }
+            skipCurrentElement("skipping <" + currentKey + ">");
             clearKeyState();
         }
 
@@ -757,6 +712,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         private void clearKeyState() {
             currentKey = null;
             currentAttrValue = null;
+            currentXmlKey = null;
             pendingChildAttrs = Collections.emptyList();
             pendingChildXsiNil = false;
         }
@@ -783,18 +739,6 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         private @Nullable String firstScalarText;
         private boolean firstItemPending;
         private boolean finished;
-
-        /**
-         * Creates an array decoder with the default empty-element behavior.
-         *
-         * @param limits The limits for this array scope
-         * @param cursor The shared cursor positioned inside the wrapper or first item element
-         * @param wrapperOrItemElement The local name of the wrapper element or inline item element
-         * @throws IOException If the cursor cannot be advanced while detecting array mode
-         */
-        ArrayDecoder(RemainingLimits limits, Cursor cursor, String wrapperOrItemElement) throws IOException {
-            this(limits, cursor, wrapperOrItemElement, false);
-        }
 
         /**
          * Creates an array decoder and detects whether the XML uses wrapped or inline array layout.
@@ -924,11 +868,6 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         }
 
         @Override
-        public boolean decodeNull() throws IOException {
-            return false;
-        }
-
-        @Override
         public @Nullable Object decodeArbitrary() throws IOException {
             if (firstItemPending) {
                 String v = firstScalarText == null ? "" : firstScalarText;
@@ -940,19 +879,6 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
             Object v = readArbitraryValue(cursor);
             clearItem();
             return v;
-        }
-
-        @Override
-        public byte [] decodeBinary() throws IOException {
-            String text = decodeString();
-            if (text.isEmpty()) {
-                return new byte[0];
-            }
-            try {
-                return Base64.getDecoder().decode(text.trim());
-            } catch (IllegalArgumentException ex) {
-                throw createDeserializationException("Invalid base64 binary content: " + ex.getMessage(), text);
-            }
         }
 
         @Override
@@ -1025,22 +951,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
             if (!itemPending) {
                 return;
             }
-            int depth = 1;
-            while (depth > 0) {
-                int e = cursor.current();
-                if (e == XMLStreamConstants.START_ELEMENT) {
-                    depth++;
-                } else if (e == XMLStreamConstants.END_ELEMENT) {
-                    depth--;
-                    if (depth == 0) {
-                        cursor.advance();
-                        break;
-                    }
-                } else if (e == XMLStreamConstants.END_DOCUMENT) {
-                    throw new EOFException("Unexpected end of XML document while skipping array item");
-                }
-                cursor.advance();
-            }
+            skipCurrentElement("skipping array item");
             clearItem();
         }
 
@@ -1111,18 +1022,6 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         private final String rootName;
         private boolean keyEmitted;
         private boolean valueConsumed;
-        private boolean finished;
-
-        /**
-         * Creates a synthetic-root decoder with the default empty-element behavior.
-         *
-         * @param limits The limits for this synthetic object scope
-         * @param cursor The shared cursor positioned at the XML root element
-         * @param rootName The root element local name to expose as the synthetic object key
-         */
-        SyntheticRootDecoder(RemainingLimits limits, Cursor cursor, String rootName) {
-            this(limits, cursor, rootName, false);
-        }
 
         /**
          * Creates a decoder that exposes the document root name as a synthetic object key.
@@ -1194,11 +1093,6 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         }
 
         @Override
-        public boolean decodeNull() throws IOException {
-            return false;
-        }
-
-        @Override
         public void skipValue() throws IOException {
             if (!keyEmitted || valueConsumed) {
                 return;
@@ -1222,9 +1116,5 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
             }
         }
 
-        @Override
-        public void finishStructure(boolean consumeLeftElements) throws IOException {
-            finished = true;
-        }
     }
 }

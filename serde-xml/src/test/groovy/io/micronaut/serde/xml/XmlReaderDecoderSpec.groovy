@@ -2,7 +2,11 @@ package io.micronaut.serde.xml
 
 import io.micronaut.core.type.Argument
 import io.micronaut.serde.Decoder
+import io.micronaut.serde.KeyDescriptor
+import io.micronaut.serde.Keys
+import io.micronaut.serde.KeysAwareDecoder
 import io.micronaut.serde.LimitingStream
+import io.micronaut.serde.config.annotation.SerdeConfig
 import io.micronaut.serde.exceptions.SerdeException
 import org.intellij.lang.annotations.Language
 import spock.lang.Specification
@@ -34,7 +38,7 @@ class XmlReaderDecoderSpec extends Specification {
 
         expect:
         object.decodeKey() == 'id'
-        object.decodeCurrentXmlAttribute() == '7'
+        object.decodeString() == '7'
 
         object.decodeKey() == 'name'
         object.decodeString() == 'Foo'
@@ -60,6 +64,45 @@ class XmlReaderDecoderSpec extends Specification {
 
         !array.hasNextArrayValue()
         array.finishStructure()
+    }
+
+    def "decode XML property layout from reusable keys"() {
+        given:
+        def keys = Keys.createWithMetadata(
+            KeyDescriptor.create('id', SerdeConfig.XML_ATTRIBUTE_PROPERTY, 'true'),
+            KeyDescriptor.create('item', SerdeConfig.META_ANNOTATION_PROPERTY, 'false'),
+            KeyDescriptor.create(
+                'values',
+                SerdeConfig.META_ANNOTATION_PROPERTY, 'true',
+                SerdeConfig.WRAPPER_PROPERTY, 'entries'
+            )
+        )
+        def object = (KeysAwareDecoder) createDecoder(
+            '<root id="7"><item>a</item><item>b</item><entries><values>x</values></entries></root>'
+        ).decodeObject(Argument.of(Map))
+
+        expect:
+        object.decodeKey(keys) == 0
+        object.decodeInt() == 7
+
+        object.decodeKey(keys) == 1
+        def inline = object.decodeArray(Argument.of(List))
+        inline.hasNextArrayValue()
+        inline.decodeString() == 'a'
+        inline.hasNextArrayValue()
+        inline.decodeString() == 'b'
+        !inline.hasNextArrayValue()
+        inline.finishStructure()
+
+        object.decodeKey(keys) == 2
+        def wrapped = object.decodeArray(Argument.of(List))
+        wrapped.hasNextArrayValue()
+        wrapped.decodeString() == 'x'
+        !wrapped.hasNextArrayValue()
+        wrapped.finishStructure()
+
+        object.decodeKey(keys) == KeysAwareDecoder.MATCH_END_OBJECT
+        object.finishStructure()
     }
 
     def "skip nested xml value keeps cursor aligned"() {
