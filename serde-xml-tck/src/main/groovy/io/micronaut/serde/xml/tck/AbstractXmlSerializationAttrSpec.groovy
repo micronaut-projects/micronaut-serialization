@@ -17,7 +17,7 @@ package io.micronaut.serde.xml.tck
 
 import com.fasterxml.jackson.annotation.*
 import spock.lang.Specification
-import io.micronaut.serde.annotation.Serdeable
+import io.micronaut.serde.annotation.SerdeableGenerated
 import tools.jackson.dataformat.xml.annotation.*;
 
 abstract class AbstractXmlSerializationAttrSpec extends Specification implements XmlSpec {
@@ -179,7 +179,7 @@ abstract class AbstractXmlSerializationAttrSpec extends Specification implements
         read.values*.v == ["a", "b"]
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class NsAttrBean {
         @JsonProperty("other")
         @JacksonXmlProperty(isAttribute = true)
@@ -190,7 +190,7 @@ abstract class AbstractXmlSerializationAttrSpec extends Specification implements
         }
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     @JsonRootName(value = "test")
     static class Issue19Bean {
         @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
@@ -209,7 +209,7 @@ abstract class AbstractXmlSerializationAttrSpec extends Specification implements
         }
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     @JsonPropertyOrder(["value", "name"])
     static class Jurisdiction {
         @JacksonXmlProperty(isAttribute = true)
@@ -227,7 +227,7 @@ abstract class AbstractXmlSerializationAttrSpec extends Specification implements
         }
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     @JsonPropertyOrder(alphabetic = true)
     static class AlphabeticAttributeBean {
         private String alpha = "value"
@@ -252,7 +252,7 @@ abstract class AbstractXmlSerializationAttrSpec extends Specification implements
         }
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     @JsonPropertyOrder(["alpha", "type"])
     static class OrderedAttributeBean {
         private String alpha = "value"
@@ -277,7 +277,7 @@ abstract class AbstractXmlSerializationAttrSpec extends Specification implements
         }
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class RenamedAttributeBean {
         @JacksonXmlProperty(localName = "Foo", isAttribute = true)
         private String foo = "bar"
@@ -301,7 +301,7 @@ abstract class AbstractXmlSerializationAttrSpec extends Specification implements
         }
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     @JsonRootName(value = "Root")
     static class DynaBean {
         private final Map<String, String> properties = new TreeMap<>()
@@ -318,7 +318,7 @@ abstract class AbstractXmlSerializationAttrSpec extends Specification implements
 
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class ListWrapper329 {
         @JacksonXmlElementWrapper(localName = "elements", useWrapping = false)
         private List<String> data
@@ -333,7 +333,7 @@ abstract class AbstractXmlSerializationAttrSpec extends Specification implements
         }
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class CollectionWrapper329 {
         private Collection<String> data
 
@@ -347,7 +347,7 @@ abstract class AbstractXmlSerializationAttrSpec extends Specification implements
         }
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static final class Value {
         @JacksonXmlProperty(localName = "vi")
         public String v;
@@ -367,7 +367,7 @@ abstract class AbstractXmlSerializationAttrSpec extends Specification implements
         }
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static final class Values
     {
         @JacksonXmlProperty(localName = "type")

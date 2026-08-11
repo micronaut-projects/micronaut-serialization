@@ -2,7 +2,7 @@ package io.micronaut.serde.xml
 
 import io.micronaut.context.ApplicationContext
 import io.micronaut.context.exceptions.BeanInstantiationException
-import io.micronaut.serde.annotation.Serdeable
+import io.micronaut.serde.annotation.SerdeableGenerated
 import spock.lang.Specification
 import tools.jackson.dataformat.xml.annotation.JacksonXmlProperty
 
@@ -61,13 +61,13 @@ class XmlOutputFactoryConfigurationSpec extends Specification {
         }
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class AttributeOnlyBean {
         @JacksonXmlProperty(isAttribute = true, localName = "other")
         String attr = "3"
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class NamespacedChildBean {
         @JacksonXmlProperty(namespace = "uri:child", localName = "ChildXML")
         String child = "v"

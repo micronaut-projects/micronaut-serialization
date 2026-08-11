@@ -13,24 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.serde.xml.tck;
+package io.micronaut.serde.xml.bean;
 
 import io.micronaut.serde.annotation.SerdeableGenerated;
+import tools.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import tools.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 import java.util.List;
 
-
+/**
+ * Runtime-serde counterpart to {@link XmlKeysRecord}.
+ *
+ * @param name The name
+ * @param id The identifier
+ * @param items The items
+ * @since 3.2
+ */
 @SerdeableGenerated(skip = true)
-public class NestedList {
-
-    private List<Object> nestedLists;
-
-    public NestedList(List<Object> nestedLists) {
-        this.nestedLists = nestedLists;
+public record RuntimeXmlKeysRecord(
+    String name,
+    @JacksonXmlProperty(isAttribute = true) int id,
+    @JacksonXmlProperty(localName = "item")
+    @JacksonXmlElementWrapper(useWrapping = false) List<String> items
+) {
+    /**
+     * Copies mutable component values.
+     *
+     * @since 3.2
+     */
+    public RuntimeXmlKeysRecord {
+        items = List.copyOf(items);
     }
-
-    public List<Object> getNestedLists() {
-        return nestedLists;
-    }
-
 }

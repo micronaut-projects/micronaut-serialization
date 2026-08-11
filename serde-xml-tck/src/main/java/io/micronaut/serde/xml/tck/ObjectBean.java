@@ -15,9 +15,9 @@
  */
 package io.micronaut.serde.xml.tck;
 
-import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
 
-@Serdeable
+@SerdeableGenerated(skip = true)
 public class ObjectBean {
 
     Object simpleBeans;

@@ -15,41 +15,41 @@
  */
 package io.micronaut.serde.xml.tck
 
-import io.micronaut.serde.annotation.Serdeable
+import io.micronaut.serde.annotation.SerdeableGenerated
 import spock.lang.Specification
 
 abstract class AbstractXsiNilSpec extends Specification implements XmlSpec {
 
     private static final String XSI_NS_DECL = "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class DoubleWrapper {
         Double d
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class DoubleWrapper2 {
         Double a
         Double b
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class StringPair {
         String first
         String second
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class Parent366 {
         Level1 level1
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class Level1 {
         Level2 level2
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class Level2 {
         Integer ignored
         String field

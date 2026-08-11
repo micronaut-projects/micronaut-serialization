@@ -16,13 +16,13 @@
 package io.micronaut.serde.xml.tck;
 
 import org.jspecify.annotations.Nullable;
-import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Objects;
 
-@Serdeable
+@SerdeableGenerated(skip = true)
 public class AllTypesBean {
 
     private boolean someBool;

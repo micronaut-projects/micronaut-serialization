@@ -1,7 +1,7 @@
 package io.micronaut.serde.xml
 
 import io.micronaut.json.tree.JsonNode
-import io.micronaut.serde.annotation.Serdeable
+import io.micronaut.serde.annotation.SerdeableGenerated
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 import jakarta.inject.Named
@@ -39,7 +39,7 @@ class XmlJsonCoexistenceSpec extends Specification {
         decoded.nested.value == "v"
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class MixedFormatBean {
         @JacksonXmlProperty(isAttribute = true)
         String attribute
@@ -51,7 +51,7 @@ class XmlJsonCoexistenceSpec extends Specification {
         NestedBean nested
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class NestedBean {
         String value
     }

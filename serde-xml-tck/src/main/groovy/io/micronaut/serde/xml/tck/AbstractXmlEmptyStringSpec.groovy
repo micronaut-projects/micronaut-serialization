@@ -18,7 +18,7 @@ package io.micronaut.serde.xml.tck
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.micronaut.core.annotation.Introspected
-import io.micronaut.serde.annotation.Serdeable
+import io.micronaut.serde.annotation.SerdeableGenerated
 import spock.lang.Specification
 import tools.jackson.dataformat.xml.annotation.JacksonXmlProperty
 
@@ -88,7 +88,7 @@ abstract class AbstractXmlEmptyStringSpec extends Specification implements XmlSp
         product.stuff.str == ""
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class Name {
         String first
         String last
@@ -101,7 +101,7 @@ abstract class AbstractXmlEmptyStringSpec extends Specification implements XmlSp
         }
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     @Introspected(accessKind = Introspected.AccessKind.FIELD)
     static class EmptyStrings25 {
         @JacksonXmlProperty(isAttribute = true)
@@ -109,14 +109,14 @@ abstract class AbstractXmlEmptyStringSpec extends Specification implements XmlSp
         public String b = "NOT SET"
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class Product427 {
         Stuff427 stuff
 
         Product427(@JsonProperty("stuff") Stuff427 s) { stuff = s }
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class Stuff427 {
         String str
 

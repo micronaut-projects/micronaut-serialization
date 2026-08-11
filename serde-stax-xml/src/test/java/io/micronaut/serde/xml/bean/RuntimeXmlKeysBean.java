@@ -22,12 +22,12 @@ import tools.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.util.List;
 
 /**
- * Source-generated bean used to verify XML key metadata.
+ * Runtime-serde counterpart to {@link XmlKeysBean}.
  *
  * @since 3.2
  */
-@SerdeableGenerated
-public final class XmlKeysBean {
+@SerdeableGenerated(skip = true)
+public final class RuntimeXmlKeysBean {
 
     private String name = "";
     private int id;
@@ -38,7 +38,7 @@ public final class XmlKeysBean {
      *
      * @since 3.2
      */
-    public XmlKeysBean() {
+    public RuntimeXmlKeysBean() {
     }
 
     /**
@@ -49,7 +49,7 @@ public final class XmlKeysBean {
      * @param items The items
      * @since 3.2
      */
-    public XmlKeysBean(String name, int id, List<String> items) {
+    public RuntimeXmlKeysBean(String name, int id, List<String> items) {
         this.name = name;
         this.id = id;
         this.items = List.copyOf(items);

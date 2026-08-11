@@ -31,9 +31,9 @@ class AbstractBasicSerdeCompileSpec extends AbstractXmlCompileSpec {
         def context = buildContext('test.Test', """
 package test;
 
-import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
 
-@Serdeable
+@SerdeableGenerated
 class Test {
     private $type.name value;
     public void setValue($type.name value) {
@@ -94,9 +94,9 @@ class Test {
         def context = buildReadContext('test.Test', """
 package test;
 
-import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
 
-@Serdeable
+@SerdeableGenerated
 class Test {
     @org.jspecify.annotations.Nullable
     private $type value;
@@ -128,11 +128,11 @@ class Test {
         def context = buildContext('test.Test', """
 package test;
 
-import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-@Serdeable
+@SerdeableGenerated(skip = true)
 class Test {
     private String value;
     @JsonIgnore
@@ -170,10 +170,10 @@ class Test {
         def context = buildContext('test.Test', """
 package test;
 
-import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-@Serdeable
+@SerdeableGenerated(skip = true)
 class Test {
     private String value;
 
@@ -212,9 +212,9 @@ class Test {
         def context = buildReadContext('test.Test', """
 package test;
 
-import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
 
-@Serdeable
+@SerdeableGenerated
 class Test {
     private String value;
 
@@ -243,10 +243,10 @@ class Test {
         def context = buildReadContext('test.Test', """
 package test;
 
-import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
 import java.util.List;
 
-@Serdeable
+@SerdeableGenerated
 class Test {
     private Object scalar;
     private Object nested;
@@ -299,9 +299,9 @@ class Test {
         def context = buildReadContext('test.Test', """
 package test;
 
-import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
 
-@Serdeable
+@SerdeableGenerated(skip = true)
 class Test {
     private final String value1;
     private final String value2;
@@ -346,9 +346,9 @@ class Test {
         def context = buildReadContext('test.Test', """
 package test;
 
-import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
 
-@Serdeable
+@SerdeableGenerated(skip = true)
 class Test {
     private final String value1;
     private final String value2;
@@ -393,10 +393,10 @@ class Test {
         def context = buildReadContext('test.Test', """
 package test;
 
-import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
 import io.micronaut.core.annotation.Creator;
 
-@Serdeable
+@SerdeableGenerated(skip = true)
 class Test {
     private final String value1;
     private final String value2;

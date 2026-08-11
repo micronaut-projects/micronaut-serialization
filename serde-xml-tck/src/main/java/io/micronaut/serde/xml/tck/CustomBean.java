@@ -16,11 +16,11 @@
 package io.micronaut.serde.xml.tck;
 
 import io.micronaut.core.annotation.Introspected;
-import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
 
 import java.util.List;
 
-@Serdeable
+@SerdeableGenerated(skip = true)
 @Introspected(accessKind = Introspected.AccessKind.FIELD)
 public class CustomBean {
 

@@ -15,11 +15,11 @@
  */
 package io.micronaut.serde.xml.tck;
 
-import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
 
 import java.util.Objects;
 
-@Serdeable
+@SerdeableGenerated
 public class SomeObject {
 
     private String val;

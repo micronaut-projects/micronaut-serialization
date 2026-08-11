@@ -16,7 +16,7 @@
 package io.micronaut.serde.xml.tck
 
 import io.micronaut.core.type.Argument
-import io.micronaut.serde.annotation.Serdeable
+import io.micronaut.serde.annotation.SerdeableGenerated
 import spock.lang.Specification
 
 import java.nio.charset.StandardCharsets
@@ -24,27 +24,27 @@ import java.util.stream.Stream
 
 abstract class AbstractXmlCollectionSpec extends Specification implements XmlSpec {
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class ByteArrayWrapper {
         byte[] values
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class IntArrayWrapper {
         int[] values
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class IntListWrapper {
         List<Integer> values
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class DoubleListWrapper {
         List<Double> values
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class StringMapWrapper {
         Map<String, String> values
     }
@@ -106,7 +106,7 @@ abstract class AbstractXmlCollectionSpec extends Specification implements XmlSpe
         read.values == input.values
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class SampleResource {
         Long id
         String name

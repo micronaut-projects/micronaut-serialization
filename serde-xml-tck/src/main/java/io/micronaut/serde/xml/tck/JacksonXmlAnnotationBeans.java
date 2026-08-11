@@ -16,7 +16,7 @@
 package io.micronaut.serde.xml.tck;
 
 import io.micronaut.core.annotation.Introspected;
-import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
 import tools.jackson.dataformat.xml.annotation.JacksonXmlCData;
 import tools.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import tools.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -39,9 +39,27 @@ public final class JacksonXmlAnnotationBeans {
      *
      * @since 3.2
      */
-    @Serdeable
+    @SerdeableGenerated
     @Introspected(accessKind = Introspected.AccessKind.FIELD)
-    public static final class TextBean {
+    public static final class GeneratedTextBean {
+        /** The language attribute. */
+        @JacksonXmlProperty(isAttribute = true)
+        public String language = "";
+
+        /** The direct text content. */
+        @JacksonXmlText
+        @JacksonXmlCData
+        public String content = "";
+    }
+
+    /**
+     * Runtime-serde counterpart to {@link GeneratedTextBean}.
+     *
+     * @since 3.2
+     */
+    @SerdeableGenerated(skip = true)
+    @Introspected(accessKind = Introspected.AccessKind.FIELD)
+    public static final class RuntimeTextBean {
         /** The language attribute. */
         @JacksonXmlProperty(isAttribute = true)
         public String language = "";
@@ -57,9 +75,24 @@ public final class JacksonXmlAnnotationBeans {
      *
      * @since 3.2
      */
-    @Serdeable
+    @SerdeableGenerated
     @Introspected(accessKind = Introspected.AccessKind.FIELD)
-    public static final class CollectionBean {
+    public static final class GeneratedCollectionBean {
+        /** The collection values. */
+        @JacksonXmlElementWrapper(localName = "items", namespace = "urn:generated-wrapper")
+        @JacksonXmlProperty(localName = "item")
+        @JacksonXmlCData
+        public List<String> values = List.of();
+    }
+
+    /**
+     * Runtime-serde counterpart to {@link GeneratedCollectionBean}.
+     *
+     * @since 3.2
+     */
+    @SerdeableGenerated(skip = true)
+    @Introspected(accessKind = Introspected.AccessKind.FIELD)
+    public static final class RuntimeCollectionBean {
         /** The collection values. */
         @JacksonXmlElementWrapper(localName = "items", namespace = "urn:generated-wrapper")
         @JacksonXmlProperty(localName = "item")

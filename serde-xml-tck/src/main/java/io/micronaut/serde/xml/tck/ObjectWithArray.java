@@ -15,13 +15,13 @@
  */
 package io.micronaut.serde.xml.tck;
 
-import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
 
-@Serdeable
+@SerdeableGenerated
 public final class ObjectWithArray {
 
     private @Nullable List<SomeObject> vals;

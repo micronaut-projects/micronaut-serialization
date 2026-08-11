@@ -16,9 +16,9 @@
 package io.micronaut.serde.xml.tck;
 
 import io.micronaut.context.annotation.Executable;
-import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
 
-@Serdeable
+@SerdeableGenerated
 public class BeanWithExtraMethod {
     private String name;
 

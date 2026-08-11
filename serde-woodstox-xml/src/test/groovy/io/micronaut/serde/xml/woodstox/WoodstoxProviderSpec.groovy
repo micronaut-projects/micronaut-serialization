@@ -1,7 +1,7 @@
 package io.micronaut.serde.xml.woodstox
 
 import io.micronaut.context.ApplicationContext
-import io.micronaut.serde.annotation.Serdeable
+import io.micronaut.serde.annotation.SerdeableGenerated
 import io.micronaut.serde.xml.XmlObjectMapper
 import spock.lang.Specification
 
@@ -32,7 +32,7 @@ class WoodstoxProviderSpec extends Specification {
         context.close()
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class EmptyBean {
     }
 }

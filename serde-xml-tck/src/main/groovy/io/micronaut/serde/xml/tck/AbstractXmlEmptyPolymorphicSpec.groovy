@@ -16,7 +16,7 @@
 package io.micronaut.serde.xml.tck
 
 import com.fasterxml.jackson.annotation.JsonTypeName
-import io.micronaut.serde.annotation.Serdeable
+import io.micronaut.serde.annotation.SerdeableGenerated
 import spock.lang.Specification
 
 abstract class AbstractXmlEmptyPolymorphicSpec extends Specification implements XmlSpec {
@@ -44,7 +44,7 @@ abstract class AbstractXmlEmptyPolymorphicSpec extends Specification implements 
         thrown(Exception)
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     @JsonTypeName(value = "lala")
     static class Data {
 
@@ -66,14 +66,14 @@ abstract class AbstractXmlEmptyPolymorphicSpec extends Specification implements 
         }
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static interface Proxy { }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     @JsonTypeName("empty")
     static class EmptyProxy implements Proxy { }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class ReadableData {
         String name
         Proxy proxy

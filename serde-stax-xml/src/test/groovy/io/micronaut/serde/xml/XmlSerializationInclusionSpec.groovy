@@ -2,7 +2,7 @@ package io.micronaut.serde.xml
 
 import io.micronaut.core.type.Argument
 import io.micronaut.serde.ObjectMapper
-import io.micronaut.serde.annotation.Serdeable
+import io.micronaut.serde.annotation.SerdeableGenerated
 import io.micronaut.serde.config.annotation.SerdeConfig
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import io.micronaut.test.support.TestPropertyProvider
@@ -51,12 +51,12 @@ class XmlSerializationInclusionSpec extends Specification implements TestPropert
         decoded.data == new byte[0]
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class TextBean {
         String text
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class BinaryBean {
         byte[] data
     }

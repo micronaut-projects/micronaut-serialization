@@ -16,10 +16,10 @@
 package io.micronaut.serde.xml.tck;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
 
 import java.util.List;
 
-@Serdeable
+@SerdeableGenerated(skip = true)
 public record ObjectWithArrayRequired(@JsonProperty(required = true) List<SomeObject> vals) {
 }

@@ -16,7 +16,7 @@
 package io.micronaut.serde.xml.tck;
 
 import io.micronaut.core.annotation.Introspected;
-import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
 
 import java.util.List;
 import java.util.Objects;
@@ -25,7 +25,7 @@ import java.util.Objects;
  * Created by frenaud on 7/3/16.
  * https://github.com/fabienrenaud/java-json-benchmark/blob/master/src/main/java/com/github/fabienrenaud/jjb/model/Users.java
  */
-@Serdeable
+@SerdeableGenerated
 @Introspected(accessKind = Introspected.AccessKind.FIELD)
 public class Users3 {
 
@@ -51,7 +51,7 @@ public class Users3 {
         return "Users{" + "users=" + users + '}';
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     @Introspected(accessKind = Introspected.AccessKind.FIELD)
     public static final class User {
 
@@ -114,7 +114,7 @@ public class Users3 {
 
     }
 
-    @Serdeable
+    @SerdeableGenerated
     @Introspected(accessKind = Introspected.AccessKind.FIELD)
     public static final class Friend {
 

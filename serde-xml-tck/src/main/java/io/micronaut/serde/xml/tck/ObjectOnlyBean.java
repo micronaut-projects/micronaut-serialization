@@ -15,10 +15,10 @@
  */
 package io.micronaut.serde.xml.tck;
 
-import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
 import org.jspecify.annotations.Nullable;
 
-@Serdeable
+@SerdeableGenerated
 public class ObjectOnlyBean {
 
     private @Nullable Object object;

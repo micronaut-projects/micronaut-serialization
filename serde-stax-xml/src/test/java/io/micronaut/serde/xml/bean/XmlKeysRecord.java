@@ -15,7 +15,7 @@
  */
 package io.micronaut.serde.xml.bean;
 
-import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
 import tools.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import tools.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
@@ -29,7 +29,7 @@ import java.util.List;
  * @param items The items
  * @since 3.2
  */
-@Serdeable
+@SerdeableGenerated
 public record XmlKeysRecord(
     String name,
     @JacksonXmlProperty(isAttribute = true) int id,

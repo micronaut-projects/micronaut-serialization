@@ -17,7 +17,7 @@ package io.micronaut.serde.xml.tck
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonRootName
-import io.micronaut.serde.annotation.Serdeable
+import io.micronaut.serde.annotation.SerdeableGenerated
 import spock.lang.Specification
 import tools.jackson.dataformat.xml.annotation.JacksonXmlProperty
 
@@ -70,7 +70,7 @@ abstract class AbstractXmlNamespaceSpec extends Specification implements XmlSpec
         decoded != null
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     @JsonRootName(value = "nsRoot", namespace = "http://foo")
     static class NamespacedRootBean {
     }
@@ -145,7 +145,7 @@ abstract class AbstractXmlNamespaceSpec extends Specification implements XmlSpec
         decoded.child.value == "v"
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class MergedNsAttrBean {
         @JsonProperty(value = "value", namespace = "uri:ns1")
         @JacksonXmlProperty(isAttribute = true)
@@ -156,21 +156,21 @@ abstract class AbstractXmlNamespaceSpec extends Specification implements XmlSpec
         void setAttr(String attr) { this.attr = attr }
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     @JsonRootName("Root")
     static class JsonNamespacedChildBean {
         @JsonProperty(value = "ChildJSON", namespace = "uri:child")
         int child
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     @JsonRootName(value = "person", namespace = "http://example.org/person")
     static class JsonNamespacedPerson {
         @JsonProperty(namespace = "http://example.org/personJSON")
         String name
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class NamespacedAttrBean {
         @JacksonXmlProperty(namespace = "http://foo", isAttribute = true, localName = "other")
         String attr = "3"
@@ -195,7 +195,7 @@ abstract class AbstractXmlNamespaceSpec extends Specification implements XmlSpec
         xml.trim() == '<Issue395Bean xml:lang="en-US"></Issue395Bean>'
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class Issue395Bean {
         @JacksonXmlProperty(isAttribute = true,
                 namespace = "http://www.w3.org/XML/1998/namespace",
@@ -206,7 +206,7 @@ abstract class AbstractXmlNamespaceSpec extends Specification implements XmlSpec
         void setLang(String lang) { this.lang = lang }
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class NamespacedChildBean {
         @JacksonXmlProperty(namespace = "uri:child", localName = "ChildXML")
         String child = "v"
@@ -220,13 +220,13 @@ abstract class AbstractXmlNamespaceSpec extends Specification implements XmlSpec
         }
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class NamespacedObjectBean {
         @JacksonXmlProperty(namespace = "uri:child", localName = "child")
         NestedBean child
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class NestedBean {
         String value
     }

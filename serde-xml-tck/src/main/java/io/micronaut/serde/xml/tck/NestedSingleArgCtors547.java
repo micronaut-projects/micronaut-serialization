@@ -18,20 +18,20 @@ package io.micronaut.serde.xml.tck;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.micronaut.core.annotation.Introspected;
-import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
 
 final class NestedSingleArgCtors547 {
 
     private NestedSingleArgCtors547() {
     }
 
-    @Serdeable
+    @SerdeableGenerated
     @Introspected(accessKind = Introspected.AccessKind.FIELD)
     static class Outer547Del {
         public Inner547Del inner;
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     @Introspected(accessKind = Introspected.AccessKind.FIELD)
     static class Inner547Del {
         public final String value;
@@ -42,13 +42,13 @@ final class NestedSingleArgCtors547 {
         }
     }
 
-    @Serdeable
+    @SerdeableGenerated
     @Introspected(accessKind = Introspected.AccessKind.FIELD)
     static class Outer547Props {
         public Inner547Props inner;
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     @Introspected(accessKind = Introspected.AccessKind.FIELD)
     static class Inner547Props {
         public final String value;

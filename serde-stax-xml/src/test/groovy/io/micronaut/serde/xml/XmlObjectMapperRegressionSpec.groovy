@@ -2,10 +2,15 @@ package io.micronaut.serde.xml
 
 import io.micronaut.core.type.Argument
 import io.micronaut.json.tree.JsonNode
+import io.micronaut.serde.Deserializer
 import io.micronaut.serde.Encoder
+import io.micronaut.serde.SerdeRegistry
 import io.micronaut.serde.Serializer
 import io.micronaut.serde.annotation.Serdeable
+import io.micronaut.serde.annotation.SerdeableGenerated
 import io.micronaut.serde.exceptions.SerdeException
+import io.micronaut.serde.xml.bean.RuntimeXmlKeysBean
+import io.micronaut.serde.xml.bean.RuntimeXmlKeysRecord
 import io.micronaut.serde.xml.bean.XmlKeysBean
 import io.micronaut.serde.xml.bean.XmlKeysRecord
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
@@ -13,6 +18,7 @@ import jakarta.inject.Inject
 import jakarta.inject.Named
 import jakarta.inject.Singleton
 import spock.lang.Specification
+import spock.lang.Unroll
 
 @MicronautTest
 class XmlObjectMapperRegressionSpec extends Specification {
@@ -20,6 +26,9 @@ class XmlObjectMapperRegressionSpec extends Specification {
     @Inject
     @Named(XmlObjectMapper.XML_MAPPER_NAME)
     XmlObjectMapper xmlMapper
+
+    @Inject
+    SerdeRegistry serdeRegistry
 
     def "root scalar values have a valid document element"() {
         when:
@@ -62,32 +71,46 @@ class XmlObjectMapperRegressionSpec extends Specification {
             "<CustomValue>custom:foo</CustomValue>"
     }
 
-    def "source-generated bean uses XML key metadata"() {
+    @Unroll
+    def "#mode bean serde uses XML key metadata"() {
         given:
-        def value = new XmlKeysBean('Bob', 7, ['a', 'b'])
+        def value = beanType.getDeclaredConstructor(String, int, List).newInstance('Bob', 7, ['a', 'b'])
 
         when:
         def xml = xmlMapper.writeValueAsString(value)
-        def decoded = xmlMapper.readValue(xml, XmlKeysBean)
+        def decoded = xmlMapper.readValue(xml, beanType)
 
         then:
-        xml == '<XmlKeysBean id="7"><name>Bob</name><item>a</item><item>b</item></XmlKeysBean>'
+        xml == "<${beanType.simpleName} id=\"7\"><name>Bob</name><item>a</item><item>b</item></${beanType.simpleName}>"
         decoded.id == 7
         decoded.name == 'Bob'
         decoded.items == ['a', 'b']
+        selectedSerdeIsGenerated(beanType, generated)
+
+        where:
+        mode        | beanType           | generated
+        'generated' | XmlKeysBean        | true
+        'runtime'   | RuntimeXmlKeysBean | false
     }
 
-    def "source-generated record uses XML key metadata without changing constructor order"() {
+    @Unroll
+    def "#mode record serde uses XML key metadata without changing constructor order"() {
         given:
-        def value = new XmlKeysRecord('Bob', 7, ['a', 'b'])
+        def value = recordType.getDeclaredConstructor(String, int, List).newInstance('Bob', 7, ['a', 'b'])
 
         when:
         def xml = xmlMapper.writeValueAsString(value)
-        def decoded = xmlMapper.readValue(xml, XmlKeysRecord)
+        def decoded = xmlMapper.readValue(xml, recordType)
 
         then:
-        xml == '<XmlKeysRecord id="7"><name>Bob</name><item>a</item><item>b</item></XmlKeysRecord>'
+        xml == "<${recordType.simpleName} id=\"7\"><name>Bob</name><item>a</item><item>b</item></${recordType.simpleName}>"
         decoded == value
+        selectedSerdeIsGenerated(recordType, generated)
+
+        where:
+        mode        | recordType           | generated
+        'generated' | XmlKeysRecord        | true
+        'runtime'   | RuntimeXmlKeysRecord | false
     }
 
     def "source-generated XML key metadata references SerdeConfig constants"() {
@@ -119,11 +142,24 @@ class XmlObjectMapperRegressionSpec extends Specification {
         sourceFile.text
     }
 
-    @Serdeable
+    private boolean selectedSerdeIsGenerated(Class<?> type, boolean expected) {
+        Argument<?> argument = Argument.of(type)
+        Serializer<?> serializer = serdeRegistry.findSerializer(argument)
+            .createSpecific(serdeRegistry.newEncoderContext(Object), argument)
+        Deserializer<?> deserializer = serdeRegistry.findDeserializer(argument)
+            .createSpecific(serdeRegistry.newDecoderContext(Object), argument)
+        String generatedPrefix = "io.micronaut.serde.xml.bean.Serde${type.simpleName}"
+        assert serializer.class.name.startsWith(generatedPrefix) == expected
+        assert deserializer.class.name.startsWith(generatedPrefix) == expected
+        true
+    }
+
+    @SerdeableGenerated(skip = true)
     static class ExternalEntityBean {
         String value
     }
 
+    @SerdeableGenerated(skip = true)
     @Serdeable.Serializable(using = PrefixSerializer)
     static class CustomValue {
         String value

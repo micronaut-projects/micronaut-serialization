@@ -20,8 +20,9 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.fasterxml.jackson.annotation.JsonValue
 import io.micronaut.core.type.Argument
-import io.micronaut.serde.annotation.Serdeable
+import io.micronaut.serde.annotation.SerdeableGenerated
 import spock.lang.Specification
+import spock.lang.Unroll
 import tools.jackson.dataformat.xml.annotation.JacksonXmlCData
 import tools.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import tools.jackson.dataformat.xml.annotation.JacksonXmlProperty
@@ -293,27 +294,37 @@ abstract class AbstractJacksonXmlParitySpec extends Specification implements Xml
         decoded.cdata == "<xml>"
     }
 
-    def "generated bean serde carries text and CDATA key metadata"() {
+    @Unroll
+    def "#mode bean serde carries text and CDATA key metadata"() {
         given:
-        def input = new JacksonXmlAnnotationBeans.TextBean(language: "en", content: "<generated> & text")
+        def input = beanType.getDeclaredConstructor().newInstance()
+        input.language = "en"
+        input.content = "<${mode}> & text"
 
         when:
         def xml = writeXml(input)
-        def decoded = readXml(xml, JacksonXmlAnnotationBeans.TextBean)
+        def decoded = readXml(xml, beanType)
 
         then:
-        xml == '<TextBean language="en"><![CDATA[<generated> & text]]></TextBean>'
+        xml == "<${beanType.simpleName} language=\"en\"><![CDATA[<${mode}> & text]]></${beanType.simpleName}>"
         decoded.language == input.language
         decoded.content == input.content
+
+        where:
+        mode        | beanType
+        'generated' | JacksonXmlAnnotationBeans.GeneratedTextBean
+        'runtime'   | JacksonXmlAnnotationBeans.RuntimeTextBean
     }
 
-    def "generated bean serde carries wrapper namespace and collection CDATA metadata"() {
+    @Unroll
+    def "#mode bean serde carries wrapper namespace and collection CDATA metadata"() {
         given:
-        def input = new JacksonXmlAnnotationBeans.CollectionBean(values: ["<one>", "two & three"])
+        def input = beanType.getDeclaredConstructor().newInstance()
+        input.values = ["<one>", "two & three"]
 
         when:
         def xml = writeXml(input)
-        def decoded = readXml(xml, JacksonXmlAnnotationBeans.CollectionBean)
+        def decoded = readXml(xml, beanType)
         def wrapper = parseXmlRoot(xml).getElementsByTagNameNS("urn:generated-wrapper", "items").item(0)
 
         then:
@@ -321,6 +332,11 @@ abstract class AbstractJacksonXmlParitySpec extends Specification implements Xml
         xml.contains('<![CDATA[<one>]]>')
         xml.contains('<![CDATA[two & three]]>')
         decoded.values == input.values
+
+        where:
+        mode        | beanType
+        'generated' | JacksonXmlAnnotationBeans.GeneratedCollectionBean
+        'runtime'   | JacksonXmlAnnotationBeans.RuntimeCollectionBean
     }
 
     enum TestEnum {
@@ -329,12 +345,12 @@ abstract class AbstractJacksonXmlParitySpec extends Specification implements Xml
         C
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class EnumBean {
         TestEnum value
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     enum Country {
         ITALY("Italy"),
         NETHERLANDS("Netherlands")
@@ -356,13 +372,13 @@ abstract class AbstractJacksonXmlParitySpec extends Specification implements Xml
         }
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class ParityResource {
         long id
         String name
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class ChannelSet {
         String setId
 
@@ -370,12 +386,12 @@ abstract class AbstractJacksonXmlParitySpec extends Specification implements Xml
         List<Channel> channels
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class Channel {
         String channelId
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     @JsonPropertyOrder(["name", "location"])
     static class Unwrapping {
         String name
@@ -384,14 +400,14 @@ abstract class AbstractJacksonXmlParitySpec extends Specification implements Xml
         Location location
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     @JsonPropertyOrder(["x", "y"])
     static class Location {
         int x
         int y
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class UnwrappedLists {
         @JacksonXmlElementWrapper(useWrapping = false)
         List<Bar> firstBar
@@ -400,7 +416,7 @@ abstract class AbstractJacksonXmlParitySpec extends Specification implements Xml
         List<Bar> secondBar
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class Bar {
         @JacksonXmlProperty(isAttribute = true)
         int id
@@ -408,23 +424,23 @@ abstract class AbstractJacksonXmlParitySpec extends Specification implements Xml
         String value
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class EmptyBean {
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     @JacksonXmlRootElement(localName = "custom-root", namespace = "urn:custom-root")
     static class CustomRootBean {
         @JacksonXmlProperty(isAttribute = true)
         String id
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     @JacksonXmlRootElement(namespace = "urn:default-root")
     static class DefaultRootNamespaceBean {
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class TextBean {
         @JacksonXmlProperty(isAttribute = true)
         String language
@@ -433,40 +449,40 @@ abstract class AbstractJacksonXmlParitySpec extends Specification implements Xml
         String content
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class CDataBean {
         @JacksonXmlCData
         String content
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class CDataListBean {
         @JacksonXmlCData
         @JacksonXmlElementWrapper(useWrapping = false)
         List<String> values
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class CDataTextBean {
         @JacksonXmlText
         @JacksonXmlCData
         String content
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class NestedTextBean {
         TextBean value
         String trailing
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class NamespacedWrapperBean {
         @JacksonXmlElementWrapper(localName = "items", namespace = "urn:wrapper")
         @JacksonXmlProperty(localName = "item")
         List<String> values
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class DisabledXmlAnnotationsBean {
         @JacksonXmlText(false)
         String text

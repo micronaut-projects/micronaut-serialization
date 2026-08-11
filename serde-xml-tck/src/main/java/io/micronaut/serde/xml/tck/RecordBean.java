@@ -15,9 +15,9 @@
  */
 package io.micronaut.serde.xml.tck;
 
-import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
 
-@Serdeable
+@SerdeableGenerated
 public record RecordBean(
     String foo,
     String bar

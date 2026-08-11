@@ -16,7 +16,7 @@
 package io.micronaut.serde.xml.tck
 
 import io.micronaut.core.type.Argument
-import io.micronaut.serde.annotation.Serdeable
+import io.micronaut.serde.annotation.SerdeableGenerated
 import spock.lang.Specification
 
 abstract class AbstractXmlDeserErrorSpec extends Specification implements XmlSpec {
@@ -29,7 +29,7 @@ abstract class AbstractXmlDeserErrorSpec extends Specification implements XmlSpe
         thrown(Exception)
     }
 
-    @Serdeable
+    @SerdeableGenerated(skip = true)
     static class Employee {
         String name
     }
