@@ -20,56 +20,43 @@ import io.micronaut.core.annotation.AnnotationValueBuilder;
 import io.micronaut.inject.annotation.NamedAnnotationMapper;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.config.annotation.SerdeConfig;
+
 import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.List;
 
 /**
- * Maps Jackson XML's {@code tools.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper}.
+ * Maps Jackson XML's {@code tools.jackson.dataformat.xml.annotation.JacksonXmlRootElement}.
  *
  * @since 3.2
  */
-public final class JacksonXmlElementWrapperMapper implements NamedAnnotationMapper {
+public final class JacksonXmlRootElementMapper implements NamedAnnotationMapper {
 
-    static final String USE_WRAPPING = "useWrapping";
-    static final String LOCAL_NAME = "localName";
     static final String NAMESPACE = "namespace";
+    static final String LOCAL_NAME = "localName";
 
     @Override
     public String getName() {
-        return "tools.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper";
+        return "tools.jackson.dataformat.xml.annotation.JacksonXmlRootElement";
     }
 
     /**
-     * Maps {@code @JacksonXmlElementWrapper} to {@link SerdeConfig}, enabling collection wrapping {@code useWrapping}
-     * and applying any custom wrapper {@code localName}.
+     * Maps the root local name and namespace to {@link SerdeConfig}.
      *
-     * @param annotation     The {@code @JacksonXmlElementWrapper} annotation values
+     * @param annotation The {@code @JacksonXmlRootElement} annotation values
      * @param visitorContext The context that is being visited
      * @return A singleton list containing the resulting {@link SerdeConfig} annotation
      */
     @Override
     public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
-        AnnotationValueBuilder<SerdeConfig> builder = AnnotationValue.builder(SerdeConfig.class);
-        annotation.booleanValue(USE_WRAPPING).ifPresentOrElse(
-            useWrapping -> builder.member(SerdeConfig.META_ANNOTATION_PROPERTY, useWrapping),
-            () -> {
-                annotation.stringValue(LOCAL_NAME)
-                    .filter(localName -> !localName.isEmpty())
-                    .ifPresent(localName -> builder.member(SerdeConfig.META_ANNOTATION_PROPERTY, true));
-            }
-        );
-
+        AnnotationValueBuilder<SerdeConfig> builder = AnnotationValue.builder(SerdeConfig.class)
+            .member(SerdeConfig.XML_ROOT_ELEMENT, true);
         annotation.stringValue(LOCAL_NAME)
             .filter(localName -> !localName.isEmpty())
-            .ifPresent(localName -> {
-                builder.member(SerdeConfig.WRAPPER_PROPERTY, localName);
-                builder.member(SerdeConfig.ALIASES, new String[] { localName });
-            });
+            .ifPresent(localName -> builder.member(SerdeConfig.WRAPPER_PROPERTY, localName));
         annotation.stringValue(NAMESPACE)
             .filter(namespace -> !namespace.isEmpty())
-            .ifPresent(namespace -> builder.member(SerdeConfig.XML_WRAPPER_NAMESPACE, namespace));
-
+            .ifPresent(namespace -> builder.member(SerdeConfig.XML_NAMESPACE, namespace));
         return Collections.singletonList(builder.build());
     }
 }

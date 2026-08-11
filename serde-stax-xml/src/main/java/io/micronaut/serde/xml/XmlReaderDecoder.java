@@ -306,6 +306,12 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         }
     }
 
+    private static boolean isTextEvent(int event) {
+        return event == XMLStreamConstants.CHARACTERS
+            || event == XMLStreamConstants.CDATA
+            || event == XMLStreamConstants.SPACE;
+    }
+
     /**
      * Captured XML attribute name + value pair, surfaced to deserializers as object keys.
      * @param name
@@ -566,11 +572,19 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
             if (pendingUnknownKey != null) {
                 return MATCH_UNKNOWN_NAME;
             }
+            Object[] xmlContribution = KeysSupport.get(keys, XML_KEYS_CONTRIBUTION_INDEX);
+            int textKeyIndex = (int) xmlContribution[XmlKeysProvider.TEXT_KEY_INDEX];
+            if (attrIndex >= attrs.size()
+                && textKeyIndex != Keys.UNKNOWN_KEY
+                && isTextEvent(cursor.current())) {
+                currentXmlKey = ((XmlKey[]) xmlContribution[XmlKeysProvider.XML_KEYS_INDEX])[textKeyIndex];
+                currentKey = currentXmlKey.name();
+                return textKeyIndex;
+            }
             String key = decodeKey();
             if (key == null) {
                 return MATCH_END_OBJECT;
             }
-            Object[] xmlContribution = KeysSupport.get(keys, XML_KEYS_CONTRIBUTION_INDEX);
             int keyIndex = keys.indexOf(key);
             if (keyIndex == Keys.UNKNOWN_KEY) {
                 Map<String, Integer> inputNameIndexes =
@@ -596,6 +610,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
                 return value;
             }
             requireKey();
+            boolean textProperty = currentXmlKey != null && currentXmlKey.text();
             StringBuilder sb = new StringBuilder();
             while (true) {
                 int e = cursor.current();
@@ -609,6 +624,9 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
                     case XMLStreamConstants.END_ELEMENT:
                         cursor.advance();
                         clearKeyState();
+                        if (textProperty) {
+                            finished = true;
+                        }
                         return sb.toString();
                     case XMLStreamConstants.START_ELEMENT:
                         throw createDeserializationException(
@@ -640,8 +658,12 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         @Override
         public @Nullable Object decodeArbitrary() throws IOException {
             requireKey();
+            boolean textProperty = currentXmlKey != null && currentXmlKey.text();
             Object v = readArbitraryValue(cursor);
             clearKeyState();
+            if (textProperty) {
+                finished = true;
+            }
             return v;
         }
 
@@ -675,6 +697,10 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
                 clearKeyState();
                 return;
             }
+            if (currentXmlKey != null && currentXmlKey.text()) {
+                skipTextProperty();
+                return;
+            }
             skipCurrentElement("skipping <" + currentKey + ">");
             clearKeyState();
         }
@@ -706,6 +732,29 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         private void requireKey() {
             if (currentKey == null) {
                 throw new IllegalStateException("No XML element currently open for value decoding (call decodeKey first)");
+            }
+        }
+
+        private void skipTextProperty() throws IOException {
+            while (true) {
+                int event = cursor.current();
+                if (isTextEvent(event)) {
+                    cursor.advance();
+                } else if (event == XMLStreamConstants.END_ELEMENT) {
+                    cursor.advance();
+                    clearKeyState();
+                    finished = true;
+                    return;
+                } else if (event == XMLStreamConstants.END_DOCUMENT) {
+                    clearKeyState();
+                    finished = true;
+                    return;
+                } else {
+                    throw createDeserializationException(
+                        "Expected text content for " + currentKey + " but found XML event " + event,
+                        null
+                    );
+                }
             }
         }
 

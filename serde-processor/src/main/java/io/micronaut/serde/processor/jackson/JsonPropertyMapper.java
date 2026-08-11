@@ -62,6 +62,15 @@ public class JsonPropertyMapper implements NamedAnnotationMapper {
         if (annotation.booleanValue("required").orElse(false)) {
             builder.member(SerdeConfig.REQUIRED, true);
         }
+        annotation.stringValue("isRequired").ifPresent(isRequired -> {
+            switch (isRequired) {
+                case "TRUE" -> builder.member(SerdeConfig.REQUIRED, true);
+                case "FALSE" -> builder.member(SerdeConfig.REQUIRED, false);
+                default -> {
+                    // The legacy required member remains authoritative for DEFAULT.
+                }
+            }
+        });
         annotation.stringValue(NAMESPACE)
             .filter(ns -> !ns.isEmpty())
             .ifPresent(ns -> builder.member(SerdeConfig.XML_NAMESPACE, ns));

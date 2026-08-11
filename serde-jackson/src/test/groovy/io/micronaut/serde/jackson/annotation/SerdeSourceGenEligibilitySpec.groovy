@@ -393,6 +393,7 @@ class JsonIncludePropertyBean {
 package test;
 
 import io.micronaut.serde.annotation.Serdeable;
+import tools.jackson.dataformat.xml.annotation.JacksonXmlCData;
 import tools.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import tools.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import tools.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -451,13 +452,38 @@ class XmlTextBean {
 
     public void setLabel(String label) { this.label = label; }
 }
+
+@Serdeable
+class XmlCDataBean {
+    @JacksonXmlCData
+    private String content;
+
+    public XmlCDataBean() {}
+
+    public String getContent() { return content; }
+
+    public void setContent(String content) { this.content = content; }
+}
+
+@Serdeable
+record XmlTextRecord(
+    @JacksonXmlText @JacksonXmlCData String content
+) {}
+
+@Serdeable
+record XmlWrapperRecord(
+    @JacksonXmlElementWrapper(localName = "items", namespace = "urn:wrapper") List<String> items
+) {}
 ''')
 
         expect:
         assertRegistrySelection(context, 'test.XmlWrapperBean', true, true)
         assertRegistrySelection(context, 'test.XmlPropertyBean', true, true)
         assertRegistrySelection(context, 'test.XmlRootBean', false, false)
-        assertRegistrySelection(context, 'test.XmlTextBean', false, false)
+        assertRegistrySelection(context, 'test.XmlTextBean', true, true)
+        assertRegistrySelection(context, 'test.XmlCDataBean', true, true)
+        assertRegistrySelection(context, 'test.XmlTextRecord', true, true)
+        assertRegistrySelection(context, 'test.XmlWrapperRecord', true, true)
 
         cleanup:
         context.close()

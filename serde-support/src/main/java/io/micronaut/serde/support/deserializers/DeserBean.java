@@ -515,15 +515,24 @@ final class DeserBean<T> {
 
     private static boolean hasKeyMetadata(DerProperty<?, ?> property) {
         return property.xmlAttributeProperty
+            || property.xmlTextProperty
+            || property.xmlCDataProperty
             || property.xmlNamespace != null
             || property.xmlWrappingConfigured
-            || property.xmlWrapperName != null;
+            || property.xmlWrapperName != null
+            || property.xmlWrapperNamespace != null;
     }
 
     private static KeyDescriptor keyDescriptor(String name, DerProperty<?, ?> property) {
-        Map<String, String> metadata = new HashMap<>(4);
+        Map<String, String> metadata = new HashMap<>(7);
         if (property.xmlAttributeProperty) {
             metadata.put(SerdeConfig.XML_ATTRIBUTE_PROPERTY, "true");
+        }
+        if (property.xmlTextProperty) {
+            metadata.put(SerdeConfig.XML_TEXT_PROPERTY, "true");
+        }
+        if (property.xmlCDataProperty) {
+            metadata.put(SerdeConfig.XML_CDATA_PROPERTY, "true");
         }
         if (property.xmlNamespace != null) {
             metadata.put(SerdeConfig.XML_NAMESPACE, property.xmlNamespace);
@@ -533,6 +542,9 @@ final class DeserBean<T> {
         }
         if (property.xmlWrapperName != null) {
             metadata.put(SerdeConfig.WRAPPER_PROPERTY, property.xmlWrapperName);
+        }
+        if (property.xmlWrapperNamespace != null) {
+            metadata.put(SerdeConfig.XML_WRAPPER_NAMESPACE, property.xmlWrapperNamespace);
         }
         return new KeyDescriptor(name, metadata);
     }
@@ -1058,8 +1070,11 @@ final class DeserBean<T> {
         public final boolean xmlUseWrapping;
         public final boolean xmlWrappingConfigured;
         public final boolean xmlAttributeProperty;
+        public final boolean xmlTextProperty;
+        public final boolean xmlCDataProperty;
         public final @Nullable String xmlNamespace;
         public final @Nullable String xmlWrapperName;
+        public final @Nullable String xmlWrapperNamespace;
         @Nullable
         public final String unresolvedTypeVariableName;
         @Nullable
@@ -1191,8 +1206,11 @@ final class DeserBean<T> {
             this.xmlUseWrapping = xmlUseWrapping.orElse(true);
             this.xmlWrappingConfigured = xmlUseWrapping.isPresent();
             this.xmlAttributeProperty = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.XML_ATTRIBUTE_PROPERTY).orElse(false);
+            this.xmlTextProperty = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.XML_TEXT_PROPERTY).orElse(false);
+            this.xmlCDataProperty = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.XML_CDATA_PROPERTY).orElse(false);
             this.xmlNamespace = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.XML_NAMESPACE).orElse(null);
             this.xmlWrapperName = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY).orElse(null);
+            this.xmlWrapperNamespace = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.XML_WRAPPER_NAMESPACE).orElse(null);
             this.explicitlyRequired = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.REQUIRED)
                 .orElse(false);
             this.explicitlyRequiredForConstructor = explicitlyRequired || deserializationConfiguration.isRequireAllCreatorParameters();

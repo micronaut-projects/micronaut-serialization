@@ -17,6 +17,7 @@ package io.micronaut.serde.xml;
 
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.serde.KeyDescriptor;
+import io.micronaut.serde.Keys;
 import io.micronaut.serde.KeysProvider;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import org.jspecify.annotations.Nullable;
@@ -36,6 +37,7 @@ public final class XmlKeysProvider implements KeysProvider {
 
     static final int XML_KEYS_INDEX = 0;
     static final int INPUT_NAME_INDEXES_INDEX = 1;
+    static final int TEXT_KEY_INDEX = 2;
 
     @Override
     public Class<?> keysType() {
@@ -56,6 +58,7 @@ public final class XmlKeysProvider implements KeysProvider {
     public Object[] createWithMetadata(List<KeyDescriptor> keys, boolean caseInsensitive) {
         XmlKey[] xmlKeys = new XmlKey[keys.size()];
         Map<String, Integer> inputNameIndexes = new HashMap<>(keys.size());
+        int textKeyIndex = Keys.UNKNOWN_KEY;
         for (int i = 0; i < keys.size(); i++) {
             KeyDescriptor key = keys.get(i);
             Map<String, String> metadata = key.metadata();
@@ -68,16 +71,22 @@ public final class XmlKeysProvider implements KeysProvider {
                 key.name(),
                 metadata.get(SerdeConfig.XML_NAMESPACE),
                 Boolean.parseBoolean(metadata.get(SerdeConfig.XML_ATTRIBUTE_PROPERTY)),
+                Boolean.parseBoolean(metadata.get(SerdeConfig.XML_TEXT_PROPERTY)),
+                Boolean.parseBoolean(metadata.get(SerdeConfig.XML_CDATA_PROPERTY)),
                 collectionLayout,
-                wrapperName
+                wrapperName,
+                metadata.get(SerdeConfig.XML_WRAPPER_NAMESPACE)
             );
             xmlKeys[i] = xmlKey;
+            if (xmlKey.text() && textKeyIndex == Keys.UNKNOWN_KEY) {
+                textKeyIndex = i;
+            }
             inputNameIndexes.putIfAbsent(normalize(key.name(), caseInsensitive), i);
             if (collectionLayout == XmlCollectionLayout.WRAPPED && wrapperName != null) {
                 inputNameIndexes.putIfAbsent(normalize(wrapperName, caseInsensitive), i);
             }
         }
-        return new Object[] { xmlKeys, Map.copyOf(inputNameIndexes) };
+        return new Object[] { xmlKeys, Map.copyOf(inputNameIndexes), textKeyIndex };
     }
 
     static String normalize(String name, boolean caseInsensitive) {
@@ -89,8 +98,11 @@ record XmlKey(
     String name,
     @Nullable String namespace,
     boolean attribute,
+    boolean text,
+    boolean cdata,
     XmlCollectionLayout collectionLayout,
-    @Nullable String wrapperName
+    @Nullable String wrapperName,
+    @Nullable String wrapperNamespace
 ) {
 }
 

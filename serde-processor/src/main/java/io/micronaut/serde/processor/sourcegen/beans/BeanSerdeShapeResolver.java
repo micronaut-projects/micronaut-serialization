@@ -108,16 +108,24 @@ public final class BeanSerdeShapeResolver {
     }
 
     private static Map<String, String> resolveKeyMetadata(PropertyElement property) {
-        Map<String, String> metadata = new HashMap<>(4);
+        Map<String, String> metadata = new HashMap<>(7);
         booleanValue(property, SerdeConfig.XML_ATTRIBUTE_PROPERTY)
             .filter(Boolean::booleanValue)
             .ifPresent(value -> metadata.put(SerdeConfig.XML_ATTRIBUTE_PROPERTY, "true"));
         stringValue(property, SerdeConfig.XML_NAMESPACE)
             .ifPresent(value -> metadata.put(SerdeConfig.XML_NAMESPACE, value));
+        booleanValue(property, SerdeConfig.XML_TEXT_PROPERTY)
+            .filter(Boolean::booleanValue)
+            .ifPresent(value -> metadata.put(SerdeConfig.XML_TEXT_PROPERTY, "true"));
+        booleanValue(property, SerdeConfig.XML_CDATA_PROPERTY)
+            .filter(Boolean::booleanValue)
+            .ifPresent(value -> metadata.put(SerdeConfig.XML_CDATA_PROPERTY, "true"));
         booleanValue(property, SerdeConfig.META_ANNOTATION_PROPERTY)
             .ifPresent(value -> metadata.put(SerdeConfig.META_ANNOTATION_PROPERTY, value.toString()));
         stringValue(property, SerdeConfig.WRAPPER_PROPERTY)
             .ifPresent(value -> metadata.put(SerdeConfig.WRAPPER_PROPERTY, value));
+        stringValue(property, SerdeConfig.XML_WRAPPER_NAMESPACE)
+            .ifPresent(value -> metadata.put(SerdeConfig.XML_WRAPPER_NAMESPACE, value));
         return Map.copyOf(metadata);
     }
 

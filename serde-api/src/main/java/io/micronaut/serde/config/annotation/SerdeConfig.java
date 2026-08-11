@@ -74,9 +74,29 @@ public @interface SerdeConfig {
     String XML_ATTRIBUTE_PROPERTY = "xmlAttributeProperty";
 
     /**
+     * Whether the XML property should be serialized as unwrapped text content.
+     */
+    String XML_TEXT_PROPERTY = "xmlTextProperty";
+
+    /**
+     * Whether the XML property should be serialized as CDATA content.
+     */
+    String XML_CDATA_PROPERTY = "xmlCDataProperty";
+
+    /**
      * The XML namespace URI bound to a property or root element.
      */
     String XML_NAMESPACE = "xmlNamespace";
+
+    /**
+     * The XML namespace URI bound to a collection wrapper element.
+     */
+    String XML_WRAPPER_NAMESPACE = "xmlWrapperNamespace";
+
+    /**
+     * Whether the type carries XML-specific root element configuration.
+     */
+    String XML_ROOT_ELEMENT = "xmlRootElement";
 
     /**
      * Whether this property is required (must be present in the input).

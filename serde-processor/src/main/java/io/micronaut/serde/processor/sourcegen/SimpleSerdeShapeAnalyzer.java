@@ -52,6 +52,10 @@ public final class SimpleSerdeShapeAnalyzer {
         "tools.jackson.dataformat.xml.annotation.JacksonXmlProperty";
     private static final String JACKSON_XML_ELEMENT_WRAPPER =
         "tools.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper";
+    private static final String JACKSON_XML_TEXT =
+        "tools.jackson.dataformat.xml.annotation.JacksonXmlText";
+    private static final String JACKSON_XML_CDATA =
+        "tools.jackson.dataformat.xml.annotation.JacksonXmlCData";
 
     @SuppressWarnings("java:S3776")
     public SimpleSerdeShapeDecision analyze(ClassElement element) {
@@ -439,7 +443,9 @@ public final class SimpleSerdeShapeAnalyzer {
 
     private boolean isSupportedXmlAnnotation(String annotationName) {
         return JACKSON_XML_PROPERTY.equals(annotationName)
-            || JACKSON_XML_ELEMENT_WRAPPER.equals(annotationName);
+            || JACKSON_XML_ELEMENT_WRAPPER.equals(annotationName)
+            || JACKSON_XML_TEXT.equals(annotationName)
+            || JACKSON_XML_CDATA.equals(annotationName);
     }
 
     private boolean isJacksonAnnotationName(String name) {

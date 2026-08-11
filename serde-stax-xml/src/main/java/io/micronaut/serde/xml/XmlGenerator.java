@@ -96,21 +96,21 @@ public final class XmlGenerator implements KeysAwareEncoder {
                 if (lastPropertyKey instanceof KeyFrame kf && kf.arrayWrappingKey() != null) {
                     lastProperty = kf.arrayWrappingKey();
                     xmlWriter.writeStartElement(lastProperty);
-                    propertyStack.addLast(new ArrayFrame(kf.key(), null, kf.namespace()));
+                    propertyStack.addLast(new ArrayFrame(kf.key(), null, kf.namespace(), false));
                     return this;
                 }
                 if (lastPropertyKey instanceof KeyFrame kf && kf.xmlKey() != null) {
                     if (kf.xmlKey().collectionLayout() == XmlCollectionLayout.INLINE) {
                         propertyStack.removeLast();
-                        propertyStack.addLast(new ArrayFrame("", kf.key(), kf.namespace()));
+                        propertyStack.addLast(new ArrayFrame("", kf.key(), kf.namespace(), kf.xmlKey().cdata()));
                         return this;
                     }
                     if (kf.xmlKey().collectionLayout() == XmlCollectionLayout.WRAPPED) {
                         String wrapperName = kf.xmlKey().wrapperName() == null
                             ? Objects.requireNonNull(kf.key())
                             : kf.xmlKey().wrapperName();
-                        xmlWriter.writeStartElement(wrapperName);
-                        propertyStack.addLast(new ArrayFrame(kf.key(), null, kf.namespace()));
+                        writeStartElement(kf.xmlKey().wrapperNamespace(), wrapperName);
+                        propertyStack.addLast(new ArrayFrame(kf.key(), null, kf.namespace(), kf.xmlKey().cdata()));
                         return this;
                     }
                 }
@@ -118,7 +118,10 @@ public final class XmlGenerator implements KeysAwareEncoder {
                 String itemNamespace = lastPropertyKey instanceof KeyFrame keyFrame
                     ? keyFrame.namespace()
                     : ((ArrayFrame) lastPropertyKey).itemNamespace();
-                propertyStack.addLast(new ArrayFrame(lastProperty, null, itemNamespace));
+                boolean cdata = lastPropertyKey instanceof KeyFrame keyFrame
+                    && keyFrame.xmlKey() != null
+                    && keyFrame.xmlKey().cdata();
+                propertyStack.addLast(new ArrayFrame(lastProperty, null, itemNamespace, cdata));
                 return this;
             } else {
                 String collectionName = rootName;
@@ -129,7 +132,7 @@ public final class XmlGenerator implements KeysAwareEncoder {
                         : type.getName();
                     collectionName = NameUtils.camelCase(typeName, false);
                 }
-                ArrayFrame arrayFrame = new ArrayFrame(collectionName, "item", null);
+                ArrayFrame arrayFrame = new ArrayFrame(collectionName, "item", null, false);
                 propertyStack.addLast(arrayFrame);
 
                 xmlWriter.writeStartElement(collectionName);
@@ -147,11 +150,15 @@ public final class XmlGenerator implements KeysAwareEncoder {
             Boolean rootMapper = true;
             return new XmlGenerator(xmlWriter, rootMapper);
         }
-        if (propertyStack.isEmpty() && type.getAnnotationMetadata().stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY).isPresent()) {
+        if (propertyStack.isEmpty()) {
             String rootNamespace = type.getAnnotationMetadata()
                 .stringValue(SerdeConfig.class, SerdeConfig.XML_NAMESPACE)
                 .orElse(null);
-            return new XmlGenerator(xmlWriter, Boolean.TRUE, rootNamespace);
+            if (type.getAnnotationMetadata().stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY).isPresent()
+                || (rootNamespace != null
+                    && type.getAnnotationMetadata().booleanValue(SerdeConfig.class, SerdeConfig.XML_ROOT_ELEMENT).orElse(false))) {
+                return new XmlGenerator(xmlWriter, Boolean.TRUE, rootNamespace);
+            }
         }
         try {
             if (rootMapper) {
@@ -163,10 +170,10 @@ public final class XmlGenerator implements KeysAwareEncoder {
             if (last instanceof KeyFrame || last instanceof ArrayFrame) {
                 Deque<ContextProperties> innerPropertyStack = new ArrayDeque<>(8);
                 if (last instanceof KeyFrame kf) {
-                    KeyFrame updated = new KeyFrame(kf.key(), kf.consumed(), kf.arrayWrappingKey(), Boolean.FALSE, kf.namespace(), kf.xmlKey());
+                    KeyFrame childFrame = new KeyFrame(kf.key(), false, kf.arrayWrappingKey(), Boolean.FALSE, kf.namespace(), kf.xmlKey());
                     propertyStack.removeLast();
-                    propertyStack.addLast(updated);
-                    innerPropertyStack.addLast(updated);
+                    propertyStack.addLast(new KeyFrame(kf.key(), true, kf.arrayWrappingKey(), Boolean.TRUE, kf.namespace(), kf.xmlKey()));
+                    innerPropertyStack.addLast(childFrame);
                     innerPropertyStack.addLast(new ObjectFrame(null));
                     return new XmlGenerator(xmlWriter, innerPropertyStack);
                 }
@@ -320,8 +327,14 @@ public final class XmlGenerator implements KeysAwareEncoder {
                         propertyStack.addLast(new KeyFrame(kf.key(), true, kf.arrayWrappingKey(), kf.objectWrappingKey(), kf.namespace(), kf.xmlKey()));
                         return;
                     }
+                    if (kf.xmlKey() != null && kf.xmlKey().text()) {
+                        writeText(data, kf.xmlKey().cdata());
+                        propertyStack.removeLast();
+                        propertyStack.addLast(new KeyFrame(kf.key(), true, kf.arrayWrappingKey(), kf.objectWrappingKey(), kf.namespace(), kf.xmlKey()));
+                        return;
+                    }
                     writeStartElement(kf.namespace(), kf.key());
-                    xmlWriter.writeCharacters(data);
+                    writeText(data, kf.xmlKey() != null && kf.xmlKey().cdata());
                     xmlWriter.writeEndElement();
                     propertyStack.removeLast();
                     propertyStack.addLast(new KeyFrame(kf.key(), true, kf.arrayWrappingKey(), kf.objectWrappingKey(), kf.namespace(), kf.xmlKey()));
@@ -330,7 +343,7 @@ public final class XmlGenerator implements KeysAwareEncoder {
                     String iterableKey = af.iterableKey();
                     String itemName = (iterableKey != null && !iterableKey.isEmpty()) ? iterableKey : af.key();
                     writeStartElement(af.itemNamespace(), itemName);
-                    xmlWriter.writeCharacters(data);
+                    writeText(data, af.cdata());
                     xmlWriter.writeEndElement();
                 }
                 case null -> {
@@ -411,7 +424,9 @@ public final class XmlGenerator implements KeysAwareEncoder {
             ContextProperties lastProperty = propertyStack.peekLast();
             switch (lastProperty) {
                 case KeyFrame kf -> {
-                    writeEmptyElement(kf.namespace(), kf.key());
+                    if (kf.xmlKey() == null || !kf.xmlKey().text()) {
+                        writeEmptyElement(kf.namespace(), kf.key());
+                    }
                     propertyStack.removeLast();
                     propertyStack.addLast(new KeyFrame(kf.key(), true, kf.arrayWrappingKey(), kf.objectWrappingKey(), kf.namespace(), kf.xmlKey()));
                 }
@@ -433,6 +448,14 @@ public final class XmlGenerator implements KeysAwareEncoder {
             xmlWriter.writeStartElement(localName);
         } else {
             xmlWriter.writeStartElement(namespaceUri, localName);
+        }
+    }
+
+    private void writeText(String data, boolean cdata) throws XMLStreamException {
+        if (cdata) {
+            xmlWriter.writeCData(data);
+        } else {
+            xmlWriter.writeCharacters(data);
         }
     }
 
@@ -464,7 +487,8 @@ public final class XmlGenerator implements KeysAwareEncoder {
     private record ArrayFrame(
         @Nullable String key,
         @Nullable String iterableKey,
-        @Nullable String itemNamespace
+        @Nullable String itemNamespace,
+        boolean cdata
     ) implements ContextProperties {
     }
 }

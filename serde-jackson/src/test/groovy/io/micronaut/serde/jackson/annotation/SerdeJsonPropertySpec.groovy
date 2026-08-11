@@ -561,6 +561,59 @@ class Test {
         ctx.close()
     }
 
+    void "test JsonProperty isRequired takes precedence over required"() {
+        given:
+        def ctx = buildContext('test.Test', '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.OptBoolean;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Test {
+    @JsonProperty(required = false, isRequired = OptBoolean.TRUE)
+    private int requiredValue;
+
+    @JsonProperty(required = true, isRequired = OptBoolean.FALSE)
+    private int optionalValue;
+
+    @JsonCreator
+    Test(@JsonProperty("requiredValue") int requiredValue,
+         @JsonProperty("optionalValue") int optionalValue) {
+        this.requiredValue = requiredValue;
+        this.optionalValue = optionalValue;
+    }
+
+    public int getRequiredValue() {
+        return requiredValue;
+    }
+
+    public int getOptionalValue() {
+        return optionalValue;
+    }
+}
+''')
+
+        when: "the explicitly optional property is absent"
+        def bean = jsonMapper.readValue('{"requiredValue":1}', argumentOf(ctx, 'test.Test'))
+
+        then:
+        bean.requiredValue == 1
+        bean.optionalValue == 0
+
+        when: "the explicitly required property is absent"
+        jsonMapper.readValue('{"optionalValue":2}', argumentOf(ctx, 'test.Test'))
+
+        then:
+        def e = thrown(Exception)
+        e.message.contains("Required constructor parameter")
+
+        cleanup:
+        ctx.close()
+    }
+
     void "test @JsonProperty on field"() {
         // Jackson is using 'defaultValue' only for documentation
         given:

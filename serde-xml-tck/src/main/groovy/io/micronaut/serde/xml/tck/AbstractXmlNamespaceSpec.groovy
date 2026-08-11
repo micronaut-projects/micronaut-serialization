@@ -52,15 +52,17 @@ abstract class AbstractXmlNamespaceSpec extends Specification implements XmlSpec
         xml == '<NamespacedAttrBean xmlns:wstxns1="http://foo" wstxns1:other="3"></NamespacedAttrBean>'
     }
 
-    def "namespaced root - JsonRootElement(localName, namespace)"() {
+    def "namespaced root - JsonRootName(value, namespace) round trips"() {
         given:
         def bean = new NamespacedRootBean()
 
         when:
         String xml = writeXml(bean)
+        def decoded = readXml(xml, NamespacedRootBean)
 
         then:
         xml == '<nsRoot xmlns="http://foo"></nsRoot>'
+        decoded != null
     }
 
     @Serdeable
@@ -74,9 +76,42 @@ abstract class AbstractXmlNamespaceSpec extends Specification implements XmlSpec
 
         when:
         String xml = writeXml(bean)
+        def decoded = readXml(xml, MergedNsAttrBean)
 
         then: "the namespace from JsonProperty is honoured on the attribute"
         xml == '<MergedNsAttrBean xmlns:wstxns1="uri:ns1" wstxns1:value="3"></MergedNsAttrBean>'
+        decoded.attr == "3"
+    }
+
+    def "JsonProperty supplies the local name and namespace for an XML element"() {
+        given:
+        def bean = new JsonNamespacedChildBean(child: 4)
+
+        when:
+        String xml = writeXml(bean)
+        def decoded = readXml(xml, JsonNamespacedChildBean)
+
+        then:
+        xml.startsWith('<Root><')
+        xml.contains('ChildJSON')
+        xml.contains('uri:child')
+        decoded.child == 4
+    }
+
+    def "JsonRootName and JsonProperty namespaces are honored together"() {
+        given:
+        def bean = new JsonNamespacedPerson(name: "hello")
+
+        when:
+        String xml = writeXml(bean)
+        def decoded = readXml(xml, JsonNamespacedPerson)
+
+        then:
+        xml.startsWith('<person xmlns="http://example.org/person"')
+        xml.contains('name')
+        xml.contains('http://example.org/personJSON')
+        xml.contains('hello')
+        decoded.name == "hello"
     }
 
     def "namespaced child element deserializes by local name"() {
@@ -113,6 +148,20 @@ abstract class AbstractXmlNamespaceSpec extends Specification implements XmlSpec
         String getAttr() { return attr }
 
         void setAttr(String attr) { this.attr = attr }
+    }
+
+    @Serdeable
+    @JsonRootName("Root")
+    static class JsonNamespacedChildBean {
+        @JsonProperty(value = "ChildJSON", namespace = "uri:child")
+        int child
+    }
+
+    @Serdeable
+    @JsonRootName(value = "person", namespace = "http://example.org/person")
+    static class JsonNamespacedPerson {
+        @JsonProperty(namespace = "http://example.org/personJSON")
+        String name
     }
 
     @Serdeable

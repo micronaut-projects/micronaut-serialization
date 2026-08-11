@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,8 +22,11 @@ import com.fasterxml.jackson.annotation.JsonValue
 import io.micronaut.core.type.Argument
 import io.micronaut.serde.annotation.Serdeable
 import spock.lang.Specification
+import tools.jackson.dataformat.xml.annotation.JacksonXmlCData
 import tools.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import tools.jackson.dataformat.xml.annotation.JacksonXmlProperty
+import tools.jackson.dataformat.xml.annotation.JacksonXmlRootElement
+import tools.jackson.dataformat.xml.annotation.JacksonXmlText
 
 /**
  * Portable scenarios adapted from the Jackson Dataformat XML 3.1 test suite.
@@ -162,6 +165,158 @@ abstract class AbstractJacksonXmlParitySpec extends Specification implements Xml
         readXml("<EmptyBean/>", EmptyBean) != null
     }
 
+    def "JacksonXmlRootElement customizes the root local name and namespace"() {
+        given:
+        def input = new CustomRootBean(id: "root-id")
+
+        when:
+        def xml = writeXml(input)
+        def decoded = readXml(xml, CustomRootBean)
+
+        then:
+        xml.startsWith('<custom-root xmlns="urn:custom-root"')
+        xml.contains('id="root-id"')
+        decoded.id == "root-id"
+    }
+
+    def "JacksonXmlRootElement applies a namespace when localName uses its default"() {
+        when:
+        def xml = writeXml(new DefaultRootNamespaceBean())
+
+        then:
+        xml.startsWith('<DefaultRootNamespaceBean xmlns="urn:default-root"')
+        readXml(xml, DefaultRootNamespaceBean) != null
+    }
+
+    def "JacksonXmlText writes and reads direct element text after attributes"() {
+        given:
+        def input = new TextBean(language: "en", content: "hello <xml> & goodbye")
+
+        when:
+        def xml = writeXml(input)
+        def decoded = readXml(xml, TextBean)
+
+        then:
+        xml == '<TextBean language="en">hello &lt;xml> &amp; goodbye</TextBean>'
+        decoded.language == "en"
+        decoded.content == "hello <xml> & goodbye"
+    }
+
+    def "JacksonXmlCData writes String properties as CDATA"() {
+        given:
+        def input = new CDataBean(content: "<xml> & text")
+
+        when:
+        def xml = writeXml(input)
+        def decoded = readXml(xml, CDataBean)
+
+        then:
+        xml == '<CDataBean><content><![CDATA[<xml> & text]]></content></CDataBean>'
+        decoded.content == "<xml> & text"
+    }
+
+    def "JacksonXmlCData applies to unwrapped String collection items"() {
+        given:
+        def input = new CDataListBean(values: ["<first>", "second & value"])
+
+        when:
+        def xml = writeXml(input)
+        def decoded = readXml(xml, CDataListBean)
+
+        then:
+        xml == '<CDataListBean><values><![CDATA[<first>]]></values><values><![CDATA[second & value]]></values></CDataListBean>'
+        decoded.values == ["<first>", "second & value"]
+    }
+
+    def "JacksonXmlText and JacksonXmlCData combine for direct CDATA content"() {
+        given:
+        def input = new CDataTextBean(content: "<xml> & text")
+
+        when:
+        def xml = writeXml(input)
+        def decoded = readXml(xml, CDataTextBean)
+
+        then:
+        xml == '<CDataTextBean><![CDATA[<xml> & text]]></CDataTextBean>'
+        decoded.content == "<xml> & text"
+    }
+
+    def "JacksonXmlText reads nested direct text without consuming the parent"() {
+        given:
+        def input = new NestedTextBean(
+            value: new TextBean(language: "en", content: "nested text"),
+            trailing: "after"
+        )
+
+        when:
+        def xml = writeXml(input)
+        def decoded = readXml(xml, NestedTextBean)
+
+        then:
+        xml.contains('<value language="en">nested text</value>')
+        xml.contains('<trailing>after</trailing>')
+        decoded.value.language == "en"
+        decoded.value.content == "nested text"
+        decoded.trailing == "after"
+    }
+
+    def "JacksonXmlElementWrapper applies its namespace independently of item namespace"() {
+        given:
+        def input = new NamespacedWrapperBean(values: ["one", "two"])
+
+        when:
+        def xml = writeXml(input)
+        def decoded = readXml(xml, NamespacedWrapperBean)
+
+        then:
+        xml == '<NamespacedWrapperBean><wstxns1:items xmlns:wstxns1="urn:wrapper"><item>one</item><item>two</item></wstxns1:items></NamespacedWrapperBean>'
+        decoded.values == ["one", "two"]
+    }
+
+    def "disabled JacksonXmlText and JacksonXmlCData retain normal element encoding"() {
+        given:
+        def input = new DisabledXmlAnnotationsBean(text: "text", cdata: "<xml>")
+
+        when:
+        def xml = writeXml(input)
+        def decoded = readXml(xml, DisabledXmlAnnotationsBean)
+
+        then:
+        xml.startsWith('<DisabledXmlAnnotationsBean>')
+        xml.contains('<cdata>&lt;xml></cdata>')
+        xml.contains('<text>text</text>')
+        !xml.contains('<![CDATA[')
+        decoded.text == "text"
+        decoded.cdata == "<xml>"
+    }
+
+    def "generated bean serde carries text and CDATA key metadata"() {
+        given:
+        def input = new JacksonXmlAnnotationBeans.TextBean(language: "en", content: "<generated> & text")
+
+        when:
+        def xml = writeXml(input)
+        def decoded = readXml(xml, JacksonXmlAnnotationBeans.TextBean)
+
+        then:
+        xml == '<TextBean language="en"><![CDATA[<generated> & text]]></TextBean>'
+        decoded.language == input.language
+        decoded.content == input.content
+    }
+
+    def "generated bean serde carries wrapper namespace and collection CDATA metadata"() {
+        given:
+        def input = new JacksonXmlAnnotationBeans.CollectionBean(values: ["<one>", "two & three"])
+
+        when:
+        def xml = writeXml(input)
+        def decoded = readXml(xml, JacksonXmlAnnotationBeans.CollectionBean)
+
+        then:
+        xml == '<CollectionBean><wstxns1:items xmlns:wstxns1="urn:generated-wrapper"><item><![CDATA[<one>]]></item><item><![CDATA[two & three]]></item></wstxns1:items></CollectionBean>'
+        decoded.values == input.values
+    }
+
     enum TestEnum {
         A,
         B,
@@ -249,5 +404,68 @@ abstract class AbstractJacksonXmlParitySpec extends Specification implements Xml
 
     @Serdeable
     static class EmptyBean {
+    }
+
+    @Serdeable
+    @JacksonXmlRootElement(localName = "custom-root", namespace = "urn:custom-root")
+    static class CustomRootBean {
+        @JacksonXmlProperty(isAttribute = true)
+        String id
+    }
+
+    @Serdeable
+    @JacksonXmlRootElement(namespace = "urn:default-root")
+    static class DefaultRootNamespaceBean {
+    }
+
+    @Serdeable
+    static class TextBean {
+        @JacksonXmlProperty(isAttribute = true)
+        String language
+
+        @JacksonXmlText
+        String content
+    }
+
+    @Serdeable
+    static class CDataBean {
+        @JacksonXmlCData
+        String content
+    }
+
+    @Serdeable
+    static class CDataListBean {
+        @JacksonXmlCData
+        @JacksonXmlElementWrapper(useWrapping = false)
+        List<String> values
+    }
+
+    @Serdeable
+    static class CDataTextBean {
+        @JacksonXmlText
+        @JacksonXmlCData
+        String content
+    }
+
+    @Serdeable
+    static class NestedTextBean {
+        TextBean value
+        String trailing
+    }
+
+    @Serdeable
+    static class NamespacedWrapperBean {
+        @JacksonXmlElementWrapper(localName = "items", namespace = "urn:wrapper")
+        @JacksonXmlProperty(localName = "item")
+        List<String> values
+    }
+
+    @Serdeable
+    static class DisabledXmlAnnotationsBean {
+        @JacksonXmlText(false)
+        String text
+
+        @JacksonXmlCData(false)
+        String cdata
     }
 }
