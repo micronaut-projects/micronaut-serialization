@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * JMH benchmarks for Micronaut Serde CBOR (streaming factory + build-time serdes).
+ * JMH benchmarks for Micronaut Serde Jackson CBOR (streaming factory + build-time serdes).
  *
  * <p>Run with:
  * {@code ./gradlew :micronaut-benchmarks:jmh -Pjmh.includes='.*CborBenchmark.*' -Pjmh.forks=1}</p>

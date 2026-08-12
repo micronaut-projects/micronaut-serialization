@@ -34,7 +34,7 @@ public class FormatComparisonBenchmark {
 
     private static final String SERDE_JSON = "Serde JSON";
     private static final String SERDE_BSON_BINARY = "Serde BSON Binary";
-    private static final String SERDE_CBOR = "Serde CBOR";
+    private static final String SERDE_CBOR = "Serde Jackson CBOR";
 
     private static final Argument<Users> USERS_ARGUMENT = Argument.of(Users.class);
     private static final byte[] USERS_JSON = """

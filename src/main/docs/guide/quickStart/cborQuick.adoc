@@ -1,20 +1,20 @@
 To serialize and deserialize objects as https://www.rfc-editor.org/rfc/rfc8949.html[CBOR] (Concise Binary Object Representation), add the following dependency:
 
-dependency:micronaut-serde-cbor[groupId="io.micronaut.serde",scope="implementation"]
+dependency:micronaut-serde-jackson-cbor[groupId="io.micronaut.serde",scope="implementation"]
 
-NOTE: `micronaut-serde-cbor` uses Jackson's **streaming** CBOR factory (`jackson-dataformat-cbor`) only as a token parser/generator. Object mapping is performed by Micronaut Serialization's build-time serializers and deserializers. Jackson Databind is **not** used (the dataformat module's transitive databind dependency is excluded).
+NOTE: `micronaut-serde-jackson-cbor` uses Jackson's **streaming** CBOR factory (`jackson-dataformat-cbor`) only as a token parser/generator. Object mapping is performed by Micronaut Serialization's build-time serializers and deserializers. Jackson Databind is **not** used (the dataformat module's transitive databind dependency is excluded).
 
-TIP: Adding this module also brings `micronaut-serde-jackson` for the shared streaming encoder/decoder bridge. When both are present, Jackson remains the primary JSON `JsonMapper`. Inject api:serde.cbor.CborObjectMapper[] for CBOR. JSON-only applications that do not depend on `micronaut-serde-cbor` never load CBOR beans.
+TIP: Adding this module also brings `micronaut-serde-jackson` for the shared streaming encoder/decoder bridge. When both are present, Jackson remains the primary JSON `JsonMapper`. Inject api:serde.cbor.CborObjectMapper[] for CBOR. JSON-only applications that do not depend on `micronaut-serde-jackson-cbor` never load CBOR beans.
 
 With the dependency in place you can define an object to be serialized:
 
-snippet::example.Book[project-base="doc-examples/example-cbor", source="main"]
+snippet::example.Book[project-base="doc-examples/example-jackson-cbor", source="main"]
 
 <1> The type is annotated with ann:serde.annotation.Serdeable[] to enable serialization/deserialization
 
 Use api:serde.cbor.CborObjectMapper[] to read and write CBOR bytes:
 
-snippet::example.BookTest[project-base="doc-examples/example-cbor"]
+snippet::example.BookTest[project-base="doc-examples/example-jackson-cbor"]
 
 === Coexistence with JSON
 

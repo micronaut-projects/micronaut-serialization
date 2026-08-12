@@ -4,7 +4,7 @@ This repository is a Micronaut Framework module, not an application. The root pr
 
 ## Repository Layout
 
-- Core modules live in `serde-api`, `serde-support`, `serde-jackson`, `serde-jsonp`, `serde-bson`, `serde-cbor`, `serde-oracle-jdbc-json`, and related TCK modules.
+- Core modules live in `serde-api`, `serde-support`, `serde-jackson`, `serde-jsonp`, `serde-bson`, `serde-jackson-cbor`, `serde-oracle-jdbc-json`, and related TCK modules.
 - The compile-time annotation processor lives in `serde-processor`. Follow `serde-processor/AGENTS.md` for generated-serde and Sourcegen work.
 - Documentation lives under `src/main/docs/guide`, with the guide table of contents in `src/main/docs/guide/toc.yml`.
 - Runnable documentation examples live under `doc-examples`.

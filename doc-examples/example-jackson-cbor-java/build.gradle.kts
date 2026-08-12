@@ -9,7 +9,7 @@ micronaut {
 }
 dependencies {
     annotationProcessor(projects.micronautSerdeProcessor)
-    implementation(projects.micronautSerdeCbor)
+    implementation(projects.micronautSerdeJacksonCbor)
     implementation(mn.micronaut.http.client)
     runtimeOnly(mnLogging.logback.classic)
     testImplementation(mnTest.micronaut.test.junit5)

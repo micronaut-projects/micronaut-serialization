@@ -51,11 +51,11 @@ Environment and JMH settings:
 | --- | ---: |
 | Serde JSON | 2153 bytes |
 | Serde BSON Binary | 2460 bytes |
-| Serde CBOR | **1852 bytes** |
+| Serde Jackson CBOR | **1852 bytes** |
 
 **Throughput:**
 
-| Operation | Serde JSON | Serde BSON Binary | Serde CBOR |
+| Operation | Serde JSON | Serde BSON Binary | Serde Jackson CBOR |
 | --- | ---: | ---: | ---: |
 | `serialize` | 276307.257 ops/s | 175418.104 ops/s | **516586.278 ops/s** |
 | `deserialize` | **324051.390 ops/s** | 172018.477 ops/s | 299655.718 ops/s |
@@ -76,13 +76,13 @@ Relative to Serde JSON (1.00×):
 | --- | --- | ---: |
 | `serialize` | Serde JSON | 276307.257 ± 1635.828 ops/s |
 | `serialize` | Serde BSON Binary | 175418.104 ± 1177.031 ops/s |
-| `serialize` | Serde CBOR | 516586.278 ± 1449.930 ops/s |
+| `serialize` | Serde Jackson CBOR | 516586.278 ± 1449.930 ops/s |
 | `deserialize` | Serde JSON | 324051.390 ± 849.133 ops/s |
 | `deserialize` | Serde BSON Binary | 172018.477 ± 1999.295 ops/s |
-| `deserialize` | Serde CBOR | 299655.718 ± 1179.970 ops/s |
+| `deserialize` | Serde Jackson CBOR | 299655.718 ± 1179.970 ops/s |
 | `roundTrip` | Serde JSON | 145548.614 ± 2460.030 ops/s |
 | `roundTrip` | Serde BSON Binary | 84372.112 ± 405.257 ops/s |
-| `roundTrip` | Serde CBOR | 185160.443 ± 729.726 ops/s |
+| `roundTrip` | Serde Jackson CBOR | 185160.443 ± 729.726 ops/s |
 
 ### CBOR micro (`CborBenchmark`)
 
