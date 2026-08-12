@@ -116,22 +116,13 @@ public final class XmlObjectMapper implements ObjectMapper {
         Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext,
             type);
 
-        XMLStreamReader xmlReader = null;
-        try {
-            xmlReader = xmlInputFactory.createXMLStreamReader(inputStream);
+        try (XmlReaderResource resource = new XmlReaderResource(
+            xmlInputFactory.createXMLStreamReader(inputStream))) {
             XmlReaderDecoder decoder = new XmlReaderDecoder.DocumentDecoder(
-                limits(), xmlReader, emptyElementAsNull);
+                limits(), resource.reader(), emptyElementAsNull);
             return deserializer.deserialize(decoder, decoderContext, type);
         } catch (XMLStreamException e) {
             throw new SerdeException("Error reading XML", e);
-        } finally {
-            if (xmlReader != null) {
-                try {
-                    xmlReader.close();
-                } catch (XMLStreamException ignored) {
-                    // ignore close failures
-                }
-            }
         }
     }
 
@@ -244,9 +235,9 @@ public final class XmlObjectMapper implements ObjectMapper {
     }
 
     private void writeValue0(OutputStream outputStream, Argument<?> type, @Nullable Object object) throws IOException {
-        XMLStreamWriter xmlWriter = null;
-        try {
-            xmlWriter = xmlOutputFactory.createXMLStreamWriter(outputStream);
+        try (XmlWriterResource resource = new XmlWriterResource(
+            xmlOutputFactory.createXMLStreamWriter(outputStream))) {
+            XMLStreamWriter xmlWriter = resource.writer();
             if (object == null) {
                 xmlWriter.writeStartDocument();
                 xmlWriter.writeEmptyElement("null");
@@ -256,12 +247,8 @@ public final class XmlObjectMapper implements ObjectMapper {
                 XmlGenerator encoder = new XmlGenerator(xmlWriter, resolveRootName(type));
                 serialize(encoder, object, type);
             }
-            xmlWriter.close();
-            xmlWriter = null;
         } catch (XMLStreamException e) {
             throw new SerdeException("Error writing XML", e);
-        } finally {
-            closeQuietly(xmlWriter);
         }
     }
 
@@ -346,14 +333,17 @@ public final class XmlObjectMapper implements ObjectMapper {
             });
     }
 
-    private static void closeQuietly(@Nullable XMLStreamWriter xmlWriter) {
-        if (xmlWriter != null) {
-            try {
-                xmlWriter.close();
-            } catch (XMLStreamException ignored) {
-                // The original serialization failure is more useful to the caller.
-            }
+    private record XmlReaderResource(XMLStreamReader reader) implements AutoCloseable {
+        @Override
+        public void close() throws XMLStreamException {
+            reader.close();
         }
     }
 
+    private record XmlWriterResource(XMLStreamWriter writer) implements AutoCloseable {
+        @Override
+        public void close() throws XMLStreamException {
+            writer.close();
+        }
+    }
 }

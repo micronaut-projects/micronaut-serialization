@@ -85,57 +85,10 @@ public final class XmlGenerator implements KeysAwareEncoder {
     @Override
     public Encoder encodeArray(Argument<?> type) throws IOException {
         try {
-            if (!propertyStack.isEmpty()) {
-                ContextProperties lastPropertyKey = propertyStack.peekLast();
-                String lastProperty = lastPropertyKey.key();
-                if (lastPropertyKey instanceof KeyFrame kf
-                    && kf.xmlKey() != null
-                    && kf.xmlKey().attribute()) {
-                    throw new SerdeException("XML attributes cannot contain array values: " + kf.key());
-                }
-                if (lastPropertyKey instanceof KeyFrame kf && kf.arrayWrappingKey() != null) {
-                    lastProperty = kf.arrayWrappingKey();
-                    xmlWriter.writeStartElement(lastProperty);
-                    propertyStack.addLast(new ArrayFrame(kf.key(), null, kf.namespace(), false));
-                    return this;
-                }
-                if (lastPropertyKey instanceof KeyFrame kf && kf.xmlKey() != null) {
-                    if (kf.xmlKey().collectionLayout() == XmlCollectionLayout.INLINE) {
-                        propertyStack.removeLast();
-                        propertyStack.addLast(new ArrayFrame("", kf.key(), kf.namespace(), kf.xmlKey().cdata()));
-                        return this;
-                    }
-                    if (kf.xmlKey().collectionLayout() == XmlCollectionLayout.WRAPPED) {
-                        String wrapperName = kf.xmlKey().wrapperName() == null
-                            ? Objects.requireNonNull(kf.key())
-                            : kf.xmlKey().wrapperName();
-                        writeStartElement(kf.xmlKey().wrapperNamespace(), wrapperName);
-                        propertyStack.addLast(new ArrayFrame(kf.key(), null, kf.namespace(), kf.xmlKey().cdata()));
-                        return this;
-                    }
-                }
-                xmlWriter.writeStartElement(lastProperty);
-                String itemNamespace = lastPropertyKey instanceof KeyFrame keyFrame
-                    ? keyFrame.namespace()
-                    : ((ArrayFrame) lastPropertyKey).itemNamespace();
-                boolean cdata = lastPropertyKey instanceof KeyFrame keyFrame
-                    && keyFrame.xmlKey() != null
-                    && keyFrame.xmlKey().cdata();
-                propertyStack.addLast(new ArrayFrame(lastProperty, null, itemNamespace, cdata));
-                return this;
+            if (propertyStack.isEmpty()) {
+                encodeRootArray(type);
             } else {
-                String collectionName = rootName;
-                if (collectionName == null) {
-                    Class<?> javaType = type.getType();
-                    String typeName = javaType.isArray()
-                        ? javaType.getComponentType().getSimpleName() + "s"
-                        : type.getName();
-                    collectionName = NameUtils.camelCase(typeName, false);
-                }
-                ArrayFrame arrayFrame = new ArrayFrame(collectionName, "item", null, false);
-                propertyStack.addLast(arrayFrame);
-
-                xmlWriter.writeStartElement(collectionName);
+                encodeNestedArray();
             }
         } catch (XMLStreamException e) {
             throw new SerdeException("Error writing XML", e);
@@ -150,53 +103,15 @@ public final class XmlGenerator implements KeysAwareEncoder {
             Boolean rootMapper = true;
             return new XmlGenerator(xmlWriter, rootMapper);
         }
-        if (propertyStack.isEmpty()) {
-            String rootNamespace = type.getAnnotationMetadata()
-                .stringValue(SerdeConfig.class, SerdeConfig.XML_NAMESPACE)
-                .orElse(null);
-            if (type.getAnnotationMetadata().stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY).isPresent()
-                || (rootNamespace != null
-                    && type.getAnnotationMetadata().booleanValue(SerdeConfig.class, SerdeConfig.XML_ROOT_ELEMENT).orElse(false))) {
-                return new XmlGenerator(xmlWriter, Boolean.TRUE, rootNamespace);
-            }
+        XmlGenerator rootGenerator = rootGenerator(type);
+        if (rootGenerator != null) {
+            return rootGenerator;
         }
         try {
-            if (rootMapper) {
-                rootMapper = false;
-                return this;
-            }
-
-            ContextProperties last = propertyStack.peekLast();
-            if (last instanceof KeyFrame || last instanceof ArrayFrame) {
-                Deque<ContextProperties> innerPropertyStack = new ArrayDeque<>(8);
-                if (last instanceof KeyFrame kf) {
-                    KeyFrame childFrame = new KeyFrame(kf.key(), false, kf.arrayWrappingKey(), Boolean.FALSE, kf.namespace(), kf.xmlKey());
-                    propertyStack.removeLast();
-                    propertyStack.addLast(new KeyFrame(kf.key(), true, kf.arrayWrappingKey(), Boolean.TRUE, kf.namespace(), kf.xmlKey()));
-                    innerPropertyStack.addLast(childFrame);
-                    innerPropertyStack.addLast(new ObjectFrame(null));
-                    return new XmlGenerator(xmlWriter, innerPropertyStack);
-                }
-                if (last instanceof ArrayFrame af) {
-                    String iterableKey = af.iterableKey();
-                    String afKey = af.key();
-                    String itemName = (iterableKey != null && !iterableKey.isEmpty()) ? iterableKey
-                        : (afKey != null && !afKey.isEmpty()) ? afKey
-                        : name;
-                    innerPropertyStack.addLast(new ObjectFrame(itemName));
-                    writeStartElement(af.itemNamespace(), itemName);
-                }
-
-                return new XmlGenerator(xmlWriter, innerPropertyStack);
-            }
-
-            propertyStack.addLast(new ObjectFrame(name));
-            xmlWriter.writeStartElement(name);
-
+            return encodeObjectFrame(name);
         } catch (XMLStreamException e) {
             throw new SerdeException("Error writing XML", e);
         }
-        return this;
     }
 
     @Override
@@ -204,41 +119,10 @@ public final class XmlGenerator implements KeysAwareEncoder {
         try {
             ContextProperties lastProperty = propertyStack.peekLast();
             switch (lastProperty) {
-                case KeyFrame kf -> {
-                    xmlWriter.writeEndElement();
-                    propertyStack.clear();
-                }
-                case ObjectFrame of -> {
-                    if (of.key() != null) {
-                        xmlWriter.writeEndElement();
-                    }
-                    if (propertyStack.peekFirst() instanceof KeyFrame kf) {
-                        if (of.key() == null) {
-                            if (Boolean.TRUE.equals(kf.objectWrappingKey())) {
-                                xmlWriter.writeEndElement();
-                            } else {
-                                writeEmptyElement(kf.namespace(), kf.key());
-                            }
-                        }
-                    }
-                    propertyStack.clear();
-                }
-                case ArrayFrame af -> {
-                    if (af.key() != null && af.key().isEmpty()) {
-                        propertyStack.removeLast();
-                        return;
-                    }
-                    if (propertyStack.size() == 1 && propertyStack.peekLast() instanceof ArrayFrame) {
-                        xmlWriter.writeEndElement();
-                        return;
-                    }
-                    propertyStack.removeLast();
-                    xmlWriter.writeEndElement();
-                    assert propertyStack.peekLast() instanceof KeyFrame : "Expected KeyFrame, got: " + propertyStack.peekLast();
-                    KeyFrame last = (KeyFrame) propertyStack.removeLast();
-                    propertyStack.addLast(new KeyFrame(last.key(), true, last.arrayWrappingKey(), last.objectWrappingKey(), last.namespace(), last.xmlKey()));
-
-                } case null -> {
+                case KeyFrame _ -> finishKeyFrame();
+                case ObjectFrame objectFrame -> finishObjectFrame(objectFrame);
+                case ArrayFrame arrayFrame -> finishArrayFrame(arrayFrame);
+                case null -> {
                     assert  propertyStack.isEmpty() : "Root name mapping";
                 }
                 default -> throw new IllegalStateException("Unexpected value: " + lastProperty);
@@ -316,46 +200,243 @@ public final class XmlGenerator implements KeysAwareEncoder {
         try {
             ContextProperties lastProperty = propertyStack.peekLast();
             switch (lastProperty) {
-                case KeyFrame kf -> {
-                    if (kf.xmlKey() != null && kf.xmlKey().attribute()) {
-                        if (kf.namespace() == null || kf.namespace().isEmpty()) {
-                            xmlWriter.writeAttribute(Objects.requireNonNull(kf.key()), data);
-                        } else {
-                            xmlWriter.writeAttribute(kf.namespace(), Objects.requireNonNull(kf.key()), data);
-                        }
-                        propertyStack.removeLast();
-                        propertyStack.addLast(new KeyFrame(kf.key(), true, kf.arrayWrappingKey(), kf.objectWrappingKey(), kf.namespace(), kf.xmlKey()));
-                        return;
-                    }
-                    if (kf.xmlKey() != null && kf.xmlKey().text()) {
-                        writeText(data, kf.xmlKey().cdata());
-                        propertyStack.removeLast();
-                        propertyStack.addLast(new KeyFrame(kf.key(), true, kf.arrayWrappingKey(), kf.objectWrappingKey(), kf.namespace(), kf.xmlKey()));
-                        return;
-                    }
-                    writeStartElement(kf.namespace(), kf.key());
-                    writeText(data, kf.xmlKey() != null && kf.xmlKey().cdata());
-                    xmlWriter.writeEndElement();
-                    propertyStack.removeLast();
-                    propertyStack.addLast(new KeyFrame(kf.key(), true, kf.arrayWrappingKey(), kf.objectWrappingKey(), kf.namespace(), kf.xmlKey()));
-                }
-                case ArrayFrame af -> {
-                    String iterableKey = af.iterableKey();
-                    String itemName = (iterableKey != null && !iterableKey.isEmpty()) ? iterableKey : af.key();
-                    writeStartElement(af.itemNamespace(), itemName);
-                    writeText(data, af.cdata());
-                    xmlWriter.writeEndElement();
-                }
-                case null -> {
-                    xmlWriter.writeStartElement(rootName == null ? "value" : rootName);
-                    xmlWriter.writeCharacters(data);
-                    xmlWriter.writeEndElement();
-                }
+                case KeyFrame keyFrame -> writeKeyScalar(keyFrame, data);
+                case ArrayFrame arrayFrame -> writeArrayScalar(arrayFrame, data);
+                case null -> writeRootScalar(data);
                 default -> throw new IllegalStateException("Unexpected value in writeScalar(): " + lastProperty + "\t " + lastProperty.getClass().getName());
             }
         } catch (XMLStreamException e) {
             throw new SerdeException("Error writing XML", e);
         }
+    }
+
+    private void encodeNestedArray() throws IOException, XMLStreamException {
+        ContextProperties lastFrame = propertyStack.peekLast();
+        String lastProperty = lastFrame.key();
+        if (lastFrame instanceof KeyFrame keyFrame && encodeKeyArray(keyFrame)) {
+            return;
+        }
+        xmlWriter.writeStartElement(lastProperty);
+        String itemNamespace = switch (lastFrame) {
+            case KeyFrame keyFrame -> keyFrame.namespace();
+            case ArrayFrame arrayFrame -> arrayFrame.itemNamespace();
+            default -> throw new IllegalStateException("Unexpected array frame: " + lastFrame);
+        };
+        boolean cdata = lastFrame instanceof KeyFrame keyFrame
+            && keyFrame.xmlKey() != null
+            && keyFrame.xmlKey().cdata();
+        propertyStack.addLast(new ArrayFrame(lastProperty, null, itemNamespace, cdata));
+    }
+
+    private boolean encodeKeyArray(KeyFrame keyFrame) throws IOException, XMLStreamException {
+        XmlKey xmlKey = keyFrame.xmlKey();
+        if (xmlKey != null && xmlKey.attribute()) {
+            throw new SerdeException("XML attributes cannot contain array values: " + keyFrame.key());
+        }
+        String arrayWrappingKey = keyFrame.arrayWrappingKey();
+        if (arrayWrappingKey != null) {
+            xmlWriter.writeStartElement(arrayWrappingKey);
+            propertyStack.addLast(new ArrayFrame(keyFrame.key(), null, keyFrame.namespace(), false));
+            return true;
+        }
+        if (xmlKey == null) {
+            return false;
+        }
+        return switch (xmlKey.collectionLayout()) {
+            case INLINE -> {
+                propertyStack.removeLast();
+                propertyStack.addLast(new ArrayFrame("", keyFrame.key(), keyFrame.namespace(), xmlKey.cdata()));
+                yield true;
+            }
+            case WRAPPED -> {
+                String wrapperName = xmlKey.wrapperName() == null
+                    ? Objects.requireNonNull(keyFrame.key())
+                    : xmlKey.wrapperName();
+                writeStartElement(xmlKey.wrapperNamespace(), wrapperName);
+                propertyStack.addLast(new ArrayFrame(keyFrame.key(), null, keyFrame.namespace(), xmlKey.cdata()));
+                yield true;
+            }
+            case DEFAULT -> false;
+        };
+    }
+
+    private void encodeRootArray(Argument<?> type) throws XMLStreamException {
+        String collectionName = rootName;
+        if (collectionName == null) {
+            Class<?> javaType = type.getType();
+            String typeName = javaType.isArray()
+                ? javaType.getComponentType().getSimpleName() + "s"
+                : type.getName();
+            collectionName = NameUtils.camelCase(typeName, false);
+        }
+        propertyStack.addLast(new ArrayFrame(collectionName, "item", null, false));
+        xmlWriter.writeStartElement(collectionName);
+    }
+
+    private @Nullable XmlGenerator rootGenerator(Argument<?> type) {
+        if (!propertyStack.isEmpty()) {
+            return null;
+        }
+        var annotationMetadata = type.getAnnotationMetadata();
+        String rootNamespace = annotationMetadata
+            .stringValue(SerdeConfig.class, SerdeConfig.XML_NAMESPACE)
+            .orElse(null);
+        if (annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY).isPresent()) {
+            return new XmlGenerator(xmlWriter, Boolean.TRUE, rootNamespace);
+        }
+        if (rootNamespace != null
+            && annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.XML_ROOT_ELEMENT).orElse(false)) {
+            return new XmlGenerator(xmlWriter, Boolean.TRUE, rootNamespace);
+        }
+        return null;
+    }
+
+    private Encoder encodeObjectFrame(String name) throws XMLStreamException {
+        if (rootMapper) {
+            rootMapper = false;
+            return this;
+        }
+        ContextProperties lastFrame = propertyStack.peekLast();
+        if (lastFrame instanceof KeyFrame keyFrame) {
+            return encodeKeyObject(keyFrame);
+        }
+        if (lastFrame instanceof ArrayFrame arrayFrame) {
+            return encodeArrayObject(arrayFrame, name);
+        }
+        propertyStack.addLast(new ObjectFrame(name));
+        xmlWriter.writeStartElement(name);
+        return this;
+    }
+
+    private Encoder encodeKeyObject(KeyFrame keyFrame) {
+        Deque<ContextProperties> innerPropertyStack = new ArrayDeque<>(8);
+        KeyFrame childFrame = new KeyFrame(
+            keyFrame.key(),
+            false,
+            keyFrame.arrayWrappingKey(),
+            Boolean.FALSE,
+            keyFrame.namespace(),
+            keyFrame.xmlKey()
+        );
+        propertyStack.removeLast();
+        propertyStack.addLast(new KeyFrame(
+            keyFrame.key(),
+            true,
+            keyFrame.arrayWrappingKey(),
+            Boolean.TRUE,
+            keyFrame.namespace(),
+            keyFrame.xmlKey()
+        ));
+        innerPropertyStack.addLast(childFrame);
+        innerPropertyStack.addLast(new ObjectFrame(null));
+        return new XmlGenerator(xmlWriter, innerPropertyStack);
+    }
+
+    private Encoder encodeArrayObject(ArrayFrame arrayFrame, String fallbackName) throws XMLStreamException {
+        String itemName = arrayItemName(arrayFrame, fallbackName);
+        Deque<ContextProperties> innerPropertyStack = new ArrayDeque<>(8);
+        innerPropertyStack.addLast(new ObjectFrame(itemName));
+        writeStartElement(arrayFrame.itemNamespace(), itemName);
+        return new XmlGenerator(xmlWriter, innerPropertyStack);
+    }
+
+    private static String arrayItemName(ArrayFrame arrayFrame, String fallbackName) {
+        String iterableKey = arrayFrame.iterableKey();
+        if (iterableKey != null && !iterableKey.isEmpty()) {
+            return iterableKey;
+        }
+        String arrayKey = arrayFrame.key();
+        return arrayKey == null || arrayKey.isEmpty() ? fallbackName : arrayKey;
+    }
+
+    private void finishKeyFrame() throws XMLStreamException {
+        xmlWriter.writeEndElement();
+        propertyStack.clear();
+    }
+
+    private void finishObjectFrame(ObjectFrame objectFrame) throws XMLStreamException {
+        if (objectFrame.key() != null) {
+            xmlWriter.writeEndElement();
+        } else if (propertyStack.peekFirst() instanceof KeyFrame keyFrame) {
+            if (Boolean.TRUE.equals(keyFrame.objectWrappingKey())) {
+                xmlWriter.writeEndElement();
+            } else {
+                writeEmptyElement(keyFrame.namespace(), keyFrame.key());
+            }
+        }
+        propertyStack.clear();
+    }
+
+    private void finishArrayFrame(ArrayFrame arrayFrame) throws XMLStreamException {
+        if (arrayFrame.key() != null && arrayFrame.key().isEmpty()) {
+            propertyStack.removeLast();
+            return;
+        }
+        if (propertyStack.size() == 1) {
+            xmlWriter.writeEndElement();
+            return;
+        }
+        propertyStack.removeLast();
+        xmlWriter.writeEndElement();
+        assert propertyStack.peekLast() instanceof KeyFrame : "Expected KeyFrame, got: " + propertyStack.peekLast();
+        KeyFrame last = (KeyFrame) propertyStack.removeLast();
+        propertyStack.addLast(new KeyFrame(
+            last.key(),
+            true,
+            last.arrayWrappingKey(),
+            last.objectWrappingKey(),
+            last.namespace(),
+            last.xmlKey()
+        ));
+    }
+
+    private void writeKeyScalar(KeyFrame keyFrame, String data) throws XMLStreamException {
+        XmlKey xmlKey = keyFrame.xmlKey();
+        if (xmlKey != null && xmlKey.attribute()) {
+            writeAttribute(keyFrame, data);
+        } else if (xmlKey != null && xmlKey.text()) {
+            writeText(data, xmlKey.cdata());
+        } else {
+            writeStartElement(keyFrame.namespace(), keyFrame.key());
+            writeText(data, xmlKey != null && xmlKey.cdata());
+            xmlWriter.writeEndElement();
+        }
+        markConsumed(keyFrame);
+    }
+
+    private void writeAttribute(KeyFrame keyFrame, String data) throws XMLStreamException {
+        String key = Objects.requireNonNull(keyFrame.key());
+        if (keyFrame.namespace() == null || keyFrame.namespace().isEmpty()) {
+            xmlWriter.writeAttribute(key, data);
+        } else {
+            xmlWriter.writeAttribute(keyFrame.namespace(), key, data);
+        }
+    }
+
+    private void writeArrayScalar(ArrayFrame arrayFrame, String data) throws XMLStreamException {
+        String iterableKey = arrayFrame.iterableKey();
+        String itemName = iterableKey != null && !iterableKey.isEmpty() ? iterableKey : arrayFrame.key();
+        writeStartElement(arrayFrame.itemNamespace(), itemName);
+        writeText(data, arrayFrame.cdata());
+        xmlWriter.writeEndElement();
+    }
+
+    private void writeRootScalar(String data) throws XMLStreamException {
+        xmlWriter.writeStartElement(rootName == null ? "value" : rootName);
+        xmlWriter.writeCharacters(data);
+        xmlWriter.writeEndElement();
+    }
+
+    private void markConsumed(KeyFrame keyFrame) {
+        propertyStack.removeLast();
+        propertyStack.addLast(new KeyFrame(
+            keyFrame.key(),
+            true,
+            keyFrame.arrayWrappingKey(),
+            keyFrame.objectWrappingKey(),
+            keyFrame.namespace(),
+            keyFrame.xmlKey()
+        ));
     }
 
     @Override

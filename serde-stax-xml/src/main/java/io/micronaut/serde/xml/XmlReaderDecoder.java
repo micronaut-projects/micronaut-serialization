@@ -55,6 +55,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
                     XmlReaderDecoder.SyntheticRootDecoder {
 
     private static final String XSI_NS = "http://www.w3.org/2001/XMLSchema-instance";
+    private static final String CURRENT_KEY_NAME = "currentKey";
     private static final int XML_KEYS_CONTRIBUTION_INDEX = KeysSupport.indexOf(new XmlKeysProvider());
 
     final Cursor cursor;
@@ -670,7 +671,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         @Override
         public Decoder decodeObject(Argument<?> type) throws IOException {
             requireKey();
-            String childOwner = Objects.requireNonNull(currentKey, "currentKey");
+            String childOwner = Objects.requireNonNull(currentKey, CURRENT_KEY_NAME);
             List<XmlAttr> childAttrs = pendingChildAttrs;
             clearKeyState();
             return new ObjectDecoder(childLimits(), cursor, childOwner, childAttrs, emptyElementAsNull);
@@ -680,13 +681,13 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         public Decoder decodeArray(Argument<?> type) throws IOException {
             if (currentXmlKey != null && currentXmlKey.collectionLayout() == XmlCollectionLayout.INLINE) {
                 requireKey();
-                String itemName = Objects.requireNonNull(currentKey, "currentKey");
+                String itemName = Objects.requireNonNull(currentKey, CURRENT_KEY_NAME);
                 List<XmlAttr> itemAttrs = pendingChildAttrs;
                 clearKeyState();
                 return new ArrayDecoder(childLimits(), cursor, itemName, itemAttrs, emptyElementAsNull);
             }
             requireKey();
-            String wrapper = Objects.requireNonNull(currentKey, "currentKey");
+            String wrapper = Objects.requireNonNull(currentKey, CURRENT_KEY_NAME);
             clearKeyState();
             return new ArrayDecoder(childLimits(), cursor, wrapper, emptyElementAsNull);
         }
@@ -813,13 +814,8 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
             Mode detected;
             while (true) {
                 int e = cursor.current();
-                if (e == XMLStreamConstants.CHARACTERS
-                        || e == XMLStreamConstants.CDATA
-                        || e == XMLStreamConstants.SPACE) {
-                    if (bufferedText == null) {
-                        bufferedText = new StringBuilder();
-                    }
-                    bufferedText.append(cursor.text());
+                if (isTextEvent(e)) {
+                    bufferedText = appendText(bufferedText, cursor.text());
                     cursor.advance();
                     continue;
                 }
@@ -868,6 +864,12 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
             this.itemPending = true;
             this.currentItemName = itemElement;
             this.currentItemAttrs = firstItemAttrs;
+        }
+
+        private static StringBuilder appendText(@Nullable StringBuilder bufferedText, String text) {
+            StringBuilder result = bufferedText == null ? new StringBuilder() : bufferedText;
+            result.append(text);
+            return result;
         }
 
         private static boolean isBlank(CharSequence s) {
@@ -1014,13 +1016,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
             if (finished) {
                 return;
             }
-            if (firstItemPending || itemPending) {
-                if (consumeLeftElements) {
-                    skipValue();
-                } else {
-                    throw new IllegalStateException("Array item pending in <" + wrapperElement + ">");
-                }
-            }
+            finishPendingItem(consumeLeftElements);
             if (consumeLeftElements) {
                 while (hasNextArrayValue()) {
                     skipValue();
@@ -1030,6 +1026,22 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
                 finished = true;
                 return;
             }
+            finishWrappedArray(consumeLeftElements);
+            finished = true;
+        }
+
+        private void finishPendingItem(boolean consumeLeftElements) throws IOException {
+            if (!firstItemPending && !itemPending) {
+                return;
+            }
+            if (consumeLeftElements) {
+                skipValue();
+            } else {
+                throw new IllegalStateException("Array item pending in <" + wrapperElement + ">");
+            }
+        }
+
+        private void finishWrappedArray(boolean consumeLeftElements) throws IOException {
             int e = cursor.current();
             if (e != XMLStreamConstants.END_ELEMENT) {
                 if (consumeLeftElements) {
@@ -1045,7 +1057,6 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
             if (cursor.current() == XMLStreamConstants.END_ELEMENT) {
                 cursor.advance();
             }
-            finished = true;
         }
 
         private void requireItem() {

@@ -74,38 +74,54 @@ public final class XmlKeysProvider implements KeysProvider {
         int textKeyIndex = Keys.UNKNOWN_KEY;
         for (int i = 0; i < keys.size(); i++) {
             KeyDescriptor key = keys.get(i);
-            Map<String, String> metadata = key.metadata();
-            @Nullable String wrapping = metadata.get(SerdeConfig.META_ANNOTATION_PROPERTY);
-            XmlCollectionLayout collectionLayout = wrapping == null
-                ? XmlCollectionLayout.DEFAULT
-                : Boolean.parseBoolean(wrapping) ? XmlCollectionLayout.WRAPPED : XmlCollectionLayout.INLINE;
-            @Nullable String wrapperName = metadata.get(SerdeConfig.WRAPPER_PROPERTY);
-            XmlKey xmlKey = new XmlKey(
-                key.name(),
-                metadata.get(SerdeConfig.XML_NAMESPACE),
-                Boolean.parseBoolean(metadata.get(SerdeConfig.XML_ATTRIBUTE_PROPERTY)),
-                Boolean.parseBoolean(metadata.get(SerdeConfig.XML_TEXT_PROPERTY)),
-                Boolean.parseBoolean(metadata.get(SerdeConfig.XML_CDATA_PROPERTY)),
-                collectionLayout,
-                wrapperName,
-                metadata.get(SerdeConfig.XML_WRAPPER_NAMESPACE)
-            );
+            XmlKey xmlKey = createXmlKey(key);
             xmlKeys[i] = xmlKey;
             if (xmlKey.text() && textKeyIndex == Keys.UNKNOWN_KEY) {
                 textKeyIndex = i;
             }
-            if (collectionLayout == XmlCollectionLayout.WRAPPED && wrapperName != null) {
-                if (inputNameIndexes == null) {
-                    inputNameIndexes = new HashMap<>();
-                }
-                inputNameIndexes.putIfAbsent(normalize(wrapperName, caseInsensitive), i);
-            }
+            inputNameIndexes = addWrapperNameIndex(inputNameIndexes, xmlKey, caseInsensitive, i);
         }
         return new Object[] {
             xmlKeys,
             inputNameIndexes == null ? Map.of() : Map.copyOf(inputNameIndexes),
             textKeyIndex
         };
+    }
+
+    private static XmlKey createXmlKey(KeyDescriptor key) {
+        Map<String, String> metadata = key.metadata();
+        return new XmlKey(
+            key.name(),
+            metadata.get(SerdeConfig.XML_NAMESPACE),
+            Boolean.parseBoolean(metadata.get(SerdeConfig.XML_ATTRIBUTE_PROPERTY)),
+            Boolean.parseBoolean(metadata.get(SerdeConfig.XML_TEXT_PROPERTY)),
+            Boolean.parseBoolean(metadata.get(SerdeConfig.XML_CDATA_PROPERTY)),
+            collectionLayout(metadata.get(SerdeConfig.META_ANNOTATION_PROPERTY)),
+            metadata.get(SerdeConfig.WRAPPER_PROPERTY),
+            metadata.get(SerdeConfig.XML_WRAPPER_NAMESPACE)
+        );
+    }
+
+    private static XmlCollectionLayout collectionLayout(@Nullable String wrapping) {
+        if (wrapping == null) {
+            return XmlCollectionLayout.DEFAULT;
+        }
+        return Boolean.parseBoolean(wrapping) ? XmlCollectionLayout.WRAPPED : XmlCollectionLayout.INLINE;
+    }
+
+    private static @Nullable Map<String, Integer> addWrapperNameIndex(
+        @Nullable Map<String, Integer> inputNameIndexes,
+        XmlKey xmlKey,
+        boolean caseInsensitive,
+        int index
+    ) {
+        String wrapperName = xmlKey.wrapperName();
+        if (xmlKey.collectionLayout() != XmlCollectionLayout.WRAPPED || wrapperName == null) {
+            return inputNameIndexes;
+        }
+        Map<String, Integer> indexes = inputNameIndexes == null ? new HashMap<>() : inputNameIndexes;
+        indexes.putIfAbsent(normalize(wrapperName, caseInsensitive), index);
+        return indexes;
     }
 
     static String normalize(String name, boolean caseInsensitive) {
