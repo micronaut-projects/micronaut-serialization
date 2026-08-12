@@ -122,16 +122,15 @@ public final class CborMessageHandler<T> implements MessageBodyHandler<T>, Respo
                             @Nullable MediaType mediaType,
                             Headers httpHeaders,
                             ByteBuffer<?> byteBuffer) throws CodecException {
-        T decoded;
         try {
-            decoded = cborObjectMapper.readValue(byteBuffer, type);
+            return cborObjectMapper.readValue(byteBuffer, type);
         } catch (IOException e) {
             throw decorateRead(type, e);
+        } finally {
+            if (byteBuffer instanceof ReferenceCounted rc) {
+                rc.release();
+            }
         }
-        if (byteBuffer instanceof ReferenceCounted rc) {
-            rc.release();
-        }
-        return decoded;
     }
 
     @Override

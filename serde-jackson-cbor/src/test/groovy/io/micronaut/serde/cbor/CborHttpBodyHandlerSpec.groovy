@@ -1,5 +1,9 @@
 package io.micronaut.serde.cbor
 
+import io.micronaut.buffer.netty.NettyByteBufferFactory
+import io.micronaut.core.io.buffer.ByteBuffer
+import io.micronaut.core.type.Argument
+import io.micronaut.core.type.Headers
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpStatus
 import io.micronaut.http.MediaType
@@ -8,10 +12,13 @@ import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Post
 import io.micronaut.http.client.HttpClient
 import io.micronaut.http.client.annotation.Client
+import io.micronaut.http.codec.CodecException
+import io.micronaut.serde.cbor.body.CborMessageHandler
 import io.micronaut.serde.cbor.data.Book
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 import spock.lang.Specification
+import io.netty.buffer.Unpooled
 
 @MicronautTest
 class CborHttpBodyHandlerSpec extends Specification {
@@ -22,6 +29,9 @@ class CborHttpBodyHandlerSpec extends Specification {
 
     @Inject
     CborObjectMapper cborMapper
+
+    @Inject
+    CborMessageHandler cborMessageHandler
 
     def "post and receive CBOR body"() {
         given:
@@ -62,6 +72,19 @@ class CborHttpBodyHandlerSpec extends Specification {
 
         then:
         result == "IT"
+    }
+
+    def "releases a reference-counted buffer when decoding fails"() {
+        given:
+        ByteBuffer buffer = NettyByteBufferFactory.DEFAULT.wrap(Unpooled.wrappedBuffer([0xFF] as byte[]))
+        Headers headers = Mock()
+
+        when:
+        cborMessageHandler.read(Argument.of(Book), CborMediaTypes.APPLICATION_CBOR_TYPE, headers, buffer)
+
+        then:
+        thrown(CodecException)
+        buffer.asNativeBuffer().refCnt() == 0
     }
 
     @Controller("/cbor")

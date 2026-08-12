@@ -18,10 +18,15 @@ snippet::example.BookTest[project-base="doc-examples/example-jackson-cbor"]
 
 === Coexistence with JSON
 
-| Need | Inject / use |
-| --- | --- |
-| Default JSON | `JsonMapper` / `ObjectMapper` (primary = Jackson when present) |
-| CBOR | `CborObjectMapper` or HTTP media type `application/cbor` |
+|===
+| Need | Inject / use
+
+| Default JSON
+| `JsonMapper` / `ObjectMapper` (primary = Jackson when present)
+
+| CBOR
+| `CborObjectMapper` or HTTP media type `application/cbor`
+|===
 
 Both formats share the same `@Serdeable` types and generated serializers.
 
