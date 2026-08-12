@@ -21,6 +21,7 @@ dependencies {
         exclude(group = "com.fasterxml.woodstox", module = "woodstox-core")
         exclude(group = "org.codehaus.woodstox", module = "stax2-api")
     }
+    runtimeOnly(mn.jackson.annotations)
 }
 
 tasks.named("spotlessGroovyCheck").configure {
