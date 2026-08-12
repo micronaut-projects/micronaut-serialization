@@ -316,13 +316,18 @@ public final class CborObjectMapper implements ObjectMapper {
 
     @Override
     public <T> @Nullable T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
-        final Deserializer<? extends T> deserializer =
-            decoderContext.findDeserializer(type).createSpecific(decoderContext, type);
-        return deserializer.deserialize(
-            JsonNodeDecoder.create(tree, streamLimits),
-            decoderContext,
-            type
-        );
+        Deserializer deserializer;
+        Deserializer.DecoderContext decoderContext = this.decoderContext;
+        if (isSpecificType(type)) {
+            deserializer = Objects.requireNonNull(specificDeserializer);
+        } else {
+            @Nullable Class<?> viewClass = JsonViewUtil.extractView(serdeConfiguration, type, view);
+            if (viewClass != view) {
+                decoderContext = registry.newDecoderContext(viewClass);
+            }
+            deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, type);
+        }
+        return (T) deserializer.deserializeNullable(JsonNodeDecoder.create(tree, streamLimits), decoderContext, type);
     }
 
     @Override
@@ -351,8 +356,17 @@ public final class CborObjectMapper implements ObjectMapper {
     }
 
     private <T> void writeWithEncoder(Encoder encoder, T value, Argument<T> type) throws IOException {
-        Serializer<? super T> serializer =
-            encoderContext.findSerializer(type).createSpecific(encoderContext, type);
+        Serializer<? super T> serializer;
+        Serializer.EncoderContext encoderContext = this.encoderContext;
+        if (isSpecificType(type)) {
+            serializer = (Serializer<? super T>) Objects.requireNonNull(specificSerializer);
+        } else {
+            @Nullable Class<?> viewClass = JsonViewUtil.extractView(serdeConfiguration, type, view);
+            if (viewClass != view) {
+                encoderContext = registry.newEncoderContext(viewClass);
+            }
+            serializer = encoderContext.findSerializer(type).createSpecific(encoderContext, type);
+        }
         serializer.serialize(encoder, encoderContext, type, value);
     }
 

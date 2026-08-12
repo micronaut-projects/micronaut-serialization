@@ -1,17 +1,23 @@
 package io.micronaut.serde.cbor
 
+import com.fasterxml.jackson.annotation.JsonView
+import io.micronaut.context.annotation.Property
 import io.micronaut.core.type.Argument
+import io.micronaut.inject.annotation.MutableAnnotationMetadata
 import io.micronaut.json.JsonMapper
 import io.micronaut.json.tree.JsonNode
 import io.micronaut.serde.cbor.data.Book
 import io.micronaut.serde.cbor.data.Color
 import io.micronaut.serde.cbor.data.EnumBean
 import io.micronaut.serde.cbor.data.NestedBean
+import io.micronaut.serde.cbor.data.ViewBean
+import io.micronaut.serde.cbor.data.Views
 import io.micronaut.serde.jackson.JacksonJsonMapper
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 import spock.lang.Specification
 
+@Property(name = "jackson.json-view.enabled", value = "true")
 @MicronautTest
 class CborRoundTripSpec extends Specification {
 
@@ -95,6 +101,29 @@ class CborRoundTripSpec extends Specification {
         viaBytes == book
         tree.get("title").getStringValue() == "Wizard"
         tree.get("pages").getIntValue() == 10
+    }
+
+    def "null tree reads as null"() {
+        expect:
+        cborMapper.readValueFromTree(JsonNode.nullNode(), Argument.of(Book)) == null
+    }
+
+    def "typed tree conversion applies JsonView"() {
+        given:
+        def metadata = new MutableAnnotationMetadata()
+        metadata.addAnnotation(JsonView.name, [value: [Views.Public]])
+        def type = Argument.of(ViewBean).withAnnotationMetadata(metadata)
+        def bean = new ViewBean("Bob", "08/01/1980")
+
+        when:
+        JsonNode tree = cborMapper.writeValueToTree(type, bean)
+        def read = cborMapper.readValueFromTree(tree, type)
+
+        then:
+        tree.get("name").getStringValue() == "Bob"
+        tree.get("birthdate") == null
+        read.name() == "Bob"
+        read.birthdate() == null
     }
 
     def "list of beans"() {
