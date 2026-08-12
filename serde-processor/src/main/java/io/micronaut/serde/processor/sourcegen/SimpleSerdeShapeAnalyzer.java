@@ -48,6 +48,14 @@ public final class SimpleSerdeShapeAnalyzer {
     private static final String JACKSON_ANNOTATION_PREFIX = "com.fasterxml.jackson.annotation.";
     private static final String BSON_REPRESENTATION = "org.bson.codecs.pojo.annotations.BsonRepresentation";
     private static final String JACKSON_DATAFORMAT = "tools.jackson.dataformat.";
+    private static final String JACKSON_XML_PROPERTY =
+        "tools.jackson.dataformat.xml.annotation.JacksonXmlProperty";
+    private static final String JACKSON_XML_ELEMENT_WRAPPER =
+        "tools.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper";
+    private static final String JACKSON_XML_TEXT =
+        "tools.jackson.dataformat.xml.annotation.JacksonXmlText";
+    private static final String JACKSON_XML_CDATA =
+        "tools.jackson.dataformat.xml.annotation.JacksonXmlCData";
 
     @SuppressWarnings("java:S3776")
     public SimpleSerdeShapeDecision analyze(ClassElement element) {
@@ -427,10 +435,17 @@ public final class SimpleSerdeShapeAnalyzer {
     private void collectJacksonAnnotationNames(Set<String> annotationNames,
                                                Map<String, Boolean> annotations) {
         for (String annotationName : annotationNames) {
-            if (isJacksonAnnotationName(annotationName)) {
+            if (isJacksonAnnotationName(annotationName) && !isSupportedXmlAnnotation(annotationName)) {
                 annotations.putIfAbsent(displayAnnotationName(annotationName), Boolean.TRUE);
             }
         }
+    }
+
+    private boolean isSupportedXmlAnnotation(String annotationName) {
+        return JACKSON_XML_PROPERTY.equals(annotationName)
+            || JACKSON_XML_ELEMENT_WRAPPER.equals(annotationName)
+            || JACKSON_XML_TEXT.equals(annotationName)
+            || JACKSON_XML_CDATA.equals(annotationName);
     }
 
     private boolean isJacksonAnnotationName(String name) {
@@ -627,11 +642,20 @@ public final class SimpleSerdeShapeAnalyzer {
     private boolean hasCustomPropertyNames(ClassElement element) {
         for (PropertyElement property : element.getBeanProperties()) {
             String configured = property.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(null);
-            if (configured != null && !configured.equals(property.getName())) {
+            if (configured != null
+                && !configured.equals(property.getName())
+                && !hasSupportedXmlPropertyAnnotation(property)) {
                 return true;
             }
         }
         return false;
+    }
+
+    private boolean hasSupportedXmlPropertyAnnotation(PropertyElement property) {
+        return property.hasAnnotation(JACKSON_XML_PROPERTY)
+            || property.getReadMethod().map(method -> method.hasAnnotation(JACKSON_XML_PROPERTY)).orElse(false)
+            || property.getWriteMethod().map(method -> method.hasAnnotation(JACKSON_XML_PROPERTY)).orElse(false)
+            || property.getField().map(field -> field.hasAnnotation(JACKSON_XML_PROPERTY)).orElse(false);
     }
 
     private boolean hasUnsupportedPropertySerdeConfig(ClassElement element) {

@@ -19,11 +19,13 @@ import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.type.Argument;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.WildcardElement;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.sourcegen.model.ClassTypeDef;
 import io.micronaut.sourcegen.model.ExpressionDef;
 import io.micronaut.sourcegen.model.TypeDef;
 import org.jspecify.annotations.Nullable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -43,6 +45,7 @@ final class BeanSerdeSourceGenUtils {
 
     private static final TypeDef ARGUMENT_TYPE = TypeDef.of(Argument.class);
     private static final ClassTypeDef SERDE_ARGUMENT_CONSTANTS = ClassTypeDef.of("io.micronaut.serde.util.SerdeArgumentConstants");
+    private static final ClassTypeDef SERDE_CONFIG_TYPE = ClassTypeDef.of(SerdeConfig.class);
 
     private static final Method ARGUMENT_OF_METHOD = ReflectionUtils.getRequiredMethod(Argument.class, "of", Class.class);
     private static final Method ARGUMENT_OF_WITH_TYPE_PARAMETERS_METHOD = ReflectionUtils.getRequiredMethod(Argument.class, "of", Class.class, Argument[].class);
@@ -51,6 +54,13 @@ final class BeanSerdeSourceGenUtils {
     private static final Method OPTIONAL_INT_EMPTY_METHOD = ReflectionUtils.getRequiredMethod(OptionalInt.class, EMPTY_METHOD);
     private static final Method OPTIONAL_DOUBLE_EMPTY_METHOD = ReflectionUtils.getRequiredMethod(OptionalDouble.class, EMPTY_METHOD);
     private static final Method OPTIONAL_LONG_EMPTY_METHOD = ReflectionUtils.getRequiredMethod(OptionalLong.class, EMPTY_METHOD);
+    private static final Field META_ANNOTATION_PROPERTY_FIELD = ReflectionUtils.getRequiredField(SerdeConfig.class, "META_ANNOTATION_PROPERTY");
+    private static final Field WRAPPER_PROPERTY_FIELD = ReflectionUtils.getRequiredField(SerdeConfig.class, "WRAPPER_PROPERTY");
+    private static final Field XML_ATTRIBUTE_PROPERTY_FIELD = ReflectionUtils.getRequiredField(SerdeConfig.class, "XML_ATTRIBUTE_PROPERTY");
+    private static final Field XML_TEXT_PROPERTY_FIELD = ReflectionUtils.getRequiredField(SerdeConfig.class, "XML_TEXT_PROPERTY");
+    private static final Field XML_CDATA_PROPERTY_FIELD = ReflectionUtils.getRequiredField(SerdeConfig.class, "XML_CDATA_PROPERTY");
+    private static final Field XML_NAMESPACE_FIELD = ReflectionUtils.getRequiredField(SerdeConfig.class, "XML_NAMESPACE");
+    private static final Field XML_WRAPPER_NAMESPACE_FIELD = ReflectionUtils.getRequiredField(SerdeConfig.class, "XML_WRAPPER_NAMESPACE");
 
     private BeanSerdeSourceGenUtils() {
     }
@@ -198,5 +208,19 @@ final class BeanSerdeSourceGenUtils {
 
     static String localName(String prefix, int index) {
         return prefix + index;
+    }
+
+    static ExpressionDef keyMetadataPropertyExpression(String property) {
+        Field field = switch (property) {
+            case SerdeConfig.META_ANNOTATION_PROPERTY -> META_ANNOTATION_PROPERTY_FIELD;
+            case SerdeConfig.WRAPPER_PROPERTY -> WRAPPER_PROPERTY_FIELD;
+            case SerdeConfig.XML_ATTRIBUTE_PROPERTY -> XML_ATTRIBUTE_PROPERTY_FIELD;
+            case SerdeConfig.XML_TEXT_PROPERTY -> XML_TEXT_PROPERTY_FIELD;
+            case SerdeConfig.XML_CDATA_PROPERTY -> XML_CDATA_PROPERTY_FIELD;
+            case SerdeConfig.XML_NAMESPACE -> XML_NAMESPACE_FIELD;
+            case SerdeConfig.XML_WRAPPER_NAMESPACE -> XML_WRAPPER_NAMESPACE_FIELD;
+            default -> throw new IllegalArgumentException("Unsupported key metadata property: " + property);
+        };
+        return SERDE_CONFIG_TYPE.getStaticField(field);
     }
 }

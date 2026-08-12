@@ -36,16 +36,18 @@ import java.io.IOException;
 final class WrappedObjectSerializer<T> implements ObjectSerializer<T> {
 
     private final Serializer<T> serializer;
+    private final Argument<?> wrapperArgument;
     private final Keys wrapperKeys;
 
-    WrappedObjectSerializer(Serializer<T> serializer, String wrapperProperty) {
+    WrappedObjectSerializer(Serializer<T> serializer, String wrapperProperty, Argument<?> wrapperArgument) {
         this.serializer = serializer;
+        this.wrapperArgument = wrapperArgument;
         this.wrapperKeys = Keys.create(wrapperProperty);
     }
 
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
-        try (KeysAwareEncoder wrapperEncoder = KeysAwareEncoder.of(encoder.encodeObject(Argument.OBJECT_ARGUMENT))) {
+        try (KeysAwareEncoder wrapperEncoder = KeysAwareEncoder.of(encoder.encodeObject(wrapperArgument))) {
             wrapperEncoder.encodeKey(wrapperKeys, 0);
             serializer.serialize(wrapperEncoder, context, type, value);
         }

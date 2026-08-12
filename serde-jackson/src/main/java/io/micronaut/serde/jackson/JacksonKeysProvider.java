@@ -16,6 +16,7 @@
 package io.micronaut.serde.jackson;
 
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.serde.KeyDescriptor;
 import io.micronaut.serde.KeysProvider;
 import tools.jackson.core.SerializableString;
 import tools.jackson.core.io.SerializedString;
@@ -60,6 +61,25 @@ public final class JacksonKeysProvider implements KeysProvider {
             names.add(Named.fromString(key));
             serializableKeys[index++] = new SerializedString(key);
         }
+        return create(names, serializableKeys, caseInsensitive);
+    }
+
+    @Override
+    public Object[] createWithMetadata(List<KeyDescriptor> keys, boolean caseInsensitive) {
+        List<Named> names = new ArrayList<>(keys.size());
+        SerializableString[] serializableKeys = new SerializableString[keys.size()];
+        int index = 0;
+        for (KeyDescriptor key : keys) {
+            String name = key.name();
+            names.add(Named.fromString(name));
+            serializableKeys[index++] = new SerializedString(name);
+        }
+        return create(names, serializableKeys, caseInsensitive);
+    }
+
+    private Object[] create(List<Named> names,
+                            SerializableString[] serializableKeys,
+                            boolean caseInsensitive) {
         PropertyNameMatcher propertyNameMatcher = caseInsensitive
             ? JSON_FACTORY.constructCINameMatcher(names, false, Locale.ROOT)
             : JSON_FACTORY.constructNameMatcher(names, false);

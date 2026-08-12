@@ -37,6 +37,7 @@ import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.FormattedDeserializer;
+import io.micronaut.serde.KeyDescriptor;
 import io.micronaut.serde.Keys;
 import io.micronaut.serde.UpdatingDeserializer;
 import io.micronaut.serde.config.DeserializationConfiguration;
@@ -63,6 +64,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -478,12 +480,77 @@ final class DeserBean<T> {
         addUnwrappedKeys(propertyKeyNames, this.creatorUnwrapped, acceptCaseInsensitiveProperties);
         addUnwrappedKeys(propertyKeyNames, this.unwrappedProperties, acceptCaseInsensitiveProperties);
         this.propertyKeyNames = List.copyOf(propertyKeyNames);
-        this.propertyKeys = Keys.create(this.propertyKeyNames, acceptCaseInsensitiveProperties);
+        this.propertyKeys = createPropertyKeys(this.propertyKeyNames, acceptCaseInsensitiveProperties);
 
         isJsonValueProperty = jsonValueMethod != null || jsonValueProperty != null;
 
         simpleBean = isSimpleBean();
         recordLikeBean = isRecordLikeBean();
+    }
+
+    private Keys createPropertyKeys(List<String> keyNames, boolean caseInsensitive) {
+        @Nullable List<KeyDescriptor> descriptors = null;
+        for (int i = 0; i < keyNames.size(); i++) {
+            DerProperty<T, Object> property = propertyForKeyIndex(i);
+            if (descriptors != null) {
+                descriptors.add(property == null || !hasKeyMetadata(property)
+                    ? new KeyDescriptor(keyNames.get(i))
+                    : keyDescriptor(keyNames.get(i), property));
+            } else if (property != null && hasKeyMetadata(property)) {
+                descriptors = new ArrayList<>(keyNames.size());
+                for (int j = 0; j < i; j++) {
+                    descriptors.add(new KeyDescriptor(keyNames.get(j)));
+                }
+                descriptors.add(keyDescriptor(keyNames.get(i), property));
+            }
+        }
+        return descriptors == null
+            ? Keys.create(keyNames, caseInsensitive)
+            : Keys.createWithMetadata(descriptors, caseInsensitive);
+    }
+
+    private @Nullable DerProperty<T, Object> propertyForKeyIndex(int keyIndex) {
+        DerProperty<T, Object> property = injectProperties == null ? null : injectProperties.property(keyIndex);
+        if (property == null && creatorParams != null) {
+            property = creatorParams.property(keyIndex);
+        }
+        return property;
+    }
+
+    private static boolean hasKeyMetadata(DerProperty<?, ?> property) {
+        return property.xmlAttributeProperty
+            || property.xmlTextProperty
+            || property.xmlCDataProperty
+            || property.xmlNamespace != null
+            || property.xmlWrappingConfigured
+            || property.xmlWrapperName != null
+            || property.xmlWrapperNamespace != null;
+    }
+
+    private static KeyDescriptor keyDescriptor(String name, DerProperty<?, ?> property) {
+        Map<String, String> metadata = new HashMap<>(7);
+        if (property.xmlAttributeProperty) {
+            metadata.put(SerdeConfig.XML_ATTRIBUTE_PROPERTY, "true");
+        }
+        if (property.xmlTextProperty) {
+            metadata.put(SerdeConfig.XML_TEXT_PROPERTY, "true");
+        }
+        if (property.xmlCDataProperty) {
+            metadata.put(SerdeConfig.XML_CDATA_PROPERTY, "true");
+        }
+        if (property.xmlNamespace != null) {
+            metadata.put(SerdeConfig.XML_NAMESPACE, property.xmlNamespace);
+        }
+        if (property.xmlWrappingConfigured) {
+            metadata.put(SerdeConfig.META_ANNOTATION_PROPERTY, Boolean.toString(property.xmlUseWrapping));
+        }
+        if (property.xmlWrapperName != null) {
+            metadata.put(SerdeConfig.WRAPPER_PROPERTY, property.xmlWrapperName);
+        }
+        if (property.xmlWrapperNamespace != null) {
+            metadata.put(SerdeConfig.XML_WRAPPER_NAMESPACE, property.xmlWrapperNamespace);
+        }
+        return new KeyDescriptor(name, metadata);
     }
 
     String propertyKeyName(int keyIndex) {
@@ -593,24 +660,25 @@ final class DeserBean<T> {
     }
 
     private void initProperty(DerProperty<T, Object> property, Deserializer.DecoderContext decoderContext) throws SerdeException {
-        if (!property.ignored) {
-            Deserializer.DecoderContext propertyContext = decoderContext.withFeatures(property.featuresWith, property.featuresWithout);
-            property.deserializer = unwrapErrorCatching(property.format == null
-                ? findDeserializerWithoutFormat(propertyContext, property.argument)
-                : findDeserializer(propertyContext, property.argument, property.format));
-            if (property.format == null && !property.hasFeatureOverrides && property.deserializer instanceof DecoderValueKind.Provider decoderValueKind) {
-                property.decoderValueKind = decoderValueKind.decoderValueKind().code();
-            }
-            if (property.merge
-                && property.beanReadProperty != null
-                && property.format == null
-                && !property.hasFeatureOverrides
-                && !property.argument.getType().isArray()
-                && !(property.deserializer instanceof UpdatingDeserializer)) {
-                UpdatingDeserializer<Object> mergeDeserializer = ObjectShapeSerdeHelper.updatingObjectDeserializer(propertyContext, property.argument);
-                if (mergeDeserializer != null) {
-                    property.mergeDeserializer = unwrapErrorCatching(mergeDeserializer);
-                }
+        if (property.ignored) {
+            return;
+        }
+        Deserializer.DecoderContext propertyContext = decoderContext.withFeatures(property.featuresWith, property.featuresWithout);
+        property.deserializer = unwrapErrorCatching(property.format == null
+            ? findDeserializerWithoutFormat(propertyContext, property.argument)
+            : findDeserializer(propertyContext, property.argument, property.format));
+        if (property.format == null && !property.hasFeatureOverrides && property.deserializer instanceof DecoderValueKind.Provider decoderValueKind) {
+            property.decoderValueKind = decoderValueKind.decoderValueKind().code();
+        }
+        if (property.merge
+            && property.beanReadProperty != null
+            && property.format == null
+            && !property.hasFeatureOverrides
+            && !property.argument.getType().isArray()
+            && !(property.deserializer instanceof UpdatingDeserializer)) {
+            UpdatingDeserializer<Object> mergeDeserializer = ObjectShapeSerdeHelper.updatingObjectDeserializer(propertyContext, property.argument);
+            if (mergeDeserializer != null) {
+                property.mergeDeserializer = unwrapErrorCatching(mergeDeserializer);
             }
         }
     }
@@ -1003,6 +1071,14 @@ final class DeserBean<T> {
         @Nullable
         public final String backRef;
         public final boolean ignored;
+        public final boolean xmlUseWrapping;
+        public final boolean xmlWrappingConfigured;
+        public final boolean xmlAttributeProperty;
+        public final boolean xmlTextProperty;
+        public final boolean xmlCDataProperty;
+        public final @Nullable String xmlNamespace;
+        public final @Nullable String xmlWrapperName;
+        public final @Nullable String xmlWrapperNamespace;
         @Nullable
         public final String unresolvedTypeVariableName;
         @Nullable
@@ -1130,6 +1206,15 @@ final class DeserBean<T> {
                 .orElse(null);
             this.backRef = annotationMetadata.stringValue(SerdeConfig.SerBackRef.class)
                 .orElse(null);
+            Optional<Boolean> xmlUseWrapping = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.META_ANNOTATION_PROPERTY);
+            this.xmlUseWrapping = xmlUseWrapping.orElse(true);
+            this.xmlWrappingConfigured = xmlUseWrapping.isPresent();
+            this.xmlAttributeProperty = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.XML_ATTRIBUTE_PROPERTY).orElse(false);
+            this.xmlTextProperty = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.XML_TEXT_PROPERTY).orElse(false);
+            this.xmlCDataProperty = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.XML_CDATA_PROPERTY).orElse(false);
+            this.xmlNamespace = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.XML_NAMESPACE).orElse(null);
+            this.xmlWrapperName = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY).orElse(null);
+            this.xmlWrapperNamespace = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.XML_WRAPPER_NAMESPACE).orElse(null);
             this.explicitlyRequired = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.REQUIRED)
                 .orElse(false);
             this.explicitlyRequiredForConstructor = explicitlyRequired || deserializationConfiguration.isRequireAllCreatorParameters();
@@ -1332,7 +1417,7 @@ final class DeserBean<T> {
                 P value = decoderValueKind == DecoderValueKind.NONE_CODE
                     ? deserializer.deserializeNullable(objectDecoder, decoderContext, argument)
                     : deserializeDirectValue(objectDecoder);
-                if (value != null) {
+                if (value != null || nullable) {
                     return value;
                 }
                 if (explicitlyRequired) {
@@ -1563,7 +1648,7 @@ final class DeserBean<T> {
                         ? deserializer.deserializeNullable(objectDecoder, decoderContext, argument)
                         : deserializeDirectValue(objectDecoder);
                 }
-                if (value != null) {
+                if (value != null || nullable) {
                     return value;
                 }
                 if (explicitlyRequiredForConstructor) {

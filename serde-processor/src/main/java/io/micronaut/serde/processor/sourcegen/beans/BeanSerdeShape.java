@@ -21,6 +21,7 @@ import io.micronaut.inject.ast.MethodElement;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Shape model for bean-based source generation.
@@ -40,6 +41,7 @@ public record BeanSerdeShape(
      * @param deserializationType Property type used for deserialization.
      * @param nonNull             Whether the property is non-null.
      * @param nullable            Whether the property is nullable.
+     * @param keyMetadata         Pre-resolved metadata contributed with the property key.
      * @param readMethod          Bean getter method.
      * @param writeMethod         Bean setter method.
      * @param readField           Bean field used for reading.
@@ -51,10 +53,48 @@ public record BeanSerdeShape(
         ClassElement deserializationType,
         boolean nonNull,
         boolean nullable,
+        Map<String, String> keyMetadata,
         @Nullable MethodElement readMethod,
         @Nullable MethodElement writeMethod,
         @Nullable FieldElement readField,
         @Nullable FieldElement writeField
     ) {
+        /**
+         * Creates a property without contributed key metadata.
+         *
+         * @param name Property name.
+         * @param serializationType Property type used for serialization.
+         * @param deserializationType Property type used for deserialization.
+         * @param nonNull Whether the property is non-null.
+         * @param nullable Whether the property is nullable.
+         * @param readMethod Bean getter method.
+         * @param writeMethod Bean setter method.
+         * @param readField Bean field used for reading.
+         * @param writeField Bean field used for writing.
+         */
+        public BeanProperty(
+            String name,
+            ClassElement serializationType,
+            ClassElement deserializationType,
+            boolean nonNull,
+            boolean nullable,
+            @Nullable MethodElement readMethod,
+            @Nullable MethodElement writeMethod,
+            @Nullable FieldElement readField,
+            @Nullable FieldElement writeField
+        ) {
+            this(
+                name,
+                serializationType,
+                deserializationType,
+                nonNull,
+                nullable,
+                Map.of(),
+                readMethod,
+                writeMethod,
+                readField,
+                writeField
+            );
+        }
     }
 }

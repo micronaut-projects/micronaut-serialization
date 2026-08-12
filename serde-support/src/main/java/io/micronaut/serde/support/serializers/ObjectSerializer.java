@@ -127,7 +127,7 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
             } else if (serBean.dynamicArrayWrapperProperty != null) {
                 serializer = new DynamicWrappedArraySerializer<>(serializer, serBean.dynamicArrayWrapperProperty);
             } else if (serBean.wrapperProperty != null) {
-                serializer = new WrappedObjectSerializer<>(serializer, serBean.wrapperProperty);
+                serializer = new WrappedObjectSerializer<>(serializer, serBean.wrapperProperty, serBean.wrapperArgument);
             } else if (serBean.arrayWrapperProperty != null) {
                 serializer = new WrappedArraySerializer<>(serializer, serBean.arrayWrapperProperty);
             } else {
@@ -136,7 +136,7 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
                     if (subtypeInfo.discriminatorType() == SerdeConfig.SerSubtyped.DiscriminatorType.WRAPPER_OBJECT) {
                         String[] names = subtypeInfo.subtypes().get(type.getType());
                         if (names != null) {
-                            serializer = new WrappedObjectSerializer<>(serializer, names[0]);
+                            serializer = new WrappedObjectSerializer<>(serializer, names[0], Argument.OBJECT_ARGUMENT);
                         }
                     }
                     if (subtypeInfo.discriminatorType() == SerdeConfig.SerSubtyped.DiscriminatorType.WRAPPER_ARRAY) {

@@ -9,6 +9,7 @@ quickStart:
   bsonQuick: BSON Annotations and BSON
   tomlQuick: TOML
   propertiesQuick: Java Properties
+  xmlQuick: XML
 jacksonAnnotations:
   title: Jackson Annotations
   jacksonFilter: Custom Property Filters
