@@ -65,6 +65,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#keysType()" tabindex="0">keysType()</a></li>
 <li><a href="#create(java.util.List)" tabindex="0">create(List)</a></li>
 <li><a href="#create(java.util.List,boolean)" tabindex="0">create(List, boolean)</a></li>
+<li><a href="#createWithMetadata(java.util.List,boolean)" tabindex="0">createWithMetadata(List, boolean)</a></li>
 </ol>
 </li>
 </ol>
@@ -134,9 +135,15 @@ implements <a href="../KeysProvider.html" title="interface in io.micronaut.serde
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Create backend-specific data for the supplied keys.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a><wbr>&lt;?&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#keysType()" class="member-name-link">keysType</a>()</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#createWithMetadata(java.util.List,boolean)" class="member-name-link">createWithMetadata</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../KeyDescriptor.html" title="class in io.micronaut.serde">KeyDescriptor</a>&gt;&nbsp;keys,
+ boolean&nbsp;caseInsensitive)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Create backend-specific data for keys with pre-resolved serde configuration.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a><wbr>&lt;?&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#keysType()" class="member-name-link">keysType</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">The contribution type supplied by this provider.</div>
 </div>
 </div>
@@ -221,6 +228,28 @@ The returned value must be safe to reuse across encoder and decoder instances.</
 <dd><code><a href="../KeysProvider.html#create(java.util.List,boolean)">create</a></code>&nbsp;in interface&nbsp;<code><a href="../KeysProvider.html" title="interface in io.micronaut.serde">KeysProvider</a></code></dd>
 <dt>Parameters:</dt>
 <dd><code>keys</code> - The keys</dd>
+<dd><code>caseInsensitive</code> - Whether key matching should be case-insensitive</dd>
+<dt>Returns:</dt>
+<dd>The backend-specific data</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="createWithMetadata(java.util.List,boolean)">
+<h3>createWithMetadata</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]</span>&nbsp;<span class="element-name">createWithMetadata</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../KeyDescriptor.html" title="class in io.micronaut.serde">KeyDescriptor</a>&gt;&nbsp;keys,
+ boolean&nbsp;caseInsensitive)</span></div>
+<div class="block"><span class="description-from-type-label">Description copied from interface:&nbsp;<code><a href="../KeysProvider.html#createWithMetadata(java.util.List,boolean)">KeysProvider</a></code></span></div>
+<div class="block">Create backend-specific data for keys with pre-resolved serde configuration.
+
+<p>The default implementation preserves compatibility with providers that only need key names.</p></div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../KeysProvider.html#createWithMetadata(java.util.List,boolean)">createWithMetadata</a></code>&nbsp;in interface&nbsp;<code><a href="../KeysProvider.html" title="interface in io.micronaut.serde">KeysProvider</a></code></dd>
+<dt>Parameters:</dt>
+<dd><code>keys</code> - The key descriptors</dd>
 <dd><code>caseInsensitive</code> - Whether key matching should be case-insensitive</dd>
 <dt>Returns:</dt>
 <dd>The backend-specific data</dd>
