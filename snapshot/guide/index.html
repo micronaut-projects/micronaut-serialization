@@ -111,11 +111,13 @@
         
         <div class="toc-item" style="margin-left:10px" id="toc-item-bsonQuick"><a href="#bsonQuick"><strong>3.3</strong><span>BSON Annotations and BSON</span></a></div>
         
-        <div class="toc-item" style="margin-left:10px" id="toc-item-tomlQuick"><a href="#tomlQuick"><strong>3.4</strong><span>TOML</span></a></div>
+        <div class="toc-item" style="margin-left:10px" id="toc-item-cborQuick"><a href="#cborQuick"><strong>3.4</strong><span>CBOR</span></a></div>
         
-        <div class="toc-item" style="margin-left:10px" id="toc-item-propertiesQuick"><a href="#propertiesQuick"><strong>3.5</strong><span>Java Properties</span></a></div>
+        <div class="toc-item" style="margin-left:10px" id="toc-item-tomlQuick"><a href="#tomlQuick"><strong>3.5</strong><span>TOML</span></a></div>
         
-        <div class="toc-item" style="margin-left:10px" id="toc-item-xmlQuick"><a href="#xmlQuick"><strong>3.6</strong><span>XML</span></a></div>
+        <div class="toc-item" style="margin-left:10px" id="toc-item-propertiesQuick"><a href="#propertiesQuick"><strong>3.6</strong><span>Java Properties</span></a></div>
+        
+        <div class="toc-item" style="margin-left:10px" id="toc-item-xmlQuick"><a href="#xmlQuick"><strong>3.7</strong><span>XML</span></a></div>
         
         <div class="toc-item" style="margin-left:0px" id="toc-item-jacksonAnnotations"><a href="#jacksonAnnotations"><strong>4</strong><span>Jackson Annotations</span></a></div>
         
@@ -168,7 +170,7 @@
 <p>It does so using build-time <a href="https://docs.micronaut.io/latest/guide/#introspection">Bean Introspections</a> that do not use reflection and allows using a variety of common annotation models including <a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/package-summary.html">Jackson annotations</a>, JSON-B annotations or <a href="https://mongodb.github.io/mongo-java-driver/3.5/javadoc/?org/bson/codecs/pojo/annotations/package-summary.html">BSON annotations</a>.</p>
 </div>
 <div class="paragraph">
-<p>Micronaut Serialization can be used to replace the use of Jackson Databind in a Micronaut application and allows serialization on top of a number of different encoding runtimes including Jackson Core, JSON-P or BSON.</p>
+<p>Micronaut Serialization can be used to replace the use of Jackson Databind in a Micronaut application and allows serialization on top of a number of different encoding runtimes including Jackson Core, JSON-P, BSON, or CBOR.</p>
 </div>
 
 <h2 id="why"><a class="anchor" href="#why"></a>1.1 Why Micronaut Serialization?</h2>
@@ -1525,7 +1527,393 @@ class BookTest extends Specification {
 </div>
 </div>
 
-<h2 id="tomlQuick"><a class="anchor" href="#tomlQuick"></a>3.4 TOML</h2>
+<h2 id="cborQuick"><a class="anchor" href="#cborQuick"></a>3.4 CBOR</h2>
+
+<div class='contribute-btn'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/quickStart/cborQuick.adoc"'>
+        <i class='fa fa-pencil-square-o'></i> Improve this doc
+    </button>
+</div>
+
+
+<div class="paragraph">
+<p>To serialize and deserialize objects as <a href="https://www.rfc-editor.org/rfc/rfc8949.html">CBOR</a> (Concise Binary Object Representation), add the following dependency:</p>
+</div>
+<div class="paragraph">
+<p>        <div class="listingblock multi-language-sample">
+<div class="title"></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">implementation(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-jackson-cbor")</span></code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="maven">&lt;dependency&gt;
+    &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
+    &lt;artifactId&gt;micronaut-serde-jackson-cbor&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></pre>
+</div>
+</div>
+</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<code>micronaut-serde-jackson-cbor</code> uses Jackson&#8217;s <strong>streaming</strong> CBOR factory (<code>jackson-dataformat-cbor</code>) only as a token parser/generator. Object mapping is performed by Micronaut Serialization&#8217;s build-time serializers and deserializers. Jackson Databind is <strong>not</strong> used (the dataformat module&#8217;s transitive databind dependency is excluded).
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Adding this module also brings <code>micronaut-serde-jackson</code> for the shared streaming encoder/decoder bridge. When both are present, Jackson remains the primary JSON <code>JsonMapper</code>. Inject <a href="../api/io/micronaut/serde/cbor/CborObjectMapper.html">CborObjectMapper</a> for CBOR. JSON-only applications that do not depend on <code>micronaut-serde-jackson-cbor</code> never load CBOR beans.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>With the dependency in place you can define an object to be serialized:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable // <b class="conum">(1)</b>
+public class Book {
+    private final String title;
+    private final int quantity;
+
+    public Book(String title, int quantity) {
+        this.title = title;
+        this.quantity = quantity;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The type is annotated with <a href="../api/io/micronaut/serde/annotation/Serdeable.html">@Serdeable</a> to enable serialization/deserialization</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Use <a href="../api/io/micronaut/serde/cbor/CborObjectMapper.html">CborObjectMapper</a> to read and write CBOR bytes:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
+
+import io.micronaut.serde.cbor.CborObjectMapper;
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+@MicronautTest
+public class BookTest {
+
+    @Test
+    void testWriteReadBook(CborObjectMapper cborObjectMapper) throws IOException {
+        byte[] bytes = cborObjectMapper.writeValueAsBytes(new Book("The Stand", 50));
+        assertNotNull(bytes);
+        assertTrue(bytes.length &gt; 0);
+        // CBOR map major type, not JSON text
+        assertTrue((bytes[0] &amp; 0xE0) == 0xA0);
+
+        Book book = cborObjectMapper.readValue(bytes, Book.class);
+        assertNotNull(book);
+        assertEquals("The Stand", book.getTitle());
+        assertEquals(50, book.getQuantity());
+    }
+}</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_coexistence_with_json">Coexistence with JSON</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Need</th>
+<th class="tableblock halign-left valign-top">Inject / use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Default JSON</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>JsonMapper</code> / <code>ObjectMapper</code> (primary = Jackson when present)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CBOR</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CborObjectMapper</code> or HTTP media type <code>application/cbor</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Both formats share the same <code>@Serdeable</code> types and generated serializers.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_binary_data">Binary data</h3>
+<div class="paragraph">
+<p>For CBOR, <code>byte[]</code> defaults to native <strong>byte strings</strong> (RFC 8949 major type 2), not the global JSON-legacy numeric-array encoding. This is controlled by <code>micronaut.serde.cbor.write-binary-as-array</code> (default <code>false</code>) and does not change JSON behaviour.</p>
+</div>
+<div class="paragraph">
+<p>To force numeric arrays for CBOR:</p>
+</div>
+<div class="openblock">
+<div class="content">
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">micronaut.serde.cbor.write-binary-as-array=true</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">micronaut:
+  serde:
+    cbor:
+      write-binary-as-array: true</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="toml">[micronaut]
+  [micronaut.serde]
+    [micronaut.serde.cbor]
+      write-binary-as-array=true</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy-config hljs" data-lang="groovy-config">micronaut {
+  serde {
+    cbor {
+      writeBinaryAsArray = true
+    }
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-hocon hljs" data-lang="hocon">{
+  micronaut {
+    serde {
+      cbor {
+        write-binary-as-array = true
+      }
+    }
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json-config hljs" data-lang="json-config">{
+  "micronaut": {
+    "serde": {
+      "cbor": {
+        "write-binary-as-array": true
+      }
+    }
+  }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_http">HTTP</h3>
+<div class="paragraph">
+<p>The module registers a message body handler for <code>application/cbor</code>. Controllers and clients can use:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Post(uri = "/books", processes = CborMediaTypes.APPLICATION_CBOR)
+Book save(@Body Book book) {
+    return book;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The constant <a href="../api/io/micronaut/serde/cbor/CborMediaTypes.html">CborMediaTypes</a>#APPLICATION_CBOR is provided for convenience. When Micronaut Core adds <code>MediaType.APPLICATION_CBOR</code>, that constant will remain a stable alias for the same media type string (<code>application/cbor</code>).</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_security_and_limits">Security and limits</h3>
+<div class="paragraph">
+<p>CBOR parsing and writing honour <code>micronaut.serde.maximum-nesting-depth</code> (and related stream limits) to bound stack usage on nested structures. Prefer keeping limits enabled for untrusted input. Very large byte strings are limited by available heap; apply HTTP body size limits at the server as usual.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_streaming_factory_features">Streaming factory features</h3>
+<div class="paragraph">
+<p>Optional CBOR and stream features map to Jackson&#8217;s streaming configuration:</p>
+</div>
+<div class="openblock">
+<div class="content">
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">micronaut.serde.cbor.cbor-write-features.WRITE_MINIMAL_INTS=true</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">micronaut:
+  serde:
+    cbor:
+      cbor-write-features:
+        WRITE_MINIMAL_INTS: true
+      cbor-read-features: {}
+      stream-read-features: {}
+      stream-write-features: {}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="toml">[micronaut]
+  [micronaut.serde]
+    [micronaut.serde.cbor]
+      [micronaut.serde.cbor.cbor-write-features]
+        WRITE_MINIMAL_INTS=true
+      [micronaut.serde.cbor.cbor-read-features]
+      [micronaut.serde.cbor.stream-read-features]
+      [micronaut.serde.cbor.stream-write-features]</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy-config hljs" data-lang="groovy-config">micronaut {
+  serde {
+    cbor {
+      cborWriteFeatures {
+        WRITE_MINIMAL_INTS = true
+      }
+      cborReadFeatures {
+      }
+      streamReadFeatures {
+      }
+      streamWriteFeatures {
+      }
+    }
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-hocon hljs" data-lang="hocon">{
+  micronaut {
+    serde {
+      cbor {
+        cbor-write-features {
+          WRITE_MINIMAL_INTS = true
+        }
+        cbor-read-features {
+        }
+        stream-read-features {
+        }
+        stream-write-features {
+        }
+      }
+    }
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json-config hljs" data-lang="json-config">{
+  "micronaut": {
+    "serde": {
+      "cbor": {
+        "cbor-write-features": {
+          "WRITE_MINIMAL_INTS": true
+        },
+        "cbor-read-features": {
+        },
+        "stream-read-features": {
+        },
+        "stream-write-features": {
+        }
+      }
+    }
+  }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+These control token encoding details (for example minimal integer width). They do <strong>not</strong> implement full canonical/deterministic CBOR (sorted map keys, etc.).
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_limitations_and_roadmap">Limitations and roadmap</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Map keys are text strings (integer map keys are not supported without Serde SPI changes).</p>
+</li>
+<li>
+<p>CBOR tags (date/time, bigfloats, etc.) are not applied; temporals use existing Micronaut Serde encodings.</p>
+</li>
+<li>
+<p>Indefinite-length encoding follows the streaming library defaults.</p>
+</li>
+<li>
+<p>Full deterministic/canonical CBOR is not a built-in mode.</p>
+</li>
+<li>
+<p>Reactive parsing (<code>createReactiveParser</code>) buffers before parsing and splits chunks with a JSON-oriented lexer, so it is only reliable when each <code>byte[]</code> chunk is a complete CBOR value. Use the byte-array or stream APIs for chunked input.</p>
+</li>
+<li>
+<p><code>byte[]</code> read into a <code>JsonNode</code> tree or an untyped <code>Object</code> becomes a base64 string in the tree (the tree representation Micronaut Serde uses for binary) and a <code>byte[]</code> in the untyped case.</p>
+</li>
+</ul>
+</div>
+</div>
+
+<h2 id="tomlQuick"><a class="anchor" href="#tomlQuick"></a>3.5 TOML</h2>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/quickStart/tomlQuick.adoc"'>
@@ -1541,7 +1929,7 @@ class BookTest extends Specification {
 <p>See the <a href="https://micronaut-projects.github.io/micronaut-toml/latest/guide/#tomlQuick">Micronaut TOML serialization documentation</a> for dependency setup, the named TOML <a href="../api/io/micronaut/serde/ObjectMapper.html">ObjectMapper</a> bean, source-backed examples, mapper configuration, and TOML output layout.</p>
 </div>
 
-<h2 id="propertiesQuick"><a class="anchor" href="#propertiesQuick"></a>3.5 Java Properties</h2>
+<h2 id="propertiesQuick"><a class="anchor" href="#propertiesQuick"></a>3.6 Java Properties</h2>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/quickStart/propertiesQuick.adoc"'>
@@ -1699,7 +2087,7 @@ Java <code>*.properties</code> documents require keys. Root objects can be writt
 </table>
 </div>
 
-<h2 id="xmlQuick"><a class="anchor" href="#xmlQuick"></a>3.6 XML</h2>
+<h2 id="xmlQuick"><a class="anchor" href="#xmlQuick"></a>3.7 XML</h2>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/quickStart/xmlQuick.adoc"'>

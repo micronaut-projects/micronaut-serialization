@@ -2,6 +2,8 @@ io.micronaut.serde
 io.micronaut.serde.annotation
 io.micronaut.serde.bson
 io.micronaut.serde.bson.custom
+io.micronaut.serde.cbor
+io.micronaut.serde.cbor.body
 io.micronaut.serde.config
 io.micronaut.serde.config.annotation
 io.micronaut.serde.config.naming

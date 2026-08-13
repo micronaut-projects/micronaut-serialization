@@ -344,10 +344,64 @@
 <div style="page-break-after: always;"></div>
 </div>
 <div class="sect2">
+<h3 id="_micronaut_serde_jackson_cbor_config_properties">Micronaut Serde Jackson Cbor Config Properties</h3>
+<a id="io.micronaut.serde.cbor.SerdeCborConfiguration" href="#io.micronaut.serde.cbor.SerdeCborConfiguration">&#128279;</a>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 4. Configuration Properties for <a href="../api/io/micronaut/serde/cbor/SerdeCborConfiguration.html">SerdeCborConfiguration</a></caption>
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Default value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.cbor.cbor-read-features</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">java.util.Map</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets CBOR read features.</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.cbor.cbor-write-features</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">java.util.Map</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets CBOR write features.</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.cbor.stream-read-features</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">java.util.Map</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets stream read features.</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.cbor.stream-write-features</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">java.util.Map</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets stream write features.</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.cbor.write-binary-as-array</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">boolean</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets whether {@code byte[]} values are written as numeric arrays.</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+</tbody>
+</table>
+<div style="page-break-after: always;"></div>
+</div>
+<div class="sect2">
 <h3 id="_micronaut_serde_jackson_config_properties">Micronaut Serde Jackson Config Properties</h3>
 <a id="io.micronaut.serde.jackson.SerdeJacksonConfiguration" href="#io.micronaut.serde.jackson.SerdeJacksonConfiguration">&#128279;</a>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 4. Configuration Properties for <a href="../api/io/micronaut/serde/jackson/SerdeJacksonConfiguration.html">SerdeJacksonConfiguration</a></caption>
+<caption class="title">Table 5. Configuration Properties for <a href="../api/io/micronaut/serde/jackson/SerdeJacksonConfiguration.html">SerdeJacksonConfiguration</a></caption>
 <colgroup>
 <col style="width: 25%;">
 <col style="width: 25%;">
@@ -407,7 +461,7 @@
 <h3 id="_micronaut_serde_jsonb_config_properties">Micronaut Serde Jsonb Config Properties</h3>
 <a id="io.micronaut.serde.jsonb.JsonbConfiguration" href="#io.micronaut.serde.jsonb.JsonbConfiguration">&#128279;</a>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 5. Configuration Properties for <a href="../api/io/micronaut/serde/jsonb/JsonbConfiguration.html">JsonbConfiguration</a></caption>
+<caption class="title">Table 6. Configuration Properties for <a href="../api/io/micronaut/serde/jsonb/JsonbConfiguration.html">JsonbConfiguration</a></caption>
 <colgroup>
 <col style="width: 25%;">
 <col style="width: 25%;">
@@ -437,7 +491,7 @@
 <h3 id="_micronaut_serde_properties_config_properties">Micronaut Serde Properties Config Properties</h3>
 <a id="io.micronaut.serde.properties.SerdePropertiesConfiguration" href="#io.micronaut.serde.properties.SerdePropertiesConfiguration">&#128279;</a>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 6. Configuration Properties for <a href="../api/io/micronaut/serde/properties/SerdePropertiesConfiguration.html">SerdePropertiesConfiguration</a></caption>
+<caption class="title">Table 7. Configuration Properties for <a href="../api/io/micronaut/serde/properties/SerdePropertiesConfiguration.html">SerdePropertiesConfiguration</a></caption>
 <colgroup>
 <col style="width: 25%;">
 <col style="width: 25%;">
@@ -467,7 +521,7 @@
 <h3 id="_micronaut_serde_stax_xml_config_properties">Micronaut Serde Stax Xml Config Properties</h3>
 <a id="io.micronaut.serde.xml.XmlSerdeConfiguration" href="#io.micronaut.serde.xml.XmlSerdeConfiguration">&#128279;</a>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 7. Configuration Properties for <a href="../api/io/micronaut/serde/xml/XmlSerdeConfiguration.html">XmlSerdeConfiguration</a></caption>
+<caption class="title">Table 8. Configuration Properties for <a href="../api/io/micronaut/serde/xml/XmlSerdeConfiguration.html">XmlSerdeConfiguration</a></caption>
 <colgroup>
 <col style="width: 25%;">
 <col style="width: 25%;">
