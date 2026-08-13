@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -1108,9 +1109,25 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
                 nextToken();
                 yield parser.getBinaryValue();
             }
+            case VALUE_EMBEDDED_OBJECT -> decodeEmbeddedBinary();
             case START_ARRAY -> BinaryCodecUtil.decodeFromArray(this);
             default -> throw unexpectedToken(JsonToken.START_ARRAY, nextToken());
         };
+    }
+
+    /**
+     * Binary formats such as CBOR expose byte strings as embedded objects rather than tokens.
+     */
+    private byte[] decodeEmbeddedBinary() throws IOException {
+        nextToken();
+        Object embedded = parser.getEmbeddedObject();
+        if (embedded instanceof byte[] bytes) {
+            return bytes;
+        }
+        throw createDeserializationException(
+            "Expected embedded byte array, got: " + (embedded == null ? "null" : embedded.getClass().getName()),
+            embedded
+        );
     }
 
     @Override
@@ -1223,6 +1240,9 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
                 decodeNull();
                 yield JsonNode.nullNode();
             }
+            // base64 is how JsonNodeEncoder/JsonNodeDecoder represent binary in a tree
+            case VALUE_EMBEDDED_OBJECT ->
+                JsonNode.createStringNode(Base64.getEncoder().encodeToString(decodeEmbeddedBinary()));
             default ->
                 throw createDeserializationException("Unexpected token " + t + ", expected value", null);
         };
@@ -1341,6 +1361,10 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
                     case VALUE_NULL -> {
                         elementDecoder.decodeNull();
                         put(key, null);
+                        return this;
+                    }
+                    case VALUE_EMBEDDED_OBJECT -> {
+                        put(key, elementDecoder.decodeEmbeddedBinary());
                         return this;
                     }
                     default ->

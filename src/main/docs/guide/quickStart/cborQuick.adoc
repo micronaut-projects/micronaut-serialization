@@ -1,0 +1,90 @@
+To serialize and deserialize objects as https://www.rfc-editor.org/rfc/rfc8949.html[CBOR] (Concise Binary Object Representation), add the following dependency:
+
+dependency:micronaut-serde-jackson-cbor[groupId="io.micronaut.serde",scope="implementation"]
+
+NOTE: `micronaut-serde-jackson-cbor` uses Jackson's **streaming** CBOR factory (`jackson-dataformat-cbor`) only as a token parser/generator. Object mapping is performed by Micronaut Serialization's build-time serializers and deserializers. Jackson Databind is **not** used (the dataformat module's transitive databind dependency is excluded).
+
+TIP: Adding this module also brings `micronaut-serde-jackson` for the shared streaming encoder/decoder bridge. When both are present, Jackson remains the primary JSON `JsonMapper`. Inject api:serde.cbor.CborObjectMapper[] for CBOR. JSON-only applications that do not depend on `micronaut-serde-jackson-cbor` never load CBOR beans.
+
+With the dependency in place you can define an object to be serialized:
+
+snippet::example.Book[project-base="doc-examples/example-jackson-cbor", source="main"]
+
+<1> The type is annotated with ann:serde.annotation.Serdeable[] to enable serialization/deserialization
+
+Use api:serde.cbor.CborObjectMapper[] to read and write CBOR bytes:
+
+snippet::example.BookTest[project-base="doc-examples/example-jackson-cbor"]
+
+=== Coexistence with JSON
+
+|===
+| Need | Inject / use
+
+| Default JSON
+| `JsonMapper` / `ObjectMapper` (primary = Jackson when present)
+
+| CBOR
+| `CborObjectMapper` or HTTP media type `application/cbor`
+|===
+
+Both formats share the same `@Serdeable` types and generated serializers.
+
+=== Binary data
+
+For CBOR, `byte[]` defaults to native **byte strings** (RFC 8949 major type 2), not the global JSON-legacy numeric-array encoding. This is controlled by `micronaut.serde.cbor.write-binary-as-array` (default `false`) and does not change JSON behaviour.
+
+To force numeric arrays for CBOR:
+
+[configuration]
+----
+micronaut:
+  serde:
+    cbor:
+      write-binary-as-array: true
+----
+
+=== HTTP
+
+The module registers a message body handler for `application/cbor`. Controllers and clients can use:
+
+[source,java]
+----
+@Post(uri = "/books", processes = CborMediaTypes.APPLICATION_CBOR)
+Book save(@Body Book book) {
+    return book;
+}
+----
+
+The constant api:serde.cbor.CborMediaTypes[]#APPLICATION_CBOR is provided for convenience. When Micronaut Core adds `MediaType.APPLICATION_CBOR`, that constant will remain a stable alias for the same media type string (`application/cbor`).
+
+=== Security and limits
+
+CBOR parsing and writing honour `micronaut.serde.maximum-nesting-depth` (and related stream limits) to bound stack usage on nested structures. Prefer keeping limits enabled for untrusted input. Very large byte strings are limited by available heap; apply HTTP body size limits at the server as usual.
+
+=== Streaming factory features
+
+Optional CBOR and stream features map to Jackson's streaming configuration:
+
+[configuration]
+----
+micronaut:
+  serde:
+    cbor:
+      cbor-write-features:
+        WRITE_MINIMAL_INTS: true
+      cbor-read-features: {}
+      stream-read-features: {}
+      stream-write-features: {}
+----
+
+NOTE: These control token encoding details (for example minimal integer width). They do **not** implement full canonical/deterministic CBOR (sorted map keys, etc.).
+
+=== Limitations and roadmap
+
+* Map keys are text strings (integer map keys are not supported without Serde SPI changes).
+* CBOR tags (date/time, bigfloats, etc.) are not applied; temporals use existing Micronaut Serde encodings.
+* Indefinite-length encoding follows the streaming library defaults.
+* Full deterministic/canonical CBOR is not a built-in mode.
+* Reactive parsing (`createReactiveParser`) buffers before parsing and splits chunks with a JSON-oriented lexer, so it is only reliable when each `byte[]` chunk is a complete CBOR value. Use the byte-array or stream APIs for chunked input.
+* `byte[]` read into a `JsonNode` tree or an untyped `Object` becomes a base64 string in the tree (the tree representation Micronaut Serde uses for binary) and a `byte[]` in the untyped case.
