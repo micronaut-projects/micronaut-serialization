@@ -19,10 +19,14 @@ import jakarta.xml.bind.annotation.XmlAccessOrder;
 import jakarta.xml.bind.annotation.XmlAccessorOrder;
 import jakarta.xml.bind.annotation.XmlAttribute;
 import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlElementRef;
+import jakarta.xml.bind.annotation.XmlElementRefs;
+import jakarta.xml.bind.annotation.XmlElements;
 import jakarta.xml.bind.annotation.XmlElementWrapper;
 import jakarta.xml.bind.annotation.XmlEnum;
 import jakarta.xml.bind.annotation.XmlEnumValue;
 import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlSeeAlso;
 import jakarta.xml.bind.annotation.XmlTransient;
 import jakarta.xml.bind.annotation.XmlType;
 import jakarta.xml.bind.annotation.XmlValue;
@@ -216,6 +220,44 @@ public abstract class AbstractJaxbTckTest {
         assertEquals("typed", decoded.value);
     }
 
+    @Test
+    void xmlElementRefUsesTheReferencedElementName() throws Exception {
+        JaxbRefContainer value = new JaxbRefContainer();
+        value.pet = new JaxbDog();
+        value.pet.name = "Rex";
+
+        String xml = writeXml(value);
+        JaxbRefContainer decoded = readXml(xml, JaxbRefContainer.class);
+
+        assertXmlSimilar("<jaxbRefContainer><dog><name>Rex</name></dog></jaxbRefContainer>", xml);
+        assertInstanceOf(JaxbDog.class, decoded.pet);
+        assertEquals("Rex", decoded.pet.name);
+    }
+
+    @Test
+    void xmlElementsAndXmlElementRefsUseTheirChoiceElementNames() throws Exception {
+        JaxbElementsContainer elements = new JaxbElementsContainer();
+        elements.pet = new JaxbDog();
+        elements.pet.name = "Rex";
+        String elementsXml = writeXml(elements);
+        assertXmlSimilar("<jaxbElementsContainer><dog><name>Rex</name></dog></jaxbElementsContainer>", elementsXml);
+        assertInstanceOf(JaxbDog.class, readXml(elementsXml, JaxbElementsContainer.class).pet);
+
+        JaxbElementRefsContainer refs = new JaxbElementRefsContainer();
+        refs.pet = new JaxbDog();
+        refs.pet.name = "Rex";
+        String refsXml = writeXml(refs);
+        assertXmlSimilar("<jaxbElementRefsContainer><dog><name>Rex</name></dog></jaxbElementRefsContainer>", refsXml);
+        assertInstanceOf(JaxbDog.class, readXml(refsXml, JaxbElementRefsContainer.class).pet);
+
+        elements.pet = new JaxbCat();
+        elements.pet.name = "Milo";
+        assertXmlSimilar("<jaxbElementsContainer><cat><name>Milo</name></cat></jaxbElementsContainer>", writeXml(elements));
+
+        refs.pet = new JaxbCat();
+        refs.pet.name = "Milo";
+        assertXmlSimilar("<jaxbElementRefsContainer><cat><name>Milo</name></cat></jaxbElementRefsContainer>", writeXml(refs));
+    }
     /** JAXB root, element, attribute, text, and inline collection model. */
     @XmlRootElement(name = "book", namespace = "urn:books")
     @XmlType(propOrder = {"title", "authors"})
@@ -229,6 +271,49 @@ public abstract class AbstractJaxbTckTest {
         @XmlElement(name = "author")
         public List<String> authors;
 
+    }
+
+    /** JAXB reference and choice model. */
+    @XmlRootElement
+    public static class JaxbRefContainer {
+        @XmlElementRef(name = "dog", namespace = "##default", type = JaxbDog.class, required = true)
+        public JaxbPet pet;
+    }
+
+    /** JAXB element-choice model. */
+    @XmlRootElement
+    public static class JaxbElementsContainer {
+        @XmlElements({
+            @XmlElement(name = "dog", namespace = "##default", type = JaxbDog.class, required = true),
+            @XmlElement(name = "cat", namespace = "##default", type = JaxbCat.class)
+        })
+        public JaxbPet pet;
+    }
+
+    /** JAXB element-reference-choice model. */
+    @XmlRootElement
+    public static class JaxbElementRefsContainer {
+        @XmlElementRefs({
+            @XmlElementRef(name = "dog", namespace = "##default", type = JaxbDog.class, required = true),
+            @XmlElementRef(name = "cat", namespace = "##default", type = JaxbCat.class)
+        })
+        public JaxbPet pet;
+    }
+
+    /** JAXB polymorphic base type. */
+    @XmlSeeAlso({JaxbDog.class, JaxbCat.class})
+    public static class JaxbPet {
+        public String name;
+    }
+
+    /** JAXB polymorphic subtype. */
+    @XmlRootElement(name = "dog")
+    public static class JaxbDog extends JaxbPet {
+    }
+
+    /** JAXB polymorphic subtype. */
+    @XmlRootElement(name = "cat")
+    public static class JaxbCat extends JaxbPet {
     }
 
     /** JAXB wrapper and transient property model. */
@@ -330,7 +415,6 @@ public abstract class AbstractJaxbTckTest {
         @XmlElement(type = String.class)
         public CharSequence value;
     }
-
     /** JAXB enum lexical-value model. */
     @XmlRootElement(name = "JaxbEdition")
     @XmlEnum

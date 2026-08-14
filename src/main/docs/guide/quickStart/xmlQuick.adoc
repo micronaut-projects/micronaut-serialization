@@ -40,6 +40,22 @@ dependency:jakarta.xml.bind:jakarta.xml.bind-api[scope="compileOnly"]
 |`name`, `namespace`, `nillable`
 |Wraps a collection or array in an XML element. Combine it with `@XmlElement` to set the item name and namespace. `nillable = true` writes a null collection as an `xsi:nil="true"` wrapper; `false` omits it. Empty non-null collections write an empty wrapper. `required` is ignored.
 
+|`@XmlElements`
+|`value` (`@XmlElement` choices: `name`, `type`)
+|Declares unwrapped polymorphic element choices. The element name selects the declared subtype during deserialization and the runtime subtype selects its element during serialization. Each choice's `namespace` and `required` members are ignored.
+
+|`@XmlElementRef`
+|`name`, `type`
+|Declares one unwrapped polymorphic element reference. The name and type select the XML element and subtype. `namespace` and `required` are ignored. `JAXBElement` references are not supported.
+
+|`@XmlElementRefs`
+|`value` (`@XmlElementRef` choices: `name`, `type`)
+|Declares multiple unwrapped polymorphic element references. Each choice behaves as `@XmlElementRef`; `namespace` and `required` are ignored.
+
+|`@XmlSeeAlso`
+|`value`
+|Registers the listed subtypes for serde processing and subtype resolution. It does not add an XML type discriminator; combine it with `@XmlElements`, `@XmlElementRef`, or `@XmlElementRefs` when the element name selects a subtype.
+
 |`@XmlValue`
 |None
 |Writes the property as direct text content of its owning element. At most one value property is supported.
@@ -65,7 +81,7 @@ dependency:jakarta.xml.bind:jakarta.xml.bind-api[scope="compileOnly"]
 |Sets the serialized and deserialized lexical value for the enum constant.
 |===
 
-Names, transient properties, ordering, enum lexical values, and `type` overrides use shared serde metadata and can therefore affect other format implementations. JAXB defaults and nil policies are XML-only. Explicit Micronaut or Jackson configuration wins when it conflicts with JAXB metadata. Unsupported JAXB features include `@XmlAccessorType`, package `@XmlSchema`, choices/refs, adapters, `JAXBElement`, schema generation, and `JAXBContext`; unsupported annotation members include all `required` flags, `@XmlType.name`, `@XmlType.namespace`, `@XmlType.factoryClass`, `@XmlType.factoryMethod`, and `@XmlEnum.value`.
+Names, transient properties, ordering, enum lexical values, and `type` overrides use shared serde metadata and can therefore affect other format implementations. JAXB defaults and nil policies are XML-only. Explicit Micronaut or Jackson configuration wins when it conflicts with JAXB metadata. Unsupported JAXB features include `@XmlAccessorType`, package `@XmlSchema`, adapters, `JAXBElement`, schema generation, and `JAXBContext`; unsupported annotation members include all `required` flags, `@XmlType.name`, `@XmlType.namespace`, `@XmlType.factoryClass`, `@XmlType.factoryMethod`, and `@XmlEnum.value`.
 
 With the correct dependencies in place you can define an XML-serializable type:
 

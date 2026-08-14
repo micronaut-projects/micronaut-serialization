@@ -93,6 +93,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     private static final String JAXB_XML_ELEMENT_WRAPPER = JAXB_ANNOTATION_PREFIX + "XmlElementWrapper";
     private static final String JAXB_XML_ELEMENT = JAXB_ANNOTATION_PREFIX + "XmlElement";
     private static final String JAXB_XML_VALUE = JAXB_ANNOTATION_PREFIX + "XmlValue";
+    private static final String JAXB_ELEMENT = "jakarta.xml.bind.JAXBElement";
 
     private boolean failOnError = true;
     private @Nullable ClassElement currentClass;
@@ -403,6 +404,11 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     }
 
     private void validateJaxbAnnotations(Element element, VisitorContext context) {
+        if (element.hasDeclaredAnnotation("jakarta.xml.bind.annotation.XmlElementRef")
+            && element.getAnnotationMetadata().classValue("jakarta.xml.bind.annotation.XmlElementRef", "type")
+                .map(type -> JAXB_ELEMENT.equals(type.getName())).orElse(false)) {
+            context.warn("JAXBElement references are not supported", element);
+        }
         if (element.hasDeclaredAnnotation(JAXB_XML_ELEMENT_WRAPPER)) {
             ClassElement type = resolvePropertyType(element);
             if (type != null && !type.isArray() && !type.isAssignable(Collection.class)) {
@@ -1764,7 +1770,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             JAXB_XML_ROOT_ELEMENT,
             JAXB_XML_TYPE,
             JAXB_XML_ENUM,
-            JAXB_XML_ACCESSOR_ORDER
+            JAXB_XML_ACCESSOR_ORDER,
+            JAXB_ANNOTATION_PREFIX + "XmlSeeAlso"
         ).anyMatch(element::hasAnnotation);
     }
 
