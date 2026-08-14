@@ -45,3 +45,13 @@ io.micronaut.serde.processor.xml.JacksonXmlElementWrapperMapper
 io.micronaut.serde.processor.xml.JacksonXmlPropertyMapper
 io.micronaut.serde.processor.xml.JacksonXmlRootElementMapper
 io.micronaut.serde.processor.xml.JacksonXmlTextMapper
+io.micronaut.serde.processor.xml.JaxbXmlRootElementMapper
+io.micronaut.serde.processor.xml.JaxbXmlElementMapper
+io.micronaut.serde.processor.xml.JaxbXmlAttributeMapper
+io.micronaut.serde.processor.xml.JaxbXmlElementWrapperMapper
+io.micronaut.serde.processor.xml.JaxbXmlValueMapper
+io.micronaut.serde.processor.xml.JaxbXmlTransientMapper
+io.micronaut.serde.processor.xml.JaxbXmlTypeMapper
+io.micronaut.serde.processor.xml.JaxbXmlAccessorOrderMapper
+io.micronaut.serde.processor.xml.JaxbXmlEnumMapper
+io.micronaut.serde.processor.xml.JaxbXmlEnumValueMapper

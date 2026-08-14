@@ -13,6 +13,7 @@ dependencies {
 
     implementation(projects.micronautSerdeStaxXml)
     compileOnly(mn.jackson.dataformat.xml)
+    compileOnly(libs.managed.jakarta.xml.bindApi)
     implementation(mn.micronaut.http.client)
 
     runtimeOnly(mnLogging.logback.classic)

@@ -10,6 +10,63 @@ dependency:micronaut-serde-woodstox-xml[groupId="io.micronaut.serde",scope="impl
 
 If your source code uses Jackson XML annotations such as `@JacksonXmlProperty` or `@JacksonXmlElementWrapper`, keep the Jackson XML annotation types on the compile classpath. Micronaut Serialization maps those annotations at compilation time; XML serialization still goes through Micronaut Serialization's named XML mapper rather than a Jackson Databind `XmlMapper`.
 
+=== Jakarta XML Binding annotations
+
+Micronaut Serialization also recognizes the common Jakarta XML Binding 4 annotations at compile time. Add the annotation API to the compile classpath only; no JAXB runtime or `JAXBContext` is required:
+
+dependency:jakarta.xml.bind:jakarta.xml.bind-api[scope="compileOnly"]
+
+`@XmlRootElement`, `@XmlType`, `@XmlAccessorOrder`, and `@XmlEnum` automatically make a type serdeable. Property-only JAXB annotations require the containing type to be explicitly serdeable or to have one of those class-level annotations. The `Supported members` column is exhaustive; unlisted members are ignored.
+
+[cols="1,1,3", options="header"]
+|===
+|Annotation
+|Supported members
+|XML behavior
+
+|`@XmlRootElement`
+|`name`, `namespace`
+|Makes the type serdeable and sets the document root name and namespace. The `##default` name is derived by decapitalizing the class name; `##default` namespace does not add an explicit namespace.
+
+|`@XmlElement`
+|`name`, `namespace`
+|Changes the property element name and namespace. Collections and arrays use inline repeated elements by default. `nillable`, `required`, `type`, and `defaultValue` are ignored.
+
+|`@XmlAttribute`
+|`name`, `namespace`
+|Writes and reads the property as an attribute, using the configured name and namespace. Attributes are ordered before child elements. `required` is ignored.
+
+|`@XmlElementWrapper`
+|`name`, `namespace`
+|Wraps a collection or array in an XML element. Combine it with `@XmlElement` to set the item name and namespace. `nillable` and `required` are ignored.
+
+|`@XmlValue`
+|None
+|Writes the property as direct text content of its owning element. At most one value property is supported.
+
+|`@XmlTransient`
+|None
+|Ignores the annotated field or property. On a type, it prevents JAXB auto-binding unless a Micronaut or Jackson annotation explicitly binds the type.
+
+|`@XmlType`
+|`propOrder`
+|Makes the type serdeable and applies a non-default property order. `name`, `namespace`, `factoryClass`, and `factoryMethod` are ignored.
+
+|`@XmlAccessorOrder`
+|`value = ALPHABETICAL`
+|Makes the type serdeable and orders properties alphabetically. `UNDEFINED` leaves normal property ordering in effect.
+
+|`@XmlEnum`
+|None
+|Makes the enum serdeable. `value` (the schema base type) is ignored.
+
+|`@XmlEnumValue`
+|`value`
+|Sets the serialized and deserialized lexical value for the enum constant.
+|===
+
+Names, transient properties, ordering, and enum lexical values are shared with JSON and BSON because they use normal serde metadata. Explicit Micronaut or Jackson configuration wins when it conflicts with JAXB metadata. Unsupported JAXB features include `@XmlAccessorType`, package `@XmlSchema`, choices/refs, adapters, `JAXBElement`, schema generation, and `JAXBContext`; unsupported annotation members such as `nillable`, `required`, factories, and schema-only type settings are ignored.
+
 With the correct dependencies in place you can define an XML-serializable type:
 
 snippet::example.Book[project-base="doc-examples/example-stax-xml", source="main"]

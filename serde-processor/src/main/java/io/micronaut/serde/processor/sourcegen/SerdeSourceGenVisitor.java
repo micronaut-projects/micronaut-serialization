@@ -65,7 +65,11 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Object, O
             Serdeable.class.getName(),
             SerdeableGenerated.class.getName(),
             Serdeable.Serializable.class.getName(),
-            Serdeable.Deserializable.class.getName()
+            Serdeable.Deserializable.class.getName(),
+            "jakarta.xml.bind.annotation.XmlRootElement",
+            "jakarta.xml.bind.annotation.XmlType",
+            "jakarta.xml.bind.annotation.XmlEnum",
+            "jakarta.xml.bind.annotation.XmlAccessorOrder"
         );
     }
 
@@ -79,10 +83,14 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Object, O
         if (sourceGenerator == null || element.isPrimitive() || element.isArray() || element.isPrivate()) {
             return;
         }
-        if (!element.hasDeclaredAnnotation(Serdeable.class)
-            && !element.hasDeclaredAnnotation(SerdeableGenerated.class)
-            && !element.hasDeclaredAnnotation(Serdeable.Serializable.class)
-            && !element.hasDeclaredAnnotation(Serdeable.Deserializable.class)) {
+        if (!element.hasAnnotation(Serdeable.class)
+            && !element.hasAnnotation(SerdeableGenerated.class)
+            && !element.hasAnnotation(Serdeable.Serializable.class)
+            && !element.hasAnnotation(Serdeable.Deserializable.class)
+            && !element.hasAnnotation("jakarta.xml.bind.annotation.XmlRootElement")
+            && !element.hasAnnotation("jakarta.xml.bind.annotation.XmlType")
+            && !element.hasAnnotation("jakarta.xml.bind.annotation.XmlEnum")
+            && !element.hasAnnotation("jakarta.xml.bind.annotation.XmlAccessorOrder")) {
             return;
         }
         SimpleSerdeShapeDecision decision = analyzer.analyze(element);

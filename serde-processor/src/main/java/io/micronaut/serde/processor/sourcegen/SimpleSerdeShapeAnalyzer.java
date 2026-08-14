@@ -56,6 +56,8 @@ public final class SimpleSerdeShapeAnalyzer {
         "tools.jackson.dataformat.xml.annotation.JacksonXmlText";
     private static final String JACKSON_XML_CDATA =
         "tools.jackson.dataformat.xml.annotation.JacksonXmlCData";
+    private static final String JAXB_XML_ELEMENT = "jakarta.xml.bind.annotation.XmlElement";
+    private static final String JAXB_XML_ATTRIBUTE = "jakarta.xml.bind.annotation.XmlAttribute";
 
     @SuppressWarnings("java:S3776")
     public SimpleSerdeShapeDecision analyze(ClassElement element) {
@@ -254,12 +256,6 @@ public final class SimpleSerdeShapeAnalyzer {
         if (shapeKind == SimpleSerdeShapeDecision.ShapeKind.ENUM
             && !isBothFailed(serializerReasons, deserializerReasons)
             && hasComplexEnumCustomization(element)
-            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.COMPLEX_ENUM)) {
-            return decision(shapeKind, serializerReasons, deserializerReasons);
-        }
-        if (shapeKind == SimpleSerdeShapeDecision.ShapeKind.ENUM
-            && !isBothFailed(serializerReasons, deserializerReasons)
-            && hasEnumPropertyOverrides(element)
             && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.COMPLEX_ENUM)) {
             return decision(shapeKind, serializerReasons, deserializerReasons);
         }
@@ -615,16 +611,6 @@ public final class SimpleSerdeShapeAnalyzer {
         return annotations;
     }
 
-    private boolean hasEnumPropertyOverrides(ClassElement element) {
-        if (!element.isEnum()) {
-            return false;
-        }
-        return !element.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyDeclared().annotated(annotationMetadata -> {
-            String configured = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(null);
-            return configured != null && !configured.isBlank();
-        })).isEmpty();
-    }
-
     private boolean hasSubtypedPropertyTypes(ClassElement element) {
         for (PropertyElement property : element.getBeanProperties()) {
             ClassElement serializationType = property.getReadMethod().map(MethodElement::getReturnType).orElse(property.getType());
@@ -653,9 +639,13 @@ public final class SimpleSerdeShapeAnalyzer {
 
     private boolean hasSupportedXmlPropertyAnnotation(PropertyElement property) {
         return property.hasAnnotation(JACKSON_XML_PROPERTY)
+            || property.hasAnnotation(JAXB_XML_ELEMENT)
+            || property.hasAnnotation(JAXB_XML_ATTRIBUTE)
             || property.getReadMethod().map(method -> method.hasAnnotation(JACKSON_XML_PROPERTY)).orElse(false)
+            || property.getReadMethod().map(method -> method.hasAnnotation(JAXB_XML_ELEMENT) || method.hasAnnotation(JAXB_XML_ATTRIBUTE)).orElse(false)
             || property.getWriteMethod().map(method -> method.hasAnnotation(JACKSON_XML_PROPERTY)).orElse(false)
-            || property.getField().map(field -> field.hasAnnotation(JACKSON_XML_PROPERTY)).orElse(false);
+            || property.getWriteMethod().map(method -> method.hasAnnotation(JAXB_XML_ELEMENT) || method.hasAnnotation(JAXB_XML_ATTRIBUTE)).orElse(false)
+            || property.getField().map(field -> field.hasAnnotation(JACKSON_XML_PROPERTY) || field.hasAnnotation(JAXB_XML_ELEMENT) || field.hasAnnotation(JAXB_XML_ATTRIBUTE)).orElse(false);
     }
 
     private boolean hasUnsupportedPropertySerdeConfig(ClassElement element) {

@@ -84,6 +84,14 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     private static final String JSON_AUTO_DETECT = "com.fasterxml.jackson.annotation.JsonAutoDetect";
     private static final String JSON_AUTO_DETECT_ANY = "ANY";
     private static final String VISIBILITY = "visibility";
+    private static final String JAXB_ANNOTATION_PREFIX = "jakarta.xml.bind.annotation.";
+    private static final String JAXB_XML_ROOT_ELEMENT = JAXB_ANNOTATION_PREFIX + "XmlRootElement";
+    private static final String JAXB_XML_TYPE = JAXB_ANNOTATION_PREFIX + "XmlType";
+    private static final String JAXB_XML_ENUM = JAXB_ANNOTATION_PREFIX + "XmlEnum";
+    private static final String JAXB_XML_ACCESSOR_ORDER = JAXB_ANNOTATION_PREFIX + "XmlAccessorOrder";
+    private static final String JAXB_XML_TRANSIENT = JAXB_ANNOTATION_PREFIX + "XmlTransient";
+    private static final String JAXB_XML_ELEMENT_WRAPPER = JAXB_ANNOTATION_PREFIX + "XmlElementWrapper";
+    private static final String JAXB_XML_VALUE = JAXB_ANNOTATION_PREFIX + "XmlValue";
 
     private boolean failOnError = true;
     private @Nullable ClassElement currentClass;
@@ -111,7 +119,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 "io.micronaut.serde.config.annotation.*",
                 "tools.jackson.databind.annotation.*",
                 "tools.jackson.dataformat.annotation.*",
-                "tools.jackson.dataformat.xml.annotation.*"
+                "tools.jackson.dataformat.xml.annotation.*",
+                "jakarta.xml.bind.annotation.*"
         );
     }
 
@@ -311,6 +320,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             throw new ProcessingException(element, "JSON annotations cannot be used on private methods and constructors");
         }
         checkJsonAutoDetect(element);
+        validateJaxbAnnotations(element);
         for (String annotation : getUnsupportedJacksonAnnotations()) {
             if (element.hasDeclaredAnnotation(annotation)) {
                 throw new ProcessingException(element, "Annotation @" + NameUtils.getSimpleName(annotation) + " is not supported");
@@ -387,6 +397,15 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                         throw new ProcessingException(element, "Unwrapped property contains a property [" + thatProperty + "] that conflicts with an existing property of the outer type: " + currentClass().getName() + ". Consider specifying a prefix or suffix to disambiguate this conflict.");
                     }
                 }
+            }
+        }
+    }
+
+    private void validateJaxbAnnotations(Element element) {
+        if (element.hasDeclaredAnnotation(JAXB_XML_ELEMENT_WRAPPER)) {
+            ClassElement type = resolvePropertyType(element);
+            if (type != null && !type.isArray() && !type.isAssignable(Collection.class)) {
+                throw new ProcessingException(element, "XmlElementWrapper can only be used on collection or array properties");
             }
         }
     }
@@ -952,7 +971,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             element.annotate(Introspected.class, builder ->
                 builder.member("classes", classValues.toArray(new AnnotationClassValue[0]))
             );
-        } else if (isJsonAnnotated(element) || isImport) {
+        } else if (isSerdeAnnotated(element) || isImport) {
             if (!element.hasStereotype(Serdeable.Serializable.class) &&
                     !element.hasStereotype(Serdeable.Deserializable.class) && !isImport) {
                 element.annotate(Serdeable.class);
@@ -995,6 +1014,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
             inheritPackageFormat(element);
             inheritPackageInclude(element);
+            applyJaxbRootDefault(element);
             visitProperties(element, context);
 
             findTypeInfo(element, false)
@@ -1006,6 +1026,24 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         }
 
         applySourceGenDecision(element);
+    }
+
+    private void applyJaxbRootDefault(ClassElement element) {
+        if (!element.hasAnnotation(JAXB_XML_ROOT_ELEMENT)
+            || element.hasAnnotation("tools.jackson.dataformat.xml.annotation.JacksonXmlRootElement")
+            || element.hasAnnotation("com.fasterxml.jackson.annotation.JsonRootName")) {
+            return;
+        }
+        String rootName = element.stringValue(JAXB_XML_ROOT_ELEMENT, "name").orElse("##default");
+        if ("##default".equals(rootName)) {
+            String simpleName = element.getSimpleName();
+            int nestedSeparator = simpleName.lastIndexOf('$');
+            if (nestedSeparator >= 0) {
+                simpleName = simpleName.substring(nestedSeparator + 1);
+            }
+            String finalSimpleName = simpleName;
+            element.annotate(SerdeConfig.class, builder -> builder.member(SerdeConfig.WRAPPER_PROPERTY, NameUtils.decapitalize(finalSimpleName)));
+        }
     }
 
     private void inheritPackageFormat(ClassElement element) {
@@ -1083,6 +1121,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
     private void visitProperties(ClassElement classElement, VisitorContext context) {
         final List<PropertyElement> beanProperties = classElement.getBeanProperties();
+        validateJaxbXmlValues(classElement, beanProperties);
+        applyJaxbCollectionDefaults(classElement, beanProperties);
         final List<String> order;
         if (classElement.booleanValue(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER, "alphabetic").orElse(false)) {
             List<String> newOrder = beanProperties.stream()
@@ -1131,6 +1171,27 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                     ignoreOnlySerialization,
                     propertyNamingStrategy
             );
+        }
+    }
+
+    private void validateJaxbXmlValues(ClassElement classElement, List<PropertyElement> beanProperties) {
+        long valueProperties = beanProperties.stream().filter(property -> property.hasAnnotation(JAXB_XML_VALUE)).count();
+        if (valueProperties > 1) {
+            throw new ProcessingException(classElement, "Only a single XmlValue property is supported");
+        }
+    }
+
+    private void applyJaxbCollectionDefaults(ClassElement classElement, List<PropertyElement> beanProperties) {
+        if (!isJaxbAutoBindable(classElement)) {
+            return;
+        }
+        for (PropertyElement property : beanProperties) {
+            ClassElement type = property.getGenericType();
+            if ((type.isArray() || type.isAssignable(Collection.class))
+                && !property.hasAnnotation(JAXB_XML_ELEMENT_WRAPPER)
+                && !property.hasAnnotation("tools.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper")) {
+                property.annotate(SerdeConfig.class, builder -> builder.member(SerdeConfig.META_ANNOTATION_PROPERTY, false));
+            }
         }
     }
 
@@ -1646,7 +1707,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         return IntrospectedTypeElementVisitor.POSITION + 100;
     }
 
-    private boolean isJsonAnnotated(ClassElement element) {
+    private boolean isSerdeAnnotated(ClassElement element) {
         return Stream.of(
                         // jackson 3
                         "tools.jackson.databind.annotation.JsonNaming",
@@ -1665,7 +1726,17 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                         "com.fasterxml.jackson.annotation.JsonIgnoreProperties",
                         "com.fasterxml.jackson.annotation.JsonIncludeProperties"
             ).anyMatch(element::hasDeclaredAnnotation) ||
+            isJaxbAutoBindable(element) ||
             (element.hasStereotype(Serdeable.Serializable.class) || element.hasStereotype(Serdeable.Deserializable.class));
+    }
+
+    private boolean isJaxbAutoBindable(ClassElement element) {
+        return !element.hasAnnotation(JAXB_XML_TRANSIENT) && Stream.of(
+            JAXB_XML_ROOT_ELEMENT,
+            JAXB_XML_TYPE,
+            JAXB_XML_ENUM,
+            JAXB_XML_ACCESSOR_ORDER
+        ).anyMatch(element::hasAnnotation);
     }
 
     private static boolean isBasicType(ClassElement propertyType) {
