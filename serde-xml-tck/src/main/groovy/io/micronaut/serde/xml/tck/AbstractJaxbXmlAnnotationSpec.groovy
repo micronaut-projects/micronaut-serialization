@@ -113,6 +113,53 @@ abstract class AbstractJaxbXmlAnnotationSpec extends Specification implements Xm
         readXml('<JaxbEdition>second-edition</JaxbEdition>', JaxbEdition) == JaxbEdition.SECOND
     }
 
+    def "JAXB XmlElement defaultValue applies only to present empty elements"() {
+        expect:
+        readXml('<jaxbDefaultsWithValues><name></name><count></count></jaxbDefaultsWithValues>', JaxbDefaultsWithValues).with {
+            name == 'unknown' && count == 7
+        }
+        readXml('<jaxbDefaultsWithValues><name> </name><count xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"></count></jaxbDefaultsWithValues>', JaxbDefaultsWithValues).with {
+            name == ' ' && count == null
+        }
+        readXml('<jaxbDefaultsWithValues></jaxbDefaultsWithValues>', JaxbDefaultsWithValues).with {
+            name == 'initial' && count == null
+        }
+    }
+
+    def "JAXB nillable elements and collection items use xsi:nil"() {
+        given:
+        def value = new JaxbNillableElements(name: null, omitted: null, values: ['one', null])
+
+        when:
+        def xml = writeXml(value)
+        def decoded = readXml(xml, JaxbNillableElements)
+
+        then:
+        xml.contains('<name xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"></name>')
+        !xml.contains('<omitted>')
+        xml.contains('<value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"></value>')
+        decoded.name == null
+        decoded.values == ['one', null]
+    }
+
+    def "JAXB nillable wrappers distinguish null and empty collections"() {
+        expect:
+        writeXml(new JaxbNillableWrapper(values: null)).contains('<values xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"></values>')
+        writeXml(new JaxbNillableWrapper(values: [])).contains('<values></values>')
+        readXml('<jaxbNillableWrapper><values xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"></values></jaxbNillableWrapper>', JaxbNillableWrapper).values == null
+    }
+
+    def "JAXB XmlElement type overrides compatible XML property types"() {
+        when:
+        def xml = writeXml(new JaxbElementType(value: 'typed'))
+        def decoded = readXml(xml, JaxbElementType)
+
+        then:
+        xml == '<jaxbElementType><value>typed</value></jaxbElementType>'
+        decoded.value instanceof String
+        decoded.value == 'typed'
+    }
+
     @XmlRootElement(name = "book", namespace = "urn:books")
     @XmlType(propOrder = ["title", "authors"])
     static class JaxbBook {
@@ -181,6 +228,39 @@ abstract class AbstractJaxbXmlAnnotationSpec extends Specification implements Xm
 
         @XmlValue
         String value
+    }
+
+    @XmlRootElement
+    static class JaxbDefaultsWithValues {
+        @XmlElement(defaultValue = 'unknown')
+        String name = 'initial'
+
+        @XmlElement(defaultValue = '7')
+        Integer count
+    }
+
+    @XmlRootElement
+    static class JaxbNillableElements {
+        @XmlElement(nillable = true)
+        String name
+
+        @XmlElement(nillable = false)
+        String omitted
+
+        @XmlElement(name = 'value', nillable = true)
+        List<String> values
+    }
+
+    @XmlRootElement
+    static class JaxbNillableWrapper {
+        @XmlElementWrapper(nillable = true)
+        List<String> values
+    }
+
+    @XmlRootElement
+    static class JaxbElementType {
+        @XmlElement(type = String)
+        CharSequence value
     }
 
     @XmlEnum

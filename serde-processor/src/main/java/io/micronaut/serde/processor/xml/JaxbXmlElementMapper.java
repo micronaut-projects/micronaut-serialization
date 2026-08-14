@@ -30,6 +30,8 @@ import java.util.List;
  * @since 3.2
  */
 public final class JaxbXmlElementMapper implements NamedAnnotationMapper {
+    private static final String NO_DEFAULT_VALUE = "\u0000";
+
     @Override
     public String getName() {
         return "jakarta.xml.bind.annotation.XmlElement";
@@ -41,6 +43,14 @@ public final class JaxbXmlElementMapper implements NamedAnnotationMapper {
             .member(SerdeConfig.META_ANNOTATION_PROPERTY, false);
         annotation.stringValue("name").filter(name -> !JaxbXmlRootElementMapper.DEFAULT.equals(name)).ifPresent(name -> builder.member(SerdeConfig.PROPERTY, name));
         annotation.stringValue("namespace").filter(namespace -> !JaxbXmlRootElementMapper.DEFAULT.equals(namespace)).ifPresent(namespace -> builder.member(SerdeConfig.XML_NAMESPACE, namespace));
+        annotation.stringValue("defaultValue").filter(value -> !NO_DEFAULT_VALUE.equals(value)).ifPresent(value -> builder.member(SerdeConfig.XML_DEFAULT_VALUE, value));
+        annotation.booleanValue("nillable").ifPresent(value -> builder.member(SerdeConfig.XML_NILLABLE, value));
+        annotation.annotationClassValue("type")
+            .filter(type -> !"jakarta.xml.bind.annotation.XmlElement$DEFAULT".equals(type.getName()))
+            .ifPresent(type -> {
+                builder.member(SerdeConfig.SERIALIZE_AS, type);
+                builder.member(SerdeConfig.DESERIALIZE_AS, type);
+            });
         return List.of(builder.build());
     }
 }

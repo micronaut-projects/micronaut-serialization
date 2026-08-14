@@ -91,6 +91,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     private static final String JAXB_XML_ACCESSOR_ORDER = JAXB_ANNOTATION_PREFIX + "XmlAccessorOrder";
     private static final String JAXB_XML_TRANSIENT = JAXB_ANNOTATION_PREFIX + "XmlTransient";
     private static final String JAXB_XML_ELEMENT_WRAPPER = JAXB_ANNOTATION_PREFIX + "XmlElementWrapper";
+    private static final String JAXB_XML_ELEMENT = JAXB_ANNOTATION_PREFIX + "XmlElement";
     private static final String JAXB_XML_VALUE = JAXB_ANNOTATION_PREFIX + "XmlValue";
 
     private boolean failOnError = true;
@@ -320,7 +321,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             throw new ProcessingException(element, "JSON annotations cannot be used on private methods and constructors");
         }
         checkJsonAutoDetect(element);
-        validateJaxbAnnotations(element);
+        validateJaxbAnnotations(element, context);
         for (String annotation : getUnsupportedJacksonAnnotations()) {
             if (element.hasDeclaredAnnotation(annotation)) {
                 throw new ProcessingException(element, "Annotation @" + NameUtils.getSimpleName(annotation) + " is not supported");
@@ -401,12 +402,37 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         }
     }
 
-    private void validateJaxbAnnotations(Element element) {
+    private void validateJaxbAnnotations(Element element, VisitorContext context) {
         if (element.hasDeclaredAnnotation(JAXB_XML_ELEMENT_WRAPPER)) {
             ClassElement type = resolvePropertyType(element);
             if (type != null && !type.isArray() && !type.isAssignable(Collection.class)) {
                 throw new ProcessingException(element, "XmlElementWrapper can only be used on collection or array properties");
             }
+            if (element instanceof TypedElement typedElement
+                && element.stringValue(JAXB_XML_ELEMENT_WRAPPER, "name")
+                    .filter(name -> "##default".equals(name))
+                    .isPresent()) {
+                element.annotate(SerdeConfig.class, builder -> builder.member(SerdeConfig.WRAPPER_PROPERTY, resolvePropertyName(typedElement)));
+            }
+        }
+        AnnotationValue<Annotation> xmlElement = element.getAnnotationMetadata().getAnnotation(JAXB_XML_ELEMENT);
+        if (xmlElement != null) {
+            xmlElement.annotationClassValue("type")
+                .filter(type -> !"jakarta.xml.bind.annotation.XmlElement$DEFAULT".equals(type.getName()))
+                .flatMap(type -> context.getClassElement(type.getName()))
+                .ifPresent(type -> validateJaxbElementType(element, type));
+        }
+    }
+
+    private void validateJaxbElementType(Element element, ClassElement typeOverride) {
+        ClassElement propertyType = resolvePropertyType(element);
+        if (propertyType == null) {
+            return;
+        }
+        ClassElement valueType = resolveRefType(propertyType);
+        if (!typeOverride.isAssignable(valueType)) {
+            throw new ProcessingException(element, "XmlElement type [" + typeOverride.getName()
+                + "] must be assignable to property type [" + valueType.getName() + "]");
         }
     }
 
@@ -1187,7 +1213,10 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         }
         for (PropertyElement property : beanProperties) {
             ClassElement type = property.getGenericType();
-            if ((type.isArray() || type.isAssignable(Collection.class))
+            if (property.hasAnnotation(JAXB_XML_ELEMENT_WRAPPER)
+                && property.stringValue(JAXB_XML_ELEMENT_WRAPPER, "name").filter("##default"::equals).isPresent()) {
+                property.annotate(SerdeConfig.class, builder -> builder.member(SerdeConfig.WRAPPER_PROPERTY, property.getName()));
+            } else if ((type.isArray() || type.isAssignable(Collection.class))
                 && !property.hasAnnotation(JAXB_XML_ELEMENT_WRAPPER)
                 && !property.hasAnnotation("tools.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper")) {
                 property.annotate(SerdeConfig.class, builder -> builder.member(SerdeConfig.META_ANNOTATION_PROPERTY, false));

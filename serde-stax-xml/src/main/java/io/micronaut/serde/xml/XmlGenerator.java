@@ -45,6 +45,7 @@ import java.util.Objects;
 public final class XmlGenerator implements KeysAwareEncoder {
 
     private static final int XML_KEYS_CONTRIBUTION_INDEX = KeysSupport.indexOf(new XmlKeysProvider());
+    private static final String XSI_NS = "http://www.w3.org/2001/XMLSchema-instance";
 
     private final XMLStreamWriter xmlWriter;
     private final Deque<ContextProperties> propertyStack = new ArrayDeque<>();
@@ -225,7 +226,10 @@ public final class XmlGenerator implements KeysAwareEncoder {
         boolean cdata = lastFrame instanceof KeyFrame keyFrame
             && keyFrame.xmlKey() != null
             && keyFrame.xmlKey().cdata();
-        propertyStack.addLast(new ArrayFrame(lastProperty, null, itemNamespace, cdata));
+        XmlNullHandling itemNullHandling = lastFrame instanceof KeyFrame keyFrame && keyFrame.xmlKey() != null
+            ? keyFrame.xmlKey().nullHandling()
+            : XmlNullHandling.DEFAULT;
+        propertyStack.addLast(new ArrayFrame(lastProperty, null, itemNamespace, cdata, itemNullHandling));
     }
 
     private boolean encodeKeyArray(KeyFrame keyFrame) throws IOException, XMLStreamException {
@@ -236,7 +240,7 @@ public final class XmlGenerator implements KeysAwareEncoder {
         String arrayWrappingKey = keyFrame.arrayWrappingKey();
         if (arrayWrappingKey != null) {
             xmlWriter.writeStartElement(arrayWrappingKey);
-            propertyStack.addLast(new ArrayFrame(keyFrame.key(), null, keyFrame.namespace(), false));
+                propertyStack.addLast(new ArrayFrame(keyFrame.key(), null, keyFrame.namespace(), false, XmlNullHandling.DEFAULT));
             return true;
         }
         if (xmlKey == null) {
@@ -245,7 +249,7 @@ public final class XmlGenerator implements KeysAwareEncoder {
         return switch (xmlKey.collectionLayout()) {
             case INLINE -> {
                 propertyStack.removeLast();
-                propertyStack.addLast(new ArrayFrame("", keyFrame.key(), keyFrame.namespace(), xmlKey.cdata()));
+                propertyStack.addLast(new ArrayFrame("", keyFrame.key(), keyFrame.namespace(), xmlKey.cdata(), xmlKey.nullHandling()));
                 yield true;
             }
             case WRAPPED -> {
@@ -253,7 +257,7 @@ public final class XmlGenerator implements KeysAwareEncoder {
                     ? Objects.requireNonNull(keyFrame.key())
                     : xmlKey.wrapperName();
                 writeStartElement(xmlKey.wrapperNamespace(), wrapperName);
-                propertyStack.addLast(new ArrayFrame(keyFrame.key(), null, keyFrame.namespace(), xmlKey.cdata()));
+                propertyStack.addLast(new ArrayFrame(keyFrame.key(), null, keyFrame.namespace(), xmlKey.cdata(), xmlKey.nullHandling()));
                 yield true;
             }
             case DEFAULT -> false;
@@ -269,7 +273,7 @@ public final class XmlGenerator implements KeysAwareEncoder {
                 : type.getName();
             collectionName = NameUtils.camelCase(typeName, false);
         }
-        propertyStack.addLast(new ArrayFrame(collectionName, "item", null, false));
+        propertyStack.addLast(new ArrayFrame(collectionName, "item", null, false, XmlNullHandling.DEFAULT));
         xmlWriter.writeStartElement(collectionName);
     }
 
@@ -505,16 +509,48 @@ public final class XmlGenerator implements KeysAwareEncoder {
             ContextProperties lastProperty = propertyStack.peekLast();
             switch (lastProperty) {
                 case KeyFrame kf -> {
-                    if (kf.xmlKey() == null || !kf.xmlKey().text()) {
+                    XmlKey xmlKey = kf.xmlKey();
+                    if (xmlKey != null && xmlKey.attribute()) {
+                        skipNull(); // XML attributes cannot represent null values.
+                    } else if (xmlKey != null && xmlKey.text()) {
+                        skipNull(); // XML text content cannot represent null values.
+                    } else if (xmlKey != null && (xmlKey.collectionLayout() == XmlCollectionLayout.WRAPPED
+                        || xmlKey.wrapperNullHandling() != XmlNullHandling.DEFAULT)) {
+                        String wrapperName = xmlKey.wrapperName() == null ? kf.key() : xmlKey.wrapperName();
+                        switch (xmlKey.wrapperNullHandling()) {
+                            case NIL -> writeNilElement(xmlKey.wrapperNamespace(), wrapperName);
+                            case OMIT -> {
+                                skipNull(); // A non-nillable wrapper represents a null collection by absence.
+                            }
+                            case DEFAULT -> writeEmptyElement(kf.namespace(), kf.key());
+                            default -> throw new IllegalStateException("Unexpected wrapper null handling");
+                        }
+                    } else if (xmlKey != null) {
+                        switch (xmlKey.nullHandling()) {
+                            case NIL -> writeNilElement(kf.namespace(), kf.key());
+                            case OMIT -> {
+                                skipNull(); // A non-nillable element represents null by absence.
+                            }
+                            case DEFAULT -> writeEmptyElement(kf.namespace(), kf.key());
+                            default -> throw new IllegalStateException("Unexpected element null handling");
+                        }
+                    } else {
                         writeEmptyElement(kf.namespace(), kf.key());
                     }
                     propertyStack.removeLast();
-                    propertyStack.addLast(new KeyFrame(kf.key(), true, kf.arrayWrappingKey(), kf.objectWrappingKey(), kf.namespace(), kf.xmlKey()));
+                    propertyStack.addLast(new KeyFrame(kf.key(), true, kf.arrayWrappingKey(), kf.objectWrappingKey(), kf.namespace(), xmlKey));
                 }
                 case ArrayFrame af -> {
                     String iterableKey = af.iterableKey();
                     String itemName = (iterableKey != null && !iterableKey.isEmpty()) ? iterableKey : af.key();
-                    writeEmptyElement(af.itemNamespace(), itemName);
+                    switch (af.itemNullHandling()) {
+                        case NIL -> writeNilElement(af.itemNamespace(), itemName);
+                        case OMIT -> {
+                            skipNull(); // A non-nillable collection item represents null by absence.
+                        }
+                        case DEFAULT -> writeEmptyElement(af.itemNamespace(), itemName);
+                        default -> throw new IllegalStateException("Unexpected item null handling");
+                    }
                 }
                 case null -> xmlWriter.writeEmptyElement(rootName == null ? "null" : rootName);
                 default -> xmlWriter.writeEndElement();
@@ -522,6 +558,10 @@ public final class XmlGenerator implements KeysAwareEncoder {
         } catch (XMLStreamException e) {
             throw new SerdeException("Error writing XML", e);
         }
+    }
+
+    private static void skipNull() {
+        // The current XML frame remains open and no XML event is needed.
     }
 
     private void writeStartElement(@Nullable String namespaceUri, @Nullable String localName) throws XMLStreamException {
@@ -548,6 +588,13 @@ public final class XmlGenerator implements KeysAwareEncoder {
         }
     }
 
+    private void writeNilElement(@Nullable String namespaceUri, @Nullable String localName) throws XMLStreamException {
+        writeStartElement(namespaceUri, localName);
+        xmlWriter.writeNamespace("xsi", XSI_NS);
+        xmlWriter.writeAttribute("xsi", XSI_NS, "nil", "true");
+        xmlWriter.writeEndElement();
+    }
+
     sealed interface ContextProperties permits ObjectFrame, KeyFrame, ArrayFrame {
         @Nullable String key();
     }
@@ -569,7 +616,8 @@ public final class XmlGenerator implements KeysAwareEncoder {
         @Nullable String key,
         @Nullable String iterableKey,
         @Nullable String itemNamespace,
-        boolean cdata
+        boolean cdata,
+        XmlNullHandling itemNullHandling
     ) implements ContextProperties {
     }
 }

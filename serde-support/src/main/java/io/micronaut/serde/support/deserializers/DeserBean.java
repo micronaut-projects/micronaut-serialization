@@ -32,6 +32,7 @@ import io.micronaut.core.naming.NameUtils;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.type.GenericPlaceholder;
 import io.micronaut.core.util.ArrayUtils;
+import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
@@ -64,7 +65,6 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -524,11 +524,14 @@ final class DeserBean<T> {
             || property.xmlNamespace != null
             || property.xmlWrappingConfigured
             || property.xmlWrapperName != null
-            || property.xmlWrapperNamespace != null;
+            || property.xmlWrapperNamespace != null
+            || property.xmlDefaultValue != null
+            || property.xmlNillable != null
+            || property.xmlWrapperNillable != null;
     }
 
     private static KeyDescriptor keyDescriptor(String name, DerProperty<?, ?> property) {
-        Map<String, String> metadata = new HashMap<>(7);
+        Map<String, String> metadata = CollectionUtils.newHashMap(10);
         if (property.xmlAttributeProperty) {
             metadata.put(SerdeConfig.XML_ATTRIBUTE_PROPERTY, "true");
         }
@@ -549,6 +552,15 @@ final class DeserBean<T> {
         }
         if (property.xmlWrapperNamespace != null) {
             metadata.put(SerdeConfig.XML_WRAPPER_NAMESPACE, property.xmlWrapperNamespace);
+        }
+        if (property.xmlDefaultValue != null) {
+            metadata.put(SerdeConfig.XML_DEFAULT_VALUE, property.xmlDefaultValue);
+        }
+        if (property.xmlNillable != null) {
+            metadata.put(SerdeConfig.XML_NILLABLE, property.xmlNillable.toString());
+        }
+        if (property.xmlWrapperNillable != null) {
+            metadata.put(SerdeConfig.XML_WRAPPER_NILLABLE, property.xmlWrapperNillable.toString());
         }
         return new KeyDescriptor(name, metadata);
     }
@@ -1079,6 +1091,9 @@ final class DeserBean<T> {
         public final @Nullable String xmlNamespace;
         public final @Nullable String xmlWrapperName;
         public final @Nullable String xmlWrapperNamespace;
+        public final @Nullable String xmlDefaultValue;
+        public final @Nullable Boolean xmlNillable;
+        public final @Nullable Boolean xmlWrapperNillable;
         @Nullable
         public final String unresolvedTypeVariableName;
         @Nullable
@@ -1215,6 +1230,9 @@ final class DeserBean<T> {
             this.xmlNamespace = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.XML_NAMESPACE).orElse(null);
             this.xmlWrapperName = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY).orElse(null);
             this.xmlWrapperNamespace = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.XML_WRAPPER_NAMESPACE).orElse(null);
+            this.xmlDefaultValue = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.XML_DEFAULT_VALUE).orElse(null);
+            this.xmlNillable = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.XML_NILLABLE).orElse(null);
+            this.xmlWrapperNillable = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.XML_WRAPPER_NILLABLE).orElse(null);
             this.explicitlyRequired = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.REQUIRED)
                 .orElse(false);
             this.explicitlyRequiredForConstructor = explicitlyRequired || deserializationConfiguration.isRequireAllCreatorParameters();

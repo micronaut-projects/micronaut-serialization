@@ -457,7 +457,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
             String name = cursor.localName();
             cursor.advance();
             rootConsumed = true;
-            return new ArrayDecoder(childLimits(), cursor, name, emptyElementAsNull);
+            return new ArrayDecoder(childLimits(), cursor, name, null, emptyElementAsNull);
         }
 
         @Override
@@ -623,12 +623,15 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
                         cursor.advance();
                         break;
                     case XMLStreamConstants.END_ELEMENT:
+                        String value = sb.isEmpty() && currentXmlKey != null && currentXmlKey.defaultValue() != null
+                            ? currentXmlKey.defaultValue()
+                            : sb.toString();
                         cursor.advance();
                         clearKeyState();
                         if (textProperty) {
                             finished = true;
                         }
-                        return sb.toString();
+                        return value;
                     case XMLStreamConstants.START_ELEMENT:
                         throw createDeserializationException(
                                 "Expected scalar text for <" + currentKey + "> but found nested <" + cursor.localName() + ">",
@@ -683,13 +686,16 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
                 requireKey();
                 String itemName = Objects.requireNonNull(currentKey, CURRENT_KEY_NAME);
                 List<XmlAttr> itemAttrs = pendingChildAttrs;
+                boolean itemXsiNil = pendingChildXsiNil;
+                @Nullable String itemDefaultValue = currentXmlKey.defaultValue();
                 clearKeyState();
-                return new ArrayDecoder(childLimits(), cursor, itemName, itemAttrs, emptyElementAsNull);
+                return new ArrayDecoder(childLimits(), cursor, itemName, itemAttrs, itemXsiNil, itemDefaultValue, emptyElementAsNull);
             }
             requireKey();
             String wrapper = Objects.requireNonNull(currentKey, CURRENT_KEY_NAME);
+            @Nullable String itemDefaultValue = currentXmlKey == null ? null : currentXmlKey.defaultValue();
             clearKeyState();
-            return new ArrayDecoder(childLimits(), cursor, wrapper, emptyElementAsNull);
+            return new ArrayDecoder(childLimits(), cursor, wrapper, itemDefaultValue, emptyElementAsNull);
         }
 
         @Override
@@ -786,6 +792,8 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         private boolean itemPending;
         private @Nullable String currentItemName;
         private List<XmlAttr> currentItemAttrs = Collections.emptyList();
+        private boolean currentItemXsiNil;
+        private final @Nullable String itemDefaultValue;
         private @Nullable String firstScalarText;
         private boolean firstItemPending;
         private boolean finished;
@@ -807,9 +815,11 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         ArrayDecoder(RemainingLimits limits,
                      Cursor cursor,
                      String wrapperOrItemElement,
+                     @Nullable String itemDefaultValue,
                      boolean emptyElementAsNull) throws IOException {
             super(limits, cursor, emptyElementAsNull);
             this.wrapperElement = wrapperOrItemElement;
+            this.itemDefaultValue = itemDefaultValue;
             StringBuilder bufferedText = null;
             Mode detected;
             while (true) {
@@ -857,13 +867,17 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
                      Cursor cursor,
                      String itemElement,
                      List<XmlAttr> firstItemAttrs,
+                     boolean firstItemXsiNil,
+                     @Nullable String itemDefaultValue,
                      boolean emptyElementAsNull) {
             super(limits, cursor, emptyElementAsNull);
             this.wrapperElement = itemElement;
+            this.itemDefaultValue = itemDefaultValue;
             this.mode = Mode.INLINE;
             this.itemPending = true;
             this.currentItemName = itemElement;
             this.currentItemAttrs = firstItemAttrs;
+            this.currentItemXsiNil = firstItemXsiNil;
         }
 
         private static StringBuilder appendText(@Nullable StringBuilder bufferedText, String text) {
@@ -900,6 +914,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
                         }
                         currentItemName = cursor.localName();
                         currentItemAttrs = cursor.captureAttributes();
+                        currentItemXsiNil = cursor.lastCaptureXsiNilTrue();
                         cursor.advance();
                         itemPending = true;
                         return true;
@@ -954,7 +969,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
             requireItem();
             String name = Objects.requireNonNull(currentItemName, "currentItemName");
             clearItem();
-            return new ArrayDecoder(childLimits(), cursor, name, emptyElementAsNull);
+            return new ArrayDecoder(childLimits(), cursor, name, null, emptyElementAsNull);
         }
 
         @Override
@@ -977,9 +992,10 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
                         cursor.advance();
                         break;
                     case XMLStreamConstants.END_ELEMENT:
+                        String value = sb.isEmpty() && itemDefaultValue != null ? itemDefaultValue : sb.toString();
                         cursor.advance();
                         clearItem();
-                        return sb.toString();
+                        return value;
                     case XMLStreamConstants.START_ELEMENT:
                         throw createDeserializationException(
                                 "Expected scalar array item but found nested <" + cursor.localName() + ">",
@@ -1004,6 +1020,16 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
             }
             skipCurrentElement("skipping array item");
             clearItem();
+        }
+
+        @Override
+        public boolean decodeNull() throws IOException {
+            if (!itemPending || !currentItemXsiNil) {
+                return false;
+            }
+            skipCurrentElement("draining xsi:nil array item");
+            clearItem();
+            return true;
         }
 
         @Override
@@ -1069,6 +1095,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
             itemPending = false;
             currentItemName = null;
             currentItemAttrs = Collections.emptyList();
+            currentItemXsiNil = false;
         }
     }
 

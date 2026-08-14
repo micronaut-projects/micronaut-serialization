@@ -12,6 +12,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 @MicronautTest
 public class BookTest {
@@ -50,13 +51,14 @@ public class BookTest {
         String result = xmlMapper.writeValueAsString(input);
 
         assertEquals(
-            "<book isbn=\"978-0307743688\"><title>The Stand</title><author>Stephen King</author></book>",
+            "<book isbn=\"978-0307743688\"><title>The Stand</title><subtitle xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:nil=\"true\"></subtitle><author>Stephen King</author></book>",
             result
         );
 
         JaxbBook book = xmlMapper.readValue(result, JaxbBook.class);
         assertEquals(input.isbn, book.isbn);
         assertEquals(input.title, book.title);
+        assertNull(book.subtitle);
         assertEquals(input.authors, book.authors);
     }
 }

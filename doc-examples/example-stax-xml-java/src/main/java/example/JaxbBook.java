@@ -34,6 +34,9 @@ public class JaxbBook {
     @XmlElement
     public String title;
 
+    @XmlElement(defaultValue = "Untitled", nillable = true)
+    public String subtitle;
+
     @XmlElement(name = "author")
     public List<String> authors;
 }

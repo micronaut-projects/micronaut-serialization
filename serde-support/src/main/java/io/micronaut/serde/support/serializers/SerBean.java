@@ -66,7 +66,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -320,11 +319,14 @@ final class SerBean<T> {
             || property.xmlNamespace != null
             || property.xmlWrappingConfigured
             || property.xmlWrapperName != null
-            || property.xmlWrapperNamespace != null;
+            || property.xmlWrapperNamespace != null
+            || property.xmlDefaultValue != null
+            || property.xmlNillable != null
+            || property.xmlWrapperNillable != null;
     }
 
     private static KeyDescriptor keyDescriptor(SerProperty<?, ?> property) {
-        Map<String, String> metadata = new HashMap<>(7);
+        Map<String, String> metadata = CollectionUtils.newHashMap(10);
         if (property.xmlAttributeProperty) {
             metadata.put(SerdeConfig.XML_ATTRIBUTE_PROPERTY, "true");
         }
@@ -345,6 +347,15 @@ final class SerBean<T> {
         }
         if (property.xmlWrapperNamespace != null) {
             metadata.put(SerdeConfig.XML_WRAPPER_NAMESPACE, property.xmlWrapperNamespace);
+        }
+        if (property.xmlDefaultValue != null) {
+            metadata.put(SerdeConfig.XML_DEFAULT_VALUE, property.xmlDefaultValue);
+        }
+        if (property.xmlNillable != null) {
+            metadata.put(SerdeConfig.XML_NILLABLE, property.xmlNillable.toString());
+        }
+        if (property.xmlWrapperNillable != null) {
+            metadata.put(SerdeConfig.XML_WRAPPER_NILLABLE, property.xmlWrapperNillable.toString());
         }
         return new KeyDescriptor(property.name, metadata);
     }
@@ -873,6 +884,10 @@ final class SerBean<T> {
         if (serdeArgumentConf != null) {
             argument = serdeArgumentConf.extendArgumentWithPrefixSuffix(argument);
         }
+        Class<Z> serializeAs = annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.SERIALIZE_AS).orElse(null);
+        if (serializeAs != null && customSer == null) {
+            argument = Argument.of(serializeAs, argument.getName(), argument.getAnnotationMetadata(), argument.getTypeParameters());
+        }
         if (customSer != null) {
             serializer = encoderContext.findCustomSerializer(customSer);
         } else {
@@ -1111,6 +1126,9 @@ final class SerBean<T> {
         public final @Nullable String xmlWrapperName;
         public final @Nullable String xmlNamespace;
         public final @Nullable String xmlWrapperNamespace;
+        public final @Nullable String xmlDefaultValue;
+        public final @Nullable Boolean xmlNillable;
+        public final @Nullable Boolean xmlWrapperNillable;
         // Null when not initialized SerBean
         @Nullable
         public Serializer<P> serializer;
@@ -1146,7 +1164,7 @@ final class SerBean<T> {
             final AnnotationMetadata hierarchy =
                     annotationMetadata.isEmpty() ? beanMetadata : new AnnotationMetadataHierarchy(beanMetadata, annotationMetadata);
             this.views = SerdeAnnotationUtil.resolveViews(beanMetadata, annotationMetadata);
-            this.include = hierarchy
+            SerdeConfig.SerInclude include = hierarchy
                     .enumValue(SerdeConfig.class, SerdeConfig.INCLUDE, SerdeConfig.SerInclude.class)
                     .orElse(bean.configuration.getInclusion());
             this.managedRef = annotationMetadata.stringValue(SerdeConfig.SerManagedRef.class)
@@ -1162,6 +1180,14 @@ final class SerBean<T> {
             this.xmlWrapperName = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY).orElse(null);
             this.xmlNamespace = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.XML_NAMESPACE).orElse(null);
             this.xmlWrapperNamespace = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.XML_WRAPPER_NAMESPACE).orElse(null);
+            this.xmlDefaultValue = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.XML_DEFAULT_VALUE).orElse(null);
+            this.xmlNillable = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.XML_NILLABLE).orElse(null);
+            this.xmlWrapperNillable = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.XML_WRAPPER_NILLABLE).orElse(null);
+            // XML must receive these values even when the normal inclusion policy would skip them.
+            if (Boolean.TRUE.equals(xmlNillable) || xmlWrapperNillable != null) {
+                include = SerdeConfig.SerInclude.ALWAYS;
+            }
+            this.include = include;
             this.annotationMetadata = annotationMetadata;
             FormatConfiguration propertyFormat = FormatConfiguration.from(annotationMetadata);
             if (propertyFormat == null) {

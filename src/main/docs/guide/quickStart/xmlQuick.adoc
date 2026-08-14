@@ -29,16 +29,16 @@ dependency:jakarta.xml.bind:jakarta.xml.bind-api[scope="compileOnly"]
 |Makes the type serdeable and sets the document root name and namespace. The `##default` name is derived by decapitalizing the class name; `##default` namespace does not add an explicit namespace.
 
 |`@XmlElement`
-|`name`, `namespace`
-|Changes the property element name and namespace. Collections and arrays use inline repeated elements by default. `nillable`, `required`, `type`, and `defaultValue` are ignored.
+|`name`, `namespace`, `defaultValue`, `nillable`, `type`
+|Changes the property element name and namespace. Collections and arrays use inline repeated elements by default. `defaultValue` applies only when an element is present but empty; missing, whitespace-only, and `xsi:nil` elements retain their normal behavior. `nillable = true` writes null elements and collection entries as `xsi:nil="true"`; `false` omits them. `type` selects a compatible scalar or collection-item serde through shared serde type metadata. `required` is ignored.
 
 |`@XmlAttribute`
 |`name`, `namespace`
 |Writes and reads the property as an attribute, using the configured name and namespace. Attributes are ordered before child elements. `required` is ignored.
 
 |`@XmlElementWrapper`
-|`name`, `namespace`
-|Wraps a collection or array in an XML element. Combine it with `@XmlElement` to set the item name and namespace. `nillable` and `required` are ignored.
+|`name`, `namespace`, `nillable`
+|Wraps a collection or array in an XML element. Combine it with `@XmlElement` to set the item name and namespace. `nillable = true` writes a null collection as an `xsi:nil="true"` wrapper; `false` omits it. Empty non-null collections write an empty wrapper. `required` is ignored.
 
 |`@XmlValue`
 |None
@@ -65,7 +65,7 @@ dependency:jakarta.xml.bind:jakarta.xml.bind-api[scope="compileOnly"]
 |Sets the serialized and deserialized lexical value for the enum constant.
 |===
 
-Names, transient properties, ordering, and enum lexical values are shared with JSON and BSON because they use normal serde metadata. Explicit Micronaut or Jackson configuration wins when it conflicts with JAXB metadata. Unsupported JAXB features include `@XmlAccessorType`, package `@XmlSchema`, choices/refs, adapters, `JAXBElement`, schema generation, and `JAXBContext`; unsupported annotation members such as `nillable`, `required`, factories, and schema-only type settings are ignored.
+Names, transient properties, ordering, enum lexical values, and `type` overrides use shared serde metadata and can therefore affect other format implementations. JAXB defaults and nil policies are XML-only. Explicit Micronaut or Jackson configuration wins when it conflicts with JAXB metadata. Unsupported JAXB features include `@XmlAccessorType`, package `@XmlSchema`, choices/refs, adapters, `JAXBElement`, schema generation, and `JAXBContext`; unsupported annotation members include all `required` flags, `@XmlType.name`, `@XmlType.namespace`, `@XmlType.factoryClass`, `@XmlType.factoryMethod`, and `@XmlEnum.value`.
 
 With the correct dependencies in place you can define an XML-serializable type:
 

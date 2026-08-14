@@ -61,6 +61,9 @@ final class RecordSerdeSourceGenUtils {
     private static final Field XML_CDATA_PROPERTY_FIELD = ReflectionUtils.getRequiredField(SerdeConfig.class, "XML_CDATA_PROPERTY");
     private static final Field XML_NAMESPACE_FIELD = ReflectionUtils.getRequiredField(SerdeConfig.class, "XML_NAMESPACE");
     private static final Field XML_WRAPPER_NAMESPACE_FIELD = ReflectionUtils.getRequiredField(SerdeConfig.class, "XML_WRAPPER_NAMESPACE");
+    private static final Field XML_DEFAULT_VALUE_FIELD = ReflectionUtils.getRequiredField(SerdeConfig.class, "XML_DEFAULT_VALUE");
+    private static final Field XML_NILLABLE_FIELD = ReflectionUtils.getRequiredField(SerdeConfig.class, "XML_NILLABLE");
+    private static final Field XML_WRAPPER_NILLABLE_FIELD = ReflectionUtils.getRequiredField(SerdeConfig.class, "XML_WRAPPER_NILLABLE");
 
     private RecordSerdeSourceGenUtils() {
     }
@@ -182,6 +185,9 @@ final class RecordSerdeSourceGenUtils {
             case SerdeConfig.XML_CDATA_PROPERTY -> XML_CDATA_PROPERTY_FIELD;
             case SerdeConfig.XML_NAMESPACE -> XML_NAMESPACE_FIELD;
             case SerdeConfig.XML_WRAPPER_NAMESPACE -> XML_WRAPPER_NAMESPACE_FIELD;
+            case SerdeConfig.XML_DEFAULT_VALUE -> XML_DEFAULT_VALUE_FIELD;
+            case SerdeConfig.XML_NILLABLE -> XML_NILLABLE_FIELD;
+            case SerdeConfig.XML_WRAPPER_NILLABLE -> XML_WRAPPER_NILLABLE_FIELD;
             default -> throw new IllegalArgumentException("Unsupported key metadata property: " + property);
         };
         return SERDE_CONFIG_TYPE.getStaticField(field);

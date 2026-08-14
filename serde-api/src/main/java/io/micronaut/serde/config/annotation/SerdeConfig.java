@@ -94,6 +94,21 @@ public @interface SerdeConfig {
     String XML_WRAPPER_NAMESPACE = "xmlWrapperNamespace";
 
     /**
+     * The XML default lexical value applied when a present element is empty.
+     */
+    String XML_DEFAULT_VALUE = "xmlDefaultValue";
+
+    /**
+     * The XML null handling policy for an element property or collection item.
+     */
+    String XML_NILLABLE = "xmlNillable";
+
+    /**
+     * The XML null handling policy for a collection wrapper element.
+     */
+    String XML_WRAPPER_NILLABLE = "xmlWrapperNillable";
+
+    /**
      * Whether the type carries XML-specific root element configuration.
      */
     String XML_ROOT_ELEMENT = "xmlRootElement";

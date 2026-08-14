@@ -44,6 +44,7 @@ public final class JaxbXmlElementWrapperMapper implements NamedAnnotationMapper 
             builder.member(SerdeConfig.ALIASES, new String[] {name});
         });
         annotation.stringValue("namespace").filter(namespace -> !JaxbXmlRootElementMapper.DEFAULT.equals(namespace)).ifPresent(namespace -> builder.member(SerdeConfig.XML_WRAPPER_NAMESPACE, namespace));
+        annotation.booleanValue("nillable").ifPresent(value -> builder.member(SerdeConfig.XML_WRAPPER_NILLABLE, value));
         return List.of(builder.build());
     }
 }

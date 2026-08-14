@@ -61,7 +61,10 @@ public final class XmlKeysProvider implements KeysProvider {
                 false,
                 XmlCollectionLayout.DEFAULT,
                 null,
-                null
+                null,
+                null,
+                XmlNullHandling.DEFAULT,
+                XmlNullHandling.DEFAULT
             );
         }
         return new Object[] { xmlKeys, Map.of(), Keys.UNKNOWN_KEY };
@@ -98,8 +101,18 @@ public final class XmlKeysProvider implements KeysProvider {
             Boolean.parseBoolean(metadata.get(SerdeConfig.XML_CDATA_PROPERTY)),
             collectionLayout(metadata.get(SerdeConfig.META_ANNOTATION_PROPERTY)),
             metadata.get(SerdeConfig.WRAPPER_PROPERTY),
-            metadata.get(SerdeConfig.XML_WRAPPER_NAMESPACE)
+            metadata.get(SerdeConfig.XML_WRAPPER_NAMESPACE),
+            metadata.get(SerdeConfig.XML_DEFAULT_VALUE),
+            nullHandling(metadata, SerdeConfig.XML_NILLABLE),
+            nullHandling(metadata, SerdeConfig.XML_WRAPPER_NILLABLE)
         );
+    }
+
+    private static XmlNullHandling nullHandling(Map<String, String> metadata, String property) {
+        if (!metadata.containsKey(property)) {
+            return XmlNullHandling.DEFAULT;
+        }
+        return Boolean.parseBoolean(metadata.get(property)) ? XmlNullHandling.NIL : XmlNullHandling.OMIT;
     }
 
     private static XmlCollectionLayout collectionLayout(@Nullable String wrapping) {
@@ -137,8 +150,17 @@ record XmlKey(
     boolean cdata,
     XmlCollectionLayout collectionLayout,
     @Nullable String wrapperName,
-    @Nullable String wrapperNamespace
+    @Nullable String wrapperNamespace,
+    @Nullable String defaultValue,
+    XmlNullHandling nullHandling,
+    XmlNullHandling wrapperNullHandling
 ) {
+}
+
+enum XmlNullHandling {
+    DEFAULT,
+    OMIT,
+    NIL
 }
 
 enum XmlCollectionLayout {
