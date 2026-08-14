@@ -218,23 +218,40 @@ public final class XmlGenerator implements KeysAwareEncoder {
             return;
         }
         xmlWriter.writeStartElement(lastProperty);
-        String itemNamespace = switch (lastFrame) {
-            case KeyFrame keyFrame -> keyFrame.namespace();
-            case ArrayFrame arrayFrame -> arrayFrame.itemNamespace();
+        String itemNamespace;
+        boolean cdata;
+        XmlNullHandling itemNullHandling;
+        switch (lastFrame) {
+            case KeyFrame keyFrame -> {
+                itemNamespace = keyFrame.namespace();
+                switch (keyFrame.xmlKey()) {
+                    case XmlKey xmlKey -> {
+                        cdata = xmlKey.cdata();
+                        itemNullHandling = xmlKey.nullHandling();
+                    }
+                    case null -> {
+                        cdata = false;
+                        itemNullHandling = XmlNullHandling.DEFAULT;
+                    }
+                }
+            }
+            case ArrayFrame arrayFrame -> {
+                itemNamespace = arrayFrame.itemNamespace();
+                cdata = false;
+                itemNullHandling = XmlNullHandling.DEFAULT;
+            }
             default -> throw new IllegalStateException("Unexpected array frame: " + lastFrame);
-        };
-        boolean cdata = lastFrame instanceof KeyFrame keyFrame
-            && keyFrame.xmlKey() != null
-            && keyFrame.xmlKey().cdata();
-        XmlNullHandling itemNullHandling = lastFrame instanceof KeyFrame keyFrame && keyFrame.xmlKey() != null
-            ? keyFrame.xmlKey().nullHandling()
-            : XmlNullHandling.DEFAULT;
+        }
         propertyStack.addLast(new ArrayFrame(lastProperty, null, itemNamespace, cdata, itemNullHandling));
     }
 
     private boolean encodeKeyArray(KeyFrame keyFrame) throws IOException, XMLStreamException {
         XmlKey xmlKey = keyFrame.xmlKey();
-        if (xmlKey != null && xmlKey.attribute()) {
+        boolean attribute = switch (xmlKey) {
+            case XmlKey key -> key.attribute();
+            case null -> false;
+        };
+        if (attribute) {
             throw new SerdeException("XML attributes cannot contain array values: " + keyFrame.key());
         }
         String arrayWrappingKey = keyFrame.arrayWrappingKey();
@@ -243,24 +260,24 @@ public final class XmlGenerator implements KeysAwareEncoder {
                 propertyStack.addLast(new ArrayFrame(keyFrame.key(), null, keyFrame.namespace(), false, XmlNullHandling.DEFAULT));
             return true;
         }
-        if (xmlKey == null) {
-            return false;
-        }
-        return switch (xmlKey.collectionLayout()) {
-            case INLINE -> {
-                propertyStack.removeLast();
-                propertyStack.addLast(new ArrayFrame("", keyFrame.key(), keyFrame.namespace(), xmlKey.cdata(), xmlKey.nullHandling()));
-                yield true;
-            }
-            case WRAPPED -> {
-                String wrapperName = xmlKey.wrapperName() == null
-                    ? Objects.requireNonNull(keyFrame.key())
-                    : xmlKey.wrapperName();
-                writeStartElement(xmlKey.wrapperNamespace(), wrapperName);
-                propertyStack.addLast(new ArrayFrame(keyFrame.key(), null, keyFrame.namespace(), xmlKey.cdata(), xmlKey.nullHandling()));
-                yield true;
-            }
-            case DEFAULT -> false;
+        return switch (xmlKey) {
+            case XmlKey key -> switch (key.collectionLayout()) {
+                case INLINE -> {
+                    propertyStack.removeLast();
+                    propertyStack.addLast(new ArrayFrame("", keyFrame.key(), keyFrame.namespace(), key.cdata(), key.nullHandling()));
+                    yield true;
+                }
+                case WRAPPED -> {
+                    String wrapperName = key.wrapperName() == null
+                        ? Objects.requireNonNull(keyFrame.key())
+                        : key.wrapperName();
+                    writeStartElement(key.wrapperNamespace(), wrapperName);
+                    propertyStack.addLast(new ArrayFrame(keyFrame.key(), null, keyFrame.namespace(), key.cdata(), key.nullHandling()));
+                    yield true;
+                }
+                case DEFAULT -> false;
+            };
+            case null -> false;
         };
     }
 
@@ -396,14 +413,19 @@ public final class XmlGenerator implements KeysAwareEncoder {
 
     private void writeKeyScalar(KeyFrame keyFrame, String data) throws XMLStreamException {
         XmlKey xmlKey = keyFrame.xmlKey();
-        if (xmlKey != null && xmlKey.attribute()) {
-            writeAttribute(keyFrame, data);
-        } else if (xmlKey != null && xmlKey.text()) {
-            writeText(data, xmlKey.cdata());
-        } else {
-            writeStartElement(keyFrame.namespace(), keyFrame.key());
-            writeText(data, xmlKey != null && xmlKey.cdata());
-            xmlWriter.writeEndElement();
+        switch (xmlKey) {
+            case XmlKey key when key.attribute() -> writeAttribute(keyFrame, data);
+            case XmlKey key when key.text() -> writeText(data, key.cdata());
+            case XmlKey key -> {
+                writeStartElement(keyFrame.namespace(), keyFrame.key());
+                writeText(data, key.cdata());
+                xmlWriter.writeEndElement();
+            }
+            case null -> {
+                writeStartElement(keyFrame.namespace(), keyFrame.key());
+                writeText(data, false);
+                xmlWriter.writeEndElement();
+            }
         }
         markConsumed(keyFrame);
     }
@@ -510,32 +532,32 @@ public final class XmlGenerator implements KeysAwareEncoder {
             switch (lastProperty) {
                 case KeyFrame kf -> {
                     XmlKey xmlKey = kf.xmlKey();
-                    if (xmlKey != null && xmlKey.attribute()) {
-                        skipNull(); // XML attributes cannot represent null values.
-                    } else if (xmlKey != null && xmlKey.text()) {
-                        skipNull(); // XML text content cannot represent null values.
-                    } else if (xmlKey != null && (xmlKey.collectionLayout() == XmlCollectionLayout.WRAPPED
-                        || xmlKey.wrapperNullHandling() != XmlNullHandling.DEFAULT)) {
-                        String wrapperName = xmlKey.wrapperName() == null ? kf.key() : xmlKey.wrapperName();
-                        switch (xmlKey.wrapperNullHandling()) {
-                            case NIL -> writeNilElement(xmlKey.wrapperNamespace(), wrapperName);
-                            case OMIT -> {
-                                skipNull(); // A non-nillable wrapper represents a null collection by absence.
+                    switch (xmlKey) {
+                        case XmlKey key when key.attribute() || key.text() ->
+                            skipNull(); // XML attributes and text content cannot represent null values.
+                        case XmlKey key when key.collectionLayout() == XmlCollectionLayout.WRAPPED
+                            || key.wrapperNullHandling() != XmlNullHandling.DEFAULT -> {
+                            String wrapperName = key.wrapperName() == null ? kf.key() : key.wrapperName();
+                            switch (key.wrapperNullHandling()) {
+                                case NIL -> writeNilElement(key.wrapperNamespace(), wrapperName);
+                                case OMIT -> {
+                                    skipNull(); // A non-nillable wrapper represents a null collection by absence.
+                                }
+                                case DEFAULT -> writeEmptyElement(kf.namespace(), kf.key());
+                                default -> throw new IllegalStateException("Unexpected wrapper null handling");
                             }
-                            case DEFAULT -> writeEmptyElement(kf.namespace(), kf.key());
-                            default -> throw new IllegalStateException("Unexpected wrapper null handling");
                         }
-                    } else if (xmlKey != null) {
-                        switch (xmlKey.nullHandling()) {
-                            case NIL -> writeNilElement(kf.namespace(), kf.key());
-                            case OMIT -> {
-                                skipNull(); // A non-nillable element represents null by absence.
+                        case XmlKey key -> {
+                            switch (key.nullHandling()) {
+                                case NIL -> writeNilElement(kf.namespace(), kf.key());
+                                case OMIT -> {
+                                    skipNull(); // A non-nillable element represents null by absence.
+                                }
+                                case DEFAULT -> writeEmptyElement(kf.namespace(), kf.key());
+                                default -> throw new IllegalStateException("Unexpected element null handling");
                             }
-                            case DEFAULT -> writeEmptyElement(kf.namespace(), kf.key());
-                            default -> throw new IllegalStateException("Unexpected element null handling");
                         }
-                    } else {
-                        writeEmptyElement(kf.namespace(), kf.key());
+                        case null -> writeEmptyElement(kf.namespace(), kf.key());
                     }
                     propertyStack.removeLast();
                     propertyStack.addLast(new KeyFrame(kf.key(), true, kf.arrayWrappingKey(), kf.objectWrappingKey(), kf.namespace(), xmlKey));

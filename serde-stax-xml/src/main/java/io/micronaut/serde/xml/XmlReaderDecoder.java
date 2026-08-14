@@ -611,7 +611,18 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
                 return value;
             }
             requireKey();
-            boolean textProperty = currentXmlKey != null && currentXmlKey.text();
+            boolean textProperty;
+            @Nullable String defaultValue;
+            switch (currentXmlKey) {
+                case XmlKey xmlKey -> {
+                    textProperty = xmlKey.text();
+                    defaultValue = xmlKey.defaultValue();
+                }
+                case null -> {
+                    textProperty = false;
+                    defaultValue = null;
+                }
+            }
             StringBuilder sb = new StringBuilder();
             while (true) {
                 int e = cursor.current();
@@ -623,8 +634,8 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
                         cursor.advance();
                         break;
                     case XMLStreamConstants.END_ELEMENT:
-                        String value = sb.isEmpty() && currentXmlKey != null && currentXmlKey.defaultValue() != null
-                            ? currentXmlKey.defaultValue()
+                        String value = sb.isEmpty() && defaultValue != null
+                            ? defaultValue
                             : sb.toString();
                         cursor.advance();
                         clearKeyState();
@@ -662,7 +673,10 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         @Override
         public @Nullable Object decodeArbitrary() throws IOException {
             requireKey();
-            boolean textProperty = currentXmlKey != null && currentXmlKey.text();
+            boolean textProperty = switch (currentXmlKey) {
+                case XmlKey xmlKey -> xmlKey.text();
+                case null -> false;
+            };
             Object v = readArbitraryValue(cursor);
             clearKeyState();
             if (textProperty) {
@@ -682,20 +696,26 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
 
         @Override
         public Decoder decodeArray(Argument<?> type) throws IOException {
-            if (currentXmlKey != null && currentXmlKey.collectionLayout() == XmlCollectionLayout.INLINE) {
-                requireKey();
-                String itemName = Objects.requireNonNull(currentKey, CURRENT_KEY_NAME);
-                List<XmlAttr> itemAttrs = pendingChildAttrs;
-                boolean itemXsiNil = pendingChildXsiNil;
-                @Nullable String itemDefaultValue = currentXmlKey.defaultValue();
-                clearKeyState();
-                return new ArrayDecoder(childLimits(), cursor, itemName, itemAttrs, itemXsiNil, itemDefaultValue, emptyElementAsNull);
-            }
             requireKey();
-            String wrapper = Objects.requireNonNull(currentKey, CURRENT_KEY_NAME);
-            @Nullable String itemDefaultValue = currentXmlKey == null ? null : currentXmlKey.defaultValue();
-            clearKeyState();
-            return new ArrayDecoder(childLimits(), cursor, wrapper, itemDefaultValue, emptyElementAsNull);
+            String key = Objects.requireNonNull(currentKey, CURRENT_KEY_NAME);
+            return switch (currentXmlKey) {
+                case XmlKey xmlKey when xmlKey.collectionLayout() == XmlCollectionLayout.INLINE -> {
+                    List<XmlAttr> itemAttrs = pendingChildAttrs;
+                    boolean itemXsiNil = pendingChildXsiNil;
+                    @Nullable String itemDefaultValue = xmlKey.defaultValue();
+                    clearKeyState();
+                    yield new ArrayDecoder(childLimits(), cursor, key, itemAttrs, itemXsiNil, itemDefaultValue, emptyElementAsNull);
+                }
+                case XmlKey xmlKey -> {
+                    @Nullable String itemDefaultValue = xmlKey.defaultValue();
+                    clearKeyState();
+                    yield new ArrayDecoder(childLimits(), cursor, key, itemDefaultValue, emptyElementAsNull);
+                }
+                case null -> {
+                    clearKeyState();
+                    yield new ArrayDecoder(childLimits(), cursor, key, null, emptyElementAsNull);
+                }
+            };
         }
 
         @Override
@@ -704,7 +724,11 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
                 clearKeyState();
                 return;
             }
-            if (currentXmlKey != null && currentXmlKey.text()) {
+            boolean textProperty = switch (currentXmlKey) {
+                case XmlKey xmlKey -> xmlKey.text();
+                case null -> false;
+            };
+            if (textProperty) {
                 skipTextProperty();
                 return;
             }
