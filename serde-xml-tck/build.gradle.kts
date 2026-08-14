@@ -9,8 +9,6 @@ dependencies {
 
     compileOnly(mn.micronaut.inject.groovy)
     compileOnly(mn.jackson.databind)
-    compileOnly(libs.managed.jakarta.xml.bindApi)
-
     api(libs.jetbrains.annotations)
 
     implementation(projects.micronautSerdeApi)
@@ -23,7 +21,6 @@ dependencies {
         exclude(group = "org.codehaus.woodstox", module = "stax2-api")
     }
     runtimeOnly(mn.jackson.annotations)
-    runtimeOnly(libs.managed.jakarta.xml.bindApi)
 }
 
 tasks.named("spotlessGroovyCheck").configure {

@@ -6,6 +6,7 @@ managed-jackson-dataformat-cbor = "3.1.4"
 managed-jakarta-json-api = "2.1.3"
 managed-jakarta-json-bindApi = "3.0.2"
 managed-jakarta-xml-bindApi = "4.0.5"
+jaxb-runtime = "4.0.9"
 managed-eclipse-parsson = "1.1.9"
 
 aws-lambda-events = "3.16.1"
@@ -29,6 +30,7 @@ micronaut-validation = "5.0.0"
 micronaut-gradle-plugin = "5.0.0"
 micronaut-sourcegen = "2.0.0"
 jsonassert = "1.5.3"
+xmlunit = "2.12.0"
 
 # Dependencies used only by Jakarta TCK verification tasks.
 jakarta-enterprise-cdi-api = "4.0.1"
@@ -55,6 +57,7 @@ managed-eclipse-parsson = { module = "org.eclipse.parsson:parsson", version.ref 
 managed-jakarta-json-api = { module = "jakarta.json:jakarta.json-api", version.ref = "managed-jakarta-json-api" }
 managed-jakarta-json-bindApi = { module = "jakarta.json.bind:jakarta.json.bind-api", version.ref = "managed-jakarta-json-bindApi" }
 managed-jakarta-xml-bindApi = { module = "jakarta.xml.bind:jakarta.xml.bind-api", version.ref = "managed-jakarta-xml-bindApi" }
+jaxb-runtime = { module = "org.glassfish.jaxb:jaxb-runtime", version.ref = "jaxb-runtime" }
 
 # Dependencies used only by Jakarta TCK verification tasks.
 jakarta-enterprise-cdi-api = { module = "jakarta.enterprise:jakarta.enterprise.cdi-api", version.ref = "jakarta-enterprise-cdi-api" }
@@ -84,6 +87,7 @@ error-prone-core = { module = "com.google.errorprone:error_prone_core", version.
 
 oci-aidocument = { module = "com.oracle.oci.sdk:oci-java-sdk-aidocument" }
 jsonassert = { module = 'org.skyscreamer:jsonassert', version.ref = 'jsonassert'}
+xmlunit-core = { module = "org.xmlunit:xmlunit-core", version.ref = "xmlunit" }
 
 #PLUGINS
 gradle-micronaut = { module = "io.micronaut.gradle:micronaut-gradle-plugin", version.ref = "micronaut-gradle-plugin" }

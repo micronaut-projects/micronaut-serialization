@@ -51,6 +51,7 @@ public final class XmlGenerator implements KeysAwareEncoder {
     private final Deque<ContextProperties> propertyStack = new ArrayDeque<>();
     private boolean rootMapper;
     private final @Nullable String rootName;
+    private final @Nullable String rootNamespace;
     private @Nullable String pendingRootNamespace;
 
     /**
@@ -62,6 +63,7 @@ public final class XmlGenerator implements KeysAwareEncoder {
     XmlGenerator(XMLStreamWriter xmlWriter, @Nullable String rootName) {
         this.xmlWriter = xmlWriter;
         this.rootName = rootName;
+        this.rootNamespace = null;
         this.rootMapper = false;
     }
 
@@ -72,6 +74,7 @@ public final class XmlGenerator implements KeysAwareEncoder {
     private XmlGenerator(XMLStreamWriter xmlWriter, Boolean rootMapper, @Nullable String rootNamespace) {
         this.xmlWriter = xmlWriter;
         this.rootName = null;
+        this.rootNamespace = rootNamespace;
         this.rootMapper = rootMapper;
         this.pendingRootNamespace = rootNamespace;
     }
@@ -79,6 +82,7 @@ public final class XmlGenerator implements KeysAwareEncoder {
     private XmlGenerator(XMLStreamWriter xmlWriter, Deque<ContextProperties> propertyStack) {
         this.xmlWriter = xmlWriter;
         this.rootName = null;
+        this.rootNamespace = null;
         this.propertyStack.addAll(propertyStack);
         this.rootMapper = false;
     }
@@ -588,7 +592,11 @@ public final class XmlGenerator implements KeysAwareEncoder {
 
     private void writeStartElement(@Nullable String namespaceUri, @Nullable String localName) throws XMLStreamException {
         if (namespaceUri == null || namespaceUri.isEmpty()) {
-            xmlWriter.writeStartElement(localName);
+            if (rootNamespace == null) {
+                xmlWriter.writeStartElement(localName);
+            } else {
+                xmlWriter.writeStartElement("", localName, "");
+            }
         } else {
             xmlWriter.writeStartElement(namespaceUri, localName);
         }
@@ -604,7 +612,11 @@ public final class XmlGenerator implements KeysAwareEncoder {
 
     private void writeEmptyElement(@Nullable String namespaceUri, @Nullable String localName) throws XMLStreamException {
         if (namespaceUri == null || namespaceUri.isEmpty()) {
-            xmlWriter.writeEmptyElement(localName);
+            if (rootNamespace == null) {
+                xmlWriter.writeEmptyElement(localName);
+            } else {
+                xmlWriter.writeEmptyElement("", localName, "");
+            }
         } else {
             xmlWriter.writeEmptyElement(namespaceUri, localName);
         }
