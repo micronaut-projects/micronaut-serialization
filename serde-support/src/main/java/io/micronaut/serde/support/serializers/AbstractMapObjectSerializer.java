@@ -22,6 +22,7 @@ import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.XmlEncoder;
 import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
@@ -47,6 +48,7 @@ abstract sealed class AbstractMapObjectSerializer<K, V> implements ObjectSeriali
     private final Argument<V> valueGeneric;
     private final Serializer<V> valueSerializer;
     private final boolean sortMapEntries;
+    private final boolean xmlAnyAttribute;
 
     AbstractMapObjectSerializer(Argument<? extends Map<K, V>> type, EncoderContext context) throws SerdeException {
         context = SerdeFeatures.withFeatures(context, type.getAnnotationMetadata());
@@ -54,6 +56,9 @@ abstract sealed class AbstractMapObjectSerializer<K, V> implements ObjectSeriali
             .enumValue(SerdeConfig.class.getName(), SerdeConfig.INCLUDE_CONTENT, SerdeConfig.SerInclude.class)
             .orElse(SerdeConfig.SerInclude.ALWAYS);
         sortMapEntries = context.getFeatures().contains(SerializationConfiguration.Feature.WRITE_SORTED_MAP_ENTRIES);
+        xmlAnyAttribute = type.getAnnotationMetadata()
+            .booleanValue(SerdeConfig.class, SerdeConfig.XML_ANY_ATTRIBUTE_PROPERTY)
+            .orElse(false);
         final Argument<?>[] generics = type.getTypeParameters();
         final boolean hasGenerics = ArrayUtils.isNotEmpty(generics) && generics.length == 2;
         if (hasGenerics) {
@@ -87,6 +92,18 @@ abstract sealed class AbstractMapObjectSerializer<K, V> implements ObjectSeriali
     }
 
     protected abstract void encodeKey(Encoder encoder, EncoderContext context, K k) throws IOException;
+
+    protected final void encodeMapKey(Encoder encoder, String key) throws IOException {
+        if (xmlAnyAttribute && encoder instanceof XmlEncoder xmlEncoder) {
+            xmlEncoder.encodeAttributeKey(key);
+        } else {
+            encoder.encodeKey(key);
+        }
+    }
+
+    protected final boolean isXmlAnyAttribute() {
+        return xmlAnyAttribute;
+    }
 
     @Override
     public final void serialize(Encoder encoder, EncoderContext context, Argument<? extends Map<K, V>> type, Map<K, V> value) throws IOException {

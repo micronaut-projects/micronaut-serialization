@@ -15,7 +15,6 @@
  */
 package io.micronaut.serde.properties;
 
-import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.Secondary;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;

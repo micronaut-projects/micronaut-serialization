@@ -80,6 +80,12 @@ public final class RecordSerdeShapeResolver {
         booleanValue(property, SerdeConfig.XML_CDATA_PROPERTY)
             .filter(Boolean::booleanValue)
             .ifPresent(value -> metadata.put(SerdeConfig.XML_CDATA_PROPERTY, "true"));
+        booleanValue(property, SerdeConfig.XML_LIST_PROPERTY)
+            .filter(Boolean::booleanValue)
+            .ifPresent(value -> metadata.put(SerdeConfig.XML_LIST_PROPERTY, "true"));
+        booleanValue(property, SerdeConfig.XML_MIXED_PROPERTY)
+            .filter(Boolean::booleanValue)
+            .ifPresent(value -> metadata.put(SerdeConfig.XML_MIXED_PROPERTY, "true"));
         booleanValue(property, SerdeConfig.META_ANNOTATION_PROPERTY)
             .ifPresent(value -> metadata.put(SerdeConfig.META_ANNOTATION_PROPERTY, value.toString()));
         stringValue(property, SerdeConfig.WRAPPER_PROPERTY)

@@ -17,6 +17,7 @@ package io.micronaut.serde.jaxb.tck;
 
 import jakarta.xml.bind.annotation.XmlAccessOrder;
 import jakarta.xml.bind.annotation.XmlAccessorOrder;
+import jakarta.xml.bind.annotation.XmlAnyAttribute;
 import jakarta.xml.bind.annotation.XmlAttribute;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlElementRef;
@@ -25,6 +26,7 @@ import jakarta.xml.bind.annotation.XmlElements;
 import jakarta.xml.bind.annotation.XmlElementWrapper;
 import jakarta.xml.bind.annotation.XmlEnum;
 import jakarta.xml.bind.annotation.XmlEnumValue;
+import jakarta.xml.bind.annotation.XmlList;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlSeeAlso;
 import jakarta.xml.bind.annotation.XmlTransient;
@@ -35,7 +37,10 @@ import org.jspecify.annotations.Nullable;
 import org.xmlunit.builder.DiffBuilder;
 
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import javax.xml.namespace.QName;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -219,6 +224,31 @@ public abstract class AbstractJaxbTckTest {
         assertInstanceOf(String.class, decoded.value);
         assertEquals("typed", decoded.value);
     }
+
+    @Test
+    void xmlListUsesAWhitespaceSeparatedLexicalValue() throws Exception {
+        JaxbLexicalList value = new JaxbLexicalList();
+        value.values = List.of(1, 2, 3);
+
+        String xml = writeXml(value);
+        JaxbLexicalList decoded = readXml(xml, JaxbLexicalList.class);
+
+        assertXmlSimilar("<jaxbLexicalList><values>1 2 3</values></jaxbLexicalList>", xml);
+        assertEquals(List.of(1, 2, 3), decoded.values);
+    }
+
+    @Test
+    void xmlAnyAttributeWritesWildcardMapEntriesAsAttributes() throws Exception {
+        JaxbAnyAttributes value = new JaxbAnyAttributes();
+        value.attributes.put(new QName("edition"), "first");
+        value.attributes.put(new QName("format"), "hardcover");
+
+        String xml = writeXml(value);
+
+        assertXmlSimilar("<jaxbAnyAttributes edition=\"first\" format=\"hardcover\"/>", xml);
+    }
+
+
 
     @Test
     void xmlElementRefUsesTheReferencedElementName() throws Exception {
@@ -415,6 +445,22 @@ public abstract class AbstractJaxbTckTest {
         @XmlElement(type = String.class)
         public CharSequence value;
     }
+
+    /** JAXB lexical list model. */
+    @XmlRootElement
+    public static class JaxbLexicalList {
+        @XmlList
+        public List<Integer> values;
+    }
+
+    /** JAXB wildcard attribute model. */
+    @XmlRootElement
+    public static class JaxbAnyAttributes {
+        @XmlAnyAttribute
+        public Map<QName, String> attributes = new LinkedHashMap<>();
+    }
+
+
     /** JAXB enum lexical-value model. */
     @XmlRootElement(name = "JaxbEdition")
     @XmlEnum

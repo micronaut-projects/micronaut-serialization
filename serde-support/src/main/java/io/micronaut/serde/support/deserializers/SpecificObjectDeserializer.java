@@ -21,6 +21,7 @@ import io.micronaut.core.reflect.exception.InstantiationException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.XmlDecoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Keys;
 import io.micronaut.serde.KeysAwareDecoder;
@@ -507,6 +508,14 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
         }
 
         boolean tryConsume(String propertyName, Decoder decoder, DecoderContext decoderContext) throws IOException {
+            if (decoder instanceof XmlDecoder xmlDecoder) {
+                if (anySetter.xmlAnyAttribute && !xmlDecoder.isCurrentKeyAttribute()) {
+                    return false;
+                }
+                if (anySetter.xmlAnyElement && xmlDecoder.isCurrentKeyAttribute()) {
+                    return false;
+                }
+            }
             if (values == null) {
                 values = new LinkedHashMap<>();
             }

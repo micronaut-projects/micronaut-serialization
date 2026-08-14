@@ -59,6 +59,8 @@ final class RecordSerdeSourceGenUtils {
     private static final Field XML_ATTRIBUTE_PROPERTY_FIELD = ReflectionUtils.getRequiredField(SerdeConfig.class, "XML_ATTRIBUTE_PROPERTY");
     private static final Field XML_TEXT_PROPERTY_FIELD = ReflectionUtils.getRequiredField(SerdeConfig.class, "XML_TEXT_PROPERTY");
     private static final Field XML_CDATA_PROPERTY_FIELD = ReflectionUtils.getRequiredField(SerdeConfig.class, "XML_CDATA_PROPERTY");
+    private static final Field XML_LIST_PROPERTY_FIELD = ReflectionUtils.getRequiredField(SerdeConfig.class, "XML_LIST_PROPERTY");
+    private static final Field XML_MIXED_PROPERTY_FIELD = ReflectionUtils.getRequiredField(SerdeConfig.class, "XML_MIXED_PROPERTY");
     private static final Field XML_NAMESPACE_FIELD = ReflectionUtils.getRequiredField(SerdeConfig.class, "XML_NAMESPACE");
     private static final Field XML_WRAPPER_NAMESPACE_FIELD = ReflectionUtils.getRequiredField(SerdeConfig.class, "XML_WRAPPER_NAMESPACE");
     private static final Field XML_DEFAULT_VALUE_FIELD = ReflectionUtils.getRequiredField(SerdeConfig.class, "XML_DEFAULT_VALUE");
@@ -183,6 +185,8 @@ final class RecordSerdeSourceGenUtils {
             case SerdeConfig.XML_ATTRIBUTE_PROPERTY -> XML_ATTRIBUTE_PROPERTY_FIELD;
             case SerdeConfig.XML_TEXT_PROPERTY -> XML_TEXT_PROPERTY_FIELD;
             case SerdeConfig.XML_CDATA_PROPERTY -> XML_CDATA_PROPERTY_FIELD;
+            case SerdeConfig.XML_LIST_PROPERTY -> XML_LIST_PROPERTY_FIELD;
+            case SerdeConfig.XML_MIXED_PROPERTY -> XML_MIXED_PROPERTY_FIELD;
             case SerdeConfig.XML_NAMESPACE -> XML_NAMESPACE_FIELD;
             case SerdeConfig.XML_WRAPPER_NAMESPACE -> XML_WRAPPER_NAMESPACE_FIELD;
             case SerdeConfig.XML_DEFAULT_VALUE -> XML_DEFAULT_VALUE_FIELD;

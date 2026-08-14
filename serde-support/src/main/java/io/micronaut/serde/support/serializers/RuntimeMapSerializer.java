@@ -33,6 +33,7 @@ import io.micronaut.serde.support.util.JsonNodeEncoder;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
+import javax.xml.namespace.QName;
 
 /**
  * The runtime key map serializer.
@@ -65,8 +66,12 @@ final class RuntimeMapSerializer<K, V> extends AbstractMapObjectSerializer<K, V>
 
     @Override
     protected void encodeKey(Encoder encoder, EncoderContext context, K k) throws IOException {
+        if (isXmlAnyAttribute() && k instanceof QName qName) {
+            encodeMapKey(encoder, qName.getLocalPart());
+            return;
+        }
         if (isStringKey || k instanceof CharSequence) {
-            encoder.encodeKey(k.toString());
+            encodeMapKey(encoder, k.toString());
         } else {
             encodeMapKey(context, encoder, keyGeneric, keySerializer, k);
         }
@@ -96,17 +101,17 @@ final class RuntimeMapSerializer<K, V> extends AbstractMapObjectSerializer<K, V>
         } catch (SerdeException e) {
             if (e.getCause() instanceof IntrospectionException) {
                 // The key is not introspected
-                return (encoder, ctx, type, value) -> convertMapKeyToStringAndEncode(ctx, encoder, value);
+                return (encoder, ctx, type, value) -> encodeConvertedMapKey(ctx, encoder, value);
             }
             throw e;
         }
     }
 
-    private static <K> void encodeMapKey(EncoderContext context,
-                                         Encoder encoder,
-                                         Argument<K> keyGeneric,
-                                         Serializer<? super K> keySerializer,
-                                         K k) throws IOException {
+    private void encodeMapKey(EncoderContext context,
+                              Encoder encoder,
+                              Argument<K> keyGeneric,
+                              Serializer<? super K> keySerializer,
+                              K k) throws IOException {
         JsonNodeEncoder keyEncoder = JsonNodeEncoder.create();
         try {
             keySerializer.serialize(keyEncoder, context, keyGeneric, k);
@@ -120,21 +125,27 @@ final class RuntimeMapSerializer<K, V> extends AbstractMapObjectSerializer<K, V>
         }
         JsonNode keyNode = keyEncoder.getCompletedValue();
         if (keyNode.isString()) {
-            encoder.encodeKey(keyNode.getStringValue());
+            encodeMapKey(encoder, keyNode.getStringValue());
         } else if (keyNode.isNull()) {
             throw new SerdeException("Null key for a Map not allowed in JSON");
         } else if (keyNode.isBoolean() || keyNode.isNumber()) {
-            encoder.encodeKey(keyNode.coerceStringValue());
+            encodeMapKey(encoder, keyNode.coerceStringValue());
         } else {
             convertMapKeyToStringAndEncode(context, encoder, Objects.requireNonNull(keyNode.getValue()));
         }
     }
 
-    private static void convertMapKeyToStringAndEncode(EncoderContext context, Encoder encoder, Object keyValue) throws IOException {
+    private void convertMapKeyToStringAndEncode(EncoderContext context, Encoder encoder, Object keyValue) throws IOException {
         try {
-            encoder.encodeKey(
-                context.getConversionService().convertRequired(keyValue, Argument.STRING)
-            );
+            encodeMapKey(encoder, context.getConversionService().convertRequired(keyValue, Argument.STRING));
+        } catch (ConversionErrorException ce) {
+            throw new SerdeException("Error converting Map key [" + keyValue + "] to String: " + ce.getMessage(), ce);
+        }
+    }
+
+    private static void encodeConvertedMapKey(EncoderContext context, Encoder encoder, Object keyValue) throws IOException {
+        try {
+            encoder.encodeKey(context.getConversionService().convertRequired(keyValue, Argument.STRING));
         } catch (ConversionErrorException ce) {
             throw new SerdeException("Error converting Map key [" + keyValue + "] to String: " + ce.getMessage(), ce);
         }

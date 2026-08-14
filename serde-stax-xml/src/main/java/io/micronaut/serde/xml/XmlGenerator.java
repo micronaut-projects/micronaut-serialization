@@ -22,6 +22,7 @@ import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Keys;
 import io.micronaut.serde.KeysAwareEncoder;
 import io.micronaut.serde.KeysSupport;
+import io.micronaut.serde.XmlEncoder;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import org.jspecify.annotations.Nullable;
@@ -42,7 +43,7 @@ import java.util.Objects;
  * @since 3.2
  */
 @Internal
-public final class XmlGenerator implements KeysAwareEncoder {
+public final class XmlGenerator implements KeysAwareEncoder, XmlEncoder {
 
     private static final int XML_KEYS_CONTRIBUTION_INDEX = KeysSupport.indexOf(new XmlKeysProvider());
     private static final String XSI_NS = "http://www.w3.org/2001/XMLSchema-instance";
@@ -171,6 +172,23 @@ public final class XmlGenerator implements KeysAwareEncoder {
     }
 
     @Override
+    public void encodeAttributeKey(String key) throws IOException {
+        encodeKey(key);
+        ContextProperties lastProperty = propertyStack.peekLast();
+        if (lastProperty instanceof KeyFrame keyFrame && !keyFrame.consumed()) {
+            propertyStack.removeLast();
+            propertyStack.addLast(new KeyFrame(
+                keyFrame.key(),
+                false,
+                keyFrame.arrayWrappingKey(),
+                keyFrame.objectWrappingKey(),
+                null,
+                new XmlKey(key, null, true, false, false, false, false, XmlCollectionLayout.DEFAULT, null, null, null, XmlNullHandling.DEFAULT, XmlNullHandling.DEFAULT)
+            ));
+        }
+    }
+
+    @Override
     public void encodeKey(Keys keys, int index) throws IOException {
         Object[] xmlKeys = KeysSupport.get(keys, XML_KEYS_CONTRIBUTION_INDEX);
         XmlKey xmlKey = ((XmlKey[]) xmlKeys[XmlKeysProvider.XML_KEYS_INDEX])[index];
@@ -246,7 +264,7 @@ public final class XmlGenerator implements KeysAwareEncoder {
             }
             default -> throw new IllegalStateException("Unexpected array frame: " + lastFrame);
         }
-        propertyStack.addLast(new ArrayFrame(lastProperty, null, itemNamespace, cdata, itemNullHandling));
+        propertyStack.addLast(new ArrayFrame(lastProperty, null, itemNamespace, cdata, itemNullHandling, false, false));
     }
 
     private boolean encodeKeyArray(KeyFrame keyFrame) throws IOException, XMLStreamException {
@@ -261,14 +279,19 @@ public final class XmlGenerator implements KeysAwareEncoder {
         String arrayWrappingKey = keyFrame.arrayWrappingKey();
         if (arrayWrappingKey != null) {
             xmlWriter.writeStartElement(arrayWrappingKey);
-                propertyStack.addLast(new ArrayFrame(keyFrame.key(), null, keyFrame.namespace(), false, XmlNullHandling.DEFAULT));
+            propertyStack.addLast(new ArrayFrame(keyFrame.key(), null, keyFrame.namespace(), false, XmlNullHandling.DEFAULT, false, false));
             return true;
         }
         return switch (xmlKey) {
+            case XmlKey key when key.list() || key.mixed() -> {
+                writeStartElement(keyFrame.namespace(), keyFrame.key());
+                propertyStack.addLast(new ArrayFrame(keyFrame.key(), null, keyFrame.namespace(), key.cdata(), key.nullHandling(), key.list(), false));
+                yield true;
+            }
             case XmlKey key -> switch (key.collectionLayout()) {
                 case INLINE -> {
                     propertyStack.removeLast();
-                    propertyStack.addLast(new ArrayFrame("", keyFrame.key(), keyFrame.namespace(), key.cdata(), key.nullHandling()));
+                    propertyStack.addLast(new ArrayFrame("", keyFrame.key(), keyFrame.namespace(), key.cdata(), key.nullHandling(), false, false));
                     yield true;
                 }
                 case WRAPPED -> {
@@ -276,7 +299,7 @@ public final class XmlGenerator implements KeysAwareEncoder {
                         ? Objects.requireNonNull(keyFrame.key())
                         : key.wrapperName();
                     writeStartElement(key.wrapperNamespace(), wrapperName);
-                    propertyStack.addLast(new ArrayFrame(keyFrame.key(), null, keyFrame.namespace(), key.cdata(), key.nullHandling()));
+                    propertyStack.addLast(new ArrayFrame(keyFrame.key(), null, keyFrame.namespace(), key.cdata(), key.nullHandling(), false, false));
                     yield true;
                 }
                 case DEFAULT -> false;
@@ -294,7 +317,7 @@ public final class XmlGenerator implements KeysAwareEncoder {
                 : type.getName();
             collectionName = NameUtils.camelCase(typeName, false);
         }
-        propertyStack.addLast(new ArrayFrame(collectionName, "item", null, false, XmlNullHandling.DEFAULT));
+        propertyStack.addLast(new ArrayFrame(collectionName, "item", null, false, XmlNullHandling.DEFAULT, false, false));
         xmlWriter.writeStartElement(collectionName);
     }
 
@@ -444,6 +467,15 @@ public final class XmlGenerator implements KeysAwareEncoder {
     }
 
     private void writeArrayScalar(ArrayFrame arrayFrame, String data) throws XMLStreamException {
+        if (arrayFrame.textList()) {
+            if (arrayFrame.itemWritten()) {
+                xmlWriter.writeCharacters(" ");
+            }
+            writeText(data, arrayFrame.cdata());
+            propertyStack.removeLast();
+            propertyStack.addLast(arrayFrame.withItemWritten());
+            return;
+        }
         String iterableKey = arrayFrame.iterableKey();
         String itemName = iterableKey != null && !iterableKey.isEmpty() ? iterableKey : arrayFrame.key();
         writeStartElement(arrayFrame.itemNamespace(), itemName);
@@ -651,7 +683,12 @@ public final class XmlGenerator implements KeysAwareEncoder {
         @Nullable String iterableKey,
         @Nullable String itemNamespace,
         boolean cdata,
-        XmlNullHandling itemNullHandling
+        XmlNullHandling itemNullHandling,
+        boolean textList,
+        boolean itemWritten
     ) implements ContextProperties {
+        private ArrayFrame withItemWritten() {
+            return new ArrayFrame(key, iterableKey, itemNamespace, cdata, itemNullHandling, textList, true);
+        }
     }
 }

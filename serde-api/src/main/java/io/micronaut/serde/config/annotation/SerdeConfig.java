@@ -79,6 +79,26 @@ public @interface SerdeConfig {
     String XML_TEXT_PROPERTY = "xmlTextProperty";
 
     /**
+     * Whether the XML property is represented as a whitespace-separated lexical list.
+     */
+    String XML_LIST_PROPERTY = "xmlListProperty";
+
+    /**
+     * Whether the XML property contributes mixed text and element content.
+     */
+    String XML_MIXED_PROPERTY = "xmlMixedProperty";
+
+    /**
+     * Whether an any-getter/any-setter map represents XML attributes.
+     */
+    String XML_ANY_ATTRIBUTE_PROPERTY = "xmlAnyAttributeProperty";
+
+    /**
+     * Whether an any-getter/any-setter map represents XML child elements.
+     */
+    String XML_ANY_ELEMENT_PROPERTY = "xmlAnyElementProperty";
+
+    /**
      * Whether the XML property should be serialized as CDATA content.
      */
     String XML_CDATA_PROPERTY = "xmlCDataProperty";

@@ -38,7 +38,7 @@ final class StringKeyMapSerializer<V> extends AbstractMapObjectSerializer<String
 
     @Override
     protected void encodeKey(Encoder encoder, EncoderContext context, String key) throws IOException {
-        encoder.encodeKey(key);
+        encodeMapKey(encoder, key);
     }
 
 }

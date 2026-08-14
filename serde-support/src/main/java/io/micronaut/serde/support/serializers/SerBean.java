@@ -316,6 +316,8 @@ final class SerBean<T> {
         return property.xmlAttributeProperty
             || property.xmlTextProperty
             || property.xmlCDataProperty
+            || property.xmlListProperty
+            || property.xmlMixedProperty
             || property.xmlNamespace != null
             || property.xmlWrappingConfigured
             || property.xmlWrapperName != null
@@ -335,6 +337,12 @@ final class SerBean<T> {
         }
         if (property.xmlCDataProperty) {
             metadata.put(SerdeConfig.XML_CDATA_PROPERTY, "true");
+        }
+        if (property.xmlListProperty) {
+            metadata.put(SerdeConfig.XML_LIST_PROPERTY, "true");
+        }
+        if (property.xmlMixedProperty) {
+            metadata.put(SerdeConfig.XML_MIXED_PROPERTY, "true");
         }
         if (property.xmlNamespace != null) {
             metadata.put(SerdeConfig.XML_NAMESPACE, property.xmlNamespace);
@@ -1123,6 +1131,8 @@ final class SerBean<T> {
         public final boolean xmlAttributeProperty;
         public final boolean xmlTextProperty;
         public final boolean xmlCDataProperty;
+        public final boolean xmlListProperty;
+        public final boolean xmlMixedProperty;
         public final @Nullable String xmlWrapperName;
         public final @Nullable String xmlNamespace;
         public final @Nullable String xmlWrapperNamespace;
@@ -1177,6 +1187,8 @@ final class SerBean<T> {
             this.xmlAttributeProperty = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.XML_ATTRIBUTE_PROPERTY).orElse(false);
             this.xmlTextProperty = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.XML_TEXT_PROPERTY).orElse(false);
             this.xmlCDataProperty = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.XML_CDATA_PROPERTY).orElse(false);
+            this.xmlListProperty = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.XML_LIST_PROPERTY).orElse(false);
+            this.xmlMixedProperty = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.XML_MIXED_PROPERTY).orElse(false);
             this.xmlWrapperName = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY).orElse(null);
             this.xmlNamespace = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.XML_NAMESPACE).orElse(null);
             this.xmlWrapperNamespace = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.XML_WRAPPER_NAMESPACE).orElse(null);
