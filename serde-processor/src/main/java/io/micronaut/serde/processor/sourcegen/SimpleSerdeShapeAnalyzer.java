@@ -60,6 +60,7 @@ public final class SimpleSerdeShapeAnalyzer {
     private static final String JAXB_XML_ATTRIBUTE = "jakarta.xml.bind.annotation.XmlAttribute";
     private static final String JAXB_XML_ID = "jakarta.xml.bind.annotation.XmlID";
     private static final String JAXB_XML_ID_REF = "jakarta.xml.bind.annotation.XmlIDREF";
+    private static final String JAXB_XML_MIXED = "jakarta.xml.bind.annotation.XmlMixed";
     private static final String JAXB_XML_ACCESSOR_TYPE = "jakarta.xml.bind.annotation.XmlAccessorType";
 
     @SuppressWarnings("java:S3776")
@@ -110,6 +111,7 @@ public final class SimpleSerdeShapeAnalyzer {
         if (!isBothFailed(serializerReasons, deserializerReasons)
             && (hasAnnotation(element, JAXB_XML_ID)
                 || hasAnnotation(element, JAXB_XML_ID_REF)
+                || hasAnnotation(element, JAXB_XML_MIXED)
                 || element.hasDeclaredAnnotation(JAXB_XML_ACCESSOR_TYPE))
             && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
             return decision(shapeKind, serializerReasons, deserializerReasons);

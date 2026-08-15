@@ -39,7 +39,6 @@ public final class JaxbXmlMixedMapper implements NamedAnnotationMapper {
         return List.of(AnnotationValue.builder(SerdeConfig.class)
             .member(SerdeConfig.META_ANNOTATION_PROPERTY, false)
             .member(SerdeConfig.XML_TEXT_PROPERTY, true)
-            .member(SerdeConfig.XML_LIST_PROPERTY, true)
             .member(SerdeConfig.XML_MIXED_PROPERTY, true)
             .build());
     }

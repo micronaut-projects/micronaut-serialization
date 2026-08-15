@@ -31,6 +31,7 @@ import jakarta.xml.bind.annotation.XmlEnumValue;
 import jakarta.xml.bind.annotation.XmlID;
 import jakarta.xml.bind.annotation.XmlIDREF;
 import jakarta.xml.bind.annotation.XmlList;
+import jakarta.xml.bind.annotation.XmlMixed;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlSeeAlso;
 import jakarta.xml.bind.annotation.XmlTransient;
@@ -42,11 +43,14 @@ import org.xmlunit.builder.DiffBuilder;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.xml.namespace.QName;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -111,6 +115,37 @@ public abstract class AbstractJaxbTckTest {
         assertXmlSimilar("<jaxbDefaults><title>Serde</title><authors>Ana</authors><authors>Ben</authors></jaxbDefaults>", xml);
         assertEquals("Serde", decoded.title);
         assertEquals(List.of("Ana", "Ben"), decoded.authors);
+    }
+
+    @Test
+    void collectionAndArrayPropertiesRoundTrip() throws Exception {
+        JaxbCollectionVariants value = new JaxbCollectionVariants();
+        value.list = List.of("one", "two");
+        value.set = new LinkedHashSet<>(List.of("three", "four"));
+        value.array = new String[] {"five", "six"};
+        value.wrappedArray = new String[] {"seven", "eight"};
+        value.lexicalArray = new int[] {9, 10};
+        value.boxedLexicalArray = new Integer[] {11, 12};
+
+        String xml = writeXml(value);
+        JaxbCollectionVariants decoded = readXml(xml, JaxbCollectionVariants.class);
+
+        assertXmlSimilar("""
+            <jaxbCollectionVariants>
+                <list>one</list><list>two</list>
+                <set>three</set><set>four</set>
+                <array>five</array><array>six</array>
+                <wrappedArray><item>seven</item><item>eight</item></wrappedArray>
+                <lexicalArray>9 10</lexicalArray>
+                <boxedLexicalArray>11 12</boxedLexicalArray>
+            </jaxbCollectionVariants>
+            """, xml);
+        assertEquals(List.of("one", "two"), decoded.list);
+        assertEquals(new LinkedHashSet<>(List.of("three", "four")), decoded.set);
+        assertArrayEquals(new String[] {"five", "six"}, decoded.array);
+        assertArrayEquals(new String[] {"seven", "eight"}, decoded.wrappedArray);
+        assertArrayEquals(new int[] {9, 10}, decoded.lexicalArray);
+        assertArrayEquals(new Integer[] {11, 12}, decoded.boxedLexicalArray);
     }
 
     @Test
@@ -181,10 +216,11 @@ public abstract class AbstractJaxbTckTest {
         leader.name = "Ada";
         value.people = List.of(leader);
         value.manager = leader;
+        value.managerAttribute = leader;
 
         String xml = writeXml(value);
 
-        assertXmlSimilar("<jaxbIdReferences><person id=\"leader\" name=\"Ada\"/><manager>leader</manager></jaxbIdReferences>", xml);
+        assertXmlSimilar("<jaxbIdReferences managerAttribute=\"leader\"><person id=\"leader\" name=\"Ada\"/><manager>leader</manager></jaxbIdReferences>", xml);
     }
 
     @Test
@@ -328,6 +364,39 @@ public abstract class AbstractJaxbTckTest {
     }
 
     @Test
+    void xmlElementRefUsesTheDeclaredRootNameAndType() throws Exception {
+        JaxbRootRefContainer value = new JaxbRootRefContainer();
+        value.root = new JaxbReferencedRoot();
+        value.root.name = "Root";
+
+        String xml = writeXml(value);
+
+        assertXmlSimilar("<jaxbRootRefContainer><root><name>Root</name></root></jaxbRootRefContainer>", xml);
+    }
+
+    @Test
+    void xmlMixedWritesTextContent() throws Exception {
+        JaxbMixedContent value = new JaxbMixedContent();
+        value.content = List.of("one", "two");
+
+        String xml = writeXml(value);
+
+        assertXmlSimilar("<jaxbMixedContent>one two</jaxbMixedContent>", xml);
+    }
+
+    @Test
+    void xmlElementWrapperCombinesWithXmlElementRefs() throws Exception {
+        JaxbWrappedRefsContainer value = new JaxbWrappedRefsContainer();
+        JaxbDog dog = new JaxbDog();
+        dog.name = "Rex";
+        value.pets = List.of(dog);
+
+        String xml = writeXml(value);
+
+        assertXmlSimilar("<jaxbWrappedRefsContainer><pets><dog><name>Rex</name></dog></pets></jaxbWrappedRefsContainer>", xml);
+    }
+
+    @Test
     void xmlElementsAndXmlElementRefsUseTheirChoiceElementNames() throws Exception {
         JaxbElementsContainer elements = new JaxbElementsContainer();
         elements.pet = new JaxbDog();
@@ -371,6 +440,19 @@ public abstract class AbstractJaxbTckTest {
     public static class JaxbRefContainer {
         @XmlElementRef(name = "dog", namespace = "##default", type = JaxbDog.class, required = true)
         public JaxbPet pet;
+    }
+
+    /** JAXB root-reference model. */
+    @XmlRootElement
+    public static class JaxbRootRefContainer {
+        @XmlElementRef(name = "root", type = JaxbReferencedRoot.class)
+        public JaxbReferencedRoot root;
+    }
+
+    /** JAXB referenced root model. */
+    @XmlRootElement(name = "root")
+    public static class JaxbReferencedRoot {
+        public String name;
     }
 
     /** JAXB element-choice model. */
@@ -428,6 +510,29 @@ public abstract class AbstractJaxbTckTest {
 
         @XmlElement
         public List<String> authors;
+    }
+
+    /** JAXB collection and array model. */
+    @XmlRootElement
+    public static class JaxbCollectionVariants {
+        @XmlElement(name = "list")
+        public List<String> list;
+
+        @XmlElement(name = "set")
+        public Set<String> set;
+
+        @XmlElement(name = "array")
+        public String[] array;
+
+        @XmlElementWrapper(name = "wrappedArray")
+        @XmlElement(name = "item")
+        public String[] wrappedArray;
+
+        @XmlList
+        public int[] lexicalArray;
+
+        @XmlList
+        public Integer[] boxedLexicalArray;
     }
 
     /** JAXB explicit property-order model. */
@@ -511,6 +616,10 @@ public abstract class AbstractJaxbTckTest {
         @XmlIDREF
         @XmlElement(name = "manager")
         public JaxbPerson manager;
+
+        @XmlIDREF
+        @XmlAttribute
+        public JaxbPerson managerAttribute;
     }
 
     /** JAXB ID-bearing model. */
@@ -599,7 +708,23 @@ public abstract class AbstractJaxbTckTest {
         public Map<QName, String> attributes = new LinkedHashMap<>();
     }
 
+    /** JAXB mixed text-content model. */
+    @XmlRootElement
+    public static class JaxbMixedContent {
+        @XmlMixed
+        public List<String> content;
+    }
 
+    /** JAXB wrapper and element-reference combination model. */
+    @XmlRootElement
+    public static class JaxbWrappedRefsContainer {
+        @XmlElementWrapper(name = "pets")
+        @XmlElementRefs({
+            @XmlElementRef(name = "dog", type = JaxbDog.class),
+            @XmlElementRef(name = "cat", type = JaxbCat.class)
+        })
+        public List<JaxbPet> pets;
+    }
     /** JAXB enum lexical-value model. */
     @XmlRootElement(name = "JaxbEdition")
     @XmlEnum

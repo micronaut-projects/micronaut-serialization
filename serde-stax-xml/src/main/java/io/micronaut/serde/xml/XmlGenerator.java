@@ -283,7 +283,12 @@ public final class XmlGenerator implements KeysAwareEncoder, XmlEncoder {
             return true;
         }
         return switch (xmlKey) {
-            case XmlKey key when key.list() || key.mixed() -> {
+            case XmlKey key when key.mixed() -> {
+                propertyStack.removeLast();
+                propertyStack.addLast(new ArrayFrame("", null, keyFrame.namespace(), key.cdata(), key.nullHandling(), true, false));
+                yield true;
+            }
+            case XmlKey key when key.list() -> {
                 writeStartElement(keyFrame.namespace(), keyFrame.key());
                 propertyStack.addLast(new ArrayFrame(keyFrame.key(), null, keyFrame.namespace(), key.cdata(), key.nullHandling(), key.list(), false));
                 yield true;

@@ -909,6 +909,22 @@ final class SerBean<T> {
         if (prop.serializableInto) {
             if (prop.serializer instanceof io.micronaut.serde.ObjectSerializer<Z> objectSerializer) {
                 prop.objectSerializer = objectSerializer;
+            } else if (annotationMetadata.hasAnnotation(SerdeConfig.SerSubtyped.class)
+                && prop.xmlWrappingConfigured
+                && (argument.isArray() || Iterable.class.isAssignableFrom(argument.getType()))) {
+                Serializer<Z> specificSerializer = prop.serializer;
+                prop.objectSerializer = new io.micronaut.serde.ObjectSerializer<>() {
+                    @Override
+                    public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Z> type, Z value) throws IOException {
+                        specificSerializer.serialize(encoder, context, type, value);
+                    }
+
+                    @Override
+                    public void serializeInto(Encoder encoder, EncoderContext context, Argument<? extends Z> type, Z value) throws IOException {
+                        encoder.encodeKey(prop.xmlWrapperName != null ? prop.xmlWrapperName : prop.name);
+                        specificSerializer.serialize(encoder, context, type, value);
+                    }
+                };
             } else {
                 throw new SerdeException("Serializer for a property: " + prop.name + " doesn't support serializing into an existing object");
             }
