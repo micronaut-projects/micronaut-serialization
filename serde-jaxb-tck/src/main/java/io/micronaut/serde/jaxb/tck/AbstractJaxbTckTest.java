@@ -17,6 +17,8 @@ package io.micronaut.serde.jaxb.tck;
 
 import jakarta.xml.bind.annotation.XmlAccessOrder;
 import jakarta.xml.bind.annotation.XmlAccessorOrder;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlAnyAttribute;
 import jakarta.xml.bind.annotation.XmlAttribute;
 import jakarta.xml.bind.annotation.XmlElement;
@@ -26,6 +28,8 @@ import jakarta.xml.bind.annotation.XmlElements;
 import jakarta.xml.bind.annotation.XmlElementWrapper;
 import jakarta.xml.bind.annotation.XmlEnum;
 import jakarta.xml.bind.annotation.XmlEnumValue;
+import jakarta.xml.bind.annotation.XmlID;
+import jakarta.xml.bind.annotation.XmlIDREF;
 import jakarta.xml.bind.annotation.XmlList;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlSeeAlso;
@@ -122,6 +126,65 @@ public abstract class AbstractJaxbTckTest {
         alphabeticalOrder.apple = "a";
         alphabeticalOrder.middle = "m";
         assertXmlSimilar("<jaxbAlphabeticalOrder><apple>a</apple><middle>m</middle><zebra>z</zebra></jaxbAlphabeticalOrder>", writeXml(alphabeticalOrder));
+    }
+
+    @Test
+    void accessorTypeControlsBoundMembers() throws Exception {
+        JaxbFieldAccess value = new JaxbFieldAccess();
+        value.field = "field";
+
+        assertXmlSimilar("<jaxbFieldAccess><field>field</field></jaxbFieldAccess>", writeXml(value));
+    }
+
+    @Test
+    void accessorTypePropertyAndPublicMemberControlBoundMembers() throws Exception {
+        JaxbPropertyAccess propertyAccess = new JaxbPropertyAccess();
+        propertyAccess.fieldOnly = "field";
+        propertyAccess.setProperty("property");
+
+        String propertyXml = writeXml(propertyAccess);
+        JaxbPropertyAccess decodedPropertyAccess = readXml(propertyXml, JaxbPropertyAccess.class);
+        assertXmlSimilar("<jaxbPropertyAccess><property>property</property></jaxbPropertyAccess>", propertyXml);
+        assertEquals("property", decodedPropertyAccess.getProperty());
+        assertNull(decodedPropertyAccess.fieldOnly);
+
+        JaxbPublicMemberAccess publicMemberAccess = new JaxbPublicMemberAccess();
+        publicMemberAccess.field = "field";
+        publicMemberAccess.setProperty("property");
+
+        String publicMemberXml = writeXml(publicMemberAccess);
+        JaxbPublicMemberAccess decodedPublicMemberAccess = readXml(publicMemberXml, JaxbPublicMemberAccess.class);
+        assertXmlSimilar("<jaxbPublicMemberAccess><field>field</field><property>property</property></jaxbPublicMemberAccess>", publicMemberXml);
+        assertEquals("field", decodedPublicMemberAccess.field);
+        assertEquals("property", decodedPublicMemberAccess.getProperty());
+    }
+
+    @Test
+    void accessorTypeNoneIncludesOnlyJaxbAnnotatedMembers() throws Exception {
+        JaxbNoneAccess value = new JaxbNoneAccess();
+        value.notBound = "ignored";
+        value.explicit = "included";
+
+        String xml = writeXml(value);
+        JaxbNoneAccess decoded = readXml(xml, JaxbNoneAccess.class);
+
+        assertXmlSimilar("<jaxbNoneAccess><explicit>included</explicit></jaxbNoneAccess>", xml);
+        assertEquals("included", decoded.explicit);
+        assertNull(decoded.notBound);
+    }
+
+    @Test
+    void xmlIdReferencesUseTheReferencedId() throws Exception {
+        JaxbIdReferences value = new JaxbIdReferences();
+        JaxbPerson leader = new JaxbPerson();
+        leader.id = "leader";
+        leader.name = "Ada";
+        value.people = List.of(leader);
+        value.manager = leader;
+
+        String xml = writeXml(value);
+
+        assertXmlSimilar("<jaxbIdReferences><person id=\"leader\" name=\"Ada\"/><manager>leader</manager></jaxbIdReferences>", xml);
     }
 
     @Test
@@ -383,6 +446,82 @@ public abstract class AbstractJaxbTckTest {
         public String zebra;
         public String apple;
         public String middle;
+    }
+
+    /** JAXB field-access model. */
+    @XmlRootElement
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class JaxbFieldAccess {
+        private String field;
+
+        public String getMethodOnly() {
+            return "method";
+        }
+    }
+
+    /** JAXB property-access model. */
+    @XmlRootElement
+    @XmlAccessorType(XmlAccessType.PROPERTY)
+    public static class JaxbPropertyAccess {
+        private String fieldOnly;
+        private String property;
+
+        public String getProperty() {
+            return property;
+        }
+
+        public void setProperty(String property) {
+            this.property = property;
+        }
+    }
+
+    /** JAXB public-member access model. */
+    @XmlRootElement
+    @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
+    @XmlType(propOrder = {"field", "property"})
+    public static class JaxbPublicMemberAccess {
+        public String field;
+        private String property;
+
+        public String getProperty() {
+            return property;
+        }
+
+        public void setProperty(String property) {
+            this.property = property;
+        }
+    }
+
+    /** JAXB explicitly-bound-member model. */
+    @XmlRootElement
+    @XmlAccessorType(XmlAccessType.NONE)
+    public static class JaxbNoneAccess {
+        public String notBound;
+
+        @XmlElement
+        public String explicit;
+    }
+
+    /** JAXB ID-reference document model. */
+    @XmlRootElement
+    public static class JaxbIdReferences {
+        @XmlElement(name = "person")
+        public List<JaxbPerson> people;
+
+        @XmlIDREF
+        @XmlElement(name = "manager")
+        public JaxbPerson manager;
+    }
+
+    /** JAXB ID-bearing model. */
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class JaxbPerson {
+        @XmlID
+        @XmlAttribute
+        public String id;
+
+        @XmlAttribute
+        public String name;
     }
 
     /** JAXB namespace model. */

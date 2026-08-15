@@ -38,6 +38,19 @@ import java.lang.annotation.Repeatable;
 @Target(ElementType.ANNOTATION_TYPE)
 @Inherited
 public @interface SerdeConfig {
+
+    /**
+     * Internal marker for a JAXB {@code @XmlID} property.
+     */
+    @Internal
+    String XML_ID = "xmlId";
+
+    /**
+     * Internal marker for a JAXB {@code @XmlIDREF} property.
+     */
+    @Internal
+    String XML_ID_REF = "xmlIdRef";
+
     /**
      * The meta annotation for property.
      */

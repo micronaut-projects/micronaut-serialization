@@ -58,6 +58,9 @@ public final class SimpleSerdeShapeAnalyzer {
         "tools.jackson.dataformat.xml.annotation.JacksonXmlCData";
     private static final String JAXB_XML_ELEMENT = "jakarta.xml.bind.annotation.XmlElement";
     private static final String JAXB_XML_ATTRIBUTE = "jakarta.xml.bind.annotation.XmlAttribute";
+    private static final String JAXB_XML_ID = "jakarta.xml.bind.annotation.XmlID";
+    private static final String JAXB_XML_ID_REF = "jakarta.xml.bind.annotation.XmlIDREF";
+    private static final String JAXB_XML_ACCESSOR_TYPE = "jakarta.xml.bind.annotation.XmlAccessorType";
 
     @SuppressWarnings("java:S3776")
     public SimpleSerdeShapeDecision analyze(ClassElement element) {
@@ -102,6 +105,13 @@ public final class SimpleSerdeShapeAnalyzer {
         if (!isBothFailed(serializerReasons, deserializerReasons)
             && hasAnnotation(element, SerdeConfig.SerUnwrapped.class)
             && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNWRAPPED)) {
+            return decision(shapeKind, serializerReasons, deserializerReasons);
+        }
+        if (!isBothFailed(serializerReasons, deserializerReasons)
+            && (hasAnnotation(element, JAXB_XML_ID)
+                || hasAnnotation(element, JAXB_XML_ID_REF)
+                || element.hasDeclaredAnnotation(JAXB_XML_ACCESSOR_TYPE))
+            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
             return decision(shapeKind, serializerReasons, deserializerReasons);
         }
         if (serializerReasons.isEmpty() && hasAnnotation(element, SerdeConfig.SerAnyGetter.class)) {

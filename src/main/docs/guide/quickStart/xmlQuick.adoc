@@ -16,7 +16,7 @@ Micronaut Serialization also recognizes the common Jakarta XML Binding 4 annotat
 
 dependency:jakarta.xml.bind:jakarta.xml.bind-api[scope="compileOnly"]
 
-`@XmlRootElement`, `@XmlType`, `@XmlAccessorOrder`, and `@XmlEnum` automatically make a type serdeable. Property-only JAXB annotations require the containing type to be explicitly serdeable or to have one of those class-level annotations. The `Supported members` column is exhaustive; unlisted members are ignored.
+`@XmlRootElement`, `@XmlType`, `@XmlAccessorOrder`, `@XmlAccessorType`, and `@XmlEnum` automatically make a type serdeable. Property-only JAXB annotations require the containing type to be explicitly serdeable or to have one of those class-level annotations. The `Supported members` column is exhaustive; unlisted members are ignored.
 
 [cols="1,1,3", options="header"]
 |===
@@ -72,6 +72,18 @@ dependency:jakarta.xml.bind:jakarta.xml.bind-api[scope="compileOnly"]
 |`value = ALPHABETICAL`
 |Makes the type serdeable and orders properties alphabetically. `UNDEFINED` leaves normal property ordering in effect.
 
+|`@XmlAccessorType`
+|`value`
+|Makes the type serdeable and selects field or property introspection. `FIELD` includes all fields, `PROPERTY` and `PUBLIC_MEMBER` use public JavaBean properties, and `NONE` includes only JAXB-annotated members.
+
+|`@XmlID`
+|None
+|Marks a `String` property as the identity used by `@XmlIDREF` references. The ID keeps its normal element or attribute representation.
+
+|`@XmlIDREF`
+|None
+|Writes an object reference as the target's `@XmlID` string. Deserialization of object references, forward references, and collections of references is not supported.
+
 |`@XmlEnum`
 |None
 |Makes the enum serdeable. `value` (the schema base type) is ignored.
@@ -81,7 +93,7 @@ dependency:jakarta.xml.bind:jakarta.xml.bind-api[scope="compileOnly"]
 |Sets the serialized and deserialized lexical value for the enum constant.
 |===
 
-Names, transient properties, ordering, enum lexical values, and `type` overrides use shared serde metadata and can therefore affect other format implementations. JAXB defaults and nil policies are XML-only. Explicit Micronaut or Jackson configuration wins when it conflicts with JAXB metadata. Unsupported JAXB features include `@XmlAccessorType`, package `@XmlSchema`, adapters, `JAXBElement`, schema generation, and `JAXBContext`; unsupported annotation members include all `required` flags, `@XmlType.name`, `@XmlType.namespace`, `@XmlType.factoryClass`, `@XmlType.factoryMethod`, and `@XmlEnum.value`.
+Names, transient properties, ordering, enum lexical values, and `type` overrides use shared serde metadata and can therefore affect other format implementations. JAXB defaults and nil policies are XML-only. Explicit Micronaut or Jackson configuration wins when it conflicts with JAXB metadata. Unsupported JAXB features include package `@XmlSchema`, adapters, `JAXBElement`, schema generation, and `JAXBContext`; unsupported annotation members include all `required` flags, `@XmlType.name`, `@XmlType.namespace`, `@XmlType.factoryClass`, `@XmlType.factoryMethod`, and `@XmlEnum.value`.
 
 With the correct dependencies in place you can define an XML-serializable type:
 

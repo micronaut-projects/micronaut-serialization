@@ -69,7 +69,8 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Object, O
             "jakarta.xml.bind.annotation.XmlRootElement",
             "jakarta.xml.bind.annotation.XmlType",
             "jakarta.xml.bind.annotation.XmlEnum",
-            "jakarta.xml.bind.annotation.XmlAccessorOrder"
+            "jakarta.xml.bind.annotation.XmlAccessorOrder",
+            "jakarta.xml.bind.annotation.XmlAccessorType"
         );
     }
 
@@ -90,7 +91,8 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Object, O
             && !element.hasAnnotation("jakarta.xml.bind.annotation.XmlRootElement")
             && !element.hasAnnotation("jakarta.xml.bind.annotation.XmlType")
             && !element.hasAnnotation("jakarta.xml.bind.annotation.XmlEnum")
-            && !element.hasAnnotation("jakarta.xml.bind.annotation.XmlAccessorOrder")) {
+            && !element.hasAnnotation("jakarta.xml.bind.annotation.XmlAccessorOrder")
+            && !element.hasAnnotation("jakarta.xml.bind.annotation.XmlAccessorType")) {
             return;
         }
         SimpleSerdeShapeDecision decision = analyzer.analyze(element);

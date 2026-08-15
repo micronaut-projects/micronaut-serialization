@@ -89,6 +89,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     private static final String JAXB_XML_TYPE = JAXB_ANNOTATION_PREFIX + "XmlType";
     private static final String JAXB_XML_ENUM = JAXB_ANNOTATION_PREFIX + "XmlEnum";
     private static final String JAXB_XML_ACCESSOR_ORDER = JAXB_ANNOTATION_PREFIX + "XmlAccessorOrder";
+    private static final String JAXB_XML_ACCESSOR_TYPE = JAXB_ANNOTATION_PREFIX + "XmlAccessorType";
     private static final String JAXB_XML_TRANSIENT = JAXB_ANNOTATION_PREFIX + "XmlTransient";
     private static final String JAXB_XML_ELEMENT_WRAPPER = JAXB_ANNOTATION_PREFIX + "XmlElementWrapper";
     private static final String JAXB_XML_ELEMENT = JAXB_ANNOTATION_PREFIX + "XmlElement";
@@ -1153,6 +1154,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
     private void visitProperties(ClassElement classElement, VisitorContext context) {
         final List<PropertyElement> beanProperties = classElement.getBeanProperties();
+        ignoreUnannotatedJaxbNoneProperties(classElement, beanProperties);
         validateJaxbXmlValues(classElement, beanProperties);
         applyJaxbCollectionDefaults(classElement, beanProperties);
         final List<String> order;
@@ -1204,6 +1206,29 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                     propertyNamingStrategy
             );
         }
+    }
+
+    private void ignoreUnannotatedJaxbNoneProperties(ClassElement classElement, List<PropertyElement> beanProperties) {
+        AnnotationValue<?> accessType = classElement.getDeclaredAnnotation(JAXB_XML_ACCESSOR_TYPE);
+        if (accessType == null || !accessType.stringValue("value").filter(value -> value.endsWith("NONE")).isPresent()) {
+            return;
+        }
+        for (PropertyElement property : beanProperties) {
+            if (!hasJaxbBindingAnnotation(property)) {
+                ignoreProperty(false, false, property);
+            }
+        }
+    }
+
+    private boolean hasJaxbBindingAnnotation(PropertyElement property) {
+        return property.getAnnotationNames().stream().anyMatch(name -> name.startsWith(JAXB_ANNOTATION_PREFIX))
+            || property.getReadMethod().map(this::hasJaxbBindingAnnotation).orElse(false)
+            || property.getWriteMethod().map(this::hasJaxbBindingAnnotation).orElse(false)
+            || property.getField().map(this::hasJaxbBindingAnnotation).orElse(false);
+    }
+
+    private boolean hasJaxbBindingAnnotation(Element element) {
+        return element.getAnnotationNames().stream().anyMatch(name -> name.startsWith(JAXB_ANNOTATION_PREFIX));
     }
 
     private void validateJaxbXmlValues(ClassElement classElement, List<PropertyElement> beanProperties) {
@@ -1771,6 +1796,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             JAXB_XML_TYPE,
             JAXB_XML_ENUM,
             JAXB_XML_ACCESSOR_ORDER,
+            JAXB_XML_ACCESSOR_TYPE,
             JAXB_ANNOTATION_PREFIX + "XmlSeeAlso"
         ).anyMatch(element::hasAnnotation);
     }
