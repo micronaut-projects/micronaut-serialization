@@ -224,6 +224,70 @@ public final class DispatchBeanTypes {
         context.close()
     }
 
+    void 'test propagating directional naming to sourcegen'() {
+        given:
+        def context = buildContext('test.DirectionalTypes', '''
+package test;
+
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+import io.micronaut.serde.config.naming.UpperCamelCaseStrategy;
+
+public final class DirectionalTypes {
+    @SerdeableGenerated
+    @Serdeable.Serializable(naming = SnakeCaseStrategy.class)
+    @Serdeable.Deserializable(naming = UpperCamelCaseStrategy.class)
+    @Introspected
+    public static class Bean {
+        private String firstName;
+
+        public String getFirstName() { return firstName; }
+        public void setFirstName(String firstName) { this.firstName = firstName; }
+    }
+
+    @SerdeableGenerated
+    @Serdeable.Serializable(naming = SnakeCaseStrategy.class)
+    @Serdeable.Deserializable(naming = UpperCamelCaseStrategy.class)
+    @Introspected
+    public record Record(String firstName) {
+    }
+}
+''')
+        def registry = context.getBean(SerdeRegistry)
+        Class<?> beanType = context.classLoader.loadClass('test.DirectionalTypes$Bean')
+        Class<?> recordType = context.classLoader.loadClass('test.DirectionalTypes$Record')
+        Argument beanArgument = Argument.of(beanType)
+        Argument recordArgument = Argument.of(recordType)
+
+        expect:
+        assertGeneratedSerializer(registry, beanArgument)
+        assertGeneratedDeserializer(registry, beanArgument)
+        assertGeneratedSerializer(registry, recordArgument)
+        assertGeneratedDeserializer(registry, recordArgument)
+
+        when:
+        def bean = beanType.getDeclaredConstructor().newInstance()
+        bean.firstName = 'John'
+        def record = recordType.getDeclaredConstructor(String).newInstance('John')
+
+        then:
+        jsonMapper.writeValueAsString(bean) == '{"first_name":"John"}'
+        jsonMapper.writeValueAsString(record) == '{"first_name":"John"}'
+
+        when:
+        def decodedBean = jsonMapper.readValue('{"FirstName":"Jane"}', beanArgument)
+        def decodedRecord = jsonMapper.readValue('{"FirstName":"Jane"}', recordArgument)
+
+        then:
+        decodedBean.firstName == decodedRecord.firstName
+
+
+        cleanup:
+        context.close()
+    }
+
     private static void assertGeneratedSerializer(SerdeRegistry registry, Argument argument) {
         Serializer serializer = registry.findSerializer(argument).createSpecific(registry.newEncoderContext(Object), argument)
         assert serializer.class.name == generatedClassName(argument.type, 'Serializer')

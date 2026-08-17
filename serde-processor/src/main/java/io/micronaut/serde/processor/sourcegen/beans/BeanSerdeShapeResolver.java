@@ -15,11 +15,14 @@
  */
 package io.micronaut.serde.processor.sourcegen.beans;
 
+import io.micronaut.core.reflect.InstantiationUtils;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.ConstructorElement;
 import io.micronaut.inject.ast.FieldElement;
 import io.micronaut.inject.ast.MethodElement;
 import io.micronaut.inject.ast.PropertyElement;
+import io.micronaut.serde.config.annotation.SerdeConfig;
+import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -87,6 +90,8 @@ public final class BeanSerdeShapeResolver {
         }
         return Optional.of(new BeanSerdeShape.BeanProperty(
             property.getName(),
+            resolveName(element, property, SerdeConfig.SERIALIZE_PROPERTY_NAME, SerdeConfig.SERIALIZE_NAMING),
+            resolveName(element, property, SerdeConfig.DESERIALIZE_PROPERTY_NAME, SerdeConfig.DESERIALIZE_NAMING),
             serializationType,
             deserializationType,
             property.isNonNull(),
@@ -97,6 +102,38 @@ public final class BeanSerdeShapeResolver {
             propertyAccess.writeField()
         ));
     }
+
+    private static String resolveName(ClassElement element, PropertyElement property, String propertyMember, String namingMember) {
+        Optional<String> propertyValue = property.stringValue(SerdeConfig.class, propertyMember);
+        if (propertyValue.isPresent()) {
+            return propertyValue.get();
+        }
+
+        Optional<String> namingValue = element.stringValue(SerdeConfig.class, namingMember);
+        if (namingValue.isPresent()) {
+            String name = namingValue.get();
+            PropertyNamingStrategy strategy = null;
+
+            Optional<PropertyNamingStrategy> strategyByName = PropertyNamingStrategy.forName(name);
+            if (strategyByName.isPresent()) {
+                strategy = strategyByName.get();
+            } else {
+                ClassLoader classLoader = BeanSerdeShapeResolver.class.getClassLoader();
+                Optional<?> instance = InstantiationUtils.tryInstantiate(name, classLoader);
+
+                if (instance.isPresent() && instance.get() instanceof PropertyNamingStrategy) {
+                    strategy = (PropertyNamingStrategy) instance.get();
+                }
+            }
+
+            if (strategy != null) {
+                return strategy.translate(property);
+            }
+        }
+
+        return property.getName();
+    }
+
 
     private static Optional<PropertyAccess> resolvePropertyAccess(ClassElement element, PropertyElement property) {
         MethodElement readMethod = null;
