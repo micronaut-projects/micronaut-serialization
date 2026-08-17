@@ -48,11 +48,11 @@ import java.util.Objects;
  * @since 3.2
  */
 @Internal
-public abstract sealed class XmlReaderDecoder extends LimitingStream implements Decoder
-            permits XmlReaderDecoder.DocumentDecoder,
-                    XmlReaderDecoder.ObjectDecoder,
-                    XmlReaderDecoder.ArrayDecoder,
-                    XmlReaderDecoder.SyntheticRootDecoder {
+public abstract sealed class XmlStaxDecoder extends LimitingStream implements Decoder
+            permits XmlStaxDecoder.DocumentDecoder,
+                    XmlStaxDecoder.ObjectDecoder,
+                    XmlStaxDecoder.ArrayDecoder,
+                    XmlStaxDecoder.SyntheticRootDecoder {
 
     private static final String XSI_NS = "http://www.w3.org/2001/XMLSchema-instance";
     private static final String CURRENT_KEY_NAME = "currentKey";
@@ -77,7 +77,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
      * @param cursor The shared cursor over the XML stream
      * @param emptyElementAsNull Whether empty XML elements should be reported as {@code null}
      */
-    XmlReaderDecoder(RemainingLimits limits, Cursor cursor, boolean emptyElementAsNull) {
+    XmlStaxDecoder(RemainingLimits limits, Cursor cursor, boolean emptyElementAsNull) {
         super(limits);
         this.cursor = cursor;
         this.emptyElementAsNull = emptyElementAsNull;
@@ -384,7 +384,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
     /**
      * Decoder for a complete XML document rooted at the current stream element.
      */
-    static final class DocumentDecoder extends XmlReaderDecoder {
+    static final class DocumentDecoder extends XmlStaxDecoder {
 
         private boolean rootConsumed;
 
@@ -466,7 +466,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
     /**
      * Decoder for XML elements represented as object properties.
      */
-    static final class ObjectDecoder extends XmlReaderDecoder implements KeysAwareDecoder, XmlDecoder {
+    static final class ObjectDecoder extends XmlStaxDecoder implements KeysAwareDecoder, XmlDecoder {
 
         private final String ownerElement;
         private int attrIndex;
@@ -818,7 +818,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
      * ({@code @JacksonXmlElementWrapper(useWrapping = false)}, where same-named sibling elements
      * are the items).
      */
-    static final class ArrayDecoder extends XmlReaderDecoder {
+    static final class ArrayDecoder extends XmlStaxDecoder {
 
         private enum Mode {
             WRAPPED,
@@ -1247,7 +1247,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
      * its value. Used for untyped / {@code @JsonRootName} beans where the root element must be
      * surfaced as a wrapper property.
      */
-    static final class SyntheticRootDecoder extends XmlReaderDecoder {
+    static final class SyntheticRootDecoder extends XmlStaxDecoder {
 
         private final String rootName;
         private boolean keyEmitted;

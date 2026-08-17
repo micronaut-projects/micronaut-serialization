@@ -43,7 +43,7 @@ class XmlReaderDecoderSpec extends Specification {
     private static Decoder createDecoder(@Language('xml') String xml, boolean emptyElementAsNull = false) {
         def reader = XMLInputFactory.newFactory()
             .createXMLStreamReader(new StringReader(xml))
-        new XmlReaderDecoder.DocumentDecoder(LimitingStream.DEFAULT_LIMITS, reader, emptyElementAsNull)
+        new XmlStaxDecoder.DocumentDecoder(LimitingStream.DEFAULT_LIMITS, reader, emptyElementAsNull)
     }
 
     def "decode root scalar values"() {

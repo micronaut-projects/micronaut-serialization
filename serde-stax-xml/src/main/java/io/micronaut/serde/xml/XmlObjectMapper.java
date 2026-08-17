@@ -118,7 +118,7 @@ public final class XmlObjectMapper implements ObjectMapper {
 
         try (XmlReaderResource resource = new XmlReaderResource(
             xmlInputFactory.createXMLStreamReader(inputStream))) {
-            XmlReaderDecoder decoder = new XmlReaderDecoder.DocumentDecoder(
+            XmlStaxDecoder decoder = new XmlStaxDecoder.DocumentDecoder(
                 limits(), resource.reader(), emptyElementAsNull);
             return deserializer.deserialize(decoder, decoderContext, type);
         } catch (XMLStreamException e) {
@@ -244,7 +244,7 @@ public final class XmlObjectMapper implements ObjectMapper {
                 xmlWriter.writeEndDocument();
                 xmlWriter.flush();
             } else {
-                XmlGenerator encoder = new XmlGenerator(xmlWriter, resolveRootName(type));
+                XmlStaxEncoder encoder = new XmlStaxEncoder(xmlWriter, resolveRootName(type));
                 serialize(encoder, object, type);
             }
         } catch (XMLStreamException e) {

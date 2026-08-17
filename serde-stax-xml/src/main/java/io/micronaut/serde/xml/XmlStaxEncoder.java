@@ -45,7 +45,7 @@ import java.util.Objects;
  * @since 3.2
  */
 @Internal
-public final class XmlGenerator implements KeysAwareEncoder, XmlEncoder {
+public final class XmlStaxEncoder implements KeysAwareEncoder, XmlEncoder {
 
     private enum Scope {
         DOCUMENT,
@@ -70,16 +70,16 @@ public final class XmlGenerator implements KeysAwareEncoder, XmlEncoder {
      * @param xmlWriter The XML stream writer to receive encoded events
      * @param rootName The scalar document root, or {@code null} to use {@code value}
      */
-    XmlGenerator(XMLStreamWriter xmlWriter, @Nullable String rootName) {
+    XmlStaxEncoder(XMLStreamWriter xmlWriter, @Nullable String rootName) {
         this(xmlWriter, Scope.DOCUMENT, rootName, null, null, null);
     }
 
-    private XmlGenerator(XMLStreamWriter xmlWriter,
-                         Scope scope,
-                         @Nullable String rootName,
-                         @Nullable String rootNamespace,
-                         @Nullable ObjectScope objectScope,
-                         @Nullable ArrayScope arrayScope) {
+    private XmlStaxEncoder(XMLStreamWriter xmlWriter,
+                           Scope scope,
+                           @Nullable String rootName,
+                           @Nullable String rootNamespace,
+                           @Nullable ObjectScope objectScope,
+                           @Nullable ArrayScope arrayScope) {
         this.xmlWriter = xmlWriter;
         this.scope = scope;
         this.rootName = rootName;
@@ -88,16 +88,16 @@ public final class XmlGenerator implements KeysAwareEncoder, XmlEncoder {
         this.arrayScope = arrayScope;
     }
 
-    private static XmlGenerator objectScope(XMLStreamWriter writer,
-                                            @Nullable String rootNamespace,
-                                            ObjectScope objectScope) {
-        return new XmlGenerator(writer, Scope.OBJECT, null, rootNamespace, objectScope, null);
+    private static XmlStaxEncoder objectScope(XMLStreamWriter writer,
+                                              @Nullable String rootNamespace,
+                                              ObjectScope objectScope) {
+        return new XmlStaxEncoder(writer, Scope.OBJECT, null, rootNamespace, objectScope, null);
     }
 
-    private static XmlGenerator arrayScope(XMLStreamWriter writer,
-                                           @Nullable String rootNamespace,
-                                           ArrayScope arrayScope) {
-        return new XmlGenerator(writer, Scope.ARRAY, null, rootNamespace, null, arrayScope);
+    private static XmlStaxEncoder arrayScope(XMLStreamWriter writer,
+                                             @Nullable String rootNamespace,
+                                             ArrayScope arrayScope) {
+        return new XmlStaxEncoder(writer, Scope.ARRAY, null, rootNamespace, null, arrayScope);
     }
 
     @Override
