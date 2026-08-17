@@ -111,13 +111,9 @@
         
         <div class="toc-item" style="margin-left:10px" id="toc-item-bsonQuick"><a href="#bsonQuick"><strong>3.3</strong><span>BSON Annotations and BSON</span></a></div>
         
-        <div class="toc-item" style="margin-left:10px" id="toc-item-cborQuick"><a href="#cborQuick"><strong>3.4</strong><span>CBOR</span></a></div>
+        <div class="toc-item" style="margin-left:10px" id="toc-item-tomlQuick"><a href="#tomlQuick"><strong>3.4</strong><span>TOML</span></a></div>
         
-        <div class="toc-item" style="margin-left:10px" id="toc-item-tomlQuick"><a href="#tomlQuick"><strong>3.5</strong><span>TOML</span></a></div>
-        
-        <div class="toc-item" style="margin-left:10px" id="toc-item-propertiesQuick"><a href="#propertiesQuick"><strong>3.6</strong><span>Java Properties</span></a></div>
-        
-        <div class="toc-item" style="margin-left:10px" id="toc-item-xmlQuick"><a href="#xmlQuick"><strong>3.7</strong><span>XML</span></a></div>
+        <div class="toc-item" style="margin-left:10px" id="toc-item-propertiesQuick"><a href="#propertiesQuick"><strong>3.5</strong><span>Java Properties</span></a></div>
         
         <div class="toc-item" style="margin-left:0px" id="toc-item-jacksonAnnotations"><a href="#jacksonAnnotations"><strong>4</strong><span>Jackson Annotations</span></a></div>
         
@@ -151,13 +147,13 @@
         <h1>Micronaut Serialization</h1>
         <p></p>
         <p>Enables serialization/deserialization in Micronaut applications using build time information</p>
-        <p><strong>Version:</strong> 3.1.1-SNAPSHOT </p>
+        <p><strong>Version:</strong> 3.1.2-SNAPSHOT </p>
     </div>
     
 <h1 id="introduction"><a class="anchor" href="#introduction"></a>1 Introduction</h1>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/introduction.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.1.x/src/main/docs/guide/introduction.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
@@ -170,13 +166,13 @@
 <p>It does so using build-time <a href="https://docs.micronaut.io/latest/guide/#introspection">Bean Introspections</a> that do not use reflection and allows using a variety of common annotation models including <a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/package-summary.html">Jackson annotations</a>, JSON-B annotations or <a href="https://mongodb.github.io/mongo-java-driver/3.5/javadoc/?org/bson/codecs/pojo/annotations/package-summary.html">BSON annotations</a>.</p>
 </div>
 <div class="paragraph">
-<p>Micronaut Serialization can be used to replace the use of Jackson Databind in a Micronaut application and allows serialization on top of a number of different encoding runtimes including Jackson Core, JSON-P, BSON, or CBOR.</p>
+<p>Micronaut Serialization can be used to replace the use of Jackson Databind in a Micronaut application and allows serialization on top of a number of different encoding runtimes including Jackson Core, JSON-P or BSON.</p>
 </div>
 
 <h2 id="why"><a class="anchor" href="#why"></a>1.1 Why Micronaut Serialization?</h2>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/introduction/why.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.1.x/src/main/docs/guide/introduction/why.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
@@ -290,7 +286,7 @@
 <h1 id="releaseHistory"><a class="anchor" href="#releaseHistory"></a>2 Release History</h1>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/releaseHistory.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.1.x/src/main/docs/guide/releaseHistory.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
@@ -306,7 +302,7 @@
 <h1 id="quickStart"><a class="anchor" href="#quickStart"></a>3 Quick Start</h1>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/quickStart.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.1.x/src/main/docs/guide/quickStart.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
@@ -357,7 +353,7 @@ For Kotlin, add the <code>micronaut-serde-processor</code> dependency in <a href
 <h2 id="jacksonQuick"><a class="anchor" href="#jacksonQuick"></a>3.1 Jackson Annotations & Jackson Core</h2>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/quickStart/jacksonQuick.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.1.x/src/main/docs/guide/quickStart/jacksonQuick.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
@@ -749,7 +745,7 @@ class BookTest extends Specification {
 <h2 id="jsonpQuick"><a class="anchor" href="#jsonpQuick"></a>3.2 JSON-B Annotations & JSON-P</h2>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/quickStart/jsonpQuick.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.1.x/src/main/docs/guide/quickStart/jsonpQuick.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
@@ -1174,7 +1170,7 @@ class BookTest extends Specification {
 <h2 id="bsonQuick"><a class="anchor" href="#bsonQuick"></a>3.3 BSON Annotations and BSON</h2>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/quickStart/bsonQuick.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.1.x/src/main/docs/guide/quickStart/bsonQuick.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
@@ -1527,396 +1523,10 @@ class BookTest extends Specification {
 </div>
 </div>
 
-<h2 id="cborQuick"><a class="anchor" href="#cborQuick"></a>3.4 CBOR</h2>
+<h2 id="tomlQuick"><a class="anchor" href="#tomlQuick"></a>3.4 TOML</h2>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/quickStart/cborQuick.adoc"'>
-        <i class='fa fa-pencil-square-o'></i> Improve this doc
-    </button>
-</div>
-
-
-<div class="paragraph">
-<p>To serialize and deserialize objects as <a href="https://www.rfc-editor.org/rfc/rfc8949.html">CBOR</a> (Concise Binary Object Representation), add the following dependency:</p>
-</div>
-<div class="paragraph">
-<p>        <div class="listingblock multi-language-sample">
-<div class="title"></div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">implementation(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-jackson-cbor")</span></code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="maven">&lt;dependency&gt;
-    &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
-    &lt;artifactId&gt;micronaut-serde-jackson-cbor&lt;/artifactId&gt;
-&lt;/dependency&gt;</code></pre>
-</div>
-</div>
-</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-<code>micronaut-serde-jackson-cbor</code> uses Jackson&#8217;s <strong>streaming</strong> CBOR factory (<code>jackson-dataformat-cbor</code>) only as a token parser/generator. Object mapping is performed by Micronaut Serialization&#8217;s build-time serializers and deserializers. Jackson Databind is <strong>not</strong> used (the dataformat module&#8217;s transitive databind dependency is excluded).
-</td>
-</tr>
-</table>
-</div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
-Adding this module also brings <code>micronaut-serde-jackson</code> for the shared streaming encoder/decoder bridge. When both are present, Jackson remains the primary JSON <code>JsonMapper</code>. Inject <a href="../api/io/micronaut/serde/cbor/CborObjectMapper.html">CborObjectMapper</a> for CBOR. JSON-only applications that do not depend on <code>micronaut-serde-jackson-cbor</code> never load CBOR beans.
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>With the dependency in place you can define an object to be serialized:</p>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
-
-import io.micronaut.serde.annotation.Serdeable;
-
-@Serdeable // <b class="conum">(1)</b>
-public class Book {
-    private final String title;
-    private final int quantity;
-
-    public Book(String title, int quantity) {
-        this.title = title;
-        this.quantity = quantity;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public int getQuantity() {
-        return quantity;
-    }
-}</code></pre>
-</div>
-</div>
-<div class="colist arabic">
-<table>
-<tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>The type is annotated with <a href="../api/io/micronaut/serde/annotation/Serdeable.html">@Serdeable</a> to enable serialization/deserialization</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>Use <a href="../api/io/micronaut/serde/cbor/CborObjectMapper.html">CborObjectMapper</a> to read and write CBOR bytes:</p>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
-
-import io.micronaut.serde.cbor.CborObjectMapper;
-import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
-import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-@MicronautTest
-public class BookTest {
-
-    @Test
-    void testWriteReadBook(CborObjectMapper cborObjectMapper) throws IOException {
-        byte[] bytes = cborObjectMapper.writeValueAsBytes(new Book("The Stand", 50));
-        assertNotNull(bytes);
-        assertTrue(bytes.length &gt; 0);
-        // CBOR map major type, not JSON text
-        assertTrue((bytes[0] &amp; 0xE0) == 0xA0);
-
-        Book book = cborObjectMapper.readValue(bytes, Book.class);
-        assertNotNull(book);
-        assertEquals("The Stand", book.getTitle());
-        assertEquals(50, book.getQuantity());
-    }
-}</code></pre>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_coexistence_with_json">Coexistence with JSON</h3>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 50%;">
-<col style="width: 50%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">Need</th>
-<th class="tableblock halign-left valign-top">Inject / use</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Default JSON</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>JsonMapper</code> / <code>ObjectMapper</code> (primary = Jackson when present)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">CBOR</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CborObjectMapper</code> or HTTP media type <code>application/cbor</code></p></td>
-</tr>
-</tbody>
-</table>
-<div class="paragraph">
-<p>Both formats share the same <code>@Serdeable</code> types and generated serializers.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_binary_data">Binary data</h3>
-<div class="paragraph">
-<p>For CBOR, <code>byte[]</code> defaults to native <strong>byte strings</strong> (RFC 8949 major type 2), not the global JSON-legacy numeric-array encoding. This is controlled by <code>micronaut.serde.cbor.write-binary-as-array</code> (default <code>false</code>) and does not change JSON behaviour.</p>
-</div>
-<div class="paragraph">
-<p>To force numeric arrays for CBOR:</p>
-</div>
-<div class="openblock">
-<div class="content">
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">micronaut.serde.cbor.write-binary-as-array=true</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">micronaut:
-  serde:
-    cbor:
-      write-binary-as-array: true</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="toml">[micronaut]
-  [micronaut.serde]
-    [micronaut.serde.cbor]
-      write-binary-as-array=true</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-groovy-config hljs" data-lang="groovy-config">micronaut {
-  serde {
-    cbor {
-      writeBinaryAsArray = true
-    }
-  }
-}</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-hocon hljs" data-lang="hocon">{
-  micronaut {
-    serde {
-      cbor {
-        write-binary-as-array = true
-      }
-    }
-  }
-}</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-json-config hljs" data-lang="json-config">{
-  "micronaut": {
-    "serde": {
-      "cbor": {
-        "write-binary-as-array": true
-      }
-    }
-  }
-}</code></pre>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_http">HTTP</h3>
-<div class="paragraph">
-<p>The module registers a message body handler for <code>application/cbor</code>. Controllers and clients can use:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Post(uri = "/books", processes = CborMediaTypes.APPLICATION_CBOR)
-Book save(@Body Book book) {
-    return book;
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The constant <a href="../api/io/micronaut/serde/cbor/CborMediaTypes.html">CborMediaTypes</a>#APPLICATION_CBOR is provided for convenience. When Micronaut Core adds <code>MediaType.APPLICATION_CBOR</code>, that constant will remain a stable alias for the same media type string (<code>application/cbor</code>).</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_security_and_limits">Security and limits</h3>
-<div class="paragraph">
-<p>CBOR parsing and writing honour <code>micronaut.serde.maximum-nesting-depth</code> (and related stream limits) to bound stack usage on nested structures. Prefer keeping limits enabled for untrusted input. Very large byte strings are limited by available heap; apply HTTP body size limits at the server as usual.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_streaming_factory_features">Streaming factory features</h3>
-<div class="paragraph">
-<p>Optional CBOR and stream features map to Jackson&#8217;s streaming configuration:</p>
-</div>
-<div class="openblock">
-<div class="content">
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">micronaut.serde.cbor.cbor-write-features.WRITE_MINIMAL_INTS=true</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">micronaut:
-  serde:
-    cbor:
-      cbor-write-features:
-        WRITE_MINIMAL_INTS: true
-      cbor-read-features: {}
-      stream-read-features: {}
-      stream-write-features: {}</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="toml">[micronaut]
-  [micronaut.serde]
-    [micronaut.serde.cbor]
-      [micronaut.serde.cbor.cbor-write-features]
-        WRITE_MINIMAL_INTS=true
-      [micronaut.serde.cbor.cbor-read-features]
-      [micronaut.serde.cbor.stream-read-features]
-      [micronaut.serde.cbor.stream-write-features]</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-groovy-config hljs" data-lang="groovy-config">micronaut {
-  serde {
-    cbor {
-      cborWriteFeatures {
-        WRITE_MINIMAL_INTS = true
-      }
-      cborReadFeatures {
-      }
-      streamReadFeatures {
-      }
-      streamWriteFeatures {
-      }
-    }
-  }
-}</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-hocon hljs" data-lang="hocon">{
-  micronaut {
-    serde {
-      cbor {
-        cbor-write-features {
-          WRITE_MINIMAL_INTS = true
-        }
-        cbor-read-features {
-        }
-        stream-read-features {
-        }
-        stream-write-features {
-        }
-      }
-    }
-  }
-}</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-json-config hljs" data-lang="json-config">{
-  "micronaut": {
-    "serde": {
-      "cbor": {
-        "cbor-write-features": {
-          "WRITE_MINIMAL_INTS": true
-        },
-        "cbor-read-features": {
-        },
-        "stream-read-features": {
-        },
-        "stream-write-features": {
-        }
-      }
-    }
-  }
-}</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-These control token encoding details (for example minimal integer width). They do <strong>not</strong> implement full canonical/deterministic CBOR (sorted map keys, etc.).
-</td>
-</tr>
-</table>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_limitations_and_roadmap">Limitations and roadmap</h3>
-<div class="ulist">
-<ul>
-<li>
-<p>Map keys are text strings (integer map keys are not supported without Serde SPI changes).</p>
-</li>
-<li>
-<p>CBOR tags (date/time, bigfloats, etc.) are not applied; temporals use existing Micronaut Serde encodings.</p>
-</li>
-<li>
-<p>Indefinite-length encoding follows the streaming library defaults.</p>
-</li>
-<li>
-<p>Full deterministic/canonical CBOR is not a built-in mode.</p>
-</li>
-<li>
-<p>Reactive parsing (<code>createReactiveParser</code>) buffers before parsing and splits chunks with a JSON-oriented lexer, so it is only reliable when each <code>byte[]</code> chunk is a complete CBOR value. Use the byte-array or stream APIs for chunked input.</p>
-</li>
-<li>
-<p><code>byte[]</code> read into a <code>JsonNode</code> tree or an untyped <code>Object</code> becomes a base64 string in the tree (the tree representation Micronaut Serde uses for binary) and a <code>byte[]</code> in the untyped case.</p>
-</li>
-</ul>
-</div>
-</div>
-
-<h2 id="tomlQuick"><a class="anchor" href="#tomlQuick"></a>3.5 TOML</h2>
-
-<div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/quickStart/tomlQuick.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.1.x/src/main/docs/guide/quickStart/tomlQuick.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
@@ -1929,10 +1539,10 @@ These control token encoding details (for example minimal integer width). They d
 <p>See the <a href="https://micronaut-projects.github.io/micronaut-toml/latest/guide/#tomlQuick">Micronaut TOML serialization documentation</a> for dependency setup, the named TOML <a href="../api/io/micronaut/serde/ObjectMapper.html">ObjectMapper</a> bean, source-backed examples, mapper configuration, and TOML output layout.</p>
 </div>
 
-<h2 id="propertiesQuick"><a class="anchor" href="#propertiesQuick"></a>3.6 Java Properties</h2>
+<h2 id="propertiesQuick"><a class="anchor" href="#propertiesQuick"></a>3.5 Java Properties</h2>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/quickStart/propertiesQuick.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.1.x/src/main/docs/guide/quickStart/propertiesQuick.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
@@ -2087,355 +1697,10 @@ Java <code>*.properties</code> documents require keys. Root objects can be writt
 </table>
 </div>
 
-<h2 id="xmlQuick"><a class="anchor" href="#xmlQuick"></a>3.7 XML</h2>
-
-<div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/quickStart/xmlQuick.adoc"'>
-        <i class='fa fa-pencil-square-o'></i> Improve this doc
-    </button>
-</div>
-
-
-<div class="paragraph">
-<p>To serialize and deserialize XML with Micronaut Serialization, choose either the JDK StAX runtime or the Woodstox runtime. Both provide a named XML <a href="../api/io/micronaut/serde/ObjectMapper.html">ObjectMapper</a> bean and use the same compile-time serialization metadata as the JSON, JSON-P, and BSON runtimes.</p>
-</div>
-<div class="paragraph">
-<p>For the StAX implementation included with the JDK, add the following artifact to the <code>dependencies</code> block:</p>
-</div>
-<div class="paragraph">
-<p>        <div class="listingblock multi-language-sample">
-<div class="title"></div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">implementation(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-stax-xml")</span></code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="maven">&lt;dependency&gt;
-    &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
-    &lt;artifactId&gt;micronaut-serde-stax-xml&lt;/artifactId&gt;
-&lt;/dependency&gt;</code></pre>
-</div>
-</div>
-</p>
-</div>
-<div class="paragraph">
-<p>For Woodstox, use the following artifact instead. It includes the StAX integration transitively and selects Woodstox as the XML input and output factory implementation:</p>
-</div>
-<div class="paragraph">
-<p>        <div class="listingblock multi-language-sample">
-<div class="title"></div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">implementation(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-woodstox-xml")</span></code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="maven">&lt;dependency&gt;
-    &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
-    &lt;artifactId&gt;micronaut-serde-woodstox-xml&lt;/artifactId&gt;
-&lt;/dependency&gt;</code></pre>
-</div>
-</div>
-</p>
-</div>
-<div class="paragraph">
-<p>If your source code uses Jackson XML annotations such as <code>@JacksonXmlProperty</code> or <code>@JacksonXmlElementWrapper</code>, keep the Jackson XML annotation types on the compile classpath. Micronaut Serialization maps those annotations at compilation time; XML serialization still goes through Micronaut Serialization&#8217;s named XML mapper rather than a Jackson Databind <code>XmlMapper</code>.</p>
-</div>
-<div class="paragraph">
-<p>With the correct dependencies in place you can define an XML-serializable type:</p>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonRootName;
-import io.micronaut.serde.annotation.Serdeable;
-import tools.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import tools.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-
-import java.util.List;
-
-@Serdeable // <b class="conum">(1)</b>
-@JsonRootName("book") // <b class="conum">(2)</b>
-public class Book {
-    @JacksonXmlProperty(isAttribute = true, localName = "isbn") // <b class="conum">(3)</b>
-    private final String isbn;
-    @JacksonXmlProperty(localName = "title") // <b class="conum">(4)</b>
-    private final String title;
-    @JacksonXmlElementWrapper(localName = "authors") // <b class="conum">(5)</b>
-    @JacksonXmlProperty(localName = "author") // <b class="conum">(6)</b>
-    private final List&lt;String&gt; authors;
-
-    @JsonCreator
-    public Book(@JsonProperty("isbn") String isbn,
-                @JsonProperty("title") String title,
-                @JsonProperty("authors") List&lt;String&gt; authors) {
-        this.isbn = isbn;
-        this.title = title;
-        this.authors = authors;
-    }
-
-    public String getIsbn() {
-        return isbn;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public List&lt;String&gt; getAuthors() {
-        return authors;
-    }
-}</code></pre>
-</div>
-</div>
-<div class="colist arabic">
-<table>
-<tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>The type is annotated with <a href="../api/io/micronaut/serde/annotation/Serdeable.html">@Serdeable</a> to enable serialization/deserialization.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="2"></i><b>2</b></td>
-<td><code>@JsonRootName</code> customizes the XML document root element.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="3"></i><b>3</b></td>
-<td><code>@JacksonXmlProperty(isAttribute = true)</code> writes and reads the value as an XML attribute.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="4"></i><b>4</b></td>
-<td><code>@JacksonXmlProperty(localName = "&#8230;&#8203;")</code> customizes the element or attribute name.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="5"></i><b>5</b></td>
-<td><code>@JacksonXmlElementWrapper(localName = "&#8230;&#8203;")</code> wraps collection entries in the named XML element.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="6"></i><b>6</b></td>
-<td><code>@JacksonXmlProperty(localName = "&#8230;&#8203;")</code> customizes the XML element name used for each collection entry.</td>
-</tr>
-</table>
-</div>
-<div class="sect2">
-<h3 id="_supported_xml_annotations">Supported XML Annotations</h3>
-<div class="paragraph">
-<p>Micronaut Serialization supports every annotation in the <code>tools.jackson.dataformat.xml.annotation</code> package. The standard Jackson <code>@JsonRootName</code> and <code>@JsonProperty</code> annotations also supply names and namespaces used by the XML mapper. The supported XML-specific members are described below.</p>
-</div>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 20%;">
-<col style="width: 20%;">
-<col style="width: 60%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">Annotation</th>
-<th class="tableblock halign-left valign-top">Supported members</th>
-<th class="tableblock halign-left valign-top">XML behavior</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>@JacksonXmlProperty</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>isAttribute</code>, <code>localName</code>, <code>namespace</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">By default, the property is an XML element. Set <code>isAttribute = true</code> to write and read it as an attribute. <code>localName</code> changes the element or attribute name, and <code>namespace</code> supplies its namespace URI.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>@JacksonXmlElementWrapper</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>useWrapping</code>, <code>localName</code>, <code>namespace</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Controls the container element for an array or collection. Wrapping is enabled by default and uses the property name when <code>localName</code> is empty. Set <code>useWrapping = false</code> to write entries directly under the parent; <code>localName</code> and <code>namespace</code> configure the wrapper when wrapping is enabled.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>@JacksonXmlRootElement</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>localName</code>, <code>namespace</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Changes the document root element name and namespace. It affects only the root value. This annotation is deprecated in Jackson 3; prefer <code>@JsonRootName</code> unless the XML root must differ from other formats.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>@JacksonXmlText</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>value</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">With <code>value = true</code> (the default), writes and reads the property as direct text inside its owning element. Attributes may be present on that element. Set <code>value = false</code> to retain normal property-element handling.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>@JacksonXmlCData</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>value</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">With <code>value = true</code> (the default), writes <code>String</code> properties and <code>String</code> collection entries as CDATA. It can be combined with <code>@JacksonXmlText</code> for direct CDATA content. Deserialization accepts both CDATA and ordinary character data. Set <code>value = false</code> to use normal escaped text.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>@JsonRootName</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>value</code>, <code>namespace</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>value</code> changes the document root element name and <code>namespace</code> supplies its namespace URI.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>@JsonProperty</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>value</code>, <code>namespace</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">For XML, <code>value</code> changes the property element or attribute name and <code>namespace</code> supplies its namespace URI. It can be combined with <code>@JacksonXmlProperty(isAttribute = true)</code> to create a named, namespaced attribute. Other <code>@JsonProperty</code> behavior is shared with the non-XML runtimes.</p></td>
-</tr>
-</tbody>
-</table>
-<div class="paragraph">
-<p>An empty <code>localName</code> or <code>value</code> keeps the inferred property or type name. An empty <code>namespace</code> means that no explicit namespace URI is applied.</p>
-</div>
-<div class="paragraph">
-<p>The XML mapper is registered as a named bean in both runtimes. Inject it with <code>@Named</code> using <code>XmlObjectMapper.XML_MAPPER_NAME</code> or the literal name <code>xml</code>:</p>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
-
-import io.micronaut.serde.ObjectMapper;
-import io.micronaut.serde.xml.XmlObjectMapper;
-import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
-@MicronautTest
-public class BookTest {
-
-    @Inject
-    @Named(XmlObjectMapper.XML_MAPPER_NAME)
-    ObjectMapper xmlMapper;
-
-    @Test
-    void testWriteReadBook() throws IOException {
-        String result = xmlMapper.writeValueAsString(new Book(
-            "978-0307743688",
-            "The Stand",
-            List.of("Stephen King")
-        ));
-
-        assertEquals(
-            "&lt;book isbn=\"978-0307743688\"&gt;&lt;title&gt;The Stand&lt;/title&gt;&lt;authors&gt;&lt;author&gt;Stephen King&lt;/author&gt;&lt;/authors&gt;&lt;/book&gt;",
-            result
-        );
-
-        Book book = xmlMapper.readValue(result, Book.class);
-        assertNotNull(book);
-        assertEquals("978-0307743688", book.getIsbn());
-        assertEquals("The Stand", book.getTitle());
-        assertEquals(List.of("Stephen King"), book.getAuthors());
-    }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>XML-specific behavior can be configured under <code>micronaut.serde.format.xml</code>:</p>
-</div>
-<div class="openblock">
-<div class="content">
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">micronaut.serde.format.xml.repairing-namespaces=true
-micronaut.serde.format.xml.automatic-empty-elements=false
-micronaut.serde.format.xml.xml-read-features.EMPTY_ELEMENT_AS_NULL=true</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">micronaut:
-  serde:
-    format:
-      xml:
-        repairing-namespaces: true
-        automatic-empty-elements: false
-        xml-read-features:
-          EMPTY_ELEMENT_AS_NULL: true</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="toml">[micronaut]
-  [micronaut.serde]
-    [micronaut.serde.format]
-      [micronaut.serde.format.xml]
-        repairing-namespaces=true
-        automatic-empty-elements=false
-        [micronaut.serde.format.xml.xml-read-features]
-          EMPTY_ELEMENT_AS_NULL=true</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-groovy-config hljs" data-lang="groovy-config">micronaut {
-  serde {
-    format {
-      xml {
-        repairingNamespaces = true
-        automaticEmptyElements = false
-        xmlReadFeatures {
-          EMPTY_ELEMENT_AS_NULL = true
-        }
-      }
-    }
-  }
-}</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-hocon hljs" data-lang="hocon">{
-  micronaut {
-    serde {
-      format {
-        xml {
-          repairing-namespaces = true
-          automatic-empty-elements = false
-          xml-read-features {
-            EMPTY_ELEMENT_AS_NULL = true
-          }
-        }
-      }
-    }
-  }
-}</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-json-config hljs" data-lang="json-config">{
-  "micronaut": {
-    "serde": {
-      "format": {
-        "xml": {
-          "repairing-namespaces": true,
-          "automatic-empty-elements": false,
-          "xml-read-features": {
-            "EMPTY_ELEMENT_AS_NULL": true
-          }
-        }
-      }
-    }
-  }
-}</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="paragraph">
-<p><code>repairing-namespaces</code> defaults to <code>true</code> and lets the XML writer declare namespace prefixes when a property or root element has a namespace. Set it to <code>false</code> only when the XML stream writer is expected to receive already-valid namespace bindings.</p>
-</div>
-<div class="paragraph">
-<p><code>automatic-empty-elements</code> defaults to <code>false</code>. Enable it to allow the XML output factory to write self-closing empty elements such as <code>&lt;book/&gt;</code> when the configured StAX implementation supports that feature.</p>
-</div>
-<div class="paragraph">
-<p><code>xml-read-features.EMPTY_ELEMENT_AS_NULL</code> defaults to <code>false</code>. Enable it when empty XML elements should deserialize as <code>null</code> instead of an empty string or empty bean.</p>
-</div>
-</div>
-
 <h1 id="jacksonAnnotations"><a class="anchor" href="#jacksonAnnotations"></a>4 Jackson Annotations</h1>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/jacksonAnnotations.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.1.x/src/main/docs/guide/jacksonAnnotations.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
@@ -2902,7 +2167,7 @@ fields to be serialized. <code>micronaut-serialization</code> supports this feat
 <h2 id="jacksonFilter"><a class="anchor" href="#jacksonFilter"></a>4.1 Custom Property Filters</h2>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/jacksonFilter.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.1.x/src/main/docs/guide/jacksonFilter.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
@@ -3182,7 +2447,7 @@ class PersonFilterTest extends Specification {
 <h1 id="jsonbAnnotations"><a class="anchor" href="#jsonbAnnotations"></a>5 JSON-B Support</h1>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/jsonbAnnotations.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.1.x/src/main/docs/guide/jsonbAnnotations.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
@@ -3218,7 +2483,7 @@ class PersonFilterTest extends Specification {
 <h2 id="annotations"><a class="anchor" href="#annotations"></a>5.1 JSON-B Annotations</h2>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/jsonbAnnotations/annotations.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.1.x/src/main/docs/guide/jsonbAnnotations/annotations.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
@@ -3342,7 +2607,7 @@ public class Book {
 <h2 id="extensionBeans"><a class="anchor" href="#extensionBeans"></a>5.2 JSON-B Extension Beans</h2>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/jsonbAnnotations/extensionBeans.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.1.x/src/main/docs/guide/jsonbAnnotations/extensionBeans.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
@@ -3490,7 +2755,7 @@ public final class MilesAdapter implements JsonbAdapter&lt;Miles, String&gt; {
 <h2 id="programmaticConfiguration"><a class="anchor" href="#programmaticConfiguration"></a>5.3 Programmatic JSON-B Configuration</h2>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/jsonbAnnotations/programmaticConfiguration.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.1.x/src/main/docs/guide/jsonbAnnotations/programmaticConfiguration.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
@@ -3572,7 +2837,7 @@ public final class ProgrammaticCodeDeserializer implements JsonbDeserializer&lt;
 <h1 id="bsonAnnotations"><a class="anchor" href="#bsonAnnotations"></a>6 BSON Annotations</h1>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/bsonAnnotations.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.1.x/src/main/docs/guide/bsonAnnotations.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
@@ -3588,7 +2853,7 @@ public final class ProgrammaticCodeDeserializer implements JsonbDeserializer&lt;
 <h1 id="serdes"><a class="anchor" href="#serdes"></a>7 Custom Serializers & Deserializers</h1>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/serdes.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.1.x/src/main/docs/guide/serdes.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
@@ -4189,7 +3454,7 @@ class Place {
 <h1 id="serdeImport"><a class="anchor" href="#serdeImport"></a>8 Enabling Serialization of External Classes</h1>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/serdeImport.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.1.x/src/main/docs/guide/serdeImport.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
@@ -4359,7 +3624,7 @@ class Serdes {}</code></pre>
 <h1 id="keys"><a class="anchor" href="#keys"></a>9 Custom Key Converters</h1>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/keys.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.1.x/src/main/docs/guide/keys.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
@@ -4537,7 +3802,7 @@ class Feature {
 <h1 id="breaks"><a class="anchor" href="#breaks"></a>10 Breaking Changes</h1>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/breaks.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.1.x/src/main/docs/guide/breaks.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
@@ -4681,7 +3946,7 @@ The internal constructor <code>OracleJdbcJsonTextObjectMapper(SerdeRegistry regi
 <h1 id="repository"><a class="anchor" href="#repository"></a>11 Repository</h1>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/repository.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.1.x/src/main/docs/guide/repository.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
