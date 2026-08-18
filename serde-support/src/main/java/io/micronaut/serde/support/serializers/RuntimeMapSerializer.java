@@ -26,6 +26,7 @@ import io.micronaut.inject.annotation.MutableAnnotationMetadata;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.XmlEncoder;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.JsonNodeEncoder;
@@ -67,7 +68,11 @@ final class RuntimeMapSerializer<K, V> extends AbstractMapObjectSerializer<K, V>
     @Override
     protected void encodeKey(Encoder encoder, EncoderContext context, K k) throws IOException {
         if (isXmlAnyAttribute() && k instanceof QName qName) {
-            encodeMapKey(encoder, qName.getLocalPart());
+            if (encoder instanceof XmlEncoder xmlEncoder) {
+                xmlEncoder.encodeAttributeKey(qName);
+            } else {
+                encodeMapKey(encoder, qName.getLocalPart());
+            }
             return;
         }
         if (isStringKey || k instanceof CharSequence) {

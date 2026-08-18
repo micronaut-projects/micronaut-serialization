@@ -31,6 +31,7 @@ import java.util.List;
  */
 public final class JaxbXmlIdRefMapper implements NamedAnnotationMapper {
     private static final String XML_ID_REF_SERIALIZER = "io.micronaut.serde.support.serializers.XmlIdRefSerializer";
+    private static final String XML_ID_REF_DESERIALIZER = "io.micronaut.serde.support.deserializers.XmlIdRefDeserializer";
 
     @Override
     public String getName() {
@@ -40,7 +41,9 @@ public final class JaxbXmlIdRefMapper implements NamedAnnotationMapper {
     @Override
     public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         return List.of(AnnotationValue.builder(SerdeConfig.class)
+            .member(SerdeConfig.XML_ID_REF, true)
             .member(SerdeConfig.SERIALIZER_CLASS, new AnnotationClassValue<>(XML_ID_REF_SERIALIZER))
+            .member(SerdeConfig.DESERIALIZER_CLASS, new AnnotationClassValue<>(XML_ID_REF_DESERIALIZER))
             .build());
     }
 }

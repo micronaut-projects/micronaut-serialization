@@ -32,6 +32,8 @@ import java.util.List;
  * @since 3.2
  */
 public final class JaxbXmlElementRefMapper implements NamedAnnotationMapper {
+    static final String JAXB_XML_ELEMENT_REF_DEFAULT = "jakarta.xml.bind.annotation.XmlElementRef$DEFAULT";
+
     @Override
     public String getName() {
         return "jakarta.xml.bind.annotation.XmlElementRef";
@@ -40,7 +42,8 @@ public final class JaxbXmlElementRefMapper implements NamedAnnotationMapper {
     @Override
     public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         AnnotationClassValue<?> type = annotation.annotationClassValue("type")
-            .filter(value -> !"jakarta.xml.bind.JAXBElement".equals(value.getName()))
+            .filter(value -> !"jakarta.xml.bind.JAXBElement".equals(value.getName())
+                && !JAXB_XML_ELEMENT_REF_DEFAULT.equals(value.getName()))
             .orElse(null);
         if (type == null) {
             return List.of();

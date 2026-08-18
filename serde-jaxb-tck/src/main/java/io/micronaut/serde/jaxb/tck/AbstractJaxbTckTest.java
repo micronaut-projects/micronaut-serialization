@@ -214,13 +214,24 @@ public abstract class AbstractJaxbTckTest {
         JaxbPerson leader = new JaxbPerson();
         leader.id = "leader";
         leader.name = "Ada";
-        value.people = List.of(leader);
+        value.person = leader;
         value.manager = leader;
         value.managerAttribute = leader;
+        value.delegates = List.of(leader);
+        value.alternates = new JaxbPerson[]{leader};
+        value.reviewers = Set.of(leader);
 
+        value.managerAttribute = null;
+        JaxbIdReferences decoded = readXml(writeXml(value), JaxbIdReferences.class);
+        value.managerAttribute = leader;
         String xml = writeXml(value);
 
-        assertXmlSimilar("<jaxbIdReferences managerAttribute=\"leader\"><person id=\"leader\" name=\"Ada\"/><manager>leader</manager></jaxbIdReferences>", xml);
+        assertXmlSimilar("<jaxbIdReferences managerAttribute=\"leader\"><person id=\"leader\" name=\"Ada\"/><manager>leader</manager><delegate>leader</delegate><alternate>leader</alternate><reviewer>leader</reviewer></jaxbIdReferences>", xml);
+        assertEquals("leader", decoded.manager.id);
+        assertTrue(decoded.manager == decoded.person);
+        assertTrue(decoded.delegates.getFirst() == decoded.person);
+        assertTrue(decoded.alternates[0] == decoded.person);
+        assertTrue(decoded.reviewers.iterator().next() == decoded.person);
     }
 
     @Test
@@ -341,10 +352,14 @@ public abstract class AbstractJaxbTckTest {
         JaxbAnyAttributes value = new JaxbAnyAttributes();
         value.attributes.put(new QName("edition"), "first");
         value.attributes.put(new QName("format"), "hardcover");
+        value.attributes.put(new QName("urn:metadata", "language"), "en");
 
         String xml = writeXml(value);
+        JaxbAnyAttributes decoded = readXml(xml, JaxbAnyAttributes.class);
 
-        assertXmlSimilar("<jaxbAnyAttributes edition=\"first\" format=\"hardcover\"/>", xml);
+        assertXmlSimilar("<jaxbAnyAttributes xmlns:m=\"urn:metadata\" edition=\"first\" format=\"hardcover\" m:language=\"en\"/>", xml);
+        assertEquals("first", decoded.attributes.get(new QName("edition")));
+        assertEquals("en", decoded.attributes.get(new QName("urn:metadata", "language")));
     }
 
 
@@ -366,8 +381,8 @@ public abstract class AbstractJaxbTckTest {
     @Test
     void xmlElementRefUsesTheDeclaredRootNameAndType() throws Exception {
         JaxbRootRefContainer value = new JaxbRootRefContainer();
-        value.root = new JaxbReferencedRoot();
-        value.root.name = "Root";
+        value.reference = new JaxbReferencedRoot();
+        value.reference.name = "Root";
 
         String xml = writeXml(value);
 
@@ -445,8 +460,8 @@ public abstract class AbstractJaxbTckTest {
     /** JAXB root-reference model. */
     @XmlRootElement
     public static class JaxbRootRefContainer {
-        @XmlElementRef(name = "root", type = JaxbReferencedRoot.class)
-        public JaxbReferencedRoot root;
+        @XmlElementRef
+        public JaxbReferencedRoot reference;
     }
 
     /** JAXB referenced root model. */
@@ -611,7 +626,7 @@ public abstract class AbstractJaxbTckTest {
     @XmlRootElement
     public static class JaxbIdReferences {
         @XmlElement(name = "person")
-        public List<JaxbPerson> people;
+        public JaxbPerson person;
 
         @XmlIDREF
         @XmlElement(name = "manager")
@@ -620,6 +635,18 @@ public abstract class AbstractJaxbTckTest {
         @XmlIDREF
         @XmlAttribute
         public JaxbPerson managerAttribute;
+
+        @XmlIDREF
+        @XmlElement(name = "delegate")
+        public List<JaxbPerson> delegates;
+
+        @XmlIDREF
+        @XmlElement(name = "alternate")
+        public JaxbPerson[] alternates;
+
+        @XmlIDREF
+        @XmlElement(name = "reviewer")
+        public Set<JaxbPerson> reviewers;
     }
 
     /** JAXB ID-bearing model. */
@@ -631,6 +658,170 @@ public abstract class AbstractJaxbTckTest {
 
         @XmlAttribute
         public String name;
+    }
+
+    /** JAXB ID-reference document with constructor-only and no-arguments shapes. */
+    @XmlRootElement
+    @XmlType(propOrder = {"constructor", "constructorReference", "bean", "beanReference"})
+    public static class JaxbIdShapeReferences {
+        public JaxbIdConstructor constructor;
+
+        @XmlIDREF
+        public JaxbIdConstructor constructorReference;
+
+        public JaxbIdSimpleBean bean;
+
+        @XmlIDREF
+        public JaxbIdSimpleBean beanReference;
+    }
+
+    /** JAXB ID-bearing record shape. */
+    @XmlAccessorType(XmlAccessType.PROPERTY)
+    public record JaxbIdRecord(String id, String name) {
+        @XmlID
+        @XmlAttribute
+        @Override
+        public String id() {
+            return id;
+        }
+
+        @XmlAttribute
+        @Override
+        public String name() {
+            return name;
+        }
+    }
+
+    /** JAXB ID-reference document for the record shape. */
+    @XmlRootElement
+    public static class JaxbIdRecordReferences {
+        public JaxbIdRecord record;
+
+        @XmlIDREF
+        public JaxbIdRecord recordReference;
+    }
+
+    /** JAXB ID-bearing constructor-only shape. */
+    @XmlAccessorType(XmlAccessType.PROPERTY)
+    public static final class JaxbIdConstructor {
+        private final String id;
+        private final String name;
+
+        public JaxbIdConstructor(String id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        @XmlID
+        @XmlAttribute
+        public String getId() {
+            return id;
+        }
+
+        @XmlAttribute
+        public String getName() {
+            return name;
+        }
+    }
+
+    /** JAXB ID-bearing mutable no-arguments shape. */
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static final class JaxbIdSimpleBean {
+        @XmlID
+        @XmlAttribute
+        public String id;
+
+        @XmlAttribute
+        public String name;
+    }
+
+    /** JAXB annotations applied to a record. */
+    @XmlRootElement(name = "recordShape")
+    @XmlAccessorType(XmlAccessType.PROPERTY)
+    @XmlType(propOrder = {"title", "tags"})
+    public record JaxbAnnotatedRecord(String code, String title, List<String> tags, String ignored) {
+        @XmlAttribute(name = "code")
+        @Override
+        public String code() {
+            return code;
+        }
+
+        @XmlElement(name = "title")
+        @Override
+        public String title() {
+            return title;
+        }
+
+        @XmlElementWrapper(name = "tags")
+        @XmlElement(name = "tag")
+        @Override
+        public List<String> tags() {
+            return tags;
+        }
+
+        @XmlTransient
+        @Override
+        public String ignored() {
+            return ignored;
+        }
+    }
+
+    /** JAXB annotations applied to a constructor-only bean. */
+    @XmlRootElement(name = "constructorShape")
+    @XmlAccessorType(XmlAccessType.PROPERTY)
+    @XmlType(propOrder = {"title", "tags"})
+    public static final class JaxbAnnotatedConstructor {
+        private final String code;
+        private final String title;
+        private final List<String> tags;
+        private final String ignored;
+
+        public JaxbAnnotatedConstructor(String code, String title, List<String> tags, String ignored) {
+            this.code = code;
+            this.title = title;
+            this.tags = tags;
+            this.ignored = ignored;
+        }
+
+        @XmlAttribute(name = "code")
+        public String getCode() {
+            return code;
+        }
+
+        @XmlElement(name = "title")
+        public String getTitle() {
+            return title;
+        }
+
+        @XmlElementWrapper(name = "tags")
+        @XmlElement(name = "tag")
+        public List<String> getTags() {
+            return tags;
+        }
+
+        @XmlTransient
+        public String getIgnored() {
+            return ignored;
+        }
+    }
+
+    /** JAXB annotations applied to a mutable no-arguments bean. */
+    @XmlRootElement(name = "simpleBeanShape")
+    @XmlAccessorType(XmlAccessType.FIELD)
+    @XmlType(propOrder = {"title", "tags"})
+    public static final class JaxbAnnotatedSimpleBean {
+        @XmlAttribute(name = "code")
+        public String code;
+
+        @XmlElement(name = "title")
+        public String title;
+
+        @XmlElementWrapper(name = "tags")
+        @XmlElement(name = "tag")
+        public List<String> tags;
+
+        @XmlTransient
+        public String ignored;
     }
 
     /** JAXB namespace model. */

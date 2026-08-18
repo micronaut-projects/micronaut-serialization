@@ -16,6 +16,7 @@
 package io.micronaut.serde.reference;
 
 import java.util.ArrayDeque;
+import java.util.Objects;
 
 import org.jspecify.annotations.Nullable;
 
@@ -30,14 +31,31 @@ public abstract class AbstractPropertyReferenceManager implements PropertyRefere
      */
     @Nullable
     protected ArrayDeque<PropertyReference<?, ?>> refs;
+    @Nullable
+    private ArrayDeque<ReferenceScopeImpl> referenceScopes;
+    @Nullable
+    private ReferenceScopeImpl currentScope;
+
+    @Override
+    public ReferenceScope openReferenceScope() {
+        ReferenceScopeImpl scope = new ReferenceScopeImpl(this, currentScope);
+        currentScope = scope;
+        return scope;
+    }
 
     @Override
     public <B, P> void pushManagedRef(PropertyReference<B, P> reference) {
         if (reference != null) {
             if (refs == null) {
                 refs = new ArrayDeque<>(5);
+                referenceScopes = new ArrayDeque<>(5);
             }
             refs.addFirst(reference);
+            ReferenceScopeImpl scope = currentScope;
+            Objects.requireNonNull(referenceScopes).addFirst(scope == null ? ReferenceScopeImpl.NO_SCOPE : scope);
+            if (scope != null) {
+                scope.referenceCount++;
+            }
         }
     }
 
@@ -45,6 +63,39 @@ public abstract class AbstractPropertyReferenceManager implements PropertyRefere
     public void popManagedRef() {
         if (refs != null && !refs.isEmpty()) {
             refs.removeFirst();
+            ReferenceScopeImpl scope = Objects.requireNonNull(referenceScopes).removeFirst();
+            if (scope != ReferenceScopeImpl.NO_SCOPE) {
+                scope.referenceCount--;
+            }
+        }
+    }
+
+    private static final class ReferenceScopeImpl implements ReferenceScope {
+        private static final ReferenceScopeImpl NO_SCOPE = new ReferenceScopeImpl(null, null);
+
+        private final @Nullable AbstractPropertyReferenceManager manager;
+        private final @Nullable ReferenceScopeImpl parent;
+        private int referenceCount;
+
+        private ReferenceScopeImpl(@Nullable AbstractPropertyReferenceManager manager,
+                                   @Nullable ReferenceScopeImpl parent) {
+            this.manager = manager;
+            this.parent = parent;
+        }
+
+        @Override
+        public void close() {
+            AbstractPropertyReferenceManager referenceManager = manager;
+            if (referenceManager == null) {
+                return;
+            }
+            if (referenceManager.currentScope != this) {
+                throw new IllegalStateException("Reference scopes must be closed in reverse order");
+            }
+            while (referenceCount > 0) {
+                referenceManager.popManagedRef();
+            }
+            referenceManager.currentScope = parent;
         }
     }
 }

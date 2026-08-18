@@ -16,6 +16,9 @@
 package io.micronaut.serde;
 
 import io.micronaut.core.annotation.Internal;
+import org.jspecify.annotations.Nullable;
+
+import javax.xml.namespace.QName;
 
 /**
  * XML-specific decoder capability for identifying the current key as an attribute.
@@ -27,4 +30,12 @@ public interface XmlDecoder extends Decoder {
      * @return Whether the current key is an XML attribute
      */
     boolean isCurrentKeyAttribute();
+
+    /**
+     * @return The qualified current XML attribute key, if any
+     * @since 3.2
+     */
+    default @Nullable QName getCurrentKeyQName() {
+        return null;
+    }
 }

@@ -93,6 +93,9 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     private static final String JAXB_XML_TRANSIENT = JAXB_ANNOTATION_PREFIX + "XmlTransient";
     private static final String JAXB_XML_ELEMENT_WRAPPER = JAXB_ANNOTATION_PREFIX + "XmlElementWrapper";
     private static final String JAXB_XML_ELEMENT = JAXB_ANNOTATION_PREFIX + "XmlElement";
+    private static final String JAXB_XML_ELEMENT_REF = JAXB_ANNOTATION_PREFIX + "XmlElementRef";
+    private static final String JAXB_XML_ID = JAXB_ANNOTATION_PREFIX + "XmlID";
+    private static final String JAXB_XML_ID_REF = JAXB_ANNOTATION_PREFIX + "XmlIDREF";
     private static final String JAXB_XML_VALUE = JAXB_ANNOTATION_PREFIX + "XmlValue";
     private static final String JAXB_ELEMENT = "jakarta.xml.bind.JAXBElement";
 
@@ -444,6 +447,10 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     }
 
     private void handleReferences(Element element, VisitorContext context, ClassElement propertyType, boolean isBasicType) {
+        if (element.enumValue(SerdeConfig.SerManagedRef.class, SerdeConfig.SerManagedRef.SCOPE,
+                SerdeConfig.SerManagedRef.Scope.class).orElse(null) == SerdeConfig.SerManagedRef.Scope.DOCUMENT) {
+            return;
+        }
         handleReferenceProperty(
             element,
             context,
@@ -1156,6 +1163,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         final List<PropertyElement> beanProperties = classElement.getBeanProperties();
         ignoreUnannotatedJaxbNoneProperties(classElement, beanProperties);
         validateJaxbXmlValues(classElement, beanProperties);
+        applyJaxbElementRefDefaults(beanProperties);
+        applyJaxbIdProperties(beanProperties);
         applyJaxbCollectionDefaults(classElement, beanProperties);
         final List<String> order;
         if (classElement.booleanValue(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER, "alphabetic").orElse(false)) {
@@ -1236,6 +1245,52 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         if (valueProperties > 1) {
             throw new ProcessingException(classElement, "Only a single XmlValue property is supported");
         }
+    }
+
+    private void applyJaxbElementRefDefaults(List<PropertyElement> beanProperties) {
+        for (PropertyElement property : beanProperties) {
+            AnnotationValue<?> elementRef = property.getAnnotation(JAXB_XML_ELEMENT_REF);
+            if (elementRef == null || elementRef.annotationClassValue("type")
+                .filter(type -> "jakarta.xml.bind.annotation.XmlElementRef$DEFAULT".equals(type.getName()))
+                .isEmpty()) {
+                continue;
+            }
+            ClassElement referencedType = resolveRefType(property.getGenericType());
+            AnnotationValue<?> rootElement = referencedType.getAnnotation(JAXB_XML_ROOT_ELEMENT);
+            String name = elementRef.stringValue("name").filter(value -> !"##default".equals(value))
+                .orElseGet(() -> rootElement == null ? NameUtils.decapitalize(referencedType.getSimpleName())
+                    : rootElement.stringValue("name").filter(value -> !"##default".equals(value))
+                        .orElseGet(() -> NameUtils.decapitalize(referencedType.getSimpleName())));
+            AnnotationValue<SerdeConfig.SerSubtyped.SerSubtype> subtype = AnnotationValue
+                .builder(SerdeConfig.SerSubtyped.SerSubtype.class)
+                .member(AnnotationMetadata.VALUE_MEMBER, new AnnotationClassValue<>(referencedType.getName()))
+                .member("names", new String[] {name})
+                .build();
+            property.annotate(SerdeConfig.SerUnwrapped.class);
+            property.annotate(SerdeConfig.SerSubtyped.class, builder -> builder
+                .values(subtype)
+                .member(SerdeConfig.SerSubtyped.DISCRIMINATOR_TYPE, SerdeConfig.SerSubtyped.DiscriminatorType.WRAPPER_OBJECT)
+                .member(SerdeConfig.SerSubtyped.DISCRIMINATOR_VALUE, SerdeConfig.SerSubtyped.DiscriminatorValueKind.NAME));
+        }
+    }
+
+    private void applyJaxbIdProperties(List<PropertyElement> beanProperties) {
+        for (PropertyElement property : beanProperties) {
+            if (hasJaxbPropertyAnnotation(property, JAXB_XML_ID)) {
+                property.annotate(SerdeConfig.SerManagedRef.class, builder ->
+                    builder.member(SerdeConfig.SerManagedRef.SCOPE, SerdeConfig.SerManagedRef.Scope.DOCUMENT));
+            }
+            if (hasJaxbPropertyAnnotation(property, JAXB_XML_ID_REF)) {
+                property.annotate(SerdeConfig.class, builder -> builder.member(SerdeConfig.XML_ID_REF, true));
+            }
+        }
+    }
+
+    private boolean hasJaxbPropertyAnnotation(PropertyElement property, String annotation) {
+        return property.hasAnnotation(annotation)
+            || property.getReadMethod().map(method -> method.hasAnnotation(annotation)).orElse(false)
+            || property.getWriteMethod().map(method -> method.hasAnnotation(annotation)).orElse(false)
+            || property.getField().map(field -> field.hasAnnotation(annotation)).orElse(false);
     }
 
     private void applyJaxbCollectionDefaults(ClassElement classElement, List<PropertyElement> beanProperties) {

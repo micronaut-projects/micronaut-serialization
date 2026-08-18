@@ -181,4 +181,27 @@ class XmlReaderDecoderSpec extends Specification {
         object.decodeKey() == 'empty'
         object.decodeNull()
     }
+
+    def "null probing leaves non-empty nested elements available"() {
+        given:
+        def object = createDecoder('<root><child id="7"><name>Foo</name></child></root>', true)
+            .decodeObject(Argument.of(Map))
+
+        expect:
+        object.decodeKey() == 'child'
+        !object.decodeNull()
+
+        when:
+        def child = object.decodeObject(Argument.of(Map))
+
+        then:
+        child.decodeKey() == 'id'
+        child.decodeString() == '7'
+        child.decodeKey() == 'name'
+        child.decodeString() == 'Foo'
+        child.decodeKey() == null
+        child.finishStructure()
+        object.decodeKey() == null
+        object.finishStructure()
+    }
 }

@@ -426,6 +426,26 @@ public @interface SerdeConfig {
          */
         String ALIAS = "alias";
 
+        /**
+         * The managed-reference scope.
+         */
+        String SCOPE = "scope";
+
+        /**
+         * @return The managed-reference scope
+         */
+        Scope scope() default Scope.PROPERTY;
+
+        /**
+         * Managed-reference scopes.
+         */
+        enum Scope {
+            /** Reference is available while decoding the managed property. */
+            PROPERTY,
+            /** Reference is available for the enclosing document. */
+            DOCUMENT
+        }
+
     }
 
     /**

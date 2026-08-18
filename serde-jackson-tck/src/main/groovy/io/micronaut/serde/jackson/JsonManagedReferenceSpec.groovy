@@ -529,4 +529,34 @@ class Item {
             def e = thrown(Exception)
             e.message.contains errorMultipleMatch(["userItems", "moreItems"])
     }
+
+    void "object identity remains available to a later sibling reference"() {
+        given:
+        def context = buildContext('''
+package identitytest;
+
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Team {
+    public Person person;
+    public Person manager;
+}
+
+@Serdeable
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+class Person {
+    public int id;
+    public String name;
+}
+''')
+
+        when:
+        def team = jsonMapper.readValue('{"person":{"id":1,"name":"Ada"},"manager":1}', argumentOf(context, 'identitytest.Team'))
+
+        then:
+        team.manager.is(team.person)
+    }
 }

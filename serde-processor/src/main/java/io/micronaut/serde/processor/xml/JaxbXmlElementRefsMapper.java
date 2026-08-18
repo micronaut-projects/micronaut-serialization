@@ -46,7 +46,8 @@ public final class JaxbXmlElementRefsMapper implements NamedAnnotationMapper {
         List<AnnotationValue<SerdeConfig.SerSubtyped.SerSubtype>> subtypes = new ArrayList<>();
         for (AnnotationValue<Annotation> element : annotation.getAnnotations(AnnotationMetadata.VALUE_MEMBER)) {
             AnnotationClassValue<?> type = element.annotationClassValue("type").orElse(null);
-            if (type == null || JAXB_ELEMENT.equals(type.getName())) {
+            if (type == null || JAXB_ELEMENT.equals(type.getName())
+                || JaxbXmlElementRefMapper.JAXB_XML_ELEMENT_REF_DEFAULT.equals(type.getName())) {
                 continue;
             }
             AnnotationValueBuilder<SerdeConfig.SerSubtyped.SerSubtype> subtype = AnnotationValue.builder(SerdeConfig.SerSubtyped.SerSubtype.class)

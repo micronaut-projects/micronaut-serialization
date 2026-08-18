@@ -33,6 +33,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.Map;
+import javax.xml.namespace.QName;
 
 /**
  * The abstract map serializer.
@@ -95,7 +96,7 @@ abstract sealed class AbstractMapObjectSerializer<K, V> implements ObjectSeriali
 
     protected final void encodeMapKey(Encoder encoder, String key) throws IOException {
         if (xmlAnyAttribute && encoder instanceof XmlEncoder xmlEncoder) {
-            xmlEncoder.encodeAttributeKey(key);
+            xmlEncoder.encodeAttributeKey(new QName(key));
         } else {
             encoder.encodeKey(key);
         }

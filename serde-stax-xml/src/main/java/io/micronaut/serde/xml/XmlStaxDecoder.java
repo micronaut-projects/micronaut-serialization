@@ -40,6 +40,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import javax.xml.namespace.QName;
 
 /**
  * Streaming {@link Decoder} over an {@link javax.xml.stream.XMLStreamReader}, with one concrete
@@ -315,45 +316,54 @@ public abstract sealed class XmlStaxDecoder extends LimitingStream implements De
 
     static final class Cursor {
         private final XMLStreamReader reader;
+        @Nullable
+        private EventSnapshot replay;
 
         Cursor(XMLStreamReader reader) {
             this.reader = reader;
         }
 
         int current() {
-            return reader.getEventType();
+            EventSnapshot snapshot = replay;
+            return snapshot == null ? reader.getEventType() : snapshot.event;
         }
 
         String localName() {
-            return reader.getLocalName();
+            EventSnapshot snapshot = replay;
+            return snapshot == null ? reader.getLocalName() : snapshot.localName;
         }
 
         String text() {
-            return reader.getText();
+            EventSnapshot snapshot = replay;
+            return snapshot == null ? reader.getText() : snapshot.text;
         }
 
         int attributeCount() {
-            return reader.getAttributeCount();
+            EventSnapshot snapshot = replay;
+            return snapshot == null ? reader.getAttributeCount() : snapshot.attributeNames.length;
         }
 
         String attributeNamespace(int index) {
-            return reader.getAttributeNamespace(index);
+            EventSnapshot snapshot = replay;
+            return snapshot == null ? reader.getAttributeNamespace(index) : snapshot.attributeNamespaces[index];
         }
 
         String attributeName(int index) {
-            return reader.getAttributeLocalName(index);
+            EventSnapshot snapshot = replay;
+            return snapshot == null ? reader.getAttributeLocalName(index) : snapshot.attributeNames[index];
         }
 
         String attributeValue(int index) {
-            return reader.getAttributeValue(index);
+            EventSnapshot snapshot = replay;
+            return snapshot == null ? reader.getAttributeValue(index) : snapshot.attributeValues[index];
         }
 
         boolean xsiNil() {
-            int count = reader.getAttributeCount();
+            int count = attributeCount();
             for (int i = 0; i < count; i++) {
-                if (XSI_NS.equals(reader.getAttributeNamespace(i))
-                    && "nil".equals(reader.getAttributeLocalName(i))
-                    && "true".equalsIgnoreCase(reader.getAttributeValue(i).trim())) {
+                if (XSI_NS.equals(attributeNamespace(i))
+                    && "nil".equals(attributeName(i))
+                    && "true".equalsIgnoreCase(attributeValue(i).trim())) {
                     return true;
                 }
             }
@@ -361,6 +371,37 @@ public abstract sealed class XmlStaxDecoder extends LimitingStream implements De
         }
 
         int advance() throws IOException {
+            if (replay != null) {
+                replay = null;
+                return reader.getEventType();
+            }
+            return advanceReader();
+        }
+
+        /**
+         * Tests whether the current start element is empty without consuming a non-empty element.
+         *
+         * <p>StAX has no look-ahead operation, so a non-empty start element is retained as a
+         * one-event replay while the underlying reader remains positioned at its first content
+         * event.</p>
+         *
+         * @return Whether the current element has no content
+         * @throws IOException If the reader cannot advance
+         */
+        boolean isEmptyElement() throws IOException {
+            if (replay != null || reader.getEventType() != XMLStreamConstants.START_ELEMENT) {
+                return false;
+            }
+            EventSnapshot snapshot = new EventSnapshot(reader);
+            int next = advanceReader();
+            if (next == XMLStreamConstants.END_ELEMENT) {
+                return true;
+            }
+            replay = snapshot;
+            return false;
+        }
+
+        private int advanceReader() throws IOException {
             try {
                 while (reader.hasNext()) {
                     int e = reader.next();
@@ -377,6 +418,30 @@ public abstract sealed class XmlStaxDecoder extends LimitingStream implements De
                 return XMLStreamConstants.END_DOCUMENT;
             } catch (XMLStreamException x) {
                 throw new SerdeException("Error reading XML", x);
+            }
+        }
+
+        private static final class EventSnapshot {
+            private final int event;
+            private final String localName;
+            private final String text;
+            private final String[] attributeNamespaces;
+            private final String[] attributeNames;
+            private final String[] attributeValues;
+
+            private EventSnapshot(XMLStreamReader reader) {
+                this.event = reader.getEventType();
+                this.localName = reader.getLocalName();
+                this.text = "";
+                int attributeCount = reader.getAttributeCount();
+                this.attributeNamespaces = new String[attributeCount];
+                this.attributeNames = new String[attributeCount];
+                this.attributeValues = new String[attributeCount];
+                for (int i = 0; i < attributeCount; i++) {
+                    attributeNamespaces[i] = Objects.requireNonNullElse(reader.getAttributeNamespace(i), "");
+                    attributeNames[i] = reader.getAttributeLocalName(i);
+                    attributeValues[i] = reader.getAttributeValue(i);
+                }
             }
         }
     }
@@ -473,6 +538,7 @@ public abstract sealed class XmlStaxDecoder extends LimitingStream implements De
         private boolean ownerStart = true;
 
         private @Nullable String currentAttrValue;
+        private @Nullable String currentAttrNamespace;
         private @Nullable String currentKey;
         private @Nullable String pendingUnknownKey;
         private @Nullable XmlKey currentXmlKey;
@@ -541,6 +607,16 @@ public abstract sealed class XmlStaxDecoder extends LimitingStream implements De
         }
 
         @Override
+        public @Nullable QName getCurrentKeyQName() {
+            String key = currentKey;
+            if (key == null || currentAttrValue == null) {
+                return null;
+            }
+            String namespace = currentAttrNamespace;
+            return namespace == null || namespace.isEmpty() ? new QName(key) : new QName(namespace, key);
+        }
+
+        @Override
         @SuppressWarnings("unchecked")
         public int decodeKey(Keys keys) throws IOException {
             if (pendingUnknownKey != null) {
@@ -594,6 +670,7 @@ public abstract sealed class XmlStaxDecoder extends LimitingStream implements De
                     continue;
                 }
                 currentAttrValue = cursor.attributeValue(index);
+                currentAttrNamespace = cursor.attributeNamespace(index);
                 currentKey = cursor.attributeName(index);
                 return currentKey;
             }
@@ -668,10 +745,8 @@ public abstract sealed class XmlStaxDecoder extends LimitingStream implements De
                 clearKeyState();
                 return true;
             }
-            if (emptyElementAsNull && currentElementAtStart) {
-                enterCurrentElement();
-            }
-            if (emptyElementAsNull && cursor.current() == XMLStreamConstants.END_ELEMENT) {
+            if (emptyElementAsNull && currentElementAtStart && cursor.isEmptyElement()) {
+                currentElementAtStart = false;
                 cursor.advance();
                 clearKeyState();
                 return true;
@@ -807,6 +882,7 @@ public abstract sealed class XmlStaxDecoder extends LimitingStream implements De
         private void clearKeyState() {
             currentKey = null;
             currentAttrValue = null;
+            currentAttrNamespace = null;
             currentXmlKey = null;
             currentElementAtStart = false;
         }
@@ -818,7 +894,7 @@ public abstract sealed class XmlStaxDecoder extends LimitingStream implements De
      * ({@code @JacksonXmlElementWrapper(useWrapping = false)}, where same-named sibling elements
      * are the items).
      */
-    static final class ArrayDecoder extends XmlStaxDecoder {
+    static final class ArrayDecoder extends XmlStaxDecoder implements XmlDecoder {
 
         private enum Mode {
             WRAPPED,
@@ -944,6 +1020,11 @@ public abstract sealed class XmlStaxDecoder extends LimitingStream implements De
             this.itemPending = true;
             this.currentItemName = itemElement;
             this.currentItemAtStart = true;
+        }
+
+        @Override
+        public boolean isCurrentKeyAttribute() {
+            return false;
         }
 
         private static StringBuilder appendText(@Nullable StringBuilder bufferedText, String text) {

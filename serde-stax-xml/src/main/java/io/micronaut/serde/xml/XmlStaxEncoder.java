@@ -34,6 +34,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Base64;
 import java.util.Objects;
+import javax.xml.namespace.QName;
 
 /**
  * An {@link Encoder} that serializes objects to XML using a StAX {@link XMLStreamWriter}.
@@ -176,14 +177,16 @@ public final class XmlStaxEncoder implements KeysAwareEncoder, XmlEncoder {
     }
 
     @Override
-    public void encodeAttributeKey(String key) throws IOException {
-        encodeKey(key);
+    public void encodeAttributeKey(QName key) throws IOException {
+        String namespace = key.getNamespaceURI();
+        encodeKey(key.getLocalPart());
         ObjectScope object = requireObjectScope();
         PendingProperty property = object.pendingProperty;
         if (property != null) {
+            property.namespace = namespace;
             property.xmlKey = new XmlKey(
-                key,
-                null,
+                key.getLocalPart(),
+                namespace,
                 true,
                 false,
                 false,

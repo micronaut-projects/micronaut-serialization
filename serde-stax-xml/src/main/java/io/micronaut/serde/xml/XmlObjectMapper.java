@@ -116,7 +116,8 @@ public final class XmlObjectMapper implements ObjectMapper {
         Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext,
             type);
 
-        try (XmlReaderResource resource = new XmlReaderResource(
+        try (var ignored = decoderContext.openReferenceScope();
+             XmlReaderResource resource = new XmlReaderResource(
             xmlInputFactory.createXMLStreamReader(inputStream))) {
             XmlStaxDecoder decoder = new XmlStaxDecoder.DocumentDecoder(
                 limits(), resource.reader(), emptyElementAsNull);
@@ -168,7 +169,9 @@ public final class XmlObjectMapper implements ObjectMapper {
         Deserializer.DecoderContext decoderContext = registry.newDecoderContext(null);
         Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext,
             type);
-        return deserializer.deserialize(JsonNodeDecoder.create(tree, limits()), decoderContext, type);
+        try (var ignored = decoderContext.openReferenceScope()) {
+            return deserializer.deserialize(JsonNodeDecoder.create(tree, limits()), decoderContext, type);
+        }
     }
 
     /**

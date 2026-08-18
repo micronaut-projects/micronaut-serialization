@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import javax.xml.namespace.QName;
 
 /**
  * Implementation for deserialization of objects that uses introspection metadata.
@@ -164,6 +165,9 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                 }
             }
             objectDecoder.finishStructure();
+        }
+        if (instance != null) {
+            deserBean.pushManagedRefs(decoderContext, instance);
         }
         return instance;
     }
@@ -289,6 +293,9 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                     }
                 }
                 rootObjectDecoder.finishStructure();
+            }
+            if (instance != null) {
+                deserBean.pushManagedRefs(decoderContext, instance);
             }
             return instance;
         } finally {
@@ -493,7 +500,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
         private final DeserBean<?> deserBean;
         private final DeserBean.AnySetter anySetter;
         @Nullable
-        private Map<String, Object> values;
+        private Map<Object, Object> values;
 
         AnyValuesDeserializer(DeserBean<?> deserBean) {
             this.deserBean = deserBean;
@@ -501,13 +508,14 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
         }
 
         void bind(Object instance) {
-            Map<String, Object> resolvedValues = values;
+            Map<Object, Object> resolvedValues = values;
             if (resolvedValues != null) {
                 anySetter.bind(resolvedValues, instance);
             }
         }
 
         boolean tryConsume(String propertyName, Decoder decoder, DecoderContext decoderContext) throws IOException {
+            @Nullable QName xmlAttributeKey = null;
             if (decoder instanceof XmlDecoder xmlDecoder) {
                 if (anySetter.xmlAnyAttribute && !xmlDecoder.isCurrentKeyAttribute()) {
                     return false;
@@ -515,6 +523,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                 if (anySetter.xmlAnyElement && xmlDecoder.isCurrentKeyAttribute()) {
                     return false;
                 }
+                xmlAttributeKey = xmlDecoder.getCurrentKeyQName();
             }
             if (values == null) {
                 values = new LinkedHashMap<>();
@@ -540,7 +549,11 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                     throw e;
                 }
             }
-            values.put(propertyName, value);
+            Object mapKey = propertyName;
+            if (anySetter.xmlAnyAttributeQName) {
+                mapKey = xmlAttributeKey == null ? new QName(propertyName) : xmlAttributeKey;
+            }
+            values.put(mapKey, value);
             return true;
         }
     }

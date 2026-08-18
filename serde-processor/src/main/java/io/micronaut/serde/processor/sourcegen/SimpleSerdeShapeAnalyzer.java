@@ -58,8 +58,6 @@ public final class SimpleSerdeShapeAnalyzer {
         "tools.jackson.dataformat.xml.annotation.JacksonXmlCData";
     private static final String JAXB_XML_ELEMENT = "jakarta.xml.bind.annotation.XmlElement";
     private static final String JAXB_XML_ATTRIBUTE = "jakarta.xml.bind.annotation.XmlAttribute";
-    private static final String JAXB_XML_ID = "jakarta.xml.bind.annotation.XmlID";
-    private static final String JAXB_XML_ID_REF = "jakarta.xml.bind.annotation.XmlIDREF";
     private static final String JAXB_XML_MIXED = "jakarta.xml.bind.annotation.XmlMixed";
     private static final String JAXB_XML_ACCESSOR_TYPE = "jakarta.xml.bind.annotation.XmlAccessorType";
 
@@ -109,8 +107,7 @@ public final class SimpleSerdeShapeAnalyzer {
             return decision(shapeKind, serializerReasons, deserializerReasons);
         }
         if (!isBothFailed(serializerReasons, deserializerReasons)
-            && (hasAnnotation(element, JAXB_XML_ID)
-                || hasAnnotation(element, JAXB_XML_ID_REF)
+            && (hasJaxbIdProperty(element)
                 || hasAnnotation(element, JAXB_XML_MIXED)
                 || element.hasDeclaredAnnotation(JAXB_XML_ACCESSOR_TYPE))
             && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
@@ -658,6 +655,12 @@ public final class SimpleSerdeShapeAnalyzer {
             || property.getWriteMethod().map(method -> method.hasAnnotation(JACKSON_XML_PROPERTY)).orElse(false)
             || property.getWriteMethod().map(method -> method.hasAnnotation(JAXB_XML_ELEMENT) || method.hasAnnotation(JAXB_XML_ATTRIBUTE)).orElse(false)
             || property.getField().map(field -> field.hasAnnotation(JACKSON_XML_PROPERTY) || field.hasAnnotation(JAXB_XML_ELEMENT) || field.hasAnnotation(JAXB_XML_ATTRIBUTE)).orElse(false);
+    }
+
+    private boolean hasJaxbIdProperty(ClassElement element) {
+        return hasAnnotationMetadata(element, annotationMetadata -> annotationMetadata.enumValue(SerdeConfig.SerManagedRef.class,
+                SerdeConfig.SerManagedRef.SCOPE, SerdeConfig.SerManagedRef.Scope.class).orElse(null) == SerdeConfig.SerManagedRef.Scope.DOCUMENT
+            || annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.XML_ID_REF).orElse(false));
     }
 
     private boolean hasUnsupportedPropertySerdeConfig(ClassElement element) {

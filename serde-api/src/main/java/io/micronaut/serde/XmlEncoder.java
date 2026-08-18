@@ -18,6 +18,7 @@ package io.micronaut.serde;
 import io.micronaut.core.annotation.Internal;
 
 import java.io.IOException;
+import javax.xml.namespace.QName;
 
 /**
  * XML-specific encoder capability for writing attributes.
@@ -28,8 +29,9 @@ public interface XmlEncoder extends Encoder {
     /**
      * Encode an XML attribute key.
      *
-     * @param key The attribute name
+     * @param key The qualified attribute name
      * @throws IOException if an error occurs
+     * @since 3.2
      */
-    void encodeAttributeKey(String key) throws IOException;
+    void encodeAttributeKey(QName key) throws IOException;
 }

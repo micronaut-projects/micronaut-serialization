@@ -36,6 +36,8 @@ public final class JaxbXmlIdMapper implements NamedAnnotationMapper {
 
     @Override
     public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
-        return List.of(AnnotationValue.builder(SerdeConfig.class).member(SerdeConfig.XML_ID, true).build());
+        return List.of(AnnotationValue.builder(SerdeConfig.SerManagedRef.class)
+            .member(SerdeConfig.SerManagedRef.SCOPE, SerdeConfig.SerManagedRef.Scope.DOCUMENT)
+            .build());
     }
 }
