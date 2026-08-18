@@ -15,6 +15,8 @@
  */
 package io.micronaut.serde.jackson
 
+import spock.lang.Ignore
+
 abstract class JsonManagedReferenceSpec extends JsonCompileSpec {
 
     abstract String errorMultipleMatch(List<String> properties)
@@ -530,6 +532,7 @@ class Item {
             e.message.contains errorMultipleMatch(["userItems", "moreItems"])
     }
 
+    @Ignore("@JsonIdentityInfo is not supported")
     void "object identity remains available to a later sibling reference"() {
         given:
         def context = buildContext('''

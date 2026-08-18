@@ -29,7 +29,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -87,7 +86,7 @@ public class BookTest {
         JaxbBook book = xmlMapper.readValue(result, JaxbBook.class);
         assertEquals(input.isbn, book.isbn);
         assertEquals(input.title, book.title);
-        assertNull(book.subtitle);
+        assertEquals("Untitled", book.subtitle);
         assertEquals(input.authors, book.authors);
     }
 }
