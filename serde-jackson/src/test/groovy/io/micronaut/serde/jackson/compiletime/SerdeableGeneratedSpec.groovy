@@ -25,7 +25,9 @@ class SerdeableGeneratedSpec extends JsonCompileSpec {
 
     void 'test serdeable generated serializer and deserializer are functional'() {
         given:
-        def context = ApplicationContext.run()
+        def context = ApplicationContext.run([
+            'micronaut.serde.serialization.inclusion': 'ALWAYS'
+        ])
         jsonMapper = context.getBean(JsonMapper)
         def registry = context.getBean(SerdeRegistry)
         Argument argument = Argument.of(SourceGenGeneratedShape)
@@ -42,6 +44,28 @@ class SerdeableGeneratedSpec extends JsonCompileSpec {
         nullJson == '{"name":null,"count":7}'
         decoded.name() == 'Ada'
         decoded.count() == 42
+
+        cleanup:
+        context.close()
+    }
+
+    void 'test serdeable generated serializer honors global inclusion NON_NULL'() {
+        given:
+        def context = ApplicationContext.run([
+            'micronaut.serde.serialization.inclusion': 'NON_NULL'
+        ])
+        jsonMapper = context.getBean(JsonMapper)
+        def registry = context.getBean(SerdeRegistry)
+        Argument argument = Argument.of(SourceGenGeneratedShape)
+
+        when:
+        String nullJson = serializeToString(jsonMapper, new SourceGenGeneratedShape(null, 7))
+        String presentJson = serializeToString(jsonMapper, new SourceGenGeneratedShape('Ada', 42))
+
+        then:
+        assertRegistrySelection(registry, argument, 'Serializer', true)
+        nullJson == '{"count":7}'
+        presentJson == '{"name":"Ada","count":42}'
 
         cleanup:
         context.close()
