@@ -9,7 +9,6 @@ dependencies {
 
     compileOnly(mn.micronaut.inject.groovy)
     compileOnly(mn.jackson.databind)
-
     api(libs.jetbrains.annotations)
 
     implementation(projects.micronautSerdeApi)

@@ -17,7 +17,7 @@ class XmlGeneratorSpec extends Specification {
         def output = new ByteArrayOutputStream()
         def writer = XMLOutputFactory.newFactory()
             .createXMLStreamWriter(output, StandardCharsets.UTF_8.name())
-        def encoder = new XmlGenerator(writer, (String) null)
+        def encoder = new XmlStaxEncoder(writer, (String) null)
 
         closure.call(encoder)
 

@@ -38,7 +38,7 @@ final class CharSequenceKeyMapSerializer<V> extends AbstractMapObjectSerializer<
 
     @Override
     protected void encodeKey(Encoder encoder, EncoderContext context, CharSequence charSequence) throws IOException {
-        encoder.encodeKey(charSequence.toString());
+        encodeMapKey(encoder, charSequence.toString());
     }
 
 }

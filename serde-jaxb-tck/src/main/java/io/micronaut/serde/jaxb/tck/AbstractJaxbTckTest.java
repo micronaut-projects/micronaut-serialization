@@ -1,0 +1,936 @@
+/*
+ * Copyright 2017-2026 original authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.micronaut.serde.jaxb.tck;
+
+import jakarta.xml.bind.annotation.XmlAccessOrder;
+import jakarta.xml.bind.annotation.XmlAccessorOrder;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAnyAttribute;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlElementRef;
+import jakarta.xml.bind.annotation.XmlElementRefs;
+import jakarta.xml.bind.annotation.XmlElements;
+import jakarta.xml.bind.annotation.XmlElementWrapper;
+import jakarta.xml.bind.annotation.XmlEnum;
+import jakarta.xml.bind.annotation.XmlEnumValue;
+import jakarta.xml.bind.annotation.XmlID;
+import jakarta.xml.bind.annotation.XmlIDREF;
+import jakarta.xml.bind.annotation.XmlList;
+import jakarta.xml.bind.annotation.XmlMixed;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlSeeAlso;
+import jakarta.xml.bind.annotation.XmlTransient;
+import jakarta.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlValue;
+import org.junit.jupiter.api.Test;
+import org.jspecify.annotations.Nullable;
+import org.xmlunit.builder.DiffBuilder;
+
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.xml.namespace.QName;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+/**
+ * Shared JAXB annotation compatibility scenarios.
+ *
+ * @since 3.2
+ */
+public abstract class AbstractJaxbTckTest {
+
+    protected abstract String writeXml(Object value) throws Exception;
+
+    protected abstract <T> T readXml(String xml, Class<T> type) throws Exception;
+
+    @Test
+    void rootElementAttributeTextAndInlineCollectionsRoundTrip() throws Exception {
+        JaxbBook value = new JaxbBook();
+        value.isbn = "978";
+        value.title = "Serde";
+        value.authors = List.of("Ana", "Ben");
+
+        String xml = writeXml(value);
+        JaxbBook decoded = readXml(xml, JaxbBook.class);
+
+        assertXmlSimilar("""
+            <book xmlns="urn:books" isbn="978">
+                <title xmlns="">Serde</title>
+                <author xmlns="">Ana</author>
+                <author xmlns="">Ben</author>
+            </book>
+            """, xml);
+        assertEquals("978", decoded.isbn);
+        assertEquals("Serde", decoded.title);
+        assertEquals(List.of("Ana", "Ben"), decoded.authors);
+    }
+
+    @Test
+    void wrappersAndTransientPropertiesAreHonored() throws Exception {
+        JaxbLibrary value = new JaxbLibrary();
+        value.books = List.of("Serde");
+        value.ignored = "secret";
+
+        String xml = writeXml(value);
+        JaxbLibrary decoded = readXml(xml, JaxbLibrary.class);
+
+        assertXmlSimilar("<jaxbLibrary><books><book>Serde</book></books></jaxbLibrary>", xml);
+        assertEquals(List.of("Serde"), decoded.books);
+        assertNull(decoded.ignored);
+    }
+
+    @Test
+    void defaultsDeriveRootAndPropertyNamesAndInlineCollections() throws Exception {
+        JaxbDefaults value = new JaxbDefaults();
+        value.title = "Serde";
+        value.authors = List.of("Ana", "Ben");
+
+        String xml = writeXml(value);
+        JaxbDefaults decoded = readXml(xml, JaxbDefaults.class);
+
+        assertXmlSimilar("<jaxbDefaults><title>Serde</title><authors>Ana</authors><authors>Ben</authors></jaxbDefaults>", xml);
+        assertEquals("Serde", decoded.title);
+        assertEquals(List.of("Ana", "Ben"), decoded.authors);
+    }
+
+    @Test
+    void collectionAndArrayPropertiesRoundTrip() throws Exception {
+        JaxbCollectionVariants value = new JaxbCollectionVariants();
+        value.list = List.of("one", "two");
+        value.set = new LinkedHashSet<>(List.of("three", "four"));
+        value.array = new String[] {"five", "six"};
+        value.wrappedArray = new String[] {"seven", "eight"};
+        value.lexicalArray = new int[] {9, 10};
+        value.boxedLexicalArray = new Integer[] {11, 12};
+
+        String xml = writeXml(value);
+        JaxbCollectionVariants decoded = readXml(xml, JaxbCollectionVariants.class);
+
+        assertXmlSimilar("""
+            <jaxbCollectionVariants>
+                <list>one</list><list>two</list>
+                <set>three</set><set>four</set>
+                <array>five</array><array>six</array>
+                <wrappedArray><item>seven</item><item>eight</item></wrappedArray>
+                <lexicalArray>9 10</lexicalArray>
+                <boxedLexicalArray>11 12</boxedLexicalArray>
+            </jaxbCollectionVariants>
+            """, xml);
+        assertEquals(List.of("one", "two"), decoded.list);
+        assertEquals(new LinkedHashSet<>(List.of("three", "four")), decoded.set);
+        assertArrayEquals(new String[] {"five", "six"}, decoded.array);
+        assertArrayEquals(new String[] {"seven", "eight"}, decoded.wrappedArray);
+        assertArrayEquals(new int[] {9, 10}, decoded.lexicalArray);
+        assertArrayEquals(new Integer[] {11, 12}, decoded.boxedLexicalArray);
+    }
+
+    @Test
+    void typeAndAlphabeticalOrdersAreApplied() throws Exception {
+        JaxbTypeOrder typeOrder = new JaxbTypeOrder();
+        typeOrder.first = "one";
+        typeOrder.second = "two";
+        typeOrder.third = "three";
+        assertXmlSimilar("<jaxbTypeOrder><third>three</third><first>one</first><second>two</second></jaxbTypeOrder>", writeXml(typeOrder));
+
+        JaxbAlphabeticalOrder alphabeticalOrder = new JaxbAlphabeticalOrder();
+        alphabeticalOrder.zebra = "z";
+        alphabeticalOrder.apple = "a";
+        alphabeticalOrder.middle = "m";
+        assertXmlSimilar("<jaxbAlphabeticalOrder><apple>a</apple><middle>m</middle><zebra>z</zebra></jaxbAlphabeticalOrder>", writeXml(alphabeticalOrder));
+    }
+
+    @Test
+    void accessorTypeControlsBoundMembers() throws Exception {
+        JaxbFieldAccess value = new JaxbFieldAccess();
+        value.field = "field";
+
+        assertXmlSimilar("<jaxbFieldAccess><field>field</field></jaxbFieldAccess>", writeXml(value));
+    }
+
+    @Test
+    void accessorTypePropertyAndPublicMemberControlBoundMembers() throws Exception {
+        JaxbPropertyAccess propertyAccess = new JaxbPropertyAccess();
+        propertyAccess.fieldOnly = "field";
+        propertyAccess.setProperty("property");
+
+        String propertyXml = writeXml(propertyAccess);
+        JaxbPropertyAccess decodedPropertyAccess = readXml(propertyXml, JaxbPropertyAccess.class);
+        assertXmlSimilar("<jaxbPropertyAccess><property>property</property></jaxbPropertyAccess>", propertyXml);
+        assertEquals("property", decodedPropertyAccess.getProperty());
+        assertNull(decodedPropertyAccess.fieldOnly);
+
+        JaxbPublicMemberAccess publicMemberAccess = new JaxbPublicMemberAccess();
+        publicMemberAccess.field = "field";
+        publicMemberAccess.setProperty("property");
+
+        String publicMemberXml = writeXml(publicMemberAccess);
+        JaxbPublicMemberAccess decodedPublicMemberAccess = readXml(publicMemberXml, JaxbPublicMemberAccess.class);
+        assertXmlSimilar("<jaxbPublicMemberAccess><field>field</field><property>property</property></jaxbPublicMemberAccess>", publicMemberXml);
+        assertEquals("field", decodedPublicMemberAccess.field);
+        assertEquals("property", decodedPublicMemberAccess.getProperty());
+    }
+
+    @Test
+    void accessorTypeNoneIncludesOnlyJaxbAnnotatedMembers() throws Exception {
+        JaxbNoneAccess value = new JaxbNoneAccess();
+        value.notBound = "ignored";
+        value.explicit = "included";
+
+        String xml = writeXml(value);
+        JaxbNoneAccess decoded = readXml(xml, JaxbNoneAccess.class);
+
+        assertXmlSimilar("<jaxbNoneAccess><explicit>included</explicit></jaxbNoneAccess>", xml);
+        assertEquals("included", decoded.explicit);
+        assertNull(decoded.notBound);
+    }
+
+    @Test
+    void xmlIdReferencesUseTheReferencedId() throws Exception {
+        JaxbIdReferences value = new JaxbIdReferences();
+        JaxbPerson leader = new JaxbPerson();
+        leader.id = "leader";
+        leader.name = "Ada";
+        value.person = leader;
+        value.manager = leader;
+        value.managerAttribute = leader;
+        value.delegates = List.of(leader);
+        value.alternates = new JaxbPerson[]{leader};
+        value.reviewers = Set.of(leader);
+
+        value.managerAttribute = null;
+        JaxbIdReferences decoded = readXml(writeXml(value), JaxbIdReferences.class);
+        value.managerAttribute = leader;
+        String xml = writeXml(value);
+
+        assertXmlSimilar("<jaxbIdReferences managerAttribute=\"leader\"><person id=\"leader\" name=\"Ada\"/><manager>leader</manager><delegate>leader</delegate><alternate>leader</alternate><reviewer>leader</reviewer></jaxbIdReferences>", xml);
+        assertEquals("leader", decoded.manager.id);
+        assertTrue(decoded.manager == decoded.person);
+        assertTrue(decoded.delegates.getFirst() == decoded.person);
+        assertTrue(decoded.alternates[0] == decoded.person);
+        assertTrue(decoded.reviewers.iterator().next() == decoded.person);
+    }
+
+    @Test
+    void namespacesApplyToRootElementsAttributesElementsAndWrappers() throws Exception {
+        JaxbNamespacedBook value = new JaxbNamespacedBook();
+        value.code = "A1";
+        value.chapter = "intro";
+        value.chapters = List.of("one");
+
+        String xml = writeXml(value);
+        JaxbNamespacedBook decoded = readXml(xml, JaxbNamespacedBook.class);
+
+        assertXmlSimilar("""
+            <book xmlns="urn:root" xmlns:attribute="urn:attribute" attribute:code="A1">
+                <chapter xmlns="urn:chapter">intro</chapter>
+                <chapters xmlns="urn:chapters">
+                    <chapter xmlns="">one</chapter>
+                </chapters>
+            </book>
+            """, xml);
+        assertEquals("A1", decoded.code);
+        assertEquals("intro", decoded.chapter);
+        assertEquals(List.of("one"), decoded.chapters);
+    }
+
+    @Test
+    void xmlValueWritesDirectElementTextWithAttributes() throws Exception {
+        JaxbTextValue value = new JaxbTextValue();
+        value.language = "en";
+        value.value = "hello";
+        assertXmlSimilar("<jaxbTextValue language=\"en\">hello</jaxbTextValue>", writeXml(value));
+    }
+
+    @Test
+    void enumLexicalValuesAreUsed() throws Exception {
+        assertXmlSimilar("<JaxbEdition>second-edition</JaxbEdition>", writeXml(JaxbEdition.SECOND));
+        assertEquals(JaxbEdition.SECOND, readXml("<JaxbEdition>second-edition</JaxbEdition>", JaxbEdition.class));
+    }
+
+    @Test
+    void xmlElementDefaultValueMatchesJakartaXmlBindingBehavior() throws Exception {
+        JaxbDefaultsWithValues empty = readXml("<jaxbDefaultsWithValues><name></name><count></count></jaxbDefaultsWithValues>", JaxbDefaultsWithValues.class);
+        assertEquals("unknown", empty.name);
+        assertEquals(7, empty.count);
+
+        JaxbDefaultsWithValues whitespaceAndNil = readXml("<jaxbDefaultsWithValues><name> </name><count xsi:nil=\"true\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"></count></jaxbDefaultsWithValues>", JaxbDefaultsWithValues.class);
+        assertEquals(" ", whitespaceAndNil.name);
+        assertNull(whitespaceAndNil.count);
+
+        JaxbDefaultsWithValues missing = readXml("<jaxbDefaultsWithValues></jaxbDefaultsWithValues>", JaxbDefaultsWithValues.class);
+        assertEquals("initial", missing.name);
+        assertNull(missing.count);
+    }
+
+    @Test
+    void nillableElementsAndCollectionItemsUseXsiNil() throws Exception {
+        JaxbNillableElements value = new JaxbNillableElements();
+        value.values = Arrays.asList("one", null);
+
+        String xml = writeXml(value);
+        JaxbNillableElements decoded = readXml(xml, JaxbNillableElements.class);
+
+        assertXmlSimilar("""
+            <jaxbNillableElements xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                <name xsi:nil="true"/>
+                <value>one</value>
+                <value xsi:nil="true"/>
+            </jaxbNillableElements>
+            """, xml);
+        assertNull(decoded.name);
+        assertEquals(Arrays.asList("one", null), decoded.values);
+    }
+
+    @Test
+    void nillableWrappersDistinguishNullAndEmptyCollections() throws Exception {
+        JaxbNillableWrapper nullValues = new JaxbNillableWrapper();
+        assertXmlSimilar("""
+            <jaxbNillableWrapper xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                <values xsi:nil="true"/>
+            </jaxbNillableWrapper>
+            """, writeXml(nullValues));
+
+        JaxbNillableWrapper emptyValues = new JaxbNillableWrapper();
+        emptyValues.values = List.of();
+        assertXmlSimilar("<jaxbNillableWrapper><values/></jaxbNillableWrapper>", writeXml(emptyValues));
+
+        JaxbNillableWrapper decoded = readXml("<jaxbNillableWrapper><values xsi:nil=\"true\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"></values></jaxbNillableWrapper>", JaxbNillableWrapper.class);
+        assertNull(decoded.values);
+    }
+
+    @Test
+    void xmlElementTypeOverridesCompatiblePropertyTypes() throws Exception {
+        JaxbElementType value = new JaxbElementType();
+        value.value = "typed";
+
+        String xml = writeXml(value);
+        JaxbElementType decoded = readXml(xml, JaxbElementType.class);
+
+        assertXmlSimilar("<jaxbElementType><value>typed</value></jaxbElementType>", xml);
+        assertInstanceOf(String.class, decoded.value);
+        assertEquals("typed", decoded.value);
+    }
+
+    @Test
+    void xmlListUsesAWhitespaceSeparatedLexicalValue() throws Exception {
+        JaxbLexicalList value = new JaxbLexicalList();
+        value.values = List.of(1, 2, 3);
+
+        String xml = writeXml(value);
+        JaxbLexicalList decoded = readXml(xml, JaxbLexicalList.class);
+
+        assertXmlSimilar("<jaxbLexicalList><values>1 2 3</values></jaxbLexicalList>", xml);
+        assertEquals(List.of(1, 2, 3), decoded.values);
+    }
+
+    @Test
+    void xmlAnyAttributeWritesWildcardMapEntriesAsAttributes() throws Exception {
+        JaxbAnyAttributes value = new JaxbAnyAttributes();
+        value.attributes.put(new QName("edition"), "first");
+        value.attributes.put(new QName("format"), "hardcover");
+        value.attributes.put(new QName("urn:metadata", "language"), "en");
+
+        String xml = writeXml(value);
+        JaxbAnyAttributes decoded = readXml(xml, JaxbAnyAttributes.class);
+
+        assertXmlSimilar("<jaxbAnyAttributes xmlns:m=\"urn:metadata\" edition=\"first\" format=\"hardcover\" m:language=\"en\"/>", xml);
+        assertEquals("first", decoded.attributes.get(new QName("edition")));
+        assertEquals("en", decoded.attributes.get(new QName("urn:metadata", "language")));
+    }
+
+
+
+    @Test
+    void xmlElementRefUsesTheReferencedElementName() throws Exception {
+        JaxbRefContainer value = new JaxbRefContainer();
+        value.pet = new JaxbDog();
+        value.pet.name = "Rex";
+
+        String xml = writeXml(value);
+        JaxbRefContainer decoded = readXml(xml, JaxbRefContainer.class);
+
+        assertXmlSimilar("<jaxbRefContainer><dog><name>Rex</name></dog></jaxbRefContainer>", xml);
+        assertInstanceOf(JaxbDog.class, decoded.pet);
+        assertEquals("Rex", decoded.pet.name);
+    }
+
+    @Test
+    void xmlElementRefUsesTheDeclaredRootNameAndType() throws Exception {
+        JaxbRootRefContainer value = new JaxbRootRefContainer();
+        value.reference = new JaxbReferencedRoot();
+        value.reference.name = "Root";
+
+        String xml = writeXml(value);
+
+        assertXmlSimilar("<jaxbRootRefContainer><root><name>Root</name></root></jaxbRootRefContainer>", xml);
+    }
+
+    @Test
+    void xmlMixedWritesTextContent() throws Exception {
+        JaxbMixedContent value = new JaxbMixedContent();
+        value.content = List.of("one", "two");
+
+        String xml = writeXml(value);
+
+        assertXmlSimilar("<jaxbMixedContent>one two</jaxbMixedContent>", xml);
+    }
+
+    @Test
+    void xmlElementWrapperCombinesWithXmlElementRefs() throws Exception {
+        JaxbWrappedRefsContainer value = new JaxbWrappedRefsContainer();
+        JaxbDog dog = new JaxbDog();
+        dog.name = "Rex";
+        value.pets = List.of(dog);
+
+        String xml = writeXml(value);
+
+        assertXmlSimilar("<jaxbWrappedRefsContainer><pets><dog><name>Rex</name></dog></pets></jaxbWrappedRefsContainer>", xml);
+    }
+
+    @Test
+    void xmlElementsAndXmlElementRefsUseTheirChoiceElementNames() throws Exception {
+        JaxbElementsContainer elements = new JaxbElementsContainer();
+        elements.pet = new JaxbDog();
+        elements.pet.name = "Rex";
+        String elementsXml = writeXml(elements);
+        assertXmlSimilar("<jaxbElementsContainer><dog><name>Rex</name></dog></jaxbElementsContainer>", elementsXml);
+        assertInstanceOf(JaxbDog.class, readXml(elementsXml, JaxbElementsContainer.class).pet);
+
+        JaxbElementRefsContainer refs = new JaxbElementRefsContainer();
+        refs.pet = new JaxbDog();
+        refs.pet.name = "Rex";
+        String refsXml = writeXml(refs);
+        assertXmlSimilar("<jaxbElementRefsContainer><dog><name>Rex</name></dog></jaxbElementRefsContainer>", refsXml);
+        assertInstanceOf(JaxbDog.class, readXml(refsXml, JaxbElementRefsContainer.class).pet);
+
+        elements.pet = new JaxbCat();
+        elements.pet.name = "Milo";
+        assertXmlSimilar("<jaxbElementsContainer><cat><name>Milo</name></cat></jaxbElementsContainer>", writeXml(elements));
+
+        refs.pet = new JaxbCat();
+        refs.pet.name = "Milo";
+        assertXmlSimilar("<jaxbElementRefsContainer><cat><name>Milo</name></cat></jaxbElementRefsContainer>", writeXml(refs));
+    }
+    /** JAXB root, element, attribute, text, and inline collection model. */
+    @XmlRootElement(name = "book", namespace = "urn:books")
+    @XmlType(propOrder = {"title", "authors"})
+    public static class JaxbBook {
+        @XmlAttribute(name = "isbn")
+        public String isbn;
+
+        @XmlElement(name = "title")
+        public String title;
+
+        @XmlElement(name = "author")
+        public List<String> authors;
+
+    }
+
+    /** JAXB reference and choice model. */
+    @XmlRootElement
+    public static class JaxbRefContainer {
+        @XmlElementRef(name = "dog", namespace = "##default", type = JaxbDog.class, required = true)
+        public JaxbPet pet;
+    }
+
+    /** JAXB root-reference model. */
+    @XmlRootElement
+    public static class JaxbRootRefContainer {
+        @XmlElementRef
+        public JaxbReferencedRoot reference;
+    }
+
+    /** JAXB referenced root model. */
+    @XmlRootElement(name = "root")
+    public static class JaxbReferencedRoot {
+        public String name;
+    }
+
+    /** JAXB element-choice model. */
+    @XmlRootElement
+    public static class JaxbElementsContainer {
+        @XmlElements({
+            @XmlElement(name = "dog", namespace = "##default", type = JaxbDog.class, required = true),
+            @XmlElement(name = "cat", namespace = "##default", type = JaxbCat.class)
+        })
+        public JaxbPet pet;
+    }
+
+    /** JAXB element-reference-choice model. */
+    @XmlRootElement
+    public static class JaxbElementRefsContainer {
+        @XmlElementRefs({
+            @XmlElementRef(name = "dog", namespace = "##default", type = JaxbDog.class, required = true),
+            @XmlElementRef(name = "cat", namespace = "##default", type = JaxbCat.class)
+        })
+        public JaxbPet pet;
+    }
+
+    /** JAXB polymorphic base type. */
+    @XmlSeeAlso({JaxbDog.class, JaxbCat.class})
+    public static class JaxbPet {
+        public String name;
+    }
+
+    /** JAXB polymorphic subtype. */
+    @XmlRootElement(name = "dog")
+    public static class JaxbDog extends JaxbPet {
+    }
+
+    /** JAXB polymorphic subtype. */
+    @XmlRootElement(name = "cat")
+    public static class JaxbCat extends JaxbPet {
+    }
+
+    /** JAXB wrapper and transient property model. */
+    @XmlRootElement
+    public static class JaxbLibrary {
+        @XmlElementWrapper(name = "books")
+        @XmlElement(name = "book")
+        public List<String> books;
+
+        @XmlTransient
+        public String ignored;
+    }
+
+    /** JAXB default-name collection model. */
+    @XmlRootElement
+    public static class JaxbDefaults {
+        @XmlElement
+        public String title;
+
+        @XmlElement
+        public List<String> authors;
+    }
+
+    /** JAXB collection and array model. */
+    @XmlRootElement
+    public static class JaxbCollectionVariants {
+        @XmlElement(name = "list")
+        public List<String> list;
+
+        @XmlElement(name = "set")
+        public Set<String> set;
+
+        @XmlElement(name = "array")
+        public String[] array;
+
+        @XmlElementWrapper(name = "wrappedArray")
+        @XmlElement(name = "item")
+        public String[] wrappedArray;
+
+        @XmlList
+        public int[] lexicalArray;
+
+        @XmlList
+        public Integer[] boxedLexicalArray;
+    }
+
+    /** JAXB explicit property-order model. */
+    @XmlRootElement
+    @XmlType(propOrder = {"third", "first", "second"})
+    public static class JaxbTypeOrder {
+        public String first;
+        public String second;
+        public String third;
+    }
+
+    /** JAXB alphabetical property-order model. */
+    @XmlRootElement
+    @XmlAccessorOrder(XmlAccessOrder.ALPHABETICAL)
+    public static class JaxbAlphabeticalOrder {
+        public String zebra;
+        public String apple;
+        public String middle;
+    }
+
+    /** JAXB field-access model. */
+    @XmlRootElement
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class JaxbFieldAccess {
+        private String field;
+
+        public String getMethodOnly() {
+            return "method";
+        }
+    }
+
+    /** JAXB property-access model. */
+    @XmlRootElement
+    @XmlAccessorType(XmlAccessType.PROPERTY)
+    public static class JaxbPropertyAccess {
+        private String fieldOnly;
+        private String property;
+
+        public String getProperty() {
+            return property;
+        }
+
+        public void setProperty(String property) {
+            this.property = property;
+        }
+    }
+
+    /** JAXB public-member access model. */
+    @XmlRootElement
+    @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
+    @XmlType(propOrder = {"field", "property"})
+    public static class JaxbPublicMemberAccess {
+        public String field;
+        private String property;
+
+        public String getProperty() {
+            return property;
+        }
+
+        public void setProperty(String property) {
+            this.property = property;
+        }
+    }
+
+    /** JAXB explicitly-bound-member model. */
+    @XmlRootElement
+    @XmlAccessorType(XmlAccessType.NONE)
+    public static class JaxbNoneAccess {
+        public String notBound;
+
+        @XmlElement
+        public String explicit;
+    }
+
+    /** JAXB ID-reference document model. */
+    @XmlRootElement
+    public static class JaxbIdReferences {
+        @XmlElement(name = "person")
+        public JaxbPerson person;
+
+        @XmlIDREF
+        @XmlElement(name = "manager")
+        public JaxbPerson manager;
+
+        @XmlIDREF
+        @XmlAttribute
+        public JaxbPerson managerAttribute;
+
+        @XmlIDREF
+        @XmlElement(name = "delegate")
+        public List<JaxbPerson> delegates;
+
+        @XmlIDREF
+        @XmlElement(name = "alternate")
+        public JaxbPerson[] alternates;
+
+        @XmlIDREF
+        @XmlElement(name = "reviewer")
+        public Set<JaxbPerson> reviewers;
+    }
+
+    /** JAXB ID-bearing model. */
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class JaxbPerson {
+        @XmlID
+        @XmlAttribute
+        public String id;
+
+        @XmlAttribute
+        public String name;
+    }
+
+    /** JAXB ID-reference document with constructor-only and no-arguments shapes. */
+    @XmlRootElement
+    @XmlType(propOrder = {"constructor", "constructorReference", "bean", "beanReference"})
+    public static class JaxbIdShapeReferences {
+        public JaxbIdConstructor constructor;
+
+        @XmlIDREF
+        public JaxbIdConstructor constructorReference;
+
+        public JaxbIdSimpleBean bean;
+
+        @XmlIDREF
+        public JaxbIdSimpleBean beanReference;
+    }
+
+    /** JAXB ID-bearing record shape. */
+    @XmlAccessorType(XmlAccessType.PROPERTY)
+    public record JaxbIdRecord(String id, String name) {
+        @XmlID
+        @XmlAttribute
+        @Override
+        public String id() {
+            return id;
+        }
+
+        @XmlAttribute
+        @Override
+        public String name() {
+            return name;
+        }
+    }
+
+    /** JAXB ID-reference document for the record shape. */
+    @XmlRootElement
+    public static class JaxbIdRecordReferences {
+        public JaxbIdRecord record;
+
+        @XmlIDREF
+        public JaxbIdRecord recordReference;
+    }
+
+    /** JAXB ID-bearing constructor-only shape. */
+    @XmlAccessorType(XmlAccessType.PROPERTY)
+    public static final class JaxbIdConstructor {
+        private final String id;
+        private final String name;
+
+        public JaxbIdConstructor(String id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        @XmlID
+        @XmlAttribute
+        public String getId() {
+            return id;
+        }
+
+        @XmlAttribute
+        public String getName() {
+            return name;
+        }
+    }
+
+    /** JAXB ID-bearing mutable no-arguments shape. */
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static final class JaxbIdSimpleBean {
+        @XmlID
+        @XmlAttribute
+        public String id;
+
+        @XmlAttribute
+        public String name;
+    }
+
+    /** JAXB annotations applied to a record. */
+    @XmlRootElement(name = "recordShape")
+    @XmlAccessorType(XmlAccessType.PROPERTY)
+    @XmlType(propOrder = {"title", "tags"})
+    public record JaxbAnnotatedRecord(String code, String title, List<String> tags, String ignored) {
+        @XmlAttribute(name = "code")
+        @Override
+        public String code() {
+            return code;
+        }
+
+        @XmlElement(name = "title")
+        @Override
+        public String title() {
+            return title;
+        }
+
+        @XmlElementWrapper(name = "tags")
+        @XmlElement(name = "tag")
+        @Override
+        public List<String> tags() {
+            return tags;
+        }
+
+        @XmlTransient
+        @Override
+        public String ignored() {
+            return ignored;
+        }
+    }
+
+    /** JAXB annotations applied to a constructor-only bean. */
+    @XmlRootElement(name = "constructorShape")
+    @XmlAccessorType(XmlAccessType.PROPERTY)
+    @XmlType(propOrder = {"title", "tags"})
+    public static final class JaxbAnnotatedConstructor {
+        private final String code;
+        private final String title;
+        private final List<String> tags;
+        private final String ignored;
+
+        public JaxbAnnotatedConstructor(String code, String title, List<String> tags, String ignored) {
+            this.code = code;
+            this.title = title;
+            this.tags = tags;
+            this.ignored = ignored;
+        }
+
+        @XmlAttribute(name = "code")
+        public String getCode() {
+            return code;
+        }
+
+        @XmlElement(name = "title")
+        public String getTitle() {
+            return title;
+        }
+
+        @XmlElementWrapper(name = "tags")
+        @XmlElement(name = "tag")
+        public List<String> getTags() {
+            return tags;
+        }
+
+        @XmlTransient
+        public String getIgnored() {
+            return ignored;
+        }
+    }
+
+    /** JAXB annotations applied to a mutable no-arguments bean. */
+    @XmlRootElement(name = "simpleBeanShape")
+    @XmlAccessorType(XmlAccessType.FIELD)
+    @XmlType(propOrder = {"title", "tags"})
+    public static final class JaxbAnnotatedSimpleBean {
+        @XmlAttribute(name = "code")
+        public String code;
+
+        @XmlElement(name = "title")
+        public String title;
+
+        @XmlElementWrapper(name = "tags")
+        @XmlElement(name = "tag")
+        public List<String> tags;
+
+        @XmlTransient
+        public String ignored;
+    }
+
+    /** JAXB namespace model. */
+    @XmlRootElement(name = "book", namespace = "urn:root")
+    public static class JaxbNamespacedBook {
+        @XmlAttribute(name = "code", namespace = "urn:attribute")
+        public String code;
+
+        @XmlElement(name = "chapter", namespace = "urn:chapter")
+        public String chapter;
+
+        @XmlElementWrapper(name = "chapters", namespace = "urn:chapters")
+        @XmlElement(name = "chapter")
+        public List<String> chapters;
+    }
+
+    /** JAXB text-content model. */
+    @XmlRootElement
+    public static class JaxbTextValue {
+        @XmlAttribute
+        public String language;
+
+        @XmlValue
+        public String value;
+    }
+
+    /** JAXB XML default-value model. */
+    @XmlRootElement
+    public static class JaxbDefaultsWithValues {
+        @XmlElement(defaultValue = "unknown")
+        public String name = "initial";
+
+        @XmlElement(defaultValue = "7", nillable = true)
+        public @Nullable Integer count;
+    }
+
+    /** JAXB nillable element and collection item model. */
+    @XmlRootElement
+    public static class JaxbNillableElements {
+        @XmlElement(nillable = true)
+        public @Nullable String name;
+
+        @XmlElement(nillable = false)
+        public @Nullable String omitted;
+
+        @XmlElement(name = "value", nillable = true)
+        public @Nullable List<String> values;
+    }
+
+    /** JAXB nillable wrapper model. */
+    @XmlRootElement
+    public static class JaxbNillableWrapper {
+        @XmlElementWrapper(nillable = true)
+        public @Nullable List<String> values;
+    }
+
+    /** JAXB property type-override model. */
+    @XmlRootElement
+    public static class JaxbElementType {
+        @XmlElement(type = String.class)
+        public CharSequence value;
+    }
+
+    /** JAXB lexical list model. */
+    @XmlRootElement
+    public static class JaxbLexicalList {
+        @XmlList
+        public List<Integer> values;
+    }
+
+    /** JAXB wildcard attribute model. */
+    @XmlRootElement
+    public static class JaxbAnyAttributes {
+        @XmlAnyAttribute
+        public Map<QName, String> attributes = new LinkedHashMap<>();
+    }
+
+    /** JAXB mixed text-content model. */
+    @XmlRootElement
+    public static class JaxbMixedContent {
+        @XmlMixed
+        public List<String> content;
+    }
+
+    /** JAXB wrapper and element-reference combination model. */
+    @XmlRootElement
+    public static class JaxbWrappedRefsContainer {
+        @XmlElementWrapper(name = "pets")
+        @XmlElementRefs({
+            @XmlElementRef(name = "dog", type = JaxbDog.class),
+            @XmlElementRef(name = "cat", type = JaxbCat.class)
+        })
+        public List<JaxbPet> pets;
+    }
+    /** JAXB enum lexical-value model. */
+    @XmlRootElement(name = "JaxbEdition")
+    @XmlEnum
+    public enum JaxbEdition {
+        FIRST,
+        @XmlEnumValue("second-edition")
+        SECOND
+    }
+
+    private static void assertXmlSimilar(String expected, String actual) {
+        var diff = DiffBuilder.compare(expected)
+            .withTest(actual)
+            .ignoreWhitespace()
+            .checkForSimilar()
+            .build();
+        assertFalse(diff.hasDifferences(), diff::toString);
+    }
+}

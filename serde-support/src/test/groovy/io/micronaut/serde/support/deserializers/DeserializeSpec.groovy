@@ -3,13 +3,18 @@ package io.micronaut.serde.support.deserializers
 import io.micronaut.context.ApplicationContext
 import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
+import io.micronaut.json.tree.JsonNode
 import io.micronaut.serde.Deserializer
+import io.micronaut.serde.LimitingStream
 import io.micronaut.serde.SerdeRegistry
+import io.micronaut.serde.exceptions.SerdeException
 import io.micronaut.serde.support.MyConstructorPropertiesBean
 import io.micronaut.serde.support.MyMixSetterConstructorPropertiesBean
 import io.micronaut.serde.support.MyRecord
 import io.micronaut.serde.support.MySetterPropertiesBean
+import io.micronaut.serde.support.NullableConstructorParent
 import io.micronaut.serde.support.TestStatus
+import io.micronaut.serde.support.util.JsonNodeDecoder
 import spock.lang.Specification
 
 class DeserializeSpec extends Specification {
@@ -53,6 +58,32 @@ class DeserializeSpec extends Specification {
             isLegacyOrGenerated(getDeserializer(serdeRegistry, MyMixSetterConstructorPropertiesBean), SpecificObjectDeserializer)
         cleanup:
             ctx.close()
+    }
+
+    def 'deserialize a nullable constructor-only property with all null values'() {
+        given:
+        def ctx = ApplicationContext.run()
+        def serdeRegistry = ctx.getBean(SerdeRegistry)
+        def objectDeserializer = ctx.getBean(ObjectDeserializer)
+        def decoderContext = serdeRegistry.newDecoderContext(null)
+        def parentBean = objectDeserializer.getDeserializableBean(Argument.of(NullableConstructorParent), null, decoderContext)
+        def valueArgument = parentBean.injectProperties.derProperties[0].argument
+        def valueBean = objectDeserializer.getDeserializableBean(valueArgument, null, decoderContext)
+        def deserializer = new SpecificObjectDeserializer(false, valueBean, null)
+
+        when:
+        deserializer.deserializeNullable(
+                JsonNodeDecoder.create(JsonNode.createObjectNode([:]), LimitingStream.DEFAULT_LIMITS),
+                decoderContext,
+                valueArgument)
+
+        then:
+        valueArgument.nullable
+        def error = thrown(SerdeException)
+        error.message == 'Null value encountered during deserialization of type: NullableConstructorValue value'
+
+        cleanup:
+        ctx.close()
     }
 
     private static Deserializer getDeserializer(SerdeRegistry serdeRegistry, Class clazz) {

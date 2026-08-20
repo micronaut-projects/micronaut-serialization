@@ -73,7 +73,9 @@ class DefaultDecoderContext extends AbstractPropertyReferenceManager implements 
     public <B, P> PropertyReference<B, P> resolveReference(PropertyReference<B, P> reference) {
         if (refs != null) {
             for (PropertyReference<?, ?> ref : refs) {
-                if (ref.getReferenceName().equals(reference.getProperty().getName())) {
+                if (ref.getReferenceName().equals(reference.getReferenceName())
+                    || (reference.getProperty() != null
+                    && ref.getReferenceName().equals(reference.getProperty().getName()))) {
                     final Object o = ref.getReference();
                     if (o != null) {
                         //noinspection unchecked

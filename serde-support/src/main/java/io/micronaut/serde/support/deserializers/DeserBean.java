@@ -32,6 +32,7 @@ import io.micronaut.core.naming.NameUtils;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.type.GenericPlaceholder;
 import io.micronaut.core.util.ArrayUtils;
+import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
@@ -49,6 +50,7 @@ import io.micronaut.serde.exceptions.InvalidPropertyFormatException;
 import io.micronaut.serde.exceptions.NullValueSerdeException;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
+import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.support.util.DecoderValueKind;
 import io.micronaut.serde.support.util.ObjectShapeSerdeHelper;
 import io.micronaut.serde.support.util.SerdeAnnotationUtil;
@@ -64,7 +66,6 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -125,6 +126,8 @@ final class DeserBean<T> {
     private final List<String> propertyKeyNames;
     @Nullable
     private final IgnoredPropertyKeys ignoredPropertyKeys;
+    @Nullable
+    private final BeanProperty<T, Object> documentManagedRefProperty;
 
     private volatile boolean initialized;
     private volatile boolean initializing;
@@ -154,6 +157,11 @@ final class DeserBean<T> {
         @Nullable PropertyNamingStrategy defaultPropertyNamingStrategy = decoderContext.getSerdeConfiguration().map(SerdeConfiguration::getPropertyNamingStrategy).orElse(null);
         this.conversionService = decoderContext.getConversionService();
         this.introspection = introspection;
+        this.documentManagedRefProperty = introspection.getBeanProperties().stream()
+            .filter(property -> property.enumValue(SerdeConfig.SerManagedRef.class, SerdeConfig.SerManagedRef.SCOPE,
+                SerdeConfig.SerManagedRef.Scope.class).orElse(null) == SerdeConfig.SerManagedRef.Scope.DOCUMENT)
+            .findFirst()
+            .orElse(null);
         final SerdeConfig.SerCreatorMode creatorMode = introspection
             .getConstructor().getAnnotationMetadata()
             .enumValue(Creator.class, "mode", SerdeConfig.SerCreatorMode.class)
@@ -488,6 +496,13 @@ final class DeserBean<T> {
         recordLikeBean = isRecordLikeBean();
     }
 
+    void pushManagedRefs(Deserializer.DecoderContext decoderContext, T instance) {
+        BeanProperty<T, Object> property = documentManagedRefProperty;
+        if (property != null && property.get(instance) instanceof String id) {
+            decoderContext.pushManagedRef(new PropertyReference<>(id, introspection, Argument.of(String.class, id), instance));
+        }
+    }
+
     private Keys createPropertyKeys(List<String> keyNames, boolean caseInsensitive) {
         @Nullable List<KeyDescriptor> descriptors = null;
         for (int i = 0; i < keyNames.size(); i++) {
@@ -521,14 +536,19 @@ final class DeserBean<T> {
         return property.xmlAttributeProperty
             || property.xmlTextProperty
             || property.xmlCDataProperty
+            || property.xmlListProperty
+            || property.xmlMixedProperty
             || property.xmlNamespace != null
             || property.xmlWrappingConfigured
             || property.xmlWrapperName != null
-            || property.xmlWrapperNamespace != null;
+            || property.xmlWrapperNamespace != null
+            || property.xmlDefaultValue != null
+            || property.xmlNillable != null
+            || property.xmlWrapperNillable != null;
     }
 
     private static KeyDescriptor keyDescriptor(String name, DerProperty<?, ?> property) {
-        Map<String, String> metadata = new HashMap<>(7);
+        Map<String, String> metadata = CollectionUtils.newHashMap(10);
         if (property.xmlAttributeProperty) {
             metadata.put(SerdeConfig.XML_ATTRIBUTE_PROPERTY, "true");
         }
@@ -537,6 +557,12 @@ final class DeserBean<T> {
         }
         if (property.xmlCDataProperty) {
             metadata.put(SerdeConfig.XML_CDATA_PROPERTY, "true");
+        }
+        if (property.xmlListProperty) {
+            metadata.put(SerdeConfig.XML_LIST_PROPERTY, "true");
+        }
+        if (property.xmlMixedProperty) {
+            metadata.put(SerdeConfig.XML_MIXED_PROPERTY, "true");
         }
         if (property.xmlNamespace != null) {
             metadata.put(SerdeConfig.XML_NAMESPACE, property.xmlNamespace);
@@ -549,6 +575,15 @@ final class DeserBean<T> {
         }
         if (property.xmlWrapperNamespace != null) {
             metadata.put(SerdeConfig.XML_WRAPPER_NAMESPACE, property.xmlWrapperNamespace);
+        }
+        if (property.xmlDefaultValue != null) {
+            metadata.put(SerdeConfig.XML_DEFAULT_VALUE, property.xmlDefaultValue);
+        }
+        if (property.xmlNillable != null) {
+            metadata.put(SerdeConfig.XML_NILLABLE, property.xmlNillable.toString());
+        }
+        if (property.xmlWrapperNillable != null) {
+            metadata.put(SerdeConfig.XML_WRAPPER_NILLABLE, property.xmlWrapperNillable.toString());
         }
         return new KeyDescriptor(name, metadata);
     }
@@ -626,7 +661,7 @@ final class DeserBean<T> {
     }
 
     private boolean isSimpleBean() {
-        if (isJsonValueProperty || ignoredProperties != null || externalProperties != null || delegating || subtypeInfo != null || creatorParams != null || creatorUnwrapped != null || unwrappedProperties != null || anySetter != null) {
+        if (documentManagedRefProperty != null || isJsonValueProperty || ignoredProperties != null || externalProperties != null || delegating || subtypeInfo != null || creatorParams != null || creatorUnwrapped != null || unwrappedProperties != null || anySetter != null) {
             return false;
         }
         if (injectProperties != null) {
@@ -643,7 +678,7 @@ final class DeserBean<T> {
     }
 
     private boolean isRecordLikeBean() {
-        if (isJsonValueProperty || ignoredProperties != null || externalProperties != null || delegating || subtypeInfo != null || injectProperties != null || creatorUnwrapped != null || unwrappedProperties != null || anySetter != null) {
+        if (documentManagedRefProperty != null || isJsonValueProperty || ignoredProperties != null || externalProperties != null || delegating || subtypeInfo != null || injectProperties != null || creatorUnwrapped != null || unwrappedProperties != null || anySetter != null) {
             return false;
         }
         if (creatorParams != null) {
@@ -966,7 +1001,7 @@ final class DeserBean<T> {
         // CHECKSTYLE:OFF
         final Argument<Object> valueType;
         @Nullable
-        private final BiConsumer<Object, Map<String, ?>> mapSetter;
+        private final BiConsumer<Object, Map<?, ?>> mapSetter;
         @Nullable
         private final TriConsumer<Object, Object> valueSetter;
 
@@ -975,6 +1010,9 @@ final class DeserBean<T> {
         public Deserializer<?> deserializer;
 
         public final boolean constructorArgument;
+        public final boolean xmlAnyAttribute;
+        public final boolean xmlAnyAttributeQName;
+        public final boolean xmlAnyElement;
         // CHECKSTYLE:ON
 
         private AnySetter(BeanMethod<Object, ?> anySetter) {
@@ -991,6 +1029,9 @@ final class DeserBean<T> {
                 this.mapSetter = null;
             }
             constructorArgument = false;
+            xmlAnyAttribute = anySetter.getAnnotationMetadata().booleanValue(SerdeConfig.class, SerdeConfig.XML_ANY_ATTRIBUTE_PROPERTY).orElse(false);
+            xmlAnyAttributeQName = xmlAnyAttribute;
+            xmlAnyElement = anySetter.getAnnotationMetadata().booleanValue(SerdeConfig.class, SerdeConfig.XML_ANY_ELEMENT_PROPERTY).orElse(false);
         }
 
         private AnySetter(BeanWriteProperty<Object, Object> anySetter) {
@@ -1000,6 +1041,9 @@ final class DeserBean<T> {
             this.mapSetter = anySetter::set;
             this.valueSetter = null;
             this.constructorArgument = false;
+            xmlAnyAttribute = anySetter.getAnnotationMetadata().booleanValue(SerdeConfig.class, SerdeConfig.XML_ANY_ATTRIBUTE_PROPERTY).orElse(false);
+            xmlAnyAttributeQName = xmlAnyAttribute;
+            xmlAnyElement = anySetter.getAnnotationMetadata().booleanValue(SerdeConfig.class, SerdeConfig.XML_ANY_ELEMENT_PROPERTY).orElse(false);
         }
 
         private AnySetter(Argument<Object> anySetter, int index) {
@@ -1009,15 +1053,19 @@ final class DeserBean<T> {
             this.mapSetter = (o, map) -> ((Object[]) o)[index] = map;
             this.valueSetter = null;
             this.constructorArgument = true;
+            xmlAnyAttribute = anySetter.getAnnotationMetadata().booleanValue(SerdeConfig.class, SerdeConfig.XML_ANY_ATTRIBUTE_PROPERTY).orElse(false);
+            xmlAnyAttributeQName = xmlAnyAttribute;
+            xmlAnyElement = anySetter.getAnnotationMetadata().booleanValue(SerdeConfig.class, SerdeConfig.XML_ANY_ELEMENT_PROPERTY).orElse(false);
         }
 
-        void bind(Map<String, Object> values, Object object) {
+        void bind(Map<?, Object> values, Object object) {
             if (values != null) {
                 if (mapSetter != null) {
                     mapSetter.accept(object, values);
                 } else if (valueSetter != null) {
-                    for (String s : values.keySet()) {
-                        valueSetter.accept(object, s, values.get(s));
+                    for (Object key : values.keySet()) {
+                        String s = String.valueOf(key);
+                        valueSetter.accept(object, s, values.get(key));
                     }
                 }
             }
@@ -1076,9 +1124,14 @@ final class DeserBean<T> {
         public final boolean xmlAttributeProperty;
         public final boolean xmlTextProperty;
         public final boolean xmlCDataProperty;
+        public final boolean xmlListProperty;
+        public final boolean xmlMixedProperty;
         public final @Nullable String xmlNamespace;
         public final @Nullable String xmlWrapperName;
         public final @Nullable String xmlWrapperNamespace;
+        public final @Nullable String xmlDefaultValue;
+        public final @Nullable Boolean xmlNillable;
+        public final @Nullable Boolean xmlWrapperNillable;
         @Nullable
         public final String unresolvedTypeVariableName;
         @Nullable
@@ -1212,9 +1265,14 @@ final class DeserBean<T> {
             this.xmlAttributeProperty = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.XML_ATTRIBUTE_PROPERTY).orElse(false);
             this.xmlTextProperty = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.XML_TEXT_PROPERTY).orElse(false);
             this.xmlCDataProperty = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.XML_CDATA_PROPERTY).orElse(false);
+            this.xmlListProperty = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.XML_LIST_PROPERTY).orElse(false);
+            this.xmlMixedProperty = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.XML_MIXED_PROPERTY).orElse(false);
             this.xmlNamespace = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.XML_NAMESPACE).orElse(null);
             this.xmlWrapperName = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY).orElse(null);
             this.xmlWrapperNamespace = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.XML_WRAPPER_NAMESPACE).orElse(null);
+            this.xmlDefaultValue = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.XML_DEFAULT_VALUE).orElse(null);
+            this.xmlNillable = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.XML_NILLABLE).orElse(null);
+            this.xmlWrapperNillable = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.XML_WRAPPER_NILLABLE).orElse(null);
             this.explicitlyRequired = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.REQUIRED)
                 .orElse(false);
             this.explicitlyRequiredForConstructor = explicitlyRequired || deserializationConfiguration.isRequireAllCreatorParameters();
@@ -1667,16 +1725,20 @@ final class DeserBean<T> {
         }
 
         @Nullable
-        private P provideDefaultValue(Deserializer.DecoderContext decoderContext) {
+        private P provideDefaultValue(Deserializer.DecoderContext decoderContext) throws SerdeException {
             return provideDefaultValue(decoderContext, mustSetField);
         }
 
-        @SuppressWarnings("NullAway")
+        @SuppressWarnings({"NullAway", "unchecked"})
         @Nullable
-        private P provideDefaultValue(Deserializer.DecoderContext decoderContext, boolean mustSetField) {
+        private P provideDefaultValue(Deserializer.DecoderContext decoderContext, boolean mustSetField) throws SerdeException {
             P value = defaultValue;
             if (value == null && mustSetField) {
-                value = deserializer.getDefaultValue(decoderContext, argument);
+                Deserializer<P> valueDeserializer = deserializer;
+                if (valueDeserializer == null) {
+                    valueDeserializer = (Deserializer<P>) decoderContext.findDeserializer(argument);
+                }
+                value = valueDeserializer.getDefaultValue(decoderContext, argument);
             }
             return value;
         }

@@ -38,6 +38,19 @@ import java.lang.annotation.Repeatable;
 @Target(ElementType.ANNOTATION_TYPE)
 @Inherited
 public @interface SerdeConfig {
+
+    /**
+     * Internal marker for a JAXB {@code @XmlID} property.
+     */
+    @Internal
+    String XML_ID = "xmlId";
+
+    /**
+     * Internal marker for a JAXB {@code @XmlIDREF} property.
+     */
+    @Internal
+    String XML_ID_REF = "xmlIdRef";
+
     /**
      * The meta annotation for property.
      */
@@ -79,6 +92,26 @@ public @interface SerdeConfig {
     String XML_TEXT_PROPERTY = "xmlTextProperty";
 
     /**
+     * Whether the XML property is represented as a whitespace-separated lexical list.
+     */
+    String XML_LIST_PROPERTY = "xmlListProperty";
+
+    /**
+     * Whether the XML property contributes mixed text and element content.
+     */
+    String XML_MIXED_PROPERTY = "xmlMixedProperty";
+
+    /**
+     * Whether an any-getter/any-setter map represents XML attributes.
+     */
+    String XML_ANY_ATTRIBUTE_PROPERTY = "xmlAnyAttributeProperty";
+
+    /**
+     * Whether an any-getter/any-setter map represents XML child elements.
+     */
+    String XML_ANY_ELEMENT_PROPERTY = "xmlAnyElementProperty";
+
+    /**
      * Whether the XML property should be serialized as CDATA content.
      */
     String XML_CDATA_PROPERTY = "xmlCDataProperty";
@@ -92,6 +125,21 @@ public @interface SerdeConfig {
      * The XML namespace URI bound to a collection wrapper element.
      */
     String XML_WRAPPER_NAMESPACE = "xmlWrapperNamespace";
+
+    /**
+     * The XML default lexical value applied when a present element is empty.
+     */
+    String XML_DEFAULT_VALUE = "xmlDefaultValue";
+
+    /**
+     * The XML null handling policy for an element property or collection item.
+     */
+    String XML_NILLABLE = "xmlNillable";
+
+    /**
+     * The XML null handling policy for a collection wrapper element.
+     */
+    String XML_WRAPPER_NILLABLE = "xmlWrapperNillable";
 
     /**
      * Whether the type carries XML-specific root element configuration.
@@ -377,6 +425,26 @@ public @interface SerdeConfig {
          * The managed property alias.
          */
         String ALIAS = "alias";
+
+        /**
+         * The managed-reference scope.
+         */
+        String SCOPE = "scope";
+
+        /**
+         * @return The managed-reference scope
+         */
+        Scope scope() default Scope.PROPERTY;
+
+        /**
+         * Managed-reference scopes.
+         */
+        enum Scope {
+            /** Reference is available while decoding the managed property. */
+            PROPERTY,
+            /** Reference is available for the enclosing document. */
+            DOCUMENT
+        }
 
     }
 

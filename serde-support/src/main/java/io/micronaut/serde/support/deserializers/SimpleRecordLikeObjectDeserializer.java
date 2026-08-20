@@ -151,7 +151,6 @@ final class SimpleRecordLikeObjectDeserializer implements Deserializer<Object>, 
         }
 
         objectDecoder.finishStructure(true);
-
         return obj;
     }
 

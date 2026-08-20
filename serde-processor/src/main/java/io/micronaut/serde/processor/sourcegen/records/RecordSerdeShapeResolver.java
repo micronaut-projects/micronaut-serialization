@@ -19,11 +19,11 @@ import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.MethodElement;
 import io.micronaut.inject.ast.ParameterElement;
 import io.micronaut.inject.ast.PropertyElement;
+import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -68,7 +68,7 @@ public final class RecordSerdeShapeResolver {
     }
 
     private static Map<String, String> resolveKeyMetadata(PropertyElement property) {
-        Map<String, String> metadata = new HashMap<>(7);
+        Map<String, String> metadata = CollectionUtils.newHashMap(10);
         booleanValue(property, SerdeConfig.XML_ATTRIBUTE_PROPERTY)
             .filter(Boolean::booleanValue)
             .ifPresent(value -> metadata.put(SerdeConfig.XML_ATTRIBUTE_PROPERTY, "true"));
@@ -80,12 +80,24 @@ public final class RecordSerdeShapeResolver {
         booleanValue(property, SerdeConfig.XML_CDATA_PROPERTY)
             .filter(Boolean::booleanValue)
             .ifPresent(value -> metadata.put(SerdeConfig.XML_CDATA_PROPERTY, "true"));
+        booleanValue(property, SerdeConfig.XML_LIST_PROPERTY)
+            .filter(Boolean::booleanValue)
+            .ifPresent(value -> metadata.put(SerdeConfig.XML_LIST_PROPERTY, "true"));
+        booleanValue(property, SerdeConfig.XML_MIXED_PROPERTY)
+            .filter(Boolean::booleanValue)
+            .ifPresent(value -> metadata.put(SerdeConfig.XML_MIXED_PROPERTY, "true"));
         booleanValue(property, SerdeConfig.META_ANNOTATION_PROPERTY)
             .ifPresent(value -> metadata.put(SerdeConfig.META_ANNOTATION_PROPERTY, value.toString()));
         stringValue(property, SerdeConfig.WRAPPER_PROPERTY)
             .ifPresent(value -> metadata.put(SerdeConfig.WRAPPER_PROPERTY, value));
         stringValue(property, SerdeConfig.XML_WRAPPER_NAMESPACE)
             .ifPresent(value -> metadata.put(SerdeConfig.XML_WRAPPER_NAMESPACE, value));
+        stringValue(property, SerdeConfig.XML_DEFAULT_VALUE)
+            .ifPresent(value -> metadata.put(SerdeConfig.XML_DEFAULT_VALUE, value));
+        booleanValue(property, SerdeConfig.XML_NILLABLE)
+            .ifPresent(value -> metadata.put(SerdeConfig.XML_NILLABLE, value.toString()));
+        booleanValue(property, SerdeConfig.XML_WRAPPER_NILLABLE)
+            .ifPresent(value -> metadata.put(SerdeConfig.XML_WRAPPER_NILLABLE, value.toString()));
         return Map.copyOf(metadata);
     }
 

@@ -68,4 +68,25 @@ public class BookTest {
         assertEquals("The Stand", book.getTitle());
         assertEquals(List.of("Stephen King"), book.getAuthors());
     }
+
+    @Test
+    void testWriteReadJaxbBook() throws IOException {
+        JaxbBook input = new JaxbBook();
+        input.isbn = "978-0307743688";
+        input.title = "The Stand";
+        input.authors = List.of("Stephen King");
+
+        String result = xmlMapper.writeValueAsString(input);
+
+        assertEquals(
+            "<book isbn=\"978-0307743688\"><title>The Stand</title><subtitle xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:nil=\"true\"></subtitle><author>Stephen King</author></book>",
+            result
+        );
+
+        JaxbBook book = xmlMapper.readValue(result, JaxbBook.class);
+        assertEquals(input.isbn, book.isbn);
+        assertEquals(input.title, book.title);
+        assertEquals("Untitled", book.subtitle);
+        assertEquals(input.authors, book.authors);
+    }
 }

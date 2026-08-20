@@ -59,9 +59,14 @@ public final class XmlKeysProvider implements KeysProvider {
                 false,
                 false,
                 false,
+                false,
+                false,
                 XmlCollectionLayout.DEFAULT,
                 null,
-                null
+                null,
+                null,
+                XmlNullHandling.DEFAULT,
+                XmlNullHandling.DEFAULT
             );
         }
         return new Object[] { xmlKeys, Map.of(), Keys.UNKNOWN_KEY };
@@ -96,10 +101,22 @@ public final class XmlKeysProvider implements KeysProvider {
             Boolean.parseBoolean(metadata.get(SerdeConfig.XML_ATTRIBUTE_PROPERTY)),
             Boolean.parseBoolean(metadata.get(SerdeConfig.XML_TEXT_PROPERTY)),
             Boolean.parseBoolean(metadata.get(SerdeConfig.XML_CDATA_PROPERTY)),
+            Boolean.parseBoolean(metadata.get(SerdeConfig.XML_LIST_PROPERTY)),
+            Boolean.parseBoolean(metadata.get(SerdeConfig.XML_MIXED_PROPERTY)),
             collectionLayout(metadata.get(SerdeConfig.META_ANNOTATION_PROPERTY)),
             metadata.get(SerdeConfig.WRAPPER_PROPERTY),
-            metadata.get(SerdeConfig.XML_WRAPPER_NAMESPACE)
+            metadata.get(SerdeConfig.XML_WRAPPER_NAMESPACE),
+            metadata.get(SerdeConfig.XML_DEFAULT_VALUE),
+            nullHandling(metadata, SerdeConfig.XML_NILLABLE),
+            nullHandling(metadata, SerdeConfig.XML_WRAPPER_NILLABLE)
         );
+    }
+
+    private static XmlNullHandling nullHandling(Map<String, String> metadata, String property) {
+        if (!metadata.containsKey(property)) {
+            return XmlNullHandling.DEFAULT;
+        }
+        return Boolean.parseBoolean(metadata.get(property)) ? XmlNullHandling.NIL : XmlNullHandling.OMIT;
     }
 
     private static XmlCollectionLayout collectionLayout(@Nullable String wrapping) {
@@ -135,10 +152,21 @@ record XmlKey(
     boolean attribute,
     boolean text,
     boolean cdata,
+    boolean list,
+    boolean mixed,
     XmlCollectionLayout collectionLayout,
     @Nullable String wrapperName,
-    @Nullable String wrapperNamespace
+    @Nullable String wrapperNamespace,
+    @Nullable String defaultValue,
+    XmlNullHandling nullHandling,
+    XmlNullHandling wrapperNullHandling
 ) {
+}
+
+enum XmlNullHandling {
+    DEFAULT,
+    OMIT,
+    NIL
 }
 
 enum XmlCollectionLayout {

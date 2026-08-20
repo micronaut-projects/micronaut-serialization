@@ -24,6 +24,7 @@ import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.reference.PropertyReference;
+import io.micronaut.serde.reference.PropertyReferenceManager.ReferenceScope;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
@@ -99,6 +100,11 @@ final class FeatureDecoderContext implements Deserializer.DecoderContext {
     @Override
     public <B, P> void pushManagedRef(PropertyReference<B, P> reference) {
         delegate.pushManagedRef(reference);
+    }
+
+    @Override
+    public ReferenceScope openReferenceScope() {
+        return delegate.openReferenceScope();
     }
 
     @Override
