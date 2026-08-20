@@ -2,6 +2,8 @@ io.micronaut.serde
 io.micronaut.serde.annotation
 io.micronaut.serde.bson
 io.micronaut.serde.bson.custom
+io.micronaut.serde.cbor
+io.micronaut.serde.cbor.body
 io.micronaut.serde.config
 io.micronaut.serde.config.annotation
 io.micronaut.serde.config.naming
@@ -33,6 +35,7 @@ io.micronaut.serde.processor.sourcegen
 io.micronaut.serde.processor.sourcegen.beans
 io.micronaut.serde.processor.sourcegen.enums
 io.micronaut.serde.processor.sourcegen.records
+io.micronaut.serde.processor.xml
 io.micronaut.serde.properties
 io.micronaut.serde.properties.util
 io.micronaut.serde.reference
@@ -47,3 +50,5 @@ io.micronaut.serde.support.util
 io.micronaut.serde.tck.tests
 io.micronaut.serde.tck.tests.bytebuffer
 io.micronaut.serde.util
+io.micronaut.serde.xml
+io.micronaut.serde.xml.tck
