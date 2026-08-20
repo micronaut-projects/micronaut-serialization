@@ -33,7 +33,7 @@ jsonassert = "1.5.3"
 xmlunit = "2.12.0"
 
 # Dependencies used only by Jakarta TCK verification tasks.
-jakarta-enterprise-cdi-api = "4.0.1"
+jakarta-enterprise-cdi-api = "4.1.0"
 jakarta-json-tck = "2.1.1"
 jakarta-json-bind-tck = "3.0.2"
 jakarta-tck-sigtest = "2.6"
