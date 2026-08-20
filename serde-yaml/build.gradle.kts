@@ -1,0 +1,41 @@
+import org.gradle.kotlin.dsl.mnTest
+
+plugins {
+    id("io.micronaut.build.internal.serde-module")
+}
+
+micronautBuild {
+    binaryCompatibility.enabledAfter("3.2.0")
+}
+dependencies {
+    annotationProcessor(projects.micronautSerdeProcessor)
+
+    api(mn.micronaut.context)
+    api(projects.micronautSerdeApi)
+
+    implementation(mn.micronaut.context)
+    implementation(mn.micronaut.core)
+    implementation(projects.micronautSerdeApi)
+    implementation(libs.managed.snakeyaml.engine)
+
+    implementation(projects.micronautSerdeSupport)
+
+    testAnnotationProcessor(mn.micronaut.inject.java)
+    testAnnotationProcessor(projects.micronautSerdeProcessor)
+
+    testCompileOnly(mn.micronaut.inject.groovy)
+
+    testImplementation(projects.micronautSerdeProcessor)
+    testImplementation(projects.micronautSerdeTck)
+    testImplementation(projects.micronautSerdeYamlTck)
+    testImplementation(mn.micronaut.inject.java.test)
+    testImplementation(mn.micronaut.inject.kotlin.test)
+    testImplementation(mn.micronaut.inject.kotlin)
+    testImplementation(mnTest.micronaut.test.spock)
+    testImplementation(mnTest.junit.jupiter.api)
+    testRuntimeOnly(mnTest.junit.jupiter.engine)
+}
+
+
+
+
