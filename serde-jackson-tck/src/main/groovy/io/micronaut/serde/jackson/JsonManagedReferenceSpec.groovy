@@ -16,6 +16,8 @@
 package io.micronaut.serde.jackson
 
 import spock.lang.Ignore
+import org.skyscreamer.jsonassert.JSONAssert
+import org.skyscreamer.jsonassert.JSONCompareMode
 
 abstract class JsonManagedReferenceSpec extends JsonCompileSpec {
 
@@ -532,19 +534,20 @@ class Item {
             e.message.contains errorMultipleMatch(["userItems", "moreItems"])
     }
 
-    @Ignore("@JsonIdentityInfo is not supported")
     void "object identity remains available to a later sibling reference"() {
         given:
         def context = buildContext('''
 package identitytest;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import io.micronaut.serde.annotation.Serdeable;
 
 @Serdeable
 class Team {
     public Person person;
+    @JsonIdentityReference(alwaysAsId = true)
     public Person manager;
 }
 
@@ -561,5 +564,6 @@ class Person {
 
         then:
         team.manager.is(team.person)
+        JSONAssert.assertEquals('{"person":{"id":1,"name":"Ada"},"manager":1}', jsonMapper.writeValueAsString(team), JSONCompareMode.STRICT)
     }
 }

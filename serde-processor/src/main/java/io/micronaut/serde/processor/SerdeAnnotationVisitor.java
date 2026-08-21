@@ -131,10 +131,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     }
 
     private Set<String> getUnsupportedJacksonAnnotations() {
-        return CollectionUtils.setOf(
-                "com.fasterxml.jackson.annotation.JsonIdentityInfo",
-                "com.fasterxml.jackson.annotation.JsonIdentityReference"
-        );
+        return Collections.emptySet();
     }
 
     @Override
@@ -1165,6 +1162,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         validateJaxbXmlValues(classElement, beanProperties);
         applyJaxbElementRefDefaults(beanProperties);
         applyJaxbIdProperties(beanProperties);
+        applyJsonIdentityInfoProperties(classElement, beanProperties);
         applyJaxbCollectionDefaults(classElement, beanProperties);
         final List<String> order;
         if (classElement.booleanValue(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER, "alphabetic").orElse(false)) {
@@ -1284,6 +1282,25 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 property.annotate(SerdeConfig.class, builder -> builder.member(SerdeConfig.XML_ID_REF, true));
             }
         }
+    }
+
+    private void applyJsonIdentityInfoProperties(ClassElement classElement, List<PropertyElement> beanProperties) {
+        AnnotationValue<?> identityInfo = classElement.getAnnotation("com.fasterxml.jackson.annotation.JsonIdentityInfo");
+        if (identityInfo == null) {
+            return;
+        }
+        String generator = identityInfo.classValue("generator").map(Class::getName).orElse(null);
+        if (!"com.fasterxml.jackson.annotation.ObjectIdGenerators$PropertyGenerator".equals(generator)) {
+            throw new ProcessingException(classElement, "JsonIdentityInfo only supports ObjectIdGenerators.PropertyGenerator");
+        }
+        String propertyName = identityInfo.stringValue("property").orElse("@id");
+        PropertyElement property = beanProperties.stream()
+            .filter(candidate -> propertyName.equals(resolvePropertyName(candidate)))
+            .findFirst()
+            .orElseThrow(() -> new ProcessingException(classElement,
+                "JsonIdentityInfo property [" + propertyName + "] does not match a bean property"));
+        property.annotate(SerdeConfig.SerManagedRef.class, builder ->
+            builder.member(SerdeConfig.SerManagedRef.SCOPE, SerdeConfig.SerManagedRef.Scope.DOCUMENT));
     }
 
     private boolean hasJaxbPropertyAnnotation(PropertyElement property, String annotation) {
