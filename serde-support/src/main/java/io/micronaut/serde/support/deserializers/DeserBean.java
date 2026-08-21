@@ -498,8 +498,12 @@ final class DeserBean<T> {
 
     void pushManagedRefs(Deserializer.DecoderContext decoderContext, T instance) {
         BeanProperty<T, Object> property = documentManagedRefProperty;
-        if (property != null && property.get(instance) instanceof String id) {
-            decoderContext.pushManagedRef(new PropertyReference<>(id, introspection, Argument.of(String.class, id), instance));
+        if (property != null) {
+            Object id = property.get(instance);
+            if (id == null) {
+                return;
+            }
+            decoderContext.pushManagedRef(new PropertyReference<>(String.valueOf(id), introspection, property.asArgument(), instance));
         }
     }
 

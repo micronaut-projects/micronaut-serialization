@@ -60,12 +60,12 @@ NOTE: If an unsupported annotation or member is used, a compilation error will r
 |
 
 |link:{jacksonAnnotationJavadoc}/JsonIdentityInfo.html[@JsonIdentityInfo]
-|❌
-|
+|✅
+|supported with `ObjectIdGenerators.PropertyGenerator`
 
 |link:{jacksonAnnotationJavadoc}/JsonIdentityReference.html[@JsonIdentityReference]
-|❌
-|
+|✅
+|supported with `alwaysAsId = true`
 
 |link:{jacksonAnnotationJavadoc}/JsonIgnore.html[@JsonIgnore]
 |✅
