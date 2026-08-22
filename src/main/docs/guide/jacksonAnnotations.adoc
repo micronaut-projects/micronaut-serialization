@@ -65,7 +65,7 @@ NOTE: If an unsupported annotation or member is used, a compilation error will r
 
 |link:{jacksonAnnotationJavadoc}/JsonIdentityReference.html[@JsonIdentityReference]
 |✅
-|supported with `alwaysAsId = true`
+|supports `alwaysAsId = true`; repeated references are emitted as object IDs
 
 |link:{jacksonAnnotationJavadoc}/JsonIgnore.html[@JsonIgnore]
 |✅

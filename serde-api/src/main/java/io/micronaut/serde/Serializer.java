@@ -136,6 +136,29 @@ public interface Serializer<T> {
         );
 
         /**
+         * Resolves the identifier previously associated with an object in the current document.
+         *
+         * @param value The object instance
+         * @return Its identifier, or {@code null} when it has not been serialized yet
+         * @since 3.2
+         */
+        @Internal
+        default @Nullable Object resolveObjectId(Object value) {
+            return null;
+        }
+
+        /**
+         * Associates an object with an identifier for the remainder of the current document.
+         *
+         * @param value The object instance
+         * @param id The identifier
+         * @since 3.2
+         */
+        @Internal
+        default void registerObjectId(Object value, Object id) {
+        }
+
+        /**
          * Get the {@link SerdeConfiguration} for this context.
          *
          * @return The {@link SerdeConfiguration}, or an empty optional if the default should be used

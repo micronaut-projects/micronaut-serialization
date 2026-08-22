@@ -52,6 +52,18 @@ public @interface SerdeConfig {
     String XML_ID_REF = "xmlIdRef";
 
     /**
+     * Internal marker for a Jackson object identity property.
+     */
+    @Internal
+    String JSON_IDENTITY = "jsonIdentity";
+
+    /**
+     * Internal marker for a Jackson object identity reference.
+     */
+    @Internal
+    String JSON_IDENTITY_REFERENCE = "jsonIdentityReference";
+
+    /**
      * The meta annotation for property.
      */
     String META_ANNOTATION_PROPERTY = "Property";

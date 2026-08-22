@@ -26,9 +26,15 @@ import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.reference.AbstractPropertyReferenceManager;
 import io.micronaut.serde.reference.PropertyReference;
+import org.jspecify.annotations.Nullable;
 
+import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Default implementation of {@link io.micronaut.serde.Deserializer.DecoderContext}.
@@ -38,6 +44,8 @@ import java.util.Optional;
 @Internal
 class DefaultDecoderContext extends AbstractPropertyReferenceManager implements Deserializer.DecoderContext {
     private final DefaultSerdeRegistry registry;
+    private final Map<String, Object> objectIds = new HashMap<>();
+    private final Map<String, List<ObjectIdConsumer>> pendingObjectIds = new HashMap<>();
 
     DefaultDecoderContext(DefaultSerdeRegistry registry) {
         this.registry = registry;
@@ -85,6 +93,39 @@ class DefaultDecoderContext extends AbstractPropertyReferenceManager implements 
             }
         }
         return reference;
+    }
+
+    @Override
+    public @Nullable Object resolveObjectId(Object id, Argument<?> type) {
+        Object value = objectIds.get(String.valueOf(id));
+        return value != null && type.getType().isInstance(value) ? value : null;
+    }
+
+    @Override
+    public void registerObjectId(Object id, Argument<?> type, Object value) throws IOException {
+        String key = String.valueOf(id);
+        objectIds.put(key, value);
+        List<ObjectIdConsumer> pending = pendingObjectIds.remove(key);
+        if (pending != null) {
+            for (ObjectIdConsumer consumer : pending) {
+                try {
+                    consumer.accept(value);
+                } catch (IOException e) {
+                    throw new SerdeException("Unable to resolve JSON object identity [" + id + "]", e);
+                }
+            }
+        }
+    }
+
+    @Override
+    public boolean resolveOrDeferObjectId(Object id, Argument<?> type, ObjectIdConsumer consumer) throws IOException {
+        Object value = resolveObjectId(id, type);
+        if (value != null) {
+            consumer.accept(value);
+            return true;
+        }
+        pendingObjectIds.computeIfAbsent(String.valueOf(id), ignored -> new ArrayList<>()).add(consumer);
+        return false;
     }
 
     @Override

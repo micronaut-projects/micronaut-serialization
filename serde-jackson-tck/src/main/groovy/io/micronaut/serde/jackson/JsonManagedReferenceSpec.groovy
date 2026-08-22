@@ -566,4 +566,101 @@ class Person {
         team.manager.is(team.person)
         JSONAssert.assertEquals('{"person":{"id":1,"name":"Ada"},"manager":1}', jsonMapper.writeValueAsString(team), JSONCompareMode.STRICT)
     }
+
+    void "object identity writes a repeated value as an id without JsonIdentityReference"() {
+        given:
+        def context = buildContext('''
+package identityrepeat;
+
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Team {
+    public Person person;
+    public Person manager;
+}
+
+@Serdeable
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+class Person {
+    public int id;
+    public String name;
+}
+''')
+
+        when:
+        def person = newInstance(context, 'identityrepeat.Person')
+        person.id = 1
+        person.name = 'Ada'
+        def team = newInstance(context, 'identityrepeat.Team')
+        team.person = person
+        team.manager = person
+        def json = jsonMapper.writeValueAsString(team)
+        def decoded = jsonMapper.readValue(json, argumentOf(context, 'identityrepeat.Team'))
+
+        then:
+        JSONAssert.assertEquals('{"manager":{"id":1,"name":"Ada"},"person":1}', json, JSONCompareMode.STRICT)
+        decoded.person.is(decoded.manager)
+    }
+
+    void "object identity resolves a mutable forward reference"() {
+        given:
+        def context = buildContext('''
+package identityforward;
+
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Team {
+    public Person manager;
+    public Person person;
+}
+
+@Serdeable
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+class Person {
+    public int id;
+    public String name;
+}
+''')
+
+        when:
+        def team = jsonMapper.readValue('{"manager":1,"person":{"id":1,"name":"Ada"}}', argumentOf(context, 'identityforward.Team'))
+
+        then:
+        team.manager.is(team.person)
+    }
+
+    void "object identity serializes and restores a self reference"() {
+        given:
+        def context = buildContext('''
+package identitycycle;
+
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+class Node {
+    public int id;
+    public Node next;
+}
+''')
+
+        when:
+        def node = newInstance(context, 'identitycycle.Node')
+        node.id = 1
+        node.next = node
+        def json = jsonMapper.writeValueAsString(node)
+        def decoded = jsonMapper.readValue(json, argumentOf(context, 'identitycycle.Node'))
+
+        then:
+        JSONAssert.assertEquals('{"id":1,"next":1}', json, JSONCompareMode.STRICT)
+        decoded.is(decoded.next)
+    }
 }

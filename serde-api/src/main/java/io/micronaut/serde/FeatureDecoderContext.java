@@ -27,6 +27,7 @@ import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.reference.PropertyReferenceManager.ReferenceScope;
 import org.jspecify.annotations.Nullable;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
@@ -60,6 +61,21 @@ final class FeatureDecoderContext implements Deserializer.DecoderContext {
     @Nullable
     public <B, P> PropertyReference<B, P> resolveReference(PropertyReference<B, P> reference) {
         return delegate.resolveReference(reference);
+    }
+
+    @Override
+    public @Nullable Object resolveObjectId(Object id, Argument<?> type) {
+        return delegate.resolveObjectId(id, type);
+    }
+
+    @Override
+    public void registerObjectId(Object id, Argument<?> type, Object value) throws IOException {
+        delegate.registerObjectId(id, type, value);
+    }
+
+    @Override
+    public boolean resolveOrDeferObjectId(Object id, Argument<?> type, ObjectIdConsumer consumer) throws IOException {
+        return delegate.resolveOrDeferObjectId(id, type, consumer);
     }
 
     @Override

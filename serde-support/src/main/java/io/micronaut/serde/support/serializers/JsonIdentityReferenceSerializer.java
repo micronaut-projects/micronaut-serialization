@@ -40,6 +40,8 @@ import java.io.IOException;
 public final class JsonIdentityReferenceSerializer<T> implements Serializer<T> {
     private final @Nullable BeanProperty<Object, Object> idProperty;
     private final @Nullable Serializer<Object> idSerializer;
+    private final @Nullable Serializer<Object> objectSerializer;
+    private final boolean alwaysAsId;
 
     /**
      * Creates an identity-reference serializer.
@@ -47,11 +49,18 @@ public final class JsonIdentityReferenceSerializer<T> implements Serializer<T> {
     public JsonIdentityReferenceSerializer() {
         idProperty = null;
         idSerializer = null;
+        objectSerializer = null;
+        alwaysAsId = false;
     }
 
-    private JsonIdentityReferenceSerializer(BeanProperty<Object, Object> idProperty, Serializer<Object> idSerializer) {
+    private JsonIdentityReferenceSerializer(BeanProperty<Object, Object> idProperty,
+                                            Serializer<Object> idSerializer,
+                                            Serializer<Object> objectSerializer,
+                                            boolean alwaysAsId) {
         this.idProperty = idProperty;
         this.idSerializer = idSerializer;
+        this.objectSerializer = objectSerializer;
+        this.alwaysAsId = alwaysAsId;
     }
 
     @Override
@@ -65,19 +74,25 @@ public final class JsonIdentityReferenceSerializer<T> implements Serializer<T> {
             .findFirst()
             .orElseThrow(() -> new SerdeException("Cannot serialize JSON object identity reference of type [" + type.getType().getName() + "]: no identity property found"));
         Serializer<Object> serializer = (Serializer<Object>) context.findSerializer(property.asArgument());
-        return new JsonIdentityReferenceSerializer<>(property, serializer);
+        Serializer<Object> fallbackSerializer = (Serializer<Object>) context.findSerializer(Argument.of(type.getType()));
+        boolean asId = type.getAnnotationMetadata().booleanValue(SerdeConfig.class, SerdeConfig.JSON_IDENTITY_REFERENCE).orElse(false);
+        return new JsonIdentityReferenceSerializer<>(property, serializer, fallbackSerializer, asId);
     }
 
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
-        if (idProperty == null || idSerializer == null) {
+        if (idProperty == null || idSerializer == null || objectSerializer == null) {
             throw new SerdeException("JSON object identity reference serializer was not specialized");
         }
         Object id = idProperty.get(value);
         if (id == null) {
-            encoder.encodeNull();
-        } else {
-            idSerializer.serialize(encoder, context, idProperty.asArgument(), id);
+            throw new SerdeException("Cannot serialize JSON object identity reference of type [" + value.getClass().getName() + "]: identity property is null");
         }
+        if (alwaysAsId || context.resolveObjectId(value) != null) {
+            idSerializer.serialize(encoder, context, idProperty.asArgument(), id);
+            return;
+        }
+        context.registerObjectId(value, id);
+        objectSerializer.serialize(encoder, context, Argument.of(value.getClass()), value);
     }
 }

@@ -496,13 +496,14 @@ final class DeserBean<T> {
         recordLikeBean = isRecordLikeBean();
     }
 
-    void pushManagedRefs(Deserializer.DecoderContext decoderContext, T instance) {
+    void pushManagedRefs(Deserializer.DecoderContext decoderContext, T instance) throws IOException {
         BeanProperty<T, Object> property = documentManagedRefProperty;
         if (property != null) {
             Object id = property.get(instance);
             if (id == null) {
                 return;
             }
+            decoderContext.registerObjectId(id, property.asArgument(), instance);
             decoderContext.pushManagedRef(new PropertyReference<>(String.valueOf(id), introspection, property.asArgument(), instance));
         }
     }
