@@ -28,6 +28,7 @@ import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.reference.SerializationReference;
 import org.jspecify.annotations.Nullable;
 
+import java.util.IdentityHashMap;
 import java.util.Optional;
 
 /**
@@ -38,6 +39,7 @@ import java.util.Optional;
 @Internal
 class DefaultEncoderContext extends AbstractPropertyReferenceManager implements Serializer.EncoderContext {
     private final DefaultSerdeRegistry registry;
+    private final IdentityHashMap<Object, Object> objectIds = new IdentityHashMap<>();
 
     DefaultEncoderContext(DefaultSerdeRegistry registry) {
         this.registry = registry;
@@ -76,6 +78,16 @@ class DefaultEncoderContext extends AbstractPropertyReferenceManager implements 
             }
         }
         return reference;
+    }
+
+    @Override
+    public @Nullable Object resolveObjectId(Object value) {
+        return objectIds.get(value);
+    }
+
+    @Override
+    public void registerObjectId(Object value, Object id) {
+        objectIds.put(value, id);
     }
 
     @Override

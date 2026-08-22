@@ -132,6 +132,50 @@ public interface Deserializer<T> {
         );
 
         /**
+         * Resolves an object identifier previously registered in the current document.
+         *
+         * @param id The identifier
+         * @param type The expected object type
+         * @return The resolved object, or {@code null} when it has not been read yet
+         * @since 3.2
+         */
+        @Internal
+        default @Nullable Object resolveObjectId(Object id, Argument<?> type) {
+            return null;
+        }
+
+        /**
+         * Registers an object identifier for the current document.
+         *
+         * @param id The identifier
+         * @param type The identity property type
+         * @param value The object instance
+         * @since 3.2
+         */
+        @Internal
+        default void registerObjectId(Object id, Argument<?> type, Object value) throws IOException {
+        }
+
+        /**
+         * Defers setting a reference until its object identifier is registered in the current document.
+         *
+         * @param id The identifier
+         * @param type The expected object type
+         * @param consumer Receives the resolved object
+         * @return {@code true} if the reference was resolved immediately
+         * @since 3.2
+         */
+        @Internal
+        default boolean resolveOrDeferObjectId(Object id, Argument<?> type, ObjectIdConsumer consumer) throws IOException {
+            Object value = resolveObjectId(id, type);
+            if (value == null) {
+                return false;
+            }
+            consumer.accept(value);
+            return true;
+        }
+
+        /**
          * Get the {@link SerdeConfiguration} for this context.
          *
          * @return The {@link SerdeConfiguration}, or an empty optional if the default should be used
@@ -187,6 +231,21 @@ public interface Deserializer<T> {
             features.addAll(includedFeatures);
             features.removeAll(excludedFeatures);
             return Set.copyOf(features);
+        }
+
+        /**
+         * Receives an object resolved from a JSON identity reference.
+         *
+         * @since 3.2
+         */
+        @Internal
+        @FunctionalInterface
+        interface ObjectIdConsumer {
+            /**
+             * @param value The resolved object
+             * @throws IOException If setting the reference fails
+             */
+            void accept(Object value) throws IOException;
         }
     }
 }

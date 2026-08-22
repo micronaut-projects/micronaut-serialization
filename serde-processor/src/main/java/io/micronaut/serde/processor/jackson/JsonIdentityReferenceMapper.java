@@ -15,7 +15,6 @@
  */
 package io.micronaut.serde.processor.jackson;
 
-import io.micronaut.core.annotation.AnnotationClassValue;
 import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.inject.annotation.NamedAnnotationMapper;
 import io.micronaut.inject.visitor.VisitorContext;
@@ -30,9 +29,6 @@ import java.util.List;
  * @since 3.2
  */
 public final class JsonIdentityReferenceMapper implements NamedAnnotationMapper {
-    private static final String SERIALIZER = "io.micronaut.serde.support.serializers.JsonIdentityReferenceSerializer";
-    private static final String DESERIALIZER = "io.micronaut.serde.support.deserializers.JsonIdentityReferenceDeserializer";
-
     @Override
     public String getName() {
         return "com.fasterxml.jackson.annotation.JsonIdentityReference";
@@ -40,12 +36,8 @@ public final class JsonIdentityReferenceMapper implements NamedAnnotationMapper 
 
     @Override
     public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
-        if (!annotation.booleanValue("alwaysAsId").orElse(false)) {
-            return List.of();
-        }
         return List.of(AnnotationValue.builder(SerdeConfig.class)
-            .member(SerdeConfig.SERIALIZER_CLASS, new AnnotationClassValue<>(SERIALIZER))
-            .member(SerdeConfig.DESERIALIZER_CLASS, new AnnotationClassValue<>(DESERIALIZER))
+            .member(SerdeConfig.JSON_IDENTITY_REFERENCE, annotation.booleanValue("alwaysAsId").orElse(false))
             .build());
     }
 }

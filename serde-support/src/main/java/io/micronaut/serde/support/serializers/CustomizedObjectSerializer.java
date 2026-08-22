@@ -60,6 +60,7 @@ final class CustomizedObjectSerializer<T> implements ObjectSerializer<T> {
 
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
+        registerObjectId(context, value);
         Encoder childEncoder = encoder.encodeObject(type);
         serializeInto(childEncoder, context, type, value);
         childEncoder.finishStructure();
@@ -67,6 +68,7 @@ final class CustomizedObjectSerializer<T> implements ObjectSerializer<T> {
 
     @Override
     public void serializeInto(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
+        registerObjectId(context, value);
         KeysAwareEncoder keysAwareEncoder = KeysAwareEncoder.of(encoder);
         int propertyIndex = 0;
         for (SerBean.SerProperty<T, Object> property : serBean.writeProperties) {
@@ -157,6 +159,19 @@ final class CustomizedObjectSerializer<T> implements ObjectSerializer<T> {
                 SerdeException serdeException = new SerdeException("Error getting property [" + property.argument + "] of type [" + property.beanType + "]: " + e.getMessage(), e);
                 serdeException.getPath().add(property.getReferencePath());
                 throw serdeException;
+            }
+        }
+    }
+
+    private void registerObjectId(EncoderContext context, T value) {
+        for (SerBean.SerProperty<T, Object> property : serBean.writeProperties) {
+            if (property.argument.getAnnotationMetadata().enumValue(SerdeConfig.SerManagedRef.class, SerdeConfig.SerManagedRef.SCOPE,
+                SerdeConfig.SerManagedRef.Scope.class).orElse(null) == SerdeConfig.SerManagedRef.Scope.DOCUMENT) {
+                Object id = property.get(value);
+                if (id != null) {
+                    context.registerObjectId(value, id);
+                }
+                return;
             }
         }
     }

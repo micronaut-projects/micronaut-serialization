@@ -98,6 +98,9 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     private static final String JAXB_XML_ID_REF = JAXB_ANNOTATION_PREFIX + "XmlIDREF";
     private static final String JAXB_XML_VALUE = JAXB_ANNOTATION_PREFIX + "XmlValue";
     private static final String JAXB_ELEMENT = "jakarta.xml.bind.JAXBElement";
+    private static final String JACKSON_IDENTITY_INFO = "com.fasterxml.jackson.annotation.JsonIdentityInfo";
+    private static final String JACKSON_IDENTITY_REFERENCE_SERIALIZER = "io.micronaut.serde.support.serializers.JsonIdentityReferenceSerializer";
+    private static final String JACKSON_IDENTITY_REFERENCE_DESERIALIZER = "io.micronaut.serde.support.deserializers.JsonIdentityReferenceDeserializer";
 
     private boolean failOnError = true;
     private @Nullable ClassElement currentClass;
@@ -1163,6 +1166,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         applyJaxbElementRefDefaults(beanProperties);
         applyJaxbIdProperties(beanProperties);
         applyJsonIdentityInfoProperties(classElement, beanProperties);
+        applyJsonIdentityReferenceProperties(beanProperties);
         applyJaxbCollectionDefaults(classElement, beanProperties);
         final List<String> order;
         if (classElement.booleanValue(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER, "alphabetic").orElse(false)) {
@@ -1285,7 +1289,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     }
 
     private void applyJsonIdentityInfoProperties(ClassElement classElement, List<PropertyElement> beanProperties) {
-        AnnotationValue<?> identityInfo = classElement.getAnnotation("com.fasterxml.jackson.annotation.JsonIdentityInfo");
+        AnnotationValue<?> identityInfo = classElement.getAnnotation(JACKSON_IDENTITY_INFO);
         if (identityInfo == null) {
             return;
         }
@@ -1301,6 +1305,20 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 "JsonIdentityInfo property [" + propertyName + "] does not match a bean property"));
         property.annotate(SerdeConfig.SerManagedRef.class, builder ->
             builder.member(SerdeConfig.SerManagedRef.SCOPE, SerdeConfig.SerManagedRef.Scope.DOCUMENT));
+        classElement.annotate(SerdeConfig.class, builder -> builder.member(SerdeConfig.JSON_IDENTITY, true));
+    }
+
+    private void applyJsonIdentityReferenceProperties(List<PropertyElement> beanProperties) {
+        for (PropertyElement property : beanProperties) {
+            ClassElement referencedType = resolveRefType(property.getGenericType());
+            if (!referencedType.hasAnnotation(JACKSON_IDENTITY_INFO)) {
+                continue;
+            }
+            property.annotate(SerdeConfig.class, builder -> builder
+                .member(SerdeConfig.JSON_IDENTITY_REFERENCE, property.booleanValue(SerdeConfig.class, SerdeConfig.JSON_IDENTITY_REFERENCE).orElse(false))
+                .member(SerdeConfig.SERIALIZER_CLASS, new AnnotationClassValue<>(JACKSON_IDENTITY_REFERENCE_SERIALIZER))
+                .member(SerdeConfig.DESERIALIZER_CLASS, new AnnotationClassValue<>(JACKSON_IDENTITY_REFERENCE_DESERIALIZER)));
+        }
     }
 
     private boolean hasJaxbPropertyAnnotation(PropertyElement property, String annotation) {

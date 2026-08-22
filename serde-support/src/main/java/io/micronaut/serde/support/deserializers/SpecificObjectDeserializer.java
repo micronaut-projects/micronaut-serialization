@@ -462,6 +462,16 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
             if (derProperty.unresolvedTypeVariableName != null) {
                 deserializer = findTypeVariableDeserializer(decoderContext, objectArgument, derProperty, deserializer);
             }
+            if (derProperty.argument.getAnnotationMetadata()
+                .getValue(SerdeConfig.class, SerdeConfig.JSON_IDENTITY_REFERENCE, Boolean.class).isPresent()) {
+                JsonIdentityReferenceDeserializer.deserializeAndResolve(
+                    objectDecoder,
+                    decoderContext,
+                    derProperty.argument,
+                    value -> derProperty.set(decoderContext, instance, value)
+                );
+                return;
+            }
             derProperty.deserializeAndSetPropertyValue(
                 deserializer,
                 objectDecoder,
