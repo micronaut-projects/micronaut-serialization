@@ -47,13 +47,11 @@ import java.util.Optional;
 @Internal
 class DefaultDecoderContext extends AbstractPropertyReferenceManager implements Deserializer.DecoderContext {
     private final DefaultSerdeRegistry registry;
-    // Document-scoped identifier state, allocated only when a document uses identifiers and released
-    // when the outermost reference scope closes
+    // Document-scoped identifier state, allocated only when a document uses identifiers and released on close
     @Nullable
     private Map<String, Object> documentIds;
     @Nullable
     private Map<String, List<PendingDocumentIdReference>> pendingDocumentIds;
-    private int referenceScopeDepth;
 
     DefaultDecoderContext(DefaultSerdeRegistry registry) {
         this.registry = registry;
@@ -99,18 +97,6 @@ class DefaultDecoderContext extends AbstractPropertyReferenceManager implements 
         } else {
             super.pushManagedRef(reference);
         }
-    }
-
-    @Override
-    public ReferenceScope openReferenceScope() {
-        ReferenceScope scope = super.openReferenceScope();
-        referenceScopeDepth++;
-        return () -> {
-            scope.close();
-            if (--referenceScopeDepth == 0) {
-                finishDocument();
-            }
-        };
     }
 
     @Override
@@ -167,7 +153,8 @@ class DefaultDecoderContext extends AbstractPropertyReferenceManager implements 
         }
     }
 
-    private void finishDocument() throws IOException {
+    @Override
+    public void close() throws IOException {
         Map<String, List<PendingDocumentIdReference>> pending = pendingDocumentIds;
         documentIds = null;
         pendingDocumentIds = null;

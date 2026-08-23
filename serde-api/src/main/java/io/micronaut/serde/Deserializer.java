@@ -26,6 +26,7 @@ import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.reference.PropertyReferenceManager;
 import org.jspecify.annotations.Nullable;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.EnumSet;
 import java.util.Optional;
@@ -100,7 +101,18 @@ public interface Deserializer<T> {
     /**
      * Context object passed to the {@link #deserialize(Decoder, io.micronaut.serde.Deserializer.DecoderContext, io.micronaut.core.type.Argument)} method along with the decoder.
      */
-    interface DecoderContext extends PropertyReferenceManager, DeserializerLocator, NamingStrategyLocator {
+    interface DecoderContext extends PropertyReferenceManager, DeserializerLocator, NamingStrategyLocator, Closeable {
+
+        /**
+         * Completes the document read with this context. Mappers create a context per document and close it after
+         * the root value has been read; closing fails if references to identifiers that were never read remain.
+         *
+         * @throws IOException If the document could not be completed
+         * @since 3.2
+         */
+        @Override
+        default void close() throws IOException {
+        }
 
         /**
          * @return Conversion service

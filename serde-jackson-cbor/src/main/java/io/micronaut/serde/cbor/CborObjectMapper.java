@@ -282,45 +282,44 @@ public final class CborObjectMapper implements ObjectMapper {
     }
 
     private <T> void writeValue(JsonGenerator gen, T value, Argument<T> argument) throws IOException {
-        Serializer<? super T> serializer;
-        // Each document gets its own context so managed references and object identities do not leak between documents
-        Serializer.EncoderContext encoderContext = registry.newEncoderContext(JsonViewUtil.extractView(serdeConfiguration, argument, view));
-        if (isSpecificType(argument)) {
-            serializer = (Serializer<? super T>) Objects.requireNonNull(specificSerializer);
-        } else {
-            serializer = encoderContext.findSerializer(argument).createSpecific(encoderContext, argument);
+        // A context lives for one document: managed references and object identities do not leak between documents
+        try (var encoderContext = registry.newEncoderContext(JsonViewUtil.extractView(serdeConfiguration, argument, view))) {
+            Serializer<? super T> serializer;
+            if (isSpecificType(argument)) {
+                serializer = (Serializer<? super T>) Objects.requireNonNull(specificSerializer);
+            } else {
+                serializer = encoderContext.findSerializer(argument).createSpecific(encoderContext, argument);
+            }
+            final Encoder encoder = JacksonEncoder.create(gen, streamLimits);
+            serializer.serialize(encoder, encoderContext, argument, value);
         }
-        final Encoder encoder = JacksonEncoder.create(gen, streamLimits);
-        serializer.serialize(encoder, encoderContext, argument, value);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     private <T> @Nullable T readValue(JsonParser parser, Argument<T> type) throws IOException {
-        Deserializer deserializer;
-        // Each document gets its own context so managed references and object identities do not leak between documents
-        Deserializer.DecoderContext decoderContext = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view));
-        if (isSpecificType(type)) {
-            deserializer = Objects.requireNonNull(specificDeserializer);
-        } else {
-            deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, (Argument) type);
-        }
-        final Decoder decoder = JacksonDecoder.create(parser, streamLimits);
-        try (var ignored = decoderContext.openReferenceScope()) {
+        // A context lives for one document: managed references and object identities do not leak between documents
+        try (var decoderContext = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view))) {
+            Deserializer deserializer;
+            if (isSpecificType(type)) {
+                deserializer = Objects.requireNonNull(specificDeserializer);
+            } else {
+                deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, (Argument) type);
+            }
+            final Decoder decoder = JacksonDecoder.create(parser, streamLimits);
             return (T) deserializer.deserializeNullable(decoder, decoderContext, type);
         }
     }
 
     @Override
     public <T> @Nullable T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
-        Deserializer deserializer;
-        // Each document gets its own context so managed references and object identities do not leak between documents
-        Deserializer.DecoderContext decoderContext = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view));
-        if (isSpecificType(type)) {
-            deserializer = Objects.requireNonNull(specificDeserializer);
-        } else {
-            deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, type);
-        }
-        try (var ignored = decoderContext.openReferenceScope()) {
+        // A context lives for one document: managed references and object identities do not leak between documents
+        try (var decoderContext = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view))) {
+            Deserializer deserializer;
+            if (isSpecificType(type)) {
+                deserializer = Objects.requireNonNull(specificDeserializer);
+            } else {
+                deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, type);
+            }
             return (T) deserializer.deserializeNullable(JsonNodeDecoder.create(tree, streamLimits), decoderContext, type);
         }
     }
@@ -351,15 +350,16 @@ public final class CborObjectMapper implements ObjectMapper {
     }
 
     private <T> void writeWithEncoder(Encoder encoder, T value, Argument<T> type) throws IOException {
-        Serializer<? super T> serializer;
-        // Each document gets its own context so managed references and object identities do not leak between documents
-        Serializer.EncoderContext encoderContext = registry.newEncoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view));
-        if (isSpecificType(type)) {
-            serializer = (Serializer<? super T>) Objects.requireNonNull(specificSerializer);
-        } else {
-            serializer = encoderContext.findSerializer(type).createSpecific(encoderContext, type);
+        // A context lives for one document: managed references and object identities do not leak between documents
+        try (var encoderContext = registry.newEncoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view))) {
+            Serializer<? super T> serializer;
+            if (isSpecificType(type)) {
+                serializer = (Serializer<? super T>) Objects.requireNonNull(specificSerializer);
+            } else {
+                serializer = encoderContext.findSerializer(type).createSpecific(encoderContext, type);
+            }
+            serializer.serialize(encoder, encoderContext, type, value);
         }
-        serializer.serialize(encoder, encoderContext, type, value);
     }
 
     @Override
@@ -543,22 +543,21 @@ public final class CborObjectMapper implements ObjectMapper {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private <T> void updateValue(Decoder decoder, T value, Argument<T> type) throws IOException {
-        Deserializer deserializer;
-        // Each document gets its own context so managed references and object identities do not leak between documents
-        Deserializer.DecoderContext decoderContext = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view));
-        if (isSpecificType(type)) {
-            deserializer = Objects.requireNonNull(specificDeserializer);
-        } else {
-            deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, (Argument) type);
-        }
-        if (!(deserializer instanceof UpdatingDeserializer)) {
-            deserializer = decoderContext.findDeserializer(Argument.OBJECT_ARGUMENT)
-                .createSpecific(decoderContext, (Argument) type);
-        }
-        if (!(deserializer instanceof UpdatingDeserializer updatingDeserializer)) {
-            throw new UnsupportedOperationException("Updating existing value of type [" + type + "] is not supported");
-        }
-        try (var ignored = decoderContext.openReferenceScope()) {
+        // A context lives for one document: managed references and object identities do not leak between documents
+        try (var decoderContext = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view))) {
+            Deserializer deserializer;
+            if (isSpecificType(type)) {
+                deserializer = Objects.requireNonNull(specificDeserializer);
+            } else {
+                deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, (Argument) type);
+            }
+            if (!(deserializer instanceof UpdatingDeserializer)) {
+                deserializer = decoderContext.findDeserializer(Argument.OBJECT_ARGUMENT)
+                    .createSpecific(decoderContext, (Argument) type);
+            }
+            if (!(deserializer instanceof UpdatingDeserializer updatingDeserializer)) {
+                throw new UnsupportedOperationException("Updating existing value of type [" + type + "] is not supported");
+            }
             updatingDeserializer.deserializeInto(decoder, decoderContext, type, value);
         }
     }
