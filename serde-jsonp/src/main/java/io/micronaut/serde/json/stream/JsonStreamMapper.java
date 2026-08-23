@@ -104,11 +104,13 @@ public class JsonStreamMapper implements ObjectMapper {
     public <T> @Nullable T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
         Deserializer.DecoderContext context = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view));
         final Deserializer<? extends T> deserializer = context.findDeserializer(type).createSpecific(context, type);
-        return deserializer.deserialize(
-                JsonNodeDecoder.create(tree, limits()),
-                context,
-                type
-        );
+        try (var ignored = context.openReferenceScope()) {
+            return deserializer.deserialize(
+                    JsonNodeDecoder.create(tree, limits()),
+                    context,
+                    type
+            );
+        }
     }
 
     @Override
@@ -129,11 +131,13 @@ public class JsonStreamMapper implements ObjectMapper {
         Decoder decoder = new JsonParserDecoder(parser, limits());
         Deserializer.DecoderContext context = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view));
         final Deserializer<? extends T> deserializer = context.findDeserializer(type).createSpecific(context, type);
-        return deserializer.deserialize(
-                decoder,
-                context,
-                type
-        );
+        try (var ignored = context.openReferenceScope()) {
+            return deserializer.deserialize(
+                    decoder,
+                    context,
+                    type
+            );
+        }
     }
 
     @Override

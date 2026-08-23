@@ -107,7 +107,7 @@ public final class SimpleSerdeShapeAnalyzer {
             return decision(shapeKind, serializerReasons, deserializerReasons);
         }
         if (!isBothFailed(serializerReasons, deserializerReasons)
-            && (hasJaxbIdProperty(element)
+            && (usesDocumentIds(element)
                 || hasAnnotation(element, JAXB_XML_MIXED)
                 || element.hasDeclaredAnnotation(JAXB_XML_ACCESSOR_TYPE))
             && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
@@ -657,10 +657,10 @@ public final class SimpleSerdeShapeAnalyzer {
             || property.getField().map(field -> field.hasAnnotation(JACKSON_XML_PROPERTY) || field.hasAnnotation(JAXB_XML_ELEMENT) || field.hasAnnotation(JAXB_XML_ATTRIBUTE)).orElse(false);
     }
 
-    private boolean hasJaxbIdProperty(ClassElement element) {
+    private boolean usesDocumentIds(ClassElement element) {
         return hasAnnotationMetadata(element, annotationMetadata -> annotationMetadata.enumValue(SerdeConfig.SerManagedRef.class,
                 SerdeConfig.SerManagedRef.SCOPE, SerdeConfig.SerManagedRef.Scope.class).orElse(null) == SerdeConfig.SerManagedRef.Scope.DOCUMENT
-            || annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.XML_ID_REF).orElse(false));
+            || annotationMetadata.enumValue(SerdeConfig.class, SerdeConfig.ID_REFERENCE, SerdeConfig.IdReference.class).isPresent());
     }
 
     private boolean hasUnsupportedPropertySerdeConfig(ClassElement element) {

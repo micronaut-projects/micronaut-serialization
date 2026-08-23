@@ -99,8 +99,11 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     private static final String JAXB_XML_VALUE = JAXB_ANNOTATION_PREFIX + "XmlValue";
     private static final String JAXB_ELEMENT = "jakarta.xml.bind.JAXBElement";
     private static final String JACKSON_IDENTITY_INFO = "com.fasterxml.jackson.annotation.JsonIdentityInfo";
-    private static final String JACKSON_IDENTITY_REFERENCE_SERIALIZER = "io.micronaut.serde.support.serializers.JsonIdentityReferenceSerializer";
-    private static final String JACKSON_IDENTITY_REFERENCE_DESERIALIZER = "io.micronaut.serde.support.deserializers.JsonIdentityReferenceDeserializer";
+    private static final String JACKSON_IDENTITY_REFERENCE = "com.fasterxml.jackson.annotation.JsonIdentityReference";
+    private static final String JACKSON_PROPERTY_GENERATOR = "com.fasterxml.jackson.annotation.ObjectIdGenerators$PropertyGenerator";
+    private static final String JACKSON_SIMPLE_OBJECT_ID_RESOLVER = "com.fasterxml.jackson.annotation.SimpleObjectIdResolver";
+    private static final String ID_REFERENCE_SERIALIZER = "io.micronaut.serde.support.serializers.IdReferenceSerializer";
+    private static final String ID_REFERENCE_DESERIALIZER = "io.micronaut.serde.support.deserializers.IdReferenceDeserializer";
 
     private boolean failOnError = true;
     private @Nullable ClassElement currentClass;
@@ -131,10 +134,6 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 "tools.jackson.dataformat.xml.annotation.*",
                 "jakarta.xml.bind.annotation.*"
         );
-    }
-
-    private Set<String> getUnsupportedJacksonAnnotations() {
-        return Collections.emptySet();
     }
 
     @Override
@@ -327,10 +326,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         }
         checkJsonAutoDetect(element);
         validateJaxbAnnotations(element, context);
-        for (String annotation : getUnsupportedJacksonAnnotations()) {
-            if (element.hasDeclaredAnnotation(annotation)) {
-                throw new ProcessingException(element, "Annotation @" + NameUtils.getSimpleName(annotation) + " is not supported");
-            }
+        if (!(element instanceof ClassElement) && element.hasDeclaredAnnotation(JACKSON_IDENTITY_INFO)) {
+            throw new ProcessingException(element, "Annotation @JsonIdentityInfo is only supported on types");
         }
         final String error = element.stringValue(SerdeConfig.SerError.class).orElse(null);
         if (error != null) {
@@ -1283,7 +1280,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                     builder.member(SerdeConfig.SerManagedRef.SCOPE, SerdeConfig.SerManagedRef.Scope.DOCUMENT));
             }
             if (hasJaxbPropertyAnnotation(property, JAXB_XML_ID_REF)) {
-                property.annotate(SerdeConfig.class, builder -> builder.member(SerdeConfig.XML_ID_REF, true));
+                property.annotate(SerdeConfig.class, builder -> builder.member(SerdeConfig.ID_REFERENCE, SerdeConfig.IdReference.ALWAYS_ID));
             }
         }
     }
@@ -1293,9 +1290,17 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         if (identityInfo == null) {
             return;
         }
-        String generator = identityInfo.classValue("generator").map(Class::getName).orElse(null);
-        if (!"com.fasterxml.jackson.annotation.ObjectIdGenerators$PropertyGenerator".equals(generator)) {
+        String generator = identityInfo.annotationClassValue("generator").map(AnnotationClassValue::getName).orElse(null);
+        if (!JACKSON_PROPERTY_GENERATOR.equals(generator)) {
             throw new ProcessingException(classElement, "JsonIdentityInfo only supports ObjectIdGenerators.PropertyGenerator");
+        }
+        String scope = identityInfo.annotationClassValue("scope").map(AnnotationClassValue::getName).orElse(null);
+        if (scope != null && !Object.class.getName().equals(scope)) {
+            throw new ProcessingException(classElement, "JsonIdentityInfo member [scope] is not supported");
+        }
+        String resolver = identityInfo.annotationClassValue("resolver").map(AnnotationClassValue::getName).orElse(null);
+        if (resolver != null && !JACKSON_SIMPLE_OBJECT_ID_RESOLVER.equals(resolver)) {
+            throw new ProcessingException(classElement, "JsonIdentityInfo member [resolver] is not supported");
         }
         String propertyName = identityInfo.stringValue("property").orElse("@id");
         PropertyElement property = beanProperties.stream()
@@ -1303,22 +1308,70 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             .findFirst()
             .orElseThrow(() -> new ProcessingException(classElement,
                 "JsonIdentityInfo property [" + propertyName + "] does not match a bean property"));
+        for (PropertyElement candidate : beanProperties) {
+            if (candidate != property && isDocumentIdProperty(candidate)) {
+                throw new ProcessingException(classElement, "JsonIdentityInfo property [" + propertyName
+                    + "] conflicts with the XmlID property [" + resolvePropertyName(candidate) + "]");
+            }
+        }
+        // The identity property is the document-scoped identifier of the bean, like a JAXB XmlID,
+        // and additionally carries object identity semantics
         property.annotate(SerdeConfig.SerManagedRef.class, builder ->
             builder.member(SerdeConfig.SerManagedRef.SCOPE, SerdeConfig.SerManagedRef.Scope.DOCUMENT));
-        classElement.annotate(SerdeConfig.class, builder -> builder.member(SerdeConfig.JSON_IDENTITY, true));
+        property.annotate(SerdeConfig.class, builder -> builder.member(SerdeConfig.OBJECT_IDENTITY, true));
     }
 
+    private boolean isDocumentIdProperty(PropertyElement property) {
+        return isDocumentIdElement(property)
+            || property.getReadMethod().map(this::isDocumentIdElement).orElse(false)
+            || property.getWriteMethod().map(this::isDocumentIdElement).orElse(false)
+            || property.getField().map(this::isDocumentIdElement).orElse(false);
+    }
+
+    private boolean isDocumentIdElement(Element element) {
+        return element.enumValue(SerdeConfig.SerManagedRef.class, SerdeConfig.SerManagedRef.SCOPE,
+            SerdeConfig.SerManagedRef.Scope.class).orElse(null) == SerdeConfig.SerManagedRef.Scope.DOCUMENT;
+    }
+
+    /**
+     * Marks properties that reference Jackson object identities: a property that must always be written as the
+     * identifier uses the identifier reference serdes (like a JAXB XmlIDREF), a property whose type declares an
+     * object identity may hold the object or its identifier. Collections of identity types are handled by the
+     * element type's own serde.
+     */
     private void applyJsonIdentityReferenceProperties(List<PropertyElement> beanProperties) {
         for (PropertyElement property : beanProperties) {
-            ClassElement referencedType = resolveRefType(property.getGenericType());
-            if (!referencedType.hasAnnotation(JACKSON_IDENTITY_INFO)) {
-                continue;
+            ClassElement propertyType = property.getGenericType();
+            boolean identityType = propertyType.hasAnnotation(JACKSON_IDENTITY_INFO);
+            boolean identityElementType = identityType || resolveRefType(propertyType).hasAnnotation(JACKSON_IDENTITY_INFO);
+            AnnotationValue<?> identityReference = findPropertyAnnotation(property, JACKSON_IDENTITY_REFERENCE);
+            if (identityReference != null && !identityElementType) {
+                throw new ProcessingException(property, "JsonIdentityReference requires a property type annotated with JsonIdentityInfo");
             }
-            property.annotate(SerdeConfig.class, builder -> builder
-                .member(SerdeConfig.JSON_IDENTITY_REFERENCE, property.booleanValue(SerdeConfig.class, SerdeConfig.JSON_IDENTITY_REFERENCE).orElse(false))
-                .member(SerdeConfig.SERIALIZER_CLASS, new AnnotationClassValue<>(JACKSON_IDENTITY_REFERENCE_SERIALIZER))
-                .member(SerdeConfig.DESERIALIZER_CLASS, new AnnotationClassValue<>(JACKSON_IDENTITY_REFERENCE_DESERIALIZER)));
+            boolean alwaysAsId = identityReference != null && identityReference.booleanValue("alwaysAsId").orElse(false);
+            if (alwaysAsId) {
+                property.annotate(SerdeConfig.class, builder -> builder
+                    .member(SerdeConfig.ID_REFERENCE, SerdeConfig.IdReference.ALWAYS_ID)
+                    .member(SerdeConfig.SERIALIZER_CLASS, new AnnotationClassValue<>(ID_REFERENCE_SERIALIZER))
+                    .member(SerdeConfig.DESERIALIZER_CLASS, new AnnotationClassValue<>(ID_REFERENCE_DESERIALIZER)));
+            } else if (identityType) {
+                property.annotate(SerdeConfig.class, builder -> builder.member(SerdeConfig.ID_REFERENCE, SerdeConfig.IdReference.OBJECT_OR_ID));
+            }
         }
+    }
+
+    private static @Nullable AnnotationValue<?> findPropertyAnnotation(PropertyElement property, String annotation) {
+        AnnotationValue<?> value = property.getAnnotation(annotation);
+        if (value == null && property.getReadMethod().isPresent()) {
+            value = property.getReadMethod().get().getAnnotation(annotation);
+        }
+        if (value == null && property.getWriteMethod().isPresent()) {
+            value = property.getWriteMethod().get().getAnnotation(annotation);
+        }
+        if (value == null && property.getField().isPresent()) {
+            value = property.getField().get().getAnnotation(annotation);
+        }
+        return value;
     }
 
     private boolean hasJaxbPropertyAnnotation(PropertyElement property, String annotation) {

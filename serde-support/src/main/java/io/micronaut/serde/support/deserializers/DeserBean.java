@@ -50,8 +50,8 @@ import io.micronaut.serde.exceptions.InvalidPropertyFormatException;
 import io.micronaut.serde.exceptions.NullValueSerdeException;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
-import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.support.util.DecoderValueKind;
+import io.micronaut.serde.support.util.DocumentIdUtil;
 import io.micronaut.serde.support.util.ObjectShapeSerdeHelper;
 import io.micronaut.serde.support.util.SerdeAnnotationUtil;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
@@ -126,8 +126,15 @@ final class DeserBean<T> {
     private final List<String> propertyKeyNames;
     @Nullable
     private final IgnoredPropertyKeys ignoredPropertyKeys;
+    /**
+     * The document-scoped identifier property (JAXB {@code @XmlID} or Jackson {@code @JsonIdentityInfo}), if any.
+     */
     @Nullable
-    private final BeanProperty<T, Object> documentManagedRefProperty;
+    public final BeanProperty<T, Object> documentIdProperty;
+    /**
+     * Whether {@link #documentIdProperty} carries object identity semantics.
+     */
+    public final boolean objectIdentity;
 
     private volatile boolean initialized;
     private volatile boolean initializing;
@@ -157,11 +164,8 @@ final class DeserBean<T> {
         @Nullable PropertyNamingStrategy defaultPropertyNamingStrategy = decoderContext.getSerdeConfiguration().map(SerdeConfiguration::getPropertyNamingStrategy).orElse(null);
         this.conversionService = decoderContext.getConversionService();
         this.introspection = introspection;
-        this.documentManagedRefProperty = introspection.getBeanProperties().stream()
-            .filter(property -> property.enumValue(SerdeConfig.SerManagedRef.class, SerdeConfig.SerManagedRef.SCOPE,
-                SerdeConfig.SerManagedRef.Scope.class).orElse(null) == SerdeConfig.SerManagedRef.Scope.DOCUMENT)
-            .findFirst()
-            .orElse(null);
+        this.documentIdProperty = DocumentIdUtil.findDocumentIdProperty(introspection);
+        this.objectIdentity = DocumentIdUtil.hasObjectIdentity(documentIdProperty);
         final SerdeConfig.SerCreatorMode creatorMode = introspection
             .getConstructor().getAnnotationMetadata()
             .enumValue(Creator.class, "mode", SerdeConfig.SerCreatorMode.class)
@@ -496,15 +500,17 @@ final class DeserBean<T> {
         recordLikeBean = isRecordLikeBean();
     }
 
-    void pushManagedRefs(Deserializer.DecoderContext decoderContext, T instance) throws IOException {
-        BeanProperty<T, Object> property = documentManagedRefProperty;
-        if (property != null) {
-            Object id = property.get(instance);
-            if (id == null) {
-                return;
-            }
-            decoderContext.registerObjectId(id, property.asArgument(), instance);
-            decoderContext.pushManagedRef(new PropertyReference<>(String.valueOf(id), introspection, property.asArgument(), instance));
+    /**
+     * Registers the document-scoped identifier of a fully read instance so that identifier references to it can be resolved.
+     */
+    void registerDocumentId(Deserializer.DecoderContext decoderContext, T instance) throws IOException {
+        BeanProperty<T, Object> property = documentIdProperty;
+        if (property == null) {
+            return;
+        }
+        Object id = property.get(instance);
+        if (id != null) {
+            DocumentIdUtil.register(decoderContext, id, introspection, property.asArgument(), instance);
         }
     }
 
@@ -666,7 +672,7 @@ final class DeserBean<T> {
     }
 
     private boolean isSimpleBean() {
-        if (documentManagedRefProperty != null || isJsonValueProperty || ignoredProperties != null || externalProperties != null || delegating || subtypeInfo != null || creatorParams != null || creatorUnwrapped != null || unwrappedProperties != null || anySetter != null) {
+        if (documentIdProperty != null || isJsonValueProperty || ignoredProperties != null || externalProperties != null || delegating || subtypeInfo != null || creatorParams != null || creatorUnwrapped != null || unwrappedProperties != null || anySetter != null) {
             return false;
         }
         if (injectProperties != null) {
@@ -674,7 +680,7 @@ final class DeserBean<T> {
                 return false;
             }
             for (DerProperty<T, Object> property : injectProperties.getProperties()) {
-                if (property.unresolvedTypeVariableName != null || property.isAnySetter || property.views != null || property.aliases != null || property.managedRef != null || introspection != property.introspection || property.backRef != null || property.beanProperty == null || property.merge) {
+                if (property.unresolvedTypeVariableName != null || property.isAnySetter || property.views != null || property.aliases != null || property.managedRef != null || introspection != property.introspection || property.backRef != null || property.beanProperty == null || property.merge || property.idReference == SerdeConfig.IdReference.OBJECT_OR_ID) {
                     return false;
                 }
             }
@@ -683,7 +689,7 @@ final class DeserBean<T> {
     }
 
     private boolean isRecordLikeBean() {
-        if (documentManagedRefProperty != null || isJsonValueProperty || ignoredProperties != null || externalProperties != null || delegating || subtypeInfo != null || injectProperties != null || creatorUnwrapped != null || unwrappedProperties != null || anySetter != null) {
+        if (documentIdProperty != null || isJsonValueProperty || ignoredProperties != null || externalProperties != null || delegating || subtypeInfo != null || injectProperties != null || creatorUnwrapped != null || unwrappedProperties != null || anySetter != null) {
             return false;
         }
         if (creatorParams != null) {
@@ -1123,6 +1129,10 @@ final class DeserBean<T> {
         public final String managedRef;
         @Nullable
         public final String backRef;
+        /**
+         * How the property references beans by their document-scoped identifier, if at all.
+         */
+        public final SerdeConfig.@Nullable IdReference idReference;
         public final boolean ignored;
         public final boolean xmlUseWrapping;
         public final boolean xmlWrappingConfigured;
@@ -1264,6 +1274,7 @@ final class DeserBean<T> {
                 .orElse(null);
             this.backRef = annotationMetadata.stringValue(SerdeConfig.SerBackRef.class)
                 .orElse(null);
+            this.idReference = annotationMetadata.enumValue(SerdeConfig.class, SerdeConfig.ID_REFERENCE, SerdeConfig.IdReference.class).orElse(null);
             Optional<Boolean> xmlUseWrapping = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.META_ANNOTATION_PROPERTY);
             this.xmlUseWrapping = xmlUseWrapping.orElse(true);
             this.xmlWrappingConfigured = xmlUseWrapping.isPresent();

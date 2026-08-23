@@ -8,7 +8,6 @@ io.micronaut.serde.processor.jsonb.JsonbNillableTransformer
 io.micronaut.serde.processor.jsonb.JsonbTypeInfoMapper
 io.micronaut.serde.processor.jackson.JsonBackReferenceMapper
 io.micronaut.serde.processor.jackson.JsonManagedReferenceMapper
-io.micronaut.serde.processor.jackson.JsonIdentityReferenceMapper
 io.micronaut.serde.processor.jackson.JacksonAnnotationMapper
 io.micronaut.serde.processor.jackson.JsonClassDescriptionMapper
 io.micronaut.serde.processor.jackson.JsonRootNameMapper

@@ -113,8 +113,12 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
 
     @Override
     public <T> @Nullable T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
-        final Deserializer<? extends T> deserializer = this.decoderContext.findDeserializer(type).createSpecific(decoderContext, type);
-        return deserializer.deserialize(JsonNodeDecoder.create(tree, limits()), decoderContext, type);
+        // Each document gets its own context so managed references and object identities do not leak between documents
+        Deserializer.DecoderContext decoderContext = registry.newDecoderContext(view);
+        final Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, type);
+        try (var ignored = decoderContext.openReferenceScope()) {
+            return deserializer.deserialize(JsonNodeDecoder.create(tree, limits()), decoderContext, type);
+        }
     }
 
     @Override
@@ -134,9 +138,13 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
     }
 
     private <T> @Nullable T readValue(BsonReader bsonReader, Argument<T> type) throws IOException {
-        return decoderContext.findDeserializer(type)
-            .createSpecific(decoderContext, type)
-            .deserialize(new BsonReaderDecoder(bsonReader, limits()), decoderContext, type);
+        // Each document gets its own context so managed references and object identities do not leak between documents
+        Deserializer.DecoderContext decoderContext = registry.newDecoderContext(view);
+        try (var ignored = decoderContext.openReferenceScope()) {
+            return decoderContext.findDeserializer(type)
+                .createSpecific(decoderContext, type)
+                .deserialize(new BsonReaderDecoder(bsonReader, limits()), decoderContext, type);
+        }
     }
 
     @Override
@@ -191,6 +199,8 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
     }
 
     private void serialize(Encoder encoder, Object object, Argument type) throws IOException {
+        // Each document gets its own context so managed references and object identities do not leak between documents
+        Serializer.EncoderContext encoderContext = registry.newEncoderContext(view);
         final Serializer<Object> serializer = encoderContext.findSerializer(type).createSpecific(encoderContext, type);
         serializer.serialize(encoder, encoderContext, type, object);
     }
