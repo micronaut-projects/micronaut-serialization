@@ -105,6 +105,11 @@ class DefaultEncoderContext extends AbstractPropertyReferenceManager implements 
     }
 
     @Override
+    public void close() {
+        writtenBeans = null;
+    }
+
+    @Override
     public Optional<SerdeConfiguration> getSerdeConfiguration() {
         return Optional.of(registry.getSerdeConfiguration());
     }

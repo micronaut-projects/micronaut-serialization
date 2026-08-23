@@ -26,6 +26,7 @@ import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.reference.SerializationReference;
 import org.jspecify.annotations.Nullable;
 
+import java.io.IOException;
 import java.util.Optional;
 import java.util.Set;
 
@@ -58,6 +59,11 @@ final class FeatureEncoderContext implements Serializer.EncoderContext {
     @Nullable
     public <B, P> SerializationReference<B, P> resolveReference(SerializationReference<B, P> reference) {
         return delegate.resolveReference(reference);
+    }
+
+    @Override
+    public void close() throws IOException {
+        delegate.close();
     }
 
     @Override

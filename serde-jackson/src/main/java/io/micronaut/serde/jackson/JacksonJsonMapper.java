@@ -231,20 +231,17 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
     }
 
     private <T> void writeValue(JsonGenerator gen, T value, Argument<T> argument) throws IOException {
-        Serializer<? super T> serializer;
-        // Each document gets its own context so managed references and object identities do not leak between documents
-        Serializer.EncoderContext encoderContext = registry.newEncoderContext(JsonViewUtil.extractView(serdeConfiguration, argument, view));
-        if (isSpecificType(argument)) {
-            serializer = (Serializer<? super T>) Objects.requireNonNull(specificSerializer);
-        } else {
-            serializer = encoderContext.findSerializer(argument).createSpecific(encoderContext, argument);
+        // A context lives for one document: managed references and object identities do not leak between documents
+        try (var encoderContext = registry.newEncoderContext(JsonViewUtil.extractView(serdeConfiguration, argument, view))) {
+            Serializer<? super T> serializer;
+            if (isSpecificType(argument)) {
+                serializer = (Serializer<? super T>) Objects.requireNonNull(specificSerializer);
+            } else {
+                serializer = encoderContext.findSerializer(argument).createSpecific(encoderContext, argument);
+            }
+            final Encoder encoder = JacksonEncoder.create(gen, streamLimits);
+            serializer.serialize(encoder, encoderContext, argument, value);
         }
-        final Encoder encoder = JacksonEncoder.create(gen, streamLimits);
-        serializer.serialize(
-            encoder,
-            encoderContext,
-            argument, value
-        );
     }
 
     private <T> @Nullable T readValue(JsonParser parser, Argument<T> type) throws IOException {
@@ -253,21 +250,16 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     private <T> @Nullable T readValue0(JsonParser parser, Argument<?> type) throws IOException {
-        Deserializer deserializer;
-        // Each document gets its own context so managed references and object identities do not leak between documents
-        Deserializer.DecoderContext decoderContext = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view));
-        if (isSpecificType(type)) {
-            deserializer = Objects.requireNonNull(specificDeserializer);
-        } else {
-            deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, (Argument) type);
-        }
-        final Decoder decoder = createDecoder(parser);
-        try (var ignored = decoderContext.openReferenceScope()) {
-            return (T) deserializer.deserializeNullable(
-                decoder,
-                decoderContext,
-                type
-            );
+        // A context lives for one document: managed references and object identities do not leak between documents
+        try (var decoderContext = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view))) {
+            Deserializer deserializer;
+            if (isSpecificType(type)) {
+                deserializer = Objects.requireNonNull(specificDeserializer);
+            } else {
+                deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, (Argument) type);
+            }
+            final Decoder decoder = createDecoder(parser);
+            return (T) deserializer.deserializeNullable(decoder, decoderContext, type);
         }
     }
 
@@ -479,34 +471,28 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
     }
 
     private <T> T updateValue(JsonParser parser, T value, Argument<T> type) throws IOException {
-        Deserializer<T> deserializer;
-        // Each document gets its own context so managed references and object identities do not leak between documents
-        Deserializer.DecoderContext decoderContext = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view));
-        if (isSpecificType(type)) {
-            deserializer = (Deserializer<T>) Objects.requireNonNull(specificDeserializer);
-        } else {
-            deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, (Argument) type);
-        }
-        if (!(deserializer instanceof UpdatingDeserializer<T>)) {
-            deserializer = decoderContext.findDeserializer(Argument.OBJECT_ARGUMENT)
-                .createSpecific(decoderContext, (Argument) type);
-        }
-        if (!(deserializer instanceof UpdatingDeserializer<T> updatingDeserializer)) {
-            throw new UnsupportedOperationException("Updating existing value of type [" + type + "] is not supported");
-        }
-        if (!parser.hasCurrentToken()) {
-            parser.nextToken();
-        }
-        // for jackson compat we need to support deserializing null, but most deserializers don't support it.
-        if (parser.currentToken() != JsonToken.VALUE_NULL) {
-            final Decoder decoder = createDecoder(parser);
-            try (var ignored = decoderContext.openReferenceScope()) {
-                updatingDeserializer.deserializeInto(
-                    decoder,
-                    decoderContext,
-                    type,
-                    value
-                );
+        // A context lives for one document: managed references and object identities do not leak between documents
+        try (var decoderContext = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view))) {
+            Deserializer<T> deserializer;
+            if (isSpecificType(type)) {
+                deserializer = (Deserializer<T>) Objects.requireNonNull(specificDeserializer);
+            } else {
+                deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, (Argument) type);
+            }
+            if (!(deserializer instanceof UpdatingDeserializer<T>)) {
+                deserializer = decoderContext.findDeserializer(Argument.OBJECT_ARGUMENT)
+                    .createSpecific(decoderContext, (Argument) type);
+            }
+            if (!(deserializer instanceof UpdatingDeserializer<T> updatingDeserializer)) {
+                throw new UnsupportedOperationException("Updating existing value of type [" + type + "] is not supported");
+            }
+            if (!parser.hasCurrentToken()) {
+                parser.nextToken();
+            }
+            // for jackson compat we need to support deserializing null, but most deserializers don't support it.
+            if (parser.currentToken() != JsonToken.VALUE_NULL) {
+                final Decoder decoder = createDecoder(parser);
+                updatingDeserializer.deserializeInto(decoder, decoderContext, type, value);
             }
         }
         return value;
