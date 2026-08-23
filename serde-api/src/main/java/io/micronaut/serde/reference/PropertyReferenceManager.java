@@ -17,6 +17,8 @@ package io.micronaut.serde.reference;
 
 import io.micronaut.core.annotation.Internal;
 
+import java.io.IOException;
+
 /**
  * interface for managing property references.
  */
@@ -59,7 +61,13 @@ public interface PropertyReferenceManager {
         ReferenceScope NO_OP = () -> {
         };
 
+        /**
+         * Releases the references pushed into this scope. Closing the outermost scope completes the document,
+         * which fails if references deferred within it were never resolved.
+         *
+         * @throws IOException If the document could not be completed
+         */
         @Override
-        void close();
+        void close() throws IOException;
     }
 }

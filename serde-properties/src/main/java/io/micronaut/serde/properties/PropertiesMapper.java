@@ -121,7 +121,9 @@ public final class PropertiesMapper implements ObjectMapper {
     public <T> @Nullable T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
         Deserializer.DecoderContext decoderContext = registry.newDecoderContext(null);
         Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, type);
-        return deserializer.deserializeNullable(JsonNodeDecoder.create(tree, limits()), decoderContext, type);
+        try (var ignored = decoderContext.openReferenceScope()) {
+            return deserializer.deserializeNullable(JsonNodeDecoder.create(tree, limits()), decoderContext, type);
+        }
     }
 
     /**

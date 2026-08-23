@@ -26,15 +26,18 @@ import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.reference.AbstractPropertyReferenceManager;
 import io.micronaut.serde.reference.PropertyReference;
+import io.micronaut.serde.support.reference.DocumentIdReference;
+import io.micronaut.serde.support.reference.PendingDocumentIdReference;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Default implementation of {@link io.micronaut.serde.Deserializer.DecoderContext}.
@@ -44,8 +47,13 @@ import java.util.List;
 @Internal
 class DefaultDecoderContext extends AbstractPropertyReferenceManager implements Deserializer.DecoderContext {
     private final DefaultSerdeRegistry registry;
-    private final Map<String, Object> objectIds = new HashMap<>();
-    private final Map<String, List<ObjectIdConsumer>> pendingObjectIds = new HashMap<>();
+    // Document-scoped identifier state, allocated only when a document uses identifiers and released
+    // when the outermost reference scope closes
+    @Nullable
+    private Map<String, Object> documentIds;
+    @Nullable
+    private Map<String, List<PendingDocumentIdReference>> pendingDocumentIds;
+    private int referenceScopeDepth;
 
     DefaultDecoderContext(DefaultSerdeRegistry registry) {
         this.registry = registry;
@@ -78,7 +86,41 @@ class DefaultDecoderContext extends AbstractPropertyReferenceManager implements 
     }
 
     @Override
+    public <B, P> void pushManagedRef(PropertyReference<B, P> reference) {
+        if (reference instanceof DocumentIdReference<?> documentIdReference) {
+            registerDocumentId(documentIdReference);
+        } else if (reference instanceof PendingDocumentIdReference pendingReference) {
+            Map<String, List<PendingDocumentIdReference>> pending = pendingDocumentIds;
+            if (pending == null) {
+                pending = new HashMap<>();
+                pendingDocumentIds = pending;
+            }
+            pending.computeIfAbsent(pendingReference.getReferenceName(), ignored -> new ArrayList<>(2)).add(pendingReference);
+        } else {
+            super.pushManagedRef(reference);
+        }
+    }
+
+    @Override
+    public ReferenceScope openReferenceScope() {
+        ReferenceScope scope = super.openReferenceScope();
+        referenceScopeDepth++;
+        return () -> {
+            scope.close();
+            if (--referenceScopeDepth == 0) {
+                finishDocument();
+            }
+        };
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
     public <B, P> PropertyReference<B, P> resolveReference(PropertyReference<B, P> reference) {
+        if (reference instanceof DocumentIdReference<?> lookup) {
+            Map<String, Object> ids = documentIds;
+            Object bean = ids == null ? null : ids.get(lookup.getReferenceName());
+            return bean == null ? reference : (PropertyReference<B, P>) new DocumentIdReference<>(lookup.getReferenceName(), null, Argument.OBJECT_ARGUMENT, bean);
+        }
         if (refs != null) {
             for (PropertyReference<?, ?> ref : refs) {
                 if (ref.getReferenceName().equals(reference.getReferenceName())
@@ -95,37 +137,43 @@ class DefaultDecoderContext extends AbstractPropertyReferenceManager implements 
         return reference;
     }
 
-    @Override
-    public @Nullable Object resolveObjectId(Object id, Argument<?> type) {
-        Object value = objectIds.get(String.valueOf(id));
-        return value != null && type.getType().isInstance(value) ? value : null;
-    }
-
-    @Override
-    public void registerObjectId(Object id, Argument<?> type, Object value) throws IOException {
-        String key = String.valueOf(id);
-        objectIds.put(key, value);
-        List<ObjectIdConsumer> pending = pendingObjectIds.remove(key);
-        if (pending != null) {
-            for (ObjectIdConsumer consumer : pending) {
-                try {
-                    consumer.accept(value);
-                } catch (IOException e) {
-                    throw new SerdeException("Unable to resolve JSON object identity [" + id + "]", e);
+    private void registerDocumentId(DocumentIdReference<?> reference) {
+        Object bean = reference.getReference();
+        if (bean == null) {
+            return;
+        }
+        Map<String, Object> ids = documentIds;
+        if (ids == null) {
+            ids = new HashMap<>();
+            documentIds = ids;
+        }
+        String id = reference.getReferenceName();
+        ids.put(id, bean);
+        Map<String, List<PendingDocumentIdReference>> pending = pendingDocumentIds;
+        List<PendingDocumentIdReference> pendingReferences = pending == null ? null : pending.remove(id);
+        if (pendingReferences == null) {
+            return;
+        }
+        try {
+            for (PendingDocumentIdReference pendingReference : pendingReferences) {
+                if (!pendingReference.getType().getType().isInstance(bean)) {
+                    throw new SerdeException("Identifier [" + id + "] resolved to incompatible type ["
+                        + bean.getClass().getName() + "] for [" + pendingReference.getType().getType().getName() + "]");
                 }
+                pendingReference.getConsumer().accept(bean);
             }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 
-    @Override
-    public boolean resolveOrDeferObjectId(Object id, Argument<?> type, ObjectIdConsumer consumer) throws IOException {
-        Object value = resolveObjectId(id, type);
-        if (value != null) {
-            consumer.accept(value);
-            return true;
+    private void finishDocument() throws IOException {
+        Map<String, List<PendingDocumentIdReference>> pending = pendingDocumentIds;
+        documentIds = null;
+        pendingDocumentIds = null;
+        if (pending != null && !pending.isEmpty()) {
+            throw new SerdeException("Unresolved identifier references: " + pending.keySet());
         }
-        pendingObjectIds.computeIfAbsent(String.valueOf(id), ignored -> new ArrayList<>()).add(consumer);
-        return false;
     }
 
     @Override

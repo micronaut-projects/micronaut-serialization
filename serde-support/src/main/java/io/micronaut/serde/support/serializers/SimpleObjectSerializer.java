@@ -22,7 +22,6 @@ import io.micronaut.serde.Keys;
 import io.micronaut.serde.KeysAwareEncoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
-import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
 import io.micronaut.serde.support.util.DecoderValueKind;
@@ -96,7 +95,6 @@ final class SimpleObjectSerializer<T> implements ObjectSerializer<T> {
 
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
-        registerObjectId(context, value);
         KeysAwareEncoder childEncoder = KeysAwareEncoder.of(encoder.encodeObject(type));
         if (serializersResolved) {
             serializeResolvedProperties(childEncoder, context, value);
@@ -163,26 +161,12 @@ final class SimpleObjectSerializer<T> implements ObjectSerializer<T> {
 
     @Override
     public void serializeInto(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
-        registerObjectId(context, value);
         KeysAwareEncoder keysAwareEncoder = KeysAwareEncoder.of(encoder);
         if (serializersResolved) {
             serializeResolvedPropertiesInto(keysAwareEncoder, context, value);
             return;
         }
         serializePropertiesInto(keysAwareEncoder, context, value);
-    }
-
-    private void registerObjectId(EncoderContext context, T value) {
-        for (SerBean.SerProperty<T, Object> property : writeProperties) {
-            if (property.argument.getAnnotationMetadata().enumValue(SerdeConfig.SerManagedRef.class, SerdeConfig.SerManagedRef.SCOPE,
-                SerdeConfig.SerManagedRef.Scope.class).orElse(null) == SerdeConfig.SerManagedRef.Scope.DOCUMENT) {
-                Object id = property.get(value);
-                if (id != null) {
-                    context.registerObjectId(value, id);
-                }
-                return;
-            }
-        }
     }
 
     private void serializePropertiesInto(KeysAwareEncoder keysAwareEncoder, EncoderContext context, T value) throws IOException {

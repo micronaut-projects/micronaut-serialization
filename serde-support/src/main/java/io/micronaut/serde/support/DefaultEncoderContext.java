@@ -26,6 +26,7 @@ import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.reference.AbstractPropertyReferenceManager;
 import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.reference.SerializationReference;
+import io.micronaut.serde.support.reference.DocumentIdSerializationReference;
 import org.jspecify.annotations.Nullable;
 
 import java.util.IdentityHashMap;
@@ -39,7 +40,9 @@ import java.util.Optional;
 @Internal
 class DefaultEncoderContext extends AbstractPropertyReferenceManager implements Serializer.EncoderContext {
     private final DefaultSerdeRegistry registry;
-    private final IdentityHashMap<Object, Object> objectIds = new IdentityHashMap<>();
+    // Beans written in full in the current document, allocated only when a document uses object identity
+    @Nullable
+    private IdentityHashMap<Object, Object> writtenBeans;
 
     DefaultEncoderContext(DefaultSerdeRegistry registry) {
         this.registry = registry;
@@ -67,8 +70,29 @@ class DefaultEncoderContext extends AbstractPropertyReferenceManager implements 
     }
 
     @Override
+    public <B, P> void pushManagedRef(PropertyReference<B, P> reference) {
+        if (reference instanceof DocumentIdSerializationReference<?> documentIdReference) {
+            Object bean = documentIdReference.getReference();
+            if (bean != null) {
+                IdentityHashMap<Object, Object> written = writtenBeans;
+                if (written == null) {
+                    written = new IdentityHashMap<>();
+                    writtenBeans = written;
+                }
+                written.put(bean, documentIdReference.getReferenceName());
+            }
+        } else {
+            super.pushManagedRef(reference);
+        }
+    }
+
+    @Override
     public <B, P> @Nullable SerializationReference<B, P> resolveReference(SerializationReference<B, P> reference) {
         final Object value = reference.getReference();
+        if (reference instanceof DocumentIdSerializationReference<?>) {
+            IdentityHashMap<Object, Object> written = writtenBeans;
+            return written != null && value != null && written.containsKey(value) ? null : reference;
+        }
         if (refs != null) {
             final PropertyReference<?, ?> managedReference = refs.peekFirst();
             if (managedReference != null && managedReference.getProperty().getName().equals(reference.getReferenceName())) {
@@ -78,16 +102,6 @@ class DefaultEncoderContext extends AbstractPropertyReferenceManager implements 
             }
         }
         return reference;
-    }
-
-    @Override
-    public @Nullable Object resolveObjectId(Object value) {
-        return objectIds.get(value);
-    }
-
-    @Override
-    public void registerObjectId(Object value, Object id) {
-        objectIds.put(value, id);
     }
 
     @Override

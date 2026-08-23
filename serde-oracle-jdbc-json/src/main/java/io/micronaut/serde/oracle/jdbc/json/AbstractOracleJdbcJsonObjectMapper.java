@@ -88,11 +88,13 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
     public <T> @Nullable T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
         Deserializer.DecoderContext context = registry.newDecoderContext(view);
         final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type).createSpecific(context, type);
-        return deserializer.deserialize(
-            JsonNodeDecoder.create(tree, limits(), coercionPolicy()),
-            context,
-            type
-        );
+        try (var ignored = context.openReferenceScope()) {
+            return deserializer.deserialize(
+                JsonNodeDecoder.create(tree, limits(), coercionPolicy()),
+                context,
+                type
+            );
+        }
     }
 
     @Override
@@ -135,11 +137,13 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
         }
         Deserializer.DecoderContext context = registry.newDecoderContext(view);
         final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type).createSpecific(context, type);
-        return deserializer.deserialize(
-            new OracleJdbcJsonParserDecoder(parser, limits(), coercionPolicy()),
-            context,
-            type
-        );
+        try (var ignored = context.openReferenceScope()) {
+            return deserializer.deserialize(
+                new OracleJdbcJsonParserDecoder(parser, limits(), coercionPolicy()),
+                context,
+                type
+            );
+        }
     }
 
     @Override

@@ -61,16 +61,6 @@ final class FeatureEncoderContext implements Serializer.EncoderContext {
     }
 
     @Override
-    public @Nullable Object resolveObjectId(Object value) {
-        return delegate.resolveObjectId(value);
-    }
-
-    @Override
-    public void registerObjectId(Object value, Object id) {
-        delegate.registerObjectId(value, id);
-    }
-
-    @Override
     public Optional<SerdeConfiguration> getSerdeConfiguration() {
         return delegate.getSerdeConfiguration();
     }
