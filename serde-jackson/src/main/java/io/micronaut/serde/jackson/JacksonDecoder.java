@@ -349,7 +349,7 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
             }
             case START_OBJECT, END_OBJECT, END_ARRAY, FIELD_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
-                rejectFloatAsInt(t);
+                ensureFloatAsIntAllowed(t);
                 return parser.getByteValue();
             }
         }
@@ -391,7 +391,7 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
             }
             case START_OBJECT, END_OBJECT, END_ARRAY, FIELD_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
-                rejectFloatAsInt(t);
+                ensureFloatAsIntAllowed(t);
                 return parser.getShortValue();
             }
         }
@@ -505,7 +505,7 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
             }
             case START_OBJECT, END_OBJECT, END_ARRAY, FIELD_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
-                rejectFloatAsInt(t);
+                ensureFloatAsIntAllowed(t);
                 return parser.getValueAsInt();
             }
         }
@@ -576,7 +576,7 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
             }
             case START_OBJECT, END_OBJECT, END_ARRAY, FIELD_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
-                rejectFloatAsInt(t);
+                ensureFloatAsIntAllowed(t);
                 return parser.getValueAsLong();
             }
         }
@@ -738,13 +738,13 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
             }
             case START_OBJECT, END_OBJECT, END_ARRAY, FIELD_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
-                rejectFloatAsInt(t);
+                ensureFloatAsIntAllowed(t);
                 return parser.getBigIntegerValue();
             }
         }
     }
 
-    private void rejectFloatAsInt(JsonToken token) throws IOException {
+    private void ensureFloatAsIntAllowed(JsonToken token) throws IOException {
         if (!acceptFloatAsInt && token == JsonToken.VALUE_NUMBER_FLOAT) {
             throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, token);
         }
