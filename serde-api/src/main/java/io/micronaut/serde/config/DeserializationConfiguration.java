@@ -75,4 +75,16 @@ public interface DeserializationConfiguration {
     default boolean acceptCaseInsensitiveEnums() {
         return false;
     }
+
+    /**
+     * Whether floating-point JSON numbers should be coerced to integer values during
+     * deserialization. Defaults to {@code true} for backwards compatibility.
+     *
+     * @return {@code true} if floating-point values should be accepted as integers
+     * @since 2.16.3
+     */
+    @Bindable(defaultValue = StringUtils.TRUE)
+    default boolean isAcceptFloatAsInt() {
+        return true;
+    }
 }

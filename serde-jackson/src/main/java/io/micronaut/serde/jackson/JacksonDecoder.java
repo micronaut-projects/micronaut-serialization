@@ -58,14 +58,16 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
 
     @Internal
     private final JsonParser parser;
+    private final boolean acceptFloatAsInt;
 
     @Nullable
     private JsonToken peekedToken;
     private boolean currentlyUnwrappingArray;
 
-    private JacksonDecoder(JsonParser parser, RemainingLimits remainingLimits) throws IOException {
+    private JacksonDecoder(JsonParser parser, RemainingLimits remainingLimits, boolean acceptFloatAsInt) throws IOException {
         super(remainingLimits);
         this.parser = parser;
+        this.acceptFloatAsInt = acceptFloatAsInt;
         if (!parser.hasCurrentToken()) {
             peekedToken = parser.nextToken();
             if (!parser.hasCurrentToken()) {
@@ -77,7 +79,20 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
     }
 
     public static Decoder create(JsonParser parser, RemainingLimits remainingLimits) throws IOException {
-        return new JacksonDecoder(parser, remainingLimits);
+        return create(parser, remainingLimits, true);
+    }
+
+    /**
+     * Create a decoder with configurable floating-point to integer coercion.
+     *
+     * @param parser The Jackson parser
+     * @param remainingLimits The remaining stream limits
+     * @param acceptFloatAsInt Whether floating-point values should be coerced to integers
+     * @return The decoder
+     * @throws IOException If the parser cannot be initialized
+     */
+    public static Decoder create(JsonParser parser, RemainingLimits remainingLimits, boolean acceptFloatAsInt) throws IOException {
+        return new JacksonDecoder(parser, remainingLimits, acceptFloatAsInt);
     }
 
     @Override
@@ -334,6 +349,7 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
             }
             case START_OBJECT, END_OBJECT, END_ARRAY, FIELD_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
+                rejectFloatAsInt(t);
                 return parser.getByteValue();
             }
         }
@@ -375,6 +391,7 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
             }
             case START_OBJECT, END_OBJECT, END_ARRAY, FIELD_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
+                rejectFloatAsInt(t);
                 return parser.getShortValue();
             }
         }
@@ -488,6 +505,7 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
             }
             case START_OBJECT, END_OBJECT, END_ARRAY, FIELD_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
+                rejectFloatAsInt(t);
                 return parser.getValueAsInt();
             }
         }
@@ -558,6 +576,7 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
             }
             case START_OBJECT, END_OBJECT, END_ARRAY, FIELD_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
+                rejectFloatAsInt(t);
                 return parser.getValueAsLong();
             }
         }
@@ -719,8 +738,15 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
             }
             case START_OBJECT, END_OBJECT, END_ARRAY, FIELD_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
+                rejectFloatAsInt(t);
                 return parser.getBigIntegerValue();
             }
+        }
+    }
+
+    private void rejectFloatAsInt(JsonToken token) throws IOException {
+        if (!acceptFloatAsInt && token == JsonToken.VALUE_NUMBER_FLOAT) {
+            throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, token);
         }
     }
 

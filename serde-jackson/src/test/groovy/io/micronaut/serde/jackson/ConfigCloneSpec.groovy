@@ -34,7 +34,17 @@ class ConfigCloneSpec extends Specification {
         when:
         original.readValue('{"missing":"foo"}', TestBean)
         then:
-        noExceptionThrown()
+            noExceptionThrown()
+
+        when:
+        def defaultValue = original.readValue('{"number":42.5}', TestBean)
+        then:
+        defaultValue.number == 42
+
+        when:
+        modified.readValue('{"number":42.5}', TestBean)
+        then:
+        thrown SerdeException
         when:
         modified.readValue('{"missing":"foo"}', TestBean)
         then:
@@ -84,6 +94,7 @@ class ConfigCloneSpec extends Specification {
     static class TestBean {
         List<String> empty
         byte[] bytes
+        Integer number
     }
 
     @ConfigurationProperties("oci.serde")
@@ -109,5 +120,9 @@ class ConfigCloneSpec extends Specification {
         @Bindable(defaultValue = "false")
         @Override
         boolean isIgnoreUnknown()
+
+        @Bindable(defaultValue = "false")
+        @Override
+        boolean isAcceptFloatAsInt()
     }
 }

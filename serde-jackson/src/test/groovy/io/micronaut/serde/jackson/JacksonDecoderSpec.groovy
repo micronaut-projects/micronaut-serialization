@@ -9,7 +9,11 @@ import spock.lang.Specification
 
 class JacksonDecoderSpec extends Specification {
     private static Decoder createDecoder(@Language('json') String json) {
-        return JacksonDecoder.create(new JsonFactoryBuilder().build().createParser(json), LimitingStream.DEFAULT_LIMITS)
+        return createDecoder(json, true)
+    }
+
+    private static Decoder createDecoder(@Language('json') String json, boolean acceptFloatAsInt) {
+        return JacksonDecoder.create(new JsonFactoryBuilder().build().createParser(json), LimitingStream.DEFAULT_LIMITS, acceptFloatAsInt)
     }
 
     def "unwrap arrays normal"() {
@@ -77,6 +81,47 @@ class JacksonDecoderSpec extends Specification {
 
         createDecoder('true').decodeBigDecimal() == BigDecimal.ONE
         createDecoder('false').decodeBigDecimal() == BigDecimal.ZERO
+    }
+
+    def 'floating-point values are accepted as integers by default'() {
+        expect:
+        createDecoder('42.5').decodeByte() == 42
+        createDecoder('42.5').decodeShort() == 42
+        createDecoder('42.5').decodeInt() == 42
+        createDecoder('42.5').decodeLong() == 42L
+        createDecoder('42.5').decodeBigInteger() == BigInteger.valueOf(42)
+    }
+
+    def 'floating-point values can be rejected as integers'() {
+        when:
+        createDecoder('42.5', false).decodeInt()
+
+        then:
+        thrown SerdeException
+
+        when:
+        createDecoder('42.5', false).decodeByte()
+
+        then:
+        thrown SerdeException
+
+        when:
+        createDecoder('42.5', false).decodeShort()
+
+        then:
+        thrown SerdeException
+
+        when:
+        createDecoder('42.5', false).decodeLong()
+
+        then:
+        thrown SerdeException
+
+        when:
+        createDecoder('42.5', false).decodeBigInteger()
+
+        then:
+        thrown SerdeException
     }
 
     def 'buffering'() {
