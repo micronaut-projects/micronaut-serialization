@@ -17,7 +17,6 @@ graalvmNative {
             buildArgs.add('--initialize-at-build-time=org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor$ClassInfo')
             buildArgs.add('--initialize-at-build-time=org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor$LifecycleMethods')
             buildArgs.add('--initialize-at-build-time=org.junit.jupiter.engine.descriptor.ExclusiveResourceCollector$1')
-            //buildArgs.add('--trace-object-instantiation=org.junit.jupiter.engine.descriptor.ExclusiveResourceCollector$1')
         }
     }
     metadataRepository {

@@ -24,3 +24,15 @@ dependencies {
 tasks.withType<Test> {
     useJUnitPlatform()
 }
+
+graalvmNative {
+    toolchainDetection = false
+    binaries {
+        all {
+            buildArgs.add("-H:+ReportExceptionStackTraces")
+        }
+    }
+    metadataRepository {
+        enabled = true
+    }
+}
