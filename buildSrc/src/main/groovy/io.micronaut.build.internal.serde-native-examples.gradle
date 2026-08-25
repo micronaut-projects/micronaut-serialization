@@ -6,20 +6,3 @@ plugins {
 micronaut {
     version libs.versions.micronaut.platform.get()
 }
-
-graalvmNative {
-    toolchainDetection = false
-    binaries {
-        all {
-            buildArgs.add('--initialize-at-build-time=org.junit.platform.launcher.core.LauncherDiscoveryResult$EngineResultInfo')
-            buildArgs.add('--initialize-at-build-time=org.junit.platform.launcher.core.DiscoveryIssueNotifier')
-            buildArgs.add('--initialize-at-build-time=org.junit.jupiter.engine.descriptor.MethodBasedTestDescriptor$MethodInfo')
-            buildArgs.add('--initialize-at-build-time=org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor$ClassInfo')
-            buildArgs.add('--initialize-at-build-time=org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor$LifecycleMethods')
-            buildArgs.add('--initialize-at-build-time=org.junit.jupiter.engine.descriptor.ExclusiveResourceCollector$1')
-        }
-    }
-    metadataRepository {
-        enabled = true
-    }
-}
