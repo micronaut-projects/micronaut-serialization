@@ -70,6 +70,7 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
 
     @Internal
     private final JsonParser parser;
+    private final boolean acceptFloatAsInt;
 
     @Nullable
     private JsonToken peekedToken;
@@ -81,9 +82,10 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
     private int sequentialKeyIndex;
     private boolean currentlyUnwrappingArray;
 
-    private JacksonDecoder(JsonParser parser, RemainingLimits remainingLimits) throws IOException {
+    private JacksonDecoder(JsonParser parser, RemainingLimits remainingLimits, boolean acceptFloatAsInt) throws IOException {
         super(remainingLimits);
         this.parser = parser;
+        this.acceptFloatAsInt = acceptFloatAsInt;
         if (!parser.hasCurrentToken()) {
             peekedToken = parser.nextToken();
             if (!parser.hasCurrentToken()) {
@@ -95,7 +97,20 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
     }
 
     public static Decoder create(JsonParser parser, RemainingLimits remainingLimits) throws IOException {
-        return new JacksonDecoder(parser, remainingLimits);
+        return new JacksonDecoder(parser, remainingLimits, true);
+    }
+
+    /**
+     * Create a decoder with configurable floating-point to integer coercion.
+     *
+     * @param parser The Jackson parser
+     * @param remainingLimits The remaining stream limits
+     * @param acceptFloatAsInt Whether floating-point values should be coerced to integers
+     * @return The decoder
+     * @throws IOException If the parser cannot be initialized
+     */
+    public static Decoder create(JsonParser parser, RemainingLimits remainingLimits, boolean acceptFloatAsInt) throws IOException {
+        return new JacksonDecoder(parser, remainingLimits, acceptFloatAsInt);
     }
 
     @Override
@@ -464,6 +479,7 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
             }
             case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
+                ensureFloatAsIntAllowed(t);
                 return parser.getByteValue();
             }
         }
@@ -486,7 +502,10 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
             }
             case VALUE_NULL -> throw unexpectedNullToken(JsonToken.VALUE_NUMBER_INT, t);
             case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
-            default -> parser.getByteValue();
+            default -> {
+                ensureFloatAsIntAllowed(t);
+                yield parser.getByteValue();
+            }
         };
     }
 
@@ -522,6 +541,7 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
             }
             case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
+                ensureFloatAsIntAllowed(t);
                 return parser.getShortValue();
             }
         }
@@ -544,7 +564,10 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
             }
             case VALUE_NULL -> throw unexpectedNullToken(JsonToken.VALUE_NUMBER_INT, t);
             case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
-            default -> parser.getShortValue();
+            default -> {
+                ensureFloatAsIntAllowed(t);
+                yield parser.getShortValue();
+            }
         };
     }
 
@@ -687,6 +710,7 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
             }
             case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
+                ensureFloatAsIntAllowed(t);
                 return parser.getValueAsInt();
             }
         }
@@ -718,7 +742,10 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
             case VALUE_TRUE -> 1;
             case VALUE_NULL -> throw unexpectedNullToken(JsonToken.VALUE_NUMBER_INT, t);
             case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
-            default -> parser.getValueAsInt();
+            default -> {
+                ensureFloatAsIntAllowed(t);
+                yield parser.getValueAsInt();
+            }
         };
     }
 
@@ -789,6 +816,7 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
             }
             case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
+                ensureFloatAsIntAllowed(t);
                 return parser.getValueAsLong();
             }
         }
@@ -820,7 +848,10 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
             }
             case VALUE_NULL -> throw unexpectedNullToken(JsonToken.VALUE_NUMBER_INT, t);
             case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
-            default -> parser.getValueAsLong();
+            default -> {
+                ensureFloatAsIntAllowed(t);
+                yield parser.getValueAsLong();
+            }
         };
     }
 
@@ -1034,6 +1065,7 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
             }
             case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
+                ensureFloatAsIntAllowed(t);
                 return parser.getBigIntegerValue();
             }
         }
@@ -1306,6 +1338,12 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
     public void skipValue() throws IOException {
         nextToken();
         parser.skipChildren();
+    }
+
+    private void ensureFloatAsIntAllowed(JsonToken token) throws IOException {
+        if (!acceptFloatAsInt && token == JsonToken.VALUE_NUMBER_FLOAT) {
+            throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, token);
+        }
     }
 
     private abstract static class ArbitraryBuilder {

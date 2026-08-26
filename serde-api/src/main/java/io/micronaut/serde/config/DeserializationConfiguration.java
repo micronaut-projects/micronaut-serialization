@@ -170,6 +170,18 @@ public interface DeserializationConfiguration {
     }
 
     /**
+     * Whether floating-point JSON numbers should be coerced to integer values during
+     * deserialization. Defaults to {@code true} for backwards compatibility.
+     *
+     * @return {@code true} if floating-point values should be accepted as integers
+     * @since 3.2
+     */
+    @Bindable(defaultValue = StringUtils.TRUE)
+    default boolean isAcceptFloatAsInt() {
+        return true;
+    }
+
+    /**
      * Returns the active format features for deserialization.
      *
      * @return The active format features for deserialization.

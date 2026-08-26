@@ -45,6 +45,7 @@ final class DefaultDeserializationConfiguration implements DeserializationConfig
     private final boolean adjustDatesToContextTimeZone;
     private final boolean requireAllCreatorParameters;
     private final boolean disableGeneratedDeserializer;
+    private final boolean acceptFloatAsInt;
     private final Set<DeserializationConfiguration.Feature> features;
 
     @ConfigurationInject
@@ -62,7 +63,8 @@ final class DefaultDeserializationConfiguration implements DeserializationConfig
                                         @Bindable(defaultValue = StringUtils.TRUE) boolean readDateTimestampsAsNanoseconds,
                                         @Bindable(defaultValue = StringUtils.FALSE) boolean adjustDatesToContextTimeZone,
                                         @Bindable(defaultValue = StringUtils.FALSE) boolean requireAllCreatorParameters,
-                                        @Bindable(defaultValue = StringUtils.FALSE) boolean disableGeneratedDeserializer) {
+                                        @Bindable(defaultValue = StringUtils.FALSE) boolean disableGeneratedDeserializer,
+                                        @Bindable(defaultValue = StringUtils.TRUE) boolean acceptFloatAsInt) {
         this.ignoreUnknown = ignoreUnknown;
         this.arraySizeThreshold = arraySizeThreshold;
         this.strictNullable = strictNullable;
@@ -77,6 +79,7 @@ final class DefaultDeserializationConfiguration implements DeserializationConfig
         this.adjustDatesToContextTimeZone = adjustDatesToContextTimeZone;
         this.requireAllCreatorParameters = requireAllCreatorParameters;
         this.disableGeneratedDeserializer = disableGeneratedDeserializer;
+        this.acceptFloatAsInt = acceptFloatAsInt;
         this.features = DeserializationConfiguration.super.features();
     }
 
@@ -108,6 +111,11 @@ final class DefaultDeserializationConfiguration implements DeserializationConfig
     @Override
     public boolean acceptCaseInsensitiveEnums() {
         return acceptCaseInsensitiveEnums;
+    }
+
+    @Override
+    public boolean isAcceptFloatAsInt() {
+        return acceptFloatAsInt;
     }
 
     @Override
