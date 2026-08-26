@@ -264,10 +264,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
             }
             deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, (Argument) type);
         }
-        boolean acceptFloatAsInt = decoderContext.getDeserializationConfiguration()
-            .map(DeserializationConfiguration::isAcceptFloatAsInt)
-            .orElse(true);
-        final Decoder decoder = JacksonDecoder.create(parser, streamLimits, acceptFloatAsInt);
+        final Decoder decoder = createDecoder(parser, decoderContext);
         return (T) deserializer.deserializeNullable(
             decoder,
             decoderContext,
@@ -506,10 +503,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
         }
         // for jackson compat we need to support deserializing null, but most deserializers don't support it.
         if (parser.currentToken() != JsonToken.VALUE_NULL) {
-            boolean acceptFloatAsInt = decoderContext.getDeserializationConfiguration()
-                .map(DeserializationConfiguration::isAcceptFloatAsInt)
-                .orElse(true);
-            final Decoder decoder = JacksonDecoder.create(parser, streamLimits, acceptFloatAsInt);
+            final Decoder decoder = createDecoder(parser, decoderContext);
             updatingDeserializer.deserializeInto(
                 decoder,
                 decoderContext,
@@ -518,6 +512,13 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
             );
         }
         return value;
+    }
+
+    private Decoder createDecoder(JsonParser parser, Deserializer.DecoderContext decoderContext) throws IOException {
+        boolean acceptFloatAsInt = decoderContext.getDeserializationConfiguration()
+            .map(DeserializationConfiguration::isAcceptFloatAsInt)
+            .orElse(true);
+        return JacksonDecoder.create(parser, streamLimits, acceptFloatAsInt);
     }
 
     private boolean isSpecificType(Argument<?> type) {
