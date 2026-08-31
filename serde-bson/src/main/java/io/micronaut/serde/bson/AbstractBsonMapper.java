@@ -117,9 +117,9 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
     @Override
     public <T> @Nullable T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
         // A context lives for one document: managed references and object identities do not leak between documents
-        try (var decoderContext = registry.newDecoderContext(view)) {
-            final Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, type);
-            return deserializer.deserialize(JsonNodeDecoder.create(tree, limits(), coercionPolicy), decoderContext, type);
+        try (var context = registry.newDecoderContext(view)) {
+            final Deserializer<? extends T> deserializer = context.findDeserializer(type).createSpecific(context, type);
+            return deserializer.deserialize(JsonNodeDecoder.create(tree, limits(), coercionPolicy), context, type);
         }
     }
 
@@ -141,10 +141,10 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
 
     private <T> @Nullable T readValue(BsonReader bsonReader, Argument<T> type) throws IOException {
         // A context lives for one document: managed references and object identities do not leak between documents
-        try (var decoderContext = registry.newDecoderContext(view)) {
-            return decoderContext.findDeserializer(type)
-                .createSpecific(decoderContext, type)
-                .deserialize(new BsonReaderDecoder(bsonReader, limits(), coercionPolicy), decoderContext, type);
+        try (var context = registry.newDecoderContext(view)) {
+            return context.findDeserializer(type)
+                .createSpecific(context, type)
+                .deserialize(new BsonReaderDecoder(bsonReader, limits(), coercionPolicy), context, type);
         }
     }
 
@@ -201,9 +201,9 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
 
     private void serialize(Encoder encoder, Object object, Argument type) throws IOException {
         // A context lives for one document: managed references and object identities do not leak between documents
-        try (var encoderContext = registry.newEncoderContext(view)) {
-            final Serializer<Object> serializer = encoderContext.findSerializer(type).createSpecific(encoderContext, type);
-            serializer.serialize(encoder, encoderContext, type, object);
+        try (var context = registry.newEncoderContext(view)) {
+            final Serializer<Object> serializer = context.findSerializer(type).createSpecific(context, type);
+            serializer.serialize(encoder, context, type, object);
         }
     }
 

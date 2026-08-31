@@ -87,7 +87,7 @@ public final class IdReferenceSerializer<T> implements Serializer<T> {
                 + "]: the type does not declare an identifier property");
         }
         Argument<Object> argument = property.asArgument();
-        Serializer<Object> serializer = (Serializer<Object>) context.findSerializer(argument).createSpecific(context, argument);
+        Serializer<Object> serializer = context.findSerializer(argument).createSpecific(context, argument);
         return new IdReferenceSerializer<>(introspections, property, argument, serializer, isCollection);
     }
 
@@ -101,16 +101,18 @@ public final class IdReferenceSerializer<T> implements Serializer<T> {
             return;
         }
         Encoder arrayEncoder = encoder.encodeArray(type);
-        if (value instanceof Iterable<?> values) {
-            for (Object reference : values) {
-                serializeReference(arrayEncoder, context, reference);
+        switch (value) {
+            case Iterable<?> values -> {
+                for (Object reference : values) {
+                    serializeReference(arrayEncoder, context, reference);
+                }
             }
-        } else if (value instanceof Object[] values) {
-            for (Object reference : values) {
-                serializeReference(arrayEncoder, context, reference);
+            case Object[] values -> {
+                for (Object reference : values) {
+                    serializeReference(arrayEncoder, context, reference);
+                }
             }
-        } else {
-            throw new SerdeException("Cannot serialize identifier references of type [" + value.getClass().getName() + "]");
+            default -> throw new SerdeException("Cannot serialize identifier references of type [" + value.getClass().getName() + "]");
         }
         arrayEncoder.finishStructure();
     }

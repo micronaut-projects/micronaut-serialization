@@ -64,7 +64,7 @@ final class IdentityObjectSerializer<T> implements ObjectSerializer<T> {
                                     BeanProperty<T, Object> identityProperty,
                                     EncoderContext context) throws SerdeException {
         Argument<Object> identityArgument = identityProperty.asArgument();
-        Serializer<Object> identitySerializer = (Serializer<Object>) context.findSerializer(identityArgument)
+        Serializer<Object> identitySerializer = context.findSerializer(identityArgument)
             .createSpecific(context, identityArgument);
         return new IdentityObjectSerializer<>(delegate, introspection, identityProperty, identityArgument, identitySerializer);
     }

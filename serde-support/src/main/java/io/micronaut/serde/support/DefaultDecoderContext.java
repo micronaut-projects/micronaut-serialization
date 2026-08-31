@@ -85,17 +85,17 @@ class DefaultDecoderContext extends AbstractPropertyReferenceManager implements 
 
     @Override
     public <B, P> void pushManagedRef(PropertyReference<B, P> reference) {
-        if (reference instanceof DocumentIdReference<?> documentIdReference) {
-            registerDocumentId(documentIdReference);
-        } else if (reference instanceof PendingDocumentIdReference pendingReference) {
-            Map<String, List<PendingDocumentIdReference>> pending = pendingDocumentIds;
-            if (pending == null) {
-                pending = new HashMap<>();
-                pendingDocumentIds = pending;
+        switch (reference) {
+            case DocumentIdReference<?> documentIdReference -> registerDocumentId(documentIdReference);
+            case PendingDocumentIdReference pendingReference -> {
+                Map<String, List<PendingDocumentIdReference>> pending = pendingDocumentIds;
+                if (pending == null) {
+                    pending = new HashMap<>();
+                    pendingDocumentIds = pending;
+                }
+                pending.computeIfAbsent(pendingReference.getReferenceName(), ignored -> new ArrayList<>(2)).add(pendingReference);
             }
-            pending.computeIfAbsent(pendingReference.getReferenceName(), ignored -> new ArrayList<>(2)).add(pendingReference);
-        } else {
-            super.pushManagedRef(reference);
+            default -> super.pushManagedRef(reference);
         }
     }
 
@@ -107,6 +107,11 @@ class DefaultDecoderContext extends AbstractPropertyReferenceManager implements 
             Object bean = ids == null ? null : ids.get(lookup.getReferenceName());
             return bean == null ? reference : (PropertyReference<B, P>) new DocumentIdReference<>(lookup.getReferenceName(), null, Argument.OBJECT_ARGUMENT, bean);
         }
+        return resolveManagedRef(reference);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <B, P> PropertyReference<B, P> resolveManagedRef(PropertyReference<B, P> reference) {
         if (refs != null) {
             for (PropertyReference<?, ?> ref : refs) {
                 if (ref.getReferenceName().equals(reference.getReferenceName())
@@ -114,7 +119,6 @@ class DefaultDecoderContext extends AbstractPropertyReferenceManager implements 
                     && ref.getReferenceName().equals(reference.getProperty().getName()))) {
                     final Object o = ref.getReference();
                     if (o != null) {
-                        //noinspection unchecked
                         return (PropertyReference<B, P>) ref;
                     }
                 }
@@ -142,9 +146,9 @@ class DefaultDecoderContext extends AbstractPropertyReferenceManager implements 
         }
         try {
             for (PendingDocumentIdReference pendingReference : pendingReferences) {
-                if (!pendingReference.getType().getType().isInstance(bean)) {
+                if (!pendingReference.isInstance(bean)) {
                     throw new SerdeException("Identifier [" + id + "] resolved to incompatible type ["
-                        + bean.getClass().getName() + "] for [" + pendingReference.getType().getType().getName() + "]");
+                        + bean.getClass().getName() + "] for [" + pendingReference.getTypeName() + "]");
                 }
                 pendingReference.getConsumer().accept(bean);
             }

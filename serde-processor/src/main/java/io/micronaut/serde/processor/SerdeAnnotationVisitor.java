@@ -1362,14 +1362,14 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
     private static @Nullable AnnotationValue<?> findPropertyAnnotation(PropertyElement property, String annotation) {
         AnnotationValue<?> value = property.getAnnotation(annotation);
-        if (value == null && property.getReadMethod().isPresent()) {
-            value = property.getReadMethod().get().getAnnotation(annotation);
+        if (value == null) {
+            value = property.getReadMethod().map(method -> method.getAnnotation(annotation)).orElse(null);
         }
-        if (value == null && property.getWriteMethod().isPresent()) {
-            value = property.getWriteMethod().get().getAnnotation(annotation);
+        if (value == null) {
+            value = property.getWriteMethod().map(method -> method.getAnnotation(annotation)).orElse(null);
         }
-        if (value == null && property.getField().isPresent()) {
-            value = property.getField().get().getAnnotation(annotation);
+        if (value == null) {
+            value = property.getField().map(field -> field.getAnnotation(annotation)).orElse(null);
         }
         return value;
     }

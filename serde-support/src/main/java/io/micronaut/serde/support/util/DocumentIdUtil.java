@@ -93,13 +93,12 @@ public final class DocumentIdUtil {
      * @param idArgument The identifier property
      * @param bean The bean
      * @param <B> The bean type
-     * @throws IOException If a deferred reference to the bean cannot be set
      */
     public static <B> void register(Deserializer.DecoderContext context,
                                     Object id,
                                     BeanIntrospection<B> introspection,
                                     Argument<Object> idArgument,
-                                    B bean) throws IOException {
+                                    B bean) {
         context.pushManagedRef(new DocumentIdReference<>(String.valueOf(id), introspection, idArgument, bean));
     }
 
@@ -168,11 +167,12 @@ public final class DocumentIdUtil {
      * @return The element type
      * @throws SerdeException If the element type is not available
      */
-    public static Argument<?> collectionElementType(Argument<?> type, String description) throws SerdeException {
+    @SuppressWarnings("unchecked")
+    public static Argument<Object> collectionElementType(Argument<?> type, String description) throws SerdeException {
         if (type.isArray()) {
-            return Argument.of(type.getType().getComponentType());
+            return (Argument<Object>) Argument.of(type.getType().getComponentType());
         }
-        return type.getFirstTypeVariable().orElseThrow(() -> new SerdeException(
+        return (Argument<Object>) type.getFirstTypeVariable().orElseThrow(() -> new SerdeException(
             "Cannot " + description + " collection of type [" + type.getType().getName() + "]: no element type available"));
     }
 }

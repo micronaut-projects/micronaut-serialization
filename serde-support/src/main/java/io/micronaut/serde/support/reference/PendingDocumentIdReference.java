@@ -48,12 +48,22 @@ public final class PendingDocumentIdReference extends PropertyReference<Object, 
     }
 
     /**
-     * Returns the expected bean type.
+     * Checks whether a bean is compatible with the expected bean type.
      *
-     * @return The expected bean type
+     * @param bean The bean
+     * @return Whether the bean is an instance of the expected bean type
      */
-    public Argument<?> getType() {
-        return type;
+    public boolean isInstance(Object bean) {
+        return type.getType().isInstance(bean);
+    }
+
+    /**
+     * Returns the name of the expected bean type.
+     *
+     * @return The name of the expected bean type
+     */
+    public String getTypeName() {
+        return type.getType().getName();
     }
 
     /**
