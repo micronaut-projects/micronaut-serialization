@@ -22,6 +22,10 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.LimitingStream;
+import io.micronaut.serde.config.CoercionPolicy;
+import io.micronaut.serde.config.CoercionPolicy.Coercion;
+import io.micronaut.serde.config.CoercionPolicy.Shape;
+import io.micronaut.serde.config.CoercionPolicy.Target;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
 import io.micronaut.serde.util.BinaryCodecUtil;
 
@@ -32,6 +36,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 
 /**
@@ -40,10 +45,66 @@ import java.util.function.Function;
 @Internal
 public abstract class AbstractStreamDecoder extends LimitingStream implements Decoder {
 
+    private final CoercionPolicy coercionPolicy;
+    private final int integerShapes;
+    private final int decimalShapes;
+    private final int booleanShapes;
+    private final int stringShapes;
+    private final int charShapes;
+
     private boolean currentlyUnwrappingArray = false;
 
     public AbstractStreamDecoder(@NonNull RemainingLimits remainingLimits) {
+        this(remainingLimits, CoercionPolicy.LENIENT);
+    }
+
+    /**
+     * Create a decoder using the supplied coercion policy.
+     *
+     * @param remainingLimits The remaining stream limits
+     * @param coercionPolicy The coercions this decoder may perform
+     */
+    protected AbstractStreamDecoder(RemainingLimits remainingLimits, CoercionPolicy coercionPolicy) {
         super(remainingLimits);
+        this.coercionPolicy = coercionPolicy;
+        this.integerShapes = coercionPolicy.allowedShapes(Target.INTEGER);
+        this.decimalShapes = coercionPolicy.allowedShapes(Target.DECIMAL);
+        this.booleanShapes = coercionPolicy.allowedShapes(Target.BOOLEAN);
+        this.stringShapes = coercionPolicy.allowedShapes(Target.STRING);
+        this.charShapes = coercionPolicy.allowedShapes(Target.CHAR);
+    }
+
+    @Override
+    public final CoercionPolicy getCoercionPolicy() {
+        return coercionPolicy;
+    }
+
+    /**
+     * Whether the current number token has a fractional part. A forward-only decoder should
+     * override this to answer from its token type without consuming the value.
+     */
+    protected boolean isCurrentNumberFloat() throws IOException {
+        Number number = getBestNumber();
+        return number instanceof Double || number instanceof Float || number instanceof BigDecimal;
+    }
+
+    private void checkSource(int allowedShapes, TokenType currentToken, Target target) throws IOException {
+        Shape shape = switch (currentToken) {
+            case STRING -> Shape.STRING;
+            case BOOLEAN -> Shape.BOOLEAN;
+            case START_ARRAY -> Shape.ARRAY;
+            case NUMBER -> (allowedShapes & Shape.FLOAT_NUMBER.bit()) == 0 && isCurrentNumberFloat()
+                ? Shape.FLOAT_NUMBER
+                : Shape.INTEGER_NUMBER;
+            default -> Shape.OTHER;
+        };
+        if ((allowedShapes & shape.bit()) == 0) {
+            Coercion coercion = Objects.requireNonNull(CoercionPolicy.coercion(target, shape));
+            throw createDeserializationException(
+                coercion.message(),
+                shape == Shape.ARRAY ? null : coerceScalarToString(currentToken)
+            );
+        }
     }
 
     /**
@@ -255,6 +316,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
     public String decodeString() throws IOException {
         TokenType currentToken = currentToken();
         preDecodeValue(currentToken);
+        checkSource(stringShapes, currentToken, Target.STRING);
         switch (currentToken) {
             case STRING:
                 String text = getString();
@@ -299,6 +361,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
     public final boolean decodeBoolean() throws IOException {
         TokenType currentToken = currentToken();
         preDecodeValue(currentToken);
+        checkSource(booleanShapes, currentToken, Target.BOOLEAN);
         switch (currentToken) {
             case BOOLEAN:
                 boolean bool = getBoolean();
@@ -453,6 +516,8 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
     private int decodeInteger(long min, long max, boolean stringsAsChars) throws IOException {
         TokenType currentToken = currentToken();
         preDecodeValue(currentToken);
+        checkSource(stringsAsChars ? charShapes : integerShapes, currentToken,
+            stringsAsChars ? Target.CHAR : Target.INTEGER);
         switch (currentToken) {
             case STRING:
                 String string = coerceScalarToString(currentToken);
@@ -500,6 +565,8 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
     private long decodeLong(long min, long max, boolean stringsAsChars) throws IOException {
         TokenType currentToken = currentToken();
         preDecodeValue(currentToken);
+        checkSource(stringsAsChars ? charShapes : integerShapes, currentToken,
+            stringsAsChars ? Target.CHAR : Target.INTEGER);
         switch (currentToken) {
             case STRING:
                 String string = coerceScalarToString(currentToken);
@@ -554,6 +621,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
         // could use decodeNumber but this is more efficient
         TokenType currentToken = currentToken();
         preDecodeValue(currentToken);
+        checkSource(decimalShapes, currentToken, Target.DECIMAL);
         switch (currentToken) {
             case NUMBER:
                 double value = getDouble();
@@ -593,6 +661,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
     public final BigInteger decodeBigInteger() throws IOException {
         TokenType currentToken = currentToken();
         preDecodeValue(currentToken);
+        checkSource(integerShapes, currentToken, Target.INTEGER);
         BigInteger value;
         switch (currentToken) {
             case NUMBER:
@@ -631,6 +700,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
     public final BigDecimal decodeBigDecimal() throws IOException {
         TokenType currentToken = currentToken();
         preDecodeValue(currentToken);
+        checkSource(decimalShapes, currentToken, Target.DECIMAL);
         BigDecimal value;
         switch (currentToken) {
             case NUMBER:
@@ -681,6 +751,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
                                        Function<String, T> fromString,
                                        T zero, T one) throws IOException {
         preDecodeValue(currentToken);
+        checkSource(decimalShapes, currentToken, Target.DECIMAL);
         T value;
         switch (currentToken) {
             case NUMBER:
@@ -772,7 +843,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
     @Override
     public Decoder decodeBuffer() throws IOException {
         JsonNode node = decodeNode();
-        return JsonNodeDecoder.create(node, ourLimits());
+        return JsonNodeDecoder.create(node, ourLimits(), coercionPolicy);
     }
 
     @NonNull

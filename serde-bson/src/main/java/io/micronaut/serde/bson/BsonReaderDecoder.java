@@ -18,6 +18,7 @@ package io.micronaut.serde.bson;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.config.CoercionPolicy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.AbstractDecoderPerStructureStreamDecoder;
 import io.micronaut.serde.support.AbstractStreamDecoder;
@@ -53,7 +54,12 @@ public final class BsonReaderDecoder extends AbstractDecoderPerStructureStreamDe
     private TokenType currentToken;
 
     public BsonReaderDecoder(BsonReader bsonReader, @NonNull RemainingLimits remainingLimits) {
-        super(remainingLimits);
+        this(bsonReader, remainingLimits, CoercionPolicy.LENIENT);
+    }
+
+    public BsonReaderDecoder(BsonReader bsonReader, @NonNull RemainingLimits remainingLimits,
+                             CoercionPolicy coercionPolicy) {
+        super(remainingLimits, coercionPolicy);
         this.bsonReader = bsonReader;
         this.contextStack = new ArrayDeque<>();
         BsonType currentBsonType = bsonReader.getCurrentBsonType();
@@ -221,6 +227,11 @@ public final class BsonReaderDecoder extends AbstractDecoderPerStructureStreamDe
     }
 
     @Override
+    protected boolean isCurrentNumberFloat() {
+        return currentBsonType == BsonType.DOUBLE || currentBsonType == BsonType.DECIMAL128;
+    }
+
+    @Override
     protected long getLong() {
         return switch (currentBsonType) {
             case INT32 -> bsonReader.readInt32();
@@ -376,7 +387,8 @@ public final class BsonReaderDecoder extends AbstractDecoderPerStructureStreamDe
     }
 
     private Decoder decoderFromBytes(byte[] documentBytes) throws IOException {
-        BsonReaderDecoder topDecoder = new BsonReaderDecoder(new BsonBinaryReader(ByteBuffer.wrap(documentBytes)), ourLimits());
+        BsonReaderDecoder topDecoder = new BsonReaderDecoder(new BsonBinaryReader(ByteBuffer.wrap(documentBytes)),
+            ourLimits(), getCoercionPolicy());
         Decoder decoder = topDecoder.decodeObject();
         decoder.decodeKey(); // Unwrap
         return decoder;

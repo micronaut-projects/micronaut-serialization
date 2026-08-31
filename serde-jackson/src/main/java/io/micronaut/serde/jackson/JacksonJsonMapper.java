@@ -55,6 +55,7 @@ import io.micronaut.serde.ObjectMapper;
 import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.UpdatingDeserializer;
+import io.micronaut.serde.config.CoercionPolicy;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.SerializationConfiguration;
@@ -90,6 +91,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
     private final Serializer.EncoderContext encoderContext;
     private final Deserializer.DecoderContext decoderContext;
     private final JsonFactory jsonFactory;
+    private final CoercionPolicy coercionPolicy;
     @Nullable
     private final Argument<?> specificType;
     @Nullable
@@ -120,6 +122,8 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
         this.decoderContext = registry.newDecoderContext(view);
         this.jacksonConfiguration = jacksonConfiguration;
         this.jsonFactory = buildJsonFactory(jacksonConfiguration);
+        this.coercionPolicy = CoercionPolicy.fromConfiguration(
+            this.decoderContext.getDeserializationConfiguration().orElse(null));
         this.specificType = specificType;
         this.specificDeserializer = specificDeserializer;
         this.specificSerializer = serializer;
@@ -268,7 +272,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
             }
             deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, (Argument) type);
         }
-        final Decoder decoder = JacksonDecoder.create(parser, LimitingStream.limitsFromConfiguration(serdeConfiguration));
+        final Decoder decoder = createDecoder(parser);
         return (T) deserializer.deserializeNullable(
             decoder,
             decoderContext,
@@ -400,7 +404,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
                     }
                     // for jackson compat we need to support deserializing null, but most deserializers don't support it.
                     if (parser.currentToken() != JsonToken.VALUE_NULL) {
-                        final Decoder decoder = JacksonDecoder.create(parser, LimitingStream.limitsFromConfiguration(serdeConfiguration));
+                        final Decoder decoder = createDecoder(parser);
                         ((UpdatingDeserializer<Object>) deserializer).deserializeInto(
                             decoder,
                             decoderContext,
@@ -411,6 +415,10 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
                 }
             }
         }
+    }
+
+    private Decoder createDecoder(JsonParser parser) throws IOException {
+        return JacksonDecoder.create(parser, LimitingStream.limitsFromConfiguration(serdeConfiguration), coercionPolicy);
     }
 
     private class ObjectCodecImpl extends ObjectCodec {
