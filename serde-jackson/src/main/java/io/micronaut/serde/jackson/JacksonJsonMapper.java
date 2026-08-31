@@ -477,7 +477,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
             if (isSpecificType(type)) {
                 deserializer = (Deserializer<T>) Objects.requireNonNull(specificDeserializer);
             } else {
-                deserializer = context.findDeserializer(type).createSpecific(context, (Argument) type);
+                deserializer = context.findDeserializer(type).createSpecific(context, type);
             }
             if (!(deserializer instanceof UpdatingDeserializer<T>)) {
                 deserializer = context.findDeserializer(Argument.OBJECT_ARGUMENT)

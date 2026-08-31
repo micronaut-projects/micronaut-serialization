@@ -306,7 +306,7 @@ public final class CborObjectMapper implements ObjectMapper {
             if (isSpecificType(type)) {
                 deserializer = Objects.requireNonNull(specificDeserializer);
             } else {
-                deserializer = context.findDeserializer(type).createSpecific(context, (Argument) type);
+                deserializer = context.findDeserializer(type).createSpecific(context, type);
             }
             final Decoder decoder = JacksonDecoder.create(parser, streamLimits, coercionPolicy);
             return (T) deserializer.deserializeNullable(decoder, context, type);
@@ -552,7 +552,7 @@ public final class CborObjectMapper implements ObjectMapper {
             if (isSpecificType(type)) {
                 deserializer = Objects.requireNonNull(specificDeserializer);
             } else {
-                deserializer = context.findDeserializer(type).createSpecific(context, (Argument) type);
+                deserializer = context.findDeserializer(type).createSpecific(context, type);
             }
             if (!(deserializer instanceof UpdatingDeserializer)) {
                 deserializer = context.findDeserializer(Argument.OBJECT_ARGUMENT)

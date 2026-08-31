@@ -462,8 +462,8 @@ final class DeserBean<T> {
         this.unwrappedProperties = unwrappedProperties != null ? unwrappedProperties.toArray(new DerProperty[0]) : null;
 
         SubtypeInfo subtypeInfoBase = serdeArgumentConf == null ? SubtypeInfo.createForType(introspection) : serdeArgumentConf.getSubtypeInfo();
-        subtypeInfo = subtypeInfoBase == null ? DeserBeanSubtypeInfo.create(SubtypeInfo.createForType(introspection), introspection, decoderContext, this, deserializationConfiguration, deserBeanRegistry)
-            : DeserBeanSubtypeInfo.create(subtypeInfoBase, introspection, decoderContext, this, deserializationConfiguration, deserBeanRegistry);
+        subtypeInfo = DeserBeanSubtypeInfo.create(subtypeInfoBase == null ? SubtypeInfo.createForType(introspection) : subtypeInfoBase,
+            introspection, decoderContext, this, deserializationConfiguration, deserBeanRegistry);
 
         String discriminatorProperty = introspection.stringValue(SerdeConfig.class, SerdeConfig.TYPE_PROPERTY).orElse(null);
         if (discriminatorProperty != null && !introspection.booleanValue(SerdeConfig.class, SerdeConfig.TYPE_PROPERTY_VISIBLE).orElse(false)) {
@@ -503,7 +503,7 @@ final class DeserBean<T> {
     /**
      * Registers the document-scoped identifier of a fully read instance so that identifier references to it can be resolved.
      */
-    void registerDocumentId(Deserializer.DecoderContext decoderContext, T instance) throws IOException {
+    void registerDocumentId(Deserializer.DecoderContext decoderContext, T instance) {
         BeanProperty<T, Object> property = documentIdProperty;
         if (property == null) {
             return;
