@@ -1,0 +1,103 @@
+WARNING: Protocol Buffers support is an experimental prototype. The API, the annotations, and the wire mapping may change or be removed in any release.
+
+Micronaut Serialization can read and write the Protocol Buffers binary wire format for ordinary `@Serdeable` types, with no `.proto` files, no generated message classes, and no `protoc` in the build.
+
+dependency:micronaut-serde-protobuf[groupId="io.micronaut.serde"]
+
+== Assigning field numbers
+
+Protobuf identifies fields by number; names never travel on the wire. Every property of a message therefore needs an explicit ann:serde.protobuf.annotation.ProtoField[] number.
+
+Take a sensor reading sent by a battery-powered device:
+
+snippet::example.SensorReading[project-base="doc-examples/example-protobuf", source="main", tags="clazz"]
+
+<1> Temperatures below freezing are negative, so `sint32` is the right representation &mdash; see <<protobufWireTypes,Choosing a wire representation>> below.
+<2> A `List` becomes a `repeated` field, packed into a single run for scalars.
+<3> A nullable property is simply absent from the payload when it is null, which is exactly how protobuf represents an unset field.
+
+snippet::example.Coordinates[project-base="doc-examples/example-protobuf", source="main", tags="clazz"]
+
+<1> Coordinates in microdegrees are always large numbers, so the fixed four-byte form is never worse than a varint and is cheaper to decode.
+
+Together these are equivalent to the following schema, and produce byte-identical output:
+
+[source,protobuf]
+----
+message Coordinates {
+  sfixed32 latitudeMicros = 1;
+  sfixed32 longitudeMicros = 2;
+}
+
+message SensorReading {
+  string deviceId = 1;
+  int64 recordedAt = 2;
+  sint32 temperatureMilliCelsius = 3;
+  repeated int32 signalStrengths = 4;
+  Coordinates location = 5;
+  bool batteryLow = 6;
+}
+----
+
+The schema is checked the first time a type is used. A missing, duplicated, out-of-range, or reserved field number is reported with a message naming the property, rather than silently producing a payload nobody else can read.
+
+== Reading and writing
+
+Inject api:serde.protobuf.ProtobufMapper[] by its concrete type. It is registered as a secondary bean of lowest precedence, so it is never selected as the application's JSON mapper.
+
+snippet::example.ReadingCodec[project-base="doc-examples/example-protobuf", source="main", tags="clazz"]
+
+<1> `ProtobufMapper` implements api:serde.ObjectMapper[], so `writeValueAsBytes` and `readValue` work as they do for JSON.
+
+snippet::example.SensorReadingTest[project-base="doc-examples/example-protobuf", tags="roundTrip"]
+
+The reason to reach for it is size. The same reading is markedly smaller than its JSON equivalent, and the gap widens with numeric and repeated data:
+
+snippet::example.SensorReadingTest[project-base="doc-examples/example-protobuf", tags="size"]
+
+<1> 75 bytes on the wire.
+<2> Against 207 bytes for the same object as JSON.
+
+[[protobufWireTypes]]
+== Choosing a wire representation
+
+One Java type maps to several protobuf representations, and the choice is worth making deliberately. A Java `int` is `int32` by default, which sign-extends negative values to a full ten bytes. `sint32` zig-zag encodes them instead, so the cost tracks the magnitude rather than the sign:
+
+snippet::example.Temperature[project-base="doc-examples/example-protobuf", tags="clazz"]
+
+snippet::example.WireRepresentationTest[project-base="doc-examples/example-protobuf", tags="negative"]
+
+<1> One tag byte plus ten bytes of sign-extended varint.
+<2> One tag byte plus two bytes of zig-zag varint.
+
+For positive values the two are identical, so `sint32` costs nothing when the sign never comes up. `fixed32` and `fixed64` are the other useful choices: four or eight bytes regardless of value, which wins for numbers that are usually large. See ann:serde.protobuf.annotation.ProtoType[] for the full set.
+
+== Evolving a message
+
+Because numbers rather than names are the contract, a service can add fields without waiting for its readers to be redeployed. A reader that does not know a field number skips it:
+
+snippet::example.SchemaEvolutionTest[project-base="doc-examples/example-protobuf", tags="forward"]
+
+<1> `LegacyReading` declares only fields 1 to 3; everything else in the payload is skipped.
+
+And the reverse: a newer reader handles a payload written before the extra fields existed. Protobuf has no null, so an absent field arrives as whatever default the property would otherwise hold.
+
+snippet::example.SchemaEvolutionTest[project-base="doc-examples/example-protobuf", tags="backward"]
+
+<1> `location` and `signalStrengths` come back as `null`, and `batteryLow` as `false`.
+
+The one rule this depends on: **never reuse a field number**. Removing a property and giving its number to a different property will silently misinterpret older payloads. Protobuf itself has `reserved` for this; here it is a matter of discipline.
+
+== What is not supported
+
+Protobuf payloads are not self-describing. On the wire a length-delimited value could be a string, a byte array, a nested message, or a packed repeated field, and only a schema tells them apart. The following therefore cannot work, and fail with an explicit message rather than a wrong answer:
+
+* Reading into `Object`, api:json.tree.JsonNode[], or any other type without ann:serde.protobuf.annotation.ProtoField[] numbers.
+* `@JsonAnySetter` and other catch-all properties.
+* Reactive parsing, which needs self-delimiting payloads.
+* Maps, polymorphic types, and `Optional` properties.
+
+Two behavioural differences are worth knowing about:
+
+* proto3 omits fields holding their type's default value, so a reader cannot distinguish an absent field from an empty string or a zero. Properties that Micronaut Serialization treats as required may fail on payloads the reference implementation considers valid.
+* Unknown fields are skipped rather than retained, so they are not re-emitted when a message is read and written back.
