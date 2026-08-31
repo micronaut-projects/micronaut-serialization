@@ -17,6 +17,7 @@ package io.micronaut.serde.bson;
 
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.config.CoercionPolicy;
 import io.micronaut.serde.Keys;
 import io.micronaut.serde.KeysAwareDecoder;
 import io.micronaut.serde.exceptions.SerdeException;
@@ -60,7 +61,11 @@ public final class BsonReaderDecoder extends AbstractDecoderPerStructureStreamDe
     private String pendingUnknownKey;
 
     public BsonReaderDecoder(BsonReader bsonReader, RemainingLimits remainingLimits) {
-        super(remainingLimits);
+        this(bsonReader, remainingLimits, CoercionPolicy.LENIENT);
+    }
+
+    public BsonReaderDecoder(BsonReader bsonReader, RemainingLimits remainingLimits, CoercionPolicy coercionPolicy) {
+        super(remainingLimits, coercionPolicy);
         this.bsonReader = bsonReader;
         this.contextStack = new ArrayDeque<>();
         BsonType currentBsonType = bsonReader.getCurrentBsonType();
@@ -365,6 +370,11 @@ public final class BsonReaderDecoder extends AbstractDecoderPerStructureStreamDe
     @Override
     protected boolean getBoolean() {
         return bsonReader.readBoolean();
+    }
+
+    @Override
+    protected boolean isCurrentNumberFloat() {
+        return currentBsonType == BsonType.DOUBLE || currentBsonType == BsonType.DECIMAL128;
     }
 
     @Override

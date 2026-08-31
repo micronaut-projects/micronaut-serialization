@@ -20,6 +20,7 @@ import io.micronaut.context.annotation.ConfigurationInject;
 import io.micronaut.context.annotation.ConfigurationProperties;
 import io.micronaut.core.bind.annotation.Bindable;
 import io.micronaut.core.util.StringUtils;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
 
@@ -45,6 +46,14 @@ final class DefaultDeserializationConfiguration implements DeserializationConfig
     private final boolean adjustDatesToContextTimeZone;
     private final boolean requireAllCreatorParameters;
     private final boolean disableGeneratedDeserializer;
+    private final CoercionMode coercionMode;
+    private final boolean acceptFloatAsInt;
+    private final boolean acceptStringAsNumber;
+    private final boolean acceptBooleanAsNumber;
+    private final boolean acceptNumberAsBoolean;
+    private final boolean acceptStringAsBoolean;
+    private final boolean acceptScalarAsString;
+    private final boolean unwrapSingleValueArrays;
     private final Set<DeserializationConfiguration.Feature> features;
 
     @ConfigurationInject
@@ -62,7 +71,15 @@ final class DefaultDeserializationConfiguration implements DeserializationConfig
                                         @Bindable(defaultValue = StringUtils.TRUE) boolean readDateTimestampsAsNanoseconds,
                                         @Bindable(defaultValue = StringUtils.FALSE) boolean adjustDatesToContextTimeZone,
                                         @Bindable(defaultValue = StringUtils.FALSE) boolean requireAllCreatorParameters,
-                                        @Bindable(defaultValue = StringUtils.FALSE) boolean disableGeneratedDeserializer) {
+                                        @Bindable(defaultValue = StringUtils.FALSE) boolean disableGeneratedDeserializer,
+                                        @Bindable(defaultValue = "LENIENT") CoercionMode coercionMode,
+                                        @Nullable Boolean acceptFloatAsInt,
+                                        @Nullable Boolean acceptStringAsNumber,
+                                        @Nullable Boolean acceptBooleanAsNumber,
+                                        @Nullable Boolean acceptNumberAsBoolean,
+                                        @Nullable Boolean acceptStringAsBoolean,
+                                        @Nullable Boolean acceptScalarAsString,
+                                        @Nullable Boolean unwrapSingleValueArrays) {
         this.ignoreUnknown = ignoreUnknown;
         this.arraySizeThreshold = arraySizeThreshold;
         this.strictNullable = strictNullable;
@@ -77,6 +94,15 @@ final class DefaultDeserializationConfiguration implements DeserializationConfig
         this.adjustDatesToContextTimeZone = adjustDatesToContextTimeZone;
         this.requireAllCreatorParameters = requireAllCreatorParameters;
         this.disableGeneratedDeserializer = disableGeneratedDeserializer;
+        this.coercionMode = coercionMode;
+        boolean lenient = coercionMode != CoercionMode.STRICT;
+        this.acceptFloatAsInt = acceptFloatAsInt == null ? lenient : acceptFloatAsInt;
+        this.acceptStringAsNumber = acceptStringAsNumber == null ? lenient : acceptStringAsNumber;
+        this.acceptBooleanAsNumber = acceptBooleanAsNumber == null ? lenient : acceptBooleanAsNumber;
+        this.acceptNumberAsBoolean = acceptNumberAsBoolean == null ? lenient : acceptNumberAsBoolean;
+        this.acceptStringAsBoolean = acceptStringAsBoolean == null ? lenient : acceptStringAsBoolean;
+        this.acceptScalarAsString = acceptScalarAsString == null ? lenient : acceptScalarAsString;
+        this.unwrapSingleValueArrays = unwrapSingleValueArrays == null ? lenient : unwrapSingleValueArrays;
         this.features = DeserializationConfiguration.super.features();
     }
 
@@ -108,6 +134,46 @@ final class DefaultDeserializationConfiguration implements DeserializationConfig
     @Override
     public boolean acceptCaseInsensitiveEnums() {
         return acceptCaseInsensitiveEnums;
+    }
+
+    @Override
+    public CoercionMode getCoercionMode() {
+        return coercionMode;
+    }
+
+    @Override
+    public boolean isAcceptFloatAsInt() {
+        return acceptFloatAsInt;
+    }
+
+    @Override
+    public boolean isAcceptStringAsNumber() {
+        return acceptStringAsNumber;
+    }
+
+    @Override
+    public boolean isAcceptBooleanAsNumber() {
+        return acceptBooleanAsNumber;
+    }
+
+    @Override
+    public boolean isAcceptNumberAsBoolean() {
+        return acceptNumberAsBoolean;
+    }
+
+    @Override
+    public boolean isAcceptStringAsBoolean() {
+        return acceptStringAsBoolean;
+    }
+
+    @Override
+    public boolean isAcceptScalarAsString() {
+        return acceptScalarAsString;
+    }
+
+    @Override
+    public boolean isUnwrapSingleValueArrays() {
+        return unwrapSingleValueArrays;
     }
 
     @Override

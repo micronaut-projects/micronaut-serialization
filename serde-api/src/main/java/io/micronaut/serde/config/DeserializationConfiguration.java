@@ -170,6 +170,99 @@ public interface DeserializationConfiguration {
     }
 
     /**
+     * The baseline for the scalar coercions the decoders perform. Defaults to
+     * {@link CoercionMode#LENIENT} for backwards compatibility. Setting this to
+     * {@link CoercionMode#STRICT} turns off every coercion that is not configured explicitly.
+     *
+     * @return The coercion mode
+     * @since 3.2
+     */
+    @Bindable(defaultValue = "LENIENT")
+    default CoercionMode getCoercionMode() {
+        return CoercionMode.LENIENT;
+    }
+
+    /**
+     * Whether floating-point JSON numbers should be read into integer properties, truncating them.
+     *
+     * @return {@code true} if floating-point values should be accepted as integers
+     * @since 3.2
+     */
+    @Bindable(defaultValue = StringUtils.TRUE)
+    default boolean isAcceptFloatAsInt() {
+        return getCoercionMode() != CoercionMode.STRICT;
+    }
+
+    /**
+     * Whether JSON strings should be read into numeric properties.
+     *
+     * @return {@code true} if strings should be accepted as numbers
+     * @since 3.2
+     */
+    @Bindable(defaultValue = StringUtils.TRUE)
+    default boolean isAcceptStringAsNumber() {
+        return getCoercionMode() != CoercionMode.STRICT;
+    }
+
+    /**
+     * Whether JSON booleans should be read into numeric properties, {@code true} as {@code 1} and
+     * {@code false} as {@code 0}.
+     *
+     * @return {@code true} if booleans should be accepted as numbers
+     * @since 3.2
+     */
+    @Bindable(defaultValue = StringUtils.TRUE)
+    default boolean isAcceptBooleanAsNumber() {
+        return getCoercionMode() != CoercionMode.STRICT;
+    }
+
+    /**
+     * Whether JSON numbers should be read into boolean properties, any non-zero value as
+     * {@code true}.
+     *
+     * @return {@code true} if numbers should be accepted as booleans
+     * @since 3.2
+     */
+    @Bindable(defaultValue = StringUtils.TRUE)
+    default boolean isAcceptNumberAsBoolean() {
+        return getCoercionMode() != CoercionMode.STRICT;
+    }
+
+    /**
+     * Whether JSON strings should be read into boolean properties.
+     *
+     * @return {@code true} if strings should be accepted as booleans
+     * @since 3.2
+     */
+    @Bindable(defaultValue = StringUtils.TRUE)
+    default boolean isAcceptStringAsBoolean() {
+        return getCoercionMode() != CoercionMode.STRICT;
+    }
+
+    /**
+     * Whether JSON numbers and booleans should be read into string properties.
+     *
+     * @return {@code true} if other scalars should be accepted as strings
+     * @since 3.2
+     */
+    @Bindable(defaultValue = StringUtils.TRUE)
+    default boolean isAcceptScalarAsString() {
+        return getCoercionMode() != CoercionMode.STRICT;
+    }
+
+    /**
+     * Whether a single element JSON array should be read into a scalar property, unwrapping it.
+     * Note that this is the opposite direction of {@link #acceptSingleValueAsArray()}.
+     *
+     * @return {@code true} if single element arrays should be unwrapped
+     * @since 3.2
+     */
+    @Bindable(defaultValue = StringUtils.TRUE)
+    default boolean isUnwrapSingleValueArrays() {
+        return getCoercionMode() != CoercionMode.STRICT;
+    }
+
+    /**
      * Returns the active format features for deserialization.
      *
      * @return The active format features for deserialization.

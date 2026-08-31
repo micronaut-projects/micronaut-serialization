@@ -16,6 +16,7 @@
 package io.micronaut.serde.support.util;
 
 import io.micronaut.json.tree.JsonNode;
+import io.micronaut.serde.config.CoercionPolicy;
 import io.micronaut.serde.Keys;
 import io.micronaut.serde.KeysAwareDecoder;
 import org.jspecify.annotations.Nullable;
@@ -30,8 +31,8 @@ final class JsonObjectNodeDecoder extends JsonNodeDecoder implements KeysAwareDe
     @Nullable
     private JsonNode nextValue = null;
 
-    JsonObjectNodeDecoder(JsonNode node, RemainingLimits remainingLimits) {
-        super(remainingLimits);
+    JsonObjectNodeDecoder(JsonNode node, RemainingLimits remainingLimits, CoercionPolicy coercionPolicy) {
+        super(remainingLimits, coercionPolicy);
         iterator = node.entries().iterator();
     }
 

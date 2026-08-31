@@ -16,6 +16,7 @@
 package io.micronaut.serde.support;
 
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.serde.config.CoercionPolicy;
 import io.micronaut.serde.exceptions.SerdeException;
 import org.jspecify.annotations.Nullable;
 
@@ -40,7 +41,7 @@ public abstract class AbstractDecoderPerStructureStreamDecoder extends AbstractS
      * @param remainingLimits The limits for this decoder
      */
     protected AbstractDecoderPerStructureStreamDecoder(AbstractDecoderPerStructureStreamDecoder parent, RemainingLimits remainingLimits) {
-        this(remainingLimits);
+        this(remainingLimits, parent.getCoercionPolicy());
         this.parent = parent;
     }
 
@@ -51,6 +52,17 @@ public abstract class AbstractDecoderPerStructureStreamDecoder extends AbstractS
      */
     protected AbstractDecoderPerStructureStreamDecoder(RemainingLimits remainingLimits) {
         super(remainingLimits);
+    }
+
+    /**
+     * Root constructor that only performs the coercions the given policy allows.
+     *
+     * @param remainingLimits The limits for this decoder
+     * @param coercionPolicy  The coercions this decoder may perform
+     * @since 3.2
+     */
+    protected AbstractDecoderPerStructureStreamDecoder(RemainingLimits remainingLimits, CoercionPolicy coercionPolicy) {
+        super(remainingLimits, coercionPolicy);
     }
 
     /**

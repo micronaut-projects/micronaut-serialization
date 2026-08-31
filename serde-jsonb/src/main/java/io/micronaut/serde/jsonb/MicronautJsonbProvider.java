@@ -20,6 +20,7 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.clhm.ConcurrentLinkedHashMap;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.LimitingStream;
+import io.micronaut.serde.config.CoercionPolicy;
 import io.micronaut.serde.ObjectMapper;
 import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.Serializer;
@@ -357,7 +358,7 @@ public class MicronautJsonbProvider extends JsonbProvider {
                 Deserializer.DecoderContext decoderContext = registry.newDecoderContext(null);
                 Deserializer<? extends T> deserializer = decoderContext.findDeserializer(argument).createSpecific(decoderContext, argument);
                 try (JsonParser parser = parserSource.createParser()) {
-                    return deserializer.deserializeNullable(new JsonbDecoder(JacksonDecoder.create(parser, limits()), binaryDataStrategy), decoderContext, argument);
+                    return deserializer.deserializeNullable(new JsonbDecoder(JacksonDecoder.create(parser, limits(), coercionPolicy(decoderContext)), binaryDataStrategy), decoderContext, argument);
                 }
             } catch (IOException | RuntimeException e) {
                 throw new JsonbException("Cannot read JSON-B value", e);
@@ -438,6 +439,12 @@ public class MicronautJsonbProvider extends JsonbProvider {
                     serializer.serialize(new JsonbEncoder(JacksonEncoder.create(generator, limits()), binaryDataStrategy), encoderContext, argument, object);
                 }
             }
+        }
+
+        protected final CoercionPolicy coercionPolicy(Deserializer.DecoderContext decoderContext) {
+            return decoderContext.getDeserializationConfiguration()
+                .map(CoercionPolicy::fromConfiguration)
+                .orElse(CoercionPolicy.LENIENT);
         }
 
         protected final LimitingStream.RemainingLimits limits() {

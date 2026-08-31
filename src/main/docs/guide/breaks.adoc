@@ -1,5 +1,15 @@
 This section documents breaking changes between Micronaut Serialization versions:
 
+=== Micronaut Serialization 3.2.0
+
+==== Deserialization
+
+- Which coercions the decoders perform is now configurable, see <<coercion>>. Every coercion stays enabled by default, so the shapes accepted for a given property are unchanged.
+
+- A `char` is read the same way whatever the format and whether or not the value was buffered. A single character string is its natural shape and is accepted in every mode; a number is its code point; and a floating point number is truncated to a code point rather than yielding the first character of its text, which is what the Jackson decoder used to do for `9.75` and `true`.
+
+- A property that is buffered before it is read, because a polymorphic discriminator or a creator argument appears later in the document, is now coerced exactly like a property that is read inline. Previously the buffered path rejected a string read into a numeric property, and a number read into a `String` property, while the inline path accepted them, so whether a document was accepted depended on the order of its properties.
+
 === Micronaut Serialization 3.0.0
 
 ==== Deserialization
