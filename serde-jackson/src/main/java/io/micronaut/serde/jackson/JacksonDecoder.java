@@ -1414,7 +1414,7 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
         }
     }
 
-    private IOException coercionFailure(Target target, JsonToken t) throws IOException {
+    private IOException coercionFailure(Target target, JsonToken t) {
         Shape shape = switch (t) {
             case VALUE_STRING -> Shape.STRING;
             case VALUE_NUMBER_INT -> Shape.INTEGER_NUMBER;
