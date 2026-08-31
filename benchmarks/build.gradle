@@ -32,7 +32,7 @@ dependencies {
 
 jmh {
     includes = [
-        ".*(StartupBenchmark|SourceGenRoutingBenchmark|UserBeanSerdeBenchmark|PropertyAccessShapeBenchmark|PropertyAccessOrderBenchmark|PropertyValueKindBenchmark|PropertyValueKindSerializationCeilingBenchmark|PropertyValueKindSerializationLifecycleBenchmark|BeanIntrospectionAccessBenchmark|SpecificObjectDeserializerComplexShapeBenchmark).*"
+        ".*(StartupBenchmark|SourceGenRoutingBenchmark|UserBeanSerdeBenchmark|PropertyAccessShapeBenchmark|PropertyAccessOrderBenchmark|PropertyValueKindBenchmark|PropertyValueKindSerializationCeilingBenchmark|PropertyValueKindSerializationLifecycleBenchmark|BeanIntrospectionAccessBenchmark|SpecificObjectDeserializerComplexShapeBenchmark|CoercionPolicyBenchmark).*"
     ]
     fork = 10
     iterations = 1
