@@ -1,5 +1,13 @@
 This section documents breaking changes between Micronaut Serialization versions:
 
+=== Micronaut Serialization 3.2.0
+
+==== Deserialization
+
+- Which coercions the decoders perform is now configurable, see <<coercion>>. Every coercion stays enabled by default, so the shapes accepted for a given property are unchanged.
+
+- A property that is buffered before it is read, because a polymorphic discriminator or a creator argument appears later in the document, is now coerced exactly like a property that is read inline. Previously the buffered path rejected a string read into a numeric property, and a number read into a `String` property, while the inline path accepted them, so whether a document was accepted depended on the order of its properties.
+
 === Micronaut Serialization 3.0.0
 
 ==== Deserialization
