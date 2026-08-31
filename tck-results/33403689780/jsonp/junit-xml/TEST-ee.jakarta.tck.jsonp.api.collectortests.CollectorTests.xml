@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ee.jakarta.tck.jsonp.api.collectortests.CollectorTests" tests="1" skipped="0" failures="0" errors="0" timestamp="SANITIZED" hostname="SANITIZED" time="0">
+  <properties/>
+  <testcase name="jsonCollectorTest()" classname="ee.jakarta.tck.jsonp.api.collectortests.CollectorTests" time="0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Aug 27, 2026 4:14:51 AM ee.jakarta.tck.jsonp.api.collectortests.Collectors test
+INFO: JsonCollectors class implementation
+Aug 27, 2026 4:14:51 AM ee.jakarta.tck.jsonp.api.collectortests.Collectors testToJsonArrayCollector
+INFO:  - Collector returned by toJsonArray()
+Aug 27, 2026 4:14:51 AM ee.jakarta.tck.jsonp.api.collectortests.Collectors testToJsonArrayCollector
+INFO:    - Input: ["First value","Second value","Third value","Fourth value","Fifth value"]
+Aug 27, 2026 4:14:51 AM ee.jakarta.tck.jsonp.api.collectortests.Collectors operationFailed
+INFO:      Checking ["First value","Second value","Third value","Fourth value","Fifth value"]
+Aug 27, 2026 4:14:51 AM ee.jakarta.tck.jsonp.api.collectortests.Collectors testToJsonArrayCollector
+INFO:    - Input: [1,2,3,4,5]
+Aug 27, 2026 4:14:51 AM ee.jakarta.tck.jsonp.api.collectortests.Collectors operationFailed
+INFO:      Checking [1,2,3,4,5]
+Aug 27, 2026 4:14:51 AM ee.jakarta.tck.jsonp.api.collectortests.Collectors testToJsonArrayCollector
+INFO:    - Input: [false,true,true,false,true]
+Aug 27, 2026 4:14:51 AM ee.jakarta.tck.jsonp.api.collectortests.Collectors operationFailed
+INFO:      Checking [false,true,true,false,true]
+Aug 27, 2026 4:14:51 AM ee.jakarta.tck.jsonp.api.collectortests.Collectors testToJsonArrayCollector
+INFO:    - Input: [{"first":"First value"},{"second":"Second value"},{"third":"Third value"},{"fourth":"Fourth value"},{"fifth":"Fifth value"}]
+Aug 27, 2026 4:14:51 AM ee.jakarta.tck.jsonp.api.collectortests.Collectors operationFailed
+INFO:      Checking [{"first":"First value"},{"second":"Second value"},{"third":"Third value"},{"fourth":"Fourth value"},{"fifth":"Fifth value"}]
+Aug 27, 2026 4:14:51 AM ee.jakarta.tck.jsonp.api.collectortests.Collectors testToJsonObjectCollector
+INFO:  - Collector returned by toJsonObject(Function,Function)
+Aug 27, 2026 4:14:51 AM ee.jakarta.tck.jsonp.api.collectortests.Collectors testToJsonObjectCollector
+INFO:      Input: [{"key":"address","value":"In a galaxy far far away"},{"key":"age","value":42},{"key":"married","value":true},{"key":"wife","value":{"name":"Sarah Connor","age":32}}]
+Aug 27, 2026 4:14:51 AM ee.jakarta.tck.jsonp.api.collectortests.Collectors operationFailed
+INFO:      Checking {"address":"In a galaxy far far away","age":42,"married":true,"wife":{"name":"Sarah Connor","age":32}}
+Aug 27, 2026 4:14:51 AM ee.jakarta.tck.jsonp.api.collectortests.Collectors testSimpleGroupingByCollector
+INFO:  - Collector returned by groupingBy(Function)
+Aug 27, 2026 4:14:51 AM ee.jakarta.tck.jsonp.api.collectortests.Collectors testSimpleGroupingByCollector
+INFO:      Input: [{"name":"Peter","office":"Green"},{"name":"John","office":"Red"},{"name":"Bob","office":"Blue"},{"name":"Sarah","office":"Red"},{"name":"Tom","office":"Blue"},{"name":"Jane","office":"Blue"},{"name":"Peggy","office":"Green"},{"name":"Rick","office":"Red"}]
+Aug 27, 2026 4:14:51 AM ee.jakarta.tck.jsonp.api.collectortests.Collectors operationFailed
+INFO:      Checking {"Red":[{"name":"John","office":"Red"},{"name":"Sarah","office":"Red"},{"name":"Rick","office":"Red"}],"Blue":[{"name":"Bob","office":"Blue"},{"name":"Tom","office":"Blue"},{"name":"Jane","office":"Blue"}],"Green":[{"name":"Peter","office":"Green"},{"name":"Peggy","office":"Green"}]}
+Aug 27, 2026 4:14:51 AM ee.jakarta.tck.jsonp.api.collectortests.Collectors testSortingGroupingByCollector
+INFO:  - Collector returned by groupingBy(Function,Collector)
+Aug 27, 2026 4:14:51 AM ee.jakarta.tck.jsonp.api.collectortests.Collectors testSortingGroupingByCollector
+INFO:      Input: [{"name":"Peter","office":"Green"},{"name":"John","office":"Red"},{"name":"Bob","office":"Blue"},{"name":"Sarah","office":"Red"},{"name":"Tom","office":"Blue"},{"name":"Jane","office":"Blue"},{"name":"Peggy","office":"Green"},{"name":"Rick","office":"Red"}]
+Aug 27, 2026 4:14:51 AM ee.jakarta.tck.jsonp.api.collectortests.Collectors operationFailed
+INFO:      Checking {"Red":[{"name":"John","office":"Red"},{"name":"Rick","office":"Red"},{"name":"Sarah","office":"Red"}],"Blue":[{"name":"Bob","office":"Blue"},{"name":"Jane","office":"Blue"},{"name":"Tom","office":"Blue"}],"Green":[{"name":"Peggy","office":"Green"},{"name":"Peter","office":"Green"}]}
+]]></system-err>
+</testsuite>

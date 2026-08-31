@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ee.jakarta.tck.jsonp.api.pointertests.PointerTests" tests="4" skipped="0" failures="0" errors="0" timestamp="SANITIZED" hostname="SANITIZED" time="0">
+  <properties/>
+  <testcase name="jsonPointerReplaceOperationTest()" classname="ee.jakarta.tck.jsonp.api.pointertests.PointerTests" time="0"/>
+  <testcase name="jsonPointerAddOperationTest()" classname="ee.jakarta.tck.jsonp.api.pointertests.PointerTests" time="0"/>
+  <testcase name="jsonPointerRemoveOperationTest()" classname="ee.jakarta.tck.jsonp.api.pointertests.PointerTests" time="0"/>
+  <testcase name="jsonPointerResolveTest()" classname="ee.jakarta.tck.jsonp.api.pointertests.PointerTests" time="0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerReplace test
+INFO: Testing RFC 6901 pointer usage for RFC 6902 replace operation
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerReplace testReplaceStringOnSimpleObject
+INFO:  - for String on simple JSON object
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerReplace testReplaceStringOnSimpleArray
+INFO:  - for String on simple JSON array of size 1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerReplace testReplaceStringOnSimpleArray2
+INFO:  - for String on simple JSON array of size 5
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerReplace testReplaceIntOnSimpleObject
+INFO:  - for int on simple JSON object
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerReplace testReplaceIntOnSimpleArray
+INFO:  - for int on simple JSON array of size 1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerReplace testReplaceIntOnSimpleArray2
+INFO:  - for int on simple JSON array of size 5
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerReplace testReplaceBoolOnSimpleObject
+INFO:  - for boolean on simple JSON object
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerReplace testReplaceBoolOnSimpleArray
+INFO:  - for boolean on simple JSON array of size 1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerReplace testReplaceBoolOnSimpleArray2
+INFO:  - for boolean on simple JSON array of size 5
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerReplace testReplaceObjectOnCompoundObject
+INFO:  - for JsonObject on simple JSON object
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerReplace testReplaceObjectOnSimpleArray
+INFO:  - for JsonObject on simple JSON array of size 1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerReplace testReplaceObjectOnSimpleArray2
+INFO:  - for JsonObject on simple JSON array of size 5
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerReplace testReplaceOfNonExistingLocationInObject
+INFO:  - for non existing location in JsonObject
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerReplace testReplaceOfNonExistingLocationInArray
+INFO:  - for non existing location in JsonArray
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerAdd test
+INFO: Testing RFC 6901 pointer usage for RFC 6902 add operation
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerAdd testAddStringOnEmptyObject
+INFO:  - for String on empty JSON object
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerAdd testAddStringOnEmptyArray
+INFO:  - for String on empty JSON array
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerAdd testAddStringOnSimpleObject
+INFO:  - for String on simple JSON object
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerAdd testAddStringOnSimpleArray
+INFO:  - for String on simple JSON array of size 1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerAdd testAddStringOnSimpleArray2
+INFO:  - for String on simple JSON array of size 2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerAdd testAddIntOnEmptyObject
+INFO:  - for int on empty JSON object
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerAdd testAddIntOnEmptyArray
+INFO:  - for int on empty JSON array
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerAdd testAddIntOnSimpleObject
+INFO:  - for int on simple JSON object
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerAdd testAddIntOnSimpleArray
+INFO:  - for int on simple JSON array of size 1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerAdd testAddIntOnSimpleArray2
+INFO:  - for int on simple JSON array of size 2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerAdd testAddBoolOnEmptyObject
+INFO:  - for boolean on empty JSON object
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerAdd testAddBoolOnEmptyArray
+INFO:  - for boolean on empty JSON array
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerAdd testAddBoolOnSimpleObject
+INFO:  - for boolean on simple JSON object
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerAdd testAddBoolOnSimpleArray
+INFO:  - for boolean on simple JSON array of size 1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerAdd testAddBoolOnSimpleArray2
+INFO:  - for boolean on simple JSON array of size 2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerAdd testAddObjectOnEmptyObject
+INFO:  - for JsonObject on empty JSON object
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerAdd testAddObjectOnEmptyArray
+INFO:  - for JsonObject on empty JSON array
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerAdd testAddObjectOnSimpleObject
+INFO:  - for JsonObject on simple JSON object
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerAdd testAddObjectOnSimpleArray
+INFO:  - for JsonObject on simple JSON array of size 1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerAdd testAddObjectOnSimpleArray2
+INFO:  - for JsonObject on simple JSON array of size 2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerAdd testAddArrayToReplaceObject
+INFO:  - for JsonArray to replace JsonObject
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerAdd testAddArrayToReplaceDocument
+INFO:  - for JsonArray to replace whole document
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerAdd testAddStringArrayToStringArray
+INFO:  - for String array to be added to existing String array
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerAdd testAddStringToNonExistingObject
+INFO:  - for String to be added to non existing JsonObject
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerAdd testAddStringToNonExistingObject
+INFO:     - Expected exception: JSON pointer does not resolve: /child/address
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerRemove test
+INFO: Testing RFC 6901 pointer usage for RFC 6902 remove operation
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerRemove testRemoveStringOnEmptyObject
+INFO:  - for String to produce empty JSON object
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerRemove testRemoveStringOnEmptyArray
+INFO:  - for String to produce empty JSON array
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerRemove testRemoveStringOnSimpleObject
+INFO:  - for String on simple JSON object
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerRemove testRemoveStringOnSimpleArray
+INFO:  - for String on simple JSON array of size 2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerRemove testRemoveStringOnSimpleArray2
+INFO:  - for String on simple JSON array of size 5
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerRemove testRemoveIntOnEmptyObject
+INFO:  - for int to produce empty JSON object
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerRemove testRemoveIntOnEmptyArray
+INFO:  - for int to produce empty JSON array
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerRemove testRemoveIntOnSimpleObject
+INFO:  - for int on simple JSON object
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerRemove testRemoveIntOnSimpleArray
+INFO:  - for int on simple JSON array of size 2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerRemove testRemoveIntOnSimpleArray2
+INFO:  - for int on simple JSON array of size 5
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerRemove testRemoveBoolOnEmptyObject
+INFO:  - for boolean to produce empty JSON object
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerRemove testRemoveBoolOnEmptyArray
+INFO:  - for boolean to produce empty JSON array
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerRemove testRemoveBoolOnSimpleObject
+INFO:  - for boolean on simple JSON object
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerRemove testRemoveBoolOnSimpleArray
+INFO:  - for boolean on simple JSON array of size 2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerRemove testRemoveBoolOnSimpleArray2
+INFO:  - for boolean on simple JSON array of size 5
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerRemove testRemoveObjectOnEmptyObject
+INFO:  - for JsonObject to produce empty JSON object
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerRemove testRemoveObjectOnEmptyArray
+INFO:  - for JsonObject to produce empty JSON array
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerRemove testRemoveObjectOnSimpleObject
+INFO:  - for JsonObject on simple JSON object
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerRemove testRemoveObjectOnSimpleArray
+INFO:  - for JsonObject on simple JSON array of size 2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerRemove testRemoveObjectOnSimpleArray2
+INFO:  - for JsonObject on simple JSON array of size 5
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerRemove testRemoveFromNonExistingLocationInObject
+INFO:  - for non existing location in JsonObject
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerRemove testRemoveFromNonExistingLocationInArray
+INFO:  - for non existing location in JsonArray
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve test
+INFO: Testing RFC 6901 pointer resolving
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolveWholeDocument
+INFO:  - resolving of "" pointer
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolveEmptyName
+INFO:  - resolving of "/" pointer
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolveSimpleArray
+INFO:  - resolving of "/foo" pointer
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolveSimpleArrayItems
+INFO:  - resolving of "/foo/0" pointer
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolveSimpleArrayItems
+INFO:  - resolving of "/foo/1" pointer
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolvePathWithSlash
+INFO:  - resolving of "/a/b" pointer
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolvePathWithSlash
+INFO:     - Expected exception: JSON pointer does not resolve: /a/b
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolvePathWithEncodedSlash
+INFO:  - resolving of "/a~1b" pointer
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolvePathWithPercent
+INFO:  - resolving of "/c%d" pointer
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolvePathWithCaret
+INFO:  - resolving of "/e^f" pointer
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolvePathWithVerticalBar
+INFO:  - resolving of "/g|h" pointer
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolvePathWithBackSlash
+INFO:  - resolving of "/i\j" pointer
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolvePathWithDoubleQuotes
+INFO:  - resolving of "/k"l" pointer
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolvePathWithSpace
+INFO:  - resolving of "/ " pointer
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolvePathWithTilde
+INFO:  - resolving of "/m~n" pointer (optional)
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolvePathWithTilde
+INFO:     - Pointer resolving accepts '~' outside escape sequence
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolvePathWithEncodedTilde
+INFO:  - resolving of "/m~0n" pointer
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolvePathWithEncodedTildeOne
+INFO:  - resolving of "/o~01p" pointer
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolveValidNumericIndexInArray
+INFO:  - resolving of pointer containing existing numeric array index
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolveMemberAfterLastInArray
+INFO:  - resolving of array "/-" pointer
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolveMemberAfterLastInArray
+INFO:     - Expected exception for "/-" path in empty array: JSON pointer token is not an array index: -
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolveMemberAfterLastInArray
+INFO:     - Expected exception for "/-" path in String array: JSON pointer token is not an array index: -
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolveMemberAfterLastInArray
+INFO:     - Expected exception for "/-" path in int array: JSON pointer token is not an array index: -
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolveMemberAfterLastInArray
+INFO:     - Expected exception for "/-" path in boolean array: JSON pointer token is not an array index: -
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolveMemberAfterLastInArray
+INFO:     - Expected exception for "/-" path in JsonObject array: JSON pointer token is not an array index: -
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolveNumericIndexWithLeadingZeroInArray
+INFO:  - resolving of pointer containing numeric array index with leading '0' (optional)
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolveNumericIndexWithLeadingZeroInArray
+INFO:     ! GET operation succeeded for "/00" path on String array
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolveNumericIndexWithLeadingZeroInArray
+INFO:     ! GET operation succeeded for "/01" path on String array
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolveNumericIndexWithLeadingZeroInArray
+INFO:     ! GET operation succeeded for "/02" path on String array
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolveNumericIndexWithLeadingZeroInArray
+INFO:     ! GET operation succeeded for "/03" path on String array
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolveNumericIndexWithLeadingZeroInArray
+INFO:     ! GET operation succeeded for "/04" path on String array
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolveNumericIndexWithLeadingZeroInArray
+INFO:     ! GET operation succeeded for "/00" path on int array
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolveNumericIndexWithLeadingZeroInArray
+INFO:     ! GET operation succeeded for "/01" path on int array
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolveNumericIndexWithLeadingZeroInArray
+INFO:     ! GET operation succeeded for "/02" path on int array
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolveNumericIndexWithLeadingZeroInArray
+INFO:     ! GET operation succeeded for "/03" path on int array
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolveNumericIndexWithLeadingZeroInArray
+INFO:     ! GET operation succeeded for "/04" path on int array
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolveNumericIndexWithLeadingZeroInArray
+INFO:     ! GET operation succeeded for "/00" path on boolean array
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolveNumericIndexWithLeadingZeroInArray
+INFO:     ! GET operation succeeded for "/01" path on boolean array
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolveNumericIndexWithLeadingZeroInArray
+INFO:     ! GET operation succeeded for "/02" path on boolean array
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolveNumericIndexWithLeadingZeroInArray
+INFO:     ! GET operation succeeded for "/03" path on boolean array
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolveNumericIndexWithLeadingZeroInArray
+INFO:     ! GET operation succeeded for "/04" path on boolean array
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolveNumericIndexWithLeadingZeroInArray
+INFO:     ! GET operation succeeded for "/00" path on JsonObject array
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolveNumericIndexWithLeadingZeroInArray
+INFO:     ! GET operation succeeded for "/01" path on JsonObject array
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolveNumericIndexWithLeadingZeroInArray
+INFO:     ! GET operation succeeded for "/02" path on JsonObject array
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolveNumericIndexWithLeadingZeroInArray
+INFO:     ! GET operation succeeded for "/03" path on JsonObject array
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolveNumericIndexWithLeadingZeroInArray
+INFO:     ! GET operation succeeded for "/04" path on JsonObject array
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.pointertests.PointerResolve testResolvenonNumericIndexInArray
+INFO:  - resolving of pointer containing non numeric array index
+]]></system-err>
+</testsuite>

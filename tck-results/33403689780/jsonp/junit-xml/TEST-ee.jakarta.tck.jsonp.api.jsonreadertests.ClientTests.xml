@@ -1,0 +1,1393 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests" tests="33" skipped="0" failures="0" errors="0" timestamp="SANITIZED" hostname="SANITIZED" time="0">
+  <properties/>
+  <testcase name="readEscapeUnicodeCharsInObjectTest()" classname="ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests" time="0"/>
+  <testcase name="readObjectTest2()" classname="ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests" time="0"/>
+  <testcase name="readObjectTest3()" classname="ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests" time="0"/>
+  <testcase name="readObjectTest4()" classname="ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests" time="0"/>
+  <testcase name="readObjectTest5()" classname="ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests" time="0"/>
+  <testcase name="testDuplicateKeysDefault()" classname="ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests" time="0"/>
+  <testcase name="invalidLiteralNamesTest()" classname="ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests" time="0"/>
+  <testcase name="readObjectEncodingTest()" classname="ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests" time="0"/>
+  <testcase name="readUTFEncodedTests2()" classname="ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests" time="0"/>
+  <testcase name="testDuplicateKeysFirst()" classname="ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests" time="0"/>
+  <testcase name="readEscapeUnicodeCharsInArrayTest()" classname="ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests" time="0"/>
+  <testcase name="negativeArrayTests()" classname="ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests" time="0"/>
+  <testcase name="readEscapeUnicodeControlCharsInObjectTest()" classname="ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests" time="0"/>
+  <testcase name="jsonReader11Test()" classname="ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests" time="0"/>
+  <testcase name="readEscapeCharsInObjectTest()" classname="ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests" time="0"/>
+  <testcase name="readEmptyArrayTest()" classname="ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests" time="0"/>
+  <testcase name="readArrayEncodingTest()" classname="ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests" time="0"/>
+  <testcase name="jsonReaderIOErrorTests()" classname="ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests" time="0"/>
+  <testcase name="readUTFEncodedTests()" classname="ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests" time="0"/>
+  <testcase name="readArrayTest2()" classname="ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests" time="0"/>
+  <testcase name="readArrayTest3()" classname="ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests" time="0"/>
+  <testcase name="readArrayTest4()" classname="ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests" time="0"/>
+  <testcase name="readArrayTest5()" classname="ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests" time="0"/>
+  <testcase name="readEscapeCharsInArrayTest()" classname="ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests" time="0"/>
+  <testcase name="negativeJsonStructureTests()" classname="ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests" time="0"/>
+  <testcase name="readEmptyObjectTest()" classname="ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests" time="0"/>
+  <testcase name="testDuplicateKeysLast()" classname="ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests" time="0"/>
+  <testcase name="testDuplicateKeysNone()" classname="ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests" time="0"/>
+  <testcase name="readArrayTest()" classname="ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests" time="0"/>
+  <testcase name="negativeObjectTests()" classname="ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests" time="0"/>
+  <testcase name="readEscapeUnicodeControlCharsInArrayTest()" classname="ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests" time="0"/>
+  <testcase name="illegalStateExceptionTests()" classname="ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests" time="0"/>
+  <testcase name="readObjectTest()" classname="ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests" time="0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readEscapeUnicodeCharsInObjectTest
+INFO: Reading object of escaped and non escaped unicode chars.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: ?ÿ＀?
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   ?ÿ＀?
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest2
+INFO: Create the expected list of JsonObject values
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest2
+INFO: Write the JsonObject 'expJsonObject' out to a JsonWriter
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest2
+INFO: Close JsonWriter
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest2
+INFO: Save contents of the JsonWriter as a String
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest2
+INFO: Dump contents of JsonWriter as a String
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest2
+INFO: JsonWriterContents={"true":true,"false":false,"null":null,"booyah":"booyah","int":2147483647,"long":9223372036854775807,"double":1.7976931348623157E+308,"array":[true,false,null,"bingo",-2147483648,-9223372036854775808,4.9E-324],"object":{"true":true,"false":false,"null":null,"bonga":"boo","int":1,"double":10.4}}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest2
+INFO: Testing read of {"true":true,"false":false,"null":null,"booyah":"booyah","int":2147483647,"long":9223372036854775807,"double":1.7976931348623157E+308,"array":[true,false,null,"bingo",-2147483648,-9223372036854775808,4.9E-324],"object":{"true":true,"false":false,"null":null,"bonga":"boo","int":1,"double":10.4}}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest2
+INFO: Compare expJsonObject and actJsonObject for equality
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonObjects
+INFO: JsonObject match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonObjects
+INFO: Expected: {"true":true,"false":false,"null":null,"booyah":"booyah","int":2147483647,"long":9223372036854775807,"double":0,"array":[true,false,null,"bingo",-2147483648,-9223372036854775808,4.9E-324],"object":{"true":true,"false":false,"null":null,"bonga":"boo","int":1,"double":10.4}}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonObjects
+INFO: Actual:   {"true":true,"false":false,"null":null,"booyah":"booyah","int":2147483647,"long":9223372036854775807,"double":0,"array":[true,false,null,"bingo",-2147483648,-9223372036854775808,4.9E-324],"object":{"true":true,"false":false,"null":null,"bonga":"boo","int":1,"double":10.4}}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest3
+INFO: Testing read of {"true":true,"false":false,"null":null,"booyah":"booyah","int":2147483647,"long":9223372036854775807,"array":[true,false,null,"bingo",-2147483648,-9223372036854775808],"object":{"true":true,"false":false,"null":null,"bonga":"boo","int":1}}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest3
+INFO: Write the JsonObject 'myJsonObject' out to a JsonWriter
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest3
+INFO: Close JsonWriter
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest3
+INFO: Save contents of the JsonWriter as a String
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest3
+INFO: Compare actual JSON text with expected JSON text
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {"true":true,"false":false,"null":null,"booyah":"booyah","int":2147483647,"long":9223372036854775807,"array":[true,false,null,"bingo",-2147483648,-9223372036854775808],"object":{"true":true,"false":false,"null":null,"bonga":"boo","int":1}}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {"true":true,"false":false,"null":null,"booyah":"booyah","int":2147483647,"long":9223372036854775807,"array":[true,false,null,"bingo",-2147483648,-9223372036854775808],"object":{"true":true,"false":false,"null":null,"bonga":"boo","int":1}}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest4
+INFO: Read contents of InputStream from resource file: jsonObjectWithAllTypesOfData.json
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest4
+INFO: Dump of expJsonObject
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpJsonObject
+INFO: dumpJsonObject->{"emptyString":"","emptyArray":[],"emptyObject":{},"string":"string","number":100,"true":true,"false":false,"null":null,"object":{"emptyString":"","emptyArray":[],"emptyObject":{},"string":"string","number":100,"true":true,"false":false,"null":null,"object":{"name":"value"},"array":["one","two"]},"array":["string",100,true,false,null,{"name":"value"},["one","two"]],"intPositive":100,"intNegative":-100,"longMax":9223372036854775807,"longMin":-9223372036854775808,"fracPositive":0.5,"fracNegative":-0.5,"expPositive1":7000,"expPositive2":7000,"expPositive3":9000,"expPositive4":9000,"expNegative1":0.007,"expNegative2":0.007,"asciiChars":"!@#$%^&*()_+|~1234567890-=;',./<>? qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM"}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest4
+INFO: Write the JsonObject 'expJsonObject' out to a JsonWriter
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest4
+INFO: Close JsonWriter
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest4
+INFO: Save contents of the JsonWriter as a String
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest4
+INFO: Create actJsonObject from read of writer contents: {"emptyString":"","emptyArray":[],"emptyObject":{},"string":"string","number":100,"true":true,"false":false,"null":null,"object":{"emptyString":"","emptyArray":[],"emptyObject":{},"string":"string","number":100,"true":true,"false":false,"null":null,"object":{"name":"value"},"array":["one","two"]},"array":["string",100,true,false,null,{"name":"value"},["one","two"]],"intPositive":100,"intNegative":-100,"longMax":9223372036854775807,"longMin":-9223372036854775808,"fracPositive":0.5,"fracNegative":-0.5,"expPositive1":7E+3,"expPositive2":7E+3,"expPositive3":9E+3,"expPositive4":9E+3,"expNegative1":0.007,"expNegative2":0.007,"asciiChars":"!@#$%^&*()_+|~1234567890-=;',./<>? qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM"}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest4
+INFO: Dump of actJsonObject
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpJsonObject
+INFO: dumpJsonObject->{"emptyString":"","emptyArray":[],"emptyObject":{},"string":"string","number":100,"true":true,"false":false,"null":null,"object":{"emptyString":"","emptyArray":[],"emptyObject":{},"string":"string","number":100,"true":true,"false":false,"null":null,"object":{"name":"value"},"array":["one","two"]},"array":["string",100,true,false,null,{"name":"value"},["one","two"]],"intPositive":100,"intNegative":-100,"longMax":9223372036854775807,"longMin":-9223372036854775808,"fracPositive":0.5,"fracNegative":-0.5,"expPositive1":7000,"expPositive2":7000,"expPositive3":9000,"expPositive4":9000,"expNegative1":0.007,"expNegative2":0.007,"asciiChars":"!@#$%^&*()_+|~1234567890-=;',./<>? qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM"}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest4
+INFO: Compare expJsonObject and actJsonObject for equality
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonObjects
+INFO: JsonObject match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonObjects
+INFO: Expected: {"emptyString":"","emptyArray":[],"emptyObject":{},"string":"string","number":100,"true":true,"false":false,"null":null,"object":{"emptyString":"","emptyArray":[],"emptyObject":{},"string":"string","number":100,"true":true,"false":false,"null":null,"object":{"name":"value"},"array":["one","two"]},"array":["string",100,true,false,null,{"name":"value"},["one","two"]],"intPositive":100,"intNegative":-100,"longMax":9223372036854775807,"longMin":-9223372036854775808,"fracPositive":0.5,"fracNegative":-0.5,"expPositive1":7000,"expPositive2":7000,"expPositive3":9000,"expPositive4":9000,"expNegative1":0.007,"expNegative2":0.007,"asciiChars":"!@#$%^&*()_+|~1234567890-=;',./<>? qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM"}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonObjects
+INFO: Actual:   {"emptyString":"","emptyArray":[],"emptyObject":{},"string":"string","number":100,"true":true,"false":false,"null":null,"object":{"emptyString":"","emptyArray":[],"emptyObject":{},"string":"string","number":100,"true":true,"false":false,"null":null,"object":{"name":"value"},"array":["one","two"]},"array":["string",100,true,false,null,{"name":"value"},["one","two"]],"intPositive":100,"intNegative":-100,"longMax":9223372036854775807,"longMin":-9223372036854775808,"fracPositive":0.5,"fracNegative":-0.5,"expPositive1":7000,"expPositive2":7000,"expPositive3":9000,"expPositive4":9000,"expNegative1":0.007,"expNegative2":0.007,"asciiChars":"!@#$%^&*()_+|~1234567890-=;',./<>? qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM"}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest5
+INFO: Reading contents of resource file jsonObjectWithLotsOfNestedObjectsData.json
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest5
+INFO: readerContents={ "nested1" : {  "name1" : "value1",  "nested2" : {   "name2" : "value2",   "nested3" : {    "name3" : "value3",    "nested4" : {     "name4" : "value4",     "nested5" : {      "name5" : "value5",      "nested6" : {       "name6" : "value6",       "nested7" : {        "name7" : "value7",        "nested8" : {         "name8" : "value8",         "nested9" : {          "name9" : "value9",          "nested10" : {           "name10" : "value10",           "nested11" : {            "name11" : "value11",            "nested12" : {             "name12" : "value12",             "nested13" : {              "name13" : "value13",              "nested14" : {               "name14" : "value14",               "nested15" : {                "name15" : "value15",                "nested16" : {                 "name16" : "value16",                 "nested17" : {                  "name17" : "value17",                  "nested18" : {                   "name18" : "value18",                   "nested19" : {                    "name19" : "value19",                    "nested20" : {                     "name20" : "value20",                     "nested21" : {                      "name21" : "value21",                      "nested22" : {                       "name22" : "value22",                       "nested23" : {                        "name23" : "value23",                        "nested24" : {                         "name24" : "value24",                         "nested25" : {                          "name25" : "value25",                          "nested26" : {                           "name26" : "value26",                           "nested27" : {                            "name27" : "value27",                            "nested28" : {                             "name28" : "value28",                             "nested29" : {                              "name29" : "value29",                              "nested30" : {                               "name30" : "value30"                              }                             }                            }                           }                          }                         }                        }                       }                      }                     }                    }                   }                  }                 }                }               }              }             }            }           }          }         }        }       }      }     }    }   }  } }}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest5
+INFO: Filter readerContents of whitespace for comparison
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest5
+INFO: Read contents of InputStream from resource file: jsonObjectWithLotsOfNestedObjectsData.json
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest5
+INFO: Write the JsonObject 'myJsonObject' out to a JsonWriter
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest5
+INFO: Close JsonWriter
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest5
+INFO: Save contents of the JsonWriter as a String
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest5
+INFO: Dump contents of the JsonWriter as a String
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest5
+INFO: writerContents={"nested1":{"name1":"value1","nested2":{"name2":"value2","nested3":{"name3":"value3","nested4":{"name4":"value4","nested5":{"name5":"value5","nested6":{"name6":"value6","nested7":{"name7":"value7","nested8":{"name8":"value8","nested9":{"name9":"value9","nested10":{"name10":"value10","nested11":{"name11":"value11","nested12":{"name12":"value12","nested13":{"name13":"value13","nested14":{"name14":"value14","nested15":{"name15":"value15","nested16":{"name16":"value16","nested17":{"name17":"value17","nested18":{"name18":"value18","nested19":{"name19":"value19","nested20":{"name20":"value20","nested21":{"name21":"value21","nested22":{"name22":"value22","nested23":{"name23":"value23","nested24":{"name24":"value24","nested25":{"name25":"value25","nested26":{"name26":"value26","nested27":{"name27":"value27","nested28":{"name28":"value28","nested29":{"name29":"value29","nested30":{"name30":"value30"}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest5
+INFO: Filter writerContents of whitespace for comparison
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest5
+INFO: Compare actual JSON text with expected JSON text
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {"nested1":{"name1":"value1","nested2":{"name2":"value2","nested3":{"name3":"value3","nested4":{"name4":"value4","nested5":{"name5":"value5","nested6":{"name6":"value6","nested7":{"name7":"value7","nested8":{"name8":"value8","nested9":{"name9":"value9","nested10":{"name10":"value10","nested11":{"name11":"value11","nested12":{"name12":"value12","nested13":{"name13":"value13","nested14":{"name14":"value14","nested15":{"name15":"value15","nested16":{"name16":"value16","nested17":{"name17":"value17","nested18":{"name18":"value18","nested19":{"name19":"value19","nested20":{"name20":"value20","nested21":{"name21":"value21","nested22":{"name22":"value22","nested23":{"name23":"value23","nested24":{"name24":"value24","nested25":{"name25":"value25","nested26":{"name26":"value26","nested27":{"name27":"value27","nested28":{"name28":"value28","nested29":{"name29":"value29","nested30":{"name30":"value30"}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {"nested1":{"name1":"value1","nested2":{"name2":"value2","nested3":{"name3":"value3","nested4":{"name4":"value4","nested5":{"name5":"value5","nested6":{"name6":"value6","nested7":{"name7":"value7","nested8":{"name8":"value8","nested9":{"name9":"value9","nested10":{"name10":"value10","nested11":{"name11":"value11","nested12":{"name12":"value12","nested13":{"name13":"value13","nested14":{"name14":"value14","nested15":{"name15":"value15","nested16":{"name16":"value16","nested17":{"name17":"value17","nested18":{"name18":"value18","nested19":{"name19":"value19","nested20":{"name20":"value20","nested21":{"name21":"value21","nested22":{"name22":"value22","nested23":{"name23":"value23","nested24":{"name24":"value24","nested25":{"name25":"value25","nested26":{"name26":"value26","nested27":{"name27":"value27","nested28":{"name28":"value28","nested29":{"name29":"value29","nested30":{"name30":"value30"}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests invalidLiteralNamesTest
+INFO: Trip JsonParsingException for JsonReader.read() if invalid liternal TRUE instead of true.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests invalidLiteralNamesTest
+INFO: Reading [TRUE]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests invalidLiteralNamesTest
+INFO: Caught expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests invalidLiteralNamesTest
+INFO: Trip JsonParsingException for JsonReader.read() if invalid liternal FALSE instead of false.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests invalidLiteralNamesTest
+INFO: Reading [FALSE]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests invalidLiteralNamesTest
+INFO: Caught expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests invalidLiteralNamesTest
+INFO: Trip JsonParsingException for JsonReader.read() if invalid liternal NULL instead of null.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests invalidLiteralNamesTest
+INFO: Reading [NULL]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests invalidLiteralNamesTest
+INFO: Caught expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests invalidLiteralNamesTest
+INFO: Trip JsonParsingException for JsonReader.read() if invalid liternal TRUE instead of true.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests invalidLiteralNamesTest
+INFO: Reading {"true":TRUE}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests invalidLiteralNamesTest
+INFO: Caught expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests invalidLiteralNamesTest
+INFO: Trip JsonParsingException for JsonReader.read() if invalid liternal FALSE instead of false.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests invalidLiteralNamesTest
+INFO: Reading {"false":FALSE}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests invalidLiteralNamesTest
+INFO: Caught expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests invalidLiteralNamesTest
+INFO: Trip JsonParsingException for JsonReader.read() if invalid liternal NULL instead of null.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests invalidLiteralNamesTest
+INFO: Reading {"null":NULL}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests invalidLiteralNamesTest
+INFO: Caught expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectEncodingTest
+INFO: Reading contents of resource file using UTF-8 encoding jsonObjectUTF8.json
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectEncodingTest
+INFO: Comparing JsonObject values with expected results.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: a旨䔬讞斉屗列z
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   a旨䔬讞斉屗列z
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectEncodingTest
+INFO: Reading contents of resource file using UTF-16LE encoding jsonObjectUTF16LE.json
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectEncodingTest
+INFO: Comparing JsonObject values with expected results.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: a旨䔬讞斉屗列z
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   a旨䔬讞斉屗列z
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests2
+INFO: ---------------------------------------------------
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests2
+INFO: TEST CASE [Json.createReader(InputStream) as UTF-8]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests2
+INFO: ---------------------------------------------------
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests2
+INFO: Get InputStream from data file as resource (jsonObjectEncodingUTF8.json)
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests2
+INFO: Create JsonReader from the InputStream and auto-detect character encoding UTF-8
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests compareJsonObjectForUTFEncodedTests
+INFO: Comparing JsonObject values to expected results.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: stringValue
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   stringValue
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: bar
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   bar
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 3
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   3
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests2
+INFO: ------------------------------------------------------
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests2
+INFO: TEST CASE [Json.createReader(InputStream) as UTF-16LE]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests2
+INFO: ------------------------------------------------------
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests2
+INFO: Get InputStream from data file as resource (jsonObjectEncodingUTF16LE.json)
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests2
+INFO: Create JsonReader from the InputStream and auto-detect character encoding UTF-16LE
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests compareJsonObjectForUTFEncodedTests
+INFO: Comparing JsonObject values to expected results.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: stringValue
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   stringValue
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: bar
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   bar
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 3
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   3
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests2
+INFO: ------------------------------------------------------
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests2
+INFO: TEST CASE [Json.createReader(InputStream) as UTF-16BE]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests2
+INFO: ------------------------------------------------------
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests2
+INFO: Get InputStream from data file as resource (jsonObjectEncodingUTF16BE.json)
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests2
+INFO: Create JsonReader from the InputStream and auto-detect character encoding UTF-16BE
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests compareJsonObjectForUTFEncodedTests
+INFO: Comparing JsonObject values to expected results.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: stringValue
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   stringValue
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: bar
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   bar
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 3
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   3
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests2
+INFO: ------------------------------------------------------
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests2
+INFO: TEST CASE [Json.createReader(InputStream) as UTF-32LE]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests2
+INFO: ------------------------------------------------------
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests2
+INFO: Get InputStream from data file as resource (jsonObjectEncodingUTF32LE.json)
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests2
+INFO: Create JsonReader from the InputStream and auto-detect character encoding UTF-32LE
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests compareJsonObjectForUTFEncodedTests
+INFO: Comparing JsonObject values to expected results.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: stringValue
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   stringValue
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: bar
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   bar
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 3
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   3
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests2
+INFO: ------------------------------------------------------
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests2
+INFO: TEST CASE [Json.createReader(InputStream) as UTF-32BE]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests2
+INFO: ------------------------------------------------------
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests2
+INFO: Get InputStream from data file as resource (jsonObjectEncodingUTF32BE.json)
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests2
+INFO: Create JsonReader from the InputStream and auto-detect character encoding UTF-32BE
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests compareJsonObjectForUTFEncodedTests
+INFO: Comparing JsonObject values to expected results.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: stringValue
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   stringValue
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: bar
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   bar
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 3
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   3
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readEscapeUnicodeCharsInArrayTest
+INFO: Reading array of escaped and non escaped unicode chars.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: ?ÿ＀?
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   ?ÿ＀?
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Testing for not an array '{}'
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Got expected JsonException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Trip JsonParsingException for JsonReader.readArray() if incorrect representation for array.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Reading [foo,10,"name":"value"]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Caught expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Testing for missing '['
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Testing for missing ']'
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Testing for missing '{'
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Testing for missing '}'
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Testing for missing ',' between array elements test case 1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Testing for missing ',' between array elements test case 2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Testing for missing ',' between object elements test case 1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Testing for missing ',' between object elements test case 2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Testing for missing key name in object element
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Testing for missing value name in object element
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Test for missing double quote on a name
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Test for missing double quote on a value
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Incorrect digit value -foo
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Incorrect digit value +foo
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Incorrect digit value -784foo
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Incorrect digit value +784foo
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Incorrect digit value 0.1E5E5
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Incorrect digit value  0.F10
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Incorrect digit value string
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Incorrect digit value hex numbers invalid per JSON RFC
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Incorrect digit value octal numbers invalid per JSON RFC
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeArrayTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readEscapeUnicodeControlCharsInObjectTest
+INFO: Reading array of escaped and non escaped unicode chars.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: ?????????	
+????
+????????????????????]]>&#x7f;<![CDATA[??????]]>&#x7f;<![CDATA[]]>&#x80;<![CDATA[]]>&#x81;<![CDATA[]]>&#x82;<![CDATA[]]>&#x83;<![CDATA[]]>&#x84;<![CDATA[]]>&#x86;<![CDATA[]]>&#x87;<![CDATA[]]>&#x88;<![CDATA[]]>&#x89;<![CDATA[]]>&#x8a;<![CDATA[]]>&#x8b;<![CDATA[]]>&#x8c;<![CDATA[]]>&#x8d;<![CDATA[]]>&#x8e;<![CDATA[]]>&#x8f;<![CDATA[]]>&#x8a;<![CDATA[]]>&#x8b;<![CDATA[]]>&#x8c;<![CDATA[]]>&#x8d;<![CDATA[]]>&#x8e;<![CDATA[]]>&#x8f;<![CDATA[]]>&#x90;<![CDATA[]]>&#x91;<![CDATA[]]>&#x92;<![CDATA[]]>&#x93;<![CDATA[]]>&#x94;<![CDATA[]]>&#x95;<![CDATA[]]>&#x96;<![CDATA[]]>&#x97;<![CDATA[]]>&#x98;<![CDATA[]]>&#x99;<![CDATA[]]>&#x9a;<![CDATA[]]>&#x9b;<![CDATA[]]>&#x9c;<![CDATA[]]>&#x9d;<![CDATA[]]>&#x9e;<![CDATA[]]>&#x9f;<![CDATA[]]>&#x9a;<![CDATA[]]>&#x9b;<![CDATA[]]>&#x9c;<![CDATA[]]>&#x9d;<![CDATA[]]>&#x9e;<![CDATA[]]>&#x9f;<![CDATA[
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   ?????????	
+????
+????????????????????]]>&#x7f;<![CDATA[??????]]>&#x7f;<![CDATA[]]>&#x80;<![CDATA[]]>&#x81;<![CDATA[]]>&#x82;<![CDATA[]]>&#x83;<![CDATA[]]>&#x84;<![CDATA[]]>&#x86;<![CDATA[]]>&#x87;<![CDATA[]]>&#x88;<![CDATA[]]>&#x89;<![CDATA[]]>&#x8a;<![CDATA[]]>&#x8b;<![CDATA[]]>&#x8c;<![CDATA[]]>&#x8d;<![CDATA[]]>&#x8e;<![CDATA[]]>&#x8f;<![CDATA[]]>&#x8a;<![CDATA[]]>&#x8b;<![CDATA[]]>&#x8c;<![CDATA[]]>&#x8d;<![CDATA[]]>&#x8e;<![CDATA[]]>&#x8f;<![CDATA[]]>&#x90;<![CDATA[]]>&#x91;<![CDATA[]]>&#x92;<![CDATA[]]>&#x93;<![CDATA[]]>&#x94;<![CDATA[]]>&#x95;<![CDATA[]]>&#x96;<![CDATA[]]>&#x97;<![CDATA[]]>&#x98;<![CDATA[]]>&#x99;<![CDATA[]]>&#x9a;<![CDATA[]]>&#x9b;<![CDATA[]]>&#x9c;<![CDATA[]]>&#x9d;<![CDATA[]]>&#x9e;<![CDATA[]]>&#x9f;<![CDATA[]]>&#x9a;<![CDATA[]]>&#x9b;<![CDATA[]]>&#x9c;<![CDATA[]]>&#x9d;<![CDATA[]]>&#x9e;<![CDATA[]]>&#x9f;<![CDATA[
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader test
+INFO: JsonReader API methods added in JSON-P 1.1.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testReadValue
+INFO:  - readValue() for JsonValue in source data
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testReadValue
+INFO:     - Data: {"name":"Sarah Connor","age":32}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testReadValue
+INFO:  - readValue() for JsonValue in source data
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testReadValue
+INFO:     - Data: ["In a galaxy far far away"]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testReadValue
+INFO:  - readValue() for String in source data
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testReadValue
+INFO:     - Data: "In a galaxy far far away"
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testReadValue
+INFO:  - readValue() for Integer in source data
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testReadValue
+INFO:     - Data: 42
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testReadValue
+INFO:  - readValue() for Long in source data
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testReadValue
+INFO:     - Data: 9223372036854775765
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testReadValue
+INFO:  - readValue() for Double in source data
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testReadValue
+INFO:     - Data: 3.441073578556931E305
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testReadValue
+INFO:  - readValue() for BigInteger in source data
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testReadValue
+INFO:     - Data: 123456789012345678901234567890
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testReadValue
+INFO:  - readValue() for BigDecimal in source data
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testReadValue
+INFO:     - Data: 123456789012345678901234567890.1234567890
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testReadValue
+INFO:  - readValue() for Boolean in source data
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testReadValue
+INFO:     - Data: true
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testReadValue
+INFO:  - readValue() for Null in source data
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testReadValue
+INFO:     - Data: null
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testDoubleReadValue
+INFO:  - duplicate readValue() for JsonValue in source data
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testDoubleReadValue
+INFO:     - Expected exception: JsonReader can only read one value
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testDoubleReadValue
+INFO:  - duplicate readValue() for JsonValue in source data
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testDoubleReadValue
+INFO:     - Expected exception: JsonReader can only read one value
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testDoubleReadValue
+INFO:  - duplicate readValue() for String in source data
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testDoubleReadValue
+INFO:     - Expected exception: JsonReader can only read one value
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testDoubleReadValue
+INFO:  - duplicate readValue() for Integer in source data
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testDoubleReadValue
+INFO:     - Expected exception: JsonReader can only read one value
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testDoubleReadValue
+INFO:  - duplicate readValue() for Long in source data
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testDoubleReadValue
+INFO:     - Expected exception: JsonReader can only read one value
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testDoubleReadValue
+INFO:  - duplicate readValue() for Double in source data
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testDoubleReadValue
+INFO:     - Expected exception: JsonReader can only read one value
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testDoubleReadValue
+INFO:  - duplicate readValue() for BigInteger in source data
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testDoubleReadValue
+INFO:     - Expected exception: JsonReader can only read one value
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testDoubleReadValue
+INFO:  - duplicate readValue() for BigDecimal in source data
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testDoubleReadValue
+INFO:     - Expected exception: JsonReader can only read one value
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testDoubleReadValue
+INFO:  - duplicate readValue() for Boolean in source data
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testDoubleReadValue
+INFO:     - Expected exception: JsonReader can only read one value
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testDoubleReadValue
+INFO:  - duplicate readValue() for Null in source data
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testDoubleReadValue
+INFO:     - Expected exception: JsonReader can only read one value
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testIOExceptionOnReadValue
+INFO:  - readValue() from already closed file reader
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testIOExceptionOnReadValue
+INFO:     - Temporary file: /tmp/testIOExceptionOnReadValue10311809293446879817.txt
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testIOExceptionOnReadValue
+INFO:     - Expected exception: Cannot read JSON
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testReadInvalidValue
+INFO:  - readValue() on invalid JSON data
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.Reader testReadInvalidValue
+INFO:     - Expected exception: Cannot read JSON
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readEscapeCharsInObjectTest
+INFO: Reading contents of resource file jsonObjectWithEscapeCharsData.json
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readEscapeCharsInObjectTest
+INFO: readerContents={	"escapeChars" : "popeye\"\\\/\b\f\n\r\tolive"}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readEscapeCharsInObjectTest
+INFO: Testing read of resource contents: {	"escapeChars" : "popeye\"\\\/\b\f\n\r\tolive"}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readEscapeCharsInObjectTest
+INFO: Dump of expJsonObject
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpJsonObject
+INFO: dumpJsonObject->{"escapeChars":"popeye"\/??
+	olive"}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readEscapeCharsInObjectTest
+INFO: Comparing JsonArray values with expected results.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: popeye"\/??
+	olive
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   popeye"\/??
+	olive
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readEscapeCharsInObjectTest
+INFO: Write the JsonObject 'expJsonObject' out to a JsonWriter
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readEscapeCharsInObjectTest
+INFO: Close JsonWriter
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readEscapeCharsInObjectTest
+INFO: Save contents of the JsonWriter as a String
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readEscapeCharsInObjectTest
+INFO: Create actJsonObject from read of writer contents: {"escapeChars":"popeye\"\\/\b\f\n\r\tolive"}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readEscapeCharsInObjectTest
+INFO: Dump of actJsonObject
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpJsonObject
+INFO: dumpJsonObject->{"escapeChars":"popeye"\/??
+	olive"}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readEscapeCharsInObjectTest
+INFO: Compare expJsonObject and actJsonObject for equality
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonObjects
+INFO: JsonObject match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonObjects
+INFO: Expected: {"escapeChars":"popeye"\/??
+	olive"}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonObjects
+INFO: Actual:   {"escapeChars":"popeye"\/??
+	olive"}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readEmptyArrayTest
+INFO: Testing read of []
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsEmptyArrayList
+INFO: Array List is empty - expected
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayEncodingTest
+INFO: Reading contents of resource file using UTF-8 encoding jsonArrayUTF8.json
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayEncodingTest
+INFO: Comparing JsonArray values with expected results.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: a旨䔬讞斉屗列z
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   a旨䔬讞斉屗列z
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayEncodingTest
+INFO: Reading contents of resource file using UTF-16BE encoding jsonArrayUTF16BE.json
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayEncodingTest
+INFO: Comparing JsonArray values with expected results.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: a旨䔬讞斉屗列z
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   a旨䔬讞斉屗列z
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests jsonReaderIOErrorTests
+INFO: Trip JsonException if there is an i/o error on JsonReader.close().
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests jsonReaderIOErrorTests
+INFO: Reading object {"name1":"value1"}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests jsonReaderIOErrorTests
+INFO: jsonObject={"name1":"value1"}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests jsonReaderIOErrorTests
+INFO: Calling JsonReader.close()
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.MyBufferedInputStream checkToTripIOException
+INFO: MyBufferedInputStream->checkToTripIOException: *** tripping an IOException ***
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests jsonReaderIOErrorTests
+INFO: Caught expected JsonException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests jsonReaderIOErrorTests
+INFO: Trip JsonException for JsonReader.read() if i/o error.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests jsonReaderIOErrorTests
+INFO: Reading array ["name1","value1"]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests jsonReaderIOErrorTests
+INFO: Calling JsonReader.read()
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.MyBufferedReader checkToTripIOException
+INFO: *** tripping an IOException ***
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests jsonReaderIOErrorTests
+INFO: Caught expected JsonException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests jsonReaderIOErrorTests
+INFO: Trip JsonException for JsonReader.readArray() if i/o error.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests jsonReaderIOErrorTests
+INFO: Reading array ["name1","value1"]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests jsonReaderIOErrorTests
+INFO: Calling JsonReader.readArray()
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.MyBufferedReader checkToTripIOException
+INFO: *** tripping an IOException ***
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests jsonReaderIOErrorTests
+INFO: Caught expected JsonException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests jsonReaderIOErrorTests
+INFO: Trip JsonException for JsonReader.read() if i/o error.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests jsonReaderIOErrorTests
+INFO: Reading object {"name1":"value1"}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests jsonReaderIOErrorTests
+INFO: Calling JsonReader.readObject()
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.MyBufferedReader checkToTripIOException
+INFO: *** tripping an IOException ***
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests jsonReaderIOErrorTests
+INFO: Caught expected JsonException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests
+INFO: -----------------------------------------------------------------------------------------------
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests
+INFO: TEST CASE [Json.createReaderFactory(Map<String,?>).createReader(InputStream, Charset) as UTF-8]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests
+INFO: -----------------------------------------------------------------------------------------------
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests
+INFO: Get InputStream from data file as resource (jsonObjectEncodingUTF8.json)
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests
+INFO: Create JsonReader from the InputStream with character encoding UTF-8
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests compareJsonObjectForUTFEncodedTests
+INFO: Comparing JsonObject values to expected results.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: stringValue
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   stringValue
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: bar
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   bar
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 3
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   3
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests
+INFO: ------------------------------------------------------------------------------------------------
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests
+INFO: TEST CASE [Json.createReaderFactory(Map<String,?>).createReader(InputStream, Charset) as UTF-16]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests
+INFO: ------------------------------------------------------------------------------------------------
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests
+INFO: Get InputStream from data file as resource (jsonObjectEncodingUTF16.json)
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests
+INFO: Create JsonReader from the InputStream with character encoding UTF-16
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests compareJsonObjectForUTFEncodedTests
+INFO: Comparing JsonObject values to expected results.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: stringValue
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   stringValue
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: bar
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   bar
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 3
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   3
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests
+INFO: --------------------------------------------------------------------------------------------------
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests
+INFO: TEST CASE [Json.createReaderFactory(Map<String,?>).createReader(InputStream, Charset) as UTF-16LE]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests
+INFO: --------------------------------------------------------------------------------------------------
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests
+INFO: Get InputStream from data file as resource (jsonObjectEncodingUTF16LE.json)
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests
+INFO: Create JsonReader from the InputStream with character encoding UTF-16LE
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests compareJsonObjectForUTFEncodedTests
+INFO: Comparing JsonObject values to expected results.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: stringValue
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   stringValue
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: bar
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   bar
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 3
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   3
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests
+INFO: --------------------------------------------------------------------------------------------------
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests
+INFO: TEST CASE [Json.createReaderFactory(Map<String,?>).createReader(InputStream, Charset) as UTF-16BE]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests
+INFO: --------------------------------------------------------------------------------------------------
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests
+INFO: Get InputStream from data file as resource (jsonObjectEncodingUTF16BE.json)
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests
+INFO: Create JsonReader from the InputStream with character encoding UTF-16BE
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests compareJsonObjectForUTFEncodedTests
+INFO: Comparing JsonObject values to expected results.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: stringValue
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   stringValue
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: bar
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   bar
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 3
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   3
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests
+INFO: --------------------------------------------------------------------------------------------------
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests
+INFO: TEST CASE [Json.createReaderFactory(Map<String,?>).createReader(InputStream, Charset) as UTF-32LE]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests
+INFO: --------------------------------------------------------------------------------------------------
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests
+INFO: Get InputStream from data file as resource (jsonObjectEncodingUTF32LE.json)
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests
+INFO: Create JsonReader from the InputStream with character encoding UTF-32LE
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests compareJsonObjectForUTFEncodedTests
+INFO: Comparing JsonObject values to expected results.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: stringValue
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   stringValue
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: bar
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   bar
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 3
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   3
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests
+INFO: --------------------------------------------------------------------------------------------------
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests
+INFO: TEST CASE [Json.createReaderFactory(Map<String,?>).createReader(InputStream, Charset) as UTF-32BE]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests
+INFO: --------------------------------------------------------------------------------------------------
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests
+INFO: Get InputStream from data file as resource (jsonObjectEncodingUTF32BE.json)
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readUTFEncodedTests
+INFO: Create JsonReader from the InputStream with character encoding UTF-32BE
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests compareJsonObjectForUTFEncodedTests
+INFO: Comparing JsonObject values to expected results.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: stringValue
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   stringValue
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: bar
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   bar
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 3
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   3
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest2
+INFO: Create the expected list of JsonArray values
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest2
+INFO: Write the JsonArray 'expJsonArray' out to a JsonWriter
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest2
+INFO: Close JsonWriter
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest2
+INFO: Save contents of the JsonWriter as a String
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest2
+INFO: Dump contents of JsonWriter as a String
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest2
+INFO: JsonWriterContents=[true,false,null,"booyah",2147483647,9223372036854775807,1.7976931348623157E+308,[true,false,null,"bingo",-2147483648,-9223372036854775808,4.9E-324],{"true":true,"false":false,"null":null,"bonga":"boo","int":1,"double":10.4}]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest2
+INFO: Testing read of [true,false,null,"booyah",2147483647,9223372036854775807,1.7976931348623157E+308,[true,false,null,"bingo",-2147483648,-9223372036854775808,4.9E-324],{"true":true,"false":false,"null":null,"bonga":"boo","int":1,"double":10.4}]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest2
+INFO: Compare expJsonArray and actJsonArray for equality
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonArrays
+INFO: JsonArray match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonArrays
+INFO: Expected: [true,false,null,"booyah",2147483647,9223372036854775807,0,[true,false,null,"bingo",-2147483648,-9223372036854775808,4.9E-324],{"true":true,"false":false,"null":null,"bonga":"boo","int":1,"double":10.4}]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonArrays
+INFO: Actual:   [true,false,null,"booyah",2147483647,9223372036854775807,0,[true,false,null,"bingo",-2147483648,-9223372036854775808,4.9E-324],{"true":true,"false":false,"null":null,"bonga":"boo","int":1,"double":10.4}]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest3
+INFO: Testing read of [true,false,null,"booyah",2147483647,9223372036854775807,[true,false,null,"bingo",-2147483648,-9223372036854775808],{"true":true,"false":false,"null":null,"bonga":"boo","int":1}]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest3
+INFO: Write the JsonArray 'myJsonArray' out to a JsonWriter
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest3
+INFO: Close JsonWriter
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest3
+INFO: Save contents of the JsonWriter as a String
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest3
+INFO: Compare actual JSON text with expected JSON text
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: [true,false,null,"booyah",2147483647,9223372036854775807,[true,false,null,"bingo",-2147483648,-9223372036854775808],{"true":true,"false":false,"null":null,"bonga":"boo","int":1}]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   [true,false,null,"booyah",2147483647,9223372036854775807,[true,false,null,"bingo",-2147483648,-9223372036854775808],{"true":true,"false":false,"null":null,"bonga":"boo","int":1}]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest4
+INFO: Read contents of InputStream from resource file: jsonArrayWithAllTypesOfData.json
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest4
+INFO: Dump of expJsonArray
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpJsonArray
+INFO: dumpJsonArray->["",[],{},"string",100,true,false,null,{"emptyString":"","emptyArray":[],"emptyObject":{},"string":"string","number":100,"true":true,"false":false,"null":null,"object":{"name":"value"},"array":["one","two"]},["string",100,true,false,null,{"name":"value"},["one","two"]],100,-100,9223372036854775807,-9223372036854775808,0.5,-0.5,7000,7000,9000,9000,0.007,0.007,"!@#$%^&*()_+|~1234567890-=;',./<>? qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM"]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest4
+INFO: Write the JsonArray 'expJsonArray' out to a JsonWriter
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest4
+INFO: Close JsonWriter
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest4
+INFO: Save contents of the JsonWriter as a String
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest4
+INFO: Create actJsonArray from read of writer contents: ["",[],{},"string",100,true,false,null,{"emptyString":"","emptyArray":[],"emptyObject":{},"string":"string","number":100,"true":true,"false":false,"null":null,"object":{"name":"value"},"array":["one","two"]},["string",100,true,false,null,{"name":"value"},["one","two"]],100,-100,9223372036854775807,-9223372036854775808,0.5,-0.5,7E+3,7E+3,9E+3,9E+3,0.007,0.007,"!@#$%^&*()_+|~1234567890-=;',./<>? qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM"]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest4
+INFO: Dump of actJsonArray
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpJsonArray
+INFO: dumpJsonArray->["",[],{},"string",100,true,false,null,{"emptyString":"","emptyArray":[],"emptyObject":{},"string":"string","number":100,"true":true,"false":false,"null":null,"object":{"name":"value"},"array":["one","two"]},["string",100,true,false,null,{"name":"value"},["one","two"]],100,-100,9223372036854775807,-9223372036854775808,0.5,-0.5,7000,7000,9000,9000,0.007,0.007,"!@#$%^&*()_+|~1234567890-=;',./<>? qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM"]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest4
+INFO: Compare expJsonArray and actJsonArray for equality
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonArrays
+INFO: JsonArray match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonArrays
+INFO: Expected: ["",[],{},"string",100,true,false,null,{"emptyString":"","emptyArray":[],"emptyObject":{},"string":"string","number":100,"true":true,"false":false,"null":null,"object":{"name":"value"},"array":["one","two"]},["string",100,true,false,null,{"name":"value"},["one","two"]],100,-100,9223372036854775807,-9223372036854775808,0.5,-0.5,7000,7000,9000,9000,0.007,0.007,"!@#$%^&*()_+|~1234567890-=;',./<>? qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM"]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonArrays
+INFO: Actual:   ["",[],{},"string",100,true,false,null,{"emptyString":"","emptyArray":[],"emptyObject":{},"string":"string","number":100,"true":true,"false":false,"null":null,"object":{"name":"value"},"array":["one","two"]},["string",100,true,false,null,{"name":"value"},["one","two"]],100,-100,9223372036854775807,-9223372036854775808,0.5,-0.5,7000,7000,9000,9000,0.007,0.007,"!@#$%^&*()_+|~1234567890-=;',./<>? qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM"]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest5
+INFO: Reading contents of resource file jsonArrayWithLotsOfNestedObjectsData.json
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest5
+INFO: readerContents=[ {  "name1" : "value1",  "nested2" : {   "name2" : "value2",   "nested3" : {    "name3" : "value3",    "nested4" : {     "name4" : "value4",     "nested5" : {      "name5" : "value5",      "nested6" : {       "name6" : "value6",       "nested7" : {        "name7" : "value7",        "nested8" : {         "name8" : "value8",         "nested9" : {          "name9" : "value9",          "nested10" : {           "name10" : "value10",           "nested11" : {            "name11" : "value11",            "nested12" : {             "name12" : "value12",             "nested13" : {              "name13" : "value13",              "nested14" : {               "name14" : "value14",               "nested15" : {                "name15" : "value15",                "nested16" : {                 "name16" : "value16",                 "nested17" : {                  "name17" : "value17",                  "nested18" : {                   "name18" : "value18",                   "nested19" : {                    "name19" : "value19",                    "nested20" : {                     "name20" : "value20",                     "nested21" : {                      "name21" : "value21",                      "nested22" : {                       "name22" : "value22",                       "nested23" : {                        "name23" : "value23",                        "nested24" : {                         "name24" : "value24",                         "nested25" : {                          "name25" : "value25",                          "nested26" : {                           "name26" : "value26",                           "nested27" : {                            "name27" : "value27",                            "nested28" : {                             "name28" : "value28",                             "nested29" : {                              "name29" : "value29",                              "nested30" : {                               "name30" : "value30"                              }                             }                            }                           }                          }                         }                        }                       }                      }                     }                    }                   }                  }                 }                }               }              }             }            }           }          }         }        }       }      }     }    }   }  } }]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest5
+INFO: Filter readerContents of whitespace for comparison
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest5
+INFO: Read contents of InputStream from resource file: jsonArrayWithLotsOfNestedObjectsData.json
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest5
+INFO: Write the JsonArray 'myJsonArray' out to a JsonWriter
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest5
+INFO: Close JsonWriter
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest5
+INFO: Save contents of the JsonWriter as a String
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest5
+INFO: Dump contents of the JsonWriter as a String
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest5
+INFO: writerContents=[{"name1":"value1","nested2":{"name2":"value2","nested3":{"name3":"value3","nested4":{"name4":"value4","nested5":{"name5":"value5","nested6":{"name6":"value6","nested7":{"name7":"value7","nested8":{"name8":"value8","nested9":{"name9":"value9","nested10":{"name10":"value10","nested11":{"name11":"value11","nested12":{"name12":"value12","nested13":{"name13":"value13","nested14":{"name14":"value14","nested15":{"name15":"value15","nested16":{"name16":"value16","nested17":{"name17":"value17","nested18":{"name18":"value18","nested19":{"name19":"value19","nested20":{"name20":"value20","nested21":{"name21":"value21","nested22":{"name22":"value22","nested23":{"name23":"value23","nested24":{"name24":"value24","nested25":{"name25":"value25","nested26":{"name26":"value26","nested27":{"name27":"value27","nested28":{"name28":"value28","nested29":{"name29":"value29","nested30":{"name30":"value30"}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest5
+INFO: Filter writerContents of whitespace for comparison
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest5
+INFO: Compare actual JSON text with expected JSON text
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: [{"name1":"value1","nested2":{"name2":"value2","nested3":{"name3":"value3","nested4":{"name4":"value4","nested5":{"name5":"value5","nested6":{"name6":"value6","nested7":{"name7":"value7","nested8":{"name8":"value8","nested9":{"name9":"value9","nested10":{"name10":"value10","nested11":{"name11":"value11","nested12":{"name12":"value12","nested13":{"name13":"value13","nested14":{"name14":"value14","nested15":{"name15":"value15","nested16":{"name16":"value16","nested17":{"name17":"value17","nested18":{"name18":"value18","nested19":{"name19":"value19","nested20":{"name20":"value20","nested21":{"name21":"value21","nested22":{"name22":"value22","nested23":{"name23":"value23","nested24":{"name24":"value24","nested25":{"name25":"value25","nested26":{"name26":"value26","nested27":{"name27":"value27","nested28":{"name28":"value28","nested29":{"name29":"value29","nested30":{"name30":"value30"}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   [{"name1":"value1","nested2":{"name2":"value2","nested3":{"name3":"value3","nested4":{"name4":"value4","nested5":{"name5":"value5","nested6":{"name6":"value6","nested7":{"name7":"value7","nested8":{"name8":"value8","nested9":{"name9":"value9","nested10":{"name10":"value10","nested11":{"name11":"value11","nested12":{"name12":"value12","nested13":{"name13":"value13","nested14":{"name14":"value14","nested15":{"name15":"value15","nested16":{"name16":"value16","nested17":{"name17":"value17","nested18":{"name18":"value18","nested19":{"name19":"value19","nested20":{"name20":"value20","nested21":{"name21":"value21","nested22":{"name22":"value22","nested23":{"name23":"value23","nested24":{"name24":"value24","nested25":{"name25":"value25","nested26":{"name26":"value26","nested27":{"name27":"value27","nested28":{"name28":"value28","nested29":{"name29":"value29","nested30":{"name30":"value30"}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readEscapeCharsInArrayTest
+INFO: Reading contents of resource file jsonArrayWithEscapeCharsData.json
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readEscapeCharsInArrayTest
+INFO: readerContents=[	"popeye\"\\\/\b\f\n\r\tolive"]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readEscapeCharsInArrayTest
+INFO: Testing read of resource contents: [	"popeye\"\\\/\b\f\n\r\tolive"]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readEscapeCharsInArrayTest
+INFO: Dump of expJsonArray
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpJsonArray
+INFO: dumpJsonArray->["popeye"\/??
+	olive"]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readEscapeCharsInArrayTest
+INFO: Comparing JsonArray values with expected results.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: popeye"\/??
+	olive
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   popeye"\/??
+	olive
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readEscapeCharsInArrayTest
+INFO: Write the JsonArray 'expJsonArray' out to a JsonWriter
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readEscapeCharsInArrayTest
+INFO: Close JsonWriter
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readEscapeCharsInArrayTest
+INFO: Save contents of the JsonWriter as a String
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readEscapeCharsInArrayTest
+INFO: Create actJsonArray from read of writer contents: ["popeye\"\\/\b\f\n\r\tolive"]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readEscapeCharsInArrayTest
+INFO: Dump of actJsonArray
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util dumpJsonArray
+INFO: dumpJsonArray->["popeye"\/??
+	olive"]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readEscapeCharsInArrayTest
+INFO: Compare expJsonArray and actJsonArray for equality
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonArrays
+INFO: JsonArray match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonArrays
+INFO: Expected: ["popeye"\/??
+	olive"]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonArrays
+INFO: Actual:   ["popeye"\/??
+	olive"]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Trip JsonParsingException for JsonReader.read() if incorrect representation for array.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Reading [foo,10,"name":"value"]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Caught expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Trip JsonParsingException for JsonReader.read() if incorrect representation for object.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Reading {"name":"value",1,2,3}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Caught expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Testing for incorrect representation '{]'
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Calling reader.read() with incorrect representation should throw JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Testing for missing '['
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Testing for missing ']'
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Testing for missing '{'
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Testing for missing '}'
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Testing for missing ',' between array elements test case 1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Testing for missing ',' between array elements test case 2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Testing for missing ',' between object elements test case 1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Testing for missing ',' between object elements test case 2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Testing for missing key name in object element
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Testing for missing value name in object element
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Test for missing double quote on a name
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Test for missing double quote on a value
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Incorrect digit value -foo
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Incorrect digit value +foo
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Incorrect digit value -784foo
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Incorrect digit value +784foo
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Incorrect digit value 0.1E5E5
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Incorrect digit value  0.F10
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Incorrect digit value string
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeJsonStructureTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readEmptyObjectTest
+INFO: Testing read of {}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsEmptyObjectMap
+INFO: Object Map is empty - expected
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest
+INFO: Create the expected list of JsonArray values
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest
+INFO: Testing read of [true,false,null,"booyah",2147483647,9223372036854775807,1.7976931348623157E308,[true,false,null,"bingo",-2147483648,-9223372036854775808,4.9E-324],{"true":true,"false":false,"null":null,"bonga":"boo","int":1,"double":10.4}]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readArrayTest
+INFO: Compare actual list of JsonArray values with expected list of JsonArray values
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsList
+INFO: Lists are equal - match (Success)
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsList
+INFO: Expected: List: [true,false,null,"booyah",2147483647,9223372036854775807,0,[true,false,null,"bingo",-2147483648,-9223372036854775808,4.9E-324],{"true":true,"false":false,"null":null,"bonga":"boo","int":1,"double":10.4}]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsList
+INFO: Actual:   List: [true,false,null,"booyah",2147483647,9223372036854775807,0,[true,false,null,"bingo",-2147483648,-9223372036854775808,4.9E-324],{"true":true,"false":false,"null":null,"bonga":"boo","int":1,"double":10.4}]
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Testing for not an object '[]'
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Got expected JsonException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Trip JsonParsingException for JsonReader.read() if incorrect representation for object.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Reading {"name":"value",1,2,3}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Caught expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Testing for missing '['
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Testing for missing ']'
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Testing for missing '{'
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Testing for missing '}'
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Testing for missing ',' between array elements test case 1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Testing for missing ',' between array elements test case 2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Testing for missing ',' between object elements test case 1
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Testing for missing ',' between object elements test case 2
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Testing for missing key name in object element
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Testing for missing value name in object element
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Test for missing double quote on a name
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Test for missing double quote on a value
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Incorrect digit value -foo
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Incorrect digit value +foo
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Incorrect digit value -784foo
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Incorrect digit value +784foo
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Incorrect digit value 0.1E5E5
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Incorrect digit value  0.F10
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Incorrect digit value string
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Incorrect digit value hex numbers invalid per JSON RFC
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Incorrect digit value octal numbers invalid per JSON RFC
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests negativeObjectTests
+INFO: Got expected JsonParsingException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readEscapeUnicodeControlCharsInArrayTest
+INFO: Reading array of escaped and non escaped unicode chars.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: ?????????	
+????
+????????????????????]]>&#x7f;<![CDATA[??????]]>&#x7f;<![CDATA[]]>&#x80;<![CDATA[]]>&#x81;<![CDATA[]]>&#x82;<![CDATA[]]>&#x83;<![CDATA[]]>&#x84;<![CDATA[]]>&#x86;<![CDATA[]]>&#x87;<![CDATA[]]>&#x88;<![CDATA[]]>&#x89;<![CDATA[]]>&#x8a;<![CDATA[]]>&#x8b;<![CDATA[]]>&#x8c;<![CDATA[]]>&#x8d;<![CDATA[]]>&#x8e;<![CDATA[]]>&#x8f;<![CDATA[]]>&#x8a;<![CDATA[]]>&#x8b;<![CDATA[]]>&#x8c;<![CDATA[]]>&#x8d;<![CDATA[]]>&#x8e;<![CDATA[]]>&#x8f;<![CDATA[]]>&#x90;<![CDATA[]]>&#x91;<![CDATA[]]>&#x92;<![CDATA[]]>&#x93;<![CDATA[]]>&#x94;<![CDATA[]]>&#x95;<![CDATA[]]>&#x96;<![CDATA[]]>&#x97;<![CDATA[]]>&#x98;<![CDATA[]]>&#x99;<![CDATA[]]>&#x9a;<![CDATA[]]>&#x9b;<![CDATA[]]>&#x9c;<![CDATA[]]>&#x9d;<![CDATA[]]>&#x9e;<![CDATA[]]>&#x9f;<![CDATA[]]>&#x9a;<![CDATA[]]>&#x9b;<![CDATA[]]>&#x9c;<![CDATA[]]>&#x9d;<![CDATA[]]>&#x9e;<![CDATA[]]>&#x9f;<![CDATA[
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   ?????????	
+????
+????????????????????]]>&#x7f;<![CDATA[??????]]>&#x7f;<![CDATA[]]>&#x80;<![CDATA[]]>&#x81;<![CDATA[]]>&#x82;<![CDATA[]]>&#x83;<![CDATA[]]>&#x84;<![CDATA[]]>&#x86;<![CDATA[]]>&#x87;<![CDATA[]]>&#x88;<![CDATA[]]>&#x89;<![CDATA[]]>&#x8a;<![CDATA[]]>&#x8b;<![CDATA[]]>&#x8c;<![CDATA[]]>&#x8d;<![CDATA[]]>&#x8e;<![CDATA[]]>&#x8f;<![CDATA[]]>&#x8a;<![CDATA[]]>&#x8b;<![CDATA[]]>&#x8c;<![CDATA[]]>&#x8d;<![CDATA[]]>&#x8e;<![CDATA[]]>&#x8f;<![CDATA[]]>&#x90;<![CDATA[]]>&#x91;<![CDATA[]]>&#x92;<![CDATA[]]>&#x93;<![CDATA[]]>&#x94;<![CDATA[]]>&#x95;<![CDATA[]]>&#x96;<![CDATA[]]>&#x97;<![CDATA[]]>&#x98;<![CDATA[]]>&#x99;<![CDATA[]]>&#x9a;<![CDATA[]]>&#x9b;<![CDATA[]]>&#x9c;<![CDATA[]]>&#x9d;<![CDATA[]]>&#x9e;<![CDATA[]]>&#x9f;<![CDATA[]]>&#x9a;<![CDATA[]]>&#x9b;<![CDATA[]]>&#x9c;<![CDATA[]]>&#x9d;<![CDATA[]]>&#x9e;<![CDATA[]]>&#x9f;<![CDATA[
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests illegalStateExceptionTests
+INFO: Calling reader.read() after reader.close() is called is illegal.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests illegalStateExceptionTests
+INFO: Got expected IllegalStateException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests illegalStateExceptionTests
+INFO: Calling reader.readObject() after reader.readObject() was called is illegal.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests illegalStateExceptionTests
+INFO: Got expected IllegalStateException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests illegalStateExceptionTests
+INFO: Calling reader.read() after reader.readArray() was called is illegal.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests illegalStateExceptionTests
+INFO: Got expected IllegalStateException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests illegalStateExceptionTests
+INFO: Calling reader.readObject() after reader.close() is called is illegal.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests illegalStateExceptionTests
+INFO: Got expected IllegalStateException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests illegalStateExceptionTests
+INFO: Calling reader.readObject() after reader.readObject() was called is illegal.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests illegalStateExceptionTests
+INFO: Got expected IllegalStateException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests illegalStateExceptionTests
+INFO: Calling reader.readArray() after reader.readObject() was called is illegal.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests illegalStateExceptionTests
+INFO: Got expected IllegalStateException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests illegalStateExceptionTests
+INFO: Calling reader.readArray() after reader.close() is called is illegal.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests illegalStateExceptionTests
+INFO: Got expected IllegalStateException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests illegalStateExceptionTests
+INFO: Calling reader.readArray() after reader.readArray() was called is illegal.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests illegalStateExceptionTests
+INFO: Got expected IllegalStateException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests illegalStateExceptionTests
+INFO: Calling reader.readObject() after reader.readArray() was called is illegal.
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests illegalStateExceptionTests
+INFO: Got expected IllegalStateException
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest
+INFO: Create the expected map of JsonObject values
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest
+INFO: Testing read of {"true":true,"false":false,"null":null,"booyah":"booyah","int":2147483647,"long":9223372036854775807,"double":1.7976931348623157E308,"array":[true,false,null,"bingo",-2147483648,-9223372036854775808,4.9E-324],"object":{"true":true,"false":false,"null":null,"bonga":"boo","int":1,"double":10.4}}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.api.jsonreadertests.ClientTests readObjectTest
+INFO: Compare actual map of JsonObject values with expected map of JsonObject values
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsMap
+INFO: Maps are equal - match (Success)
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsMap
+INFO: Expected: Map: {"null":null,"booyah":"booyah","array":[true,false,null,"bingo",-2147483648,-9223372036854775808,4.9E-324],"double":0,"true":true,"false":false,"int":2147483647,"long":9223372036854775807,"object":{"true":true,"false":false,"null":null,"bonga":"boo","int":1,"double":10.4}}
+Aug 27, 2026 4:14:52 AM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsMap
+INFO: Actual:   Map: {"true":true,"false":false,"null":null,"booyah":"booyah","int":2147483647,"long":9223372036854775807,"double":0,"array":[true,false,null,"bingo",-2147483648,-9223372036854775808,4.9E-324],"object":{"true":true,"false":false,"null":null,"bonga":"boo","int":1,"double":10.4}}
+]]></system-err>
+</testsuite>
