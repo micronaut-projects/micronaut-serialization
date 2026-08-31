@@ -33,6 +33,7 @@ import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.UpdatingDeserializer;
 import io.micronaut.serde.config.DeserializationConfiguration;
+import io.micronaut.serde.config.CoercionPolicy;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.jackson.JacksonDecoder;
@@ -85,6 +86,7 @@ public final class CborObjectMapper implements ObjectMapper {
     private final SerdeCborConfiguration cborConfiguration;
     private final CBORFactory cborFactory;
     private final LimitingStream.RemainingLimits streamLimits;
+    private final CoercionPolicy coercionPolicy;
     @Nullable
     private final Class<?> view;
     private final Serializer.EncoderContext encoderContext;
@@ -136,6 +138,7 @@ public final class CborObjectMapper implements ObjectMapper {
         // the factory is thread-safe and configuration-derived, so clones share it
         this.cborFactory = cborFactory;
         this.streamLimits = LimitingStream.limitsFromConfiguration(serdeConfiguration);
+        this.coercionPolicy = CoercionPolicy.fromConfiguration(this.decoderContext.getDeserializationConfiguration().orElse(null));
         this.specificType = specificType;
         this.specificDeserializer = specificDeserializer;
         this.specificSerializer = specificSerializer;
@@ -310,7 +313,7 @@ public final class CborObjectMapper implements ObjectMapper {
             }
             deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, (Argument) type);
         }
-        final Decoder decoder = JacksonDecoder.create(parser, streamLimits);
+        final Decoder decoder = JacksonDecoder.create(parser, streamLimits, coercionPolicy);
         return (T) deserializer.deserializeNullable(decoder, decoderContext, type);
     }
 
@@ -327,7 +330,7 @@ public final class CborObjectMapper implements ObjectMapper {
             }
             deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, type);
         }
-        return (T) deserializer.deserializeNullable(JsonNodeDecoder.create(tree, streamLimits), decoderContext, type);
+        return (T) deserializer.deserializeNullable(JsonNodeDecoder.create(tree, streamLimits, coercionPolicy), decoderContext, type);
     }
 
     @Override
@@ -456,14 +459,14 @@ public final class CborObjectMapper implements ObjectMapper {
             @Override
             protected JsonNode parseOne(InputStream is) throws IOException {
                 try (JsonParser parser = cborFactory.createParser(is)) {
-                    return JacksonDecoder.create(parser, streamLimits).decodeNode();
+                    return JacksonDecoder.create(parser, streamLimits, coercionPolicy).decodeNode();
                 }
             }
 
             @Override
             protected JsonNode parseOne(byte[] remaining) throws IOException {
                 try (JsonParser parser = cborFactory.createParser(remaining)) {
-                    return JacksonDecoder.create(parser, streamLimits).decodeNode();
+                    return JacksonDecoder.create(parser, streamLimits, coercionPolicy).decodeNode();
                 }
             }
         };
@@ -533,7 +536,7 @@ public final class CborObjectMapper implements ObjectMapper {
     private <T> T updateValueFromNode(T value, Argument<T> type, JsonNode tree) throws IOException {
         // for jackson compat we need to support deserializing null, but most deserializers don't support it.
         if (!tree.isNull()) {
-            updateValue(JsonNodeDecoder.create(tree, streamLimits), value, type);
+            updateValue(JsonNodeDecoder.create(tree, streamLimits, coercionPolicy), value, type);
         }
         return value;
     }
@@ -544,7 +547,7 @@ public final class CborObjectMapper implements ObjectMapper {
         }
         // for jackson compat we need to support deserializing null, but most deserializers don't support it.
         if (parser.currentToken() != JsonToken.VALUE_NULL) {
-            updateValue(JacksonDecoder.create(parser, streamLimits), value, type);
+            updateValue(JacksonDecoder.create(parser, streamLimits, coercionPolicy), value, type);
         }
         return value;
     }

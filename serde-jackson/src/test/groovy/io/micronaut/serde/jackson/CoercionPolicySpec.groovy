@@ -118,6 +118,40 @@ class CoercionPolicySpec extends Specification {
         createDecoder('"42.5"', CoercionPolicy.LENIENT).decodeBuffer().decodeDouble() == 42.5d
     }
 
+    @Unroll
+    def 'char reads agree between the streaming and buffered decoders for #json (#policyName)'() {
+        given:
+        def streaming = { -> createDecoder(json, policy).decodeChar() }
+        def buffered = { -> createDecoder(json, policy).decodeBuffer().decodeChar() }
+
+        expect:
+        outcome(streaming) == outcome(buffered)
+        outcome(streaming) == expected
+
+        where:
+        json   | policyName | policy                  || expected
+        '"a"'  | 'lenient'  | CoercionPolicy.LENIENT  || 'a' as char
+        '"a"'  | 'strict'   | CoercionPolicy.STRICT   || 'a' as char
+        '"42"' | 'lenient'  | CoercionPolicy.LENIENT  || 'threw'
+        '"42"' | 'strict'   | CoercionPolicy.STRICT   || 'threw'
+        '""'   | 'lenient'  | CoercionPolicy.LENIENT  || 'threw'
+        '""'   | 'strict'   | CoercionPolicy.STRICT   || 'threw'
+        '42'   | 'lenient'  | CoercionPolicy.LENIENT  || 42 as char
+        '42'   | 'strict'   | CoercionPolicy.STRICT   || 42 as char
+        '42.5' | 'lenient'  | CoercionPolicy.LENIENT  || 42 as char
+        '42.5' | 'strict'   | CoercionPolicy.STRICT   || 'threw'
+        'true' | 'lenient'  | CoercionPolicy.LENIENT  || 1 as char
+        'true' | 'strict'   | CoercionPolicy.STRICT   || 'threw'
+    }
+
+    private static Object outcome(Closure<?> read) {
+        try {
+            return read.call()
+        } catch (IOException ignored) {
+            return 'threw'
+        }
+    }
+
     def 'a buffered property is validated like an inline one'() {
         given:
         def ctx = ApplicationContext.run(['micronaut.serde.deserialization.accept-float-as-int': false])

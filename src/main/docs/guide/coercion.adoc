@@ -71,7 +71,7 @@ NOTE: `unwrap-single-value-arrays` is the opposite direction of `accept-single-v
 
 === Scope
 
-The setting applies to every format: JSON through Jackson, JSON-P, JSON-B, BSON and Oracle JDBC JSON all read it from the same configuration, and it holds however a value reaches a property, including values that are buffered first because a polymorphic discriminator or a creator argument appears later in the document.
+The setting applies to every format: JSON through Jackson, CBOR, JSON-P, JSON-B, BSON and Oracle JDBC JSON all read it from the same configuration, and it holds however a value reaches a property, including values that are buffered first because a polymorphic discriminator or a creator argument appears later in the document.
 
 XML is not affected, because every scalar in an XML document is textual and there is no shape to coerce from.
 

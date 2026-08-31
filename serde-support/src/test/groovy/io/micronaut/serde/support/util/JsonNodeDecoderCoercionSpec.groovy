@@ -200,6 +200,29 @@ class JsonNodeDecoderCoercionSpec extends Specification {
         decoder(TRUE, CoercionPolicy.STRICT).decodeBoolean()
     }
 
+    @Unroll
+    void "a single character string is the natural shape of a char (#policyName)"() {
+        expect: 'accepted whatever the policy, like the streaming decoder'
+        decoder(JsonNode.createStringNode('a'), policy).decodeChar() == (char) 'a'
+
+        when: 'more than one character is not a char'
+        decoder(JsonNode.createStringNode('42'), policy).decodeChar()
+
+        then:
+        thrown SerdeException
+
+        when:
+        decoder(JsonNode.createStringNode(''), policy).decodeChar()
+
+        then:
+        thrown SerdeException
+
+        where:
+        policyName | policy
+        'lenient'  | CoercionPolicy.LENIENT
+        'strict'   | CoercionPolicy.STRICT
+    }
+
     void "an unparseable string is reported whatever the policy"() {
         when:
         decoder(JsonNode.createStringNode('nope'), CoercionPolicy.LENIENT).decodeInt()

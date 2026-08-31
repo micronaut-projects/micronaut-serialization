@@ -276,6 +276,15 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
     @Override
     public char decodeChar() throws IOException {
         JsonNode peeked = peekValue();
+        if (peeked.isString()) {
+            // a single character string is the natural shape of a char, not a coercion
+            String string = peeked.getStringValue();
+            if (string.length() != 1) {
+                throw createDeserializationException("When decoding char value, must give a single character", string);
+            }
+            skipValue();
+            return string.charAt(0);
+        }
         if (peeked.isNumber()) {
             checkIntegerNode(peeked);
             skipValue();

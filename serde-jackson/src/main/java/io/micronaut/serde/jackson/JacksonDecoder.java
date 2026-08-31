@@ -627,6 +627,16 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
             case VALUE_NUMBER_INT -> {
                 return (char) parser.getIntValue();
             }
+            case VALUE_NUMBER_FLOAT -> {
+                // a float is truncated to its code point, as the other decoders do
+                return (char) parser.getValueAsInt();
+            }
+            case VALUE_TRUE -> {
+                return (char) 1;
+            }
+            case VALUE_FALSE -> {
+                return (char) 0;
+            }
             case VALUE_NULL -> {
                 return null;
             }
@@ -663,6 +673,10 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
                 yield string.charAt(0);
             }
             case VALUE_NUMBER_INT -> (char) parser.getIntValue();
+            // a float is truncated to its code point, as the other decoders do
+            case VALUE_NUMBER_FLOAT -> (char) parser.getValueAsInt();
+            case VALUE_TRUE -> (char) 1;
+            case VALUE_FALSE -> (char) 0;
             case VALUE_NULL -> throw unexpectedNullToken(JsonToken.VALUE_NUMBER_INT, t);
             case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
