@@ -92,7 +92,7 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
             String string = node.getStringValue();
             try {
                 return integral ? new BigInteger(string) : new BigDecimal(string);
-            } catch (NumberFormatException e) {
+            } catch (NumberFormatException _) {
                 throw createDeserializationException("Unable to coerce string to number", string);
             }
         }

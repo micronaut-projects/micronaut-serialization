@@ -213,7 +213,7 @@ public abstract class DelegatingDecoder implements Decoder {
     public CoercionPolicy getCoercionPolicy() {
         try {
             return delegate().getCoercionPolicy();
-        } catch (IOException e) {
+        } catch (IOException _) {
             // the delegate is not available yet, the caller will hit the same failure when it decodes
             return Decoder.super.getCoercionPolicy();
         }

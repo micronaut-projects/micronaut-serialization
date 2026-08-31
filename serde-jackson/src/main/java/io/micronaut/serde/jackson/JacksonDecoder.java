@@ -47,6 +47,7 @@ import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Implementation of the {@link Decoder} interface for Jackson.
@@ -530,9 +531,7 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
             }
             case VALUE_NULL -> throw unexpectedNullToken(JsonToken.VALUE_NUMBER_INT, t);
             case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
-            default -> {
-                yield parser.getByteValue();
-            }
+            default -> parser.getByteValue();
         };
     }
 
@@ -592,9 +591,7 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
             }
             case VALUE_NULL -> throw unexpectedNullToken(JsonToken.VALUE_NUMBER_INT, t);
             case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
-            default -> {
-                yield parser.getShortValue();
-            }
+            default -> parser.getShortValue();
         };
     }
 
@@ -772,9 +769,7 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
             case VALUE_TRUE -> 1;
             case VALUE_NULL -> throw unexpectedNullToken(JsonToken.VALUE_NUMBER_INT, t);
             case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
-            default -> {
-                yield parser.getValueAsInt();
-            }
+            default -> parser.getValueAsInt();
         };
     }
 
@@ -878,9 +873,7 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
             }
             case VALUE_NULL -> throw unexpectedNullToken(JsonToken.VALUE_NUMBER_INT, t);
             case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
-            default -> {
-                yield parser.getValueAsLong();
-            }
+            default -> parser.getValueAsLong();
         };
     }
 
@@ -1430,11 +1423,8 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
             case START_ARRAY -> Shape.ARRAY;
             default -> Shape.OTHER;
         };
-        Coercion coercion = CoercionPolicy.coercion(target, shape);
-        if (coercion == null) {
-            // should not happen, OTHER is always allowed
-            throw unexpectedToken(JsonToken.VALUE_STRING, t);
-        }
+        // a shape that needs no coercion is always allowed, so this one needs one
+        Coercion coercion = Objects.requireNonNull(CoercionPolicy.coercion(target, shape));
         return createDeserializationException(coercion.message(), shape == Shape.ARRAY ? null : parser.getValueAsString());
     }
 

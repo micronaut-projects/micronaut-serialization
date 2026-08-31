@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 
 /**
@@ -43,6 +44,8 @@ import java.util.function.Function;
  */
 @Internal
 public abstract class AbstractStreamDecoder extends LimitingStream implements Decoder {
+
+    private static final String UNEXPECTED_TOKEN = "Unexpected token ";
 
     private final CoercionPolicy coercionPolicy;
     private final int integerShapes;
@@ -58,7 +61,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
      *
      * @param remainingLimits The remaining stream limits
      */
-    public AbstractStreamDecoder(RemainingLimits remainingLimits) {
+    protected AbstractStreamDecoder(RemainingLimits remainingLimits) {
         this(remainingLimits, CoercionPolicy.LENIENT);
     }
 
@@ -69,7 +72,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
      * @param coercionPolicy  The coercions this decoder may perform
      * @since 3.2
      */
-    public AbstractStreamDecoder(RemainingLimits remainingLimits, CoercionPolicy coercionPolicy) {
+    protected AbstractStreamDecoder(RemainingLimits remainingLimits, CoercionPolicy coercionPolicy) {
         super(remainingLimits);
         this.coercionPolicy = coercionPolicy;
         this.integerShapes = coercionPolicy.allowedShapes(Target.INTEGER);
@@ -125,9 +128,10 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
             default -> Shape.OTHER;
         };
         if ((allowedShapes & shape.bit()) == 0) {
-            Coercion coercion = CoercionPolicy.coercion(target, shape);
+            // a shape that needs no coercion is always allowed, so this one needs one
+            Coercion coercion = Objects.requireNonNull(CoercionPolicy.coercion(target, shape));
             throw createDeserializationException(
-                coercion == null ? "Unexpected token " + currentToken : coercion.message(),
+                coercion.message(),
                 shape == Shape.ARRAY ? null : coerceScalarToString(currentToken)
             );
         }
@@ -172,7 +176,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
      * @return The exception that should be thrown to signify an unexpected token.
      */
     protected IOException unexpectedToken(TokenType expected) {
-        return createDeserializationException("Unexpected token " + currentToken() + ", expected " + expected, null);
+        return createDeserializationException(UNEXPECTED_TOKEN + currentToken() + ", expected " + expected, null);
     }
 
     private NullValueSerdeException unexpectedNullToken(TokenType expected) throws IOException {
@@ -906,7 +910,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
                 decodeNull();
                 return JsonNode.nullNode();
             default:
-                throw createDeserializationException("Unexpected token " + currentToken + ", expected value", null);
+                throw createDeserializationException(UNEXPECTED_TOKEN + currentToken + ", expected value", null);
         }
     }
 
@@ -1054,7 +1058,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
                         put(key, null);
                         return this;
                     default:
-                        throw elementDecoder.createDeserializationException("Unexpected token " + currentToken + ", expected value", null);
+                        throw elementDecoder.createDeserializationException(UNEXPECTED_TOKEN + currentToken + ", expected value", null);
                 }
             } else {
                 return parent;

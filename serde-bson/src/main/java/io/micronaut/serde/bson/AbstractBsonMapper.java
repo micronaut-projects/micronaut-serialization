@@ -58,7 +58,7 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
     protected Deserializer.DecoderContext decoderContext;
     private final CoercionPolicy coercionPolicy;
 
-    public AbstractBsonMapper(SerdeRegistry registry, @Nullable SerdeConfiguration serdeConfiguration) {
+    protected AbstractBsonMapper(SerdeRegistry registry, @Nullable SerdeConfiguration serdeConfiguration) {
         this(registry, serdeConfiguration, null);
     }
 

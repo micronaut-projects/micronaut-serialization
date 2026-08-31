@@ -31,6 +31,9 @@ import org.jspecify.annotations.Nullable;
  * @author Denis Stepanov
  * @since 3.2
  */
+// the ordinals are used as bit positions in masks that are built and read in the same JVM run,
+// they are never persisted or exchanged
+@SuppressWarnings("EnumOrdinal")
 public final class CoercionPolicy {
 
     /**

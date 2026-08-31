@@ -94,8 +94,8 @@ final class DefaultDeserializationConfiguration implements DeserializationConfig
         this.adjustDatesToContextTimeZone = adjustDatesToContextTimeZone;
         this.requireAllCreatorParameters = requireAllCreatorParameters;
         this.disableGeneratedDeserializer = disableGeneratedDeserializer;
-        this.coercionMode = coercionMode == null ? CoercionMode.LENIENT : coercionMode;
-        boolean lenient = this.coercionMode != CoercionMode.STRICT;
+        this.coercionMode = coercionMode;
+        boolean lenient = coercionMode != CoercionMode.STRICT;
         this.acceptFloatAsInt = acceptFloatAsInt == null ? lenient : acceptFloatAsInt;
         this.acceptStringAsNumber = acceptStringAsNumber == null ? lenient : acceptStringAsNumber;
         this.acceptBooleanAsNumber = acceptBooleanAsNumber == null ? lenient : acceptBooleanAsNumber;
