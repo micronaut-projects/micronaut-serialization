@@ -14,6 +14,7 @@ quickStart:
 jacksonAnnotations:
   title: Jackson Annotations
   jacksonFilter: Custom Property Filters
+jacksonConfiguration: Jackson Runtime Configuration
 jsonbAnnotations:
   title: JSON-B Support
   annotations: JSON-B Annotations

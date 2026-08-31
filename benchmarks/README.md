@@ -128,43 +128,46 @@ Use longer warmup and measurement iterations for performance conclusions.
 objects, friend objects, arrays/lists, strings, numbers, and booleans.
 
 The following local result was extracted from a full local
-`:micronaut-benchmarks:jmh` run on GraalVM Java 25 with 3 forks, 5 warmup
+`UserBeanSerdeBenchmark` run on OpenJDK 25 with 3 forks, 5 warmup
 iterations, and 5 measurement iterations with 1-second iterations and
 `-prof gc`.
 
 | Benchmark | Stack | Score |
 | --- | --- | ---: |
-| `serialize` | Jackson Databind | 394477.602 ops/s |
-| `serialize` | Jackson Databind Blackbird | 391555.741 ops/s |
-| `serialize` | Serde Jackson generated | 527496.722 ops/s |
-| `serialize` | Serde Jackson runtime | 409800.044 ops/s |
-| `deserialize` | Jackson Databind | 3282.474 ns/op |
-| `deserialize` | Jackson Databind Blackbird | 3165.105 ns/op |
-| `deserialize` | Serde Jackson generated | 3025.886 ns/op |
-| `deserialize` | Serde Jackson runtime | 3119.831 ns/op |
-| `roundTrip` | Jackson Databind | 6399.353 ns/op |
-| `roundTrip` | Jackson Databind Blackbird | 6117.326 ns/op |
-| `roundTrip` | Serde Jackson generated | 4865.063 ns/op |
-| `roundTrip` | Serde Jackson runtime | 5164.739 ns/op |
+| `serialize` | Jackson Databind | 386554.197 ops/s |
+| `serialize` | Jackson Databind Blackbird | 389268.121 ops/s |
+| `serialize` | Serde Jackson generated | 553139.927 ops/s |
+| `serialize` | Serde Jackson runtime | 418341.808 ops/s |
+| `deserialize` | Jackson Databind | 3366.047 ns/op |
+| `deserialize` | Jackson Databind Blackbird | 3213.255 ns/op |
+| `deserialize` | Serde Jackson generated | 3051.700 ns/op |
+| `deserialize` | Serde Jackson runtime | 3129.085 ns/op |
+| `roundTrip` | Jackson Databind | 6468.831 ns/op |
+| `roundTrip` | Jackson Databind Blackbird | 6397.978 ns/op |
+| `roundTrip` | Serde Jackson generated | 4922.574 ns/op |
+| `roundTrip` | Serde Jackson runtime | 5379.104 ns/op |
+| `serialize` allocation | Jackson Databind | 6176.018 B/op |
+| `serialize` allocation | Jackson Databind Blackbird | 6176.018 B/op |
+| `serialize` allocation | Serde Jackson generated | 2968.359 B/op |
+| `serialize` allocation | Serde Jackson runtime | 2989.782 B/op |
 
 ![UserBeanSerdeBenchmark local results](user-bean-benchmark-results.svg)
 
 Generated Micronaut Serialization led serialization, deserialization, and round
 trip in this run:
 
-- Serialization throughput was about 33.7% higher than Jackson Databind and
-  about 28.7% higher than runtime Serde.
-- Runtime Serde serialization was about 3.9% higher than Jackson Databind.
-- Generated Serde deserialization was about 7.8% faster than Jackson Databind and
-  about 3.0% faster than runtime Serde.
-- Generated Serde round trip was about 24.0% faster than Jackson Databind and
-  about 5.8% faster than runtime Serde.
+- Serialization throughput was about 43.1% higher than Jackson Databind and
+  about 32.2% higher than runtime Serde.
+- Runtime Serde serialization was about 8.2% higher than Jackson Databind.
+- Generated Serde deserialization was about 9.3% faster than Jackson Databind and
+  about 2.5% faster than runtime Serde.
+- Generated Serde round trip was about 23.9% faster than Jackson Databind and
+  about 8.5% faster than runtime Serde.
 
-The serialization GC-profiler row measured generated Serde at about
-`6056 B/op`, runtime Serde at about
-`6078 B/op`, and Jackson Databind at about
-`6176 B/op` after releasing the Jackson `BufferRecycler`
-acquired by `JacksonJsonMapper.writeValueAsBytes`.
+Both Serde stacks allocate less than half as many bytes per serialized payload
+as Jackson Databind. The Serde figures reflect the adaptive first-block sizing
+in `JacksonJsonMapper.writeValueAsBytes`, which lets the recycled output buffer
+absorb the whole payload instead of growing through non-recycled segments.
 
 ## Property Access Results
 
@@ -264,6 +267,49 @@ A measured backend-neutral sourcegen alternative replaced nullable scalar
 primitive decoders with `decodeNull()` plus primitive decoders. It preserved
 behavior, but regressed the focused getter/setter generated result in local
 experiments, so it is not part of the retained changes.
+
+The reverse direction was later confirmed with `PropertyValueKindBenchmark`
+(`failOnNullForPrimitives=false`, field shape, OpenJDK 25, 5 forks, 5 warmup
+and 5 measurement 1-second iterations): switching the generated keep-default
+primitive path from `decodeNull()` plus a primitive decoder to the nullable
+scalar decoders — the pattern the runtime `DerProperty` path already used —
+improved `ALL_INT` by about 14% (327.9 → 281.4 ns/op) and `ALL_BOOLEAN` by
+about 8% (221.7 → 203.4 ns/op), with the unchanged `ALL_LONG` control flat.
+`ALL_DOUBLE` was neutral (435.8 → 429.9 ns/op) and the mixed `PRIMITIVE` kind
+improved about 5%. The nullable decoders reach the Jackson fused
+`nextIntValue`/`nextBooleanValue`/`nextLongValue` fast paths, while
+`decodeNull()` first forces a separate peek and the slow token switch.
+`int`, `boolean`, and `double` now join `long` in the nullable-decode set for
+both bean and record generated deserializers.
+
+`UserBeanStringSerdeBenchmark` measured the String-based mapper API against
+the byte-array round trip it delegates to (OpenJDK 25, 3 forks). A char-based
+`writeValueAsString` using `SegmentedStringWriter` plus the `Writer`-backed
+generator was about 9% slower than `new String(writeValueAsBytes(...), UTF_8)`
+(492,438 vs 537,341 ops/s), and a char-based `readValue(String)` using
+`createParser(String)` was about 3% slower than `getBytes(UTF_8)` plus the
+byte parser (3,188.2 vs 3,083.4 ns/op). Jackson's byte-based generator and
+parser plus the JDK's vectorized UTF-8 String conversions beat the
+`Reader`/`Writer` paths, so the byte-array round-trip defaults are retained.
+
+A runtime-path pass with async-profiler (OpenJDK 25) produced one retained
+change and one rejected experiment. `DeserBean.DerProperty` now precomputes two
+simple-path modes (`directNullableSet`, `directPrimitiveKeepDefault`) when the
+decoder value kind is assigned, so `deserializeAndSetSimplePropertyValue`
+decodes and sets a plain scalar property behind a single branch instead of
+re-deriving the decision from five flags per property per object. On
+`PropertyValueKindBenchmark` (runtime stack, field shape,
+`failOnNullForPrimitives=false`, 10 forks) the mixed `PRIMITIVE` kind improved
+about 12% (365.3 → 320.3 ns/op) while uniform `ALL_STRING` and `ALL_INT` were
+unchanged — consistent with the win coming from removing data-dependent branch
+misprediction on heterogeneous beans, which uniform shapes never suffer.
+
+Enabling Jackson's `StreamWriteFeature.USE_FAST_DOUBLE_WRITER` (default off in
+jackson-core 3.1) was measured and rejected: on the runtime stack it made
+`ALL_DOUBLE` serialization about 23% slower (1,989,775 → 1,535,162 ops/s,
+5 forks). The JDK 25 `Double.toString` Schubfach implementation outperforms the
+shaded FastDoubleParser writer, so the Jackson default is already correct on
+modern JDKs and the feature is left configurable but off.
 
 The remaining constructor-bound runtime Serde deserialization gap is a separate
 issue: the simple runtime path no longer uses `PropertiesBag.Consumer`, but

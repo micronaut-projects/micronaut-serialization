@@ -704,6 +704,7 @@ final class DeserBean<T> {
             : findDeserializer(propertyContext, property.argument, property.format));
         if (property.format == null && !property.hasFeatureOverrides && property.deserializer instanceof DecoderValueKind.Provider decoderValueKind) {
             property.decoderValueKind = decoderValueKind.decoderValueKind().code();
+            property.updateDirectModes();
         }
         if (property.merge
             && property.beanReadProperty != null
@@ -1147,6 +1148,13 @@ final class DeserBean<T> {
         @Nullable
         public Deserializer<P> mergeDeserializer;
         private byte decoderValueKind = DecoderValueKind.NONE_CODE;
+        /**
+         * Precomputed simple-path modes so {@link #deserializeAndSetSimplePropertyValue} can
+         * decode-and-set a plain scalar property with one branch instead of re-deriving the
+         * same decision from five flags on every property of every object.
+         */
+        private boolean directNullableSet;
+        private boolean directPrimitiveKeepDefault;
 
         DerProperty(ConversionService conversionService,
                     BeanIntrospection<B> introspection,
@@ -1334,8 +1342,42 @@ final class DeserBean<T> {
             deserializeAndSetPropertyValue(deserializer, objectDecoder, decoderContext, beanInstance);
         }
 
+        void updateDirectModes() {
+            boolean plain = decoderValueKind != DecoderValueKind.NONE_CODE
+                && beanProperty != null
+                && !merge
+                && !explicitlyRequired;
+            directNullableSet = plain && !primitive && !rejectsNullValue;
+            directPrimitiveKeepDefault = plain && primitive && !failOnNullForPrimitives && !rejectsNullValue;
+        }
+
         @SuppressWarnings("NullAway")
         void deserializeAndSetSimplePropertyValue(Decoder objectDecoder, Deserializer.DecoderContext decoderContext, B beanInstance) throws IOException {
+            if (directNullableSet) {
+                P value;
+                try {
+                    value = deserializeDirectValue(objectDecoder);
+                } catch (Exception e) {
+                    throw convertException(e, false);
+                }
+                try {
+                    setPropertyValue(beanInstance, value);
+                } catch (Exception e) {
+                    throw convertException(e, true); // Only convert exceptions from `setUnsafe`
+                }
+                return;
+            }
+            if (directPrimitiveKeepDefault) {
+                try {
+                    P value = deserializeDirectNullableValue(objectDecoder);
+                    if (value != null) {
+                        setPropertyValue(beanInstance, value);
+                    }
+                } catch (Exception e) {
+                    throw convertException(e, true); // Only convert exceptions from `setUnsafe`
+                }
+                return;
+            }
             if (!rejectsNullValue || decoderValueKind == DecoderValueKind.NONE_CODE) {
                 deserializeAndSetPropertyValue(objectDecoder, decoderContext, beanInstance);
                 return;

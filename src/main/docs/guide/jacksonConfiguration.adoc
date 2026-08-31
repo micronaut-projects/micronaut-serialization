@@ -1,0 +1,55 @@
+When using the `micronaut-serde-jackson` module, the underlying Jackson Core `JsonFactory` can be tuned through configuration under the `micronaut.serde.jackson` prefix. No configuration is required by default; these properties exist to adjust Jackson's parsing and generation behavior when your payloads need it.
+
+The following properties are supported:
+
+[cols="2,1,3"]
+|===
+| Property | Type | Description
+
+| `micronaut.serde.jackson.pretty-print`
+| `boolean`
+| Write indented, human-readable JSON output. Defaults to `false`.
+
+| `micronaut.serde.jackson.json-read-features`
+| `Map`
+| https://javadoc.io/doc/tools.jackson.core/jackson-core/latest/tools.jackson.core/tools/jackson/core/json/JsonReadFeature.html[JsonReadFeature] overrides for JSON-specific parsing behavior, such as accepting comments or single quotes.
+
+| `micronaut.serde.jackson.json-write-features`
+| `Map`
+| https://javadoc.io/doc/tools.jackson.core/jackson-core/latest/tools.jackson.core/tools/jackson/core/json/JsonWriteFeature.html[JsonWriteFeature] overrides for JSON-specific generation behavior, such as escaping non-ASCII characters.
+
+| `micronaut.serde.jackson.stream-read-features`
+| `Map`
+| Format-independent https://javadoc.io/doc/tools.jackson.core/jackson-core/latest/tools.jackson.core/tools/jackson/core/StreamReadFeature.html[StreamReadFeature] overrides, such as strict duplicate detection or including source content in error locations.
+
+| `micronaut.serde.jackson.stream-write-features`
+| `Map`
+| Format-independent https://javadoc.io/doc/tools.jackson.core/jackson-core/latest/tools.jackson.core/tools/jackson/core/StreamWriteFeature.html[StreamWriteFeature] overrides, such as writing `BigDecimal` values in plain notation.
+
+| `micronaut.serde.jackson.json-factory-features`
+| `Map`
+| https://javadoc.io/doc/tools.jackson.core/jackson-core/latest/tools.jackson.core/tools/jackson/core/TokenStreamFactory.Feature.html[TokenStreamFactory.Feature] overrides for factory-level behavior, such as property-name interning and canonicalization.
+|===
+
+Each map uses the Jackson feature constant name as the key and a boolean as the value. For example:
+
+[configuration]
+----
+micronaut:
+  serde:
+    jackson:
+      pretty-print: false
+      json-read-features:
+        ALLOW_JAVA_COMMENTS: true
+        ALLOW_SINGLE_QUOTES: true
+      json-write-features:
+        ESCAPE_NON_ASCII: true
+      stream-read-features:
+        INCLUDE_SOURCE_IN_LOCATION: true
+      stream-write-features:
+        WRITE_BIGDECIMAL_AS_PLAIN: true
+----
+
+Features that are not configured keep their Jackson Core defaults.
+
+NOTE: The Jackson Core defaults are already tuned for performance on modern JVMs. In particular, `StreamReadFeature.USE_FAST_DOUBLE_PARSER` is enabled by default, and enabling `StreamWriteFeature.USE_FAST_DOUBLE_WRITER` measured slower than the built-in JDK `Double.toString` implementation on recent JDKs in the project's local benchmarks, so it is best left disabled.

@@ -36,7 +36,7 @@ class CompileTimeDeserializerBehaviorSpec extends JsonCompileSpec {
         deserializerSource.contains('boolean propertyValue1 = false;')
         deserializerSource.contains('if (this.failOnNullForPrimitives)')
         deserializerSource.contains('objectDecoder.decodeBooleanNullable()')
-        deserializerSource.contains('objectDecoder.decodeNull()')
+        !deserializerSource.contains('objectDecoder.decodeNull()')
         deserializerSource.contains('objectDecoder.decodeBoolean()')
         deserializerSource.contains('propertyValue1 = objectDecoder.decodeBoolean();')
         deserializerSource.contains('failOnNullForPrimitives(context)')
@@ -71,7 +71,7 @@ class CompileTimeDeserializerBehaviorSpec extends JsonCompileSpec {
         expect:
         deserializerSource.contains('if (this.failOnNullForPrimitives)')
         deserializerSource.contains('objectDecoder.decodeBooleanNullable()')
-        deserializerSource.contains('objectDecoder.decodeNull()')
+        !deserializerSource.contains('objectDecoder.decodeNull()')
         deserializerSource.contains('objectDecoder.decodeBoolean()')
         deserializerSource.contains('failOnNullForPrimitives(context)')
         deserializerSource.contains('bean.setActive(objectDecoder.decodeBoolean());')
@@ -151,7 +151,7 @@ class CompileTimeDeserializerBehaviorSpec extends JsonCompileSpec {
         Argument argument = Argument.of(SourceGenGeneratedPropertyDefaults)
         def decoderContext = registry.newDecoderContext(Object)
         Deserializer deserializer = registry.findDeserializer(argument).createSpecific(decoderContext, argument)
-        def decoder = trackingDecoder(json, !failOnNullForPrimitives)
+        def decoder = trackingDecoder(json, failOnNullForPrimitives)
 
         when:
         SourceGenGeneratedPropertyDefaults value = deserializer.deserialize(decoder, decoderContext, argument)
@@ -168,8 +168,8 @@ class CompileTimeDeserializerBehaviorSpec extends JsonCompileSpec {
 
         where:
         failOnNullForPrimitives | json                            | expectedActive | expectedCount | expectedNullablePrimitiveDecodeCalls | expectedPrimitiveDecodeCalls | expectedDecodeNullCalls
-        false                   | '{"active":true,"count":12}'    | true           | 12            | 0                                    | 2                            | 2
-        false                   | '{"active":null,"count":null}'  | true           | 7             | 0                                    | 0                            | 2
+        false                   | '{"active":true,"count":12}'    | true           | 12            | 2                                    | 0                            | 0
+        false                   | '{"active":null,"count":null}'  | true           | 7             | 2                                    | 0                            | 0
         true                    | '{"active":true,"count":12}'    | true           | 12            | 0                                    | 2                            | 0
     }
 
@@ -198,8 +198,8 @@ class CompileTimeDeserializerBehaviorSpec extends JsonCompileSpec {
 
         where:
         failOnNullForPrimitives | json                                                                                                                                      | expectedActive | expectedByte | expectedShort | expectedChar | expectedCount | expectedId | expectedRatio | expectedScore | expectedNullablePrimitiveDecodeCalls | expectedPrimitiveDecodeCalls | expectedDecodeNullCalls
-        false                   | '{"active":false,"byteValue":1,"shortValue":2,"charValue":"a","count":3,"id":4,"ratio":5.5,"score":6.5}'                    | false          | (byte) 1     | (short) 2     | (char) 'a'   | 3             | 4L         | 5.5F          | 6.5D          | 1                                    | 7                            | 7
-        false                   | '{"active":null,"byteValue":null,"shortValue":null,"charValue":null,"count":null,"id":null,"ratio":null,"score":null}'       | true           | (byte) 7     | (short) 8     | (char) 'z'   | 9             | 10L        | 1.5F          | 2.5D          | 1                                    | 0                            | 7
+        false                   | '{"active":false,"byteValue":1,"shortValue":2,"charValue":"a","count":3,"id":4,"ratio":5.5,"score":6.5}'                    | false          | (byte) 1     | (short) 2     | (char) 'a'   | 3             | 4L         | 5.5F          | 6.5D          | 4                                    | 4                            | 4
+        false                   | '{"active":null,"byteValue":null,"shortValue":null,"charValue":null,"count":null,"id":null,"ratio":null,"score":null}'       | true           | (byte) 7     | (short) 8     | (char) 'z'   | 9             | 10L        | 1.5F          | 2.5D          | 4                                    | 0                            | 4
         true                    | '{"active":false,"byteValue":1,"shortValue":2,"charValue":"a","count":3,"id":4,"ratio":5.5,"score":6.5}'                    | false          | (byte) 1     | (short) 2     | (char) 'a'   | 3             | 4L         | 5.5F          | 6.5D          | 0                                    | 8                            | 0
     }
 
@@ -990,7 +990,7 @@ class CompileTimeDeserializerBehaviorSpec extends JsonCompileSpec {
         private void trackNullablePrimitiveDecode() {
             tracker.nullablePrimitiveDecodeCalls++
             if (tracker.failOnNullablePrimitiveDecode) {
-                throw new AssertionError('Nullable primitive decode should only be used when failOnNullForPrimitives is enabled')
+                throw new AssertionError('Nullable primitive decode should only be used when failOnNullForPrimitives is disabled')
             }
         }
     }

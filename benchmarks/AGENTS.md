@@ -22,18 +22,19 @@ Always include the run environment and JMH settings near the results:
 
 ## README Result Table
 
-In `benchmarks/README.md`, put local results in the `Latest Local Results` section as a Markdown table with this format:
+In `benchmarks/README.md`, put local results in the `User Bean Results` section as a Markdown table with this format:
 
 ```markdown
 | Benchmark | Stack | Score |
 | --- | --- | ---: |
-| `serialize` | Jackson Databind | 386245.261 ops/s |
-| `serialize` | Jackson Databind Blackbird | 384001.553 ops/s |
-| `serialize` | Serde Jackson generated | 369538.854 ops/s |
-| `serialize` | Serde Jackson runtime | 311175.518 ops/s |
+| `serialize` | Jackson Databind | 386554.197 ops/s |
+| `serialize` | Jackson Databind Blackbird | 389268.121 ops/s |
+| `serialize` | Serde Jackson generated | 553139.927 ops/s |
+| `serialize` | Serde Jackson runtime | 418341.808 ops/s |
+| `serialize` allocation | Jackson Databind | 6176.018 B/op |
 ```
 
-Use the exact JMH score precision in the README table. Keep the benchmark names in code formatting and include units in every score cell.
+Use the exact JMH score precision in the README table. Keep the benchmark names in code formatting and include units in every score cell. Include the `serialize` allocation rows (`gc.alloc.rate.norm` from `-prof gc`) so the table matches the chart's allocation panel.
 
 ## User Guide Result Table
 
@@ -44,14 +45,20 @@ In `src/main/docs/guide/introduction/why.adoc`, present the same result set as a
 | Operation | Jackson Databind | Jackson Databind Blackbird | Micronaut Serialization generated | Micronaut Serialization runtime
 
 | Serialize throughput
-| 386,245 ops/s
-| 384,002 ops/s
-| 369,539 ops/s
-| 311,176 ops/s
+| 386,554 ops/s
+| 389,268 ops/s
+| 553,140 ops/s
+| 418,342 ops/s
+
+| Serialize allocation
+| 6,176 B/op
+| 6,176 B/op
+| 2,968 B/op
+| 2,990 B/op
 |===
 ```
 
-Round guide values to whole numbers, use thousands separators, and include units in each value. Keep the guide table synchronized with the README result table, and keep the guide narrative short and focused on the meaningful comparison.
+Round guide values to whole numbers, use thousands separators, and include units in each value. Include the serialize-allocation row so the guide table matches the chart's allocation panel. Keep the guide table synchronized with the README result table, and keep the guide narrative short and focused on the meaningful comparison.
 
 After the guide table, include the same benchmark chart that appears in the README:
 
@@ -70,7 +77,7 @@ Use this format:
 - User-guide location: `src/main/docs/resources/img/user-bean-benchmark-results.svg`.
 - Canvas: static inline SVG, no external scripts, fonts, images, or network dependencies.
 - Layout: one horizontal bar-chart panel per metric family.
-- Panels: serialization throughput, deserialize average time, and round-trip average time.
+- Panels: serialization throughput, deserialize average time, round-trip average time, and serialization allocation (`B/op` from `-prof gc`, lower is better).
 - Axis: each panel uses its own x-axis starting at zero.
 - Axis scale: choose a rounded maximum that is greater than or equal to the largest value in that panel.
 - Axis ticks: show zero, midpoint, and maximum tick labels.
