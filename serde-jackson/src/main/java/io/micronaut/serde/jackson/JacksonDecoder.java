@@ -35,7 +35,6 @@ import io.micronaut.serde.util.BinaryCodecUtil;
 import org.jspecify.annotations.Nullable;
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
-import tools.jackson.core.SerializableString;
 import tools.jackson.core.sym.PropertyNameMatcher;
 
 import java.io.EOFException;
@@ -73,8 +72,6 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
     private static final int[] TOKEN_SHAPE_BITS = tokenShapeBits();
     private static final int JACKSON_KEYS_INDEX = KeysSupport.indexOf(new JacksonKeysProvider());
     private static final Object[] EMPTY_JACKSON_KEYS = new JacksonKeysProvider().create(List.of(), false);
-    private static final SerializableString[] EMPTY_SERIALIZABLE_KEYS =
-        (SerializableString[]) EMPTY_JACKSON_KEYS[JacksonKeysProvider.SERIALIZABLE_KEYS_INDEX];
     private static final PropertyNameMatcher EMPTY_PROPERTY_NAME_MATCHER =
         (PropertyNameMatcher) EMPTY_JACKSON_KEYS[JacksonKeysProvider.PROPERTY_NAME_MATCHER_INDEX];
 
@@ -91,10 +88,7 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
     private JsonToken peekedToken;
     @Nullable
     private Keys currentKeys;
-    private SerializableString[] currentSerializableKeys = EMPTY_SERIALIZABLE_KEYS;
     private PropertyNameMatcher currentPropertyNameMatcher = EMPTY_PROPERTY_NAME_MATCHER;
-    private boolean sequentialKeyMatching;
-    private int sequentialKeyIndex;
     private boolean currentlyUnwrappingArray;
 
     private JacksonDecoder(JsonParser parser, RemainingLimits remainingLimits, CoercionPolicy coercionPolicy) throws IOException {
@@ -172,40 +166,11 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
 
     private int nextKeyIndex(Keys keys) {
         jacksonKeys(keys);
-        if (sequentialKeyMatching) {
-            SerializableString[] serializableKeys = currentSerializableKeys;
-            int keyIndex = sequentialKeyIndex;
-            if (keyIndex < serializableKeys.length) {
-                if (parser.nextName(serializableKeys[keyIndex])) {
-                    sequentialKeyIndex = keyIndex + 1;
-                    return keyIndex;
-                }
-                sequentialKeyMatching = false;
-                JsonToken token = parser.currentToken();
-                if (token == JsonToken.END_OBJECT) {
-                    return PropertyNameMatcher.MATCH_END_OBJECT;
-                }
-                if (token == JsonToken.PROPERTY_NAME) {
-                    return parser.currentNameMatch(currentPropertyNameMatcher);
-                }
-                return PropertyNameMatcher.MATCH_ODD_TOKEN;
-            }
-            sequentialKeyMatching = false;
-        }
         return parser.nextNameMatch(currentPropertyNameMatcher);
     }
 
     private int matchCurrentKey(Keys keys) {
         jacksonKeys(keys);
-        if (sequentialKeyMatching) {
-            SerializableString[] serializableKeys = currentSerializableKeys;
-            int keyIndex = sequentialKeyIndex;
-            if (keyIndex < serializableKeys.length && serializableKeys[keyIndex].getValue().equals(parser.currentName())) {
-                sequentialKeyIndex = keyIndex + 1;
-                return keyIndex;
-            }
-            sequentialKeyMatching = false;
-        }
         return parser.currentNameMatch(currentPropertyNameMatcher);
     }
 
@@ -213,10 +178,7 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
         if (keys != currentKeys) {
             Object[] jacksonKeys = KeysSupport.get(keys, JACKSON_KEYS_INDEX);
             currentKeys = keys;
-            currentSerializableKeys = (SerializableString[]) jacksonKeys[JacksonKeysProvider.SERIALIZABLE_KEYS_INDEX];
             currentPropertyNameMatcher = (PropertyNameMatcher) jacksonKeys[JacksonKeysProvider.PROPERTY_NAME_MATCHER_INDEX];
-            sequentialKeyMatching = !keys.caseInsensitive();
-            sequentialKeyIndex = 0;
         }
     }
 
@@ -320,7 +282,6 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
             throw unexpectedToken(JsonToken.START_OBJECT, t);
         }
         increaseDepth();
-        resetSequentialKeyMatching();
         return this;
     }
 
@@ -331,15 +292,7 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
             throw unexpectedToken(JsonToken.START_OBJECT, t);
         }
         increaseDepth();
-        resetSequentialKeyMatching();
         return this;
-    }
-
-    private void resetSequentialKeyMatching() {
-        sequentialKeyIndex = 0;
-        if (currentKeys != null) {
-            sequentialKeyMatching = !currentKeys.caseInsensitive();
-        }
     }
 
     @Override
