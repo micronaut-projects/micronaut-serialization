@@ -97,6 +97,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#decodeNull()" tabindex="0">decodeNull()</a></li>
 <li><a href="#decodeArbitrary()" tabindex="0">decodeArbitrary()</a></li>
 <li><a href="#decodeNode()" tabindex="0">decodeNode()</a></li>
+<li><a href="#getCoercionPolicy()" tabindex="0">getCoercionPolicy()</a></li>
 <li><a href="#decodeBuffer()" tabindex="0">decodeBuffer()</a></li>
 <li><a href="#skipValue()" tabindex="0">skipValue()</a></li>
 <li><a href="#finishStructure()" tabindex="0">finishStructure()</a></li>
@@ -349,12 +350,17 @@ implements <a href="Decoder.html" title="interface in io.micronaut.serde">Decode
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#finishStructure(boolean)" class="member-name-link">finishStructure</a><wbr>(boolean&nbsp;consumeLeftElements)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#hasNextArrayValue()" class="member-name-link">hasNextArrayValue</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#skipValue()" class="member-name-link">skipValue</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="config/CoercionPolicy.html" title="class in io.micronaut.serde.config">CoercionPolicy</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getCoercionPolicy()" class="member-name-link">getCoercionPolicy</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">The coercions this decoder performs.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#hasNextArrayValue()" class="member-name-link">hasNextArrayValue</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#skipValue()" class="member-name-link">skipValue</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Skips the current value.</div>
 </div>
 </div>
@@ -1069,6 +1075,25 @@ value.</div>
 <dd>The decoded node</dd>
 <dt>Throws:</dt>
 <dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an unrecoverable error occurs</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="getCoercionPolicy()">
+<h3>getCoercionPolicy</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="config/CoercionPolicy.html" title="class in io.micronaut.serde.config">CoercionPolicy</a></span>&nbsp;<span class="element-name">getCoercionPolicy</span>()</div>
+<div class="block"><span class="description-from-type-label">Description copied from interface:&nbsp;<code><a href="Decoder.html#getCoercionPolicy()">Decoder</a></code></span></div>
+<div class="block">The coercions this decoder performs. A decoder that creates another decoder over the same
+data, such as <a href="Decoder.html#decodeBuffer()"><code>Decoder.decodeBuffer()</code></a>, must pass this on, so that the same document is
+accepted or rejected no matter which decoder ends up reading a given value.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="Decoder.html#getCoercionPolicy()">getCoercionPolicy</a></code>&nbsp;in interface&nbsp;<code><a href="Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></dd>
+<dt>Returns:</dt>
+<dd>The coercion policy, <a href="config/CoercionPolicy.html#LENIENT"><code>CoercionPolicy.LENIENT</code></a> for a decoder that does not
+        support restricting coercions</dd>
 </dl>
 </div>
 </section>

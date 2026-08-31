@@ -59,7 +59,9 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
 <li><a href="#create(io.micronaut.json.tree.JsonNode,io.micronaut.serde.LimitingStream.RemainingLimits)" tabindex="0">create(JsonNode, LimitingStream.RemainingLimits)</a></li>
+<li><a href="#create(io.micronaut.json.tree.JsonNode,io.micronaut.serde.LimitingStream.RemainingLimits,io.micronaut.serde.config.CoercionPolicy)" tabindex="0">create(JsonNode, LimitingStream.RemainingLimits, CoercionPolicy)</a></li>
 <li><a href="#peekValue()" tabindex="0">peekValue()</a></li>
+<li><a href="#getCoercionPolicy()" tabindex="0">getCoercionPolicy()</a></li>
 <li><a href="#decodeArray(io.micronaut.core.type.Argument)" tabindex="0">decodeArray(Argument)</a></li>
 <li><a href="#decodeObject(io.micronaut.core.type.Argument)" tabindex="0">decodeObject(Argument)</a></li>
 <li><a href="#decodeString()" tabindex="0">decodeString()</a></li>
@@ -143,101 +145,113 @@ uses the <code>JsonNode</code> abstraction.</div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#create(io.micronaut.json.tree.JsonNode,io.micronaut.serde.LimitingStream.RemainingLimits)" class="member-name-link">create</a><wbr>(io.micronaut.json.tree.JsonNode&nbsp;node,
  <a href="../../LimitingStream.RemainingLimits.html" title="class in io.micronaut.serde">LimitingStream.RemainingLimits</a>&nbsp;remainingLimits)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#createDeserializationException(java.lang.String,java.lang.Object)" class="member-name-link">createDeserializationException</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;message,
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="JsonNodeDecoder.html" title="class in io.micronaut.serde.support.util">JsonNodeDecoder</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#create(io.micronaut.json.tree.JsonNode,io.micronaut.serde.LimitingStream.RemainingLimits,io.micronaut.serde.config.CoercionPolicy)" class="member-name-link">create</a><wbr>(io.micronaut.json.tree.JsonNode&nbsp;node,
+ <a href="../../LimitingStream.RemainingLimits.html" title="class in io.micronaut.serde">LimitingStream.RemainingLimits</a>&nbsp;remainingLimits,
+ <a href="../../config/CoercionPolicy.html" title="class in io.micronaut.serde.config">CoercionPolicy</a>&nbsp;coercionPolicy)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Create a decoder that only performs the coercions the given policy allows.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#createDeserializationException(java.lang.String,java.lang.Object)" class="member-name-link">createDeserializationException</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;message,
  @Nullable <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;invalidValue)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Creates an exception for the given message.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@Nullable <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeArbitrary()" class="member-name-link">decodeArbitrary</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@Nullable <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeArbitrary()" class="member-name-link">decodeArbitrary</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Decodes the current state into an arbitrary object.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeArray(io.micronaut.core.type.Argument)" class="member-name-link">decodeArray</a><wbr>(io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeArray(io.micronaut.core.type.Argument)" class="member-name-link">decodeArray</a><wbr>(io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Start decoding an array.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeBigDecimal()" class="member-name-link">decodeBigDecimal</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeBigDecimal()" class="member-name-link">decodeBigDecimal</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Decodes a BigDecimal.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/math/BigInteger.html" title="class or interface in java.math" class="external-link">BigInteger</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeBigInteger()" class="member-name-link">decodeBigInteger</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/math/BigInteger.html" title="class or interface in java.math" class="external-link">BigInteger</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeBigInteger()" class="member-name-link">decodeBigInteger</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Decodes a BigInteger.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>byte[]</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeBinary()" class="member-name-link">decodeBinary</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>byte[]</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeBinary()" class="member-name-link">decodeBinary</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Decode binary data from this stream.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeBoolean()" class="member-name-link">decodeBoolean</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeBoolean()" class="member-name-link">decodeBoolean</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Decodes a boolean.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeBuffer()" class="member-name-link">decodeBuffer</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeBuffer()" class="member-name-link">decodeBuffer</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Buffer the whole subtree of this value and return it as a new <a href="../../Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a>.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>byte</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeByte()" class="member-name-link">decodeByte</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>byte</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeByte()" class="member-name-link">decodeByte</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Decodes a byte.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>char</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeChar()" class="member-name-link">decodeChar</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>char</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeChar()" class="member-name-link">decodeChar</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Decodes a char.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>double</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeDouble()" class="member-name-link">decodeDouble</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>double</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeDouble()" class="member-name-link">decodeDouble</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Decodes a double.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>float</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeFloat()" class="member-name-link">decodeFloat</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>float</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeFloat()" class="member-name-link">decodeFloat</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Decodes a float.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>int</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeInt()" class="member-name-link">decodeInt</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>int</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeInt()" class="member-name-link">decodeInt</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Decodes a int.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>long</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeLong()" class="member-name-link">decodeLong</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>long</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeLong()" class="member-name-link">decodeLong</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Decodes a long.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>io.micronaut.json.tree.JsonNode</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeNode()" class="member-name-link">decodeNode</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>io.micronaut.json.tree.JsonNode</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeNode()" class="member-name-link">decodeNode</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Decodes the current state into a <code>JsonNode</code>.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeNull()" class="member-name-link">decodeNull</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeNull()" class="member-name-link">decodeNull</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Attempt to decode a null value.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeObject(io.micronaut.core.type.Argument)" class="member-name-link">decodeObject</a><wbr>(io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeObject(io.micronaut.core.type.Argument)" class="member-name-link">decodeObject</a><wbr>(io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Decodes an object.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>short</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeShort()" class="member-name-link">decodeShort</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>short</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeShort()" class="member-name-link">decodeShort</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Decodes a short.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeString()" class="member-name-link">decodeString</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeString()" class="member-name-link">decodeString</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Decodes a string.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final <a href="../../config/CoercionPolicy.html" title="class in io.micronaut.serde.config">CoercionPolicy</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getCoercionPolicy()" class="member-name-link">getCoercionPolicy</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">The coercions this decoder performs.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>protected abstract io.micronaut.json.tree.JsonNode</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#peekValue()" class="member-name-link">peekValue</a>()</code></div>
@@ -275,6 +289,25 @@ uses the <code>JsonNode</code> abstraction.</div>
 </section>
 </li>
 <li>
+<section class="detail" id="create(io.micronaut.json.tree.JsonNode,io.micronaut.serde.LimitingStream.RemainingLimits,io.micronaut.serde.config.CoercionPolicy)">
+<h3>create</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="JsonNodeDecoder.html" title="class in io.micronaut.serde.support.util">JsonNodeDecoder</a></span>&nbsp;<span class="element-name">create</span><wbr><span class="parameters">(io.micronaut.json.tree.JsonNode&nbsp;node,
+ <a href="../../LimitingStream.RemainingLimits.html" title="class in io.micronaut.serde">LimitingStream.RemainingLimits</a>&nbsp;remainingLimits,
+ <a href="../../config/CoercionPolicy.html" title="class in io.micronaut.serde.config">CoercionPolicy</a>&nbsp;coercionPolicy)</span></div>
+<div class="block">Create a decoder that only performs the coercions the given policy allows.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>node</code> - The node to read</dd>
+<dd><code>remainingLimits</code> - The remaining stream limits</dd>
+<dd><code>coercionPolicy</code> - The coercions this decoder may perform</dd>
+<dt>Returns:</dt>
+<dd>The decoder</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
 <section class="detail" id="peekValue()">
 <h3>peekValue</h3>
 <div class="horizontal-scroll">
@@ -283,6 +316,25 @@ uses the <code>JsonNode</code> abstraction.</div>
 <dl class="notes">
 <dt>Throws:</dt>
 <dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code></dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="getCoercionPolicy()">
+<h3>getCoercionPolicy</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public final</span>&nbsp;<span class="return-type"><a href="../../config/CoercionPolicy.html" title="class in io.micronaut.serde.config">CoercionPolicy</a></span>&nbsp;<span class="element-name">getCoercionPolicy</span>()</div>
+<div class="block"><span class="description-from-type-label">Description copied from interface:&nbsp;<code><a href="../../Decoder.html#getCoercionPolicy()">Decoder</a></code></span></div>
+<div class="block">The coercions this decoder performs. A decoder that creates another decoder over the same
+data, such as <a href="../../Decoder.html#decodeBuffer()"><code>Decoder.decodeBuffer()</code></a>, must pass this on, so that the same document is
+accepted or rejected no matter which decoder ends up reading a given value.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../../Decoder.html#getCoercionPolicy()">getCoercionPolicy</a></code>&nbsp;in interface&nbsp;<code><a href="../../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></dd>
+<dt>Returns:</dt>
+<dd>The coercion policy, <a href="../../config/CoercionPolicy.html#LENIENT"><code>CoercionPolicy.LENIENT</code></a> for a decoder that does not
+        support restricting coercions</dd>
 </dl>
 </div>
 </section>

@@ -94,6 +94,10 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Root constructor.</div>
 </dd>
+<dt><a href="io/micronaut/serde/support/AbstractDecoderPerStructureStreamDecoder.html#%3Cinit%3E(io.micronaut.serde.LimitingStream.RemainingLimits,io.micronaut.serde.config.CoercionPolicy)" class="member-name-link">AbstractDecoderPerStructureStreamDecoder(LimitingStream.RemainingLimits, CoercionPolicy)</a> - Constructor for class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractDecoderPerStructureStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractDecoderPerStructureStreamDecoder</a></dt>
+<dd>
+<div class="block">Root constructor that only performs the coercions the given policy allows.</div>
+</dd>
 <dt><a href="io/micronaut/serde/support/AbstractDecoderPerStructureStreamDecoder.html#%3Cinit%3E(io.micronaut.serde.support.AbstractDecoderPerStructureStreamDecoder,io.micronaut.serde.LimitingStream.RemainingLimits)" class="member-name-link">AbstractDecoderPerStructureStreamDecoder(AbstractDecoderPerStructureStreamDecoder, LimitingStream.RemainingLimits)</a> - Constructor for class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractDecoderPerStructureStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractDecoderPerStructureStreamDecoder</a></dt>
 <dd>
 <div class="block">Child constructor.</div>
@@ -115,7 +119,13 @@ loadScripts(document, 'script');</script>
 <div class="block">Abstract base class for stream-based <a href="io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a>s.</div>
 </dd>
 <dt><a href="io/micronaut/serde/support/AbstractStreamDecoder.html#%3Cinit%3E(io.micronaut.serde.LimitingStream.RemainingLimits)" class="member-name-link">AbstractStreamDecoder(LimitingStream.RemainingLimits)</a> - Constructor for class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Create a decoder that performs every coercion, for backwards compatibility.</div>
+</dd>
+<dt><a href="io/micronaut/serde/support/AbstractStreamDecoder.html#%3Cinit%3E(io.micronaut.serde.LimitingStream.RemainingLimits,io.micronaut.serde.config.CoercionPolicy)" class="member-name-link">AbstractStreamDecoder(LimitingStream.RemainingLimits, CoercionPolicy)</a> - Constructor for class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></dt>
+<dd>
+<div class="block">Create a decoder that only performs the coercions the given policy allows.</div>
+</dd>
 <dt><a href="io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html" class="type-name-link" title="enum class in io.micronaut.serde.support">AbstractStreamDecoder.TokenType</a> - Enum Class in <a href="io/micronaut/serde/support/package-summary.html">io.micronaut.serde.support</a></dt>
 <dd>
 <div class="block">The token type.</div>
@@ -230,6 +240,10 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Is serialization of ignored properties allowed.</div>
 </dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.html#allowedShapes(io.micronaut.serde.config.CoercionPolicy.Target)" class="member-name-link">allowedShapes(CoercionPolicy.Target)</a> - Method in class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.html" title="class in io.micronaut.serde.config">CoercionPolicy</a></dt>
+<dd>
+<div class="block">The precalculated bit set of <a href="io/micronaut/serde/config/CoercionPolicy.Shape.html" title="enum class in io.micronaut.serde.config"><code>CoercionPolicy.Shape</code></a>s that may be read as the given target type.</div>
+</dd>
 <dt><a href="io/micronaut/serde/AllTypesBean.html" class="type-name-link" title="class in io.micronaut.serde">AllTypesBean</a> - Class in <a href="io/micronaut/serde/package-summary.html">io.micronaut.serde</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/xml/tck/AllTypesBean.html" class="type-name-link" title="class in io.micronaut.serde.xml.tck">AllTypesBean</a> - Class in <a href="io/micronaut/serde/xml/tck/package-summary.html">io.micronaut.serde.xml.tck</a></dt>
@@ -289,6 +303,10 @@ independent of value of the property.</div>
 </dd>
 <dt><a href="io/micronaut/serde/jsonb/MicronautJsonbProvider.MicronautJsonb.html#argument(java.lang.reflect.Type)" class="member-name-link">argument(Type)</a> - Static method in class io.micronaut.serde.jsonb.<a href="io/micronaut/serde/jsonb/MicronautJsonbProvider.MicronautJsonb.html" title="class in io.micronaut.serde.jsonb">MicronautJsonbProvider.MicronautJsonb</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.Shape.html#ARRAY" class="member-name-link">ARRAY</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.Shape.html" title="enum class in io.micronaut.serde.config">CoercionPolicy.Shape</a></dt>
+<dd>
+<div class="block">An array, which a decoder may unwrap if it holds a single value.</div>
+</dd>
 <dt><a href="io/micronaut/serde/FormatConfiguration.Shape.html#ARRAY" class="member-name-link">ARRAY</a> - Enum constant in enum class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.Shape.html" title="enum class in io.micronaut.serde">FormatConfiguration.Shape</a></dt>
 <dd>
 <div class="block">Array shape.</div>
@@ -428,6 +446,16 @@ independent of value of the property.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jsonb/MicronautJsonbProvider.MicronautJsonb.html#binaryDataStrategy(jakarta.json.bind.JsonbConfig)" class="member-name-link">binaryDataStrategy(JsonbConfig)</a> - Static method in class io.micronaut.serde.jsonb.<a href="io/micronaut/serde/jsonb/MicronautJsonbProvider.MicronautJsonb.html" title="class in io.micronaut.serde.jsonb">MicronautJsonbProvider.MicronautJsonb</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.Shape.html#bit()" class="member-name-link">bit()</a> - Method in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.Shape.html" title="enum class in io.micronaut.serde.config">CoercionPolicy.Shape</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.Shape.html#BOOLEAN" class="member-name-link">BOOLEAN</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.Shape.html" title="enum class in io.micronaut.serde.config">CoercionPolicy.Shape</a></dt>
+<dd>
+<div class="block">A boolean.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.Target.html#BOOLEAN" class="member-name-link">BOOLEAN</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.Target.html" title="enum class in io.micronaut.serde.config">CoercionPolicy.Target</a></dt>
+<dd>
+<div class="block"><code>boolean</code>.</div>
+</dd>
 <dt><a href="io/micronaut/serde/FormatConfiguration.Shape.html#BOOLEAN" class="member-name-link">BOOLEAN</a> - Enum constant in enum class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.Shape.html" title="enum class in io.micronaut.serde">FormatConfiguration.Shape</a></dt>
 <dd>
 <div class="block">Boolean scalar shape.</div>
@@ -446,6 +474,10 @@ independent of value of the property.</div>
 </dd>
 <dt><a href="io/micronaut/serde/support/serdes/Serdes.html#BOOLEAN_ARRAY_SERDE" class="member-name-link">BOOLEAN_ARRAY_SERDE</a> - Static variable in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/Serdes.html" title="class in io.micronaut.serde.support.serdes">Serdes</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.Coercion.html#BOOLEAN_AS_NUMBER" class="member-name-link">BOOLEAN_AS_NUMBER</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.Coercion.html" title="enum class in io.micronaut.serde.config">CoercionPolicy.Coercion</a></dt>
+<dd>
+<div class="block">Read a boolean into a numeric type.</div>
+</dd>
 <dt><a href="io/micronaut/serde/support/util/DecoderValueKind.html#BOOLEAN_CODE" class="member-name-link">BOOLEAN_CODE</a> - Static variable in enum class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/DecoderValueKind.html" title="enum class in io.micronaut.serde.support.util">DecoderValueKind</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/serdes/Serdes.html#BOOLEAN_SERDE" class="member-name-link">BOOLEAN_SERDE</a> - Static variable in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/Serdes.html" title="class in io.micronaut.serde.support.serdes">Serdes</a></dt>
@@ -509,6 +541,8 @@ independent of value of the property.</div>
 <div class="block">Bson implementation of <a href="io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a>.</div>
 </dd>
 <dt><a href="io/micronaut/serde/bson/BsonReaderDecoder.html#%3Cinit%3E(org.bson.BsonReader,io.micronaut.serde.LimitingStream.RemainingLimits)" class="member-name-link">BsonReaderDecoder(BsonReader, LimitingStream.RemainingLimits)</a> - Constructor for class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/BsonReaderDecoder.html" title="class in io.micronaut.serde.bson">BsonReaderDecoder</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/bson/BsonReaderDecoder.html#%3Cinit%3E(org.bson.BsonReader,io.micronaut.serde.LimitingStream.RemainingLimits,io.micronaut.serde.config.CoercionPolicy)" class="member-name-link">BsonReaderDecoder(BsonReader, LimitingStream.RemainingLimits, CoercionPolicy)</a> - Constructor for class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/BsonReaderDecoder.html" title="class in io.micronaut.serde.bson">BsonReaderDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/bson/BsonRepresentationMapper.html" class="type-name-link" title="class in io.micronaut.serde.processor.bson">BsonRepresentationMapper</a> - Class in <a href="io/micronaut/serde/processor/bson/package-summary.html">io.micronaut.serde.processor.bson</a></dt>
 <dd>
@@ -678,6 +712,10 @@ CBOR factory together with Micronaut Serialization serializers and deserializers
 <dd>
 <div class="block">Creates a CBOR mapper backed by the given registry and configuration.</div>
 </dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.Target.html#CHAR" class="member-name-link">CHAR</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.Target.html" title="enum class in io.micronaut.serde.config">CoercionPolicy.Target</a></dt>
+<dd>
+<div class="block"><code>char</code>.</div>
+</dd>
 <dt><a href="io/micronaut/serde/support/util/DecoderValueKind.html#CHAR" class="member-name-link">CHAR</a> - Enum constant in enum class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/DecoderValueKind.html" title="enum class in io.micronaut.serde.support.util">DecoderValueKind</a></dt>
 <dd>
 <div class="block">A <code>char</code> value.</div>
@@ -838,6 +876,36 @@ CBOR factory together with Micronaut Serialization serializers and deserializers
 <dd>
 <div class="block">Decode any non-null scalar value (number, string or boolean) to its string representation.</div>
 </dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.html#coercion(io.micronaut.serde.config.CoercionPolicy.Target,io.micronaut.serde.config.CoercionPolicy.Shape)" class="member-name-link">coercion(CoercionPolicy.Target, CoercionPolicy.Shape)</a> - Static method in class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.html" title="class in io.micronaut.serde.config">CoercionPolicy</a></dt>
+<dd>
+<div class="block">The coercion needed to read a value of the given shape as the given target type, or
+<code>null</code> if the shape is the natural one for that target and no coercion is involved.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/CoercionMode.html" class="type-name-link" title="enum class in io.micronaut.serde.config">CoercionMode</a> - Enum Class in <a href="io/micronaut/serde/config/package-summary.html">io.micronaut.serde.config</a></dt>
+<dd>
+<div class="block">The baseline for the scalar coercions a decoder performs.</div>
+</dd>
+<dt><a href="io/micronaut/serde/jsonb/MicronautJsonbProvider.MicronautJsonb.html#coercionPolicy(io.micronaut.serde.Deserializer.DecoderContext)" class="member-name-link">coercionPolicy(Deserializer.DecoderContext)</a> - Method in class io.micronaut.serde.jsonb.<a href="io/micronaut/serde/jsonb/MicronautJsonbProvider.MicronautJsonb.html" title="class in io.micronaut.serde.jsonb">MicronautJsonbProvider.MicronautJsonb</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.html" class="type-name-link" title="class in io.micronaut.serde.config">CoercionPolicy</a> - Class in <a href="io/micronaut/serde/config/package-summary.html">io.micronaut.serde.config</a></dt>
+<dd>
+<div class="block">The scalar coercions a <a href="io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a> is allowed to perform, resolved once from the
+<a href="io/micronaut/serde/config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config"><code>DeserializationConfiguration</code></a> and then passed to every decoder that is created, in the
+same way as <a href="io/micronaut/serde/LimitingStream.RemainingLimits.html" title="class in io.micronaut.serde"><code>LimitingStream.RemainingLimits</code></a>.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.Coercion.html" class="type-name-link" title="enum class in io.micronaut.serde.config">CoercionPolicy.Coercion</a> - Enum Class in <a href="io/micronaut/serde/config/package-summary.html">io.micronaut.serde.config</a></dt>
+<dd>
+<div class="block">A single coercion a decoder may perform when the JSON shape does not match the requested
+type.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.Shape.html" class="type-name-link" title="enum class in io.micronaut.serde.config">CoercionPolicy.Shape</a> - Enum Class in <a href="io/micronaut/serde/config/package-summary.html">io.micronaut.serde.config</a></dt>
+<dd>
+<div class="block">The shape of a value in the document, as far as coercion is concerned.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.Target.html" class="type-name-link" title="enum class in io.micronaut.serde.config">CoercionPolicy.Target</a> - Enum Class in <a href="io/micronaut/serde/config/package-summary.html">io.micronaut.serde.config</a></dt>
+<dd>
+<div class="block">The type a decoder is reading a value as.</div>
+</dd>
 <dt><a href="io/micronaut/serde/exceptions/path/CollectionItemReferencePath.html#collectionArgument()" class="member-name-link">collectionArgument()</a> - Method in interface io.micronaut.serde.exceptions.path.<a href="io/micronaut/serde/exceptions/path/CollectionItemReferencePath.html" title="interface in io.micronaut.serde.exceptions.path">CollectionItemReferencePath</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/exceptions/path/CollectionItemReferencePath.html" class="type-name-link" title="interface in io.micronaut.serde.exceptions.path">CollectionItemReferencePath</a> - Interface in <a href="io/micronaut/serde/exceptions/path/package-summary.html">io.micronaut.serde.exceptions.path</a></dt>
@@ -922,6 +990,10 @@ CBOR factory together with Micronaut Serialization serializers and deserializers
 </dd>
 <dt><a href="io/micronaut/serde/support/util/JsonNodeDecoder.html#create(io.micronaut.json.tree.JsonNode,io.micronaut.serde.LimitingStream.RemainingLimits)" class="member-name-link">create(JsonNode, LimitingStream.RemainingLimits)</a> - Static method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/JsonNodeDecoder.html" title="class in io.micronaut.serde.support.util">JsonNodeDecoder</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/util/JsonNodeDecoder.html#create(io.micronaut.json.tree.JsonNode,io.micronaut.serde.LimitingStream.RemainingLimits,io.micronaut.serde.config.CoercionPolicy)" class="member-name-link">create(JsonNode, LimitingStream.RemainingLimits, CoercionPolicy)</a> - Static method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/JsonNodeDecoder.html" title="class in io.micronaut.serde.support.util">JsonNodeDecoder</a></dt>
+<dd>
+<div class="block">Create a decoder that only performs the coercions the given policy allows.</div>
+</dd>
 <dt><a href="io/micronaut/serde/support/util/JsonNodeEncoder.html#create(io.micronaut.serde.LimitingStream.RemainingLimits)" class="member-name-link">create(LimitingStream.RemainingLimits)</a> - Static method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/JsonNodeEncoder.html" title="class in io.micronaut.serde.support.util">JsonNodeEncoder</a></dt>
 <dd>
 <div class="block">Creates a new instance.</div>
@@ -993,6 +1065,10 @@ from the given package locations.</div>
 </dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#create(tools.jackson.core.JsonParser,io.micronaut.serde.LimitingStream.RemainingLimits)" class="member-name-link">create(JsonParser, LimitingStream.RemainingLimits)</a> - Static method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#create(tools.jackson.core.JsonParser,io.micronaut.serde.LimitingStream.RemainingLimits,io.micronaut.serde.config.CoercionPolicy)" class="member-name-link">create(JsonParser, LimitingStream.RemainingLimits, CoercionPolicy)</a> - Static method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
+<dd>
+<div class="block">Create a decoder that only performs the coercions the given policy allows.</div>
+</dd>
 <dt><a href="io/micronaut/serde/jsonp/MicronautJsonProvider.html#createArrayBuilder()" class="member-name-link">createArrayBuilder()</a> - Method in class io.micronaut.serde.jsonp.<a href="io/micronaut/serde/jsonp/MicronautJsonProvider.html" title="class in io.micronaut.serde.jsonp">MicronautJsonProvider</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jsonp/MicronautJsonProvider.html#createArrayBuilder(jakarta.json.JsonArray)" class="member-name-link">createArrayBuilder(JsonArray)</a> - Method in class io.micronaut.serde.jsonp.<a href="io/micronaut/serde/jsonp/MicronautJsonProvider.html" title="class in io.micronaut.serde.jsonp">MicronautJsonProvider</a></dt>
@@ -1350,6 +1426,10 @@ from the given package locations.</div>
 </dl>
 <h2 class="title" id="I:D">D</h2>
 <dl class="index">
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.Target.html#DECIMAL" class="member-name-link">DECIMAL</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.Target.html" title="enum class in io.micronaut.serde.config">CoercionPolicy.Target</a></dt>
+<dd>
+<div class="block"><code>float</code>, <code>double</code> or <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link"><code>BigDecimal</code></a>.</div>
+</dd>
 <dt><a href="io/micronaut/serde/config/SerdeConfiguration.TimeShape.html#DECIMAL" class="member-name-link">DECIMAL</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/SerdeConfiguration.TimeShape.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.TimeShape</a></dt>
 <dd>
 <div class="block">Serialize as a decimal value with best possible precision.</div>
@@ -2523,6 +2603,8 @@ empty bean.</div>
 <dd>
 <div class="block">Indicates whether some other object is "equal to" this one.</div>
 </dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.html#equals(java.lang.Object)" class="member-name-link">equals(Object)</a> - Method in class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.html" title="class in io.micronaut.serde.config">CoercionPolicy</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/data/Users1.html#equals(java.lang.Object)" class="member-name-link">equals(Object)</a> - Method in class io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users1.html" title="class in io.micronaut.serde.data">Users1</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/data/Users1.Friend.html#equals(java.lang.Object)" class="member-name-link">equals(Object)</a> - Method in class io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users1.Friend.html" title="class in io.micronaut.serde.data">Users1.Friend</a></dt>
@@ -2856,8 +2938,16 @@ empty bean.</div>
 </dd>
 <dt><a href="io/micronaut/serde/support/serdes/Serdes.html#FLOAT_ARRAY_SERDE" class="member-name-link">FLOAT_ARRAY_SERDE</a> - Static variable in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/Serdes.html" title="class in io.micronaut.serde.support.serdes">Serdes</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.Coercion.html#FLOAT_AS_INT" class="member-name-link">FLOAT_AS_INT</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.Coercion.html" title="enum class in io.micronaut.serde.config">CoercionPolicy.Coercion</a></dt>
+<dd>
+<div class="block">Read a floating point number into an integer type, truncating it.</div>
+</dd>
 <dt><a href="io/micronaut/serde/support/util/DecoderValueKind.html#FLOAT_CODE" class="member-name-link">FLOAT_CODE</a> - Static variable in enum class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/DecoderValueKind.html" title="enum class in io.micronaut.serde.support.util">DecoderValueKind</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.Shape.html#FLOAT_NUMBER" class="member-name-link">FLOAT_NUMBER</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.Shape.html" title="enum class in io.micronaut.serde.config">CoercionPolicy.Shape</a></dt>
+<dd>
+<div class="block">A number with a fractional part.</div>
+</dd>
 <dt><a href="io/micronaut/serde/support/serdes/Serdes.html#FLOAT_SERDE" class="member-name-link">FLOAT_SERDE</a> - Static variable in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/Serdes.html" title="class in io.micronaut.serde.support.serdes">Serdes</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jsonb/MicronautJsonbProvider.NonClosingOutputStream.html#flush()" class="member-name-link">flush()</a> - Method in class io.micronaut.serde.jsonb.<a href="io/micronaut/serde/jsonb/MicronautJsonbProvider.NonClosingOutputStream.html" title="class in io.micronaut.serde.jsonb">MicronautJsonbProvider.NonClosingOutputStream</a></dt>
@@ -2941,6 +3031,10 @@ empty bean.</div>
 <dt><a href="io/micronaut/serde/FormatConfiguration.html#from(io.micronaut.core.annotation.AnnotationMetadata)" class="member-name-link">from(AnnotationMetadata)</a> - Static method in record class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a></dt>
 <dd>
 <div class="block">Resolve format configuration from annotation metadata.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.html#fromConfiguration(io.micronaut.serde.config.DeserializationConfiguration)" class="member-name-link">fromConfiguration(DeserializationConfiguration)</a> - Static method in class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.html" title="class in io.micronaut.serde.config">CoercionPolicy</a></dt>
+<dd>
+<div class="block">Resolve the policy from the given configuration.</div>
 </dd>
 <dt><a href="io/micronaut/serde/jsonb/MicronautJsonbProvider.MicronautJsonb.html#fromJson(java.io.InputStream,java.lang.Class)" class="member-name-link">fromJson(InputStream, Class)</a> - Method in class io.micronaut.serde.jsonb.<a href="io/micronaut/serde/jsonb/MicronautJsonbProvider.MicronautJsonb.html" title="class in io.micronaut.serde.jsonb">MicronautJsonbProvider.MicronautJsonb</a></dt>
 <dd>&nbsp;</dd>
@@ -3146,6 +3240,22 @@ empty bean.</div>
 <dt><a href="io/micronaut/serde/jackson/builder/introspected/Address.html#getCity()" class="member-name-link">getCity()</a> - Method in class io.micronaut.serde.jackson.builder.introspected.<a href="io/micronaut/serde/jackson/builder/introspected/Address.html" title="class in io.micronaut.serde.jackson.builder.introspected">Address</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/shape/EnumObjectShapeBean.Status.html#getCode()" class="member-name-link">getCode()</a> - Method in enum class io.micronaut.serde.jackson.shape.<a href="io/micronaut/serde/jackson/shape/EnumObjectShapeBean.Status.html" title="enum class in io.micronaut.serde.jackson.shape">EnumObjectShapeBean.Status</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/config/DeserializationConfiguration.html#getCoercionMode()" class="member-name-link">getCoercionMode()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a></dt>
+<dd>
+<div class="block">The baseline for the scalar coercions the decoders perform.</div>
+</dd>
+<dt><a href="io/micronaut/serde/Decoder.html#getCoercionPolicy()" class="member-name-link">getCoercionPolicy()</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a></dt>
+<dd>
+<div class="block">The coercions this decoder performs.</div>
+</dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#getCoercionPolicy()" class="member-name-link">getCoercionPolicy()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#getCoercionPolicy()" class="member-name-link">getCoercionPolicy()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/AbstractStreamDecoder.html#getCoercionPolicy()" class="member-name-link">getCoercionPolicy()</a> - Method in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/util/JsonNodeDecoder.html#getCoercionPolicy()" class="member-name-link">getCoercionPolicy()</a> - Method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/JsonNodeDecoder.html" title="class in io.micronaut.serde.support.util">JsonNodeDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/util/JsonNodeEncoder.html#getCompletedValue()" class="member-name-link">getCompletedValue()</a> - Method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/JsonNodeEncoder.html" title="class in io.micronaut.serde.support.util">JsonNodeEncoder</a></dt>
 <dd>
@@ -3861,6 +3971,8 @@ as serializable by default without the need to add the <a href="io/micronaut/ser
 <dd>
 <div class="block">Returns a hash code value for this object.</div>
 </dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.html#hashCode()" class="member-name-link">hashCode()</a> - Method in class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.html" title="class in io.micronaut.serde.config">CoercionPolicy</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/data/Users1.Friend.html#hashCode()" class="member-name-link">hashCode()</a> - Method in class io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users1.Friend.html" title="class in io.micronaut.serde.data">Users1.Friend</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/data/Users1.html#hashCode()" class="member-name-link">hashCode()</a> - Method in class io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users1.html" title="class in io.micronaut.serde.data">Users1</a></dt>
@@ -4162,6 +4274,10 @@ as serializable by default without the need to add the <a href="io/micronaut/ser
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/util/DecoderValueKind.html#INT_CODE" class="member-name-link">INT_CODE</a> - Static variable in enum class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/DecoderValueKind.html" title="enum class in io.micronaut.serde.support.util">DecoderValueKind</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.Target.html#INTEGER" class="member-name-link">INTEGER</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.Target.html" title="enum class in io.micronaut.serde.config">CoercionPolicy.Target</a></dt>
+<dd>
+<div class="block"><code>byte</code>, <code>short</code>, <code>int</code>, <code>long</code> or <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/math/BigInteger.html" title="class or interface in java.math" class="external-link"><code>BigInteger</code></a>.</div>
+</dd>
 <dt><a href="io/micronaut/serde/config/SerdeConfiguration.TimeShape.html#INTEGER" class="member-name-link">INTEGER</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/SerdeConfiguration.TimeShape.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.TimeShape</a></dt>
 <dd>
 <div class="block">Serialize as an integer.</div>
@@ -4169,6 +4285,10 @@ as serializable by default without the need to add the <a href="io/micronaut/ser
 <dt><a href="io/micronaut/serde/util/SerdeArgumentConstants.html#INTEGER" class="member-name-link">INTEGER</a> - Static variable in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/SerdeArgumentConstants.html" title="class in io.micronaut.serde.util">SerdeArgumentConstants</a></dt>
 <dd>
 <div class="block"><code>Argument</code> constant for <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Integer.html" title="class or interface in java.lang" class="external-link"><code>Integer</code></a> values.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.Shape.html#INTEGER_NUMBER" class="member-name-link">INTEGER_NUMBER</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.Shape.html" title="enum class in io.micronaut.serde.config">CoercionPolicy.Shape</a></dt>
+<dd>
+<div class="block">A number without a fractional part.</div>
 </dd>
 <dt><a href="io/micronaut/serde/support/serdes/Serdes.html#INTEGER_SERDE" class="member-name-link">INTEGER_SERDE</a> - Static variable in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/Serdes.html" title="class in io.micronaut.serde.support.serdes">Serdes</a></dt>
 <dd>&nbsp;</dd>
@@ -4415,6 +4535,32 @@ about the property that was incorrect.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/util/CustomizableSerializer.html#isAbsent(io.micronaut.serde.Serializer.EncoderContext,T)" class="member-name-link">isAbsent(Serializer.EncoderContext, T)</a> - Method in interface io.micronaut.serde.util.<a href="io/micronaut/serde/util/CustomizableSerializer.html" title="interface in io.micronaut.serde.util">CustomizableSerializer</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/config/DeserializationConfiguration.html#isAcceptBooleanAsNumber()" class="member-name-link">isAcceptBooleanAsNumber()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a></dt>
+<dd>
+<div class="block">Whether JSON booleans should be read into numeric properties, <code>true</code> as <code>1</code> and
+<code>false</code> as <code>0</code>.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/DeserializationConfiguration.html#isAcceptFloatAsInt()" class="member-name-link">isAcceptFloatAsInt()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a></dt>
+<dd>
+<div class="block">Whether floating-point JSON numbers should be read into integer properties, truncating them.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/DeserializationConfiguration.html#isAcceptNumberAsBoolean()" class="member-name-link">isAcceptNumberAsBoolean()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a></dt>
+<dd>
+<div class="block">Whether JSON numbers should be read into boolean properties, any non-zero value as
+<code>true</code>.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/DeserializationConfiguration.html#isAcceptScalarAsString()" class="member-name-link">isAcceptScalarAsString()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a></dt>
+<dd>
+<div class="block">Whether JSON numbers and booleans should be read into string properties.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/DeserializationConfiguration.html#isAcceptStringAsBoolean()" class="member-name-link">isAcceptStringAsBoolean()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a></dt>
+<dd>
+<div class="block">Whether JSON strings should be read into boolean properties.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/DeserializationConfiguration.html#isAcceptStringAsNumber()" class="member-name-link">isAcceptStringAsNumber()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a></dt>
+<dd>
+<div class="block">Whether JSON strings should be read into numeric properties.</div>
+</dd>
 <dt><a href="io/micronaut/serde/data/Users1.User.html#isActive" class="member-name-link">isActive</a> - Variable in class io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users1.User.html" title="class in io.micronaut.serde.data">Users1.User</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/data/Users2.User.html#isActive" class="member-name-link">isActive</a> - Variable in class io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users2.User.html" title="class in io.micronaut.serde.data">Users2.User</a></dt>
@@ -4427,6 +4573,8 @@ about the property that was incorrect.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/xml/tck/Users3.User.html#isActive" class="member-name-link">isActive</a> - Variable in class io.micronaut.serde.xml.tck.<a href="io/micronaut/serde/xml/tck/Users3.User.html" title="class in io.micronaut.serde.xml.tck">Users3.User</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.html#isAllowed(io.micronaut.serde.config.CoercionPolicy.Coercion)" class="member-name-link">isAllowed(CoercionPolicy.Coercion)</a> - Method in class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.html" title="class in io.micronaut.serde.config">CoercionPolicy</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/config/SerializationConfiguration.html#isAlwaysSerializeErrorsAsList()" class="member-name-link">isAlwaysSerializeErrorsAsList()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/SerializationConfiguration.html" title="interface in io.micronaut.serde.config">SerializationConfiguration</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/config/SerdeJsonConfiguration.html#isAlwaysSerializeErrorsAsList()" class="member-name-link">isAlwaysSerializeErrorsAsList()</a> - Method in class io.micronaut.serde.support.config.<a href="io/micronaut/serde/support/config/SerdeJsonConfiguration.html" title="class in io.micronaut.serde.support.config">SerdeJsonConfiguration</a></dt>
@@ -4437,6 +4585,16 @@ about the property that was incorrect.</div>
 </dd>
 <dt><a href="io/micronaut/serde/XmlDecoder.html#isCurrentKeyAttribute()" class="member-name-link">isCurrentKeyAttribute()</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/XmlDecoder.html" title="interface in io.micronaut.serde">XmlDecoder</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/bson/BsonReaderDecoder.html#isCurrentNumberFloat()" class="member-name-link">isCurrentNumberFloat()</a> - Method in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/BsonReaderDecoder.html" title="class in io.micronaut.serde.bson">BsonReaderDecoder</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/json/stream/JsonParserDecoder.html#isCurrentNumberFloat()" class="member-name-link">isCurrentNumberFloat()</a> - Method in class io.micronaut.serde.json.stream.<a href="io/micronaut/serde/json/stream/JsonParserDecoder.html" title="class in io.micronaut.serde.json.stream">JsonParserDecoder</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonParserDecoder.html#isCurrentNumberFloat()" class="member-name-link">isCurrentNumberFloat()</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonParserDecoder.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonParserDecoder</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/AbstractStreamDecoder.html#isCurrentNumberFloat()" class="member-name-link">isCurrentNumberFloat()</a> - Method in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></dt>
+<dd>
+<div class="block">Whether the current <a href="io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> token has a fractional part.</div>
+</dd>
 <dt><a href="io/micronaut/serde/Serializer.html#isDefault(io.micronaut.serde.Serializer.EncoderContext,T)" class="member-name-link">isDefault(Serializer.EncoderContext, T)</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Serializer.html" title="interface in io.micronaut.serde">Serializer</a></dt>
 <dd>
 <div class="block">Used for <code>JsonInclude.Include#NON_DEFAULT</code> checking.</div>
@@ -4511,6 +4669,10 @@ read/write methods.</div>
 <dt><a href="io/micronaut/serde/config/DeserializationConfiguration.html#isSubtypesRequireDefaultImpl()" class="member-name-link">isSubtypesRequireDefaultImpl()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a></dt>
 <dd>
 <div class="block">Whether the supertype is used by default when no supertype is resolved.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/DeserializationConfiguration.html#isUnwrapSingleValueArrays()" class="member-name-link">isUnwrapSingleValueArrays()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a></dt>
+<dd>
+<div class="block">Whether a single element JSON array should be read into a scalar property, unwrapping it.</div>
 </dd>
 <dt><a href="io/micronaut/serde/cbor/body/CborMessageHandler.html#isWriteable(io.micronaut.core.type.Argument,io.micronaut.http.MediaType)" class="member-name-link">isWriteable(Argument, MediaType)</a> - Method in class io.micronaut.serde.cbor.body.<a href="io/micronaut/serde/cbor/body/CborMessageHandler.html" title="class in io.micronaut.serde.cbor.body">CborMessageHandler</a></dt>
 <dd>&nbsp;</dd>
@@ -5237,9 +5399,18 @@ in-memory <code>JsonNode</code>.</div>
 <dd>
 <div class="block">Returns the value of the <a href="./io/micronaut/serde/FormatConfiguration.html#param-lenient"><code>lenient</code></a> record component.</div>
 </dd>
+<dt><a href="io/micronaut/serde/config/CoercionMode.html#LENIENT" class="member-name-link">LENIENT</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionMode.html" title="enum class in io.micronaut.serde.config">CoercionMode</a></dt>
+<dd>
+<div class="block">Values of the wrong shape are coerced where a sensible conversion exists, for example a JSON
+string is read into an <code>int</code> property.</div>
+</dd>
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#LENIENT" class="member-name-link">LENIENT</a> - Static variable in annotation interface io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig</a></dt>
 <dd>
 <div class="block">if parsing is required whether to be lenient.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.html#LENIENT" class="member-name-link">LENIENT</a> - Static variable in class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.html" title="class in io.micronaut.serde.config">CoercionPolicy</a></dt>
+<dd>
+<div class="block">All coercions allowed.</div>
 </dd>
 <dt><a href="io/micronaut/serde/LimitingStream.html" class="type-name-link" title="class in io.micronaut.serde">LimitingStream</a> - Class in <a href="io/micronaut/serde/package-summary.html">io.micronaut.serde</a></dt>
 <dd>
@@ -5533,6 +5704,8 @@ by the <a href="io/micronaut/serde/Keys.html" title="interface in io.micronaut.s
 <dd>
 <div class="block">Whether an existing value should be updated instead of replaced.</div>
 </dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.Coercion.html#message()" class="member-name-link">message()</a> - Method in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.Coercion.html" title="enum class in io.micronaut.serde.config">CoercionPolicy.Coercion</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/sourcegen/SimpleSerdeShapeDecision.FallbackReason.html#message()" class="member-name-link">message()</a> - Method in enum class io.micronaut.serde.processor.sourcegen.<a href="io/micronaut/serde/processor/sourcegen/SimpleSerdeShapeDecision.FallbackReason.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.FallbackReason</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#META_ANNOTATION_PROPERTY" class="member-name-link">META_ANNOTATION_PROPERTY</a> - Static variable in annotation interface io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig</a></dt>
@@ -5872,6 +6045,10 @@ through <a href="io/micronaut/serde/util/NullableDeserializer.html#deserializeNu
 <dd>
 <div class="block">A number.</div>
 </dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.Coercion.html#NUMBER_AS_BOOLEAN" class="member-name-link">NUMBER_AS_BOOLEAN</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.Coercion.html" title="enum class in io.micronaut.serde.config">CoercionPolicy.Coercion</a></dt>
+<dd>
+<div class="block">Read a number into a boolean.</div>
+</dd>
 <dt><a href="io/micronaut/serde/FormatConfiguration.Shape.html#NUMBER_FLOAT" class="member-name-link">NUMBER_FLOAT</a> - Enum constant in enum class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.Shape.html" title="enum class in io.micronaut.serde">FormatConfiguration.Shape</a></dt>
 <dd>
 <div class="block">Floating-point numeric scalar shape.</div>
@@ -6102,6 +6279,10 @@ through <a href="io/micronaut/serde/util/NullableDeserializer.html#deserializeNu
 <dt><a href="io/micronaut/serde/cbor/body/CborMessageHandler.html#ORDER" class="member-name-link">ORDER</a> - Static variable in class io.micronaut.serde.cbor.body.<a href="io/micronaut/serde/cbor/body/CborMessageHandler.html" title="class in io.micronaut.serde.cbor.body">CborMessageHandler</a></dt>
 <dd>
 <div class="block">Prefer JSON handlers for generic negotiation; CBOR is selected by media type.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.Shape.html#OTHER" class="member-name-link">OTHER</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.Shape.html" title="enum class in io.micronaut.serde.config">CoercionPolicy.Shape</a></dt>
+<dd>
+<div class="block">Anything else: null, objects, structural tokens, format specific values.</div>
 </dd>
 <dt><a href="io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#OTHER" class="member-name-link">OTHER</a> - Enum constant in enum class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html" title="enum class in io.micronaut.serde.support">AbstractStreamDecoder.TokenType</a></dt>
 <dd>
@@ -6654,6 +6835,10 @@ through <a href="io/micronaut/serde/util/NullableDeserializer.html#deserializeNu
 <dt><a href="io/micronaut/serde/FormatConfiguration.Shape.html#SCALAR" class="member-name-link">SCALAR</a> - Enum constant in enum class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.Shape.html" title="enum class in io.micronaut.serde">FormatConfiguration.Shape</a></dt>
 <dd>
 <div class="block">Any scalar shape.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.Coercion.html#SCALAR_AS_STRING" class="member-name-link">SCALAR_AS_STRING</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.Coercion.html" title="enum class in io.micronaut.serde.config">CoercionPolicy.Coercion</a></dt>
+<dd>
+<div class="block">Read a number or boolean into a string.</div>
 </dd>
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.SerManagedRef.html#scope()" class="member-name-link">scope()</a> - Element in annotation interface io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.SerManagedRef.html" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig.SerManagedRef</a></dt>
 <dd>&nbsp;</dd>
@@ -7399,6 +7584,14 @@ for the serialization project.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/builder/introspected/Address.Builder.html#street(java.lang.String)" class="member-name-link">street(String)</a> - Method in class io.micronaut.serde.jackson.builder.introspected.<a href="io/micronaut/serde/jackson/builder/introspected/Address.Builder.html" title="class in io.micronaut.serde.jackson.builder.introspected">Address.Builder</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/config/CoercionMode.html#STRICT" class="member-name-link">STRICT</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionMode.html" title="enum class in io.micronaut.serde.config">CoercionMode</a></dt>
+<dd>
+<div class="block">Values must have the shape of the target type.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.html#STRICT" class="member-name-link">STRICT</a> - Static variable in class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.html" title="class in io.micronaut.serde.config">CoercionPolicy</a></dt>
+<dd>
+<div class="block">No coercions allowed, values must have the shape of the target type.</div>
+</dd>
 <dt><a href="io/micronaut/serde/jsonb/MicronautJsonbProvider.MicronautJsonb.html#strictIJson" class="member-name-link">strictIJson</a> - Variable in class io.micronaut.serde.jsonb.<a href="io/micronaut/serde/jsonb/MicronautJsonbProvider.MicronautJsonb.html" title="class in io.micronaut.serde.jsonb">MicronautJsonbProvider.MicronautJsonb</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html#strictNullable(io.micronaut.serde.Deserializer.DecoderContext)" class="member-name-link">strictNullable(Deserializer.DecoderContext)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil</a></dt>
@@ -7408,6 +7601,14 @@ for the serialization project.</div>
 <dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html#strictNullableConstructorParameter(io.micronaut.core.type.Argument,io.micronaut.core.type.Argument)" class="member-name-link">strictNullableConstructorParameter(Argument, Argument)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil</a></dt>
 <dd>
 <div class="block">Creates an exception for a constructor parameter rejected by strict nullable deserialization.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.Shape.html#STRING" class="member-name-link">STRING</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.Shape.html" title="enum class in io.micronaut.serde.config">CoercionPolicy.Shape</a></dt>
+<dd>
+<div class="block">A string.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.Target.html#STRING" class="member-name-link">STRING</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.Target.html" title="enum class in io.micronaut.serde.config">CoercionPolicy.Target</a></dt>
+<dd>
+<div class="block"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link"><code>String</code></a>.</div>
 </dd>
 <dt><a href="io/micronaut/serde/config/SerdeConfiguration.TimeShape.html#STRING" class="member-name-link">STRING</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/SerdeConfiguration.TimeShape.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.TimeShape</a></dt>
 <dd>
@@ -7424,6 +7625,14 @@ for the serialization project.</div>
 <dt><a href="io/micronaut/serde/support/util/DecoderValueKind.html#STRING" class="member-name-link">STRING</a> - Enum constant in enum class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/DecoderValueKind.html" title="enum class in io.micronaut.serde.support.util">DecoderValueKind</a></dt>
 <dd>
 <div class="block">A string value.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.Coercion.html#STRING_AS_BOOLEAN" class="member-name-link">STRING_AS_BOOLEAN</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.Coercion.html" title="enum class in io.micronaut.serde.config">CoercionPolicy.Coercion</a></dt>
+<dd>
+<div class="block">Read a string into a boolean.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.Coercion.html#STRING_AS_NUMBER" class="member-name-link">STRING_AS_NUMBER</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.Coercion.html" title="enum class in io.micronaut.serde.config">CoercionPolicy.Coercion</a></dt>
+<dd>
+<div class="block">Read a string into a numeric type.</div>
 </dd>
 <dt><a href="io/micronaut/serde/support/util/DecoderValueKind.html#STRING_CODE" class="member-name-link">STRING_CODE</a> - Static variable in enum class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/DecoderValueKind.html" title="enum class in io.micronaut.serde.support.util">DecoderValueKind</a></dt>
 <dd>&nbsp;</dd>
@@ -7546,6 +7755,8 @@ for the serialization project.</div>
 <dd>
 <div class="block">Returns a string representation of this record class.</div>
 </dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.html#toString()" class="member-name-link">toString()</a> - Method in class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.html" title="class in io.micronaut.serde.config">CoercionPolicy</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/data/Users1.Friend.html#toString()" class="member-name-link">toString()</a> - Method in class io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users1.Friend.html" title="class in io.micronaut.serde.data">Users1.Friend</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/data/Users1.html#toString()" class="member-name-link">toString()</a> - Method in class io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users1.html" title="class in io.micronaut.serde.data">Users1</a></dt>
@@ -7817,6 +8028,10 @@ for the serialization project.</div>
 <dd>
 <div class="block">Unwrap all nested encoder wrappers.</div>
 </dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.Coercion.html#UNWRAP_SINGLE_VALUE_ARRAY" class="member-name-link">UNWRAP_SINGLE_VALUE_ARRAY</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.Coercion.html" title="enum class in io.micronaut.serde.config">CoercionPolicy.Coercion</a></dt>
+<dd>
+<div class="block">Read a single element array into the scalar it contains.</div>
+</dd>
 <dt><a href="io/micronaut/serde/processor/sourcegen/SimpleSerdeShapeDecision.FallbackReason.html#UNWRAPPED" class="member-name-link">UNWRAPPED</a> - Enum constant in enum class io.micronaut.serde.processor.sourcegen.<a href="io/micronaut/serde/processor/sourcegen/SimpleSerdeShapeDecision.FallbackReason.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.FallbackReason</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/cbor/CborObjectMapper.html#updateValue(T,io.micronaut.core.type.Argument,byte%5B%5D)" class="member-name-link">updateValue(T, Argument, byte[])</a> - Method in class io.micronaut.serde.cbor.<a href="io/micronaut/serde/cbor/CborObjectMapper.html" title="class in io.micronaut.serde.cbor">CborObjectMapper</a></dt>
@@ -8050,6 +8265,22 @@ for the serialization project.</div>
 <dd>
 <div class="block">Returns the enum constant of this class with the specified name.</div>
 </dd>
+<dt><a href="io/micronaut/serde/config/CoercionMode.html#valueOf(java.lang.String)" class="member-name-link">valueOf(String)</a> - Static method in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionMode.html" title="enum class in io.micronaut.serde.config">CoercionMode</a></dt>
+<dd>
+<div class="block">Returns the enum constant of this class with the specified name.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.Coercion.html#valueOf(java.lang.String)" class="member-name-link">valueOf(String)</a> - Static method in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.Coercion.html" title="enum class in io.micronaut.serde.config">CoercionPolicy.Coercion</a></dt>
+<dd>
+<div class="block">Returns the enum constant of this class with the specified name.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.Shape.html#valueOf(java.lang.String)" class="member-name-link">valueOf(String)</a> - Static method in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.Shape.html" title="enum class in io.micronaut.serde.config">CoercionPolicy.Shape</a></dt>
+<dd>
+<div class="block">Returns the enum constant of this class with the specified name.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.Target.html#valueOf(java.lang.String)" class="member-name-link">valueOf(String)</a> - Static method in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.Target.html" title="enum class in io.micronaut.serde.config">CoercionPolicy.Target</a></dt>
+<dd>
+<div class="block">Returns the enum constant of this class with the specified name.</div>
+</dd>
 <dt><a href="io/micronaut/serde/config/DeserializationConfiguration.Feature.html#valueOf(java.lang.String)" class="member-name-link">valueOf(String)</a> - Static method in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a></dt>
 <dd>
 <div class="block">Returns the enum constant of this class with the specified name.</div>
@@ -8149,6 +8380,26 @@ the order they are declared.</div>
 the order they are declared.</div>
 </dd>
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.SerSubtyped.DiscriminatorValueKind.html#values()" class="member-name-link">values()</a> - Static method in enum class io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.SerSubtyped.DiscriminatorValueKind.html" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerSubtyped.DiscriminatorValueKind</a></dt>
+<dd>
+<div class="block">Returns an array containing the constants of this enum class, in
+the order they are declared.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/CoercionMode.html#values()" class="member-name-link">values()</a> - Static method in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionMode.html" title="enum class in io.micronaut.serde.config">CoercionMode</a></dt>
+<dd>
+<div class="block">Returns an array containing the constants of this enum class, in
+the order they are declared.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.Coercion.html#values()" class="member-name-link">values()</a> - Static method in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.Coercion.html" title="enum class in io.micronaut.serde.config">CoercionPolicy.Coercion</a></dt>
+<dd>
+<div class="block">Returns an array containing the constants of this enum class, in
+the order they are declared.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.Shape.html#values()" class="member-name-link">values()</a> - Static method in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.Shape.html" title="enum class in io.micronaut.serde.config">CoercionPolicy.Shape</a></dt>
+<dd>
+<div class="block">Returns an array containing the constants of this enum class, in
+the order they are declared.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/CoercionPolicy.Target.html#values()" class="member-name-link">values()</a> - Static method in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/CoercionPolicy.Target.html" title="enum class in io.micronaut.serde.config">CoercionPolicy.Target</a></dt>
 <dd>
 <div class="block">Returns an array containing the constants of this enum class, in
 the order they are declared.</div>

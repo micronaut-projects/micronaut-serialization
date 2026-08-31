@@ -78,6 +78,14 @@ loadScripts(document, 'script');</script>
 <li><a href="#adjustDatesToContextTimeZone()" tabindex="0">adjustDatesToContextTimeZone()</a></li>
 <li><a href="#isRequireAllCreatorParameters()" tabindex="0">isRequireAllCreatorParameters()</a></li>
 <li><a href="#disableGeneratedDeserializer()" tabindex="0">disableGeneratedDeserializer()</a></li>
+<li><a href="#getCoercionMode()" tabindex="0">getCoercionMode()</a></li>
+<li><a href="#isAcceptFloatAsInt()" tabindex="0">isAcceptFloatAsInt()</a></li>
+<li><a href="#isAcceptStringAsNumber()" tabindex="0">isAcceptStringAsNumber()</a></li>
+<li><a href="#isAcceptBooleanAsNumber()" tabindex="0">isAcceptBooleanAsNumber()</a></li>
+<li><a href="#isAcceptNumberAsBoolean()" tabindex="0">isAcceptNumberAsBoolean()</a></li>
+<li><a href="#isAcceptStringAsBoolean()" tabindex="0">isAcceptStringAsBoolean()</a></li>
+<li><a href="#isAcceptScalarAsString()" tabindex="0">isAcceptScalarAsString()</a></li>
+<li><a href="#isUnwrapSingleValueArrays()" tabindex="0">isUnwrapSingleValueArrays()</a></li>
 <li><a href="#features()" tabindex="0">features()</a></li>
 <li><a href="#features(io.micronaut.serde.config.DeserializationConfiguration)" tabindex="0">features(DeserializationConfiguration)</a></li>
 </ol>
@@ -182,30 +190,72 @@ loadScripts(document, 'script');</script>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>int</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getArraySizeThreshold()" class="member-name-link">getArraySizeThreshold</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#isFailOnNullForPrimitives()" class="member-name-link">isFailOnNullForPrimitives</a>()</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="CoercionMode.html" title="enum class in io.micronaut.serde.config">CoercionMode</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#getCoercionMode()" class="member-name-link">getCoercionMode</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">The baseline for the scalar coercions the decoders perform.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#isAcceptBooleanAsNumber()" class="member-name-link">isAcceptBooleanAsNumber</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Whether JSON booleans should be read into numeric properties, <code>true</code> as <code>1</code> and
+<code>false</code> as <code>0</code>.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#isAcceptFloatAsInt()" class="member-name-link">isAcceptFloatAsInt</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Whether floating-point JSON numbers should be read into integer properties, truncating them.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#isAcceptNumberAsBoolean()" class="member-name-link">isAcceptNumberAsBoolean</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Whether JSON numbers should be read into boolean properties, any non-zero value as
+<code>true</code>.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#isAcceptScalarAsString()" class="member-name-link">isAcceptScalarAsString</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Whether JSON numbers and booleans should be read into string properties.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#isAcceptStringAsBoolean()" class="member-name-link">isAcceptStringAsBoolean</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Whether JSON strings should be read into boolean properties.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#isAcceptStringAsNumber()" class="member-name-link">isAcceptStringAsNumber</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Whether JSON strings should be read into numeric properties.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#isFailOnNullForPrimitives()" class="member-name-link">isFailOnNullForPrimitives</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Whether a null field for a primitive should fail the deserialization.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#isIgnoreUnknown()" class="member-name-link">isIgnoreUnknown</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#isIgnoreUnknown()" class="member-name-link">isIgnoreUnknown</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Whether to ignore unknown values during deserialization.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#isRequireAllCreatorParameters()" class="member-name-link">isRequireAllCreatorParameters</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#isRequireAllCreatorParameters()" class="member-name-link">isRequireAllCreatorParameters</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Determines whether every creator parameter must be present in the JSON input.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#isStrictNullable()" class="member-name-link">isStrictNullable</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#isStrictNullable()" class="member-name-link">isStrictNullable</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Whether null field should be annotated with a nullable annotations.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#isSubtypesRequireDefaultImpl()" class="member-name-link">isSubtypesRequireDefaultImpl</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#isSubtypesRequireDefaultImpl()" class="member-name-link">isSubtypesRequireDefaultImpl</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Whether the supertype is used by default when no supertype is resolved.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#isUnwrapSingleValueArrays()" class="member-name-link">isUnwrapSingleValueArrays</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Whether a single element JSON array should be read into a scalar property, unwrapping it.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#readDateTimestampsAsNanoseconds()" class="member-name-link">readDateTimestampsAsNanoseconds</a>()</code></div>
@@ -478,6 +528,139 @@ By default, case-insensitive enums are not accepted.</div>
 <dd><code>true</code> if generated deserializers should be disabled</dd>
 <dt>Since:</dt>
 <dd>3.0</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="getCoercionMode()">
+<h3>getCoercionMode</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@Bindable(defaultValue="LENIENT")
+</span><span class="modifiers">default</span>&nbsp;<span class="return-type"><a href="CoercionMode.html" title="enum class in io.micronaut.serde.config">CoercionMode</a></span>&nbsp;<span class="element-name">getCoercionMode</span>()</div>
+<div class="block">The baseline for the scalar coercions the decoders perform. Defaults to
+<a href="CoercionMode.html#LENIENT"><code>CoercionMode.LENIENT</code></a> for backwards compatibility. Setting this to
+<a href="CoercionMode.html#STRICT"><code>CoercionMode.STRICT</code></a> turns off every coercion that is not configured explicitly.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>The coercion mode</dd>
+<dt>Since:</dt>
+<dd>3.2</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="isAcceptFloatAsInt()">
+<h3>isAcceptFloatAsInt</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@Bindable(defaultValue="true")
+</span><span class="modifiers">default</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">isAcceptFloatAsInt</span>()</div>
+<div class="block">Whether floating-point JSON numbers should be read into integer properties, truncating them.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd><code>true</code> if floating-point values should be accepted as integers</dd>
+<dt>Since:</dt>
+<dd>3.2</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="isAcceptStringAsNumber()">
+<h3>isAcceptStringAsNumber</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@Bindable(defaultValue="true")
+</span><span class="modifiers">default</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">isAcceptStringAsNumber</span>()</div>
+<div class="block">Whether JSON strings should be read into numeric properties.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd><code>true</code> if strings should be accepted as numbers</dd>
+<dt>Since:</dt>
+<dd>3.2</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="isAcceptBooleanAsNumber()">
+<h3>isAcceptBooleanAsNumber</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@Bindable(defaultValue="true")
+</span><span class="modifiers">default</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">isAcceptBooleanAsNumber</span>()</div>
+<div class="block">Whether JSON booleans should be read into numeric properties, <code>true</code> as <code>1</code> and
+<code>false</code> as <code>0</code>.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd><code>true</code> if booleans should be accepted as numbers</dd>
+<dt>Since:</dt>
+<dd>3.2</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="isAcceptNumberAsBoolean()">
+<h3>isAcceptNumberAsBoolean</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@Bindable(defaultValue="true")
+</span><span class="modifiers">default</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">isAcceptNumberAsBoolean</span>()</div>
+<div class="block">Whether JSON numbers should be read into boolean properties, any non-zero value as
+<code>true</code>.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd><code>true</code> if numbers should be accepted as booleans</dd>
+<dt>Since:</dt>
+<dd>3.2</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="isAcceptStringAsBoolean()">
+<h3>isAcceptStringAsBoolean</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@Bindable(defaultValue="true")
+</span><span class="modifiers">default</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">isAcceptStringAsBoolean</span>()</div>
+<div class="block">Whether JSON strings should be read into boolean properties.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd><code>true</code> if strings should be accepted as booleans</dd>
+<dt>Since:</dt>
+<dd>3.2</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="isAcceptScalarAsString()">
+<h3>isAcceptScalarAsString</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@Bindable(defaultValue="true")
+</span><span class="modifiers">default</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">isAcceptScalarAsString</span>()</div>
+<div class="block">Whether JSON numbers and booleans should be read into string properties.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd><code>true</code> if other scalars should be accepted as strings</dd>
+<dt>Since:</dt>
+<dd>3.2</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="isUnwrapSingleValueArrays()">
+<h3>isUnwrapSingleValueArrays</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@Bindable(defaultValue="true")
+</span><span class="modifiers">default</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">isUnwrapSingleValueArrays</span>()</div>
+<div class="block">Whether a single element JSON array should be read into a scalar property, unwrapping it.
+Note that this is the opposite direction of <a href="#acceptSingleValueAsArray()"><code>acceptSingleValueAsArray()</code></a>.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd><code>true</code> if single element arrays should be unwrapped</dd>
+<dt>Since:</dt>
+<dd>3.2</dd>
 </dl>
 </div>
 </section>

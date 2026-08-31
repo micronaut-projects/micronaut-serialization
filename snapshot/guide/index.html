@@ -58,15 +58,17 @@
                                 
                                 <div class="toc-item" style="margin-left:0"><a href="#bsonAnnotations"><strong>6</strong><span>BSON Annotations</span></a></div>
                                 
-                                <div class="toc-item" style="margin-left:0"><a href="#serdes"><strong>7</strong><span>Custom Serializers &amp; Deserializers</span></a></div>
+                                <div class="toc-item" style="margin-left:0"><a href="#coercion"><strong>7</strong><span>Type Coercion</span></a></div>
                                 
-                                <div class="toc-item" style="margin-left:0"><a href="#serdeImport"><strong>8</strong><span>Enabling Serialization of External Classes</span></a></div>
+                                <div class="toc-item" style="margin-left:0"><a href="#serdes"><strong>8</strong><span>Custom Serializers &amp; Deserializers</span></a></div>
                                 
-                                <div class="toc-item" style="margin-left:0"><a href="#keys"><strong>9</strong><span>Custom Key Converters</span></a></div>
+                                <div class="toc-item" style="margin-left:0"><a href="#serdeImport"><strong>9</strong><span>Enabling Serialization of External Classes</span></a></div>
                                 
-                                <div class="toc-item" style="margin-left:0"><a href="#breaks"><strong>10</strong><span>Breaking Changes</span></a></div>
+                                <div class="toc-item" style="margin-left:0"><a href="#keys"><strong>10</strong><span>Custom Key Converters</span></a></div>
                                 
-                                <div class="toc-item" style="margin-left:0"><a href="#repository"><strong>11</strong><span>Repository</span></a></div>
+                                <div class="toc-item" style="margin-left:0"><a href="#breaks"><strong>11</strong><span>Breaking Changes</span></a></div>
+                                
+                                <div class="toc-item" style="margin-left:0"><a href="#repository"><strong>12</strong><span>Repository</span></a></div>
                                 
                             </div>
                         </div>
@@ -133,15 +135,17 @@
         
         <div class="toc-item" style="margin-left:0px" id="toc-item-bsonAnnotations"><a href="#bsonAnnotations"><strong>6</strong><span>BSON Annotations</span></a></div>
         
-        <div class="toc-item" style="margin-left:0px" id="toc-item-serdes"><a href="#serdes"><strong>7</strong><span>Custom Serializers &amp; Deserializers</span></a></div>
+        <div class="toc-item" style="margin-left:0px" id="toc-item-coercion"><a href="#coercion"><strong>7</strong><span>Type Coercion</span></a></div>
         
-        <div class="toc-item" style="margin-left:0px" id="toc-item-serdeImport"><a href="#serdeImport"><strong>8</strong><span>Enabling Serialization of External Classes</span></a></div>
+        <div class="toc-item" style="margin-left:0px" id="toc-item-serdes"><a href="#serdes"><strong>8</strong><span>Custom Serializers &amp; Deserializers</span></a></div>
         
-        <div class="toc-item" style="margin-left:0px" id="toc-item-keys"><a href="#keys"><strong>9</strong><span>Custom Key Converters</span></a></div>
+        <div class="toc-item" style="margin-left:0px" id="toc-item-serdeImport"><a href="#serdeImport"><strong>9</strong><span>Enabling Serialization of External Classes</span></a></div>
         
-        <div class="toc-item" style="margin-left:0px" id="toc-item-breaks"><a href="#breaks"><strong>10</strong><span>Breaking Changes</span></a></div>
+        <div class="toc-item" style="margin-left:0px" id="toc-item-keys"><a href="#keys"><strong>10</strong><span>Custom Key Converters</span></a></div>
         
-        <div class="toc-item" style="margin-left:0px" id="toc-item-repository"><a href="#repository"><strong>11</strong><span>Repository</span></a></div>
+        <div class="toc-item" style="margin-left:0px" id="toc-item-breaks"><a href="#breaks"><strong>11</strong><span>Breaking Changes</span></a></div>
+        
+        <div class="toc-item" style="margin-left:0px" id="toc-item-repository"><a href="#repository"><strong>12</strong><span>Repository</span></a></div>
         
         </div>
     </div>
@@ -3737,7 +3741,271 @@ public final class ProgrammaticCodeDeserializer implements JsonbDeserializer&lt;
 <p>Note that with BSON you can encode both the JSON and to BSON Binary by injecting one of <a href="../api/io/micronaut/serde/bson/BsonBinaryMapper.html">BsonBinaryMapper</a> (Binary) or <a href="../api/io/micronaut/serde/bson/BsonJsonMapper.html">BsonJsonMapper</a> (JSON).</p>
 </div>
 
-<h1 id="serdes"><a class="anchor" href="#serdes"></a>7 Custom Serializers & Deserializers</h1>
+<h1 id="coercion"><a class="anchor" href="#coercion"></a>7 Type Coercion</h1>
+
+<div class='contribute-btn'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/coercion.adoc"'>
+        <i class='fa fa-pencil-square-o'></i> Improve this doc
+    </button>
+</div>
+
+
+<div class="paragraph">
+<p>When a value in the document does not have the shape of the property it is read into, the decoders coerce it. A JSON string is read into an <code>int</code> property, a number is read into a <code>String</code> property, and a floating point number is truncated into an integer property:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{"id": "1234", "name": 42, "count": 9.75}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Serdeable
+record Item(int id, String name, int count) {} // id = 1234, name = "42", count = 9</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is the historical behaviour and remains the default, so that existing applications are unaffected. Applications that would rather reject input of the wrong shape, for example a public API that should answer <code>400</code> instead of silently truncating a value, can restrict which coercions are allowed.</p>
+</div>
+<div class="sect2">
+<h3 id="_rejecting_all_coercions">Rejecting All Coercions</h3>
+<div class="paragraph">
+<p>Set the coercion mode to <code>STRICT</code> to require every value to have the shape of the property it is read into:</p>
+</div>
+<div class="openblock">
+<div class="content">
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">micronaut.serde.deserialization.coercion-mode=STRICT</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">micronaut:
+  serde:
+    deserialization:
+      coercion-mode: STRICT</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="toml">[micronaut]
+  [micronaut.serde]
+    [micronaut.serde.deserialization]
+      coercion-mode="STRICT"</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy-config hljs" data-lang="groovy-config">micronaut {
+  serde {
+    deserialization {
+      coercionMode = "STRICT"
+    }
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-hocon hljs" data-lang="hocon">{
+  micronaut {
+    serde {
+      deserialization {
+        coercion-mode = "STRICT"
+      }
+    }
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json-config hljs" data-lang="json-config">{
+  "micronaut": {
+    "serde": {
+      "deserialization": {
+        "coercion-mode": "STRICT"
+      }
+    }
+  }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>With the configuration above, all three properties in the document at the top are rejected with an <code>InvalidFormatException</code> naming the offending value, while <code>{"id": 1234, "name": "42", "count": 9}</code> still reads.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_selecting_individual_coercions">Selecting Individual Coercions</h3>
+<div class="paragraph">
+<p>Each coercion can also be turned on or off on its own. An individual setting always wins over the mode, so a strict application can allow just the coercions it needs:</p>
+</div>
+<div class="openblock">
+<div class="content">
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">micronaut.serde.deserialization.coercion-mode=STRICT
+micronaut.serde.deserialization.accept-string-as-number=true</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">micronaut:
+  serde:
+    deserialization:
+      coercion-mode: STRICT
+      accept-string-as-number: true</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="toml">[micronaut]
+  [micronaut.serde]
+    [micronaut.serde.deserialization]
+      coercion-mode="STRICT"
+      accept-string-as-number=true</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy-config hljs" data-lang="groovy-config">micronaut {
+  serde {
+    deserialization {
+      coercionMode = "STRICT"
+      acceptStringAsNumber = true
+    }
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-hocon hljs" data-lang="hocon">{
+  micronaut {
+    serde {
+      deserialization {
+        coercion-mode = "STRICT"
+        accept-string-as-number = true
+      }
+    }
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json-config hljs" data-lang="json-config">{
+  "micronaut": {
+    "serde": {
+      "deserialization": {
+        "coercion-mode": "STRICT",
+        "accept-string-as-number": true
+      }
+    }
+  }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>The available settings, all under <code>micronaut.serde.deserialization</code> and all enabled by default:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Rejects when disabled</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>accept-float-as-int</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>9.75</code> read into <code>int</code>, <code>long</code>, <code>short</code>, <code>byte</code>, <code>char</code> or <code>BigInteger</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>accept-string-as-number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"42"</code> read into any numeric type</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>accept-boolean-as-number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code> read into any numeric type, as <code>1</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>accept-number-as-boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>1</code> read into <code>boolean</code>, as any non-zero value</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>accept-string-as-boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"true"</code> read into <code>boolean</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>accept-scalar-as-string</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>42</code> or <code>true</code> read into <code>String</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>unwrap-single-value-arrays</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>[42]</code> read into a single <code>int</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<code>unwrap-single-value-arrays</code> is the opposite direction of <code>accept-single-value-as-array</code>, which reads a single value into a collection property.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_scope">Scope</h3>
+<div class="paragraph">
+<p>The setting applies to every format: JSON through Jackson, CBOR, JSON-P, JSON-B, BSON and Oracle JDBC JSON all read it from the same configuration, and it holds however a value reaches a property, including values that are buffered first because a polymorphic discriminator or a creator argument appears later in the document.</p>
+</div>
+<div class="paragraph">
+<p>XML is not affected, because every scalar in an XML document is textual and there is no shape to coerce from.</p>
+</div>
+<div class="paragraph">
+<p>A custom <a href="../api/io/micronaut/serde/Decoder.html">Decoder</a> receives the resolved <a href="../api/io/micronaut/serde/config/CoercionPolicy.html">CoercionPolicy</a> the same way it receives the stream limits, and should consult it wherever it reads a value whose shape does not match the requested type:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">if (!coercionPolicy.isAllowed(CoercionPolicy.Coercion.STRING_AS_NUMBER)) {
+    throw createDeserializationException(CoercionPolicy.Coercion.STRING_AS_NUMBER.message(), text);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For decoders that read many values, <code>CoercionPolicy</code> precalculates the set of shapes each target type accepts, so a check costs a single mask test:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">// once, when the decoder is created
+this.integerShapes = coercionPolicy.allowedShapes(CoercionPolicy.Target.INTEGER);
+// per value
+if ((integerShapes &amp; shape.bit()) == 0) {
+    throw ...;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A decoder that creates another decoder over the same data, in particular in <code>decodeBuffer()</code>, must pass its policy on, so that a document is accepted or rejected regardless of which decoder ends up reading a given value.</p>
+</div>
+</div>
+
+<h1 id="serdes"><a class="anchor" href="#serdes"></a>8 Custom Serializers & Deserializers</h1>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/serdes.adoc"'>
@@ -4338,7 +4606,7 @@ class Place {
 </div>
 </div>
 
-<h1 id="serdeImport"><a class="anchor" href="#serdeImport"></a>8 Enabling Serialization of External Classes</h1>
+<h1 id="serdeImport"><a class="anchor" href="#serdeImport"></a>9 Enabling Serialization of External Classes</h1>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/serdeImport.adoc"'>
@@ -4508,7 +4776,7 @@ class Serdes {}</code></pre>
 </table>
 </div>
 
-<h1 id="keys"><a class="anchor" href="#keys"></a>9 Custom Key Converters</h1>
+<h1 id="keys"><a class="anchor" href="#keys"></a>10 Custom Key Converters</h1>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/keys.adoc"'>
@@ -4686,7 +4954,7 @@ class Feature {
 </table>
 </div>
 
-<h1 id="breaks"><a class="anchor" href="#breaks"></a>10 Breaking Changes</h1>
+<h1 id="breaks"><a class="anchor" href="#breaks"></a>11 Breaking Changes</h1>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/breaks.adoc"'>
@@ -4699,9 +4967,28 @@ class Feature {
 <p>This section documents breaking changes between Micronaut Serialization versions:</p>
 </div>
 <div class="sect2">
-<h3 id="_micronaut_serialization_3_0_0">Micronaut Serialization 3.0.0</h3>
+<h3 id="_micronaut_serialization_3_2_0">Micronaut Serialization 3.2.0</h3>
 <div class="sect3">
 <h4 id="_deserialization">Deserialization</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Which coercions the decoders perform is now configurable, see <a href="#coercion">[coercion]</a>. Every coercion stays enabled by default, so the shapes accepted for a given property are unchanged.</p>
+</li>
+<li>
+<p>A <code>char</code> is read the same way whatever the format and whether or not the value was buffered. A single character string is its natural shape and is accepted in every mode; a number is its code point; and a floating point number is truncated to a code point rather than yielding the first character of its text, which is what the Jackson decoder used to do for <code>9.75</code> and <code>true</code>.</p>
+</li>
+<li>
+<p>A property that is buffered before it is read, because a polymorphic discriminator or a creator argument appears later in the document, is now coerced exactly like a property that is read inline. Previously the buffered path rejected a string read into a numeric property, and a number read into a <code>String</code> property, while the inline path accepted them, so whether a document was accepted depended on the order of its properties.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_micronaut_serialization_3_0_0">Micronaut Serialization 3.0.0</h3>
+<div class="sect3">
+<h4 id="_deserialization_2">Deserialization</h4>
 <div class="paragraph">
 <p>Micronaut Serialization 3.0 aligns these deserialization defaults with the most commonly used Jackson Databind behavior to make migrations between Jackson Databind and Micronaut Serialization more predictable.</p>
 </div>
@@ -4830,7 +5117,7 @@ The internal constructor <code>OracleJdbcJsonTextObjectMapper(SerdeRegistry regi
 </div>
 </div>
 
-<h1 id="repository"><a class="anchor" href="#repository"></a>11 Repository</h1>
+<h1 id="repository"><a class="anchor" href="#repository"></a>12 Repository</h1>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/repository.adoc"'>

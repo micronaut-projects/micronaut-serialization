@@ -93,36 +93,59 @@ loadScripts(document, 'script');</script>
 </li>
 <li>
 <div id="class-summary">
-<div class="table-tabs" role="tablist" aria-orientation="horizontal"><button id="class-summary-tab0" role="tab" aria-selected="true" aria-controls="class-summary.tabpanel" tabindex="0" onkeydown="switchTab(event)" onclick="show('class-summary', 'class-summary', 2)" class="active-table-tab">All Classes and Interfaces</button><button id="class-summary-tab1" role="tab" aria-selected="false" aria-controls="class-summary.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('class-summary', 'class-summary-tab1', 2)" class="table-tab">Interfaces</button><button id="class-summary-tab3" role="tab" aria-selected="false" aria-controls="class-summary.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('class-summary', 'class-summary-tab3', 2)" class="table-tab">Enum Classes</button></div>
+<div class="table-tabs" role="tablist" aria-orientation="horizontal"><button id="class-summary-tab0" role="tab" aria-selected="true" aria-controls="class-summary.tabpanel" tabindex="0" onkeydown="switchTab(event)" onclick="show('class-summary', 'class-summary', 2)" class="active-table-tab">All Classes and Interfaces</button><button id="class-summary-tab1" role="tab" aria-selected="false" aria-controls="class-summary.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('class-summary', 'class-summary-tab1', 2)" class="table-tab">Interfaces</button><button id="class-summary-tab2" role="tab" aria-selected="false" aria-controls="class-summary.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('class-summary', 'class-summary-tab2', 2)" class="table-tab">Classes</button><button id="class-summary-tab3" role="tab" aria-selected="false" aria-controls="class-summary.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('class-summary', 'class-summary-tab3', 2)" class="table-tab">Enum Classes</button></div>
 <div id="class-summary.tabpanel" role="tabpanel" aria-labelledby="class-summary-tab0">
 <div class="summary-table two-column-summary">
 <div class="table-header col-first">Class</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color class-summary class-summary-tab1"><a href="DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a></div>
-<div class="col-last even-row-color class-summary class-summary-tab1">
+<div class="col-first even-row-color class-summary class-summary-tab3"><a href="CoercionMode.html" title="enum class in io.micronaut.serde.config">CoercionMode</a></div>
+<div class="col-last even-row-color class-summary class-summary-tab3">
+<div class="block">The baseline for the scalar coercions a decoder performs.</div>
+</div>
+<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="CoercionPolicy.html" title="class in io.micronaut.serde.config">CoercionPolicy</a></div>
+<div class="col-last odd-row-color class-summary class-summary-tab2">
+<div class="block">The scalar coercions a <a href="../Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a> is allowed to perform, resolved once from the
+<a href="DeserializationConfiguration.html" title="interface in io.micronaut.serde.config"><code>DeserializationConfiguration</code></a> and then passed to every decoder that is created, in the
+same way as <a href="../LimitingStream.RemainingLimits.html" title="class in io.micronaut.serde"><code>LimitingStream.RemainingLimits</code></a>.</div>
+</div>
+<div class="col-first even-row-color class-summary class-summary-tab3"><a href="CoercionPolicy.Coercion.html" title="enum class in io.micronaut.serde.config">CoercionPolicy.Coercion</a></div>
+<div class="col-last even-row-color class-summary class-summary-tab3">
+<div class="block">A single coercion a decoder may perform when the JSON shape does not match the requested
+type.</div>
+</div>
+<div class="col-first odd-row-color class-summary class-summary-tab3"><a href="CoercionPolicy.Shape.html" title="enum class in io.micronaut.serde.config">CoercionPolicy.Shape</a></div>
+<div class="col-last odd-row-color class-summary class-summary-tab3">
+<div class="block">The shape of a value in the document, as far as coercion is concerned.</div>
+</div>
+<div class="col-first even-row-color class-summary class-summary-tab3"><a href="CoercionPolicy.Target.html" title="enum class in io.micronaut.serde.config">CoercionPolicy.Target</a></div>
+<div class="col-last even-row-color class-summary class-summary-tab3">
+<div class="block">The type a decoder is reading a value as.</div>
+</div>
+<div class="col-first odd-row-color class-summary class-summary-tab1"><a href="DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a></div>
+<div class="col-last odd-row-color class-summary class-summary-tab1">
 <div class="block">Configuration for deserialization.</div>
 </div>
-<div class="col-first odd-row-color class-summary class-summary-tab3"><a href="DeserializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a></div>
-<div class="col-last odd-row-color class-summary class-summary-tab3">
+<div class="col-first even-row-color class-summary class-summary-tab3"><a href="DeserializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a></div>
+<div class="col-last even-row-color class-summary class-summary-tab3">
 <div class="block">Deserialization format features.</div>
 </div>
-<div class="col-first even-row-color class-summary class-summary-tab1"><a href="SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a></div>
-<div class="col-last even-row-color class-summary class-summary-tab1">&nbsp;</div>
-<div class="col-first odd-row-color class-summary class-summary-tab3"><a href="SerdeConfiguration.NumericTimeUnit.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.NumericTimeUnit</a></div>
-<div class="col-last odd-row-color class-summary class-summary-tab3">
+<div class="col-first odd-row-color class-summary class-summary-tab1"><a href="SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a></div>
+<div class="col-last odd-row-color class-summary class-summary-tab1">&nbsp;</div>
+<div class="col-first even-row-color class-summary class-summary-tab3"><a href="SerdeConfiguration.NumericTimeUnit.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.NumericTimeUnit</a></div>
+<div class="col-last even-row-color class-summary class-summary-tab3">
 <div class="block">Time unit to use when deserializing a numeric value, or when serializing to a numeric value
 as configured by <a href="SerdeConfiguration.html#getTimeWriteShape()"><code>SerdeConfiguration.getTimeWriteShape()</code></a>.</div>
 </div>
-<div class="col-first even-row-color class-summary class-summary-tab3"><a href="SerdeConfiguration.TimeShape.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.TimeShape</a></div>
-<div class="col-last even-row-color class-summary class-summary-tab3">
+<div class="col-first odd-row-color class-summary class-summary-tab3"><a href="SerdeConfiguration.TimeShape.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.TimeShape</a></div>
+<div class="col-last odd-row-color class-summary class-summary-tab3">
 <div class="block">Shape to use for time serialization.</div>
 </div>
-<div class="col-first odd-row-color class-summary class-summary-tab1"><a href="SerializationConfiguration.html" title="interface in io.micronaut.serde.config">SerializationConfiguration</a></div>
-<div class="col-last odd-row-color class-summary class-summary-tab1">
+<div class="col-first even-row-color class-summary class-summary-tab1"><a href="SerializationConfiguration.html" title="interface in io.micronaut.serde.config">SerializationConfiguration</a></div>
+<div class="col-last even-row-color class-summary class-summary-tab1">
 <div class="block">Configuration for serialization.</div>
 </div>
-<div class="col-first even-row-color class-summary class-summary-tab3"><a href="SerializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">SerializationConfiguration.Feature</a></div>
-<div class="col-last even-row-color class-summary class-summary-tab3">
+<div class="col-first odd-row-color class-summary class-summary-tab3"><a href="SerializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">SerializationConfiguration.Feature</a></div>
+<div class="col-last odd-row-color class-summary class-summary-tab3">
 <div class="block">Serialization format features.</div>
 </div>
 </div>
