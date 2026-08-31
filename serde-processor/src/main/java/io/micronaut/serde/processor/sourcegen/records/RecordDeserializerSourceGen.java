@@ -953,7 +953,13 @@ public final class RecordDeserializerSourceGen {
     }
 
     private boolean useNullableScalarDecodeForDefaultPrimitive(ClassElement type) {
-        return "long".equals(type.getName());
+        // These primitives have fused single-call nullable decoders on the Jackson
+        // decoder (nextLongValue/nextIntValue/nextBooleanValue); the decodeNull() +
+        // decode pattern would force a separate peek and the slow token path.
+        return switch (type.getName()) {
+            case "long", "int", "boolean", "double" -> true;
+            default -> false;
+        };
     }
 
     private StatementDef deserializePrimitiveComponentFailOnNull(VariableDef objectDecoder,

@@ -788,7 +788,11 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
     private static void assertLargeBeanDispatchSource(String deserializerSource) {
         assertLargeDispatchSource(deserializerSource)
         assert deserializerSource.contains('if (this.failOnNullForPrimitives)')
-        assert deserializerSource.contains('objectDecoder.decodeNull()')
+        // Keep-default primitive decode goes through the nullable scalar decoders so the
+        // Jackson decoder can use the fused nextIntValue/nextBooleanValue/nextLongValue
+        // fast paths; decodeNull() plus a primitive decode would force a separate peek.
+        assert deserializerSource.contains('objectDecoder.decodeBooleanNullable()')
+        assert !deserializerSource.contains('objectDecoder.decodeNull()')
         assert deserializerSource.contains('objectDecoder.decodeBoolean()')
         assert deserializerSource.contains('failOnNullForPrimitives(context)')
         assert deserializerSource.contains('GeneratedSerdeExceptionUtil.withPropertyPath(e0, type, ')
@@ -799,8 +803,8 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
         assertLargeDispatchSource(deserializerSource)
         assert deserializerSource.contains('boolean propertyValue2 = false;')
         assert deserializerSource.contains('if (this.failOnNullForPrimitives)')
-        assert !deserializerSource.contains('objectDecoder.decodeBooleanNullable()')
-        assert deserializerSource.contains('objectDecoder.decodeNull()')
+        assert deserializerSource.contains('objectDecoder.decodeBooleanNullable()')
+        assert !deserializerSource.contains('objectDecoder.decodeNull()')
         assert deserializerSource.contains('objectDecoder.decodeBoolean()')
         assert deserializerSource.contains('failOnNullForPrimitives(context)')
         assert deserializerSource.contains('GeneratedSerdeExceptionUtil.withPropertyPath(e0, type, ')

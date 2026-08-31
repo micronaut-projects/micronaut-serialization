@@ -39,6 +39,10 @@ public class UserBeanSerdeBenchmark {
     private static final String RUNTIME_SERIALIZER = "io.micronaut.serde.support.serializers.SimpleObjectSerializer";
     private static final String RUNTIME_DESERIALIZER = "io.micronaut.serde.support.deserializers.SimpleObjectDeserializer";
 
+    static String usersJsonString() {
+        return new String(USERS_JSON, StandardCharsets.UTF_8);
+    }
+
     @Benchmark
     @BenchmarkMode(Mode.Throughput)
     public void serialize(Holder holder, Blackhole blackhole) throws IOException {

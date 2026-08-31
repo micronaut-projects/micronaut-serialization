@@ -82,6 +82,19 @@ import java.util.function.Consumer;
 @BootstrapContextCompatible
 public final class JacksonJsonMapper implements JacksonObjectMapper {
 
+    /**
+     * Upper bound for {@link #outputSizeHint}, matching {@code ByteArrayBuilder}'s
+     * maximum block size.
+     */
+    private static final int MAX_OUTPUT_SIZE_HINT = 1 << 17;
+
+    /**
+     * Adaptive first-block size for {@link #writeValueAsBytes}. Plain int with benign
+     * races: it is only a lower-bound request to the per-thread {@link BufferRecycler},
+     * which itself retains the largest buffer released to it.
+     */
+    private int outputSizeHint;
+
     private final SerdeRegistry registry;
     private final JsonStreamConfig streamConfig;
     private final SerdeConfiguration serdeConfiguration;
@@ -352,7 +365,9 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
     @Override
     public byte[] writeValueAsBytes(@Nullable Object object) throws IOException {
         BufferRecycler bufferRecycler = jsonFactory._getBufferRecycler();
-        try (ByteArrayBuilder bb = new ByteArrayBuilder(bufferRecycler)) {
+        byte[] firstBlock = bufferRecycler.allocByteBuffer(BufferRecycler.BYTE_WRITE_CONCAT_BUFFER, outputSizeHint);
+        try {
+            ByteArrayBuilder bb = ByteArrayBuilder.fromInitial(firstBlock, 0);
             try (JsonGenerator generator = createGenerator(bb)) {
                 if (object == null) {
                     generator.writeNull();
@@ -360,8 +375,9 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
                     writeValue0(generator, object);
                 }
             }
-            return bb.getClearAndRelease();
+            return toByteArrayUpdatingSizeHint(bb, firstBlock);
         } finally {
+            bufferRecycler.releaseByteBuffer(BufferRecycler.BYTE_WRITE_CONCAT_BUFFER, firstBlock);
             bufferRecycler.releaseToPool();
         }
     }
@@ -369,7 +385,9 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
     @Override
     public <T> byte[] writeValueAsBytes(Argument<T> type, @Nullable T object) throws IOException {
         BufferRecycler bufferRecycler = jsonFactory._getBufferRecycler();
-        try (ByteArrayBuilder bb = new ByteArrayBuilder(bufferRecycler)) {
+        byte[] firstBlock = bufferRecycler.allocByteBuffer(BufferRecycler.BYTE_WRITE_CONCAT_BUFFER, outputSizeHint);
+        try {
+            ByteArrayBuilder bb = ByteArrayBuilder.fromInitial(firstBlock, 0);
             try (JsonGenerator generator = createGenerator(bb)) {
                 if (object == null) {
                     generator.writeNull();
@@ -377,10 +395,23 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
                     writeValue(generator, object, type);
                 }
             }
-            return bb.getClearAndRelease();
+            return toByteArrayUpdatingSizeHint(bb, firstBlock);
         } finally {
+            bufferRecycler.releaseByteBuffer(BufferRecycler.BYTE_WRITE_CONCAT_BUFFER, firstBlock);
             bufferRecycler.releaseToPool();
         }
+    }
+
+    private byte[] toByteArrayUpdatingSizeHint(ByteArrayBuilder bb, byte[] firstBlock) {
+        byte[] result = bb.toByteArray();
+        if (result.length > firstBlock.length) {
+            // The output overflowed into extra segments; ask the recycler for a larger
+            // first block next time so a steady-state payload is built without growth
+            // allocations. The recycler keeps the largest released buffer per thread,
+            // so this unsynchronized hint only has to trigger the initial growth.
+            outputSizeHint = Math.min(result.length + (result.length >> 1), MAX_OUTPUT_SIZE_HINT);
+        }
+        return result;
     }
 
     @Override
