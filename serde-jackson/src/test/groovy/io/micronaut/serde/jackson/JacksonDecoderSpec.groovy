@@ -2,6 +2,7 @@ package io.micronaut.serde.jackson
 
 import io.micronaut.serde.Decoder
 import io.micronaut.serde.LimitingStream
+import io.micronaut.serde.config.CoercionPolicy
 import io.micronaut.serde.exceptions.SerdeException
 import org.intellij.lang.annotations.Language
 import spock.lang.Specification
@@ -9,11 +10,11 @@ import tools.jackson.core.json.JsonFactoryBuilder
 
 class JacksonDecoderSpec extends Specification {
     private static Decoder createDecoder(@Language('json') String json) {
-        return createDecoder(json, true)
+        return createDecoder(json, CoercionPolicy.LENIENT)
     }
 
-    private static Decoder createDecoder(@Language('json') String json, boolean acceptFloatAsInt) {
-        return JacksonDecoder.create(new JsonFactoryBuilder().build().createParser(json), LimitingStream.DEFAULT_LIMITS, acceptFloatAsInt)
+    private static Decoder createDecoder(@Language('json') String json, CoercionPolicy policy) {
+        return JacksonDecoder.create(new JsonFactoryBuilder().build().createParser(json), LimitingStream.DEFAULT_LIMITS, policy)
     }
 
     def "unwrap arrays normal"() {
@@ -94,31 +95,31 @@ class JacksonDecoderSpec extends Specification {
 
     def 'floating-point values can be rejected as integers'() {
         when:
-        createDecoder('42.5', false).decodeInt()
+        createDecoder('42.5', CoercionPolicy.STRICT).decodeInt()
 
         then:
         thrown SerdeException
 
         when:
-        createDecoder('42.5', false).decodeByte()
+        createDecoder('42.5', CoercionPolicy.STRICT).decodeByte()
 
         then:
         thrown SerdeException
 
         when:
-        createDecoder('42.5', false).decodeShort()
+        createDecoder('42.5', CoercionPolicy.STRICT).decodeShort()
 
         then:
         thrown SerdeException
 
         when:
-        createDecoder('42.5', false).decodeLong()
+        createDecoder('42.5', CoercionPolicy.STRICT).decodeLong()
 
         then:
         thrown SerdeException
 
         when:
-        createDecoder('42.5', false).decodeBigInteger()
+        createDecoder('42.5', CoercionPolicy.STRICT).decodeBigInteger()
 
         then:
         thrown SerdeException

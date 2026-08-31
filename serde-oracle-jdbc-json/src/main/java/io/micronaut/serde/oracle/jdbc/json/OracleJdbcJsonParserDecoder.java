@@ -45,6 +45,12 @@ public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
     private final OracleJsonParser jsonParser;
     private OracleJsonParser.@Nullable Event currentEvent;
 
+    OracleJdbcJsonParserDecoder(OracleJsonParser jsonParser, RemainingLimits remainingLimits, io.micronaut.serde.config.CoercionPolicy coercionPolicy) {
+        super(remainingLimits, coercionPolicy);
+        this.jsonParser = jsonParser;
+        nextToken();
+    }
+
     OracleJdbcJsonParserDecoder(OracleJsonParser jsonParser, RemainingLimits remainingLimits) {
         super(remainingLimits);
         this.jsonParser = jsonParser;
@@ -149,6 +155,14 @@ public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
     @Override
     protected BigDecimal getBigDecimal() {
         return jsonParser.getBigDecimal();
+    }
+
+    @Override
+    protected boolean isCurrentNumberFloat() {
+        return switch (requireCurrentEvent()) {
+            case VALUE_DECIMAL, VALUE_DOUBLE, VALUE_FLOAT -> true;
+            default -> false;
+        };
     }
 
     @Override

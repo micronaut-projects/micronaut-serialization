@@ -17,6 +17,7 @@ package io.micronaut.serde;
 
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
+import io.micronaut.serde.config.CoercionPolicy;
 import io.micronaut.serde.util.BinaryCodecUtil;
 import org.jspecify.annotations.Nullable;
 
@@ -436,4 +437,17 @@ public interface Decoder extends AutoCloseable {
      * @return The exception, never {@code null}
      */
     IOException createDeserializationException(String message, @Nullable Object invalidValue);
+
+    /**
+     * The coercions this decoder performs. A decoder that creates another decoder over the same
+     * data, such as {@link #decodeBuffer()}, must pass this on, so that the same document is
+     * accepted or rejected no matter which decoder ends up reading a given value.
+     *
+     * @return The coercion policy, {@link CoercionPolicy#LENIENT} for a decoder that does not
+     *         support restricting coercions
+     * @since 3.2
+     */
+    default CoercionPolicy getCoercionPolicy() {
+        return CoercionPolicy.LENIENT;
+    }
 }

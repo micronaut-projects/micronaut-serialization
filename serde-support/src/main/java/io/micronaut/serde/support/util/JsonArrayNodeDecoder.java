@@ -16,6 +16,7 @@
 package io.micronaut.serde.support.util;
 
 import io.micronaut.json.tree.JsonNode;
+import io.micronaut.serde.config.CoercionPolicy;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Iterator;
@@ -26,8 +27,8 @@ final class JsonArrayNodeDecoder extends JsonNodeDecoder {
     @Nullable
     private JsonNode peeked;
 
-    JsonArrayNodeDecoder(JsonNode node, RemainingLimits remainingLimits) {
-        super(remainingLimits);
+    JsonArrayNodeDecoder(JsonNode node, RemainingLimits remainingLimits, CoercionPolicy coercionPolicy) {
+        super(remainingLimits, coercionPolicy);
         iterator = node.values().iterator();
         skipValue();
     }

@@ -19,6 +19,7 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.config.CoercionPolicy;
 import io.micronaut.serde.DelegatingDecoder;
 import io.micronaut.serde.Keys;
 import io.micronaut.serde.KeysAwareDecoder;
@@ -268,8 +269,9 @@ final class DemuxingObjectDecoder extends DelegatingDecoder implements KeysAware
                 } else {
                     // if we don't consume it, we need to duplicate the data using a JsonNode.
                     JsonNode node = decoder.decodeNode();
-                    buffer = JsonNodeDecoder.create(node, LimitingStream.DEFAULT_LIMITS);
-                    return JsonNodeDecoder.create(node, LimitingStream.DEFAULT_LIMITS);
+                    CoercionPolicy coercionPolicy = decoder.getCoercionPolicy();
+                    buffer = JsonNodeDecoder.create(node, LimitingStream.DEFAULT_LIMITS, coercionPolicy);
+                    return JsonNodeDecoder.create(node, LimitingStream.DEFAULT_LIMITS, coercionPolicy);
                 }
             }
 

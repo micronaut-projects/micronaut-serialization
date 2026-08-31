@@ -17,6 +17,7 @@ package io.micronaut.serde;
 
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
+import io.micronaut.serde.config.CoercionPolicy;
 import io.micronaut.json.tree.JsonNode;
 import org.jspecify.annotations.Nullable;
 
@@ -206,6 +207,16 @@ public abstract class DelegatingDecoder implements Decoder {
     @Override
     public JsonNode decodeNode() throws IOException {
         return delegate().decodeNode();
+    }
+
+    @Override
+    public CoercionPolicy getCoercionPolicy() {
+        try {
+            return delegate().getCoercionPolicy();
+        } catch (IOException e) {
+            // the delegate is not available yet, the caller will hit the same failure when it decodes
+            return Decoder.super.getCoercionPolicy();
+        }
     }
 
     @Override

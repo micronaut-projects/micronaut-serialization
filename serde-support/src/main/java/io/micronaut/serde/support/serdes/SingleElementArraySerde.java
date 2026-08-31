@@ -19,6 +19,7 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.config.CoercionPolicy;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.LimitingStream;
@@ -93,6 +94,12 @@ public final class SingleElementArraySerde {
             .orElse(LimitingStream.DEFAULT_LIMITS);
     }
 
+    private static CoercionPolicy decoderCoercionPolicy(Deserializer.DecoderContext context) {
+        return context.getDeserializationConfiguration()
+            .map(CoercionPolicy::fromConfiguration)
+            .orElse(CoercionPolicy.LENIENT);
+    }
+
     private static final class SingleElementArrayUnwrappingSerializer<T> implements Serializer<T> {
 
         private static final Argument<JsonNode> JSON_NODE_ARGUMENT = Argument.of(JsonNode.class);
@@ -142,11 +149,13 @@ public final class SingleElementArraySerde {
     private static final class SingleValueAsArrayDeserializer<T> implements Deserializer<T> {
         private final Deserializer<T> delegate;
         private final LimitingStream.RemainingLimits remainingLimits;
+        private final CoercionPolicy coercionPolicy;
 
         private SingleValueAsArrayDeserializer(Deserializer<T> delegate,
                                                Deserializer.DecoderContext context) {
             this.delegate = delegate;
             this.remainingLimits = decoderLimits(context);
+            this.coercionPolicy = decoderCoercionPolicy(context);
         }
 
         @Override
@@ -157,7 +166,7 @@ public final class SingleElementArraySerde {
             if (!node.isArray()) {
                 node = JsonNode.createArrayNode(List.of(node));
             }
-            return delegate.deserialize(JsonNodeDecoder.create(node, remainingLimits), context, type);
+            return delegate.deserialize(JsonNodeDecoder.create(node, remainingLimits, coercionPolicy), context, type);
         }
 
         @Override
@@ -171,6 +180,7 @@ public final class SingleElementArraySerde {
         private final UpdatingDeserializer<T> updatingDelegate;
         private final Deserializer<T> delegate;
         private final LimitingStream.RemainingLimits remainingLimits;
+        private final CoercionPolicy coercionPolicy;
 
         private SingleValueAsArrayUpdatingDeserializer(UpdatingDeserializer<T> updatingDelegate,
                                                        Deserializer<T> delegate,
@@ -178,6 +188,7 @@ public final class SingleElementArraySerde {
             this.updatingDelegate = updatingDelegate;
             this.delegate = delegate;
             this.remainingLimits = decoderLimits(context);
+            this.coercionPolicy = decoderCoercionPolicy(context);
         }
 
         @Override
@@ -185,7 +196,7 @@ public final class SingleElementArraySerde {
                              DecoderContext context,
                              Argument<? super T> type) throws IOException {
             JsonNode node = arrayNode(decoder);
-            return delegate.deserialize(JsonNodeDecoder.create(node, remainingLimits), context, type);
+            return delegate.deserialize(JsonNodeDecoder.create(node, remainingLimits, coercionPolicy), context, type);
         }
 
         @Override
@@ -194,7 +205,7 @@ public final class SingleElementArraySerde {
                                     Argument<? super T> type,
                                     T value) throws IOException {
             JsonNode node = arrayNode(decoder);
-            updatingDelegate.deserializeInto(JsonNodeDecoder.create(node, remainingLimits), context, type, value);
+            updatingDelegate.deserializeInto(JsonNodeDecoder.create(node, remainingLimits, coercionPolicy), context, type, value);
         }
 
         @Override

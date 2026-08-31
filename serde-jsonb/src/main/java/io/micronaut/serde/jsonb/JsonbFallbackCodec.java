@@ -19,6 +19,7 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.LimitingStream;
+import io.micronaut.serde.config.CoercionPolicy;
 import io.micronaut.serde.ObjectMapper;
 import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.Serializer;
@@ -82,6 +83,12 @@ final class JsonbFallbackCodec {
         return limits;
     }
 
+    static CoercionPolicy coercionPolicy(Deserializer.DecoderContext decoderContext) {
+        return decoderContext.getDeserializationConfiguration()
+            .map(CoercionPolicy::fromConfiguration)
+            .orElse(CoercionPolicy.LENIENT);
+    }
+
     /**
      * Deserializes an already-buffered fallback tree through the normal Serde
      * registry. Use this instead of hand-converting JSON-B fallback values.
@@ -96,7 +103,7 @@ final class JsonbFallbackCodec {
     <T> @Nullable T readValue(JsonNode node, Argument<T> argument) throws IOException {
         Deserializer.DecoderContext decoderContext = registry.newDecoderContext(null);
         Deserializer<? extends T> deserializer = findDeserializer(decoderContext, argument);
-        return deserializer.deserializeNullable(new JsonbDecoder(JsonNodeDecoder.create(node, limits), binaryDataStrategy), decoderContext, argument);
+        return deserializer.deserializeNullable(new JsonbDecoder(JsonNodeDecoder.create(node, limits, coercionPolicy(decoderContext)), binaryDataStrategy), decoderContext, argument);
     }
 
     /**

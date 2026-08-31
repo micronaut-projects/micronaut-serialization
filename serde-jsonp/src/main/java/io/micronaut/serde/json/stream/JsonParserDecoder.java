@@ -38,6 +38,12 @@ public class JsonParserDecoder extends AbstractStreamDecoder {
     }
 
     @Internal
+    JsonParserDecoder(JsonParser jsonParser, RemainingLimits remainingLimits, io.micronaut.serde.config.CoercionPolicy coercionPolicy) {
+        super(remainingLimits, coercionPolicy);
+        this.jsonParser = jsonParser;
+        nextToken();
+    }
+
     JsonParserDecoder(JsonParser jsonParser, RemainingLimits remainingLimits) {
         super(remainingLimits);
         this.jsonParser = jsonParser;
@@ -134,6 +140,11 @@ public class JsonParserDecoder extends AbstractStreamDecoder {
     @Override
     protected BigDecimal getBigDecimal() {
         return jsonParser.getBigDecimal();
+    }
+
+    @Override
+    protected boolean isCurrentNumberFloat() {
+        return !jsonParser.isIntegralNumber();
     }
 
     @Override

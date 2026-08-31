@@ -23,6 +23,10 @@ import io.micronaut.serde.Keys;
 import io.micronaut.serde.KeysAwareDecoder;
 import io.micronaut.serde.KeysSupport;
 import io.micronaut.serde.LimitingStream;
+import io.micronaut.serde.config.CoercionPolicy;
+import io.micronaut.serde.config.CoercionPolicy.Coercion;
+import io.micronaut.serde.config.CoercionPolicy.Shape;
+import io.micronaut.serde.config.CoercionPolicy.Target;
 import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.NullValueSerdeException;
 import io.micronaut.serde.exceptions.SerdeException;
@@ -61,6 +65,11 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
      * encountered, we enter the slow parse path.
      */
     private static final long LONG_CANARY = 0xff1234567890abcdL;
+    /**
+     * The {@link Shape} of every {@link JsonToken}, as a bit, so that a coercion check is a single
+     * mask test against the shapes the policy precalculated.
+     */
+    private static final int[] TOKEN_SHAPE_BITS = tokenShapeBits();
     private static final int JACKSON_KEYS_INDEX = KeysSupport.indexOf(new JacksonKeysProvider());
     private static final Object[] EMPTY_JACKSON_KEYS = new JacksonKeysProvider().create(List.of(), false);
     private static final SerializableString[] EMPTY_SERIALIZABLE_KEYS =
@@ -70,7 +79,12 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
 
     @Internal
     private final JsonParser parser;
-    private final boolean acceptFloatAsInt;
+    private final CoercionPolicy coercionPolicy;
+    private final int integerShapes;
+    private final int decimalShapes;
+    private final int booleanShapes;
+    private final int stringShapes;
+    private final int charShapes;
 
     @Nullable
     private JsonToken peekedToken;
@@ -82,10 +96,15 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
     private int sequentialKeyIndex;
     private boolean currentlyUnwrappingArray;
 
-    private JacksonDecoder(JsonParser parser, RemainingLimits remainingLimits, boolean acceptFloatAsInt) throws IOException {
+    private JacksonDecoder(JsonParser parser, RemainingLimits remainingLimits, CoercionPolicy coercionPolicy) throws IOException {
         super(remainingLimits);
         this.parser = parser;
-        this.acceptFloatAsInt = acceptFloatAsInt;
+        this.coercionPolicy = coercionPolicy;
+        this.integerShapes = coercionPolicy.allowedShapes(Target.INTEGER);
+        this.decimalShapes = coercionPolicy.allowedShapes(Target.DECIMAL);
+        this.booleanShapes = coercionPolicy.allowedShapes(Target.BOOLEAN);
+        this.stringShapes = coercionPolicy.allowedShapes(Target.STRING);
+        this.charShapes = coercionPolicy.allowedShapes(Target.CHAR);
         if (!parser.hasCurrentToken()) {
             peekedToken = parser.nextToken();
             if (!parser.hasCurrentToken()) {
@@ -97,20 +116,25 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
     }
 
     public static Decoder create(JsonParser parser, RemainingLimits remainingLimits) throws IOException {
-        return new JacksonDecoder(parser, remainingLimits, true);
+        return new JacksonDecoder(parser, remainingLimits, CoercionPolicy.LENIENT);
     }
 
     /**
-     * Create a decoder with configurable floating-point to integer coercion.
+     * Create a decoder that only performs the coercions the given policy allows.
      *
-     * @param parser The Jackson parser
+     * @param parser          The Jackson parser
      * @param remainingLimits The remaining stream limits
-     * @param acceptFloatAsInt Whether floating-point values should be coerced to integers
+     * @param coercionPolicy  The coercions this decoder may perform
      * @return The decoder
      * @throws IOException If the parser cannot be initialized
      */
-    public static Decoder create(JsonParser parser, RemainingLimits remainingLimits, boolean acceptFloatAsInt) throws IOException {
-        return new JacksonDecoder(parser, remainingLimits, acceptFloatAsInt);
+    public static Decoder create(JsonParser parser, RemainingLimits remainingLimits, CoercionPolicy coercionPolicy) throws IOException {
+        return new JacksonDecoder(parser, remainingLimits, coercionPolicy);
+    }
+
+    @Override
+    public CoercionPolicy getCoercionPolicy() {
+        return coercionPolicy;
     }
 
     @Override
@@ -343,6 +367,7 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
                 return parser.getText();
             }
         }
+        checkStringSource(t);
         switch (t) {
             case START_ARRAY -> {
                 if (beginUnwrapArray(t)) {
@@ -394,6 +419,7 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
         } else {
             t = nextToken();
         }
+        checkBooleanSource(t);
         switch (t) {
             case VALUE_TRUE -> {
                 return true;
@@ -426,6 +452,7 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
     }
 
     private boolean decodeBooleanValue(JsonToken t) throws IOException {
+        checkBooleanSource(t);
         return switch (t) {
             case VALUE_TRUE -> true;
             case VALUE_FALSE -> false;
@@ -456,6 +483,7 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
     @Override
     public Byte decodeByteNullable() throws IOException {
         JsonToken t = nextToken();
+        checkIntegerSource(t);
         switch (t) {
             case VALUE_TRUE -> {
                 return 1;
@@ -479,13 +507,13 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
             }
             case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
-                ensureFloatAsIntAllowed(t);
                 return parser.getByteValue();
             }
         }
     }
 
     private byte decodeByteValue(JsonToken t) throws IOException {
+        checkIntegerSource(t);
         return switch (t) {
             case VALUE_TRUE -> 1;
             case VALUE_FALSE -> 0;
@@ -503,7 +531,6 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
             case VALUE_NULL -> throw unexpectedNullToken(JsonToken.VALUE_NUMBER_INT, t);
             case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
-                ensureFloatAsIntAllowed(t);
                 yield parser.getByteValue();
             }
         };
@@ -518,6 +545,7 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
     @Override
     public Short decodeShortNullable() throws IOException {
         JsonToken t = nextToken();
+        checkIntegerSource(t);
         switch (t) {
             case VALUE_TRUE -> {
                 return 1;
@@ -541,13 +569,13 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
             }
             case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
-                ensureFloatAsIntAllowed(t);
                 return parser.getShortValue();
             }
         }
     }
 
     private short decodeShortValue(JsonToken t) throws IOException {
+        checkIntegerSource(t);
         return switch (t) {
             case VALUE_TRUE -> 1;
             case VALUE_FALSE -> 0;
@@ -565,7 +593,6 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
             case VALUE_NULL -> throw unexpectedNullToken(JsonToken.VALUE_NUMBER_INT, t);
             case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
-                ensureFloatAsIntAllowed(t);
                 yield parser.getShortValue();
             }
         };
@@ -580,6 +607,7 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
     @Override
     public Character decodeCharNullable() throws IOException {
         JsonToken t = nextToken();
+        checkCharSource(t);
         switch (t) {
             case START_ARRAY -> {
                 if (beginUnwrapArray(t)) {
@@ -617,6 +645,7 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
     }
 
     private char decodeCharValue(JsonToken t) throws IOException {
+        checkCharSource(t);
         return switch (t) {
             case START_ARRAY -> {
                 if (beginUnwrapArray(t)) {
@@ -676,6 +705,7 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
     @Nullable
     private Integer decodeIntSlow() throws IOException {
         JsonToken t = peekedToken == null ? parser.currentToken() : nextToken();
+        checkIntegerSource(t);
         switch (t) {
             case VALUE_NUMBER_INT -> {
                 return parser.getIntValue();
@@ -710,13 +740,13 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
             }
             case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
-                ensureFloatAsIntAllowed(t);
                 return parser.getValueAsInt();
             }
         }
     }
 
     private int decodeIntValue(JsonToken t) throws IOException {
+        checkIntegerSource(t);
         return switch (t) {
             case VALUE_NUMBER_INT -> parser.getIntValue();
             case VALUE_STRING -> {
@@ -743,7 +773,6 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
             case VALUE_NULL -> throw unexpectedNullToken(JsonToken.VALUE_NUMBER_INT, t);
             case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
-                ensureFloatAsIntAllowed(t);
                 yield parser.getValueAsInt();
             }
         };
@@ -780,6 +809,7 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
         } else {
             t = nextToken();
         }
+        checkIntegerSource(t);
         switch (t) {
             case VALUE_NUMBER_INT -> {
                 return parser.getLongValue();
@@ -816,13 +846,13 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
             }
             case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
-                ensureFloatAsIntAllowed(t);
                 return parser.getValueAsLong();
             }
         }
     }
 
     private long decodeLongValue(JsonToken t) throws IOException {
+        checkIntegerSource(t);
         return switch (t) {
             case VALUE_NUMBER_INT -> parser.getLongValue();
             case VALUE_STRING -> {
@@ -849,7 +879,6 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
             case VALUE_NULL -> throw unexpectedNullToken(JsonToken.VALUE_NUMBER_INT, t);
             case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
-                ensureFloatAsIntAllowed(t);
                 yield parser.getValueAsLong();
             }
         };
@@ -864,6 +893,7 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
     @Override
     public Float decodeFloatNullable() throws IOException {
         JsonToken t = nextToken();
+        checkDecimalSource(t);
         switch (t) {
             case VALUE_STRING -> {
                 String string = parser.getText();
@@ -903,6 +933,7 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
     }
 
     private float decodeFloatValue(JsonToken t) throws IOException {
+        checkDecimalSource(t);
         return switch (t) {
             case VALUE_STRING -> {
                 String string = parser.getText();
@@ -952,6 +983,7 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
 
     @Nullable
     private Double decodeDoubleSlow(JsonToken t) throws IOException {
+        checkDecimalSource(t);
         switch (t) {
             case VALUE_NUMBER_INT, VALUE_NUMBER_FLOAT -> {
                 return parser.getDoubleValue();
@@ -992,6 +1024,7 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
     }
 
     private double decodeDoubleValue(JsonToken t) throws IOException {
+        checkDecimalSource(t);
         return switch (t) {
             case VALUE_NUMBER_INT, VALUE_NUMBER_FLOAT -> parser.getDoubleValue();
             case VALUE_STRING -> {
@@ -1034,6 +1067,7 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
     @Override
     public BigInteger decodeBigIntegerNullable() throws IOException {
         JsonToken t = nextToken();
+        checkIntegerSource(t);
         switch (t) {
             case VALUE_STRING -> {
                 String string = parser.getText();
@@ -1065,7 +1099,6 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
             }
             case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
-                ensureFloatAsIntAllowed(t);
                 return parser.getBigIntegerValue();
             }
         }
@@ -1084,6 +1117,7 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
     @Override
     public BigDecimal decodeBigDecimalNullable() throws IOException {
         JsonToken t = nextToken();
+        checkDecimalSource(t);
         switch (t) {
             case VALUE_STRING -> {
                 String string = parser.getText();
@@ -1253,7 +1287,7 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
     @Override
     public Decoder decodeBuffer() throws IOException {
         JsonNode node = decodeNode();
-        return JsonNodeDecoder.create(node, ourLimits());
+        return JsonNodeDecoder.create(node, ourLimits(), coercionPolicy);
     }
 
     @Override
@@ -1340,10 +1374,68 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
         parser.skipChildren();
     }
 
-    private void ensureFloatAsIntAllowed(JsonToken token) throws IOException {
-        if (!acceptFloatAsInt && token == JsonToken.VALUE_NUMBER_FLOAT) {
-            throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, token);
+    private static int[] tokenShapeBits() {
+        JsonToken[] tokens = JsonToken.values();
+        int[] bits = new int[tokens.length];
+        for (JsonToken token : tokens) {
+            Shape shape = switch (token) {
+                case VALUE_STRING -> Shape.STRING;
+                case VALUE_NUMBER_INT -> Shape.INTEGER_NUMBER;
+                case VALUE_NUMBER_FLOAT -> Shape.FLOAT_NUMBER;
+                case VALUE_TRUE, VALUE_FALSE -> Shape.BOOLEAN;
+                case START_ARRAY -> Shape.ARRAY;
+                default -> Shape.OTHER;
+            };
+            bits[token.ordinal()] = shape.bit();
         }
+        return bits;
+    }
+
+    private void checkIntegerSource(JsonToken t) throws IOException {
+        if ((integerShapes & TOKEN_SHAPE_BITS[t.ordinal()]) == 0) {
+            throw coercionFailure(Target.INTEGER, t);
+        }
+    }
+
+    private void checkDecimalSource(JsonToken t) throws IOException {
+        if ((decimalShapes & TOKEN_SHAPE_BITS[t.ordinal()]) == 0) {
+            throw coercionFailure(Target.DECIMAL, t);
+        }
+    }
+
+    private void checkBooleanSource(JsonToken t) throws IOException {
+        if ((booleanShapes & TOKEN_SHAPE_BITS[t.ordinal()]) == 0) {
+            throw coercionFailure(Target.BOOLEAN, t);
+        }
+    }
+
+    private void checkStringSource(JsonToken t) throws IOException {
+        if ((stringShapes & TOKEN_SHAPE_BITS[t.ordinal()]) == 0) {
+            throw coercionFailure(Target.STRING, t);
+        }
+    }
+
+    private void checkCharSource(JsonToken t) throws IOException {
+        if ((charShapes & TOKEN_SHAPE_BITS[t.ordinal()]) == 0) {
+            throw coercionFailure(Target.CHAR, t);
+        }
+    }
+
+    private IOException coercionFailure(Target target, JsonToken t) throws IOException {
+        Shape shape = switch (t) {
+            case VALUE_STRING -> Shape.STRING;
+            case VALUE_NUMBER_INT -> Shape.INTEGER_NUMBER;
+            case VALUE_NUMBER_FLOAT -> Shape.FLOAT_NUMBER;
+            case VALUE_TRUE, VALUE_FALSE -> Shape.BOOLEAN;
+            case START_ARRAY -> Shape.ARRAY;
+            default -> Shape.OTHER;
+        };
+        Coercion coercion = CoercionPolicy.coercion(target, shape);
+        if (coercion == null) {
+            // should not happen, OTHER is always allowed
+            throw unexpectedToken(JsonToken.VALUE_STRING, t);
+        }
+        return createDeserializationException(coercion.message(), shape == Shape.ARRAY ? null : parser.getValueAsString());
     }
 
     private abstract static class ArbitraryBuilder {

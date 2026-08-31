@@ -25,6 +25,7 @@ import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.ObjectMapper;
 import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.config.CoercionPolicy;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.support.util.BufferingJsonNodeProcessor;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
@@ -55,6 +56,7 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
     protected final Class<?> view;
     protected Serializer.EncoderContext encoderContext;
     protected Deserializer.DecoderContext decoderContext;
+    private final CoercionPolicy coercionPolicy;
 
     public AbstractBsonMapper(SerdeRegistry registry, @Nullable SerdeConfiguration serdeConfiguration) {
         this(registry, serdeConfiguration, null);
@@ -66,6 +68,7 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
         this.view = view;
         this.encoderContext = registry.newEncoderContext(view);
         this.decoderContext = registry.newDecoderContext(view);
+        this.coercionPolicy = CoercionPolicy.fromConfiguration(this.decoderContext.getDeserializationConfiguration().orElse(null));
     }
 
     @Override
@@ -114,7 +117,7 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
     @Override
     public <T> @Nullable T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
         final Deserializer<? extends T> deserializer = this.decoderContext.findDeserializer(type).createSpecific(decoderContext, type);
-        return deserializer.deserialize(JsonNodeDecoder.create(tree, limits()), decoderContext, type);
+        return deserializer.deserialize(JsonNodeDecoder.create(tree, limits(), coercionPolicy), decoderContext, type);
     }
 
     @Override
@@ -136,7 +139,7 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
     private <T> @Nullable T readValue(BsonReader bsonReader, Argument<T> type) throws IOException {
         return decoderContext.findDeserializer(type)
             .createSpecific(decoderContext, type)
-            .deserialize(new BsonReaderDecoder(bsonReader, limits()), decoderContext, type);
+            .deserialize(new BsonReaderDecoder(bsonReader, limits(), coercionPolicy), decoderContext, type);
     }
 
     @Override
@@ -146,7 +149,7 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
             @Override
             protected JsonNode parseOne(InputStream is) throws IOException {
                 try (BsonReader bsonReader = createBsonReader(toByteBuffer(is))) {
-                    final BsonReaderDecoder decoder = new BsonReaderDecoder(bsonReader, limits());
+                    final BsonReaderDecoder decoder = new BsonReaderDecoder(bsonReader, limits(), coercionPolicy);
                     final Object o = decoder.decodeArbitrary();
                     return writeValueToTree(o);
                 }
@@ -155,7 +158,7 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
             @Override
             protected JsonNode parseOne(byte[] remaining) throws IOException {
                 try (BsonReader bsonReader = createBsonReader(ByteBuffer.wrap(remaining))) {
-                    final BsonReaderDecoder decoder = new BsonReaderDecoder(bsonReader, limits());
+                    final BsonReaderDecoder decoder = new BsonReaderDecoder(bsonReader, limits(), coercionPolicy);
                     final Object o = decoder.decodeArbitrary();
                     return writeValueToTree(o);
                 }
