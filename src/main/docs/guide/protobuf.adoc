@@ -24,6 +24,8 @@ Together these are equivalent to the following schema, and produce byte-identica
 
 [source,protobuf]
 ----
+syntax = "proto3";
+
 message Coordinates {
   sfixed32 latitudeMicros = 1;
   sfixed32 longitudeMicros = 2;
@@ -43,7 +45,7 @@ The schema is checked the first time a type is used. A missing, duplicated, out-
 
 == Reading and writing
 
-Inject api:serde.protobuf.ProtobufMapper[] by its concrete type. It is registered as a secondary bean of lowest precedence, so it is never selected as the application's JSON mapper.
+Inject api:serde.protobuf.ProtobufMapper[] by its concrete type. The bean is exposed only by that concrete type, so it cannot be selected as the application's JSON mapper.
 
 snippet::example.ReadingCodec[project-base="doc-examples/example-protobuf", source="main", tags="clazz"]
 
@@ -55,7 +57,7 @@ The reason to reach for it is size. The same reading is markedly smaller than it
 
 snippet::example.SensorReadingTest[project-base="doc-examples/example-protobuf", tags="size"]
 
-<1> 75 bytes on the wire.
+<1> 73 bytes on the wire.
 <2> Against 207 bytes for the same object as JSON.
 
 [[protobufWireTypes]]
@@ -70,7 +72,7 @@ snippet::example.WireRepresentationTest[project-base="doc-examples/example-proto
 <1> One tag byte plus ten bytes of sign-extended varint.
 <2> One tag byte plus two bytes of zig-zag varint.
 
-For positive values the two are identical, so `sint32` costs nothing when the sign never comes up. `fixed32` and `fixed64` are the other useful choices: four or eight bytes regardless of value, which wins for numbers that are usually large. See ann:serde.protobuf.annotation.ProtoType[] for the full set.
+For a positive value `p`, `sint32` writes `2p`. It often occupies the same number of bytes as `int32`, but can need an extra byte at a varint boundary. Use it when negative values are common rather than assuming it is free for positive values. `fixed32` and `fixed64` are the other useful choices: four or eight bytes regardless of value, which wins for numbers that are usually large. See ann:serde.protobuf.annotation.ProtoType[] for the full set.
 
 == Evolving a message
 
@@ -95,9 +97,12 @@ Protobuf payloads are not self-describing. On the wire a length-delimited value 
 * Reading into `Object`, api:json.tree.JsonNode[], or any other type without ann:serde.protobuf.annotation.ProtoField[] numbers.
 * `@JsonAnySetter` and other catch-all properties.
 * Reactive parsing, which needs self-delimiting payloads.
-* Maps, polymorphic types, and `Optional` properties.
+* Maps and polymorphic types.
+* A null top-level message. Protobuf has no wire representation that distinguishes it from a valid empty message.
 
 Two behavioural differences are worth knowing about:
 
 * proto3 omits fields holding their type's default value, so a reader cannot distinguish an absent field from an empty string or a zero. Properties that Micronaut Serialization treats as required may fail on payloads the reference implementation considers valid.
 * Unknown fields are skipped rather than retained, so they are not re-emitted when a message is read and written back.
+
+Use `Optional`, `OptionalInt`, `OptionalLong`, or `OptionalDouble` when scalar presence matters. An empty optional omits the field, while a present optional retains its value even when that value is the scalar default.

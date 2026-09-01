@@ -46,4 +46,15 @@ class ProtoSchemaValidationTest {
         SerdeException e = assertThrows(SerdeException.class, () -> ProtoSchema.of(Thread.class));
         assertTrue(e.getMessage().contains("No introspection found"), e.getMessage());
     }
+
+    @Test
+    void rejectsAProtoTypeThatDoesNotMatchTheJavaType() {
+        SerdeException stringError = assertThrows(SerdeException.class,
+            () -> ProtoSchema.of(InvalidModels.StringWithNumericType.class));
+        assertTrue(stringError.getMessage().contains("incompatible with Java type [java.lang.String]"), stringError.getMessage());
+
+        SerdeException narrowingError = assertThrows(SerdeException.class,
+            () -> ProtoSchema.of(InvalidModels.LongWithNarrowType.class));
+        assertTrue(narrowingError.getMessage().contains("incompatible with Java type [long]"), narrowingError.getMessage());
+    }
 }

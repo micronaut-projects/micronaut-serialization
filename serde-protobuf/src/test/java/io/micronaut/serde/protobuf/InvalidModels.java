@@ -2,6 +2,7 @@ package io.micronaut.serde.protobuf;
 
 import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.serde.protobuf.annotation.ProtoField;
+import io.micronaut.serde.protobuf.annotation.ProtoType;
 
 /**
  * Models whose field numbering is invalid, used to check that the schema is rejected with a
@@ -26,6 +27,14 @@ final class InvalidModels {
 
     @Serdeable
     record NumberOutOfRange(@ProtoField(0) String zero) {
+    }
+
+    @Serdeable
+    record StringWithNumericType(@ProtoField(value = 1, type = ProtoType.FIXED32) String value) {
+    }
+
+    @Serdeable
+    record LongWithNarrowType(@ProtoField(value = 1, type = ProtoType.SFIXED32) long value) {
     }
 
     @Serdeable

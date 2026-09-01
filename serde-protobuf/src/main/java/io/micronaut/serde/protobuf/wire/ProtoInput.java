@@ -235,6 +235,18 @@ public final class ProtoInput {
      * @throws IOException If the payload is truncated or the wire type is unknown
      */
     public void skip(int wireType, int limit) throws IOException {
+        skip(0, wireType, limit);
+    }
+
+    /**
+     * Skip a complete field value, including a deprecated group.
+     *
+     * @param fieldNumber The field number
+     * @param wireType    The wire type
+     * @param limit       The position the value must not extend past
+     * @throws IOException If the payload is truncated or the group is malformed
+     */
+    public void skip(int fieldNumber, int wireType, int limit) throws IOException {
         switch (wireType) {
             case ProtoWire.VARINT -> readVarint64();
             case ProtoWire.FIXED64 -> {
@@ -251,8 +263,27 @@ public final class ProtoInput {
                 int length = readLength(limit);
                 position += length;
             }
+            case ProtoWire.START_GROUP -> skipGroup(fieldNumber, limit);
+            case ProtoWire.END_GROUP -> throw new IOException("Malformed protobuf payload: unexpected end-group tag");
             default -> throw new IOException("Malformed protobuf payload: unsupported wire type " + wireType);
         }
+    }
+
+    private void skipGroup(int fieldNumber, int limit) throws IOException {
+        while (position < limit) {
+            int tag = readVarint32();
+            int nestedFieldNumber = ProtoWire.fieldNumber(tag);
+            int nestedWireType = ProtoWire.wireType(tag);
+            if (nestedWireType == ProtoWire.END_GROUP) {
+                if (nestedFieldNumber != fieldNumber) {
+                    throw new IOException("Malformed protobuf payload: group " + fieldNumber
+                        + " ended with field number " + nestedFieldNumber);
+                }
+                return;
+            }
+            skip(nestedFieldNumber, nestedWireType, limit);
+        }
+        throw new EOFException("Truncated protobuf group " + fieldNumber);
     }
 
     /**

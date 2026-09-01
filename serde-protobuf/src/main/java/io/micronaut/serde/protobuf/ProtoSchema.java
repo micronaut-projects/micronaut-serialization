@@ -21,6 +21,7 @@ import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.BeanIntrospector;
 import io.micronaut.core.beans.BeanProperty;
 import io.micronaut.core.type.Argument;
+import io.micronaut.core.type.GenericPlaceholder;
 import io.micronaut.serde.Keys;
 import io.micronaut.serde.KeysSupport;
 import io.micronaut.serde.config.annotation.SerdeConfig;
@@ -30,6 +31,7 @@ import io.micronaut.serde.protobuf.annotation.ProtoType;
 import io.micronaut.serde.protobuf.wire.ProtoWire;
 import org.jspecify.annotations.Nullable;
 
+import java.lang.reflect.TypeVariable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -38,6 +40,10 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -53,16 +59,12 @@ import java.util.concurrent.ConcurrentHashMap;
 @Internal
 public final class ProtoSchema {
 
-    // ClassValue keys the cache to the class itself, so a schema never outlives the type it
-    // describes; a resolution failure is cached too, so it is reported the same way every time
-    private static final ClassValue<Object> CACHE = new ClassValue<>() {
+    // ClassValue keeps the cache scoped to the raw message class, while the nested map distinguishes
+    // parameterizations such as Envelope<String> and Envelope<List<Integer>>.
+    private static final ClassValue<Map<Argument<?>, Object>> CACHE = new ClassValue<>() {
         @Override
-        protected Object computeValue(Class<?> type) {
-            try {
-                return resolve(type);
-            } catch (SerdeException e) {
-                return e;
-            }
+        protected Map<Argument<?>, Object> computeValue(Class<?> type) {
+            return new ConcurrentHashMap<>();
         }
     };
 
@@ -74,7 +76,7 @@ public final class ProtoSchema {
     private final Map<String, ProtoProperty> byName;
     private final int[] numbers;
     private final ProtoProperty[] slots;
-    private final Map<Keys, ProtoProperty[]> propertiesByKeys = new ConcurrentHashMap<>();
+    private final Map<Keys, @Nullable ProtoProperty[]> propertiesByKeys = new ConcurrentHashMap<>();
     private final Map<Keys, int[]> keyIndexesBySlot = new ConcurrentHashMap<>();
 
     private ProtoSchema(Class<?> messageType, List<ProtoProperty> properties) {
@@ -100,7 +102,24 @@ public final class ProtoSchema {
      * @throws SerdeException If the type is not introspected, or its field numbers are invalid
      */
     public static ProtoSchema of(Class<?> messageType) throws SerdeException {
-        Object cached = CACHE.get(messageType);
+        return of(Argument.of(messageType));
+    }
+
+    /**
+     * Resolve, and cache, the schema for a possibly parameterized message type.
+     *
+     * @param messageType The message type
+     * @return The schema
+     * @throws SerdeException If the type is not introspected, or its field declarations are invalid
+     */
+    public static ProtoSchema of(Argument<?> messageType) throws SerdeException {
+        Object cached = CACHE.get(messageType.getType()).computeIfAbsent(messageType, type -> {
+            try {
+                return resolve(type);
+            } catch (SerdeException e) {
+                return e;
+            }
+        });
         if (cached instanceof ProtoSchema schema) {
             return schema;
         }
@@ -148,6 +167,15 @@ public final class ProtoSchema {
     }
 
     /**
+     * Returns the number of field slots in this schema.
+     *
+     * @return The number of slots
+     */
+    public int slotCount() {
+        return slots.length;
+    }
+
+    /**
      * This schema's properties in key index order, so the encoder can turn a key index straight
      * into a field number.
      *
@@ -159,8 +187,8 @@ public final class ProtoSchema {
      *         has no field for
      * @throws SerdeException If the protobuf key contribution is not registered
      */
-    public ProtoProperty[] byKeyIndex(Keys keys) throws SerdeException {
-        ProtoProperty[] resolved = propertiesByKeys.get(keys);
+    public @Nullable ProtoProperty[] byKeyIndex(Keys keys) throws SerdeException {
+        @Nullable ProtoProperty[] resolved = propertiesByKeys.get(keys);
         if (resolved != null) {
             return resolved;
         }
@@ -208,7 +236,9 @@ public final class ProtoSchema {
         return (String[]) KeysSupport.get(keys, PROTO_KEYS_INDEX)[ProtobufKeysProvider.KEY_NAMES_INDEX];
     }
 
-    private static ProtoSchema resolve(Class<?> messageType) throws SerdeException {
+    private static ProtoSchema resolve(Argument<?> messageArgument) throws SerdeException {
+        Class<?> messageType = messageArgument.getType();
+        Map<String, Argument<?>> typeBindings = typeBindings(messageArgument);
         BeanIntrospection<?> introspection = BeanIntrospector.SHARED.findIntrospection(messageType)
             .orElseThrow(() -> new SerdeException("No introspection found for [" + messageType.getName()
                 + "]. Protobuf serialization requires the type to be annotated with @Serdeable or @Introspected."));
@@ -242,13 +272,21 @@ public final class ProtoSchema {
                     + "] both declare field number " + number + ". Field numbers must be unique within a message.");
             }
             ProtoType type = metadata.enumValue(ProtoField.class, "type", ProtoType.class).orElse(ProtoType.DEFAULT);
-            Argument<?> argument = beanProperty.asArgument();
+            Argument<?> argument = resolveArgument(beanProperty.asArgument(), typeBindings);
+            FieldShape shape = fieldShape(argument);
+            validateType(messageType, name, type, shape.valueType());
             properties.add(new ProtoProperty(
                 name,
                 number,
                 type,
-                isPackableElement(argument),
-                argument.getType() == byte[].class,
+                argument,
+                shape.repeated(),
+                isPackable(shape.valueType()),
+                shape.bytes(),
+                shape.repeatedBytes(),
+                isMessage(shape.valueType()),
+                shape.explicitPresence(),
+                wireType(type, shape.valueType()),
                 ProtoWire.tag(number, ProtoWire.VARINT),
                 ProtoWire.tag(number, ProtoWire.FIXED32),
                 ProtoWire.tag(number, ProtoWire.FIXED64),
@@ -284,35 +322,158 @@ public final class ProtoSchema {
         };
     }
 
-    private static boolean isPackableElement(Argument<?> argument) {
+    private static FieldShape fieldShape(Argument<?> declaredArgument) {
+        boolean explicitPresence = declaredArgument.isNullable() || isOptional(declaredArgument.getType());
+        Argument<?> argument = unwrapOptional(declaredArgument);
         Class<?> type = argument.getType();
         if (type == byte[].class) {
-            // byte[] is a bytes field, not a repeated field
-            return false;
+            return new FieldShape(argument, false, true, false, explicitPresence);
         }
-        Class<?> element = elementType(argument);
-        if (element.isPrimitive()) {
-            return element != void.class;
-        }
-        if (element == Boolean.class || element == Character.class) {
-            return true;
-        }
-        return Number.class.isAssignableFrom(element)
-            && element != BigDecimal.class
-            && element != BigInteger.class;
-    }
-
-    private static Class<?> elementType(Argument<?> argument) {
-        Class<?> type = argument.getType();
         if (type.isArray()) {
-            return type.getComponentType();
+            Argument<?> element = Argument.of(type.getComponentType());
+            return new FieldShape(element, true, false, element.getType() == byte[].class, false);
         }
         if (Iterable.class.isAssignableFrom(type)) {
             Argument<?>[] parameters = argument.getTypeParameters();
-            if (parameters.length == 1) {
-                return parameters[0].getType();
+            Argument<?> element = parameters.length == 1 ? parameters[0] : Argument.OBJECT_ARGUMENT;
+            return new FieldShape(element, true, false, element.getType() == byte[].class, false);
+        }
+        return new FieldShape(argument, false, false, false, explicitPresence);
+    }
+
+    private static boolean isOptional(Class<?> type) {
+        return type == Optional.class || type == OptionalInt.class || type == OptionalLong.class || type == OptionalDouble.class;
+    }
+
+    private static Argument<?> unwrapOptional(Argument<?> argument) {
+        Class<?> type = argument.getType();
+        if (type == Optional.class) {
+            Argument<?>[] parameters = argument.getTypeParameters();
+            return parameters.length == 1 ? parameters[0] : Argument.OBJECT_ARGUMENT;
+        }
+        if (type == OptionalInt.class) {
+            return Argument.INT;
+        }
+        if (type == OptionalLong.class) {
+            return Argument.LONG;
+        }
+        if (type == OptionalDouble.class) {
+            return Argument.DOUBLE;
+        }
+        return argument;
+    }
+
+    private static boolean isPackable(Argument<?> argument) {
+        Class<?> type = argument.getType();
+        if (type.isPrimitive()) {
+            return type != void.class;
+        }
+        return type == Boolean.class || type == Character.class
+            || (Number.class.isAssignableFrom(type) && type != BigDecimal.class && type != BigInteger.class);
+    }
+
+    private static boolean isMessage(Argument<?> argument) {
+        Class<?> type = argument.getType();
+        return !type.isEnum() && BeanIntrospector.SHARED.findIntrospection(type).isPresent();
+    }
+
+    private static int wireType(ProtoType protoType, Argument<?> argument) {
+        if (protoType != ProtoType.DEFAULT) {
+            return ProtoProperty.wireTypeOf(isLong(argument.getType()) ? longKind(protoType) : intKind(protoType));
+        }
+        Class<?> type = argument.getType();
+        if (type == float.class || type == Float.class) {
+            return ProtoWire.FIXED32;
+        }
+        if (type == double.class || type == Double.class) {
+            return ProtoWire.FIXED64;
+        }
+        return isIntegral(type) ? ProtoWire.VARINT : ProtoWire.LENGTH_DELIMITED;
+    }
+
+    private static void validateType(Class<?> messageType,
+                                     String propertyName,
+                                     ProtoType protoType,
+                                     Argument<?> argument) throws SerdeException {
+        if (protoType == ProtoType.DEFAULT) {
+            return;
+        }
+        Class<?> javaType = argument.getType();
+        boolean valid = isInt(javaType) ? is32Bit(protoType) : isLong(javaType) && is64Bit(protoType);
+        if (!valid) {
+            throw new SerdeException("Property [" + propertyName + "] of [" + messageType.getName()
+                + "] declares protobuf type [" + protoType + "], which is incompatible with Java type ["
+                + javaType.getName() + "].");
+        }
+    }
+
+    private static boolean isIntegral(Class<?> type) {
+        return isInt(type) || isLong(type) || type == boolean.class || type == Boolean.class;
+    }
+
+    private static boolean isInt(Class<?> type) {
+        return type == byte.class || type == Byte.class
+            || type == short.class || type == Short.class
+            || type == char.class || type == Character.class
+            || type == int.class || type == Integer.class;
+    }
+
+    private static boolean isLong(Class<?> type) {
+        return type == long.class || type == Long.class;
+    }
+
+    private static boolean is32Bit(ProtoType type) {
+        return switch (type) {
+            case INT32, SINT32, UINT32, FIXED32, SFIXED32 -> true;
+            default -> false;
+        };
+    }
+
+    private static boolean is64Bit(ProtoType type) {
+        return switch (type) {
+            case INT64, SINT64, UINT64, FIXED64, SFIXED64 -> true;
+            default -> false;
+        };
+    }
+
+    private static Map<String, Argument<?>> typeBindings(Argument<?> messageArgument) {
+        Map<String, Argument<?>> bindings = new HashMap<>(messageArgument.getTypeVariables());
+        TypeVariable<?>[] variables = messageArgument.getType().getTypeParameters();
+        Argument<?>[] arguments = messageArgument.getTypeParameters();
+        for (int i = 0; i < Math.min(variables.length, arguments.length); i++) {
+            bindings.put(variables[i].getName(), arguments[i]);
+        }
+        return bindings;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> Argument<T> resolveArgument(Argument<T> argument, Map<String, Argument<?>> bounds) {
+        Argument<?>[] declaredParameters = argument.getTypeParameters();
+        if (argument instanceof GenericPlaceholder<T> placeholder) {
+            Argument<?> resolved = bounds.get(placeholder.getVariableName());
+            if (resolved != null) {
+                return (Argument<T>) resolved.withAnnotationMetadata(argument.getAnnotationMetadata());
             }
         }
-        return type;
+        if (declaredParameters.length == 0) {
+            return argument;
+        }
+        Argument<?>[] resolvedParameters = new Argument<?>[declaredParameters.length];
+        boolean changed = false;
+        for (int i = 0; i < declaredParameters.length; i++) {
+            Argument<?> resolved = resolveArgument(declaredParameters[i], bounds);
+            resolvedParameters[i] = resolved;
+            changed |= resolved != declaredParameters[i];
+        }
+        return changed
+            ? Argument.of(argument.getType(), argument.getName(), argument.getAnnotationMetadata(), resolvedParameters)
+            : argument;
+    }
+
+    private record FieldShape(Argument<?> valueType,
+                              boolean repeated,
+                              boolean bytes,
+                              boolean repeatedBytes,
+                              boolean explicitPresence) {
     }
 }

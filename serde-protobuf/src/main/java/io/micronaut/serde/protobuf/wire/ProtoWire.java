@@ -42,6 +42,16 @@ public final class ProtoWire {
     public static final int LENGTH_DELIMITED = 2;
 
     /**
+     * Start of a deprecated group value.
+     */
+    public static final int START_GROUP = 3;
+
+    /**
+     * End of a deprecated group value.
+     */
+    public static final int END_GROUP = 4;
+
+    /**
      * Fixed four-byte value.
      */
     public static final int FIXED32 = 5;

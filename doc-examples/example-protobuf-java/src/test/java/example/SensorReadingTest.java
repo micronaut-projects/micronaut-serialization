@@ -49,7 +49,7 @@ class SensorReadingTest {
         int protobufBytes = codec.encode(reading).length;
         int jsonBytes = jsonMapper.writeValueAsBytes(reading).length;
 
-        assertEquals(75, protobufBytes);                    // <1>
+        assertEquals(73, protobufBytes);                    // <1>
         assertTrue(protobufBytes * 2 < jsonBytes,           // <2>
             () -> "protobuf " + protobufBytes + " bytes vs JSON " + jsonBytes + " bytes");
     }

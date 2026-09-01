@@ -15,6 +15,8 @@
  */
 package io.micronaut.serde.protobuf.annotation;
 
+import io.micronaut.core.annotation.Experimental;
+
 /**
  * The Protocol Buffers scalar types that can be requested for a property.
  *
@@ -26,6 +28,7 @@ package io.micronaut.serde.protobuf.annotation;
  *
  * @since 3.2
  */
+@Experimental
 public enum ProtoType {
 
     /**

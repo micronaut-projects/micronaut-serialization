@@ -19,6 +19,8 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.Deserializer.DecoderContext;
 import io.micronaut.serde.Keys;
 import io.micronaut.serde.KeysAwareDecoder;
 import io.micronaut.serde.LimitingStream;
@@ -51,11 +53,13 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
     private final Kind kind;
     private final @Nullable ProtoSchema schema;
     private final @Nullable ProtoProperty owner;
+    private final @Nullable DecoderContext decoderContext;
 
     private @Nullable ProtoProperty currentProperty;
     private int currentWireType = -1;
     private @Nullable String pendingUnknownKey;
     private boolean firstElement;
+    private boolean valuePending;
 
     private @Nullable Keys currentKeys;
     private int @Nullable [] currentKeyIndexes;
@@ -67,12 +71,19 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
      * @param remainingLimits The nesting limits
      */
     public ProtobufDecoder(byte[] payload, RemainingLimits remainingLimits) {
+        this(payload, remainingLimits, null);
+    }
+
+    ProtobufDecoder(byte[] payload,
+                    RemainingLimits remainingLimits,
+                    @Nullable DecoderContext decoderContext) {
         super(remainingLimits);
         this.input = new ProtoInput(payload);
         this.limit = payload.length;
         this.kind = Kind.ROOT;
         this.schema = null;
         this.owner = null;
+        this.decoderContext = decoderContext;
     }
 
     private ProtobufDecoder(ProtoInput input,
@@ -80,6 +91,7 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
                             Kind kind,
                             @Nullable ProtoSchema schema,
                             @Nullable ProtoProperty owner,
+                            @Nullable DecoderContext decoderContext,
                             RemainingLimits remainingLimits) {
         super(remainingLimits);
         this.input = input;
@@ -87,18 +99,30 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
         this.kind = kind;
         this.schema = schema;
         this.owner = owner;
+        this.decoderContext = decoderContext;
     }
 
     @Override
     public Decoder decodeObject(Argument<?> type) throws IOException {
-        ProtoSchema childSchema = ProtoSchema.of(type.getType());
+        ProtoSchema childSchema = ProtoSchema.of(type);
         return switch (kind) {
             // the payload itself is the top-level message; it has no tag and no length prefix
-            case ROOT -> new ProtobufDecoder(input, limit, Kind.MESSAGE, childSchema, null, childLimits());
+            case ROOT -> {
+                byte[] normalized = ProtoMessageNormalizer.normalize(input.buffer(), input.position(), limit, childSchema);
+                input.position(limit);
+                yield new ProtobufDecoder(new ProtoInput(normalized), normalized.length, Kind.MESSAGE, childSchema, null,
+                    decoderContext, childLimits());
+            }
             case MESSAGE, REPEATED -> {
                 expectWireType(ProtoWire.LENGTH_DELIMITED, "a nested message");
                 int length = input.readLength(limit);
-                yield new ProtobufDecoder(input, input.position() + length, Kind.MESSAGE, childSchema, currentProperty, childLimits());
+                int start = input.position();
+                int end = start + length;
+                input.position(end);
+                valueConsumed();
+                byte[] normalized = ProtoMessageNormalizer.normalize(input.buffer(), start, end, childSchema);
+                yield new ProtobufDecoder(new ProtoInput(normalized), normalized.length, Kind.MESSAGE, childSchema, currentProperty,
+                    decoderContext, childLimits());
             }
             default -> throw new SerdeException("A packed protobuf field cannot contain messages");
         };
@@ -110,18 +134,27 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
             throw new SerdeException("A protobuf payload must be a message. Wrap the collection in a type annotated with @Serdeable.");
         }
         ProtoProperty property = requireCurrent();
+        if (kind == Kind.REPEATED && property.repeatedBytesField()) {
+            expectWireType(ProtoWire.LENGTH_DELIMITED, "binary data");
+            int length = input.readLength(limit);
+            valueConsumed();
+            return new ProtobufDecoder(input, input.position() + length, Kind.BYTES, schema, property,
+                decoderContext, childLimits());
+        }
         if (currentWireType == ProtoWire.LENGTH_DELIMITED) {
             // a byte[] read element by element is still one bytes field, and a repeated scalar is
             // packed into a single length-delimited run
             if (property.bytesField() || property.packableElement()) {
                 int length = input.readLength(limit);
                 Kind childKind = property.bytesField() ? Kind.BYTES : Kind.PACKED;
-                return new ProtobufDecoder(input, input.position() + length, childKind, schema, property, childLimits());
+                return new ProtobufDecoder(input, input.position() + length, childKind, schema, property,
+                    decoderContext, childLimits());
             }
         }
         // one element has already been positioned by the tag that opened this field; further
         // elements follow as repeats of the same tag, up to the end of the enclosing message
-        ProtobufDecoder repeated = new ProtobufDecoder(input, limit, Kind.REPEATED, schema, property, childLimits());
+        ProtobufDecoder repeated = new ProtobufDecoder(input, limit, Kind.REPEATED, schema, property,
+            decoderContext, childLimits());
         repeated.currentProperty = property;
         repeated.currentWireType = currentWireType;
         repeated.firstElement = true;
@@ -130,14 +163,19 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
 
     @Override
     public boolean hasNextArrayValue() throws IOException {
+        if (valuePending) {
+            return true;
+        }
         switch (kind) {
             case PACKED, BYTES -> {
-                return input.position() < limit;
+                valuePending = input.position() < limit;
+                return valuePending;
             }
             case REPEATED -> {
                 if (firstElement) {
                     // the tag that opened this field already positioned the first element
                     firstElement = false;
+                    valuePending = true;
                     return true;
                 }
                 if (input.position() >= limit) {
@@ -147,6 +185,7 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
                 int tag = input.readVarint32();
                 if (ProtoWire.fieldNumber(tag) == requireOwner().number()) {
                     currentWireType = ProtoWire.wireType(tag);
+                    valuePending = true;
                     return true;
                 }
                 input.position(mark);
@@ -197,7 +236,9 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
     @Override
     public String decodeString() throws IOException {
         expectWireType(ProtoWire.LENGTH_DELIMITED, "a string");
-        return input.readString(limit);
+        String value = input.readString(limit);
+        valueConsumed();
+        return value;
     }
 
     @Override
@@ -208,7 +249,9 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
     @Override
     public byte decodeByte() throws IOException {
         if (kind == Kind.BYTES) {
-            return input.readRawByte();
+            byte value = input.readRawByte();
+            valueConsumed();
+            return value;
         }
         return (byte) readIntegral();
     }
@@ -235,44 +278,36 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
 
     @Override
     public float decodeFloat() throws IOException {
-        if (valueWireType(ProtoWire.FIXED32) == ProtoWire.FIXED32) {
-            return Float.intBitsToFloat(input.readFixed32());
-        }
-        return readIntegral();
+        expectWireType(ProtoWire.FIXED32, "a float");
+        float value = Float.intBitsToFloat(input.readFixed32());
+        valueConsumed();
+        return value;
     }
 
     @Override
     public double decodeDouble() throws IOException {
-        int wireType = valueWireType(ProtoWire.FIXED64);
-        if (wireType == ProtoWire.FIXED64) {
-            return Double.longBitsToDouble(input.readFixed64());
-        }
-        if (wireType == ProtoWire.FIXED32) {
-            return Float.intBitsToFloat(input.readFixed32());
-        }
-        return readIntegral();
+        expectWireType(ProtoWire.FIXED64, "a double");
+        double value = Double.longBitsToDouble(input.readFixed64());
+        valueConsumed();
+        return value;
     }
 
     @Override
     public BigInteger decodeBigInteger() throws IOException {
-        if (valueWireType(ProtoWire.LENGTH_DELIMITED) == ProtoWire.LENGTH_DELIMITED) {
-            return new BigInteger(input.readString(limit));
-        }
-        return BigInteger.valueOf(readIntegral());
+        return new BigInteger(decodeString());
     }
 
     @Override
     public BigDecimal decodeBigDecimal() throws IOException {
-        if (valueWireType(ProtoWire.LENGTH_DELIMITED) == ProtoWire.LENGTH_DELIMITED) {
-            return new BigDecimal(input.readString(limit));
-        }
-        return BigDecimal.valueOf(readIntegral());
+        return new BigDecimal(decodeString());
     }
 
     @Override
     public byte[] decodeBinary() throws IOException {
         expectWireType(ProtoWire.LENGTH_DELIMITED, "binary data");
-        return input.readBytes(limit);
+        byte[] value = input.readBytes(limit);
+        valueConsumed();
+        return value;
     }
 
     @Override
@@ -283,7 +318,13 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
 
     @Override
     public Object decodeArbitrary() throws IOException {
-        throw unsupportedSchemaFree("an untyped value");
+        ProtoProperty property = requireCurrent();
+        Argument<?> argument = property.argument();
+        DecoderContext context = decoderContext;
+        if (argument.equalsType(Argument.OBJECT_ARGUMENT) || context == null) {
+            throw unsupportedSchemaFree("an untyped value");
+        }
+        return decodeResolvedValue(context, argument);
     }
 
     @Override
@@ -294,27 +335,53 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
     @Override
     public Decoder decodeBuffer() throws IOException {
         ProtobufDecoder buffered = new ProtobufDecoder(
-            new ProtoInput(input.buffer()), limit, kind, schema, owner, ourLimits());
+            new ProtoInput(input.buffer()), limit, kind, schema, owner, decoderContext, ourLimits());
         buffered.input.position(input.position());
         buffered.currentProperty = currentProperty;
         buffered.currentWireType = currentWireType;
         buffered.firstElement = firstElement;
+        buffered.valuePending = valuePending;
         skipValue();
         return buffered;
     }
 
     @Override
     public void skipValue() throws IOException {
-        input.skip(valueWireType(ProtoWire.VARINT), limit);
+        ProtoProperty property = currentProperty;
+        int wireType = valueWireType(ProtoWire.VARINT);
+        input.skip(property == null ? 0 : property.number(), wireType, limit);
+        if (kind == Kind.REPEATED) {
+            firstElement = false;
+        }
+        valueConsumed();
+        if (kind == Kind.MESSAGE && property != null && property.repeatedField()) {
+            skipFollowingOccurrences(property);
+        }
     }
 
     @Override
     public void finishStructure(boolean consumeLeftElements) throws IOException {
         switch (kind) {
-            // trailing fields belong to the enclosing payload, so the cursor has to land on the limit
-            case MESSAGE, PACKED, BYTES -> input.position(limit);
-            default -> {
+            case MESSAGE, PACKED, BYTES -> {
+                if (input.position() < limit) {
+                    if (!consumeLeftElements) {
+                        throw new IllegalStateException("There are unread protobuf values in the current structure");
+                    }
+                    input.position(limit);
+                    valuePending = false;
+                }
             }
+            case REPEATED -> {
+                if (hasRemainingRepeatedValue()) {
+                    if (!consumeLeftElements) {
+                        throw new IllegalStateException("There are unread protobuf values in the current repeated field");
+                    }
+                    consumeRemainingRepeatedValues();
+                }
+            }
+            case ROOT -> {
+            }
+            default -> throw new IllegalStateException("Unsupported decoder kind: " + kind);
         }
     }
 
@@ -335,10 +402,11 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
         while (input.position() < limit) {
             int tag = input.readVarint32();
             int wireType = ProtoWire.wireType(tag);
-            int slot = currentSchema.slotOf(ProtoWire.fieldNumber(tag));
+            int fieldNumber = ProtoWire.fieldNumber(tag);
+            int slot = currentSchema.slotOf(fieldNumber);
             if (slot < 0) {
                 // a field this version does not know about: skipping keeps readers forward compatible
-                input.skip(wireType, limit);
+                input.skip(fieldNumber, wireType, limit);
                 continue;
             }
             currentProperty = currentSchema.propertyAt(slot);
@@ -350,7 +418,13 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
 
     private long readIntegral() throws IOException {
         ProtoProperty property = kind == Kind.PACKED ? owner : currentProperty;
-        return switch (valueWireType(ProtoWire.VARINT)) {
+        int expectedWireType = property == null ? ProtoWire.VARINT : property.wireType();
+        int actualWireType = valueWireType(expectedWireType);
+        if (actualWireType != expectedWireType) {
+            throw new SerdeException("Expected a numeric protobuf value with wire type " + expectedWireType
+                + " but the field " + describeCurrent() + " has wire type " + actualWireType);
+        }
+        long value = switch (expectedWireType) {
             case ProtoWire.VARINT -> {
                 long raw = input.readVarint64();
                 yield property != null && property.intKind() == ProtoProperty.KIND_ZIGZAG
@@ -362,21 +436,15 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
             default -> throw new SerdeException("Expected a numeric protobuf value but the field "
                 + describeCurrent() + " is length-delimited");
         };
+        valueConsumed();
+        return value;
     }
 
     private int valueWireType(int fallback) {
         if (kind == Kind.PACKED) {
             ProtoProperty property = owner;
-            if (property == null) {
-                return fallback;
-            }
             // a packed run carries no per-element tag, so the representation comes from the schema
-            return switch (property.intKind()) {
-                case ProtoProperty.KIND_FIXED32 -> ProtoWire.FIXED32;
-                case ProtoProperty.KIND_FIXED64 -> ProtoWire.FIXED64;
-                case ProtoProperty.KIND_INT32 -> fallback;
-                default -> ProtoWire.VARINT;
-            };
+            return property == null ? fallback : property.wireType();
         }
         return currentWireType < 0 ? fallback : currentWireType;
     }
@@ -410,9 +478,56 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
         return property;
     }
 
+    private void valueConsumed() {
+        valuePending = false;
+    }
+
+    private void skipFollowingOccurrences(ProtoProperty property) throws IOException {
+        while (input.position() < limit) {
+            int mark = input.position();
+            int tag = input.readVarint32();
+            int fieldNumber = ProtoWire.fieldNumber(tag);
+            if (fieldNumber != property.number()) {
+                input.position(mark);
+                return;
+            }
+            input.skip(fieldNumber, ProtoWire.wireType(tag), limit);
+        }
+    }
+
+    private boolean hasRemainingRepeatedValue() throws IOException {
+        if (firstElement || valuePending) {
+            return true;
+        }
+        if (input.position() >= limit) {
+            return false;
+        }
+        int mark = input.position();
+        int tag = input.readVarint32();
+        input.position(mark);
+        return ProtoWire.fieldNumber(tag) == requireOwner().number();
+    }
+
+    private void consumeRemainingRepeatedValues() throws IOException {
+        ProtoProperty property = requireOwner();
+        if (firstElement || valuePending) {
+            input.skip(property.number(), currentWireType, limit);
+            firstElement = false;
+            valuePending = false;
+        }
+        skipFollowingOccurrences(property);
+    }
+
     private SerdeException unsupportedSchemaFree(String what) {
         return new SerdeException("Protocol Buffers cannot be read without a schema, so " + what
             + " cannot be decoded. Declare a concrete @Serdeable type with @ProtoField numbers instead.");
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private Object decodeResolvedValue(DecoderContext context, Argument<?> argument) throws IOException {
+        Deserializer deserializer = (Deserializer) context.findDeserializer((Argument) argument);
+        deserializer = deserializer.createSpecific(context, (Argument) argument);
+        return deserializer.deserialize(this, context, argument);
     }
 
     private enum Kind {

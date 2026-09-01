@@ -15,10 +15,8 @@
  */
 package io.micronaut.serde.protobuf;
 
-import io.micronaut.context.annotation.Secondary;
+import io.micronaut.context.annotation.Bean;
 import io.micronaut.core.annotation.Experimental;
-import io.micronaut.core.annotation.Order;
-import io.micronaut.core.order.Ordered;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.JsonMapper;
 import io.micronaut.json.JsonStreamConfig;
@@ -29,6 +27,7 @@ import io.micronaut.serde.ObjectMapper;
 import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerdeConfiguration;
+import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
 import io.micronaut.serde.support.util.JsonNodeEncoder;
 import jakarta.inject.Inject;
@@ -49,15 +48,14 @@ import java.util.function.Consumer;
  * {@link io.micronaut.serde.protobuf.annotation.ProtoField} numbers. Reading into
  * {@link JsonNode} or {@link Object} is therefore not supported.</p>
  *
- * <p>This is a prototype. It is registered as a secondary bean of lowest precedence so that it is
- * never selected as the application's JSON mapper; inject it by its concrete type.</p>
+ * <p>This is a prototype. Its bean is exposed only as {@code ProtobufMapper}, so it cannot be
+ * selected as the application's JSON mapper; inject it by its concrete type.</p>
  *
  * @since 3.2
  */
 @Experimental
 @Singleton
-@Secondary
-@Order(Ordered.LOWEST_PRECEDENCE)
+@Bean(typed = ProtobufMapper.class)
 public final class ProtobufMapper implements ObjectMapper {
 
     private final SerdeRegistry registry;
@@ -103,7 +101,7 @@ public final class ProtobufMapper implements ObjectMapper {
     @Override
     public <T> byte[] writeValueAsBytes(Argument<T> type, @Nullable T object) throws IOException {
         if (object == null) {
-            return new byte[0];
+            throw new SerdeException("Protocol Buffers cannot represent a null top-level message");
         }
         ProtobufEncoder encoder = new ProtobufEncoder(limits());
         serialize(encoder, type, object);
@@ -112,7 +110,10 @@ public final class ProtobufMapper implements ObjectMapper {
 
     @Override
     public byte[] writeValueAsBytes(@Nullable Object object) throws IOException {
-        return object == null ? new byte[0] : writeValueAsBytes(argumentOf(object), object);
+        if (object == null) {
+            throw new SerdeException("Protocol Buffers cannot represent a null top-level message");
+        }
+        return writeValueAsBytes(argumentOf(object), object);
     }
 
     @Override
@@ -127,7 +128,7 @@ public final class ProtobufMapper implements ObjectMapper {
 
     @Override
     public <T> @Nullable T readValue(byte[] byteArray, Argument<T> type) throws IOException {
-        ProtobufDecoder decoder = new ProtobufDecoder(byteArray, limits());
+        ProtobufDecoder decoder = new ProtobufDecoder(byteArray, limits(), decoderContext);
         return decoderContext.findDeserializer(type)
             .createSpecific(decoderContext, type)
             .deserialize(decoder, decoderContext, type);

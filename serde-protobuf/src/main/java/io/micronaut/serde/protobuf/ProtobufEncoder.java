@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Objects;
 
 /**
  * Protocol Buffers implementation of {@link Encoder}.
@@ -67,9 +68,9 @@ public final class ProtobufEncoder extends LimitingStream implements KeysAwareEn
     private boolean packedDecided;
 
     private @Nullable Keys currentKeys;
-    private ProtoProperty @Nullable [] currentKeyProperties;
+    private @Nullable ProtoProperty @Nullable [] currentKeyProperties;
 
-    private ProtoOutput @Nullable [] pool;
+    private @Nullable ProtoOutput @Nullable [] pool;
     private int pooled;
 
     /**
@@ -124,7 +125,7 @@ public final class ProtobufEncoder extends LimitingStream implements KeysAwareEn
 
     @Override
     public Encoder encodeObject(Argument<?> type) throws IOException {
-        ProtoSchema childSchema = ProtoSchema.of(type.getType());
+        ProtoSchema childSchema = ProtoSchema.of(type);
         return switch (kind) {
             // the top-level message is the payload itself, so it carries no tag and no length prefix
             case ROOT -> new ProtobufEncoder(this, out, Kind.MESSAGE, childSchema, null, childLimits());
@@ -144,7 +145,13 @@ public final class ProtobufEncoder extends LimitingStream implements KeysAwareEn
                 Kind childKind = property.bytesField() ? Kind.BYTES : Kind.REPEATED;
                 yield new ProtobufEncoder(this, borrow(), childKind, null, property, childLimits());
             }
-            case REPEATED -> throw new SerdeException("Protocol Buffers has no nested repeated fields. Wrap the inner collection in a message type.");
+            case REPEATED -> {
+                ProtoProperty property = requireOwner();
+                if (!property.repeatedBytesField()) {
+                    throw new SerdeException("Protocol Buffers has no nested repeated fields. Wrap the inner collection in a message type.");
+                }
+                yield new ProtobufEncoder(this, borrow(), Kind.BYTES, null, property, childLimits());
+            }
             case BYTES -> throw new SerdeException("A protobuf bytes field cannot contain arrays");
         };
     }
@@ -165,8 +172,11 @@ public final class ProtobufEncoder extends LimitingStream implements KeysAwareEn
                 }
             }
             case BYTES -> {
-                target.out.writeTag(requireOwner().lengthTag());
-                target.out.writeLengthDelimited(out);
+                ProtoProperty property = requireOwner();
+                if (out.size() != 0 || property.explicitPresence() || target.kind == Kind.REPEATED) {
+                    target.out.writeTag(property.lengthTag());
+                    target.out.writeLengthDelimited(out);
+                }
                 target.recycle(out);
             }
             case REPEATED -> {
@@ -205,7 +215,7 @@ public final class ProtobufEncoder extends LimitingStream implements KeysAwareEn
         if (kind != Kind.MESSAGE || currentSchema == null) {
             throw new SerdeException("A protobuf property key can only be encoded inside a message");
         }
-        ProtoProperty[] properties = currentKeyProperties;
+        @Nullable ProtoProperty[] properties = currentKeyProperties;
         if (keys != currentKeys || properties == null) {
             properties = currentSchema.byKeyIndex(keys);
             currentKeys = keys;
@@ -221,6 +231,9 @@ public final class ProtobufEncoder extends LimitingStream implements KeysAwareEn
     @Override
     public void encodeString(String value) throws IOException {
         ProtoProperty property = startValue(false);
+        if (omitDefault(property, value.isEmpty())) {
+            return;
+        }
         tag(property.lengthTag());
         out.writeString(value);
     }
@@ -228,6 +241,9 @@ public final class ProtobufEncoder extends LimitingStream implements KeysAwareEn
     @Override
     public void encodeBoolean(boolean value) throws IOException {
         ProtoProperty property = startValue(true);
+        if (omitDefault(property, !value)) {
+            return;
+        }
         tag(property.varintTag());
         out.writeVarint(value ? 1 : 0);
     }
@@ -249,6 +265,9 @@ public final class ProtobufEncoder extends LimitingStream implements KeysAwareEn
     @Override
     public void encodeChar(char value) throws IOException {
         ProtoProperty property = startValue(true);
+        if (omitDefault(property, value == 0)) {
+            return;
+        }
         tag(property.varintTag());
         out.writeVarint(value);
     }
@@ -256,6 +275,9 @@ public final class ProtobufEncoder extends LimitingStream implements KeysAwareEn
     @Override
     public void encodeInt(int value) throws IOException {
         ProtoProperty property = startValue(true);
+        if (omitDefault(property, value == 0)) {
+            return;
+        }
         switch (property.intKind()) {
             case ProtoProperty.KIND_ZIGZAG -> {
                 tag(property.varintTag());
@@ -283,6 +305,9 @@ public final class ProtobufEncoder extends LimitingStream implements KeysAwareEn
     @Override
     public void encodeLong(long value) throws IOException {
         ProtoProperty property = startValue(true);
+        if (omitDefault(property, value == 0)) {
+            return;
+        }
         switch (property.longKind()) {
             case ProtoProperty.KIND_ZIGZAG -> {
                 tag(property.varintTag());
@@ -306,6 +331,9 @@ public final class ProtobufEncoder extends LimitingStream implements KeysAwareEn
     @Override
     public void encodeFloat(float value) throws IOException {
         ProtoProperty property = startValue(true);
+        if (omitDefault(property, Float.floatToRawIntBits(value) == 0)) {
+            return;
+        }
         tag(property.fixed32Tag());
         out.writeFixed32(Float.floatToRawIntBits(value));
     }
@@ -313,6 +341,9 @@ public final class ProtobufEncoder extends LimitingStream implements KeysAwareEn
     @Override
     public void encodeDouble(double value) throws IOException {
         ProtoProperty property = startValue(true);
+        if (omitDefault(property, Double.doubleToRawLongBits(value) == 0)) {
+            return;
+        }
         tag(property.fixed64Tag());
         out.writeFixed64(Double.doubleToRawLongBits(value));
     }
@@ -330,6 +361,9 @@ public final class ProtobufEncoder extends LimitingStream implements KeysAwareEn
     @Override
     public void encodeBinary(byte[] data) throws IOException {
         ProtoProperty property = startValue(false);
+        if (omitDefault(property, data.length == 0)) {
+            return;
+        }
         tag(property.lengthTag());
         out.writeLengthDelimited(data);
     }
@@ -352,9 +386,10 @@ public final class ProtobufEncoder extends LimitingStream implements KeysAwareEn
 
     private ProtoOutput borrow() {
         ProtobufEncoder holder = root;
-        ProtoOutput[] buffers = holder.pool;
+        @Nullable ProtoOutput[] buffers = holder.pool;
         if (buffers != null && holder.pooled > 0) {
-            ProtoOutput reused = buffers[--holder.pooled];
+            ProtoOutput reused = Objects.requireNonNull(buffers[--holder.pooled]);
+            buffers[holder.pooled] = null;
             reused.reset();
             return reused;
         }
@@ -363,7 +398,7 @@ public final class ProtobufEncoder extends LimitingStream implements KeysAwareEn
 
     private void recycle(ProtoOutput buffer) {
         ProtobufEncoder holder = root;
-        ProtoOutput[] buffers = holder.pool;
+        @Nullable ProtoOutput[] buffers = holder.pool;
         if (buffers == null) {
             buffers = new ProtoOutput[INITIAL_POOL_SIZE];
             holder.pool = buffers;
@@ -399,6 +434,10 @@ public final class ProtobufEncoder extends LimitingStream implements KeysAwareEn
             throw new SerdeException("A protobuf payload must be a message. Scalar values cannot be encoded at the top level.");
         }
         return takePending();
+    }
+
+    private boolean omitDefault(ProtoProperty property, boolean defaultValue) {
+        return kind == Kind.MESSAGE && defaultValue && !property.explicitPresence();
     }
 
     private void beforeElement(boolean packable) throws IOException {

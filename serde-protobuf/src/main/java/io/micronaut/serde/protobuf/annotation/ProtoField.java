@@ -15,6 +15,8 @@
  */
 package io.micronaut.serde.protobuf.annotation;
 
+import io.micronaut.core.annotation.Experimental;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -31,6 +33,7 @@ import java.lang.annotation.Target;
  *
  * @since 3.2
  */
+@Experimental
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER, ElementType.RECORD_COMPONENT, ElementType.ANNOTATION_TYPE})

@@ -16,7 +16,9 @@
 package io.micronaut.serde.protobuf;
 
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.core.type.Argument;
 import io.micronaut.serde.protobuf.annotation.ProtoType;
+import io.micronaut.serde.protobuf.wire.ProtoWire;
 
 /**
  * One property of a message, with everything the encoder and decoder need already computed.
@@ -28,8 +30,14 @@ import io.micronaut.serde.protobuf.annotation.ProtoType;
  * @param name            The serde property name
  * @param number          The protobuf field number
  * @param type            The declared wire representation
+ * @param argument        The resolved serde property type
+ * @param repeatedField   Whether the property is a repeated field
  * @param packableElement Whether the element type is a scalar that protobuf packs by default
  * @param bytesField      Whether the property is a {@code bytes} field rather than a repeated one
+ * @param repeatedBytesField Whether each repeated element is a {@code bytes} value
+ * @param messageField    Whether duplicate occurrences should be merged as embedded messages
+ * @param explicitPresence Whether scalar defaults must be retained on the wire
+ * @param wireType        The expected wire type for one value
  * @param varintTag       The pre-combined tag for a varint value
  * @param fixed32Tag      The pre-combined tag for a four-byte value
  * @param fixed64Tag      The pre-combined tag for an eight-byte value
@@ -43,8 +51,14 @@ public record ProtoProperty(
     String name,
     int number,
     ProtoType type,
+    Argument<?> argument,
+    boolean repeatedField,
     boolean packableElement,
     boolean bytesField,
+    boolean repeatedBytesField,
+    boolean messageField,
+    boolean explicitPresence,
+    int wireType,
     int varintTag,
     int fixed32Tag,
     int fixed64Tag,
@@ -91,9 +105,9 @@ public record ProtoProperty(
      */
     public static int wireTypeOf(int kind) {
         return switch (kind) {
-            case KIND_FIXED32 -> io.micronaut.serde.protobuf.wire.ProtoWire.FIXED32;
-            case KIND_FIXED64 -> io.micronaut.serde.protobuf.wire.ProtoWire.FIXED64;
-            default -> io.micronaut.serde.protobuf.wire.ProtoWire.VARINT;
+            case KIND_FIXED32 -> ProtoWire.FIXED32;
+            case KIND_FIXED64 -> ProtoWire.FIXED64;
+            default -> ProtoWire.VARINT;
         };
     }
 
@@ -108,6 +122,20 @@ public record ProtoProperty(
             case KIND_FIXED32 -> fixed32Tag;
             case KIND_FIXED64 -> fixed64Tag;
             default -> varintTag;
+        };
+    }
+
+    /**
+     * The pre-combined tag for this property's expected wire type.
+     *
+     * @return The tag
+     */
+    public int wireTag() {
+        return switch (wireType) {
+            case ProtoWire.VARINT -> varintTag;
+            case ProtoWire.FIXED32 -> fixed32Tag;
+            case ProtoWire.FIXED64 -> fixed64Tag;
+            default -> lengthTag;
         };
     }
 }

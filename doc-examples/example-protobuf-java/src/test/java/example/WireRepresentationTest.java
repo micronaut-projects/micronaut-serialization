@@ -32,11 +32,10 @@ class WireRepresentationTest {
     // end::negative[]
 
     @Test
-    void theTwoAgreeOnPositiveValues() throws Exception {
-        int aboveFreezing = 4250;
+    void sint32CanCostMoreForPositiveValues() throws Exception {
+        int aboveFreezing = 64;
 
-        assertEquals(
-            protobufMapper.writeValueAsBytes(new Temperature.AsInt32(aboveFreezing)).length,
-            protobufMapper.writeValueAsBytes(new Temperature.AsSint32(aboveFreezing)).length);
+        assertEquals(2, protobufMapper.writeValueAsBytes(new Temperature.AsInt32(aboveFreezing)).length);
+        assertEquals(3, protobufMapper.writeValueAsBytes(new Temperature.AsSint32(aboveFreezing)).length);
     }
 }

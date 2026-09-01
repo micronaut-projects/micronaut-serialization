@@ -4,6 +4,8 @@ import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.core.type.Argument;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.protobuf.annotation.ProtoField;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -116,4 +118,62 @@ class ProtobufWireShapesTest {
         assertEquals(new NameAndAge("Ada Lovelace", 36),
             mapper.readValue(full.toByteArray(), Argument.of(NameAndAge.class)));
     }
+
+    @Test
+    void concatenatesInterleavedPackedAndUnpackedRepeatedRuns() throws Exception {
+        byte[] payload = {
+            40, 1,             // scores = 1, unpacked
+            10, 1, 'a',       // name = "a", interleaved
+            42, 2, 2, 3,      // scores = [2, 3], packed
+            40, 4              // scores = 4, unpacked again
+        };
+
+        Person read = mapper.readValue(payload, Argument.of(Person.class));
+        assertEquals("a", read.name());
+        assertEquals(List.of(1, 2, 3, 4), read.scores());
+    }
+
+    @Test
+    void usesTheLastCompatibleOccurrenceOfASingularScalar() throws Exception {
+        byte[] payload = {16, 1, 16, 2};
+
+        NameAndAge read = mapper.readValue(payload, Argument.of(NameAndAge.class));
+        assertEquals(2, read.age());
+    }
+
+    @Test
+    void mergesDuplicateEmbeddedMessages() throws Exception {
+        byte[] payload = {
+            10, 3, 10, 1, 'a',
+            10, 3, 18, 1, 'b'
+        };
+
+        AddressHolder read = mapper.readValue(payload, Argument.of(AddressHolder.class));
+        assertEquals(new Address("a", "b"), read.address());
+    }
+
+    @Test
+    void treatsAnIncompatibleWireTypeAsUnknown() throws Exception {
+        byte[] payload = {10, 1, 'a', 21, 7, 0, 0, 0};
+
+        NameAndAge read = mapper.readValue(payload, Argument.of(NameAndAge.class));
+        assertEquals(new NameAndAge("a", 0), read);
+    }
+
+    @Test
+    void skipsAnUnknownGroup() throws Exception {
+        byte[] payload = {
+            27,             // unknown field 3, start group
+            8, 1,           // nested field
+            28,             // field 3, end group
+            10, 1, 'a'
+        };
+
+        assertEquals(new NameAndAge("a", 0),
+            mapper.readValue(payload, Argument.of(NameAndAge.class)));
+    }
+}
+
+@Serdeable
+record AddressHolder(@ProtoField(1) Address address) {
 }
