@@ -1711,13 +1711,17 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
 
         private final Conf conf;
         private final BeanIntrospection<Object> introspection;
+        private final PropertiesBag<? super Object> properties;
         private final PropertiesBag<? super Object>.Consumer propertiesConsumer;
+        private final boolean hasPropertiesToFinalize;
         private BeanIntrospection.@Nullable Builder<? super Object> builder;
 
         BuilderDeserializer(DeserBean<? super Object> db, Conf conf) {
             this.introspection = db.introspection;
             this.conf = conf;
-            this.propertiesConsumer = Objects.requireNonNull(db.injectProperties).newConsumer();
+            this.properties = Objects.requireNonNull(db.injectProperties);
+            this.propertiesConsumer = properties.newConsumer();
+            this.hasPropertiesToFinalize = db.finalizeBuilderProperties;
         }
 
         @Override
@@ -1754,10 +1758,34 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
 
         @Override
         public Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext) throws IOException {
+            BeanIntrospection.Builder<? super Object> beanBuilder = Objects.requireNonNull(builder);
+            if (hasPropertiesToFinalize && !propertiesConsumer.isAllConsumed()) {
+                finalizeMissingProperties(decoderContext, beanBuilder);
+            }
             try {
-                return Objects.requireNonNull(builder).build();
+                return beanBuilder.build();
             } catch (InstantiationException e) {
                 throw new SerdeException(PREFIX_UNABLE_TO_DESERIALIZE_TYPE + introspection.getBeanType() + "]: " + e.getMessage(), e);
+            }
+        }
+
+        /**
+         * Applies the strict builder semantics to the properties that are missing from the input:
+         * a required property fails the deserialization and a property with a declared default value
+         * initializes the builder with that value.
+         */
+        private void finalizeMissingProperties(DecoderContext decoderContext,
+                                               BeanIntrospection.Builder<? super Object> beanBuilder) throws SerdeException {
+            DeserBean.DerProperty<Object, Object>[] propertiesArray = properties.getPropertiesArray();
+            for (int i = 0; i < propertiesArray.length; i++) {
+                if (propertiesConsumer.isConsumed(i)) {
+                    continue;
+                }
+                DeserBean.DerProperty<Object, Object> property = propertiesArray[i];
+                if (property.views != null && !decoderContext.hasView(property.views)) {
+                    continue;
+                }
+                property.setDefaultBuilderValue(beanBuilder);
             }
         }
     }

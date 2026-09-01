@@ -22,6 +22,7 @@ jsonbAnnotations:
   programmaticConfiguration: Programmatic JSON-B Configuration
 bsonAnnotations: BSON Annotations
 coercion: Type Coercion
+builders: Builders
 serdes: Custom Serializers & Deserializers
 serdeImport: Enabling Serialization of External Classes
 keys: Custom Key Converters
