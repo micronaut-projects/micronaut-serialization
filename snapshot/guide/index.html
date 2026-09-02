@@ -62,15 +62,17 @@
                                 
                                 <div class="toc-item" style="margin-left:0"><a href="#coercion"><strong>8</strong><span>Type Coercion</span></a></div>
                                 
-                                <div class="toc-item" style="margin-left:0"><a href="#serdes"><strong>9</strong><span>Custom Serializers &amp; Deserializers</span></a></div>
+                                <div class="toc-item" style="margin-left:0"><a href="#builders"><strong>9</strong><span>Builders</span></a></div>
                                 
-                                <div class="toc-item" style="margin-left:0"><a href="#serdeImport"><strong>10</strong><span>Enabling Serialization of External Classes</span></a></div>
+                                <div class="toc-item" style="margin-left:0"><a href="#serdes"><strong>10</strong><span>Custom Serializers &amp; Deserializers</span></a></div>
                                 
-                                <div class="toc-item" style="margin-left:0"><a href="#keys"><strong>11</strong><span>Custom Key Converters</span></a></div>
+                                <div class="toc-item" style="margin-left:0"><a href="#serdeImport"><strong>11</strong><span>Enabling Serialization of External Classes</span></a></div>
                                 
-                                <div class="toc-item" style="margin-left:0"><a href="#breaks"><strong>12</strong><span>Breaking Changes</span></a></div>
+                                <div class="toc-item" style="margin-left:0"><a href="#keys"><strong>12</strong><span>Custom Key Converters</span></a></div>
                                 
-                                <div class="toc-item" style="margin-left:0"><a href="#repository"><strong>13</strong><span>Repository</span></a></div>
+                                <div class="toc-item" style="margin-left:0"><a href="#breaks"><strong>13</strong><span>Breaking Changes</span></a></div>
+                                
+                                <div class="toc-item" style="margin-left:0"><a href="#repository"><strong>14</strong><span>Repository</span></a></div>
                                 
                             </div>
                         </div>
@@ -141,15 +143,17 @@
         
         <div class="toc-item" style="margin-left:0px" id="toc-item-coercion"><a href="#coercion"><strong>8</strong><span>Type Coercion</span></a></div>
         
-        <div class="toc-item" style="margin-left:0px" id="toc-item-serdes"><a href="#serdes"><strong>9</strong><span>Custom Serializers &amp; Deserializers</span></a></div>
+        <div class="toc-item" style="margin-left:0px" id="toc-item-builders"><a href="#builders"><strong>9</strong><span>Builders</span></a></div>
         
-        <div class="toc-item" style="margin-left:0px" id="toc-item-serdeImport"><a href="#serdeImport"><strong>10</strong><span>Enabling Serialization of External Classes</span></a></div>
+        <div class="toc-item" style="margin-left:0px" id="toc-item-serdes"><a href="#serdes"><strong>10</strong><span>Custom Serializers &amp; Deserializers</span></a></div>
         
-        <div class="toc-item" style="margin-left:0px" id="toc-item-keys"><a href="#keys"><strong>11</strong><span>Custom Key Converters</span></a></div>
+        <div class="toc-item" style="margin-left:0px" id="toc-item-serdeImport"><a href="#serdeImport"><strong>11</strong><span>Enabling Serialization of External Classes</span></a></div>
         
-        <div class="toc-item" style="margin-left:0px" id="toc-item-breaks"><a href="#breaks"><strong>12</strong><span>Breaking Changes</span></a></div>
+        <div class="toc-item" style="margin-left:0px" id="toc-item-keys"><a href="#keys"><strong>12</strong><span>Custom Key Converters</span></a></div>
         
-        <div class="toc-item" style="margin-left:0px" id="toc-item-repository"><a href="#repository"><strong>13</strong><span>Repository</span></a></div>
+        <div class="toc-item" style="margin-left:0px" id="toc-item-breaks"><a href="#breaks"><strong>13</strong><span>Breaking Changes</span></a></div>
+        
+        <div class="toc-item" style="margin-left:0px" id="toc-item-repository"><a href="#repository"><strong>14</strong><span>Repository</span></a></div>
         
         </div>
     </div>
@@ -4220,7 +4224,184 @@ if ((integerShapes &amp; shape.bit()) == 0) {
 </div>
 </div>
 
-<h1 id="serdes"><a class="anchor" href="#serdes"></a>9 Custom Serializers & Deserializers</h1>
+<h1 id="builders"><a class="anchor" href="#builders"></a>9 Builders</h1>
+
+<div class='contribute-btn'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/builders.adoc"'>
+        <i class='fa fa-pencil-square-o'></i> Improve this doc
+    </button>
+</div>
+
+
+<div class="paragraph">
+<p>Micronaut Serialization can deserialize immutable types through a builder instead of a constructor or setters.
+A builder is used when the type declares one with <code>@Introspected(builder = &#8230;&#8203;)</code>, or with the <code>jackson-databind</code>
+<code>@JsonDeserialize(builder = &#8230;&#8203;)</code> annotation which is mapped to the same build-time metadata.</p>
+</div>
+<div class="paragraph">
+<p>Builders are treated as strict: every property of the builder participates in the same required and default value
+rules as a property that is populated through a constructor parameter or a setter. Before the build method is called,
+the properties that are missing from the input are finalized:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>a property declared as required with <code>@JsonProperty(required = true)</code> fails the deserialization when it is absent from the input, or when it is present but <code>null</code>,</p>
+</li>
+<li>
+<p>a property declaring a default value with <code>@JsonProperty(defaultValue = "&#8230;&#8203;")</code> (or <code>@Bindable(defaultValue = "&#8230;&#8203;")</code>) initializes the builder with that value,</p>
+</li>
+<li>
+<p>every other property is left untouched so the defaults of the builder itself are preserved.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The following builder-backed type declares one required property and one property with a default value:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(builder = @Introspected.IntrospectionBuilder(builderClass = ReleaseRequest.Builder.class))
+public class ReleaseRequest {
+
+    @JsonProperty(required = true) // <b class="conum">(1)</b>
+    private final String service;
+
+    @JsonProperty(defaultValue = "platform") // <b class="conum">(2)</b>
+    private final String owner;
+
+    private final String notes; // <b class="conum">(3)</b>
+
+    private ReleaseRequest(String service, String owner, String notes) {
+        this.service = service;
+        this.owner = owner;
+        this.notes = notes;
+    }
+
+    public String getService() {
+        return service;
+    }
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public static final class Builder {
+        private String service;
+        private String owner;
+        private String notes;
+
+        public Builder service(String service) {
+            this.service = service;
+            return this;
+        }
+
+        public Builder owner(String owner) {
+            this.owner = owner;
+            return this;
+        }
+
+        public Builder notes(String notes) {
+            this.notes = notes;
+            return this;
+        }
+
+        public ReleaseRequest build() {
+            return new ReleaseRequest(service, owner, notes);
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>service</code> has to be present in the input</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><code>owner</code> falls back to the declared default value when it is absent from the input</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td><code>notes</code> has no serialization metadata, so the builder decides its value</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Deserialization then rejects input that omits <code>service</code>, and applies the declared default value of <code>owner</code>:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
+
+import io.micronaut.core.type.Argument;
+import io.micronaut.serde.ObjectMapper;
+import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+@MicronautTest
+class StrictBuilderExampleTest {
+
+    @Test
+    void testDefaultValueIsAppliedForAMissingProperty(ObjectMapper objectMapper) throws IOException {
+        ReleaseRequest request = objectMapper.readValue(
+            "{\"service\":\"checkout\"}",
+            Argument.of(ReleaseRequest.class)
+        );
+
+        assertEquals("checkout", request.getService());
+        assertEquals("platform", request.getOwner());
+        assertNull(request.getNotes());
+    }
+
+    @Test
+    void testMissingRequiredPropertyIsRejected(ObjectMapper objectMapper) {
+        SerdeException e = assertThrows(SerdeException.class, () -&gt; objectMapper.readValue(
+            "{\"owner\":\"growth\"}",
+            Argument.of(ReleaseRequest.class)
+        ));
+
+        assertTrue(e.getMessage().contains("Required property"));
+    }
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+A property that is absent from the input and has neither a required nor a default value declaration never calls
+the builder, which keeps the values a builder assigns itself, such as a Lombok <code>@Builder.Default</code> field.
+</td>
+</tr>
+</table>
+</div>
+
+<h1 id="serdes"><a class="anchor" href="#serdes"></a>10 Custom Serializers & Deserializers</h1>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/serdes.adoc"'>
@@ -4821,7 +5002,7 @@ class Place {
 </div>
 </div>
 
-<h1 id="serdeImport"><a class="anchor" href="#serdeImport"></a>10 Enabling Serialization of External Classes</h1>
+<h1 id="serdeImport"><a class="anchor" href="#serdeImport"></a>11 Enabling Serialization of External Classes</h1>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/serdeImport.adoc"'>
@@ -4991,7 +5172,7 @@ class Serdes {}</code></pre>
 </table>
 </div>
 
-<h1 id="keys"><a class="anchor" href="#keys"></a>11 Custom Key Converters</h1>
+<h1 id="keys"><a class="anchor" href="#keys"></a>12 Custom Key Converters</h1>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/keys.adoc"'>
@@ -5169,7 +5350,7 @@ class Feature {
 </table>
 </div>
 
-<h1 id="breaks"><a class="anchor" href="#breaks"></a>12 Breaking Changes</h1>
+<h1 id="breaks"><a class="anchor" href="#breaks"></a>13 Breaking Changes</h1>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/breaks.adoc"'>
@@ -5332,7 +5513,7 @@ The internal constructor <code>OracleJdbcJsonTextObjectMapper(SerdeRegistry regi
 </div>
 </div>
 
-<h1 id="repository"><a class="anchor" href="#repository"></a>13 Repository</h1>
+<h1 id="repository"><a class="anchor" href="#repository"></a>14 Repository</h1>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/repository.adoc"'>
