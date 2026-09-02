@@ -51,7 +51,16 @@ class StrictBuilderSpec extends Specification {
         value.notes == 'rollback ready'
     }
 
-    void "test builder required property declared on the builder method"() {
+    void "test builder does not apply declared defaults to explicit null values"() {
+        when:
+        def value = objectMapper.readValue('{"service":"checkout","owner":null}', TestBuildStrict)
+
+        then:
+        value.owner == null
+        value.retries == 3
+    }
+
+    void "test builder metadata declared on the builder method parameter"() {
         when:
         objectMapper.readValue('{}', TestBuildStrictMethod)
 
@@ -64,5 +73,6 @@ class StrictBuilderSpec extends Specification {
 
         then:
         value.service == 'checkout'
+        value.owner == 'platform'
     }
 }

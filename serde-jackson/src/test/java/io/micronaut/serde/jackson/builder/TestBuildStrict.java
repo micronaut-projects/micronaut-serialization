@@ -1,6 +1,7 @@
 package io.micronaut.serde.jackson.builder;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.jspecify.annotations.Nullable;
 import tools.jackson.databind.annotation.JsonDeserialize;
 
 @JsonDeserialize(builder = TestBuildStrict.Builder.class)
@@ -8,6 +9,7 @@ public class TestBuildStrict {
     @JsonProperty(required = true)
     private final String service;
     @JsonProperty(defaultValue = "platform")
+    @Nullable
     private final String owner;
     @JsonProperty(defaultValue = "3")
     private final int retries;
