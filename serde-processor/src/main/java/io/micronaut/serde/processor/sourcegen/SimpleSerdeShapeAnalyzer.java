@@ -16,7 +16,9 @@
 package io.micronaut.serde.processor.sourcegen;
 
 import io.micronaut.core.annotation.AnnotationMetadata;
+import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.core.annotation.Creator;
+import io.micronaut.core.annotation.Introspected;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.Element;
 import io.micronaut.inject.ast.ElementQuery;
@@ -121,6 +123,14 @@ public final class SimpleSerdeShapeAnalyzer {
         }
         if (deserializerReasons.isEmpty() && hasAnnotation(element, SerdeConfig.SerAnySetter.class)) {
             failDeserializer(deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.ANY_SETTER);
+            if (isBothFailed(serializerReasons, deserializerReasons)) {
+                return decision(shapeKind, serializerReasons, deserializerReasons);
+            }
+        }
+        // A type deserialized through a builder is handled by the introspection-backed deserializer,
+        // which owns the builder semantics such as required properties and declared default values.
+        if (deserializerReasons.isEmpty() && hasIntrospectionBuilder(element)) {
+            failDeserializer(deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
             if (isBothFailed(serializerReasons, deserializerReasons)) {
                 return decision(shapeKind, serializerReasons, deserializerReasons);
             }
@@ -481,6 +491,17 @@ public final class SimpleSerdeShapeAnalyzer {
             collectJacksonAnnotationsInTypeHierarchy(interfaceElement, annotations, visited);
         }
         classElement.getSuperType().ifPresent(superType -> collectJacksonAnnotationsInTypeHierarchy(superType, annotations, visited));
+    }
+
+    private static boolean hasIntrospectionBuilder(ClassElement element) {
+        AnnotationValue<Introspected> introspected = element.getAnnotation(Introspected.class);
+        if (introspected == null) {
+            return false;
+        }
+        return introspected.annotationClassValue("builderClass").isPresent()
+            || introspected.getAnnotation("builder", Introspected.IntrospectionBuilder.class)
+            .flatMap(builder -> builder.annotationClassValue("builderClass"))
+            .isPresent();
     }
 
     private SimpleSerdeShapeDecision.ShapeKind resolveShapeKind(ClassElement element) {

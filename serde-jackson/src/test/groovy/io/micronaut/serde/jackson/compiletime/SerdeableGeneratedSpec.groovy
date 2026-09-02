@@ -47,6 +47,31 @@ class SerdeableGeneratedSpec extends JsonCompileSpec {
         context.close()
     }
 
+    void 'test serdeable generated builder uses the runtime deserializer'() {
+        given:
+        def context = ApplicationContext.run()
+        jsonMapper = context.getBean(JsonMapper)
+        Argument argument = Argument.of(SourceGenBuilderShape)
+
+        when:
+        SourceGenBuilderShape decoded = jsonMapper.readValue('{"service":"checkout"}', argument)
+
+        then:
+        assertEligibility(context, SourceGenBuilderShape, false, false)
+        decoded.service == 'checkout'
+        decoded.owner == 'platform'
+
+        when:
+        jsonMapper.readValue('{}', argument)
+
+        then:
+        def e = thrown(Exception)
+        e.message.contains('Required property')
+
+        cleanup:
+        context.close()
+    }
+
     void 'test serdeable generated required false allows sourcegen fallback without generated classes'() {
         given:
         def context = ApplicationContext.run()

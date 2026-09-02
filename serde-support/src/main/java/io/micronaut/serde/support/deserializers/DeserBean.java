@@ -119,6 +119,11 @@ final class DeserBean<T> {
     public final boolean acceptCaseInsensitiveProperties;
 
     public final boolean hasBuilder;
+    /**
+     * Whether builder-backed deserialization has to finalize the properties that are missing from the
+     * input, which is the case when a builder property is required or declares a default value.
+     */
+    public final boolean finalizeBuilderProperties;
     public final ConversionService conversionService;
     public final Keys propertyKeys;
 
@@ -448,6 +453,7 @@ final class DeserBean<T> {
             }
         }
         this.injectPropertiesSize = injectProperties == null ? 0 : injectProperties.getDerProperties().size();
+        this.finalizeBuilderProperties = hasBuilder && requiresBuilderFinalization(injectProperties);
         this.wrapperProperty = introspection.stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY).orElse(null);
 
         this.anySetter = anySetterValue;
@@ -1310,6 +1316,27 @@ final class DeserBean<T> {
             }
         }
 
+        /**
+         * Finalizes a builder property that is missing from the input.
+         *
+         * <p>Builders are treated as strict: a property marked as required has to be present in the
+         * input, and a property that declares a default value is initialized with it so that the
+         * builder sees the same value a constructor or a setter would.</p>
+         *
+         * @param builder The builder to initialize
+         * @throws SerdeException If the property is required and not present in the input
+         */
+        public void setDefaultBuilderValue(BeanIntrospection.Builder<B> builder) throws SerdeException {
+            if (explicitlyRequired) {
+                throw new SerdeException("Unable to deserialize type [" + introspection.getBeanType().getName() + "]. Required property [" + argument +
+                    "] is not present in supplied data");
+            }
+            P value = defaultValue;
+            if (value != null) {
+                builder.with(index, argument, value);
+            }
+        }
+
         public void setDefaultConstructorValue(Deserializer.DecoderContext decoderContext, Object[] params) throws SerdeException {
             decoderContext = resolveFeatures(decoderContext);
             params[index] = provideDefaultConstructorValue(decoderContext);
@@ -1814,6 +1841,18 @@ final class DeserBean<T> {
             return convertException(e, false);
         }
 
+    }
+
+    private static boolean requiresBuilderFinalization(@Nullable PropertiesBag<?> injectProperties) {
+        if (injectProperties == null) {
+            return false;
+        }
+        for (DerProperty<?, Object> property : injectProperties.getDerProperties()) {
+            if (property.explicitlyRequired || property.defaultValue != null) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static <B, P> AnnotationMetadata resolveArgumentMetadata(BeanIntrospection<B> introspection, Argument<P> argument, AnnotationMetadata annotationMetadata) {
