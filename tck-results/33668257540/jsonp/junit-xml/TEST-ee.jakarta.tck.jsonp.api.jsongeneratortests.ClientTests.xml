@@ -1,0 +1,665 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests" tests="21" skipped="0" failures="0" errors="0" timestamp="SANITIZED" hostname="SANITIZED" time="0">
+  <properties/>
+  <testcase name="jsonGeneratorStreamClosedTest()" classname="ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests" time="0"/>
+  <testcase name="jsonGeneratorUTFEncodedTests()" classname="ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests" time="0"/>
+  <testcase name="jsonGeneratorExceptionTests()" classname="ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests" time="0"/>
+  <testcase name="jsonGeneratorObjectTest1()" classname="ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests" time="0"/>
+  <testcase name="jsonGeneratorObjectTest2()" classname="ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests" time="0"/>
+  <testcase name="jsonGeneratorObjectTest3()" classname="ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests" time="0"/>
+  <testcase name="jsonGeneratorObjectTest4()" classname="ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests" time="0"/>
+  <testcase name="jsonGeneratorObjectTest5()" classname="ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests" time="0"/>
+  <testcase name="flushTest()" classname="ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests" time="0"/>
+  <testcase name="jsonGeneratorArrayTest1()" classname="ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests" time="0"/>
+  <testcase name="jsonGeneratorArrayTest2()" classname="ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests" time="0"/>
+  <testcase name="jsonGeneratorArrayTest3()" classname="ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests" time="0"/>
+  <testcase name="jsonGeneratorArrayTest4()" classname="ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests" time="0"/>
+  <testcase name="jsonGeneratorArrayTest5()" classname="ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests" time="0"/>
+  <testcase name="jsonGeneratorIOErrorTests()" classname="ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests" time="0"/>
+  <testcase name="jsonGeneratorDocumentRootTest()" classname="ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests" time="0"/>
+  <testcase name="jsonGeneratorObjectConfigTest1()" classname="ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests" time="0"/>
+  <testcase name="jsonGeneratorObjectConfigTest2()" classname="ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests" time="0"/>
+  <testcase name="jsonGeneratorObjectEncodingTest1()" classname="ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests" time="0"/>
+  <testcase name="jsonGeneratorObjectEncodingTest2()" classname="ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests" time="0"/>
+  <testcase name="jsonGeneratorStreamNotClosedTest()" classname="ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests" time="0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: Create expected JSON text with no whitespace for use with comparison
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: -----------------------------------------------------------------------------------------------------
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: TEST CASE [Json.createGeneratorFactory(Map<String,?>).createGenerator(OutputStream, Charset) as UTF-8]
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: -----------------------------------------------------------------------------------------------------
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: Create JsonGenerator using UTF-8 encoding
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: Generated Output={"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: Read the JSON text back from OutputStream using UTF-8 encoding removing whitespace
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: ------------------------------------------------------------------------------------------------------
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: TEST CASE [Json.createGeneratorFactory(Map<String,?>).createGenerator(OutputStream, Charset) as UTF-16]
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: ------------------------------------------------------------------------------------------------------
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: Create JsonGenerator using UTF-16 encoding
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: Generated Output={"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: Read the JSON text back from OutputStream using UTF-16 encoding removing whitespace
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: --------------------------------------------------------------------------------------------------------
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: TEST CASE [Json.createGeneratorFactory(Map<String,?>).createGenerator(OutputStream, Charset) as UTF-16LE]
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: --------------------------------------------------------------------------------------------------------
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: Create JsonGenerator using UTF-16LE encoding
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: Generated Output={"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: Read the JSON text back from OutputStream using UTF-16LE encoding removing whitespace
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: --------------------------------------------------------------------------------------------------------
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: TEST CASE [Json.createGeneratorFactory(Map<String,?>).createGenerator(OutputStream, Charset) as UTF-16BE]
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: --------------------------------------------------------------------------------------------------------
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: Create JsonGenerator using UTF-16BE encoding
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: Generated Output={"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: Read the JSON text back from OutputStream using UTF-16BE encoding removing whitespace
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: --------------------------------------------------------------------------------------------------------
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: TEST CASE [Json.createGeneratorFactory(Map<String,?>).createGenerator(OutputStream, Charset) as UTF-32LE]
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: --------------------------------------------------------------------------------------------------------
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: Create JsonGenerator using UTF-32LE encoding
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: Generated Output={"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: Read the JSON text back from OutputStream using UTF-32LE encoding removing whitespace
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: --------------------------------------------------------------------------------------------------------
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: TEST CASE [Json.createGeneratorFactory(Map<String,?>).createGenerator(OutputStream, Charset) as UTF-32BE]
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: --------------------------------------------------------------------------------------------------------
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: Create JsonGenerator using UTF-32BE encoding
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: Generated Output={"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorUTFEncodedTests
+INFO: Read the JSON text back from OutputStream using UTF-32BE encoding removing whitespace
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip NumberFormatException for write(double) if value is Not-a-Number(NaN) or infinity
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected NumberFormatException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip NumberFormatException for write(double) if value is Not-a-Number(NaN) or infinity
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected NumberFormatException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip NumberFormatException for write(double) if value is Not-a-Number(NaN) or infinity
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected NumberFormatException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip NumberFormatException for write(String,double) if value is Not-a-Number(NaN) or infinity
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected NumberFormatException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip NumberFormatException for write(String,double) if value is Not-a-Number(NaN) or infinity
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected NumberFormatException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip NumberFormatException for write(String,double) if value is Not-a-Number(NaN) or infinity
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected NumberFormatException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationExceptipn if an incomplete JSON is generated.
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationExceptipn if an incomplete JSON is generated.
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for write(JsonValue) if not called within array context
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for write(String) if not called within array context
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for write(BigInteger) if not called within array context
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for write(BigDecimal) if not called within array context
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for write(int) if not called within array context
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for write(long) if not called within array context
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for write(double) if not called within array context
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for write(boolean) if not called within array context
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for writeNull() if not called within array context
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for writeStartArray() if not called within array context
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for writeStartObject() if not called within array context
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for write(String,JsonValue) if not called within object context
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for write(String,String) if not called within object context
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for write(String,BigInteger) if not called within object context
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for write(String,BigDecimal) if not called within object context
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for write(String,int) if not called within object context
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for write(String,long) if not called within object context
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for write(String,double) if not called within object context
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for write(String,boolean) if not called within object context
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for writeNull(String) if not called within object context
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for writeStartArray(String) if not called within object context
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for writeStartObject(String) if not called within object context
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for write(String,JsonValue) when invoked after the writeEnd method is called
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for writeEnd() when invoked after the writeEnd method is called
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for write(String,BigInteger) when invoked after the writeEnd method is called
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for write(String,BigDecimal) when invoked after the writeEnd method is called
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for write(String,int) when invoked after the writeEnd method is called
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for write(String,long) when invoked after the writeEnd method is called
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for write(String,double) when invoked after the writeEnd method is called
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for write(String,boolean) when invoked after the writeEnd method is called
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for writeNull(String) when invoked after the writeEnd method is called
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for write(JsonValue) when invoked after the writeEnd method is called
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for write(String) when invoked after the writeEnd method is called
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for write(BigDecimal) when invoked after the writeEnd method is called
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for write(BigInteger) when invoked after the writeEnd method is called
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for write(int) when invoked after the writeEnd method is called
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for write(long) when invoked after the writeEnd method is called
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for write(double) when invoked after the writeEnd method is called
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for write(boolean) when invoked after the writeEnd method is called
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Trip JsonGenerationException for for writeNull() when invoked with no context
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorExceptionTests
+INFO: Caught expected JsonGenerationException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorObjectTest1
+INFO: Create expected JSON text with no whitespace
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorObjectTest1
+INFO: Read the JSON text back from Writer removing whitespace
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorObjectTest2
+INFO: Dump of string: {"emptyString":"","emptyArray":[],"emptyObject":{},"string":"string","intMin":-2147483648,"intMax":2147483647,"longMin":-9223372036854775808,"longMax":9223372036854775807,"true":true,"false":false,"null":null,"object":{"emptyString":"","emptyArray":[],"emptyObject":{},"string":"string","number":100,"true":true,"false":false,"null":null,"object":{"name":"value"},"array":["one","two"]},"array":["string",2147483647,9223372036854775807,true,false,null,{"name":"value"},["one","two"]],"asciiChars":"\\\"\\\\!@#$%^&*()_+|~1234567890-=`[]{}:;',./<>? qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM"}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorObjectTest2
+INFO: Create expected JSON text with no whitespace
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorObjectTest2
+INFO: Read the JSON text back from OutputStream removing whitespace
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {"emptyString":"","emptyArray":[],"emptyObject":{},"string":"string","intMin":-2147483648,"intMax":2147483647,"longMin":-9223372036854775808,"longMax":9223372036854775807,"true":true,"false":false,"null":null,"object":{"emptyString":"","emptyArray":[],"emptyObject":{},"string":"string","number":100,"true":true,"false":false,"null":null,"object":{"name":"value"},"array":["one","two"]},"array":["string",2147483647,9223372036854775807,true,false,null,{"name":"value"},["one","two"]],"asciiChars":"\\\"\\\\!@#$%^&*()_+|~1234567890-=`[]{}:;',./<>? qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM"}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {"emptyString":"","emptyArray":[],"emptyObject":{},"string":"string","intMin":-2147483648,"intMax":2147483647,"longMin":-9223372036854775808,"longMax":9223372036854775807,"true":true,"false":false,"null":null,"object":{"emptyString":"","emptyArray":[],"emptyObject":{},"string":"string","number":100,"true":true,"false":false,"null":null,"object":{"name":"value"},"array":["one","two"]},"array":["string",2147483647,9223372036854775807,true,false,null,{"name":"value"},["one","two"]],"asciiChars":"\\\"\\\\!@#$%^&*()_+|~1234567890-=`[]{}:;',./<>? qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM"}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests buildJsonObject
+INFO: Build a JsonObject
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests generateJsonObject
+INFO: Generate a JsonObject
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorObjectTest3
+INFO: Compare expJsonObject and actJsonObject for equality
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonObjects
+INFO: JsonObject match
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonObjects
+INFO: Expected: {"emptyString":"","emptyArray":[],"emptyObject":{},"string":"string","intMin":-2147483648,"intMax":2147483647,"longMin":-9223372036854775808,"longMax":9223372036854775807,"doubleMin":4.9E-324,"doubleMax":0,"bigInteger":2147483647,"bigDecimal":-2147483648,"true":true,"false":false,"null":null,"object":{"emptyString":"","emptyArray":[],"emptyObject":{},"string":"string","number":100,"true":true,"false":false,"null":null,"object":{"name":"value","objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"array":["one","two",{"foo":"bar"},["foo","bar"]]},"array":["string",2147483647,9223372036854775807,0,2147483647,true,false,null,{"name":"value"},["one","two"]],"asciiChars":"\"\\!@#$%^&*()_+|~1234567890-=`[]{}:;',./<>? qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM"}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonObjects
+INFO: Actual:   {"emptyString":"","emptyArray":[],"emptyObject":{},"string":"string","intMin":-2147483648,"intMax":2147483647,"longMin":-9223372036854775808,"longMax":9223372036854775807,"doubleMin":4.9E-324,"doubleMax":0,"bigInteger":2147483647,"bigDecimal":-2147483648,"true":true,"false":false,"null":null,"object":{"emptyString":"","emptyArray":[],"emptyObject":{},"string":"string","number":100,"true":true,"false":false,"null":null,"object":{"name":"value","objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"array":["one","two",{"foo":"bar"},["foo","bar"]]},"array":["string",2147483647,9223372036854775807,0,2147483647,true,false,null,{"name":"value"},["one","two"]],"asciiChars":"\"\\!@#$%^&*()_+|~1234567890-=`[]{}:;',./<>? qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM"}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorObjectTest4
+INFO: Create generator output in UTF-16BE encoding.
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorObjectTest4
+INFO: Create expected JSON text with no whitespace
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorObjectTest4
+INFO: Read the JSON text back encoding from OutputStream using UTF-16BE encoding removing whitespace
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorObjectTest5
+INFO: Testing read of {"unicodechars":"\u0000\u000F\u001Fÿ＀?"}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorObjectTest5
+INFO: actUnicodeChars=???ÿ＀?
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: ???ÿ＀?
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   ???ÿ＀?
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests flushTest
+INFO: Generate some partial Json and flush output.
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests flushTest
+INFO: Create expected partial JSON text with no whitespace
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests flushTest
+INFO: Read the JSON text back from Writer removing whitespace
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {"object":{}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {"object":{}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests flushTest
+INFO: Generate additional Json to complete and flush output.
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests flushTest
+INFO: Read the JSON text back from Writer removing whitespace
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {"object":{},"array":[]}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {"object":{},"array":[]}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorArrayTest1
+INFO: Create expected JSON text with no whitespace
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorArrayTest1
+INFO: Read the JSON text back from Writer removing whitespace
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: [{"string":"string","number":1,"true":true,"false":false,"null":null},["string",1,true,false,null]]
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   [{"string":"string","number":1,"true":true,"false":false,"null":null},["string",1,true,false,null]]
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorArrayTest2
+INFO: Dump of string: ["",[],{},"string",-2147483648,2147483647,-9223372036854775808,9223372036854775807,true,false,null,{"emptyString":"","emptyArray":[],"emptyObject":{},"string":"string","number":100,"true":true,"false":false,"null":null,"object":{"name":"value"},"array":["one","two"]},["string",2147483647,9223372036854775807,true,false,null,{"name":"value"},["one","two"]],"\\\"\\\\!@#$%^&*()_+|~1234567890-=`[]{}:;',./<>? qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM"]
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorArrayTest2
+INFO: Create expected JSON text with no whitespace
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorArrayTest2
+INFO: Read the JSON text back from Writer removing whitespace
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: ["",[],{},"string",-2147483648,2147483647,-9223372036854775808,9223372036854775807,true,false,null,{"emptyString":"","emptyArray":[],"emptyObject":{},"string":"string","number":100,"true":true,"false":false,"null":null,"object":{"name":"value"},"array":["one","two"]},["string",2147483647,9223372036854775807,true,false,null,{"name":"value"},["one","two"]],"\\\"\\\\!@#$%^&*()_+|~1234567890-=`[]{}:;',./<>? qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM"]
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   ["",[],{},"string",-2147483648,2147483647,-9223372036854775808,9223372036854775807,true,false,null,{"emptyString":"","emptyArray":[],"emptyObject":{},"string":"string","number":100,"true":true,"false":false,"null":null,"object":{"name":"value"},"array":["one","two"]},["string",2147483647,9223372036854775807,true,false,null,{"name":"value"},["one","two"]],"\\\"\\\\!@#$%^&*()_+|~1234567890-=`[]{}:;',./<>? qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM"]
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests buildJsonArray
+INFO: Build a JsonArray
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests generateJsonArray
+INFO: Generate a JsonArray
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorArrayTest3
+INFO: generator json text: ["",[],{},"string",-2147483648,2147483647,-9223372036854775808,9223372036854775807,4.9E-324,1.7976931348623157E308,2147483647,-2147483648,true,false,null,{"emptyString":"","emptyArray":[],"emptyObject":{},"string":"string","number":100,"true":true,"false":false,"null":null,"object":{"name":"value","objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"array":["one","two",{"foo":"bar"},["foo","bar"]]},["string",2147483647,9223372036854775807,1.7976931348623157E308,2147483647,true,false,null,{"name":"value"},["one","two"]],"\\\"\\\\!@#$%^&*()_+|~1234567890-=`[]{}:;',./<>? qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM"]
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorArrayTest3
+INFO: Compare expJsonArray and actJsonArray for equality
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonArrays
+INFO: JsonArray match
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonArrays
+INFO: Expected: ["",[],{},"string",-2147483648,2147483647,-9223372036854775808,9223372036854775807,4.9E-324,0,2147483647,-2147483648,true,false,null,{"emptyString":"","emptyArray":[],"emptyObject":{},"string":"string","number":100,"true":true,"false":false,"null":null,"object":{"name":"value","objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"array":["one","two",{"foo":"bar"},["foo","bar"]]},["string",2147483647,9223372036854775807,0,2147483647,true,false,null,{"name":"value"},["one","two"]],"\"\\!@#$%^&*()_+|~1234567890-=`[]{}:;',./<>? qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM"]
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonArrays
+INFO: Actual:   ["",[],{},"string",-2147483648,2147483647,-9223372036854775808,9223372036854775807,4.9E-324,0,2147483647,-2147483648,true,false,null,{"emptyString":"","emptyArray":[],"emptyObject":{},"string":"string","number":100,"true":true,"false":false,"null":null,"object":{"name":"value","objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"array":["one","two",{"foo":"bar"},["foo","bar"]]},["string",2147483647,9223372036854775807,0,2147483647,true,false,null,{"name":"value"},["one","two"]],"\"\\!@#$%^&*()_+|~1234567890-=`[]{}:;',./<>? qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM"]
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorArrayTest4
+INFO: Create generator output in UTF-16BE encoding.
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorArrayTest4
+INFO: Create expected JSON text with no whitespace
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorArrayTest4
+INFO: Read the JSON text back from OutputStream using UTF-16BE encoding removing whitespace
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: [{"string":"string","number":1,"true":true,"false":false,"null":null},["string",1,true,false,null]]
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   [{"string":"string","number":1,"true":true,"false":false,"null":null},["string",1,true,false,null]]
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorArrayTest5
+INFO: Testing read of ["\u0000\u000F\u001Fÿ＀?"]
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorArrayTest5
+INFO: actUnicodeChars=???ÿ＀?
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: ???ÿ＀?
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   ???ÿ＀?
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorIOErrorTests
+INFO: Trip JsonException if there is an i/o error on JsonGenerator.close().
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorIOErrorTests
+INFO: Calling JsonGenerator.close()
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.MyBufferedWriter checkToTripIOException
+INFO: *** tripping an IOException ***
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.MyBufferedWriter checkToTripIOException
+INFO: *** tripping an IOException ***
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorIOErrorTests
+INFO: Caught expected JsonException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorIOErrorTests
+INFO: Trip JsonException if there is an i/o error on JsonGenerator.flush().
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorIOErrorTests
+INFO: Calling JsonGenerator.flush()
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.MyBufferedWriter checkToTripIOException
+INFO: *** tripping an IOException ***
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorIOErrorTests
+INFO: Caught expected JsonException
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.Generator test
+INFO: JsonGenerator API methods for RFC 7159 grammar changes.
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.Generator testPrimitiveTypesInRoot
+INFO:  - write(JsonValue) for JsonValue as an argument
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.Generator verifyJsonGeneratorForJsonValue
+INFO:      Output (JsonValue): {"name":"Sarah Connor","age":32}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.Generator verifyJsonGeneratorForSimpleType
+INFO:      Output (simple): {"name":"Sarah Connor","age":32}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.Generator testPrimitiveTypesInRoot
+INFO:  - write(JsonValue) for JsonValue as an argument
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.Generator verifyJsonGeneratorForJsonValue
+INFO:      Output (JsonValue): ["In a galaxy far far away"]
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.Generator verifyJsonGeneratorForSimpleType
+INFO:      Output (simple): ["In a galaxy far far away"]
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.Generator testPrimitiveTypesInRoot
+INFO:  - write(JsonValue) for String as an argument
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.Generator verifyJsonGeneratorForJsonValue
+INFO:      Output (JsonValue): "In a galaxy far far away"
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.Generator verifyJsonGeneratorForSimpleType
+INFO:      Output (simple): "In a galaxy far far away"
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.Generator testPrimitiveTypesInRoot
+INFO:  - write(JsonValue) for Integer as an argument
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.Generator verifyJsonGeneratorForJsonValue
+INFO:      Output (JsonValue): 42
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.Generator verifyJsonGeneratorForSimpleType
+INFO:      Output (simple): 42
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.Generator testPrimitiveTypesInRoot
+INFO:  - write(JsonValue) for Long as an argument
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.Generator verifyJsonGeneratorForJsonValue
+INFO:      Output (JsonValue): 9223372036854775765
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.Generator verifyJsonGeneratorForSimpleType
+INFO:      Output (simple): 9223372036854775765
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.Generator testPrimitiveTypesInRoot
+INFO:  - write(JsonValue) for Double as an argument
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.Generator verifyJsonGeneratorForJsonValue
+INFO:      Output (JsonValue): 3.441073578556931E+305
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.Generator verifyJsonGeneratorForSimpleType
+INFO:      Output (simple): 3.441073578556931E305
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.Generator testPrimitiveTypesInRoot
+INFO:  - write(JsonValue) for BigInteger as an argument
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.Generator verifyJsonGeneratorForJsonValue
+INFO:      Output (JsonValue): 123456789012345678901234567890
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.Generator verifyJsonGeneratorForSimpleType
+INFO:      Output (simple): 123456789012345678901234567890
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.Generator testPrimitiveTypesInRoot
+INFO:  - write(JsonValue) for BigDecimal as an argument
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.Generator verifyJsonGeneratorForJsonValue
+INFO:      Output (JsonValue): 123456789012345678901234567890.1234567890
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.Generator verifyJsonGeneratorForSimpleType
+INFO:      Output (simple): 123456789012345678901234567890.1234567890
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.Generator testPrimitiveTypesInRoot
+INFO:  - write(JsonValue) for Boolean as an argument
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.Generator verifyJsonGeneratorForJsonValue
+INFO:      Output (JsonValue): true
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.Generator verifyJsonGeneratorForSimpleType
+INFO:      Output (simple): true
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.Generator testPrimitiveTypesInRoot
+INFO:  - write(JsonValue) for Null as an argument
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.Generator verifyJsonGeneratorForJsonValue
+INFO:      Output (JsonValue): null
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.Generator verifyJsonGeneratorForSimpleType
+INFO:      Output (simple): null
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.Generator testWrittingObjectByParts
+INFO:  - generate JSON object
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.Generator testWrittingObjectByParts
+INFO:      Output: {"address":"In a galaxy far far away"}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorObjectConfigTest1
+INFO: Create JsonGenerator using configuration with PRETTY_PRINTING
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util getPrettyPrintingConfig
+INFO: getPrettyPrintConfig
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util getPrettyPrintingConfig
+INFO: Added property: JsonGenerator.PRETTY_PRINTING
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorObjectConfigTest1
+INFO: PRETTY_PRINTING feature
+{
+  "object" : {
+    "string" : "string",
+    "number" : 1,
+    "true" : true,
+    "false" : false,
+    "null" : null
+  },
+  "array" : [ "string", 1, true, false, null ]
+}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorObjectConfigTest1
+INFO: Create expected JSON text with no whitespace
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorObjectConfigTest1
+INFO: Read the JSON text back from Writer removing whitespace
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorObjectConfigTest2
+INFO: Create JsonGenerator using configuration with PRETTY_PRINTING
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util getPrettyPrintingConfig
+INFO: getPrettyPrintConfig
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util getPrettyPrintingConfig
+INFO: Added property: JsonGenerator.PRETTY_PRINTING
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorObjectConfigTest2
+INFO: PRETTY_PRINTING feature
+{
+  "object" : {
+    "string" : "string",
+    "number" : 1,
+    "true" : true,
+    "false" : false,
+    "null" : null
+  },
+  "array" : [ "string", 1, true, false, null ]
+}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorObjectConfigTest2
+INFO: Create expected JSON text with no whitespace
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorObjectConfigTest2
+INFO: Read the JSON text back from Writer removing whitespace
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorObjectEncodingTest1
+INFO: Create JsonGenerator using UTF-8 encoding
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorObjectEncodingTest1
+INFO: Generator Output={"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorObjectEncodingTest1
+INFO: Create expected JSON text with no whitespace
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorObjectEncodingTest1
+INFO: Read the JSON text back from OutputStream using UTF-8 encoding removing whitespace
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorObjectEncodingTest2
+INFO: Create JsonGenerator using configuration with PRETTY_PRINTING using UTF-16BE encoding
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util getPrettyPrintingConfig
+INFO: getPrettyPrintConfig
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util getPrettyPrintingConfig
+INFO: Added property: JsonGenerator.PRETTY_PRINTING
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorObjectEncodingTest2
+INFO: PRETTY_PRINTING feature
+{
+  "object" : {
+    "string" : "string",
+    "number" : 1,
+    "true" : true,
+    "false" : false,
+    "null" : null
+  },
+  "array" : [ "string", 1, true, false, null ]
+}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorObjectEncodingTest2
+INFO: Create expected JSON text with no whitespace
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsongeneratortests.ClientTests jsonGeneratorObjectEncodingTest2
+INFO: Read the JSON text back from OutputStream using UTF-16BE encoding removing whitespace
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {"object":{"string":"string","number":1,"true":true,"false":false,"null":null},"array":["string",1,true,false,null]}
+]]></system-err>
+</testsuite>
