@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @MicronautTest
-public class StrictBuilderExampleTest {
+class StrictBuilderExampleTest {
 
     @Test
     void testDefaultValueIsAppliedForAMissingProperty(ObjectMapper objectMapper) throws IOException {

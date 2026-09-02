@@ -1778,14 +1778,11 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                                                BeanIntrospection.Builder<? super Object> beanBuilder) throws SerdeException {
             DeserBean.DerProperty<Object, Object>[] propertiesArray = properties.getPropertiesArray();
             for (int i = 0; i < propertiesArray.length; i++) {
-                if (propertiesConsumer.isConsumed(i)) {
-                    continue;
-                }
                 DeserBean.DerProperty<Object, Object> property = propertiesArray[i];
-                if (property.views != null && !decoderContext.hasView(property.views)) {
-                    continue;
+                if (!propertiesConsumer.isConsumed(i)
+                    && (property.views == null || decoderContext.hasView(property.views))) {
+                    property.setDefaultBuilderValue(beanBuilder);
                 }
-                property.setDefaultBuilderValue(beanBuilder);
             }
         }
     }
