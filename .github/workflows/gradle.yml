@@ -60,7 +60,7 @@ jobs:
           [ -f ./setup.sh ] && ./setup.sh || [ ! -f ./setup.sh ]
 
       - name: "🚔 Vulnerability Audit"
-        if: matrix.java == '17'
+        if: matrix.java == '21'
 
         run: |
             .github/scripts/vulnerability-audit.sh
@@ -71,7 +71,7 @@ jobs:
           ./gradlew jacocoReport check --no-daemon --continue
 
       - name: "🔎 Run static analysis"
-        if: env.SONAR_TOKEN != '' && matrix.java == '17'
+        if: env.SONAR_TOKEN != '' && matrix.java == '21'
         run: |
           ./gradlew sonar --no-parallel --continue
 
