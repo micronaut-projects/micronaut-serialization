@@ -12,8 +12,9 @@ jacksonAnnotations:
   jacksonFilter: Custom Property Filters
 jsonbAnnotations: JSON-B Annotations
 bsonAnnotations: BSON Annotations
+coercion: Type Coercion
 serdes: Custom Serializers & Deserializers
 serdeImport: Enabling Serialization of External Classes
 keys: Custom Key Converters
 repository: Repository
-
+breaks: Breaking Changes

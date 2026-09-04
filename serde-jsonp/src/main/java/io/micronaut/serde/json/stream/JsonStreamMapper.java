@@ -29,6 +29,7 @@ import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.ObjectMapper;
 import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.config.CoercionPolicy;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.SerializationConfiguration;
@@ -62,6 +63,7 @@ public class JsonStreamMapper implements ObjectMapper {
     private final SerdeConfiguration serdeConfiguration;
     @Nullable
     private final Class<?> view;
+    private final CoercionPolicy coercionPolicy;
 
     @Deprecated
     public JsonStreamMapper(@NonNull SerdeRegistry registry) {
@@ -82,6 +84,8 @@ public class JsonStreamMapper implements ObjectMapper {
         this.registry = registry;
         this.serdeConfiguration = serdeConfiguration;
         this.view = view;
+        this.coercionPolicy = CoercionPolicy.fromConfiguration(
+            registry.newDecoderContext(view).getDeserializationConfiguration().orElse(null));
     }
 
     @Override
@@ -104,7 +108,7 @@ public class JsonStreamMapper implements ObjectMapper {
         Deserializer.DecoderContext context = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view));
         final Deserializer<? extends T> deserializer = context.findDeserializer(type).createSpecific(context, type);
         return deserializer.deserialize(
-                JsonNodeDecoder.create(tree, limits()),
+                JsonNodeDecoder.create(tree, limits(), coercionPolicy),
                 context,
                 type
         );
@@ -125,7 +129,7 @@ public class JsonStreamMapper implements ObjectMapper {
     }
 
     private <T> T readValue(JsonParser parser, Argument<T> type) throws IOException {
-        Decoder decoder = new JsonParserDecoder(parser, limits());
+        Decoder decoder = new JsonParserDecoder(parser, limits(), coercionPolicy);
         Deserializer.DecoderContext context = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view));
         final Deserializer<? extends T> deserializer = context.findDeserializer(type).createSpecific(context, type);
         return deserializer.deserialize(
@@ -143,7 +147,7 @@ public class JsonStreamMapper implements ObjectMapper {
             @Override
             protected JsonNode parseOne(@NonNull InputStream is) throws IOException {
                 try (JsonParser parser = Json.createParser(is)) {
-                    final JsonParserDecoder decoder = new JsonParserDecoder(parser, limits());
+                    final JsonParserDecoder decoder = new JsonParserDecoder(parser, limits(), coercionPolicy);
                     final Object o = decoder.decodeArbitrary();
                     return writeValueToTree(o);
                 }

@@ -1,0 +1,99 @@
+When a value in the document does not have the shape of the property it is read into, the decoders coerce it. A JSON string is read into an `int` property, a number is read into a `String` property, and a floating point number is truncated into an integer property:
+
+[source,json]
+----
+{"id": "1234", "name": 42, "count": 9.75}
+----
+
+[source,java]
+----
+@Serdeable
+record Item(int id, String name, int count) {} // id = 1234, name = "42", count = 9
+----
+
+This is the historical behaviour and remains the default, so that existing applications are unaffected. Applications that would rather reject input of the wrong shape, for example a public API that should answer `400` instead of silently truncating a value, can restrict which coercions are allowed.
+
+=== Rejecting All Coercions
+
+Set the coercion mode to `STRICT` to require every value to have the shape of the property it is read into:
+
+[configuration]
+----
+micronaut:
+  serde:
+    deserialization:
+      coercion-mode: STRICT
+----
+
+With the configuration above, all three properties in the document at the top are rejected with an `InvalidFormatException` naming the offending value, while `{"id": 1234, "name": "42", "count": 9}` still reads.
+
+=== Selecting Individual Coercions
+
+Each coercion can also be turned on or off on its own. An individual setting always wins over the mode, so a strict application can allow just the coercions it needs:
+
+[configuration]
+----
+micronaut:
+  serde:
+    deserialization:
+      coercion-mode: STRICT
+      accept-string-as-number: true
+----
+
+The available settings, all under `micronaut.serde.deserialization` and all enabled by default:
+
+|===
+|Property |Rejects when disabled
+
+|`accept-float-as-int`
+|`9.75` read into `int`, `long`, `short`, `byte`, `char` or `BigInteger`
+
+|`accept-string-as-number`
+|`"42"` read into any numeric type
+
+|`accept-boolean-as-number`
+|`true` read into any numeric type, as `1`
+
+|`accept-number-as-boolean`
+|`1` read into `boolean`, as any non-zero value
+
+|`accept-string-as-boolean`
+|`"true"` read into `boolean`
+
+|`accept-scalar-as-string`
+|`42` or `true` read into `String`
+
+|`unwrap-single-value-arrays`
+|`[42]` read into a single `int`
+|===
+
+NOTE: `unwrap-single-value-arrays` is the opposite direction of `accept-single-value-as-array`, which reads a single value into a collection property.
+
+=== Scope
+
+The setting applies consistently to the supported formats: JSON through Jackson, JSON-P, BSON and Oracle JDBC JSON all read it from the same configuration, and it holds however a value reaches a property, including values that are buffered first because a polymorphic discriminator or a creator argument appears later in the document.
+
+XML is not affected, because every scalar in an XML document is textual and there is no shape to coerce from.
+
+A custom api:serde.Decoder[] receives the resolved api:serde.config.CoercionPolicy[] the same way it receives the stream limits, and should consult it wherever it reads a value whose shape does not match the requested type:
+
+[source,java]
+----
+if (!coercionPolicy.isAllowed(CoercionPolicy.Coercion.STRING_AS_NUMBER)) {
+    throw createDeserializationException(CoercionPolicy.Coercion.STRING_AS_NUMBER.message(), text);
+}
+----
+
+For decoders that read many values, `CoercionPolicy` precalculates the set of shapes each target type accepts, so a check costs a single mask test:
+
+[source,java]
+----
+// once, when the decoder is created
+this.integerShapes = coercionPolicy.allowedShapes(CoercionPolicy.Target.INTEGER);
+// per value
+if ((integerShapes & shape.bit()) == 0) {
+    throw ...;
+}
+----
+
+A decoder that creates another decoder over the same data, in particular in `decodeBuffer()`, must pass its policy on, so that a document is accepted or rejected regardless of which decoder ends up reading a given value.
