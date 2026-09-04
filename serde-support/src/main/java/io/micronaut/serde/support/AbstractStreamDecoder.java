@@ -82,6 +82,8 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
     /**
      * Whether the current number token has a fractional part. A forward-only decoder should
      * override this to answer from its token type without consuming the value.
+     *
+     * @return {@code true} if the current number has a fractional part
      */
     protected boolean isCurrentNumberFloat() throws IOException {
         Number number = getBestNumber();
