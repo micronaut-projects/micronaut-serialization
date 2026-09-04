@@ -36,7 +36,7 @@ xmlunit = "2.12.0"
 jakarta-enterprise-cdi-api = "4.0.1"
 jakarta-json-tck = "2.1.1"
 jakarta-json-bind-tck = "3.0.3"
-jakarta-tck-sigtest = "2.6"
+jakarta-tck-sigtest = "2.7"
 weld-se = "5.1.7.Final"
 
 [libraries]
