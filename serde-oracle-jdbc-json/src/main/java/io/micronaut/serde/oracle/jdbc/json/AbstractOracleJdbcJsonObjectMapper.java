@@ -86,13 +86,14 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
 
     @Override
     public <T> @Nullable T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
-        Deserializer.DecoderContext context = registry.newDecoderContext(view);
-        final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type).createSpecific(context, type);
-        return deserializer.deserialize(
-            JsonNodeDecoder.create(tree, limits(), coercionPolicy()),
-            context,
-            type
-        );
+        try (var context = registry.newDecoderContext(view)) {
+            final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type).createSpecific(context, type);
+            return deserializer.deserialize(
+                JsonNodeDecoder.create(tree, limits(), coercionPolicy()),
+                context,
+                type
+            );
+        }
     }
 
     @Override
@@ -133,13 +134,14 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
             }
             return (T) parser.getArray();
         }
-        Deserializer.DecoderContext context = registry.newDecoderContext(view);
-        final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type).createSpecific(context, type);
-        return deserializer.deserialize(
-            new OracleJdbcJsonParserDecoder(parser, limits(), coercionPolicy()),
-            context,
-            type
-        );
+        try (var context = registry.newDecoderContext(view)) {
+            final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type).createSpecific(context, type);
+            return deserializer.deserialize(
+                new OracleJdbcJsonParserDecoder(parser, limits(), coercionPolicy()),
+                context,
+                type
+            );
+        }
     }
 
     @Override
@@ -233,13 +235,14 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
     }
 
     private void serialize(Encoder encoder, Object object, Argument type) throws IOException {
-        Serializer.EncoderContext context = registry.newEncoderContext(view);
-        final Serializer<Object> serializer = registry.findSerializer(type).createSpecific(context, type);
-        serializer.serialize(
-            encoder,
-            context,
-            type, object
-        );
+        try (var context = registry.newEncoderContext(view)) {
+            final Serializer<Object> serializer = registry.findSerializer(type).createSpecific(context, type);
+            serializer.serialize(
+                encoder,
+                context,
+                type, object
+            );
+        }
     }
 
     @Override

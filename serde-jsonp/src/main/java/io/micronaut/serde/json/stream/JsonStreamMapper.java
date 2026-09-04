@@ -106,13 +106,14 @@ public class JsonStreamMapper implements ObjectMapper {
 
     @Override
     public <T> @Nullable T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
-        Deserializer.DecoderContext context = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view));
-        final Deserializer<? extends T> deserializer = context.findDeserializer(type).createSpecific(context, type);
-        return deserializer.deserialize(
-                JsonNodeDecoder.create(tree, limits(), coercionPolicy()),
-                context,
-                type
-        );
+        try (var context = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view))) {
+            final Deserializer<? extends T> deserializer = context.findDeserializer(type).createSpecific(context, type);
+            return deserializer.deserialize(
+                    JsonNodeDecoder.create(tree, limits(), coercionPolicy()),
+                    context,
+                    type
+            );
+        }
     }
 
     @Override
@@ -131,13 +132,14 @@ public class JsonStreamMapper implements ObjectMapper {
 
     private <T> @Nullable T readValue(JsonParser parser, Argument<T> type) throws IOException {
         Decoder decoder = new JsonParserDecoder(parser, limits(), coercionPolicy());
-        Deserializer.DecoderContext context = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view));
-        final Deserializer<? extends T> deserializer = context.findDeserializer(type).createSpecific(context, type);
-        return deserializer.deserialize(
-                decoder,
-                context,
-                type
-        );
+        try (var context = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view))) {
+            final Deserializer<? extends T> deserializer = context.findDeserializer(type).createSpecific(context, type);
+            return deserializer.deserialize(
+                    decoder,
+                    context,
+                    type
+            );
+        }
     }
 
     @Override
@@ -214,13 +216,14 @@ public class JsonStreamMapper implements ObjectMapper {
     }
 
     private void serialize(Encoder encoder, Object object, Argument type) throws IOException {
-        Serializer.EncoderContext context = registry.newEncoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view));
-        final Serializer<Object> serializer = context.findSerializer(type).createSpecific(context, type);
-        serializer.serialize(
-                encoder,
-                context,
-                type, object
-        );
+        try (var context = registry.newEncoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view))) {
+            final Serializer<Object> serializer = context.findSerializer(type).createSpecific(context, type);
+            serializer.serialize(
+                    encoder,
+                    context,
+                    type, object
+            );
+        }
     }
 
     @Override

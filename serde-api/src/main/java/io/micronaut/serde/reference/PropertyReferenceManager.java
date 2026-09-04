@@ -24,16 +24,6 @@ import io.micronaut.core.annotation.Internal;
 public interface PropertyReferenceManager {
 
     /**
-     * Opens a scope that releases the managed references pushed into it when closed.
-     *
-     * @return The reference scope
-     * @since 3.2
-     */
-    default ReferenceScope openReferenceScope() {
-        return ReferenceScope.NO_OP;
-    }
-
-    /**
      * Pushes a parent onto the stack.
      * @param reference The reference
      * @param <B> The bean type
@@ -47,19 +37,4 @@ public interface PropertyReferenceManager {
      * @see #pushManagedRef(io.micronaut.serde.reference.PropertyReference)
      */
     void popManagedRef();
-
-    /**
-     * A managed-reference scope.
-     *
-     * @since 3.2
-     */
-    @Internal
-    interface ReferenceScope extends AutoCloseable {
-        /** A reference scope that does not retain references. */
-        ReferenceScope NO_OP = () -> {
-        };
-
-        @Override
-        void close();
-    }
 }

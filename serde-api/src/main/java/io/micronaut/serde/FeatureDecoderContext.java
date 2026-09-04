@@ -24,9 +24,9 @@ import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.reference.PropertyReference;
-import io.micronaut.serde.reference.PropertyReferenceManager.ReferenceScope;
 import org.jspecify.annotations.Nullable;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
@@ -103,8 +103,8 @@ final class FeatureDecoderContext implements Deserializer.DecoderContext {
     }
 
     @Override
-    public ReferenceScope openReferenceScope() {
-        return delegate.openReferenceScope();
+    public void close() throws IOException {
+        delegate.close();
     }
 
     @Override

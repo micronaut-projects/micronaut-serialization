@@ -20,11 +20,13 @@ import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.reflect.exception.InstantiationException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
+import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.XmlDecoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Keys;
 import io.micronaut.serde.KeysAwareDecoder;
+import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.UpdatingDeserializer;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.InvalidFormatException;
@@ -32,6 +34,8 @@ import io.micronaut.serde.exceptions.InvalidPropertyFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
 import io.micronaut.serde.reference.PropertyReference;
+import io.micronaut.serde.support.util.DocumentIdUtil;
+import io.micronaut.serde.support.util.JsonNodeDecoder;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -167,7 +171,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
             objectDecoder.finishStructure();
         }
         if (instance != null) {
-            deserBean.pushManagedRefs(decoderContext, instance);
+            deserBean.registerDocumentId(decoderContext, instance);
         }
         return instance;
     }
@@ -295,7 +299,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                 rootObjectDecoder.finishStructure();
             }
             if (instance != null) {
-                deserBean.pushManagedRefs(decoderContext, instance);
+                deserBean.registerDocumentId(decoderContext, instance);
             }
             return instance;
         } finally {
@@ -440,6 +444,27 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
             : Keys.UNKNOWN_KEY;
     }
 
+    /**
+     * Sets a property whose type declares an object identity. A scalar value is an identifier reference that is
+     * resolved immediately or deferred until the referenced object has been read; any other value is the object itself.
+     */
+    private static void deserializeAndSetObjectOrIdReference(DecoderContext decoderContext,
+                                                             Decoder objectDecoder,
+                                                             DeserBean.DerProperty<Object, Object> derProperty,
+                                                             Deserializer<Object> deserializer,
+                                                             Object instance) throws IOException {
+        JsonNode node = objectDecoder.decodeNode();
+        Object id = node.isValueNode() ? node.getValue() : null;
+        if (id != null) {
+            DocumentIdUtil.resolveOrDefer(decoderContext, id, derProperty.argument, value -> derProperty.set(decoderContext, instance, value));
+            return;
+        }
+        LimitingStream.RemainingLimits limits = decoderContext.getSerdeConfiguration()
+            .map(LimitingStream::limitsFromConfiguration)
+            .orElse(LimitingStream.DEFAULT_LIMITS);
+        derProperty.deserializeAndSetPropertyValue(deserializer, JsonNodeDecoder.create(node, limits), decoderContext, instance);
+    }
+
     private static void deserializeAndSetPropertyValue(DecoderContext decoderContext,
                                                        Decoder objectDecoder,
                                                        DeserBean.DerProperty<Object, Object> derProperty,
@@ -461,6 +486,10 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
             Deserializer<Object> deserializer = Objects.requireNonNull(derProperty.deserializer);
             if (derProperty.unresolvedTypeVariableName != null) {
                 deserializer = findTypeVariableDeserializer(decoderContext, objectArgument, derProperty, deserializer);
+            }
+            if (derProperty.idReference == SerdeConfig.IdReference.OBJECT_OR_ID) {
+                deserializeAndSetObjectOrIdReference(decoderContext, objectDecoder, derProperty, deserializer, instance);
+                return;
             }
             derProperty.deserializeAndSetPropertyValue(
                 deserializer,

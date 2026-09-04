@@ -119,9 +119,10 @@ public final class PropertiesMapper implements ObjectMapper {
      */
     @Override
     public <T> @Nullable T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
-        Deserializer.DecoderContext decoderContext = registry.newDecoderContext(null);
-        Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, type);
-        return deserializer.deserializeNullable(JsonNodeDecoder.create(tree, limits()), decoderContext, type);
+        try (var decoderContext = registry.newDecoderContext(null)) {
+            Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, type);
+            return deserializer.deserializeNullable(JsonNodeDecoder.create(tree, limits()), decoderContext, type);
+        }
     }
 
     /**
@@ -258,9 +259,10 @@ public final class PropertiesMapper implements ObjectMapper {
     }
 
     private <T> void serialize(Encoder encoder, T object, Argument<T> type) throws IOException {
-        Serializer.EncoderContext context = registry.newEncoderContext(null);
-        Serializer<? super T> serializer = context.findSerializer(type).createSpecific(context, type);
-        serializer.serialize(encoder, context, type, object);
+        try (var context = registry.newEncoderContext(null)) {
+            Serializer<? super T> serializer = context.findSerializer(type).createSpecific(context, type);
+            serializer.serialize(encoder, context, type, object);
+        }
     }
 
     @SuppressWarnings("unchecked")
