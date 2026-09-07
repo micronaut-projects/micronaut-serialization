@@ -19,6 +19,7 @@ import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.type.Argument;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.WildcardElement;
+import io.micronaut.serde.util.SerdeArgumentConstants;
 import io.micronaut.sourcegen.model.ClassTypeDef;
 import io.micronaut.sourcegen.model.ExpressionDef;
 import io.micronaut.sourcegen.model.TypeDef;
@@ -45,6 +46,7 @@ final class RecordSerdeSourceGenUtils {
     private static final ClassTypeDef SERDE_ARGUMENT_CONSTANTS = ClassTypeDef.of("io.micronaut.serde.util.SerdeArgumentConstants");
 
     private static final Method ARGUMENT_OF_METHOD = ReflectionUtils.getRequiredMethod(Argument.class, "of", Class.class);
+    private static final Method ARRAY_TYPE_METHOD = ReflectionUtils.getRequiredMethod(SerdeArgumentConstants.class, "arrayType", Class.class, int.class);
     private static final Method ARGUMENT_OF_WITH_TYPE_PARAMETERS_METHOD = ReflectionUtils.getRequiredMethod(Argument.class, "of", Class.class, Argument[].class);
     private static final Method ARGUMENT_WITH_NAME_METHOD = ReflectionUtils.getRequiredMethod(Argument.class, "withName", String.class);
     private static final Method OPTIONAL_EMPTY_METHOD = ReflectionUtils.getRequiredMethod(Optional.class, EMPTY_METHOD);
@@ -66,7 +68,7 @@ final class RecordSerdeSourceGenUtils {
             return ClassTypeDef.of(Argument.class)
                 .invokeStatic(
                     ARGUMENT_OF_WITH_TYPE_PARAMETERS_METHOD,
-                    ExpressionDef.constant(TypeDef.erasure(argumentType)),
+                    classExpression(argumentType),
                     typeArgumentArray
                 );
         }
@@ -75,12 +77,35 @@ final class RecordSerdeSourceGenUtils {
             return constantArgumentExpression;
         }
         return ClassTypeDef.of(Argument.class)
-            .invokeStatic(ARGUMENT_OF_METHOD, ExpressionDef.constant(TypeDef.erasure(argumentType)));
+            .invokeStatic(ARGUMENT_OF_METHOD, classExpression(argumentType));
     }
 
     static ExpressionDef argumentExpression(ClassElement classElement, ExpressionDef name) {
         return argumentExpression(classElement)
             .invoke(ARGUMENT_WITH_NAME_METHOD, name);
+    }
+
+    /**
+     * Renders the {@link Class} literal used to build the {@link Argument} of the given type.
+     *
+     * <p>Multidimensional arrays cannot be rendered as a plain class literal constant: the Java
+     * source writer collapses every {@code TypeDef.Array} to a single dimension, which would turn
+     * {@code byte[][]} into {@code byte[].class} and select the {@code byte[]} serde for the outer
+     * array. Build the array class explicitly instead.</p>
+     *
+     * @param argumentType The argument type
+     * @return The class expression
+     */
+    private static ExpressionDef classExpression(ClassElement argumentType) {
+        TypeDef typeDef = TypeDef.erasure(argumentType);
+        if (typeDef instanceof TypeDef.Array arrayTypeDef && arrayTypeDef.dimensions() > 1) {
+            return SERDE_ARGUMENT_CONSTANTS.invokeStatic(
+                ARRAY_TYPE_METHOD,
+                ExpressionDef.constant(arrayTypeDef.componentType()),
+                ExpressionDef.constant(arrayTypeDef.dimensions())
+            );
+        }
+        return ExpressionDef.constant(typeDef);
     }
 
     private static @Nullable ExpressionDef simpleArgumentConstantExpression(ClassElement argumentType) {

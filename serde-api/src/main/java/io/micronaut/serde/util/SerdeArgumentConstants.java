@@ -22,7 +22,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 /**
- * Reusable {@link Argument} constants for generated and runtime serde code.
+ * Reusable {@link Argument} constants and type helpers for generated and runtime serde code.
  */
 @Internal
 public final class SerdeArgumentConstants {
@@ -69,5 +69,20 @@ public final class SerdeArgumentConstants {
     public static final Argument<BigDecimal> BIG_DECIMAL = Argument.of(BigDecimal.class);
 
     private SerdeArgumentConstants() {
+    }
+
+    /**
+     * Resolves the array {@link Class} for the given component type and number of dimensions.
+     *
+     * @param componentType The array component type
+     * @param dimensions    The number of array dimensions
+     * @return The array class
+     */
+    public static Class<?> arrayType(Class<?> componentType, int dimensions) {
+        Class<?> arrayType = componentType;
+        for (int i = 0; i < dimensions; i++) {
+            arrayType = arrayType.arrayType();
+        }
+        return arrayType;
     }
 }
