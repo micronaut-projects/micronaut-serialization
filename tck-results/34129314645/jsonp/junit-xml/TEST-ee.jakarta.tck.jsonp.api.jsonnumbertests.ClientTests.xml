@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ee.jakarta.tck.jsonp.api.jsonnumbertests.ClientTests" tests="3" skipped="0" failures="0" errors="0" timestamp="SANITIZED" hostname="SANITIZED" time="0">
+  <properties/>
+  <testcase name="jsonNumberIsIntegralTest()" classname="ee.jakarta.tck.jsonp.api.jsonnumbertests.ClientTests" time="0"/>
+  <testcase name="jsonNumberHashCodeTest()" classname="ee.jakarta.tck.jsonp.api.jsonnumbertests.ClientTests" time="0"/>
+  <testcase name="jsonNumberEqualsTest()" classname="ee.jakarta.tck.jsonp.api.jsonnumbertests.ClientTests" time="0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberType
+INFO: Json NumberType match
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberType
+INFO: Expected: INTEGRAL
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberType
+INFO: Actual:   INTEGRAL
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 123
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   123
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberType
+INFO: Json NumberType match
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberType
+INFO: Expected: NON_INTEGRAL
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberType
+INFO: Actual:   NON_INTEGRAL
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: double match
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 12345.45
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   12345.45
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsonnumbertests.ClientTests jsonNumberHashCodeTest
+INFO: Create sample JsonNumber 1 for testing
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsonnumbertests.ClientTests jsonNumberHashCodeTest
+INFO: number1=10
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsonnumbertests.ClientTests jsonNumberHashCodeTest
+INFO: number1.hashCode()=30
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsonnumbertests.ClientTests jsonNumberHashCodeTest
+INFO: Create sample JsonNumber 2 for testing
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsonnumbertests.ClientTests jsonNumberHashCodeTest
+INFO: number2=10
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsonnumbertests.ClientTests jsonNumberHashCodeTest
+INFO: number2.hashCode()=30
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsonnumbertests.ClientTests jsonNumberHashCodeTest
+INFO: Call JsonNumber.hashCode() to compare 2 equal JsonNumbers and expect true
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsonnumbertests.ClientTests jsonNumberHashCodeTest
+INFO: JsonNumbers hashCode are equal - expected.
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsonnumbertests.ClientTests jsonNumberHashCodeTest
+INFO: Create sample JsonNumber 1 for testing
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsonnumbertests.ClientTests jsonNumberHashCodeTest
+INFO: number1=10
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsonnumbertests.ClientTests jsonNumberHashCodeTest
+INFO: number1.hashCode()=30
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsonnumbertests.ClientTests jsonNumberHashCodeTest
+INFO: Create sample JsonNumber 2 for testing
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsonnumbertests.ClientTests jsonNumberHashCodeTest
+INFO: number2=10.25
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsonnumbertests.ClientTests jsonNumberHashCodeTest
+INFO: number2.hashCode()=31777
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsonnumbertests.ClientTests jsonNumberHashCodeTest
+INFO: Call JsonNumber.hashCode() to compare 2 equal JsonNumbers and expect false
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsonnumbertests.ClientTests jsonNumberHashCodeTest
+INFO: JsonNumbers hashCode are not equal - expected.
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsonnumbertests.ClientTests jsonNumberEqualsTest
+INFO: Create sample JsonNumber 1 for testing
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsonnumbertests.ClientTests jsonNumberEqualsTest
+INFO: number1=10
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsonnumbertests.ClientTests jsonNumberEqualsTest
+INFO: Create sample JsonNumber 2 for testing
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsonnumbertests.ClientTests jsonNumberEqualsTest
+INFO: number2=10
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsonnumbertests.ClientTests jsonNumberEqualsTest
+INFO: Call JsonNumber.equals() to compare 2 equal JsonNumbers and expect true
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsonnumbertests.ClientTests jsonNumberEqualsTest
+INFO: JsonNumbers are equal - expected.
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsonnumbertests.ClientTests jsonNumberEqualsTest
+INFO: Create sample JsonNumber 1 for testing
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsonnumbertests.ClientTests jsonNumberEqualsTest
+INFO: number1=10
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsonnumbertests.ClientTests jsonNumberEqualsTest
+INFO: Create sample JsonNumber 2 for testing
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsonnumbertests.ClientTests jsonNumberEqualsTest
+INFO: number2=10.25
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsonnumbertests.ClientTests jsonNumberEqualsTest
+INFO: Call JsonNumber.equals() to compare 2 equal JsonNumbers and expect false
+Aug 31, 2026 3:55:01 PM ee.jakarta.tck.jsonp.api.jsonnumbertests.ClientTests jsonNumberEqualsTest
+INFO: JsonNumbers are not equal - expected.
+]]></system-err>
+</testsuite>
