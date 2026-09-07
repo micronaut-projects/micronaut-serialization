@@ -49,6 +49,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -74,8 +75,15 @@ public class JsonStreamMapper implements ObjectMapper {
         this.registry = registry;
         this.serdeConfiguration = serdeConfiguration;
         this.view = view;
-        this.coercionPolicy = CoercionPolicy.fromConfiguration(
-            registry.newDecoderContext(view).getDeserializationConfiguration().orElse(null));
+        this.coercionPolicy = resolveCoercionPolicy(registry, view);
+    }
+
+    private static CoercionPolicy resolveCoercionPolicy(SerdeRegistry registry, @Nullable Class<?> view) {
+        try (Deserializer.DecoderContext context = registry.newDecoderContext(view)) {
+            return CoercionPolicy.fromConfiguration(context.getDeserializationConfiguration().orElse(null));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     @Override
