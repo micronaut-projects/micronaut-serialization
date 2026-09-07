@@ -27,7 +27,9 @@ import io.micronaut.inject.ast.EnumElement;
 import io.micronaut.inject.ast.MethodElement;
 import io.micronaut.inject.ast.ParameterElement;
 import io.micronaut.inject.ast.PropertyElement;
+import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.FormatConfiguration;
+import io.micronaut.serde.Serializer;
 import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.serde.annotation.SerdeableGenerated;
 import io.micronaut.serde.config.annotation.SerdeConfig;
@@ -35,6 +37,7 @@ import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.util.SerdePropertyAccess;
 
 import java.lang.annotation.Annotation;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +50,8 @@ import java.util.function.Predicate;
 public final class SimpleSerdeShapeAnalyzer {
     private static final String SERDEABLE_SERIALIZABLE = Serdeable.Serializable.class.getName();
     private static final String SERDEABLE_DESERIALIZABLE = Serdeable.Deserializable.class.getName();
+    private static final String DEFAULT_SERIALIZER_CLASS = Serializer.class.getName();
+    private static final String DEFAULT_DESERIALIZER_CLASS = Deserializer.class.getName();
     private static final String JACKSON_ANNOTATION_PREFIX = "com.fasterxml.jackson.annotation.";
     private static final String BSON_REPRESENTATION = "org.bson.codecs.pojo.annotations.BsonRepresentation";
     private static final String JACKSON_DATAFORMAT = "tools.jackson.dataformat.";
@@ -778,9 +783,28 @@ public final class SimpleSerdeShapeAnalyzer {
     }
 
     private boolean hasCustomSerdeClassOverride(ClassElement element) {
-        AnnotationMetadata annotationMetadata = element.getAnnotationMetadata();
-        return annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.SERIALIZER_CLASS).isPresent()
-            || annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.DESERIALIZER_CLASS).isPresent();
+        return hasCustomSerdeClass(element.getAnnotationMetadata());
+    }
+
+    /**
+     * Checks whether a custom {@link Serializer} or {@link Deserializer} is configured, including
+     * configuration inherited from a supertype or interface.
+     *
+     * <p>The configured type is resolved by name because during annotation processing the referenced
+     * serializer or deserializer is often part of the same compilation round and therefore cannot be
+     * loaded as a {@link Class}.</p>
+     *
+     * @param annotationMetadata The annotation metadata
+     * @return Whether a custom serializer or deserializer is configured
+     */
+    private boolean hasCustomSerdeClass(AnnotationMetadata annotationMetadata) {
+        return hasCustomSerdeClass(annotationMetadata, SerdeConfig.SERIALIZER_CLASS, DEFAULT_SERIALIZER_CLASS)
+            || hasCustomSerdeClass(annotationMetadata, SerdeConfig.DESERIALIZER_CLASS, DEFAULT_DESERIALIZER_CLASS);
+    }
+
+    private boolean hasCustomSerdeClass(AnnotationMetadata annotationMetadata, String member, String defaultType) {
+        return annotationMetadata.stringValue(SerdeConfig.class, member).filter(type -> !type.equals(defaultType)).isPresent()
+            || Arrays.stream(annotationMetadata.stringValues(SerdeConfig.class, member)).anyMatch(type -> !type.equals(defaultType));
     }
 
     private boolean hasPotentialGlobalNamingConflict(ClassElement element) {
@@ -860,8 +884,7 @@ public final class SimpleSerdeShapeAnalyzer {
             || hasSerializeAsOverride(element)
             || hasDeserializeAsOverride(element)
             || hasCustomNaming(element)
-            || element.classValue(SerdeConfig.class, SerdeConfig.SERIALIZER_CLASS).isPresent()
-            || element.classValue(SerdeConfig.class, SerdeConfig.DESERIALIZER_CLASS).isPresent();
+            || hasCustomSerdeClass(element.getAnnotationMetadata());
     }
 
     private boolean hasUnsupportedSerdeConfigMetadata(AnnotationMetadata annotationMetadata) {
@@ -879,8 +902,7 @@ public final class SimpleSerdeShapeAnalyzer {
             || hasSerializeAsOverride(annotationMetadata)
             || hasDeserializeAsOverride(annotationMetadata)
             || hasCustomNaming(annotationMetadata)
-            || annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.SERIALIZER_CLASS).isPresent()
-            || annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.DESERIALIZER_CLASS).isPresent();
+            || hasCustomSerdeClass(annotationMetadata);
     }
 
     private boolean hasFeatureOverrides(AnnotationMetadata annotationMetadata) {

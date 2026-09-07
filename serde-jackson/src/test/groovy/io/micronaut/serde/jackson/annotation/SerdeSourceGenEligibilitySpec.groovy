@@ -489,6 +489,140 @@ record XmlWrapperRecord(
         context.close()
     }
 
+    void 'test custom serializer and deserializer declared on the type are not sourcegen eligible'() {
+        given:
+        def context = buildContext('test.CustomSerdePayload', '''
+package test;
+
+import io.micronaut.core.type.Argument;
+import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.Encoder;
+import io.micronaut.serde.Serializer;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.core.annotation.Introspected;
+import jakarta.inject.Singleton;
+import java.io.IOException;
+
+@Serdeable
+@Introspected
+@Serdeable.Serializable(using = CustomSerde.class)
+@Serdeable.Deserializable(using = CustomSerde.class)
+class CustomSerdePayload {
+    private String value;
+
+    public CustomSerdePayload() {
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+}
+
+@Singleton
+class CustomSerde implements Serializer<CustomSerdePayload>, Deserializer<CustomSerdePayload> {
+    @Override
+    public void serialize(Encoder encoder, EncoderContext context, Argument<? extends CustomSerdePayload> type, CustomSerdePayload value) throws IOException {
+        encoder.encodeString("custom");
+    }
+
+    @Override
+    public CustomSerdePayload deserialize(Decoder decoder, DecoderContext context, Argument<? super CustomSerdePayload> type) throws IOException {
+        decoder.skipValue();
+        CustomSerdePayload payload = new CustomSerdePayload();
+        payload.setValue("custom");
+        return payload;
+    }
+}
+''')
+
+        expect:
+        assertRegistrySelection(context, 'test.CustomSerdePayload', false, false)
+
+        cleanup:
+        context.close()
+    }
+
+    void 'test custom serializer and deserializer inherited from an interface are not sourcegen eligible'() {
+        given:
+        def context = buildContext('test.VersionedPayload', '''
+package test;
+
+import io.micronaut.core.type.Argument;
+import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.Encoder;
+import io.micronaut.serde.Serializer;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.core.annotation.Introspected;
+import jakarta.inject.Singleton;
+import java.io.IOException;
+
+@Serdeable
+@Serdeable.Serializable(using = VersionedSerde.class)
+@Serdeable.Deserializable(using = VersionedSerde.class)
+interface Versioned {
+    String getValue();
+}
+
+@Serdeable
+@Introspected
+class VersionedPayload implements Versioned {
+    private String value;
+
+    public VersionedPayload() {
+    }
+
+    @Override
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+}
+
+@Singleton
+class VersionedSerde<T extends Versioned> implements Serializer<T>, Deserializer<T> {
+    @Override
+    public void serialize(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
+        encoder.encodeString("custom");
+    }
+
+    @Override
+    public T deserialize(Decoder decoder, DecoderContext context, Argument<? super T> type) throws IOException {
+        decoder.skipValue();
+        VersionedPayload payload = new VersionedPayload();
+        payload.setValue("custom");
+        return (T) payload;
+    }
+}
+''')
+
+        expect:
+        assertRegistrySelection(context, 'test.VersionedPayload', false, false)
+
+        when: 'the custom serde declared on the interface is applied to the implementation'
+        def customSerde = context.classLoader.loadClass('test.VersionedSerde')
+        Class<?> beanType = context.classLoader.loadClass('test.VersionedPayload')
+        Argument argument = Argument.of(beanType)
+        SerdeRegistry registry = context.getBean(SerdeRegistry)
+        Serializer serializer = registry.findSerializer(argument).createSpecific(registry.newEncoderContext(Object), argument)
+        Deserializer deserializer = registry.findDeserializer(argument).createSpecific(registry.newDecoderContext(Object), argument)
+
+        then:
+        customSerde.isInstance(serializer)
+        customSerde.isInstance(deserializer)
+
+        cleanup:
+        context.close()
+    }
+
     private static void assertRegistrySelection(def context,
                                                 String className,
                                                 boolean serializerGenerated,
