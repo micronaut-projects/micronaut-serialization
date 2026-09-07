@@ -383,9 +383,17 @@ class Test {
         "Iterable<Boolean>"            | [value: [true]]                    | '{"value":[true]}'
         "Set<String>"                  | [value: ["Test"] as Set]           | '{"value":["Test"]}'
         "Set<Boolean>"                 | [value: [true] as Set]             | '{"value":[true]}'
+        "Set<Integer>"                 | [value: [10] as Set]               | '{"value":[10]}'
+        "SortedSet<String>"            | [value: new TreeSet<>(["Test"])]   | '{"value":["Test"]}'
+        "NavigableSet<String>"         | [value: new TreeSet<>(["Test"])]   | '{"value":["Test"]}'
+        "LinkedHashSet<String>"        | [value: ["Test"] as Set]           | '{"value":["Test"]}'
+        "HashSet<String>"              | [value: ["Test"] as Set]           | '{"value":["Test"]}'
+        "TreeSet<String>"              | [value: ["Test"] as Set]           | '{"value":["Test"]}'
         "Collection<String>"           | [value: ["Test"]]                  | '{"value":["Test"]}'
         "Collection<Boolean>"          | [value: [true]]                    | '{"value":[true]}'
         "Map<String, Boolean>"         | [value: [foo: true]]               | '{"value":{"foo":true}}'
+        "Map<String, Set<String>>"     | [value: [foo: ["Test"] as Set]]    | '{"value":{"foo":["Test"]}}'
+        "List<Set<String>>"            | [value: [["Test"] as Set]]         | '{"value":[["Test"]]}'
         "EnumSet<HttpStatus>"          | [value: EnumSet.of(HttpStatus.OK)] | '{"value":["OK"]}'
     }
 
