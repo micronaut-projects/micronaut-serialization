@@ -18,7 +18,7 @@ final class InvalidModels {
     }
 
     @Serdeable
-    record MissingNumber(@ProtoField(1) String named, String unnamed) {
+    record DerivedClashesWithExplicit(String first, @ProtoField(1) String second) {
     }
 
     @Serdeable

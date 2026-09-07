@@ -42,7 +42,7 @@ final class ProtoMessageNormalizer {
         }
 
         while (input.position() < limit) {
-            int tag = input.readVarint32();
+            int tag = input.readTag();
             int fieldNumber = ProtoWire.fieldNumber(tag);
             int wireType = ProtoWire.wireType(tag);
             int valueStart = input.position();
@@ -70,17 +70,21 @@ final class ProtoMessageNormalizer {
                 }
                 continue;
             }
-            if (wireType != property.wireType()) {
+            // protobuf treats a wire type that disagrees with the field as an unknown field. That
+            // only holds where the schema knows the wire type; an opaque property is serialized by
+            // a serde of its own choosing, so the payload is taken at its word instead.
+            if (!property.opaqueWireType() && wireType != property.wireType()) {
                 continue;
             }
             if (property.repeatedField()) {
-                field.combined.writeTag(property.wireTag());
+                field.combined.writeTag(ProtoWire.tag(property.number(), wireType));
                 field.combined.writeRaw(source, valueStart, valueEnd - valueStart);
             } else if (property.messageField()) {
                 field.seen = true;
                 field.combined.writeRaw(source, payloadStart, valueEnd - payloadStart);
             } else {
                 field.seen = true;
+                field.wireType = wireType;
                 field.valueStart = valueStart;
                 field.valueEnd = valueEnd;
             }
@@ -106,7 +110,7 @@ final class ProtoMessageNormalizer {
                     normalized.writeLengthDelimited(field.combined);
                 }
             } else if (field.seen) {
-                normalized.writeTag(property.wireTag());
+                normalized.writeTag(ProtoWire.tag(property.number(), field.wireType));
                 normalized.writeRaw(source, field.valueStart, field.valueEnd - field.valueStart);
             }
         }
@@ -116,6 +120,7 @@ final class ProtoMessageNormalizer {
     private static final class FieldAccumulator {
         private final ProtoOutput combined = new ProtoOutput();
         private boolean seen;
+        private int wireType;
         private int valueStart;
         private int valueEnd;
     }

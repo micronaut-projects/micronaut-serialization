@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.protobuf.annotation;
 
+import io.micronaut.context.annotation.AliasFor;
 import io.micronaut.core.annotation.Experimental;
 
 import java.lang.annotation.Documented;
@@ -26,8 +27,18 @@ import java.lang.annotation.Target;
 /**
  * Assigns a Protocol Buffers field number, and optionally a wire representation, to a property.
  *
- * <p>Field numbers are the identity of a property on the wire; names are never transmitted.
- * Every property of a message serialized by the protobuf backend must carry this annotation.</p>
+ * <p>Field numbers are the identity of a property on the wire; names are never transmitted. A
+ * number can be given explicitly, with {@code @ProtoField(3)} or {@code @ProtoField(position = 3)},
+ * or left out, in which case the property takes its number from its position among the message's
+ * properties: the first is 1, the second is 2, and so on. A property with no annotation at all is
+ * numbered the same way.</p>
+ *
+ * <p>Positions derived from order are convenient, and they are also fragile: inserting, removing or
+ * reordering a property silently renumbers everything after it, and payloads written by an earlier
+ * version are then read back into the wrong properties. Derived numbering suits a message whose
+ * writer and readers are deployed together. Anything that outlives a single deployment &mdash;
+ * stored payloads, a published API, messages on a queue &mdash; should number its fields
+ * explicitly.</p>
  *
  * <p>This is prototype API and subject to change.</p>
  *
@@ -50,12 +61,31 @@ public @interface ProtoField {
     int MAX_FIELD_NUMBER = 536870911;
 
     /**
-     * The field number. Must be between {@link #MIN_FIELD_NUMBER} and {@link #MAX_FIELD_NUMBER},
-     * and must not fall in the reserved range 19000-19999.
-     *
-     * @return The field number
+     * The value of {@link #position()} that means "take the number from the property's position
+     * among the message's properties".
      */
-    int value();
+    int UNSET_POSITION = -1;
+
+    /**
+     * The field number. An alias for {@link #position()}, so {@code @ProtoField(3)} and
+     * {@code @ProtoField(position = 3)} mean the same thing.
+     *
+     * @return The field number, or {@link #UNSET_POSITION} to derive it from declaration order
+     */
+    @AliasFor(member = "position")
+    int value() default UNSET_POSITION;
+
+    /**
+     * The field number. Must be between {@link #MIN_FIELD_NUMBER} and {@link #MAX_FIELD_NUMBER},
+     * and must not fall in the range 19000-19999 that Protocol Buffers reserves.
+     *
+     * <p>Left at {@link #UNSET_POSITION}, the property is numbered by its position among the
+     * message's properties, counting from one.</p>
+     *
+     * @return The field number, or {@link #UNSET_POSITION} to derive it from declaration order
+     */
+    @AliasFor(member = "value")
+    int position() default UNSET_POSITION;
 
     /**
      * The wire representation to use. Defaults to {@link ProtoType#DEFAULT}, which picks the

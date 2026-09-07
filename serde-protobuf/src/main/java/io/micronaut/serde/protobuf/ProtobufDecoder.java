@@ -182,7 +182,7 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
                     return false;
                 }
                 int mark = input.position();
-                int tag = input.readVarint32();
+                int tag = input.readTag();
                 if (ProtoWire.fieldNumber(tag) == requireOwner().number()) {
                     currentWireType = ProtoWire.wireType(tag);
                     valuePending = true;
@@ -400,7 +400,7 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
 
     private int nextFieldSlot(ProtoSchema currentSchema) throws IOException {
         while (input.position() < limit) {
-            int tag = input.readVarint32();
+            int tag = input.readTag();
             int wireType = ProtoWire.wireType(tag);
             int fieldNumber = ProtoWire.fieldNumber(tag);
             int slot = currentSchema.slotOf(fieldNumber);
@@ -418,7 +418,7 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
 
     private long readIntegral() throws IOException {
         ProtoProperty property = kind == Kind.PACKED ? owner : currentProperty;
-        int expectedWireType = property == null ? ProtoWire.VARINT : property.wireType();
+        int expectedWireType = expectedWireType(property);
         int actualWireType = valueWireType(expectedWireType);
         if (actualWireType != expectedWireType) {
             throw new SerdeException("Expected a numeric protobuf value with wire type " + expectedWireType
@@ -438,6 +438,24 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
         };
         valueConsumed();
         return value;
+    }
+
+    /**
+     * The wire type a numeric value is expected to arrive under.
+     *
+     * <p>For the types protobuf models this comes from the schema, so a payload that disagrees is
+     * reported rather than misread. An opaque property is serialized by a serde of its own choosing
+     * and the schema has only a guess, so there the tag on the payload decides. A packed run has no
+     * per-element tag, leaving the schema as the only source either way.</p>
+     */
+    private int expectedWireType(@Nullable ProtoProperty property) {
+        if (property == null) {
+            return ProtoWire.VARINT;
+        }
+        if (property.opaqueWireType() && kind != Kind.PACKED && currentWireType >= 0) {
+            return currentWireType;
+        }
+        return property.wireType();
     }
 
     private int valueWireType(int fallback) {
@@ -485,7 +503,7 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
     private void skipFollowingOccurrences(ProtoProperty property) throws IOException {
         while (input.position() < limit) {
             int mark = input.position();
-            int tag = input.readVarint32();
+            int tag = input.readTag();
             int fieldNumber = ProtoWire.fieldNumber(tag);
             if (fieldNumber != property.number()) {
                 input.position(mark);

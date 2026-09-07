@@ -35,6 +35,9 @@ final class ProtoReference {
     static final Descriptors.Descriptor ORG;
     static final Descriptors.Descriptor BLOB;
     static final Descriptors.Descriptor NUMBERS;
+    static final Descriptors.Descriptor NAME_AND_COUNT;
+    static final Descriptors.Descriptor SCALARS;
+    static final Descriptors.Descriptor SHAPES;
 
     private ProtoReference() {
     }
@@ -93,6 +96,33 @@ final class ProtoReference {
                 .addField(field("unsigned", 3, DescriptorProtos.FieldDescriptorProto.Type.TYPE_UINT32))
                 .addField(field("zigZag", 4, DescriptorProtos.FieldDescriptorProto.Type.TYPE_SINT64))
                 .addField(field("ratio", 5, DescriptorProtos.FieldDescriptorProto.Type.TYPE_FLOAT)))
+            .addMessageType(DescriptorProtos.DescriptorProto.newBuilder()
+                .setName("NameAndCount")
+                .addField(field("name", 1, DescriptorProtos.FieldDescriptorProto.Type.TYPE_STRING))
+                .addField(field("count", 2, DescriptorProtos.FieldDescriptorProto.Type.TYPE_INT32)))
+            // every scalar shape protobuf offers a native type for, numbered by position
+            .addMessageType(DescriptorProtos.DescriptorProto.newBuilder()
+                .setName("Scalars")
+                .addField(field("flag", 1, DescriptorProtos.FieldDescriptorProto.Type.TYPE_BOOL))
+                .addField(field("tiny", 2, DescriptorProtos.FieldDescriptorProto.Type.TYPE_INT32))
+                .addField(field("small", 3, DescriptorProtos.FieldDescriptorProto.Type.TYPE_INT32))
+                .addField(field("letter", 4, DescriptorProtos.FieldDescriptorProto.Type.TYPE_INT32))
+                .addField(field("whole", 5, DescriptorProtos.FieldDescriptorProto.Type.TYPE_INT32))
+                .addField(field("big", 6, DescriptorProtos.FieldDescriptorProto.Type.TYPE_INT64))
+                .addField(field("single", 7, DescriptorProtos.FieldDescriptorProto.Type.TYPE_FLOAT))
+                .addField(field("wide", 8, DescriptorProtos.FieldDescriptorProto.Type.TYPE_DOUBLE))
+                .addField(field("text", 9, DescriptorProtos.FieldDescriptorProto.Type.TYPE_STRING))
+                .addField(field("blob", 10, DescriptorProtos.FieldDescriptorProto.Type.TYPE_BYTES)))
+            // the repeated shapes, so collections and arrays can be checked against real bytes
+            .addMessageType(DescriptorProtos.DescriptorProto.newBuilder()
+                .setName("Shapes")
+                .addField(repeated("texts", 1, DescriptorProtos.FieldDescriptorProto.Type.TYPE_STRING))
+                .addField(repeated("wholes", 2, DescriptorProtos.FieldDescriptorProto.Type.TYPE_INT32))
+                .addField(repeated("wides", 3, DescriptorProtos.FieldDescriptorProto.Type.TYPE_DOUBLE))
+                .addField(repeated("flags", 4, DescriptorProtos.FieldDescriptorProto.Type.TYPE_BOOL))
+                .addField(repeated("blobs", 5, DescriptorProtos.FieldDescriptorProto.Type.TYPE_BYTES))
+                .addField(repeated("addresses", 6, DescriptorProtos.FieldDescriptorProto.Type.TYPE_MESSAGE)
+                    .setTypeName(".test.Address")))
             .build();
 
         try {
@@ -105,6 +135,9 @@ final class ProtoReference {
             ORG = descriptor.findMessageTypeByName("Org");
             BLOB = descriptor.findMessageTypeByName("Blob");
             NUMBERS = descriptor.findMessageTypeByName("Numbers");
+            NAME_AND_COUNT = descriptor.findMessageTypeByName("NameAndCount");
+            SCALARS = descriptor.findMessageTypeByName("Scalars");
+            SHAPES = descriptor.findMessageTypeByName("Shapes");
         } catch (Descriptors.DescriptorValidationException e) {
             throw new ExceptionInInitializerError(e);
         }

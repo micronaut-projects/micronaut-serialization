@@ -20,11 +20,13 @@ class ProtoSchemaValidationTest {
     }
 
     @Test
-    void rejectsPropertiesWithoutAFieldNumber() {
+    void rejectsADerivedNumberThatAnotherPropertyAlreadyClaims() {
+        // 'first' would take 1 from its position, but 'second' declares 1 explicitly
         SerdeException e = assertThrows(SerdeException.class,
-            () -> ProtoSchema.of(InvalidModels.MissingNumber.class));
-        assertTrue(e.getMessage().contains("[unnamed]"), e.getMessage());
-        assertTrue(e.getMessage().contains("missing @ProtoField"), e.getMessage());
+            () -> ProtoSchema.of(InvalidModels.DerivedClashesWithExplicit.class));
+        assertTrue(e.getMessage().contains("[first]"), e.getMessage());
+        assertTrue(e.getMessage().contains("takes field number 1 from its position"), e.getMessage());
+        assertTrue(e.getMessage().contains("[second]"), e.getMessage());
     }
 
     @Test

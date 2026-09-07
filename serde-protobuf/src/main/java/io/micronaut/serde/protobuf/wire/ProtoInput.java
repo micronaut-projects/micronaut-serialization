@@ -32,6 +32,8 @@ import java.nio.charset.StandardCharsets;
 @Internal
 public final class ProtoInput {
 
+    private static final int MAX_TAG_BYTES = 5;
+
     private final byte[] buffer;
     private int position;
 
@@ -78,6 +80,34 @@ public final class ProtoInput {
      */
     public int length() {
         return buffer.length;
+    }
+
+    /**
+     * Read and validate a field tag.
+     *
+     * <p>A tag is a 32-bit value, so its varint is at most five bytes and may not be padded out
+     * with redundant continuation bytes; a longer one hides a field number that does not fit.
+     * Field number zero does not exist. Both are rejected rather than skipped, because a payload
+     * containing either is malformed rather than merely unfamiliar.</p>
+     *
+     * @return The tag
+     * @throws IOException If the tag is malformed or the payload is truncated
+     */
+    public int readTag() throws IOException {
+        int start = position;
+        long value = readVarint64();
+        if (position - start > MAX_TAG_BYTES) {
+            throw new IOException("Malformed protobuf payload: a field tag is longer than "
+                + MAX_TAG_BYTES + " bytes");
+        }
+        if ((value & ~0xFFFFFFFFL) != 0) {
+            throw new IOException("Malformed protobuf payload: a field tag does not fit in 32 bits");
+        }
+        int tag = (int) value;
+        if (ProtoWire.fieldNumber(tag) == 0) {
+            throw new IOException("Malformed protobuf payload: zero is not a legal field number");
+        }
+        return tag;
     }
 
     /**

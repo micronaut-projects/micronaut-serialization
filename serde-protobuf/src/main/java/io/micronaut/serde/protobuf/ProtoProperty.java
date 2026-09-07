@@ -36,6 +36,8 @@ import io.micronaut.serde.protobuf.wire.ProtoWire;
  * @param bytesField      Whether the property is a {@code bytes} field rather than a repeated one
  * @param repeatedBytesField Whether each repeated element is a {@code bytes} value
  * @param messageField    Whether duplicate occurrences should be merged as embedded messages
+ * @param opaqueWireType  Whether the wire type cannot be predicted from the Java type, because the
+ *                        property is serialized by a serde of its own choosing
  * @param explicitPresence Whether scalar defaults must be retained on the wire
  * @param wireType        The expected wire type for one value
  * @param varintTag       The pre-combined tag for a varint value
@@ -58,6 +60,7 @@ public record ProtoProperty(
     boolean repeatedBytesField,
     boolean messageField,
     boolean explicitPresence,
+    boolean opaqueWireType,
     int wireType,
     int varintTag,
     int fixed32Tag,

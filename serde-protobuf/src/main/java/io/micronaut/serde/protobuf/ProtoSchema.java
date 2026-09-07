@@ -69,6 +69,9 @@ public final class ProtoSchema {
     };
 
     private static final int PROTO_KEYS_INDEX = KeysSupport.indexOf(new ProtobufKeysProvider());
+    private static final String POSITION_MEMBER = "position";
+    private static final String TYPE_MEMBER = "type";
+    private static final int UNASSIGNED = 0;
     private static final int RESERVED_FROM = 19000;
     private static final int RESERVED_TO = 19999;
 
@@ -243,49 +246,42 @@ public final class ProtoSchema {
             .orElseThrow(() -> new SerdeException("No introspection found for [" + messageType.getName()
                 + "]. Protobuf serialization requires the type to be annotated with @Serdeable or @Introspected."));
 
-        List<ProtoProperty> properties = new ArrayList<>();
-        List<String> missing = new ArrayList<>();
-        Map<Integer, String> seen = new HashMap<>();
-
+        List<PropertyDraft> drafts = new ArrayList<>();
         for (BeanProperty<?, ?> beanProperty : introspection.getBeanProperties()) {
             AnnotationMetadata metadata = beanProperty.getAnnotationMetadata();
             if (metadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false)) {
                 continue;
             }
             String name = metadata.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(beanProperty.getName());
-            if (!metadata.hasAnnotation(ProtoField.class)) {
-                missing.add(name);
-                continue;
-            }
-            int number = metadata.intValue(ProtoField.class).orElse(0);
-            if (number < ProtoField.MIN_FIELD_NUMBER || number > ProtoField.MAX_FIELD_NUMBER) {
-                throw new SerdeException("Property [" + name + "] of [" + messageType.getName() + "] declares field number "
-                    + number + ", which is outside the legal range " + ProtoField.MIN_FIELD_NUMBER + ".." + ProtoField.MAX_FIELD_NUMBER + ".");
-            }
-            if (number >= RESERVED_FROM && number <= RESERVED_TO) {
-                throw new SerdeException("Property [" + name + "] of [" + messageType.getName() + "] declares field number "
-                    + number + ", which falls in the range reserved by Protocol Buffers (" + RESERVED_FROM + ".." + RESERVED_TO + ").");
-            }
-            String clash = seen.put(number, name);
-            if (clash != null) {
-                throw new SerdeException("Properties [" + clash + "] and [" + name + "] of [" + messageType.getName()
-                    + "] both declare field number " + number + ". Field numbers must be unique within a message.");
-            }
-            ProtoType type = metadata.enumValue(ProtoField.class, "type", ProtoType.class).orElse(ProtoType.DEFAULT);
-            Argument<?> argument = resolveArgument(beanProperty.asArgument(), typeBindings);
-            FieldShape shape = fieldShape(argument);
-            validateType(messageType, name, type, shape.valueType());
-            properties.add(new ProtoProperty(
+            drafts.add(new PropertyDraft(
                 name,
+                metadata.intValue(ProtoField.class, POSITION_MEMBER).orElse(ProtoField.UNSET_POSITION),
+                metadata.enumValue(ProtoField.class, TYPE_MEMBER, ProtoType.class).orElse(ProtoType.DEFAULT),
+                resolveArgument(beanProperty.asArgument(), typeBindings)
+            ));
+        }
+
+        int[] numbers = assignNumbers(messageType, drafts);
+
+        List<ProtoProperty> properties = new ArrayList<>(drafts.size());
+        for (int i = 0; i < drafts.size(); i++) {
+            PropertyDraft draft = drafts.get(i);
+            int number = numbers[i];
+            ProtoType type = draft.type();
+            FieldShape shape = fieldShape(draft.argument());
+            validateType(messageType, draft.name(), type, shape.valueType());
+            properties.add(new ProtoProperty(
+                draft.name(),
                 number,
                 type,
-                argument,
+                draft.argument(),
                 shape.repeated(),
                 isPackable(shape.valueType()),
                 shape.bytes(),
                 shape.repeatedBytes(),
                 isMessage(shape.valueType()),
                 shape.explicitPresence(),
+                isOpaque(type, shape.valueType()),
                 wireType(type, shape.valueType()),
                 ProtoWire.tag(number, ProtoWire.VARINT),
                 ProtoWire.tag(number, ProtoWire.FIXED32),
@@ -295,12 +291,63 @@ public final class ProtoSchema {
                 longKind(type)
             ));
         }
-
-        if (!missing.isEmpty()) {
-            throw new SerdeException("Properties " + missing + " of [" + messageType.getName()
-                + "] are missing @ProtoField. Every property of a protobuf message needs an explicit field number.");
-        }
         return new ProtoSchema(messageType, properties);
+    }
+
+    /**
+     * Give every property a field number.
+     *
+     * <p>Explicit numbers are claimed first, so that a number derived from position can be reported
+     * against the property that already holds it rather than the other way round. Everything left
+     * takes its number from where it sits among the message's properties, counting from one.</p>
+     */
+    private static int[] assignNumbers(Class<?> messageType, List<PropertyDraft> drafts) throws SerdeException {
+        int[] numbers = new int[drafts.size()];
+        Map<Integer, String> owners = HashMap.newHashMap(drafts.size());
+
+        for (int i = 0; i < drafts.size(); i++) {
+            PropertyDraft draft = drafts.get(i);
+            int declared = draft.declaredPosition();
+            if (declared == ProtoField.UNSET_POSITION) {
+                continue;
+            }
+            validateNumber(messageType, draft.name(), declared);
+            String clash = owners.put(declared, draft.name());
+            if (clash != null) {
+                throw new SerdeException("Properties [" + clash + "] and [" + draft.name() + "] of ["
+                    + messageType.getName() + "] both declare field number " + declared
+                    + ". Field numbers must be unique within a message.");
+            }
+            numbers[i] = declared;
+        }
+
+        for (int i = 0; i < drafts.size(); i++) {
+            if (numbers[i] != UNASSIGNED) {
+                continue;
+            }
+            PropertyDraft draft = drafts.get(i);
+            int derived = i + 1;
+            validateNumber(messageType, draft.name(), derived);
+            String clash = owners.put(derived, draft.name());
+            if (clash != null) {
+                throw new SerdeException("Property [" + draft.name() + "] of [" + messageType.getName()
+                    + "] takes field number " + derived + " from its position, but property [" + clash
+                    + "] already declares that number. Give [" + draft.name() + "] an explicit @ProtoField number.");
+            }
+            numbers[i] = derived;
+        }
+        return numbers;
+    }
+
+    private static void validateNumber(Class<?> messageType, String propertyName, int number) throws SerdeException {
+        if (number < ProtoField.MIN_FIELD_NUMBER || number > ProtoField.MAX_FIELD_NUMBER) {
+            throw new SerdeException("Property [" + propertyName + "] of [" + messageType.getName() + "] declares field number "
+                + number + ", which is outside the legal range " + ProtoField.MIN_FIELD_NUMBER + ".." + ProtoField.MAX_FIELD_NUMBER + ".");
+        }
+        if (number >= RESERVED_FROM && number <= RESERVED_TO) {
+            throw new SerdeException("Property [" + propertyName + "] of [" + messageType.getName() + "] declares field number "
+                + number + ", which falls in the range reserved by Protocol Buffers (" + RESERVED_FROM + ".." + RESERVED_TO + ").");
+        }
     }
 
     private static int intKind(ProtoType type) {
@@ -375,6 +422,32 @@ public final class ProtoSchema {
     private static boolean isMessage(Argument<?> argument) {
         Class<?> type = argument.getType();
         return !type.isEnum() && BeanIntrospector.SHARED.findIntrospection(type).isPresent();
+    }
+
+    /**
+     * Whether the wire type is a guess rather than a fact.
+     *
+     * <p>The wire type of a property follows from which {@code encode} method its serializer calls,
+     * and for the types protobuf actually models that is predictable from the Java type. Anything
+     * else is serialized by a serde of its own choosing &mdash; {@link java.time.Duration} writes a
+     * varint of nanoseconds, a custom serde may write whatever it likes &mdash; and the schema has
+     * no way to know. For those, the payload is taken at its word instead.</p>
+     */
+    private static boolean isOpaque(ProtoType protoType, Argument<?> argument) {
+        if (protoType != ProtoType.DEFAULT) {
+            return false;
+        }
+        Class<?> type = argument.getType();
+        return !(isIntegral(type)
+            || type == float.class || type == Float.class
+            || type == double.class || type == Double.class
+            || type == String.class
+            || CharSequence.class.isAssignableFrom(type)
+            || type == byte[].class
+            || type.isEnum()
+            || BigInteger.class.isAssignableFrom(type)
+            || BigDecimal.class.isAssignableFrom(type)
+            || isMessage(argument));
     }
 
     private static int wireType(ProtoType protoType, Argument<?> argument) {
@@ -468,6 +541,12 @@ public final class ProtoSchema {
         return changed
             ? Argument.of(argument.getType(), argument.getName(), argument.getAnnotationMetadata(), resolvedParameters)
             : argument;
+    }
+
+    private record PropertyDraft(String name,
+                                 int declaredPosition,
+                                 ProtoType type,
+                                 Argument<?> argument) {
     }
 
     private record FieldShape(Argument<?> valueType,
