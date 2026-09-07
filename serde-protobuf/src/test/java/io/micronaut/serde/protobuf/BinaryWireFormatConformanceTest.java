@@ -20,7 +20,6 @@ import static io.micronaut.serde.protobuf.WireBytes.varint;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Edge cases lifted from the upstream Protocol Buffers binary conformance suite.
