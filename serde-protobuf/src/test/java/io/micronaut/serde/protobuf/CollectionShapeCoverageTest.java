@@ -5,7 +5,6 @@ import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.core.type.Argument;
-import io.micronaut.serde.exceptions.SerdeException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

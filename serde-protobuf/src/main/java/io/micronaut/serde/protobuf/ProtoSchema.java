@@ -21,6 +21,7 @@ import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.BeanIntrospector;
 import io.micronaut.core.beans.BeanProperty;
 import io.micronaut.core.type.Argument;
+import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.core.type.GenericPlaceholder;
 import io.micronaut.serde.Keys;
 import io.micronaut.serde.KeysSupport;
@@ -84,7 +85,7 @@ public final class ProtoSchema {
 
     private ProtoSchema(Class<?> messageType, List<ProtoProperty> properties) {
         this.messageType = messageType;
-        this.byName = HashMap.newHashMap(properties.size());
+        this.byName = CollectionUtils.newHashMap(properties.size());
         for (ProtoProperty property : properties) {
             byName.put(property.name(), property);
         }
@@ -126,7 +127,10 @@ public final class ProtoSchema {
         if (cached instanceof ProtoSchema schema) {
             return schema;
         }
-        throw new SerdeException(String.valueOf(((SerdeException) cached).getMessage()));
+        SerdeException failure = (SerdeException) cached;
+        // the cached failure carries the stack of whichever call resolved the schema first, so it
+        // is chained rather than rethrown: callers get this call's stack and that one's detail
+        throw new SerdeException(String.valueOf(failure.getMessage()), failure);
     }
 
     /**
@@ -288,7 +292,8 @@ public final class ProtoSchema {
                 ProtoWire.tag(number, ProtoWire.FIXED64),
                 ProtoWire.tag(number, ProtoWire.LENGTH_DELIMITED),
                 intKind(type),
-                longKind(type)
+                longKind(type),
+                type == ProtoType.SINT32
             ));
         }
         return new ProtoSchema(messageType, properties);
@@ -303,7 +308,7 @@ public final class ProtoSchema {
      */
     private static int[] assignNumbers(Class<?> messageType, List<PropertyDraft> drafts) throws SerdeException {
         int[] numbers = new int[drafts.size()];
-        Map<Integer, String> owners = HashMap.newHashMap(drafts.size());
+        Map<Integer, String> owners = CollectionUtils.newHashMap(drafts.size());
 
         for (int i = 0; i < drafts.size(); i++) {
             PropertyDraft draft = drafts.get(i);

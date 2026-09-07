@@ -18,6 +18,7 @@ import static io.micronaut.serde.protobuf.WireBytes.tag;
 import static io.micronaut.serde.protobuf.WireBytes.utf8;
 import static io.micronaut.serde.protobuf.WireBytes.varint;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -57,7 +58,7 @@ class BinaryWireFormatConformanceTest {
 
     private static void rejects(byte[] payload, String what) {
         Exception e = assertThrows(Exception.class, () -> read(payload), () -> "accepted " + what);
-        assertTrue(rootMessage(e) != null, what);
+        assertNotNull(rootMessage(e), what);
     }
 
     private static String rootMessage(Throwable e) {
@@ -266,6 +267,18 @@ class BinaryWireFormatConformanceTest {
         Person person = read(concat(tag(2, 0), varint(-1L)));
 
         assertEquals(-1, person.age());
+    }
+
+    @Test
+    void narrowsAnOversizedZigZagVarintBeforeDecodingIt() throws Exception {
+        // sint32 is zig-zagged over 32 bits. A writer that sets bits above 32 - legal for a varint,
+        // though no canonical encoder emits it - must be narrowed first: decoding all 64 bits and
+        // truncating afterwards gives a different number, which is what protobuf-java would not do.
+        long oversized = (1L << 32) | 2L;
+
+        Person person = read(concat(tag(6, 0), varint(oversized)));
+
+        assertEquals(1, person.balance());
     }
 
     @Test

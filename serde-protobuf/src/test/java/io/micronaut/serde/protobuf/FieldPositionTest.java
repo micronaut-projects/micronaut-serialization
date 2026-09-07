@@ -93,7 +93,7 @@ class FieldPositionTest {
 
     @Test
     void derivedNumberingMatchesTheEquivalentSchema() throws Exception {
-        // what protoc would produce for: message { string name = 1; int32 count = 2; }
+        // the equivalent schema numbers name as field one and count as field two
         Descriptors.Descriptor descriptor = ProtoReference.NAME_AND_COUNT;
         byte[] expected = DynamicMessage.newBuilder(descriptor)
             .setField(descriptor.findFieldByNumber(1), "abc")

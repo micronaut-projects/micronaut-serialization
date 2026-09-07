@@ -39,6 +39,7 @@ public final class ProtobufKeysProvider implements KeysProvider {
      * Default constructor.
      */
     public ProtobufKeysProvider() {
+        // declared explicitly so it can be documented; the provider holds no state
     }
 
     @Override

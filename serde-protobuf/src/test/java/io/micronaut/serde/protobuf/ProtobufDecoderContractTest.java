@@ -1,10 +1,15 @@
 package io.micronaut.serde.protobuf;
 
 import io.micronaut.core.type.Argument;
+import io.micronaut.context.ApplicationContext;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.serde.protobuf.annotation.ProtoField;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -69,8 +74,22 @@ class ProtobufDecoderContractTest {
         assertEquals("b", values.decodeString());
     }
 
+    private static ApplicationContext context;
+    private static Deserializer.DecoderContext decoderContext;
+
+    @BeforeAll
+    static void setup() {
+        context = ApplicationContext.run();
+        decoderContext = context.getBean(SerdeRegistry.class).newDecoderContext(null);
+    }
+
+    @AfterAll
+    static void cleanup() {
+        context.close();
+    }
+
     private static Decoder message() throws Exception {
-        return new ProtobufDecoder(PAYLOAD, LimitingStream.DEFAULT_LIMITS)
+        return new ProtobufDecoder(PAYLOAD, LimitingStream.DEFAULT_LIMITS, decoderContext)
             .decodeObject(Argument.of(ContractMessage.class));
     }
 

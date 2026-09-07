@@ -45,6 +45,8 @@ import io.micronaut.serde.protobuf.wire.ProtoWire;
  * @param fixed64Tag      The pre-combined tag for an eight-byte value
  * @param lengthTag       The pre-combined tag for a length-delimited value
  * @param intKind         How {@code int}-width values are encoded, one of the {@code KIND_} constants
+ * @param zigZag32       Whether zig-zag values are narrowed to 32 bits before decoding, as
+ *                       {@code sint32} requires
  * @param longKind        How {@code long}-width values are encoded, one of the {@code KIND_} constants
  * @since 3.2
  */
@@ -67,7 +69,8 @@ public record ProtoProperty(
     int fixed64Tag,
     int lengthTag,
     int intKind,
-    int longKind
+    int longKind,
+    boolean zigZag32
 ) {
 
     /**

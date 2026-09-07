@@ -186,21 +186,23 @@ public final class ProtoOutput {
         ensure(byteLength);
         byte[] b = buffer;
         int s = size;
-        for (int i = 0; i < length; i++) {
-            char c = value.charAt(i);
+        int i = 0;
+        while (i < length) {
+            char c = value.charAt(i++);
             if (c < 0x80) {
                 b[s++] = (byte) c;
             } else if (c < 0x800) {
                 b[s++] = (byte) (0xC0 | (c >> 6));
                 b[s++] = (byte) (0x80 | (c & 0x3F));
             } else if (Character.isSurrogate(c)) {
-                char low = i + 1 < length ? value.charAt(i + 1) : 0;
+                char low = i < length ? value.charAt(i) : 0;
                 if (Character.isHighSurrogate(c) && Character.isLowSurrogate(low)) {
                     int codePoint = Character.toCodePoint(c, low);
                     b[s++] = (byte) (0xF0 | (codePoint >> 18));
                     b[s++] = (byte) (0x80 | ((codePoint >> 12) & 0x3F));
                     b[s++] = (byte) (0x80 | ((codePoint >> 6) & 0x3F));
                     b[s++] = (byte) (0x80 | (codePoint & 0x3F));
+                    // the low surrogate is part of this code point
                     i++;
                 } else {
                     b[s++] = UTF8_REPLACEMENT;
@@ -254,15 +256,14 @@ public final class ProtoOutput {
 
     private static int utf8Length(String value, int length) {
         int bytes = length;
-        for (int i = 0; i < length; i++) {
-            char c = value.charAt(i);
-            if (c < 0x80) {
-                continue;
-            }
+        int i = 0;
+        while (i < length) {
+            char c = value.charAt(i++);
             if (c < 0x800) {
-                bytes++;
+                // one byte below 0x80, two below 0x800; the base count already covers the first
+                bytes += c < 0x80 ? 0 : 1;
             } else if (Character.isSurrogate(c)) {
-                if (Character.isHighSurrogate(c) && i + 1 < length && Character.isLowSurrogate(value.charAt(i + 1))) {
+                if (Character.isHighSurrogate(c) && i < length && Character.isLowSurrogate(value.charAt(i))) {
                     // a surrogate pair is two chars and four bytes
                     bytes += 2;
                     i++;

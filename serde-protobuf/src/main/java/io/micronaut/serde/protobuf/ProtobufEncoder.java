@@ -163,37 +163,47 @@ public final class ProtobufEncoder extends LimitingStream implements KeysAwareEn
             throw new IllegalStateException("Not in a structure");
         }
         switch (kind) {
-            case MESSAGE -> {
-                if (owner != null) {
-                    target.beforeElement(false);
-                    target.out.writeTag(owner.lengthTag());
-                    target.out.writeLengthDelimited(out);
-                    target.recycle(out);
-                }
-            }
-            case BYTES -> {
-                ProtoProperty property = requireOwner();
-                if (out.size() != 0 || property.explicitPresence() || target.kind == Kind.REPEATED) {
-                    target.out.writeTag(property.lengthTag());
-                    target.out.writeLengthDelimited(out);
-                }
-                target.recycle(out);
-            }
-            case REPEATED -> {
-                // an empty repeated field is simply absent from the payload
-                if (out.size() != 0) {
-                    if (packed) {
-                        target.out.writeTag(requireOwner().lengthTag());
-                        target.out.writeLengthDelimited(out);
-                    } else {
-                        // each element already carries its own tag
-                        target.out.writeRaw(out);
-                    }
-                }
-                target.recycle(out);
-            }
+            case MESSAGE -> finishNestedMessage(target);
+            case BYTES -> finishBytesField(target);
+            case REPEATED -> finishRepeatedField(target);
             default -> throw new IllegalStateException("Unknown structure kind " + kind);
         }
+    }
+
+    private void finishNestedMessage(ProtobufEncoder target) throws IOException {
+        if (owner == null) {
+            // the top-level message shares the root buffer and carries no tag or length prefix
+            return;
+        }
+        target.beforeElement(false);
+        target.out.writeTag(owner.lengthTag());
+        target.out.writeLengthDelimited(out);
+        target.recycle(out);
+    }
+
+    private void finishBytesField(ProtobufEncoder target) {
+        ProtoProperty property = requireOwner();
+        if (out.size() != 0 || property.explicitPresence() || target.kind == Kind.REPEATED) {
+            target.out.writeTag(property.lengthTag());
+            target.out.writeLengthDelimited(out);
+        }
+        target.recycle(out);
+    }
+
+    private void finishRepeatedField(ProtobufEncoder target) {
+        // an empty repeated field is simply absent from the payload
+        if (out.size() == 0) {
+            target.recycle(out);
+            return;
+        }
+        if (packed) {
+            target.out.writeTag(requireOwner().lengthTag());
+            target.out.writeLengthDelimited(out);
+        } else {
+            // each element already carries its own tag
+            target.out.writeRaw(out);
+        }
+        target.recycle(out);
     }
 
     @Override
