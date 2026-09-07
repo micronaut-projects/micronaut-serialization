@@ -57,7 +57,6 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-summary" tabindex="0">Method Summary</a></li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
-<li><a href="#close()" tabindex="0">close()</a></li>
 <li><a href="#getConversionService()" tabindex="0">getConversionService()</a></li>
 <li><a href="#hasView(java.lang.Class...)" tabindex="0">hasView(Class...)</a></li>
 <li><a href="#resolveReference(io.micronaut.serde.reference.PropertyReference)" tabindex="0">resolveReference(PropertyReference)</a></li>
@@ -77,7 +76,7 @@ loadScripts(document, 'script');</script>
 <section class="class-description" id="class-description">
 <dl class="notes">
 <dt>All Superinterfaces:</dt>
-<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/AutoCloseable.html" title="class or interface in java.lang" class="external-link">AutoCloseable</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/Closeable.html" title="class or interface in java.io" class="external-link">Closeable</a>, <a href="DeserializerLocator.html" title="interface in io.micronaut.serde">DeserializerLocator</a>, <a href="NamingStrategyLocator.html" title="interface in io.micronaut.serde">NamingStrategyLocator</a>, <a href="reference/PropertyReferenceManager.html" title="interface in io.micronaut.serde.reference">PropertyReferenceManager</a></code></dd>
+<dd><code><a href="DeserializerLocator.html" title="interface in io.micronaut.serde">DeserializerLocator</a>, <a href="NamingStrategyLocator.html" title="interface in io.micronaut.serde">NamingStrategyLocator</a>, <a href="reference/PropertyReferenceManager.html" title="interface in io.micronaut.serde.reference">PropertyReferenceManager</a></code></dd>
 </dl>
 <dl class="notes">
 <dt>Enclosing interface:</dt>
@@ -86,7 +85,7 @@ loadScripts(document, 'script');</script>
 <hr>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="modifiers">public static interface </span><span class="element-name type-name-label">Deserializer.DecoderContext</span><span class="extends-implements">
-extends <a href="reference/PropertyReferenceManager.html" title="interface in io.micronaut.serde.reference">PropertyReferenceManager</a>, <a href="DeserializerLocator.html" title="interface in io.micronaut.serde">DeserializerLocator</a>, <a href="NamingStrategyLocator.html" title="interface in io.micronaut.serde">NamingStrategyLocator</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/Closeable.html" title="class or interface in java.io" class="external-link">Closeable</a></span></div>
+extends <a href="reference/PropertyReferenceManager.html" title="interface in io.micronaut.serde.reference">PropertyReferenceManager</a>, <a href="DeserializerLocator.html" title="interface in io.micronaut.serde">DeserializerLocator</a>, <a href="NamingStrategyLocator.html" title="interface in io.micronaut.serde">NamingStrategyLocator</a></span></div>
 <div class="block">Context object passed to the <a href="Deserializer.html#deserialize(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)"><code>Deserializer.deserialize(Decoder, io.micronaut.serde.Deserializer.DecoderContext, io.micronaut.core.type.Argument)</code></a> method along with the decoder.</div>
 <dl class="notes">
 <dt>Author:</dt>
@@ -107,41 +106,36 @@ extends <a href="reference/PropertyReferenceManager.html" title="interface in io
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#close()" class="member-name-link">close</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
-<div class="block">Completes the document read with this context.</div>
-</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default io.micronaut.core.convert.ConversionService</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#getConversionService()" class="member-name-link">getConversionService</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a><wbr>&lt;<a href="config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a>&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#getDeserializationConfiguration()" class="member-name-link">getDeserializationConfiguration</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default io.micronaut.core.convert.ConversionService</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#getConversionService()" class="member-name-link">getConversionService</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a><wbr>&lt;<a href="config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#getDeserializationConfiguration()" class="member-name-link">getDeserializationConfiguration</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Get the <a href="config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config"><code>DeserializationConfiguration</code></a> for this context.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a><wbr>&lt;<a href="config/DeserializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a>&gt;</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#getFeatures()" class="member-name-link">getFeatures</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a><wbr>&lt;<a href="config/DeserializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a>&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#getFeatures()" class="member-name-link">getFeatures</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Get the active deserialization format features for this context.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a><wbr>&lt;<a href="config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a>&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#getSerdeConfiguration()" class="member-name-link">getSerdeConfiguration</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a><wbr>&lt;<a href="config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#getSerdeConfiguration()" class="member-name-link">getSerdeConfiguration</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Get the <a href="config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config"><code>SerdeConfiguration</code></a> for this context.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#hasView(java.lang.Class...)" class="member-name-link">hasView</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;?&gt;...&nbsp;views)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>&lt;B,<wbr>P&gt;&nbsp;@Nullable <a href="reference/PropertyReference.html" title="class in io.micronaut.serde.reference">PropertyReference</a><wbr>&lt;B,<wbr>P&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#resolveReference(io.micronaut.serde.reference.PropertyReference)" class="member-name-link">resolveReference</a><wbr>(<a href="reference/PropertyReference.html" title="class in io.micronaut.serde.reference">PropertyReference</a>&lt;B,<wbr>P&gt;&nbsp;reference)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#hasView(java.lang.Class...)" class="member-name-link">hasView</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;?&gt;...&nbsp;views)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>&lt;B,<wbr>P&gt;&nbsp;@Nullable <a href="reference/PropertyReference.html" title="class in io.micronaut.serde.reference">PropertyReference</a><wbr>&lt;B,<wbr>P&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#resolveReference(io.micronaut.serde.reference.PropertyReference)" class="member-name-link">resolveReference</a><wbr>(<a href="reference/PropertyReference.html" title="class in io.micronaut.serde.reference">PropertyReference</a>&lt;B,<wbr>P&gt;&nbsp;reference)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Resolve a reference for the given type and value.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#withFeatures(java.util.Set,java.util.Set)" class="member-name-link">withFeatures</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="config/DeserializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a>&gt;&nbsp;includedFeatures,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#withFeatures(java.util.Set,java.util.Set)" class="member-name-link">withFeatures</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="config/DeserializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a>&gt;&nbsp;includedFeatures,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="config/DeserializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a>&gt;&nbsp;excludedFeatures)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Create a context with deserialization format features overridden by annotation metadata.</div>
 </div>
 </div>
@@ -167,27 +161,6 @@ extends <a href="reference/PropertyReferenceManager.html" title="interface in io
 <section class="method-details" id="method-detail">
 <h2>Method Details</h2>
 <ul class="member-list">
-<li>
-<section class="detail" id="close()">
-<h3>close</h3>
-<div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">close</span>()
-            throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
-<div class="block">Completes the document read with this context. Mappers create a context per document and close it after
-the root value has been read; closing fails if references to identifiers that were never read remain.</div>
-<dl class="notes">
-<dt>Specified by:</dt>
-<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/AutoCloseable.html#close()" title="class or interface in java.lang" class="external-link">close</a></code>&nbsp;in interface&nbsp;<code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/AutoCloseable.html" title="class or interface in java.lang" class="external-link">AutoCloseable</a></code></dd>
-<dt>Specified by:</dt>
-<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/Closeable.html#close()" title="class or interface in java.io" class="external-link">close</a></code>&nbsp;in interface&nbsp;<code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/Closeable.html" title="class or interface in java.io" class="external-link">Closeable</a></code></dd>
-<dt>Throws:</dt>
-<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If the document could not be completed</dd>
-<dt>Since:</dt>
-<dd>3.2</dd>
-</dl>
-</div>
-</section>
-</li>
 <li>
 <section class="detail" id="getConversionService()">
 <h3>getConversionService</h3>

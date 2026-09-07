@@ -80,6 +80,26 @@ loadScripts(document, 'script');</script>
 <div class="col-last even-row-color">
 <div class="block">Runtime support for Micronaut Serialization registries, contexts, and stream processing.</div>
 </div>
+<div class="col-first odd-row-color"><a href="../bind/package-summary.html">io.micronaut.serde.support.bind</a></div>
+<div class="col-last odd-row-color">
+<div class="block">HTTP binding integration for reporting serde errors during bean binding.</div>
+</div>
+<div class="col-first even-row-color"><a href="../config/package-summary.html">io.micronaut.serde.support.config</a></div>
+<div class="col-last even-row-color">
+<div class="block">Runtime configuration beans for JSON serialization support.</div>
+</div>
+<div class="col-first odd-row-color"><a href="../deserializers/package-summary.html">io.micronaut.serde.support.deserializers</a></div>
+<div class="col-last odd-row-color">
+<div class="block">Runtime deserializers for objects, subtypes, and property-based binding.</div>
+</div>
+<div class="col-first even-row-color"><a href="../serdes/package-summary.html">io.micronaut.serde.support.serdes</a></div>
+<div class="col-last even-row-color">
+<div class="block">Built-in serializers and deserializers for common JDK and Micronaut value types.</div>
+</div>
+<div class="col-first odd-row-color"><a href="../util/package-summary.html">io.micronaut.serde.support.util</a></div>
+<div class="col-last odd-row-color">
+<div class="block">Runtime helper types for serde metadata, JSON tree processing, and subtype handling.</div>
+</div>
 </div>
 </div>
 </li>
@@ -97,14 +117,8 @@ loadScripts(document, 'script');</script>
 <div class="col-last odd-row-color class-summary class-summary-tab2">
 <div class="block">The errors catching <a href="../../Serializer.html" title="interface in io.micronaut.serde"><code>Serializer</code></a>.</div>
 </div>
-<div class="col-first even-row-color class-summary class-summary-tab2"><a href="IdReferenceSerializer.html" title="class in io.micronaut.serde.support.serializers">IdReferenceSerializer</a>&lt;T&gt;</div>
+<div class="col-first even-row-color class-summary class-summary-tab2"><a href="ObjectSerializer.html" title="class in io.micronaut.serde.support.serializers">ObjectSerializer</a></div>
 <div class="col-last even-row-color class-summary class-summary-tab2">
-<div class="block">Serializes a property that always references beans by their document-scoped identifier
-(JAXB <code>@XmlIDREF</code>, Jackson <code>@JsonIdentityReference(alwaysAsId = true)</code>): the referenced bean,
-or each element of a referenced collection, is written as its identifier.</div>
-</div>
-<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="ObjectSerializer.html" title="class in io.micronaut.serde.support.serializers">ObjectSerializer</a></div>
-<div class="col-last odd-row-color class-summary class-summary-tab2">
 <div class="block">Fallback <a href="../../Serializer.html" title="interface in io.micronaut.serde"><code>Serializer</code></a> for general <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link"><code>Object</code></a> values.</div>
 </div>
 </div>
