@@ -46,10 +46,20 @@ public @interface SerdeConfig {
     String XML_ID = "xmlId";
 
     /**
-     * Internal marker for a JAXB {@code @XmlIDREF} property.
+     * Internal marker set on the document-scoped identifier property ({@link SerManagedRef.Scope#DOCUMENT}) of a bean
+     * whose repeated occurrences in a document are written and read as that identifier, as with Jackson
+     * {@code @JsonIdentityInfo}. A JAXB {@code @XmlID} bean is always written in full and referenced only through
+     * explicit {@link #ID_REFERENCE} properties.
      */
     @Internal
-    String XML_ID_REF = "xmlIdRef";
+    String OBJECT_IDENTITY = "objectIdentity";
+
+    /**
+     * Internal marker for a property that references beans by their document-scoped identifier.
+     * The value is an {@link IdReference}.
+     */
+    @Internal
+    String ID_REFERENCE = "idReference";
 
     /**
      * The meta annotation for property.
@@ -552,6 +562,23 @@ public @interface SerdeConfig {
      */
     @Internal
     @interface SerEnumDefaultValue {
+    }
+
+    /**
+     * How a property references beans by their document-scoped identifier.
+     */
+    @Internal
+    enum IdReference {
+        /**
+         * The value, or each element of a collection value, is always written and read as the identifier
+         * (JAXB {@code @XmlIDREF}, Jackson {@code @JsonIdentityReference(alwaysAsId = true)}).
+         */
+        ALWAYS_ID,
+        /**
+         * The value is written in full on its first occurrence in the document and as the identifier afterwards;
+         * when read, a scalar value is an identifier reference that may precede the referenced object.
+         */
+        OBJECT_OR_ID
     }
 
     /**

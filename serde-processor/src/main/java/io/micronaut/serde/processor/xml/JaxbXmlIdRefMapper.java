@@ -30,8 +30,8 @@ import java.util.List;
  * @since 3.2
  */
 public final class JaxbXmlIdRefMapper implements NamedAnnotationMapper {
-    private static final String XML_ID_REF_SERIALIZER = "io.micronaut.serde.support.serializers.XmlIdRefSerializer";
-    private static final String XML_ID_REF_DESERIALIZER = "io.micronaut.serde.support.deserializers.XmlIdRefDeserializer";
+    private static final String ID_REFERENCE_SERIALIZER = "io.micronaut.serde.support.serializers.IdReferenceSerializer";
+    private static final String ID_REFERENCE_DESERIALIZER = "io.micronaut.serde.support.deserializers.IdReferenceDeserializer";
 
     @Override
     public String getName() {
@@ -41,9 +41,9 @@ public final class JaxbXmlIdRefMapper implements NamedAnnotationMapper {
     @Override
     public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         return List.of(AnnotationValue.builder(SerdeConfig.class)
-            .member(SerdeConfig.XML_ID_REF, true)
-            .member(SerdeConfig.SERIALIZER_CLASS, new AnnotationClassValue<>(XML_ID_REF_SERIALIZER))
-            .member(SerdeConfig.DESERIALIZER_CLASS, new AnnotationClassValue<>(XML_ID_REF_DESERIALIZER))
+            .member(SerdeConfig.ID_REFERENCE, SerdeConfig.IdReference.ALWAYS_ID)
+            .member(SerdeConfig.SERIALIZER_CLASS, new AnnotationClassValue<>(ID_REFERENCE_SERIALIZER))
+            .member(SerdeConfig.DESERIALIZER_CLASS, new AnnotationClassValue<>(ID_REFERENCE_DESERIALIZER))
             .build());
     }
 }

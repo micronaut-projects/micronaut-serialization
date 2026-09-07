@@ -60,11 +60,11 @@ NOTE: If an unsupported annotation or member is used, a compilation error will r
 |
 
 |link:{jacksonAnnotationJavadoc}/JsonIdentityInfo.html[@JsonIdentityInfo]
-|❌
-|
+|✅
+|only on types and only with `ObjectIdGenerators.PropertyGenerator`; unsupported members: `scope`, `resolver`. Forward references are resolved for settable properties; creator parameters must reference an object that was already read
 
 |link:{jacksonAnnotationJavadoc}/JsonIdentityReference.html[@JsonIdentityReference]
-|❌
+|✅
 |
 
 |link:{jacksonAnnotationJavadoc}/JsonIgnore.html[@JsonIgnore]

@@ -26,6 +26,7 @@ import io.micronaut.serde.reference.PropertyReferenceManager;
 import io.micronaut.serde.reference.SerializationReference;
 import org.jspecify.annotations.Nullable;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.EnumSet;
 import java.util.Optional;
@@ -105,7 +106,18 @@ public interface Serializer<T> {
      * Context object passes to the
      * {@link #serialize(Encoder, EncoderContext, Argument, Object)}  method.
      */
-    interface EncoderContext extends SerializerLocator, PropertyReferenceManager, NamingStrategyLocator {
+    interface EncoderContext extends SerializerLocator, PropertyReferenceManager, NamingStrategyLocator, Closeable {
+
+        /**
+         * Completes the document written with this context. Mappers create a context per document and close it
+         * after the root value has been written.
+         *
+         * @throws IOException If the document could not be completed
+         * @since 3.2
+         */
+        @Override
+        default void close() throws IOException {
+        }
 
         /**
          * @return Conversion service

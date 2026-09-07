@@ -112,13 +112,11 @@ public final class XmlObjectMapper implements ObjectMapper {
      */
     @Override
     public <T> T readValue(InputStream inputStream, Argument<T> type) throws IOException {
-        Deserializer.DecoderContext decoderContext = registry.newDecoderContext(null);
-        Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext,
-            type);
-
-        try (var ignored = decoderContext.openReferenceScope();
+        try (var decoderContext = registry.newDecoderContext(null);
              XmlReaderResource resource = new XmlReaderResource(
             xmlInputFactory.createXMLStreamReader(inputStream))) {
+            Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext,
+                type);
             XmlStaxDecoder decoder = new XmlStaxDecoder.DocumentDecoder(
                 limits(), resource.reader(), emptyElementAsNull);
             return deserializer.deserialize(decoder, decoderContext, type);
@@ -166,10 +164,9 @@ public final class XmlObjectMapper implements ObjectMapper {
      */
     @Override
     public <T> T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
-        Deserializer.DecoderContext decoderContext = registry.newDecoderContext(null);
-        Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext,
-            type);
-        try (var ignored = decoderContext.openReferenceScope()) {
+        try (var decoderContext = registry.newDecoderContext(null)) {
+            Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext,
+                type);
             return deserializer.deserialize(JsonNodeDecoder.create(tree, limits()), decoderContext, type);
         }
     }
@@ -319,9 +316,10 @@ public final class XmlObjectMapper implements ObjectMapper {
 
     @SuppressWarnings("unchecked")
     private void serialize(Encoder encoder, Object object, Argument type) throws IOException {
-        Serializer.EncoderContext encoderContext = registry.newEncoderContext(null);
-        Serializer<Object> serializer = encoderContext.findSerializer(type).createSpecific(encoderContext, type);
-        serializer.serialize(encoder, encoderContext, type, object);
+        try (var encoderContext = registry.newEncoderContext(null)) {
+            Serializer<Object> serializer = encoderContext.findSerializer(type).createSpecific(encoderContext, type);
+            serializer.serialize(encoder, encoderContext, type, object);
+        }
     }
 
     private static String resolveRootName(Argument<?> type) {

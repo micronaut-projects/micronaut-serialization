@@ -18,6 +18,7 @@ package io.micronaut.serde.support.serializers;
 import io.micronaut.context.BeanContext;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.core.beans.BeanProperty;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.type.GenericPlaceholder;
@@ -147,6 +148,10 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
                     }
                 }
             }
+        }
+        BeanProperty<Object, Object> documentIdProperty = serBean.documentIdProperty;
+        if (documentIdProperty != null && serBean.objectIdentity && !jsonKeySerialization && !subtyped) {
+            serializer = IdentityObjectSerializer.create(serializer, serBean.introspection, documentIdProperty, encoderContext);
         }
         if (serializer instanceof io.micronaut.serde.ObjectSerializer<Object> objectSerializer) {
             return new ErrorCatchingObjectSerializer<>(objectSerializer);

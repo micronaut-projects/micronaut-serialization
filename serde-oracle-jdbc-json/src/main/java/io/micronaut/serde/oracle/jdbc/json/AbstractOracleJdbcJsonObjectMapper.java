@@ -44,6 +44,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -71,8 +72,15 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
         this.registry = registry;
         this.serdeConfiguration = serdeConfiguration;
         this.view = view;
-        this.coercionPolicy = CoercionPolicy.fromConfiguration(
-            registry.newDecoderContext(view).getDeserializationConfiguration().orElse(null));
+        this.coercionPolicy = resolveCoercionPolicy(registry, view);
+    }
+
+    private static CoercionPolicy resolveCoercionPolicy(SerdeRegistry registry, @Nullable Class<?> view) {
+        try (Deserializer.DecoderContext context = registry.newDecoderContext(view)) {
+            return CoercionPolicy.fromConfiguration(context.getDeserializationConfiguration().orElse(null));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     @Override
@@ -86,13 +94,14 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
 
     @Override
     public <T> @Nullable T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
-        Deserializer.DecoderContext context = registry.newDecoderContext(view);
-        final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type).createSpecific(context, type);
-        return deserializer.deserialize(
-            JsonNodeDecoder.create(tree, limits(), coercionPolicy()),
-            context,
-            type
-        );
+        try (var context = registry.newDecoderContext(view)) {
+            final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type).createSpecific(context, type);
+            return deserializer.deserialize(
+                JsonNodeDecoder.create(tree, limits(), coercionPolicy()),
+                context,
+                type
+            );
+        }
     }
 
     @Override
@@ -133,13 +142,14 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
             }
             return (T) parser.getArray();
         }
-        Deserializer.DecoderContext context = registry.newDecoderContext(view);
-        final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type).createSpecific(context, type);
-        return deserializer.deserialize(
-            new OracleJdbcJsonParserDecoder(parser, limits(), coercionPolicy()),
-            context,
-            type
-        );
+        try (var context = registry.newDecoderContext(view)) {
+            final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type).createSpecific(context, type);
+            return deserializer.deserialize(
+                new OracleJdbcJsonParserDecoder(parser, limits(), coercionPolicy()),
+                context,
+                type
+            );
+        }
     }
 
     @Override
@@ -233,13 +243,14 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
     }
 
     private void serialize(Encoder encoder, Object object, Argument type) throws IOException {
-        Serializer.EncoderContext context = registry.newEncoderContext(view);
-        final Serializer<Object> serializer = registry.findSerializer(type).createSpecific(context, type);
-        serializer.serialize(
-            encoder,
-            context,
-            type, object
-        );
+        try (var context = registry.newEncoderContext(view)) {
+            final Serializer<Object> serializer = registry.findSerializer(type).createSpecific(context, type);
+            serializer.serialize(
+                encoder,
+                context,
+                type, object
+            );
+        }
     }
 
     @Override

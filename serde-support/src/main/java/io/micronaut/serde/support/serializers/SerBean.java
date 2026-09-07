@@ -49,6 +49,7 @@ import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
 import io.micronaut.serde.support.util.DecoderValueKind;
+import io.micronaut.serde.support.util.DocumentIdUtil;
 import io.micronaut.serde.support.util.ObjectShapeSerdeHelper;
 import io.micronaut.serde.support.util.SerdeAnnotationUtil;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
@@ -118,6 +119,15 @@ final class SerBean<T> {
     public final SerializationConfiguration configuration;
     public final boolean simpleBean;
     public final boolean subtyped;
+    /**
+     * The document-scoped identifier property (JAXB {@code @XmlID} or Jackson {@code @JsonIdentityInfo}), if any.
+     */
+    @Nullable
+    public final BeanProperty<T, Object> documentIdProperty;
+    /**
+     * Whether {@link #documentIdProperty} carries object identity semantics.
+     */
+    public final boolean objectIdentity;
     @Nullable
     public final PropertyFilter propertyFilter;
     @Nullable
@@ -288,6 +298,8 @@ final class SerBean<T> {
         propertyKeys = createPropertyKeys(writeProperties);
 
         simpleBean = isSimpleBean();
+        documentIdProperty = DocumentIdUtil.findDocumentIdProperty(introspection);
+        objectIdentity = DocumentIdUtil.hasObjectIdentity(documentIdProperty);
         boolean isAbstractIntrospection = Modifier.isAbstract(introspection.getBeanType().getModifiers());
         subtyped = isAbstractIntrospection
             || (resolvedSubtypeInfo != null && !resolvedSubtypeInfo.subtypes().isEmpty() && !resolvedSubtypeInfo.subtypes().containsKey(type.getType()))

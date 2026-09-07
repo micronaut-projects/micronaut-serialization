@@ -16,6 +16,8 @@
 package io.micronaut.serde.jackson
 
 import spock.lang.Ignore
+import org.skyscreamer.jsonassert.JSONAssert
+import org.skyscreamer.jsonassert.JSONCompareMode
 
 abstract class JsonManagedReferenceSpec extends JsonCompileSpec {
 
@@ -532,23 +534,27 @@ class Item {
             e.message.contains errorMultipleMatch(["userItems", "moreItems"])
     }
 
-    @Ignore("@JsonIdentityInfo is not supported")
     void "object identity remains available to a later sibling reference"() {
         given:
         def context = buildContext('''
 package identitytest;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.annotation.Serdeable;
 
 @Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
 class Team {
     public Person person;
+    @JsonIdentityReference(alwaysAsId = true)
     public Person manager;
 }
 
 @Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 class Person {
     public int id;
@@ -561,5 +567,263 @@ class Person {
 
         then:
         team.manager.is(team.person)
+        JSONAssert.assertEquals('{"person":{"id":1,"name":"Ada"},"manager":1}', jsonMapper.writeValueAsString(team), JSONCompareMode.STRICT)
+    }
+
+    void "object identity writes a repeated value as an id without JsonIdentityReference"() {
+        given:
+        def context = buildContext('''
+package identityrepeat;
+
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Team {
+    public Person manager;
+    public Person person;
+}
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+class Person {
+    public int id;
+    public String name;
+}
+''')
+
+        when:
+        def person = newInstance(context, 'identityrepeat.Person')
+        person.id = 1
+        person.name = 'Ada'
+        def team = newInstance(context, 'identityrepeat.Team')
+        team.person = person
+        team.manager = person
+        def json = jsonMapper.writeValueAsString(team)
+        def decoded = jsonMapper.readValue(json, argumentOf(context, 'identityrepeat.Team'))
+
+        then:
+        JSONAssert.assertEquals('{"manager":{"id":1,"name":"Ada"},"person":1}', json, JSONCompareMode.STRICT)
+        decoded.person.is(decoded.manager)
+    }
+
+    void "object identity is scoped to a single document"() {
+        given:
+        def context = buildContext('''
+package identityscope;
+
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Team {
+    public Person manager;
+    public Person person;
+}
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+class Person {
+    public int id;
+    public String name;
+}
+''')
+
+        when:
+        def person = newInstance(context, 'identityscope.Person')
+        person.id = 1
+        person.name = 'Ada'
+        def team = newInstance(context, 'identityscope.Team')
+        team.person = person
+        team.manager = person
+        def first = jsonMapper.writeValueAsString(team)
+        def second = jsonMapper.writeValueAsString(team)
+        def decodedFirst = jsonMapper.readValue(first, argumentOf(context, 'identityscope.Team'))
+        def decodedSecond = jsonMapper.readValue(second, argumentOf(context, 'identityscope.Team'))
+
+        then:
+        JSONAssert.assertEquals('{"manager":{"id":1,"name":"Ada"},"person":1}', first, JSONCompareMode.STRICT)
+        second == first
+        decodedFirst.manager.is(decodedFirst.person)
+        decodedSecond.manager.is(decodedSecond.person)
+        !decodedSecond.manager.is(decodedFirst.manager)
+    }
+
+    void "object identity resolves a mutable forward reference"() {
+        given:
+        def context = buildContext('''
+package identityforward;
+
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Team {
+    public Person manager;
+    public Person person;
+}
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+class Person {
+    public int id;
+    public String name;
+}
+''')
+
+        when:
+        def team = jsonMapper.readValue('{"manager":1,"person":{"id":1,"name":"Ada"}}', argumentOf(context, 'identityforward.Team'))
+
+        then:
+        team.manager.is(team.person)
+    }
+
+    void "object identity fails on an unresolved reference"() {
+        given:
+        def context = buildContext('''
+package identityunresolved;
+
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Team {
+    public Person manager;
+    public Person person;
+}
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+class Person {
+    public int id;
+    public String name;
+}
+''')
+
+        when:
+        jsonMapper.readValue('{"manager":99,"person":{"id":1,"name":"Ada"}}', argumentOf(context, 'identityunresolved.Team'))
+
+        then:
+        def e = thrown(Exception)
+        e.message.contains('99')
+    }
+
+    void "object identity serializes and restores a self reference"() {
+        given:
+        def context = buildContext('''
+package identitycycle;
+
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+class Node {
+    public int id;
+    public Node next;
+}
+''')
+
+        when:
+        def node = newInstance(context, 'identitycycle.Node')
+        node.id = 1
+        node.next = node
+        def json = jsonMapper.writeValueAsString(node)
+        def decoded = jsonMapper.readValue(json, argumentOf(context, 'identitycycle.Node'))
+
+        then:
+        JSONAssert.assertEquals('{"id":1,"next":1}', json, JSONCompareMode.STRICT)
+        decoded.is(decoded.next)
+    }
+
+    void "object identity is shared by collection elements"() {
+        given:
+        def context = buildContext('''
+package identitycollection;
+
+import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Team {
+    public List<Person> people;
+}
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+class Person {
+    public int id;
+    public String name;
+}
+''')
+
+        when:
+        def person = newInstance(context, 'identitycollection.Person')
+        person.id = 1
+        person.name = 'Ada'
+        def team = newInstance(context, 'identitycollection.Team')
+        team.people = [person, person]
+        def json = jsonMapper.writeValueAsString(team)
+        def decoded = jsonMapper.readValue(json, argumentOf(context, 'identitycollection.Team'))
+
+        then:
+        JSONAssert.assertEquals('{"people":[{"id":1,"name":"Ada"},1]}', json, JSONCompareMode.STRICT)
+        decoded.people.size() == 2
+        decoded.people[0].is(decoded.people[1])
+    }
+
+    void "object identity resolves references in record components"() {
+        given:
+        def context = buildContext('''
+package identityrecord;
+
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+record Team(Person manager, Person person) {
+}
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+class Person {
+    public int id;
+    public String name;
+}
+''')
+
+        when:
+        def team = jsonMapper.readValue('{"manager":{"id":1,"name":"Ada"},"person":1}', argumentOf(context, 'identityrecord.Team'))
+
+        then:
+        team.manager().is(team.person())
+        JSONAssert.assertEquals('{"manager":{"id":1,"name":"Ada"},"person":1}', jsonMapper.writeValueAsString(team), JSONCompareMode.STRICT)
     }
 }

@@ -229,6 +229,9 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
                 deserBean.ignoreUnknown
             );
         }
+        if (deserBean.objectIdentity) {
+            deserializer = new IdentityObjectDeserializer(deserializer);
+        }
         if (deserializer instanceof UpdatingDeserializer<Object> updatingDeserializer) {
             return new ErrorCatchingUpdatingDeserializer<>(updatingDeserializer);
         }

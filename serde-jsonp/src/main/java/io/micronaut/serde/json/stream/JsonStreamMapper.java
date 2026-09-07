@@ -49,6 +49,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -74,8 +75,15 @@ public class JsonStreamMapper implements ObjectMapper {
         this.registry = registry;
         this.serdeConfiguration = serdeConfiguration;
         this.view = view;
-        this.coercionPolicy = CoercionPolicy.fromConfiguration(
-            registry.newDecoderContext(view).getDeserializationConfiguration().orElse(null));
+        this.coercionPolicy = resolveCoercionPolicy(registry, view);
+    }
+
+    private static CoercionPolicy resolveCoercionPolicy(SerdeRegistry registry, @Nullable Class<?> view) {
+        try (Deserializer.DecoderContext context = registry.newDecoderContext(view)) {
+            return CoercionPolicy.fromConfiguration(context.getDeserializationConfiguration().orElse(null));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     @Override
@@ -106,13 +114,14 @@ public class JsonStreamMapper implements ObjectMapper {
 
     @Override
     public <T> @Nullable T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
-        Deserializer.DecoderContext context = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view));
-        final Deserializer<? extends T> deserializer = context.findDeserializer(type).createSpecific(context, type);
-        return deserializer.deserialize(
-                JsonNodeDecoder.create(tree, limits(), coercionPolicy()),
-                context,
-                type
-        );
+        try (var context = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view))) {
+            final Deserializer<? extends T> deserializer = context.findDeserializer(type).createSpecific(context, type);
+            return deserializer.deserialize(
+                    JsonNodeDecoder.create(tree, limits(), coercionPolicy()),
+                    context,
+                    type
+            );
+        }
     }
 
     @Override
@@ -131,13 +140,14 @@ public class JsonStreamMapper implements ObjectMapper {
 
     private <T> @Nullable T readValue(JsonParser parser, Argument<T> type) throws IOException {
         Decoder decoder = new JsonParserDecoder(parser, limits(), coercionPolicy());
-        Deserializer.DecoderContext context = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view));
-        final Deserializer<? extends T> deserializer = context.findDeserializer(type).createSpecific(context, type);
-        return deserializer.deserialize(
-                decoder,
-                context,
-                type
-        );
+        try (var context = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view))) {
+            final Deserializer<? extends T> deserializer = context.findDeserializer(type).createSpecific(context, type);
+            return deserializer.deserialize(
+                    decoder,
+                    context,
+                    type
+            );
+        }
     }
 
     @Override
@@ -214,13 +224,14 @@ public class JsonStreamMapper implements ObjectMapper {
     }
 
     private void serialize(Encoder encoder, Object object, Argument type) throws IOException {
-        Serializer.EncoderContext context = registry.newEncoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view));
-        final Serializer<Object> serializer = context.findSerializer(type).createSpecific(context, type);
-        serializer.serialize(
-                encoder,
-                context,
-                type, object
-        );
+        try (var context = registry.newEncoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view))) {
+            final Serializer<Object> serializer = context.findSerializer(type).createSpecific(context, type);
+            serializer.serialize(
+                    encoder,
+                    context,
+                    type, object
+            );
+        }
     }
 
     @Override
