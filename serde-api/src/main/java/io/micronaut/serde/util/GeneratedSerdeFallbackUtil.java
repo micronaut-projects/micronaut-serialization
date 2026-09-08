@@ -25,9 +25,11 @@ import io.micronaut.serde.FormattedDeserializer;
 import io.micronaut.serde.FormattedSerializer;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.DeserializationConfiguration;
+import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
 
@@ -61,7 +63,9 @@ public final class GeneratedSerdeFallbackUtil {
     public static Deserializer<?> withRuntimeObjectFallback(Deserializer<?> generatedDeserializer,
                                                             Deserializer.DecoderContext context,
                                                             Argument<?> type) throws SerdeException {
-        if (supportsFeatures(context) && !isCustomised(type)) {
+        if (supportsFeatures(context)
+            && !hasRuntimeNamingStrategy(context.getSerdeConfiguration().orElse(null))
+            && !isCustomised(type)) {
             return generatedDeserializer;
         }
         Deserializer<?> objectDeserializer = context.findDeserializer(Argument.OBJECT_ARGUMENT);
@@ -82,7 +86,10 @@ public final class GeneratedSerdeFallbackUtil {
     public static Serializer<?> withRuntimeObjectFallback(Serializer<?> generatedSerializer,
                                                           Serializer.EncoderContext context,
                                                           Argument<?> type) throws SerdeException {
-        if (supportsFeatures(context) && !isCustomised(type)) {
+        if (supportsFeatures(context)
+            && !hasRuntimeNamingStrategy(context.getSerdeConfiguration().orElse(null))
+            && !sortsPropertiesAlphabetically(context.getSerializationConfiguration().orElse(null))
+            && !isCustomised(type)) {
             return generatedSerializer;
         }
         Serializer<?> objectSerializer = context.findSerializer(Argument.OBJECT_ARGUMENT);
@@ -176,6 +183,21 @@ public final class GeneratedSerdeFallbackUtil {
 
     private static boolean supportsFeatures(Serializer.EncoderContext context) {
         return SUPPORTED_SER_FEATURES.equals(context.getFeatures());
+    }
+
+    /**
+     * Generated object serdes write the property names resolved at build time. A property naming
+     * strategy configured at runtime renames every property, so the runtime object serde owns that case.
+     */
+    private static boolean hasRuntimeNamingStrategy(@Nullable SerdeConfiguration configuration) {
+        return configuration != null && configuration.getPropertyNamingStrategy() != null;
+    }
+
+    /**
+     * Generated object serializers write properties in the order resolved at build time.
+     */
+    private static boolean sortsPropertiesAlphabetically(@Nullable SerializationConfiguration configuration) {
+        return configuration != null && configuration.sortPropertiesAlphabetically();
     }
 
     private static boolean supportsFeatures(Deserializer.DecoderContext context) {

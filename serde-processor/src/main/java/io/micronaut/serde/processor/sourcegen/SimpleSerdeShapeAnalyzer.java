@@ -73,7 +73,6 @@ public final class SimpleSerdeShapeAnalyzer {
         LinkedHashMap<SimpleSerdeShapeDecision.FallbackReason, String> serializerReasons = new LinkedHashMap<>();
         LinkedHashMap<SimpleSerdeShapeDecision.FallbackReason, String> deserializerReasons = new LinkedHashMap<>();
         SimpleSerdeShapeDecision.ShapeKind shapeKind = resolveShapeKind(element);
-        boolean generated = element.hasAnnotation(SerdeableGenerated.class);
         if (isSerializerSkipped(element)) {
             failSerializer(serializerReasons, SimpleSerdeShapeDecision.FallbackReason.SOURCEGEN_SKIPPED);
         }
@@ -185,12 +184,6 @@ public final class SimpleSerdeShapeAnalyzer {
             && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
             return decision(shapeKind, serializerReasons, deserializerReasons);
         }
-        if (!generated
-            && serializerReasons.isEmpty() && deserializerReasons.isEmpty()
-            && hasPotentialGlobalOrderingConflict(element)
-            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
-            return decision(shapeKind, serializerReasons, deserializerReasons);
-        }
         if (!element.isEnum()
             && !isBothFailed(serializerReasons, deserializerReasons)
             && hasAnnotation(element, SerdeConfig.SerValue.class)
@@ -217,12 +210,6 @@ public final class SimpleSerdeShapeAnalyzer {
         }
         if (!isBothFailed(serializerReasons, deserializerReasons)
             && hasCustomNaming(element)
-            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
-            return decision(shapeKind, serializerReasons, deserializerReasons);
-        }
-        if (!generated
-            && serializerReasons.isEmpty() && deserializerReasons.isEmpty()
-            && hasPotentialGlobalNamingConflict(element)
             && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
             return decision(shapeKind, serializerReasons, deserializerReasons);
         }
@@ -805,59 +792,6 @@ public final class SimpleSerdeShapeAnalyzer {
     private boolean hasCustomSerdeClass(AnnotationMetadata annotationMetadata, String member, String defaultType) {
         return annotationMetadata.stringValue(SerdeConfig.class, member).filter(type -> !type.equals(defaultType)).isPresent()
             || Arrays.stream(annotationMetadata.stringValues(SerdeConfig.class, member)).anyMatch(type -> !type.equals(defaultType));
-    }
-
-    private boolean hasPotentialGlobalNamingConflict(ClassElement element) {
-        for (PropertyElement property : element.getBeanProperties()) {
-            if (containsUppercase(property.getName())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @SuppressWarnings("java:S3776")
-    private boolean hasPotentialGlobalOrderingConflict(ClassElement element) {
-        List<? extends Element> fields = element.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyInstance().onlyDeclared());
-        if (fields.size() >= 3) {
-            if (fields.stream().anyMatch(f -> f.getName().length() != 1)) {
-                return false;
-            }
-            String previous = fields.get(0).getName();
-            for (int i = 1; i < fields.size(); i++) {
-                String current = fields.get(i).getName();
-                if (previous.compareTo(current) > 0) {
-                    return true;
-                }
-                previous = current;
-            }
-            return false;
-        }
-
-        List<PropertyElement> properties = element.getBeanProperties();
-        if (properties.size() >= 3) {
-            if (properties.stream().anyMatch(p -> p.getName().length() != 1)) {
-                return false;
-            }
-            String previous = properties.get(0).getName();
-            for (int i = 1; i < properties.size(); i++) {
-                String current = properties.get(i).getName();
-                if (previous.compareTo(current) > 0) {
-                    return true;
-                }
-                previous = current;
-            }
-        }
-        return false;
-    }
-
-    private boolean containsUppercase(String value) {
-        for (int i = 0; i < value.length(); i++) {
-            if (Character.isUpperCase(value.charAt(i))) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private boolean hasPropertyNamedIgnored(ClassElement element) {

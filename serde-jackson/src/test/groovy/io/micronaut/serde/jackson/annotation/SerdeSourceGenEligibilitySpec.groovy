@@ -54,6 +54,54 @@ enum TestEnum {
         context.close()
     }
 
+    void 'test camel case names and declaration order do not affect eligibility'() {
+        given:
+        def context = buildContext('test.CamelCaseBean', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.core.annotation.Introspected;
+
+@Serdeable
+@Introspected
+class CamelCaseBean {
+    private String firstName;
+    private String lastName;
+
+    public CamelCaseBean() {
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+}
+
+@Serdeable
+@Introspected
+record UnorderedRecord(int c, int a, int b) {
+}
+''')
+
+        expect:
+        assertRegistrySelection(context, 'test.CamelCaseBean', true, true)
+        assertRegistrySelection(context, 'test.UnorderedRecord', true, true)
+
+        cleanup:
+        context.close()
+    }
+
     void 'test any-getter and any-setter are directional fallback reasons'() {
         given:
         def context = buildContext('test.AnyGetterBean', '''
