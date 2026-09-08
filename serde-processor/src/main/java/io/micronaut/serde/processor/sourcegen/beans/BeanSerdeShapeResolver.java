@@ -202,6 +202,8 @@ public final class BeanSerdeShapeResolver {
             property.isNullable(),
             keyMetadata,
             SerdeInclusionSourceGen.resolvePropertyInclude(element, property, keyMetadata),
+            booleanValue(property, SerdeConfig.REQUIRED).orElse(false),
+            aliases(property),
             propertyAccess.readMethod(),
             propertyAccess.writeMethod(),
             propertyAccess.readField(),
@@ -241,6 +243,20 @@ public final class BeanSerdeShapeResolver {
         booleanValue(property, SerdeConfig.XML_WRAPPER_NILLABLE)
             .ifPresent(value -> metadata.put(SerdeConfig.XML_WRAPPER_NILLABLE, value.toString()));
         return Map.copyOf(metadata);
+    }
+
+    private static List<String> aliases(PropertyElement property) {
+        String[] aliases = property.stringValues(SerdeConfig.class, SerdeConfig.ALIASES);
+        if (aliases.length == 0) {
+            aliases = property.getReadMethod().map(method -> method.stringValues(SerdeConfig.class, SerdeConfig.ALIASES)).orElse(aliases);
+        }
+        if (aliases.length == 0) {
+            aliases = property.getWriteMethod().map(method -> method.stringValues(SerdeConfig.class, SerdeConfig.ALIASES)).orElse(aliases);
+        }
+        if (aliases.length == 0) {
+            aliases = property.getField().map(field -> field.stringValues(SerdeConfig.class, SerdeConfig.ALIASES)).orElse(aliases);
+        }
+        return List.of(aliases);
     }
 
     private static Optional<String> stringValue(PropertyElement property, String member) {

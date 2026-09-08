@@ -42,6 +42,8 @@ public record RecordSerdeShape(
      * @param type The component type.
      * @param keyMetadata Pre-resolved metadata contributed with the component key.
      * @param include The inclusion resolved at build time, or {@code null} when the configuration decides.
+     * @param required Whether the component has to be present in the input.
+     * @param aliases Additional names the component is read from.
      * @param propertyElement The associated bean property element.
      */
     public record RecordComponent(
@@ -50,6 +52,8 @@ public record RecordSerdeShape(
         ClassElement type,
         Map<String, String> keyMetadata,
         SerdeConfig.@Nullable SerInclude include,
+        boolean required,
+        List<String> aliases,
         PropertyElement propertyElement
     ) {
         /**
@@ -60,7 +64,7 @@ public record RecordSerdeShape(
          * @param propertyElement The associated bean property element.
          */
         public RecordComponent(String name, ClassElement type, PropertyElement propertyElement) {
-            this(name, name, type, Map.of(), null, propertyElement);
+            this(name, name, type, Map.of(), null, false, List.of(), propertyElement);
         }
     }
 }

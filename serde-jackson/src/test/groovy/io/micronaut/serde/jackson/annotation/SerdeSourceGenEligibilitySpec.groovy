@@ -300,6 +300,58 @@ record NestedOrderRecord(@JsonPropertyOrder({"b", "a"}) OrderedRecord nested) {
         context.close()
     }
 
+    void 'test required properties and aliases are sourcegen eligible'() {
+        given:
+        def context = buildContext('test.RequiredBean', '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.core.annotation.Introspected;
+
+@Serdeable
+@Introspected
+class RequiredBean {
+    @JsonProperty(required = true)
+    private String value;
+    @JsonAlias("other")
+    private String alias;
+
+    public RequiredBean() {
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public String getAlias() {
+        return alias;
+    }
+
+    public void setAlias(String alias) {
+        this.alias = alias;
+    }
+}
+
+@Serdeable
+@Introspected
+record RequiredRecord(@JsonProperty(required = true) String value, @JsonAlias("other") String alias) {
+}
+''')
+
+        expect:
+        assertRegistrySelection(context, 'test.RequiredBean', true, true)
+        assertRegistrySelection(context, 'test.RequiredRecord', true, true)
+
+        cleanup:
+        context.close()
+    }
+
     void 'test any-getter and any-setter are directional fallback reasons'() {
         given:
         def context = buildContext('test.AnyGetterBean', '''

@@ -78,6 +78,7 @@ public final class SimpleSerdeShapeAnalyzer {
         JACKSON_ANNOTATION_PREFIX + "JsonIncludeProperties",
         JACKSON_ANNOTATION_PREFIX + "JsonPropertyOrder",
         JACKSON_ANNOTATION_PREFIX + "JsonInclude",
+        JACKSON_ANNOTATION_PREFIX + "JsonAlias",
         JACKSON_ANNOTATION_PREFIX + "JsonClassDescription",
         JACKSON_ANNOTATION_PREFIX + "JsonPropertyDescription",
         JACKSON_XML_PROPERTY,
@@ -935,7 +936,6 @@ public final class SimpleSerdeShapeAnalyzer {
             return true;
         }
         return annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.FILTER).isPresent()
-            || annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.REQUIRED).orElse(false)
             || annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.MERGE).orElse(false)
             || FormatConfiguration.from(annotationMetadata) != null
             || hasFeatureOverrides(annotationMetadata)

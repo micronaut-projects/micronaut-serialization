@@ -138,6 +138,63 @@ public final class GeneratedSerdeExceptionUtil {
     }
 
     /**
+     * Creates an exception for a required property that is absent or null in the input.
+     *
+     * @param beanType         The declaring bean argument.
+     * @param propertyArgument The property argument.
+     * @return The configured exception.
+     * @since 3.2
+     */
+    public static SerdeException requiredProperty(Argument<?> beanType,
+                                                  Argument<?> propertyArgument) {
+        return new SerdeException("Unable to deserialize type [" + beanType.getType().getName() +
+            "]. Required property [" + propertyArgument + "] is not present in supplied data");
+    }
+
+    /**
+     * Creates an exception for a required property that is explicitly null in the input.
+     *
+     * @param beanType         The declaring bean argument.
+     * @param propertyArgument The property argument.
+     * @return The configured exception.
+     * @since 3.2
+     */
+    public static SerdeException requiredPropertyNull(Argument<?> beanType,
+                                                      Argument<?> propertyArgument) {
+        return new SerdeException("Unable to deserialize type [" + beanType.getType().getName() +
+            "]. Required property [" + propertyArgument + "] is not present or is null in the supplied data");
+    }
+
+    /**
+     * Creates an exception for a required constructor parameter that is absent or null in the input.
+     *
+     * @param beanType         The declaring bean argument.
+     * @param propertyArgument The parameter argument.
+     * @param index            The parameter index.
+     * @return The configured exception.
+     * @since 3.2
+     */
+    public static SerdeException requiredConstructorParameter(Argument<?> beanType,
+                                                              Argument<?> propertyArgument,
+                                                              int index) {
+        return new SerdeException("Unable to deserialize type [" + beanType.getType().getName() +
+            "]. Required constructor parameter [" + propertyArgument + "] at index [" + index + "] is not present or is null in the supplied data");
+    }
+
+    /**
+     * Whether every constructor parameter has to be present in the input.
+     *
+     * @param context The decoder context.
+     * @return {@code true} if all creator parameters are required
+     * @since 3.2
+     */
+    public static boolean requireAllCreatorParameters(Deserializer.DecoderContext context) {
+        return context.getDeserializationConfiguration()
+            .map(DeserializationConfiguration::isRequireAllCreatorParameters)
+            .orElse(false);
+    }
+
+    /**
      * Whether primitive values should reject explicit null input.
      *
      * @param context The decoder context.

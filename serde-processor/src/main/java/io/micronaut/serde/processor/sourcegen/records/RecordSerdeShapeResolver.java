@@ -64,6 +64,8 @@ public final class RecordSerdeShapeResolver {
                 parameter.getType(),
                 keyMetadata,
                 SerdeInclusionSourceGen.resolvePropertyInclude(element, propertyElement, keyMetadata),
+                booleanValue(propertyElement, SerdeConfig.REQUIRED).orElse(parameter.booleanValue(SerdeConfig.class, SerdeConfig.REQUIRED).orElse(false)),
+                aliases(propertyElement, parameter),
                 propertyElement
             ));
         }
@@ -102,6 +104,20 @@ public final class RecordSerdeShapeResolver {
         booleanValue(property, SerdeConfig.XML_WRAPPER_NILLABLE)
             .ifPresent(value -> metadata.put(SerdeConfig.XML_WRAPPER_NILLABLE, value.toString()));
         return Map.copyOf(metadata);
+    }
+
+    private static List<String> aliases(PropertyElement property, ParameterElement parameter) {
+        String[] aliases = property.stringValues(SerdeConfig.class, SerdeConfig.ALIASES);
+        if (aliases.length == 0) {
+            aliases = parameter.stringValues(SerdeConfig.class, SerdeConfig.ALIASES);
+        }
+        if (aliases.length == 0) {
+            aliases = property.getReadMethod().map(method -> method.stringValues(SerdeConfig.class, SerdeConfig.ALIASES)).orElse(aliases);
+        }
+        if (aliases.length == 0) {
+            aliases = property.getField().map(field -> field.stringValues(SerdeConfig.class, SerdeConfig.ALIASES)).orElse(aliases);
+        }
+        return List.of(aliases);
     }
 
     private static Optional<String> stringValue(PropertyElement property, String member) {

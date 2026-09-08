@@ -52,6 +52,8 @@ public record BeanSerdeShape(
      * @param nullable            Whether the property is nullable.
      * @param keyMetadata         Pre-resolved metadata contributed with the property key.
      * @param include             The inclusion resolved at build time, or {@code null} when the configuration decides.
+     * @param required            Whether the property has to be present and non-null in the input.
+     * @param aliases             Additional names the property is read from.
      * @param readMethod          Bean getter method.
      * @param writeMethod         Bean setter method.
      * @param readField           Bean field used for reading.
@@ -65,6 +67,8 @@ public record BeanSerdeShape(
         boolean nullable,
         Map<String, String> keyMetadata,
         SerdeConfig.@Nullable SerInclude include,
+        boolean required,
+        List<String> aliases,
         @Nullable MethodElement readMethod,
         @Nullable MethodElement writeMethod,
         @Nullable FieldElement readField,
@@ -102,6 +106,8 @@ public record BeanSerdeShape(
                 nullable,
                 Map.of(),
                 null,
+                false,
+                List.of(),
                 readMethod,
                 writeMethod,
                 readField,
