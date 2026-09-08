@@ -1,0 +1,30 @@
+By default, a property naming strategy applies to both serialization and deserialization. Use `@Serdeable.Serializable` and `@Serdeable.Deserializable` when the JSON written by an application must follow a different naming convention from the JSON it reads.
+
+The following type writes snake case property names and reads upper camel case property names:
+
+snippet::example.DirectionalContact[project-base="doc-examples/example", source="main"]
+
+<1> The serialization naming strategy converts `firstName` and `lastName` to `first_name` and `last_name`.
+<2> The deserialization naming strategy expects `FirstName` and `LastName`.
+
+For example, serializing the type produces:
+
+[source,json]
+----
+{"first_name":"John","last_name":"Doe"}
+----
+
+The same type can deserialize JSON that uses the input naming convention:
+
+[source,json]
+----
+{"FirstName":"Jane","LastName":"Smith"}
+----
+
+The following executable example verifies both directions:
+
+snippet::example.DirectionalNamingTest[project-base="doc-examples/example"]
+
+Directional naming can be declared on a type or on an individual property. If only one direction declares a naming strategy, the other direction keeps its own configured naming behavior. Explicit property names take precedence over naming strategies.
+
+Use `@Serdeable(naming = ...)` when the same naming strategy should apply in both directions. Directional naming is supported by both source-generated serdes and the runtime introspection fallback.

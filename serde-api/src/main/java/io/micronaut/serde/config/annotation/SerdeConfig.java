@@ -240,6 +240,62 @@ public @interface SerdeConfig {
      */
     String RUNTIME_NAMING = "runtimeNaming";
 
+    /**
+     * The naming strategy to apply when serializing properties.
+     * Overrides {@link #NAMING} for serialization only.
+     *
+     * @see #NAMING
+     * @see #DESERIALIZE_NAMING
+     */
+    String SERIALIZE_NAMING = "serializeNaming";
+
+    /**
+     * The naming strategy to apply when deserializing properties.
+     * Overrides {@link #NAMING} for deserialization only.
+     *
+     * @see #NAMING
+     * @see #SERIALIZE_NAMING
+     */
+    String DESERIALIZE_NAMING = "deserializeNaming";
+
+    /**
+     * The compile-time resolved property name used during serialization.
+     * Falls back to {@link #PROPERTY} if not set.
+     *
+     * @see #PROPERTY
+     * @see #DESERIALIZE_PROPERTY_NAME
+     */
+    String SERIALIZE_PROPERTY_NAME = "serializeProperty";
+
+    /**
+     * The compile-time resolved property name used during deserialization.
+     * Falls back to {@link #PROPERTY} if not set.
+     *
+     * @see #PROPERTY
+     * @see #SERIALIZE_PROPERTY_NAME
+     */
+    String DESERIALIZE_PROPERTY_NAME = "deserializeProperty";
+
+    /**
+     * Runtime naming strategy class used during serialization,
+     * when the strategy cannot be resolved at compile time.
+     * Falls back to {@link #RUNTIME_NAMING} if not set.
+     *
+     * @see #RUNTIME_NAMING
+     * @see #DESERIALIZE_RUNTIME_NAMING
+     */
+    String SERIALIZE_RUNTIME_NAMING = "serializeRuntimeNaming";
+
+    /**
+     * Runtime naming strategy class used during deserialization,
+     * when the strategy cannot be resolved at compile time.
+     * Falls back to {@link #RUNTIME_NAMING} if not set.
+     *
+     * @see #RUNTIME_NAMING
+     * @see #SERIALIZE_RUNTIME_NAMING
+     */
+    String DESERIALIZE_RUNTIME_NAMING = "deserializeRuntimeNaming";
+
     String SOURCEGEN_SHAPE = "sourcegenShape";
 
     String SOURCEGEN_SERIALIZER_ELIGIBLE = "sourcegenSerializerEligible";

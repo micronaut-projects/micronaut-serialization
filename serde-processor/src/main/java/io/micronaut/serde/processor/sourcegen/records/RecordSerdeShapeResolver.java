@@ -15,10 +15,13 @@
  */
 package io.micronaut.serde.processor.sourcegen.records;
 
+import io.micronaut.core.reflect.InstantiationUtils;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.MethodElement;
 import io.micronaut.inject.ast.ParameterElement;
 import io.micronaut.inject.ast.PropertyElement;
+import io.micronaut.serde.config.annotation.SerdeConfig;
+import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,10 +59,43 @@ public final class RecordSerdeShapeResolver {
             }
             components.add(new RecordSerdeShape.RecordComponent(
                 parameter.getName(),
+                resolveName(element, propertyElement, SerdeConfig.SERIALIZE_PROPERTY_NAME, SerdeConfig.SERIALIZE_NAMING),
+                resolveName(element, propertyElement, SerdeConfig.DESERIALIZE_PROPERTY_NAME, SerdeConfig.DESERIALIZE_NAMING),
                 parameter.getType(),
                 propertyElement
             ));
         }
         return Optional.of(new RecordSerdeShape(canonicalConstructor, List.copyOf(components)));
+    }
+
+    private static String resolveName(ClassElement element, PropertyElement property, String propertyMember, String namingMember) {
+        Optional<String> propertyValue = property.stringValue(SerdeConfig.class, propertyMember);
+        if (propertyValue.isPresent()) {
+            return propertyValue.get();
+        }
+
+        Optional<String> namingValue = element.stringValue(SerdeConfig.class, namingMember);
+        if (namingValue.isPresent()) {
+            String name = namingValue.get();
+            PropertyNamingStrategy strategy = null;
+
+            Optional<PropertyNamingStrategy> strategyByName = PropertyNamingStrategy.forName(name);
+            if (strategyByName.isPresent()) {
+                strategy = strategyByName.get();
+            } else {
+                ClassLoader classLoader = RecordSerdeShapeResolver.class.getClassLoader();
+                Optional<?> instance = InstantiationUtils.tryInstantiate(name, classLoader);
+
+                if (instance.isPresent() && instance.get() instanceof PropertyNamingStrategy) {
+                    strategy = (PropertyNamingStrategy) instance.get();
+                }
+            }
+
+            if (strategy != null) {
+                return strategy.translate(property);
+            }
+        }
+
+        return property.getName();
     }
 }

@@ -5,6 +5,7 @@ releaseHistory: Release History
 quickStart:
   title: Quick Start
   jacksonQuick: Jackson Annotations & Jackson Core
+  directionalNaming: Directional Property Naming
   jsonpQuick: JSON-B Annotations & JSON-P
   bsonQuick: BSON Annotations and BSON
   tomlQuick: TOML
