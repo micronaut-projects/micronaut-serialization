@@ -81,4 +81,72 @@ more: [1, 2]
         cleanup:
         context.close()
     }
+    def "an alias without a matching anchor is rejected"() {
+        when:
+        mapper.readValue("a: *missing\n", Argument.mapOf(String, Object))
+
+        then:
+        def e = thrown(SerdeException)
+        e.message.contains("*missing")
+    }
+
+    def "an alias to a node that is still open is rejected instead of recursing"() {
+        when:
+        mapper.readValue("&root\nfirst: 1\nself: *root\n", Argument.mapOf(String, Object))
+
+        then:
+        def e = thrown(SerdeException)
+        e.message.contains("*root")
+        e.message.contains("still open")
+    }
+
+    def "aliases and merges resolved inside an anchored node are replayed"() {
+        when:
+        def map = mapper.readValue('''
+base: &base
+  values: &vals [1, 2]
+derived: &derived
+  <<: *base
+  list: *vals
+copy: *derived
+''', Argument.mapOf(String, Object))
+
+        then:
+        map.copy == [values: [1, 2], list: [1, 2]]
+        map.derived == map.copy
+    }
+
+    def "a merge key accepts a sequence of mappings"() {
+        when:
+        def map = mapper.readValue('''
+a: &a {x: 1, y: 1}
+b: &b {y: 2, z: 2}
+merged:
+  <<: [*a, *b]
+  w: 0
+''', Argument.mapOf(String, Object))
+
+        then:
+        map.merged == [z: 2, y: 1, x: 1, w: 0]
+        map.merged.y == 1
+    }
+
+    def "a merge key with an inline mapping is spliced"() {
+        expect:
+        mapper.readValue("m:\n  <<: {a: 1}\n  b: 2\n", Argument.mapOf(String, Object)).m == [a: 1, b: 2]
+    }
+
+    def "a quoted merge key is a regular key"() {
+        expect:
+        mapper.readValue('"<<": literal\n', Argument.mapOf(String, Object)) == ["<<": "literal"]
+    }
+
+    def "a merge key with a scalar value is rejected"() {
+        when:
+        mapper.readValue("m:\n  <<: nope\n", Argument.mapOf(String, Object))
+
+        then:
+        def e = thrown(SerdeException)
+        e.message.contains("merge key")
+    }
 }
