@@ -244,4 +244,24 @@ hex: 0xFF
         def e = thrown(SerdeException)
         e.message.contains("line 2")
     }
+    def "input larger than the code point limit is rejected"() {
+        given:
+        def context = ApplicationContext.run(['micronaut.serde.format.yaml.read-features.code-point-limit': 20])
+        def limited = context.getBean(YamlObjectMapper)
+
+        when:
+        limited.readValue("title: " + ("x" * 32) + "\npages: 1\n", Book)
+
+        then:
+        thrown(SerdeException)
+
+        when:
+        def book = limited.readValue("title: T\npages: 1", Book)
+
+        then:
+        book == new Book("T", 1)
+
+        cleanup:
+        context.close()
+    }
 }

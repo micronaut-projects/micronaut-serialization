@@ -25,7 +25,7 @@ import java.util.Objects;
 /**
  * YAML-specific configuration.
  *
- * @since 3.1.0
+ * @since 3.2.0
  */
 @Internal
 @ConfigurationProperties(SerdeYamlConfiguration.PREFIX)
@@ -139,7 +139,7 @@ public final class SerdeYamlConfiguration {
      * Returns whether YAML should be emitted in canonical form.
      *
      * @return Whether to use canonical output
-     * @since 3.0.1
+     * @since 3.2.0
      */
     public boolean isCanonicalOutput() {
         return writeFeatures.isCanonicalOutput();
@@ -149,7 +149,7 @@ public final class SerdeYamlConfiguration {
      * Returns whether sequence indicators should be indented.
      *
      * @return Whether to indent arrays
-     * @since 3.0.1
+     * @since 3.2.0
      */
     public boolean isIndentArrays() {
         return writeFeatures.isIndentArrays();
@@ -159,7 +159,7 @@ public final class SerdeYamlConfiguration {
      * Returns whether sequence indicators should be indented by two spaces.
      *
      * @return Whether to indent arrays with the indicator
-     * @since 3.0.1
+     * @since 3.2.0
      */
     public boolean isIndentArraysWithIndicator() {
         return writeFeatures.isIndentArraysWithIndicator();
@@ -169,7 +169,7 @@ public final class SerdeYamlConfiguration {
      * Returns whether simple YAML keys may be up to 1024 characters long.
      *
      * @return Whether to allow long keys
-     * @since 3.0.1
+     * @since 3.2.0
      */
     public boolean isAllowLongKeys() {
         return writeFeatures.isAllowLongKeys();
@@ -179,7 +179,7 @@ public final class SerdeYamlConfiguration {
      * Returns whether non-finite numbers should use YAML notation.
      *
      * @return Whether to use YAML notation for non-finite numbers
-     * @since 3.0.1
+     * @since 3.2.0
      */
     public boolean isUseYamlNonfiniteNotation() {
         return writeFeatures.isUseYamlNonfiniteNotation();
@@ -204,14 +204,30 @@ public final class SerdeYamlConfiguration {
     }
 
     /**
+     * Returns the maximum number of code points a single YAML input may contain.
+     *
+     * @return The code point limit
+     */
+    public int getCodePointLimit() {
+        return readFeatures.getCodePointLimit();
+    }
+
+    /**
      * Controls YAML deserialization behavior.
      *
-     * @since 3.0.1
+     * @since 3.2.0
      */
     @ConfigurationProperties("read-features")
     public static final class ReadFeatures {
+
+        /**
+         * The default maximum number of code points a single YAML input may contain: 3 MiB.
+         */
+        public static final int DEFAULT_CODE_POINT_LIMIT = 3 * 1024 * 1024;
+
         private boolean booleanAsStrings = true;
         private boolean emptyStringAsNull = true;
+        private int codePointLimit = DEFAULT_CODE_POINT_LIMIT;
 
         /**
          * Returns whether YAML boolean-like words such as {@code yes}, {@code no},
@@ -252,12 +268,35 @@ public final class SerdeYamlConfiguration {
         public void setEmptyStringAsNull(boolean emptyStringAsNull) {
             this.emptyStringAsNull = emptyStringAsNull;
         }
+
+        /**
+         * Returns the maximum number of code points a single YAML input may contain. Larger
+         * input is rejected before it is parsed, which bounds the memory an untrusted document
+         * can claim. Default value ({@value #DEFAULT_CODE_POINT_LIMIT}).
+         *
+         * @return The code point limit
+         */
+        public int getCodePointLimit() {
+            return codePointLimit;
+        }
+
+        /**
+         * Sets the maximum number of code points a single YAML input may contain.
+         *
+         * @param codePointLimit The code point limit, greater than zero
+         */
+        public void setCodePointLimit(int codePointLimit) {
+            if (codePointLimit <= 0) {
+                throw new IllegalArgumentException("codePointLimit must be greater than zero");
+            }
+            this.codePointLimit = codePointLimit;
+        }
     }
 
     /**
      * YAML collection write style.
      *
-     * @since 3.1.0
+     * @since 3.2.0
      */
     public enum WriteStyle {
         /**
@@ -284,7 +323,7 @@ public final class SerdeYamlConfiguration {
     /**
      * Controls YAML serialization behavior.
      *
-     * @since 3.1.0
+     * @since 3.2.0
      */
     @ConfigurationProperties("write-features")
     public static final class WriteFeatures {
@@ -431,7 +470,7 @@ public final class SerdeYamlConfiguration {
          * Returns whether YAML should be emitted in canonical form.
          *
          * @return Whether to use canonical output
-         * @since 3.0.1
+         * @since 3.2.0
          */
         public boolean isCanonicalOutput() {
             return canonicalOutput;
@@ -441,7 +480,7 @@ public final class SerdeYamlConfiguration {
          * Sets whether YAML should be emitted in canonical form.
          *
          * @param canonicalOutput Whether to use canonical output
-         * @since 3.0.1
+         * @since 3.2.0
          */
         public void setCanonicalOutput(boolean canonicalOutput) {
             this.canonicalOutput = canonicalOutput;
@@ -451,7 +490,7 @@ public final class SerdeYamlConfiguration {
          * Returns whether sequence indicators should be indented.
          *
          * @return Whether to indent arrays
-         * @since 3.0.1
+         * @since 3.2.0
          */
         public boolean isIndentArrays() {
             return indentArrays;
@@ -461,7 +500,7 @@ public final class SerdeYamlConfiguration {
          * Sets whether sequence indicators should be indented.
          *
          * @param indentArrays Whether to indent arrays
-         * @since 3.0.1
+         * @since 3.2.0
          */
         public void setIndentArrays(boolean indentArrays) {
             this.indentArrays = indentArrays;
@@ -471,7 +510,7 @@ public final class SerdeYamlConfiguration {
          * Returns whether sequence indicators should be indented by two spaces.
          *
          * @return Whether to indent arrays with the indicator
-         * @since 3.0.1
+         * @since 3.2.0
          */
         public boolean isIndentArraysWithIndicator() {
             return indentArraysWithIndicator;
@@ -481,7 +520,7 @@ public final class SerdeYamlConfiguration {
          * Sets whether sequence indicators should be indented by two spaces.
          *
          * @param indentArraysWithIndicator Whether to indent arrays with the indicator
-         * @since 3.0.1
+         * @since 3.2.0
          */
         public void setIndentArraysWithIndicator(boolean indentArraysWithIndicator) {
             this.indentArraysWithIndicator = indentArraysWithIndicator;
@@ -491,7 +530,7 @@ public final class SerdeYamlConfiguration {
          * Returns whether simple YAML keys may be up to 1024 characters long.
          *
          * @return Whether to allow long keys
-         * @since 3.0.1
+         * @since 3.2.0
          */
         public boolean isAllowLongKeys() {
             return allowLongKeys;
@@ -501,7 +540,7 @@ public final class SerdeYamlConfiguration {
          * Sets whether simple YAML keys may be up to 1024 characters long.
          *
          * @param allowLongKeys Whether to allow long keys
-         * @since 3.0.1
+         * @since 3.2.0
          */
         public void setAllowLongKeys(boolean allowLongKeys) {
             this.allowLongKeys = allowLongKeys;
@@ -511,7 +550,7 @@ public final class SerdeYamlConfiguration {
          * Returns whether non-finite numbers should use YAML notation.
          *
          * @return Whether to use YAML notation for non-finite numbers
-         * @since 3.0.1
+         * @since 3.2.0
          */
         public boolean isUseYamlNonfiniteNotation() {
             return useYamlNonfiniteNotation;
@@ -521,7 +560,7 @@ public final class SerdeYamlConfiguration {
          * Sets whether non-finite numbers should use YAML notation.
          *
          * @param useYamlNonfiniteNotation Whether to use YAML notation for non-finite numbers
-         * @since 3.0.1
+         * @since 3.2.0
          */
         public void setUseYamlNonfiniteNotation(boolean useYamlNonfiniteNotation) {
             this.useYamlNonfiniteNotation = useYamlNonfiniteNotation;

@@ -45,6 +45,7 @@ record YamlReadSettings(LoadSettings loadSettings, boolean booleanAsStrings, boo
     static YamlReadSettings from(SerdeYamlConfiguration configuration) {
         LoadSettings loadSettings = LoadSettings.builder()
             .setSchema(new CoreSchema())
+            .setCodePointLimit(configuration.getCodePointLimit())
             .build();
         return new YamlReadSettings(loadSettings, configuration.isBooleanAsStrings(), configuration.isEmptyStringAsNull());
     }
