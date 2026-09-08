@@ -94,6 +94,50 @@ more: [1, 2]
         e.message.contains("*missing")
     }
 
+    def "an alias inside a redefinition of an anchor name is rejected instead of resolving the older node"() {
+        when:
+        // *x names the &x it sits inside, not the [1] the name held before it
+        mapper.readValue("a: &x [1]\nb: &x [*x]\n", Argument.mapOf(String, Object))
+
+        then:
+        def e = thrown(SerdeException)
+        e.message.contains("the anchor is still open")
+    }
+
+    def "an alias may reuse a name a closed anchor already used"() {
+        expect:
+        mapper.readValue("a: &x [1]\nb: &x [2]\nc: *x\n", Argument.mapOf(String, Object)).c == [2]
+    }
+
+    def "a document that expands into too many events through aliases is rejected"() {
+        given:
+        // an anchored sequence repeated until the whole document blows past the expansion budget
+        def yaml = new StringBuilder("anchor: &a [")
+        1000.times { yaml.append("0,") }
+        yaml.append("0]\nuse:\n")
+        1100.times { yaml.append("  - *a\n") }
+
+        when:
+        mapper.readValue(yaml.toString(), Argument.mapOf(String, Object))
+
+        then:
+        def e = thrown(SerdeException)
+        e.message.contains("expands into more than")
+    }
+
+    def "ordinary alias use stays well inside the expansion budget"() {
+        given:
+        def yaml = new StringBuilder("anchor: &a [1, 2, 3]\nuse:\n")
+        500.times { yaml.append("  - *a\n") }
+
+        when:
+        def read = mapper.readValue(yaml.toString(), Argument.mapOf(String, Object))
+
+        then:
+        read.use.size() == 500
+        read.use.every { it == [1, 2, 3] }
+    }
+
     def "an alias to a node that is still open is rejected instead of recursing"() {
         when:
         mapper.readValue("&root\nfirst: 1\nself: *root\n", Argument.mapOf(String, Object))

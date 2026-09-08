@@ -70,7 +70,7 @@ micronaut:
 
 `empty-string-as-null`:: When enabled, an empty plain scalar such as `key:` is read as `null`. Disable it to read the value as an empty string. Quoted empty strings remain strings.
 
-`code-point-limit`:: The maximum number of characters a single YAML input may contain. Larger input is rejected before it is parsed, which bounds the memory an untrusted document can claim. The default is 3 MiB. The nesting depth of documents is bounded by `micronaut.serde.maximum-nesting-depth` like it is for the other formats, and alias expansion is capped so that recursive or exponentially expanding documents fail instead of consuming memory.
+`code-point-limit`:: The maximum number of characters a single YAML input may contain. Larger input is rejected before it is parsed, which bounds the memory an untrusted document can claim. The default is 3 MiB. The nesting depth of documents is bounded by `micronaut.serde.maximum-nesting-depth` like it is for the other formats. Alias expansion is capped as well, per alias and for the document as a whole, so that recursive documents, exponentially expanding ones and documents that simply repeat an alias to a large anchored node fail instead of consuming memory.
 
 == Write Features
 

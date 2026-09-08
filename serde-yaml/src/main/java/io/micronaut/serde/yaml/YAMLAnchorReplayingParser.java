@@ -81,6 +81,16 @@ final class YAMLAnchorReplayingParser {
      */
     static final int MAX_REFS = 9999;
 
+    /**
+     * The maximum number of events a single document may replay in total.
+     *
+     * <p>{@link #MAX_EVENTS} bounds one expansion, but the replay queue drains between them, so on
+     * its own it lets a document repeat an alias as often as it has room for: a 3 MiB input holding
+     * one anchored sequence and nothing but aliases to it expands into billions of events. This
+     * budget bounds what the whole document may expand into.</p>
+     */
+    static final int MAX_EXPANDED_EVENTS = 1_000_000;
+
     private static final String MERGE_KEY = "<<";
 
     private final Iterator<Event> events;
@@ -89,6 +99,7 @@ final class YAMLAnchorReplayingParser {
     private final Deque<Event> replay = new ArrayDeque<>();
     private final Deque<Frame> frames = new ArrayDeque<>();
     private int merges;
+    private int expanded;
 
     YAMLAnchorReplayingParser(Iterator<Event> events) {
         this.events = events;
@@ -287,9 +298,26 @@ final class YAMLAnchorReplayingParser {
         if (replay.size() + events.size() > MAX_EVENTS) {
             throw new SerdeException("Too many events to replay for the merge key" + location(mergeKey));
         }
+        chargeExpansion(events.size(), " for the merge key" + location(mergeKey));
         // queue in front of anything already pending, keeping the order of the buffered events
         for (Event event : events.reversed()) {
             replay.addFirst(event);
+        }
+    }
+
+    /**
+     * Charges events that are about to be replayed against the budget of the whole document.
+     *
+     * @param count The number of events
+     * @param detail What is being replayed, for the error
+     * @throws SerdeException if the document has replayed more events than it may
+     */
+    private void chargeExpansion(int count, String detail) throws SerdeException {
+        // the throw below keeps this well inside the range of an int
+        expanded += count;
+        if (expanded > MAX_EXPANDED_EVENTS) {
+            throw new SerdeException("The YAML document expands into more than " + MAX_EXPANDED_EVENTS
+                + " events through its aliases and merge keys, too many to replay" + detail);
         }
     }
 
@@ -309,18 +337,22 @@ final class YAMLAnchorReplayingParser {
 
     private void expandAlias(AliasEvent alias) throws SerdeException {
         String anchor = alias.getAlias().getValue();
+        // an open anchor of that name is what the alias names, even when an earlier anchor used the
+        // same name: an alias inside the node it anchors is recursive, not a reference to the
+        // node the name held before
+        for (AnchorContext open : openAnchors) {
+            if (open.anchor.equals(anchor)) {
+                throw new SerdeException("Invalid alias *" + anchor + ": the anchor is still open, recursive structures cannot be decoded" + location(alias));
+            }
+        }
         List<Event> recorded = anchors.get(anchor);
         if (recorded == null) {
-            for (AnchorContext open : openAnchors) {
-                if (open.anchor.equals(anchor)) {
-                    throw new SerdeException("Invalid alias *" + anchor + ": the anchor is still open, recursive structures cannot be decoded" + location(alias));
-                }
-            }
             throw new SerdeException("Invalid alias *" + anchor + ": no anchor with that name was defined before it" + location(alias));
         }
         if (replay.size() + recorded.size() > MAX_EVENTS) {
             throw new SerdeException("Too many events to replay for alias *" + anchor);
         }
+        chargeExpansion(recorded.size(), " for alias *" + anchor + location(alias));
         // the replayed events must come before anything that is already queued
         for (Event event : recorded.reversed()) {
             replay.addFirst(event);
