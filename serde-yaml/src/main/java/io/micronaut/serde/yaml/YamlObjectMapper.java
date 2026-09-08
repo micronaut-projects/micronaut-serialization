@@ -110,17 +110,6 @@ public final class YamlObjectMapper implements ObjectMapper {
         );
     }
 
-    /**
-     * Creates a YAML-backed {@link ObjectMapper} with the default YAML configuration.
-     *
-     * @param registry The serde registry used to resolve serializers and deserializers
-     * @param serdeConfiguration The serde configuration, when available
-     * @param view The active serialization view, when available
-     */
-    public YamlObjectMapper(SerdeRegistry registry, @Nullable SerdeConfiguration serdeConfiguration, @Nullable Class<?> view) {
-        this(registry, serdeConfiguration, new SerdeYamlConfiguration(), new YamlStringQuotingChecker(), view);
-    }
-
     @Override
     public SerdeRegistry getSerdeRegistry() {
         return registry;

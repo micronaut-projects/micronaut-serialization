@@ -16,18 +16,16 @@
 package io.micronaut.serde.yaml;
 
 import io.micronaut.context.annotation.ConfigurationProperties;
-import io.micronaut.core.annotation.Internal;
 import io.micronaut.serde.config.SerdeConfiguration;
 import org.snakeyaml.engine.v2.common.FlowStyle;
 
 import java.util.Objects;
 
 /**
- * YAML-specific configuration.
+ * YAML-specific configuration, bound from the {@code micronaut.serde.format.yaml} properties.
  *
  * @since 3.2.0
  */
-@Internal
 @ConfigurationProperties(SerdeYamlConfiguration.PREFIX)
 public final class SerdeYamlConfiguration {
 

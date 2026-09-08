@@ -106,7 +106,7 @@ public final class YamlMessageHandler<T> implements MessageBodyHandler<T>, Respo
     }
 
     private static CodecException decorateWrite(Object object, IOException e) {
-        return new CodecException("Error encoding object [" + object + "] to YAML: " + e.getMessage(), e);
+        return new CodecException("Error encoding object of type [" + object.getClass().getName() + "] to YAML: " + e.getMessage(), e);
     }
 
     @Override

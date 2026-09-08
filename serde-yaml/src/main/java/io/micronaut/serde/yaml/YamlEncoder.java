@@ -54,8 +54,11 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * YAML implementation of the {@link Encoder} interface. <br/>
- * ImplicitTuple(true, true) means that (type) tags won't be shown. and sometimes we specifically DO want explicit tag we specify ImplicitTuple(false, false)
+ * YAML implementation of the {@link Encoder} interface.
+ *
+ * <p>Scalars are emitted with implicit tags, so no type tags appear in the output. A string whose
+ * plain form would be read back as another type, such as {@code 123} or {@code true}, is written
+ * quoted instead of tagged so that it round-trips as a string.</p>
  *
  * @since 3.2.0
  */

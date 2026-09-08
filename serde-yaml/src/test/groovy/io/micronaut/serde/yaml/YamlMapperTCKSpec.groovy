@@ -5,9 +5,9 @@ import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
 
 /**
- * This one run shared tck tests
+ * Runs the shared YAML TCK tests against the Micronaut YAML mapper.
  */
-class YamlMapperTCKSpec extends AbstractMicronautYamlSpec{
+class YamlMapperTCKSpec extends AbstractMicronautYamlSpec {
 
     @Override
     Class<JsonMapper> getJsonMapperClass() {

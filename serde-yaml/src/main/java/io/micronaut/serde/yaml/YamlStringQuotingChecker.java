@@ -18,8 +18,6 @@ package io.micronaut.serde.yaml;
 import io.micronaut.core.annotation.Internal;
 import jakarta.inject.Singleton;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -37,7 +35,7 @@ final class YamlStringQuotingChecker {
      * aliases for booleans, and we better quote such values as keys; although Jackson
      * itself has no problems dealing with them, some other tools do have.
      */
-    private final Set<String> RESERVED_KEYWORDS = new HashSet<>(Arrays.asList(
+    private static final Set<String> RESERVED_KEYWORDS = Set.of(
         "false", "False", "FALSE",
         "n", "N",
         "no", "No", "NO",
@@ -47,7 +45,7 @@ final class YamlStringQuotingChecker {
         "true", "True", "TRUE",
         "y", "Y",
         "yes", "Yes", "YES"
-    ));
+    );
 
     /**
      * Method called by {@link YamlEncoder}.
