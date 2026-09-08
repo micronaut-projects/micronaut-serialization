@@ -60,10 +60,13 @@ loadScripts(document, 'script');</script>
 <li><a href="#constructor-detail" tabindex="0">Constructor Details</a>
 <ol class="toc-list">
 <li><a href="#%3Cinit%3E(io.micronaut.serde.LimitingStream.RemainingLimits)" tabindex="0">AbstractStreamDecoder(LimitingStream.RemainingLimits)</a></li>
+<li><a href="#%3Cinit%3E(io.micronaut.serde.LimitingStream.RemainingLimits,io.micronaut.serde.config.CoercionPolicy)" tabindex="0">AbstractStreamDecoder(LimitingStream.RemainingLimits, CoercionPolicy)</a></li>
 </ol>
 </li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
+<li><a href="#getCoercionPolicy()" tabindex="0">getCoercionPolicy()</a></li>
+<li><a href="#isCurrentNumberFloat()" tabindex="0">isCurrentNumberFloat()</a></li>
 <li><a href="#currentToken()" tabindex="0">currentToken()</a></li>
 <li><a href="#nextToken()" tabindex="0">nextToken()</a></li>
 <li><a href="#unexpectedToken(io.micronaut.serde.support.AbstractStreamDecoder.TokenType)" tabindex="0">unexpectedToken(AbstractStreamDecoder.TokenType)</a></li>
@@ -182,11 +185,21 @@ implements <a href="../Decoder.html" title="interface in io.micronaut.serde">Dec
 <section class="constructor-summary" id="constructor-summary">
 <h2>Constructor Summary</h2>
 <div class="caption"><span>Constructors</span></div>
-<div class="summary-table two-column-summary">
-<div class="table-header col-first">Constructor</div>
+<div class="summary-table three-column-summary">
+<div class="table-header col-first">Modifier</div>
+<div class="table-header col-second">Constructor</div>
 <div class="table-header col-last">Description</div>
+<div class="col-first even-row-color"><code>protected </code></div>
 <div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(io.micronaut.serde.LimitingStream.RemainingLimits)" class="member-name-link">AbstractStreamDecoder</a><wbr>(<a href="../LimitingStream.RemainingLimits.html" title="class in io.micronaut.serde">LimitingStream.RemainingLimits</a>&nbsp;remainingLimits)</code></div>
-<div class="col-last even-row-color">&nbsp;</div>
+<div class="col-last even-row-color">
+<div class="block">Create a decoder that performs every coercion, for backwards compatibility.</div>
+</div>
+<div class="col-first odd-row-color"><code>protected </code></div>
+<div class="col-constructor-name odd-row-color"><code><a href="#%3Cinit%3E(io.micronaut.serde.LimitingStream.RemainingLimits,io.micronaut.serde.config.CoercionPolicy)" class="member-name-link">AbstractStreamDecoder</a><wbr>(<a href="../LimitingStream.RemainingLimits.html" title="class in io.micronaut.serde">LimitingStream.RemainingLimits</a>&nbsp;remainingLimits,
+ <a href="../config/CoercionPolicy.html" title="class in io.micronaut.serde.config">CoercionPolicy</a>&nbsp;coercionPolicy)</code></div>
+<div class="col-last odd-row-color">
+<div class="block">Create a decoder that only performs the coercions the given policy allows.</div>
+</div>
 </div>
 </section>
 </li>
@@ -372,34 +385,44 @@ implements <a href="../Decoder.html" title="interface in io.micronaut.serde">Dec
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Decode the current <a href="AbstractStreamDecoder.TokenType.html#BOOLEAN"><code>AbstractStreamDecoder.TokenType.BOOLEAN</code></a> value.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>protected abstract <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getCurrentKey()" class="member-name-link">getCurrentKey</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final <a href="../config/CoercionPolicy.html" title="class in io.micronaut.serde.config">CoercionPolicy</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getCoercionPolicy()" class="member-name-link">getCoercionPolicy</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">The coercions this decoder performs.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>protected abstract <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getCurrentKey()" class="member-name-link">getCurrentKey</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Get the current object field name.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>protected abstract double</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getDouble()" class="member-name-link">getDouble</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>protected abstract double</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getDouble()" class="member-name-link">getDouble</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Decode the current <a href="AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a double value.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected int</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getInteger()" class="member-name-link">getInteger</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected int</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getInteger()" class="member-name-link">getInteger</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Decode the current <a href="AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a long value.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>protected abstract long</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getLong()" class="member-name-link">getLong</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
-<div class="block">Decode the current <a href="AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a long value.</div>
-</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>protected abstract <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getString()" class="member-name-link">getString</a>()</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>protected abstract long</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getLong()" class="member-name-link">getLong</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="block">Decode the current <a href="AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a long value.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>protected abstract <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getString()" class="member-name-link">getString</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Decode the current <a href="AbstractStreamDecoder.TokenType.html#STRING"><code>AbstractStreamDecoder.TokenType.STRING</code></a> value.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#hasNextArrayValue()" class="member-name-link">hasNextArrayValue</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#hasNextArrayValue()" class="member-name-link">hasNextArrayValue</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#isCurrentNumberFloat()" class="member-name-link">isCurrentNumberFloat</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Whether the current <a href="AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> token has a fractional part.</div>
+</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>protected abstract void</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#nextToken()" class="member-name-link">nextToken</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
@@ -451,7 +474,29 @@ implements <a href="../Decoder.html" title="interface in io.micronaut.serde">Dec
 <section class="detail" id="&lt;init&gt;(io.micronaut.serde.LimitingStream.RemainingLimits)">
 <h3>AbstractStreamDecoder</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">AbstractStreamDecoder</span><wbr><span class="parameters">(<a href="../LimitingStream.RemainingLimits.html" title="class in io.micronaut.serde">LimitingStream.RemainingLimits</a>&nbsp;remainingLimits)</span></div>
+<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="element-name">AbstractStreamDecoder</span><wbr><span class="parameters">(<a href="../LimitingStream.RemainingLimits.html" title="class in io.micronaut.serde">LimitingStream.RemainingLimits</a>&nbsp;remainingLimits)</span></div>
+<div class="block">Create a decoder that performs every coercion, for backwards compatibility.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>remainingLimits</code> - The remaining stream limits</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="&lt;init&gt;(io.micronaut.serde.LimitingStream.RemainingLimits,io.micronaut.serde.config.CoercionPolicy)">
+<h3>AbstractStreamDecoder</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="element-name">AbstractStreamDecoder</span><wbr><span class="parameters">(<a href="../LimitingStream.RemainingLimits.html" title="class in io.micronaut.serde">LimitingStream.RemainingLimits</a>&nbsp;remainingLimits,
+ <a href="../config/CoercionPolicy.html" title="class in io.micronaut.serde.config">CoercionPolicy</a>&nbsp;coercionPolicy)</span></div>
+<div class="block">Create a decoder that only performs the coercions the given policy allows.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>remainingLimits</code> - The remaining stream limits</dd>
+<dd><code>coercionPolicy</code> - The coercions this decoder may perform</dd>
+<dt>Since:</dt>
+<dd>3.2</dd>
+</dl>
 </div>
 </section>
 </li>
@@ -463,6 +508,49 @@ implements <a href="../Decoder.html" title="interface in io.micronaut.serde">Dec
 <section class="method-details" id="method-detail">
 <h2>Method Details</h2>
 <ul class="member-list">
+<li>
+<section class="detail" id="getCoercionPolicy()">
+<h3>getCoercionPolicy</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public final</span>&nbsp;<span class="return-type"><a href="../config/CoercionPolicy.html" title="class in io.micronaut.serde.config">CoercionPolicy</a></span>&nbsp;<span class="element-name">getCoercionPolicy</span>()</div>
+<div class="block"><span class="description-from-type-label">Description copied from interface:&nbsp;<code><a href="../Decoder.html#getCoercionPolicy()">Decoder</a></code></span></div>
+<div class="block">The coercions this decoder performs. A decoder that creates another decoder over the same
+data, such as <a href="../Decoder.html#decodeBuffer()"><code>Decoder.decodeBuffer()</code></a>, must pass this on, so that the same document is
+accepted or rejected no matter which decoder ends up reading a given value.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../Decoder.html#getCoercionPolicy()">getCoercionPolicy</a></code>&nbsp;in interface&nbsp;<code><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></dd>
+<dt>Returns:</dt>
+<dd>The coercion policy, <a href="../config/CoercionPolicy.html#LENIENT"><code>CoercionPolicy.LENIENT</code></a> for a decoder that does not
+        support restricting coercions</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="isCurrentNumberFloat()">
+<h3>isCurrentNumberFloat</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">isCurrentNumberFloat</span>()
+                                throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block">Whether the current <a href="AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> token has a fractional part. Only called when
+the configuration forbids reading a floating point number as an integer, so a decoder that
+never sees that configuration keeps working without implementing it.
+<p>
+The default implementation materialises the number with <a href="#getBestNumber()"><code>getBestNumber()</code></a>. A decoder
+whose underlying parser consumes the value when it is read, as a forward only BSON reader
+does, <b>must</b> override this and answer from the token type instead.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd><code>true</code> if the current number is a floating point number</dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - if an unrecoverable error occurs</dd>
+<dt>Since:</dt>
+<dd>3.2</dd>
+</dl>
+</div>
+</section>
+</li>
 <li>
 <section class="detail" id="currentToken()">
 <h3>currentToken</h3>

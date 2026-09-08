@@ -80,16 +80,24 @@ loadScripts(document, 'script');</script>
 <ul>
 <li class="circle">java.lang.<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/AutoCloseable.html" class="type-name-link external-link" title="class or interface in java.lang">AutoCloseable</a>
 <ul>
+<li class="circle">java.io.<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/Closeable.html" class="type-name-link external-link" title="class or interface in java.io">Closeable</a>
+<ul>
+<li class="circle">io.micronaut.serde.<a href="Deserializer.DecoderContext.html" class="type-name-link" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a> (also extends io.micronaut.serde.<a href="DeserializerLocator.html" title="interface in io.micronaut.serde">DeserializerLocator</a>, io.micronaut.serde.<a href="NamingStrategyLocator.html" title="interface in io.micronaut.serde">NamingStrategyLocator</a>, io.micronaut.serde.reference.<a href="reference/PropertyReferenceManager.html" title="interface in io.micronaut.serde.reference">PropertyReferenceManager</a>)</li>
+<li class="circle">io.micronaut.serde.<a href="Serializer.EncoderContext.html" class="type-name-link" title="interface in io.micronaut.serde">Serializer.EncoderContext</a> (also extends io.micronaut.serde.<a href="NamingStrategyLocator.html" title="interface in io.micronaut.serde">NamingStrategyLocator</a>, io.micronaut.serde.reference.<a href="reference/PropertyReferenceManager.html" title="interface in io.micronaut.serde.reference">PropertyReferenceManager</a>, io.micronaut.serde.<a href="SerializerLocator.html" title="interface in io.micronaut.serde">SerializerLocator</a>)</li>
+</ul>
+</li>
 <li class="circle">io.micronaut.serde.<a href="Decoder.html" class="type-name-link" title="interface in io.micronaut.serde">Decoder</a>
 <ul>
 <li class="circle">io.micronaut.serde.<a href="KeysAwareDecoder.html" class="type-name-link" title="interface in io.micronaut.serde">KeysAwareDecoder</a></li>
 <li class="circle">io.micronaut.serde.<a href="WrappedDecoder.html" class="type-name-link" title="interface in io.micronaut.serde">WrappedDecoder</a></li>
+<li class="circle">io.micronaut.serde.<a href="XmlDecoder.html" class="type-name-link" title="interface in io.micronaut.serde">XmlDecoder</a></li>
 </ul>
 </li>
 <li class="circle">io.micronaut.serde.<a href="Encoder.html" class="type-name-link" title="interface in io.micronaut.serde">Encoder</a>
 <ul>
 <li class="circle">io.micronaut.serde.<a href="KeysAwareEncoder.html" class="type-name-link" title="interface in io.micronaut.serde">KeysAwareEncoder</a></li>
 <li class="circle">io.micronaut.serde.<a href="WrappedEncoder.html" class="type-name-link" title="interface in io.micronaut.serde">WrappedEncoder</a></li>
+<li class="circle">io.micronaut.serde.<a href="XmlEncoder.html" class="type-name-link" title="interface in io.micronaut.serde">XmlEncoder</a></li>
 </ul>
 </li>
 <li class="circle">io.micronaut.serde.<a href="ObjectMapper.CloseableObjectMapper.html" class="type-name-link" title="interface in io.micronaut.serde">ObjectMapper.CloseableObjectMapper</a> (also extends io.micronaut.serde.<a href="ObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper</a>)</li>
@@ -117,7 +125,7 @@ loadScripts(document, 'script');</script>
 </li>
 <li class="circle">io.micronaut.serde.<a href="DeserializerLocator.html" class="type-name-link" title="interface in io.micronaut.serde">DeserializerLocator</a>
 <ul>
-<li class="circle">io.micronaut.serde.<a href="Deserializer.DecoderContext.html" class="type-name-link" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a> (also extends io.micronaut.serde.<a href="NamingStrategyLocator.html" title="interface in io.micronaut.serde">NamingStrategyLocator</a>, io.micronaut.serde.reference.<a href="reference/PropertyReferenceManager.html" title="interface in io.micronaut.serde.reference">PropertyReferenceManager</a>)</li>
+<li class="circle">io.micronaut.serde.<a href="Deserializer.DecoderContext.html" class="type-name-link" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a> (also extends java.io.<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/Closeable.html" title="class or interface in java.io" class="external-link">Closeable</a>, io.micronaut.serde.<a href="NamingStrategyLocator.html" title="interface in io.micronaut.serde">NamingStrategyLocator</a>, io.micronaut.serde.reference.<a href="reference/PropertyReferenceManager.html" title="interface in io.micronaut.serde.reference">PropertyReferenceManager</a>)</li>
 <li class="circle">io.micronaut.serde.<a href="SerdeRegistry.html" class="type-name-link" title="interface in io.micronaut.serde">SerdeRegistry</a> (also extends io.micronaut.core.convert.ConversionServiceProvider, io.micronaut.serde.<a href="NamingStrategyLocator.html" title="interface in io.micronaut.serde">NamingStrategyLocator</a>, io.micronaut.serde.<a href="SerializerLocator.html" title="interface in io.micronaut.serde">SerializerLocator</a>)</li>
 </ul>
 </li>
@@ -134,16 +142,16 @@ loadScripts(document, 'script');</script>
 <li class="circle">io.micronaut.serde.<a href="KeysProvider.html" class="type-name-link" title="interface in io.micronaut.serde">KeysProvider</a></li>
 <li class="circle">io.micronaut.serde.<a href="NamingStrategyLocator.html" class="type-name-link" title="interface in io.micronaut.serde">NamingStrategyLocator</a>
 <ul>
-<li class="circle">io.micronaut.serde.<a href="Deserializer.DecoderContext.html" class="type-name-link" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a> (also extends io.micronaut.serde.<a href="DeserializerLocator.html" title="interface in io.micronaut.serde">DeserializerLocator</a>, io.micronaut.serde.reference.<a href="reference/PropertyReferenceManager.html" title="interface in io.micronaut.serde.reference">PropertyReferenceManager</a>)</li>
+<li class="circle">io.micronaut.serde.<a href="Deserializer.DecoderContext.html" class="type-name-link" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a> (also extends java.io.<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/Closeable.html" title="class or interface in java.io" class="external-link">Closeable</a>, io.micronaut.serde.<a href="DeserializerLocator.html" title="interface in io.micronaut.serde">DeserializerLocator</a>, io.micronaut.serde.reference.<a href="reference/PropertyReferenceManager.html" title="interface in io.micronaut.serde.reference">PropertyReferenceManager</a>)</li>
 <li class="circle">io.micronaut.serde.<a href="SerdeRegistry.html" class="type-name-link" title="interface in io.micronaut.serde">SerdeRegistry</a> (also extends io.micronaut.core.convert.ConversionServiceProvider, io.micronaut.serde.<a href="DeserializerLocator.html" title="interface in io.micronaut.serde">DeserializerLocator</a>, io.micronaut.serde.<a href="SerializerLocator.html" title="interface in io.micronaut.serde">SerializerLocator</a>)</li>
-<li class="circle">io.micronaut.serde.<a href="Serializer.EncoderContext.html" class="type-name-link" title="interface in io.micronaut.serde">Serializer.EncoderContext</a> (also extends io.micronaut.serde.reference.<a href="reference/PropertyReferenceManager.html" title="interface in io.micronaut.serde.reference">PropertyReferenceManager</a>, io.micronaut.serde.<a href="SerializerLocator.html" title="interface in io.micronaut.serde">SerializerLocator</a>)</li>
+<li class="circle">io.micronaut.serde.<a href="Serializer.EncoderContext.html" class="type-name-link" title="interface in io.micronaut.serde">Serializer.EncoderContext</a> (also extends java.io.<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/Closeable.html" title="class or interface in java.io" class="external-link">Closeable</a>, io.micronaut.serde.reference.<a href="reference/PropertyReferenceManager.html" title="interface in io.micronaut.serde.reference">PropertyReferenceManager</a>, io.micronaut.serde.<a href="SerializerLocator.html" title="interface in io.micronaut.serde">SerializerLocator</a>)</li>
 </ul>
 </li>
 <li class="circle">io.micronaut.serde.<a href="PropertyFilter.html" class="type-name-link" title="interface in io.micronaut.serde">PropertyFilter</a></li>
 <li class="circle">io.micronaut.serde.reference.<a href="reference/PropertyReferenceManager.html" class="type-name-link" title="interface in io.micronaut.serde.reference">PropertyReferenceManager</a>
 <ul>
-<li class="circle">io.micronaut.serde.<a href="Deserializer.DecoderContext.html" class="type-name-link" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a> (also extends io.micronaut.serde.<a href="DeserializerLocator.html" title="interface in io.micronaut.serde">DeserializerLocator</a>, io.micronaut.serde.<a href="NamingStrategyLocator.html" title="interface in io.micronaut.serde">NamingStrategyLocator</a>)</li>
-<li class="circle">io.micronaut.serde.<a href="Serializer.EncoderContext.html" class="type-name-link" title="interface in io.micronaut.serde">Serializer.EncoderContext</a> (also extends io.micronaut.serde.<a href="NamingStrategyLocator.html" title="interface in io.micronaut.serde">NamingStrategyLocator</a>, io.micronaut.serde.<a href="SerializerLocator.html" title="interface in io.micronaut.serde">SerializerLocator</a>)</li>
+<li class="circle">io.micronaut.serde.<a href="Deserializer.DecoderContext.html" class="type-name-link" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a> (also extends java.io.<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/Closeable.html" title="class or interface in java.io" class="external-link">Closeable</a>, io.micronaut.serde.<a href="DeserializerLocator.html" title="interface in io.micronaut.serde">DeserializerLocator</a>, io.micronaut.serde.<a href="NamingStrategyLocator.html" title="interface in io.micronaut.serde">NamingStrategyLocator</a>)</li>
+<li class="circle">io.micronaut.serde.<a href="Serializer.EncoderContext.html" class="type-name-link" title="interface in io.micronaut.serde">Serializer.EncoderContext</a> (also extends java.io.<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/Closeable.html" title="class or interface in java.io" class="external-link">Closeable</a>, io.micronaut.serde.<a href="NamingStrategyLocator.html" title="interface in io.micronaut.serde">NamingStrategyLocator</a>, io.micronaut.serde.<a href="SerializerLocator.html" title="interface in io.micronaut.serde">SerializerLocator</a>)</li>
 </ul>
 </li>
 <li class="circle">io.micronaut.serde.<a href="SerdeIntrospections.html" class="type-name-link" title="interface in io.micronaut.serde">SerdeIntrospections</a></li>
@@ -166,7 +174,7 @@ loadScripts(document, 'script');</script>
 <li class="circle">io.micronaut.serde.<a href="SerializerLocator.html" class="type-name-link" title="interface in io.micronaut.serde">SerializerLocator</a>
 <ul>
 <li class="circle">io.micronaut.serde.<a href="SerdeRegistry.html" class="type-name-link" title="interface in io.micronaut.serde">SerdeRegistry</a> (also extends io.micronaut.core.convert.ConversionServiceProvider, io.micronaut.serde.<a href="DeserializerLocator.html" title="interface in io.micronaut.serde">DeserializerLocator</a>, io.micronaut.serde.<a href="NamingStrategyLocator.html" title="interface in io.micronaut.serde">NamingStrategyLocator</a>)</li>
-<li class="circle">io.micronaut.serde.<a href="Serializer.EncoderContext.html" class="type-name-link" title="interface in io.micronaut.serde">Serializer.EncoderContext</a> (also extends io.micronaut.serde.<a href="NamingStrategyLocator.html" title="interface in io.micronaut.serde">NamingStrategyLocator</a>, io.micronaut.serde.reference.<a href="reference/PropertyReferenceManager.html" title="interface in io.micronaut.serde.reference">PropertyReferenceManager</a>)</li>
+<li class="circle">io.micronaut.serde.<a href="Serializer.EncoderContext.html" class="type-name-link" title="interface in io.micronaut.serde">Serializer.EncoderContext</a> (also extends java.io.<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/Closeable.html" title="class or interface in java.io" class="external-link">Closeable</a>, io.micronaut.serde.<a href="NamingStrategyLocator.html" title="interface in io.micronaut.serde">NamingStrategyLocator</a>, io.micronaut.serde.reference.<a href="reference/PropertyReferenceManager.html" title="interface in io.micronaut.serde.reference">PropertyReferenceManager</a>)</li>
 </ul>
 </li>
 </ul>
@@ -196,6 +204,7 @@ loadScripts(document, 'script');</script>
 <li class="circle">io.micronaut.serde.<a href="ApiResponse.html" class="type-name-link" title="class in io.micronaut.serde">ApiResponse</a>&lt;T&gt;</li>
 <li class="circle">io.micronaut.serde.<a href="Dummy.html" class="type-name-link" title="class in io.micronaut.serde">Dummy</a></li>
 <li class="circle">io.micronaut.serde.<a href="FormatConfiguration.html" class="type-name-link" title="class in io.micronaut.serde">FormatConfiguration</a></li>
+<li class="circle">io.micronaut.serde.<a href="KeyDescriptor.html" class="type-name-link" title="class in io.micronaut.serde">KeyDescriptor</a></li>
 <li class="circle">io.micronaut.serde.<a href="ObjectWithArrayRecordNotNull.html" class="type-name-link" title="class in io.micronaut.serde">ObjectWithArrayRecordNotNull</a></li>
 <li class="circle">io.micronaut.serde.<a href="RecordBean.html" class="type-name-link" title="class in io.micronaut.serde">RecordBean</a></li>
 <li class="circle">io.micronaut.serde.<a href="SerdeIntrospections.RuntimeIntrospectionRequest.html" class="type-name-link" title="class in io.micronaut.serde">SerdeIntrospections.RuntimeIntrospectionRequest</a>&lt;T&gt;</li>
