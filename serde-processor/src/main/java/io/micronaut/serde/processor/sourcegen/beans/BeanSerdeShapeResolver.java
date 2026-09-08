@@ -155,6 +155,7 @@ public final class BeanSerdeShapeResolver {
 
     private static boolean isBeanShapeCandidate(ClassElement element) {
         return !element.isInterface()
+            && !element.isAbstract()
             && !element.isEnum()
             && !element.isRecord()
             && element.getTypeArguments().isEmpty();

@@ -65,6 +65,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 
 /**
  * Default implementation of the {@link io.micronaut.serde.SerdeRegistry} interface.
@@ -273,6 +274,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
         Collection<BeanDefinition<Deserializer>> beanDefinitions = MatchArgumentQualifier.covariant(Deserializer.class, type)
             .filter(Deserializer.class, deserializers);
+        beanDefinitions = withoutSpecificSerdesForOtherTypes(beanDefinitions, Deserializer.class, type, this::createSpecificDeserializerConstructor);
         BeanDefinition<Deserializer> deserBeanDefinition;
         if (beanDefinitions.size() == 1) {
             deserBeanDefinition = beanDefinitions.iterator().next();
@@ -323,6 +325,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
         Collection<BeanDefinition<Serializer>> beanDefinitions = MatchArgumentQualifier.contravariant(Serializer.class, type)
             .filter(Serializer.class, serializers);
+        beanDefinitions = withoutSpecificSerdesForOtherTypes(beanDefinitions, Serializer.class, type, this::createSpecificSerializerConstructor);
         BeanDefinition<Serializer> serializerBeanDefinition;
         if (beanDefinitions.size() == 1) {
             serializerBeanDefinition = beanDefinitions.iterator().next();
@@ -349,6 +352,45 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
         serializerMap.put(key, new SerializerWrapper(objectSerializer));
         return objectSerializer;
+    }
+
+    /**
+     * A serde created per type from the context and the argument, such as a generated serde, is
+     * written for exactly the type it declares. It must not be picked for a supertype or a subtype
+     * of that type through variance: a generated subtype deserializer cannot resolve the
+     * discriminator of its supertype, and a generated supertype serializer would drop the properties
+     * of a subtype. Those lookups keep resolving to the runtime object serdes.
+     */
+    private static <S> Collection<BeanDefinition<S>> withoutSpecificSerdesForOtherTypes(Collection<BeanDefinition<S>> candidates,
+                                                                                        Class<S> serdeType,
+                                                                                        Argument<?> type,
+                                                                                        Predicate<BeanDefinition<S>> specific) {
+        if (candidates.isEmpty()) {
+            return candidates;
+        }
+        List<BeanDefinition<S>> filtered = null;
+        for (BeanDefinition<S> candidate : candidates) {
+            boolean excluded = specific.test(candidate) && !declaresExactType(candidate, serdeType, type);
+            if (excluded) {
+                if (filtered == null) {
+                    filtered = new ArrayList<>(candidates.size());
+                    for (BeanDefinition<S> previous : candidates) {
+                        if (previous == candidate) {
+                            break;
+                        }
+                        filtered.add(previous);
+                    }
+                }
+            } else if (filtered != null) {
+                filtered.add(candidate);
+            }
+        }
+        return filtered == null ? candidates : filtered;
+    }
+
+    private static <S> boolean declaresExactType(BeanDefinition<S> candidate, Class<S> serdeType, Argument<?> type) {
+        List<Argument<?>> typeArguments = candidate.getTypeArguments(serdeType);
+        return !typeArguments.isEmpty() && typeArguments.get(0).getType().equals(type.getType());
     }
 
     private boolean createSpecificSerializerConstructor(BeanDefinition<Serializer> serializerBeanDefinition) {

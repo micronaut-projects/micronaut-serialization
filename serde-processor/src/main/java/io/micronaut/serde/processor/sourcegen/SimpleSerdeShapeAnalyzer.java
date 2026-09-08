@@ -136,7 +136,9 @@ public final class SimpleSerdeShapeAnalyzer {
             }
         }
 
-        if (element.hasDeclaredAnnotation(SerdeConfig.SerSubtyped.class)
+        // A subtype declaration on the type or on a supertype means the runtime serdes write and
+        // resolve the discriminator; the generated serdes know nothing about it.
+        if ((element.hasDeclaredAnnotation(SerdeConfig.SerSubtyped.class) || hasSubtypedSupertype(element))
             && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.SUBTYPED)) {
             return decision(shapeKind, serializerReasons, deserializerReasons);
         }
@@ -541,7 +543,7 @@ public final class SimpleSerdeShapeAnalyzer {
     }
 
     private boolean isDefaultConstructorBean(ClassElement element) {
-        if (element.isInterface() || element.isEnum() || element.isRecord()) {
+        if (element.isInterface() || element.isAbstract() || element.isEnum() || element.isRecord()) {
             return false;
         }
         boolean hasDefaultConstructor = element.getAccessibleConstructors().stream().anyMatch(c -> c.getParameters().length == 0);
@@ -675,6 +677,17 @@ public final class SimpleSerdeShapeAnalyzer {
             collectJacksonAnnotationNames(method.getAnnotationNames(), annotations, SUPPORTED_ENUM_JACKSON_ANNOTATIONS);
         }
         return annotations;
+    }
+
+    private boolean hasSubtypedSupertype(ClassElement element) {
+        for (ClassElement interfaceElement : element.getInterfaces()) {
+            if (interfaceElement.hasDeclaredAnnotation(SerdeConfig.SerSubtyped.class) || hasSubtypedSupertype(interfaceElement)) {
+                return true;
+            }
+        }
+        ClassElement superType = element.getSuperType().orElse(null);
+        return superType != null
+            && (superType.hasDeclaredAnnotation(SerdeConfig.SerSubtyped.class) || hasSubtypedSupertype(superType));
     }
 
     private boolean hasSubtypedPropertyTypes(ClassElement element) {
