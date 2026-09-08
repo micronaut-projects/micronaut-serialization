@@ -183,6 +183,158 @@ public record MultiPoint(List<Point> points) {
         context.close()
     }
 
+    void 'test record generated deserializer defaults non null collections to assignable implementations'() {
+        given:
+        def context = buildContext('test.CollectionsRecord', '''
+package test;
+
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.core.annotation.NonNull;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
+
+import java.util.Collection;
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
+
+@Serdeable
+@SerdeableGenerated
+@Introspected
+public record CollectionsRecord(
+    @NonNull String name,
+    @NonNull List<String> list,
+    @NonNull Collection<String> collection,
+    @NonNull Set<String> set,
+    @NonNull SortedSet<String> sortedSet,
+    @NonNull Deque<String> deque,
+    @NonNull LinkedList<String> linkedList,
+    @NonNull Map<String, String> map,
+    @NonNull SortedMap<String, String> sortedMap
+) {}
+''')
+        Class<?> recordType = context.classLoader.loadClass('test.CollectionsRecord')
+        def registry = context.getBean(SerdeRegistry)
+        def type = Argument.of(recordType)
+
+        when:
+        def fromEmpty = jsonMapper.readValue('{}', type)
+
+        then:
+        assertGeneratedDeserializer(registry, type)
+        fromEmpty.name() == null
+        fromEmpty.list() instanceof ArrayList
+        fromEmpty.list().isEmpty()
+        fromEmpty.collection() instanceof ArrayList
+        fromEmpty.set() instanceof LinkedHashSet
+        fromEmpty.set().isEmpty()
+        fromEmpty.sortedSet() instanceof TreeSet
+        fromEmpty.deque() instanceof ArrayDeque
+        fromEmpty.linkedList() instanceof LinkedList
+        fromEmpty.map() instanceof LinkedHashMap
+        fromEmpty.map().isEmpty()
+        fromEmpty.sortedMap() instanceof TreeMap
+
+        when:
+        def fromValues = jsonMapper.readValue(
+            '{"name":"Ada","list":["a"],"collection":["b"],"set":["c","c"],"sortedSet":["e","d"],' +
+                '"deque":["f"],"linkedList":["g"],"map":{"k":"v"},"sortedMap":{"k2":"v2"}}',
+            type
+        )
+
+        then:
+        fromValues.name() == 'Ada'
+        fromValues.list() == ['a']
+        fromValues.collection().toList() == ['b']
+        fromValues.set() == ['c'] as Set
+        fromValues.sortedSet().toList() == ['d', 'e']
+        fromValues.deque().toList() == ['f']
+        fromValues.linkedList() == ['g']
+        fromValues.map() == [k: 'v']
+        fromValues.sortedMap() == [k2: 'v2']
+
+        cleanup:
+        context.close()
+    }
+
+    void 'test record generated deserializer defaults null marked collections to assignable implementations'() {
+        given:
+        def context = buildContext('test.NullMarkedCollectionsRecord', '''
+package test;
+
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
+import org.jspecify.annotations.NullMarked;
+
+import java.util.Map;
+import java.util.Set;
+
+@NullMarked
+@Serdeable
+@SerdeableGenerated
+@Introspected
+public record NullMarkedCollectionsRecord(String name, Set<String> set, Map<String, String> map) {}
+''')
+        Class<?> recordType = context.classLoader.loadClass('test.NullMarkedCollectionsRecord')
+        def registry = context.getBean(SerdeRegistry)
+        def type = Argument.of(recordType)
+
+        when:
+        def decoded = jsonMapper.readValue('{"name":"Ada"}', type)
+
+        then:
+        assertGeneratedDeserializer(registry, type)
+        decoded.name() == 'Ada'
+        decoded.set() instanceof LinkedHashSet
+        decoded.set().isEmpty()
+        decoded.map() instanceof LinkedHashMap
+        decoded.map().isEmpty()
+
+        cleanup:
+        context.close()
+    }
+
+    void 'test record generated deserializer leaves collections without an assignable default null'() {
+        given:
+        def context = buildContext('test.EnumSetRecord', '''
+package test;
+
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.core.annotation.NonNull;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
+
+import java.util.EnumSet;
+
+@Serdeable
+@SerdeableGenerated
+@Introspected
+public record EnumSetRecord(@NonNull EnumSet<EnumSetRecord.Color> colors) {
+    public enum Color { RED, GREEN }
+}
+''')
+        Class<?> recordType = context.classLoader.loadClass('test.EnumSetRecord')
+        def registry = context.getBean(SerdeRegistry)
+        def type = Argument.of(recordType)
+
+        when:
+        def decoded = jsonMapper.readValue('{"colors":["RED"]}', type)
+        def fromEmpty = jsonMapper.readValue('{}', type)
+
+        then:
+        assertGeneratedDeserializer(registry, type)
+        decoded.colors()*.name() == ['RED']
+        fromEmpty.colors() == null
+
+        cleanup:
+        context.close()
+    }
+
     private static void assertGeneratedSerializer(SerdeRegistry registry, Argument argument) {
         Serializer serializer = registry.findSerializer(argument).createSpecific(registry.newEncoderContext(Object), argument)
         assert serializer.class.name == generatedClassName(argument.type, 'Serializer')
