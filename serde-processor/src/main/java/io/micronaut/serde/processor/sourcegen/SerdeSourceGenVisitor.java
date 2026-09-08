@@ -186,9 +186,15 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Object, O
         }
     }
 
+    /**
+     * Visitors run from the highest order to the lowest. The generated serdes have to observe the
+     * metadata {@code SerdeAnnotationVisitor} adds to the properties, such as names resolved through a
+     * naming strategy or properties ignored through a type-level annotation, so this visitor runs after
+     * it and before the introspection is written.
+     */
     @Override
     public int getOrder() {
-        return IntrospectedTypeElementVisitor.POSITION + 200;
+        return IntrospectedTypeElementVisitor.POSITION + 50;
     }
 
     @Override

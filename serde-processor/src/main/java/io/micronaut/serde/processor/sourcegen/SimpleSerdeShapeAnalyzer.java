@@ -33,7 +33,6 @@ import io.micronaut.serde.Serializer;
 import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.serde.annotation.SerdeableGenerated;
 import io.micronaut.serde.config.annotation.SerdeConfig;
-import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.util.SerdePropertyAccess;
 
 import java.lang.annotation.Annotation;
@@ -67,6 +66,31 @@ public final class SimpleSerdeShapeAnalyzer {
     private static final String JAXB_XML_ATTRIBUTE = "jakarta.xml.bind.annotation.XmlAttribute";
     private static final String JAXB_XML_MIXED = "jakarta.xml.bind.annotation.XmlMixed";
     private static final String JAXB_XML_ACCESSOR_TYPE = "jakarta.xml.bind.annotation.XmlAccessorType";
+    private static final String BINDABLE = "io.micronaut.core.bind.annotation.Bindable";
+    private static final String BINDABLE_DEFAULT_VALUE = "defaultValue";
+    /**
+     * Jackson annotations whose mapped {@link SerdeConfig} members the generated bean and record serdes
+     * honor completely. Members that are not supported are detected through the mapped configuration.
+     */
+    private static final Set<String> SUPPORTED_JACKSON_ANNOTATIONS = Set.of(
+        JACKSON_ANNOTATION_PREFIX + "JsonProperty",
+        JACKSON_ANNOTATION_PREFIX + "JsonClassDescription",
+        JACKSON_ANNOTATION_PREFIX + "JsonPropertyDescription",
+        JACKSON_XML_PROPERTY,
+        JACKSON_XML_ELEMENT_WRAPPER,
+        JACKSON_XML_TEXT,
+        JACKSON_XML_CDATA
+    );
+    /**
+     * Generated enum serdes only understand the XML annotations; every other Jackson annotation on an enum
+     * routes to the runtime enum serde.
+     */
+    private static final Set<String> SUPPORTED_ENUM_JACKSON_ANNOTATIONS = Set.of(
+        JACKSON_XML_PROPERTY,
+        JACKSON_XML_ELEMENT_WRAPPER,
+        JACKSON_XML_TEXT,
+        JACKSON_XML_CDATA
+    );
 
     @SuppressWarnings("java:S3776")
     public SimpleSerdeShapeDecision analyze(ClassElement element) {
@@ -246,11 +270,6 @@ public final class SimpleSerdeShapeAnalyzer {
         }
         if (!isBothFailed(serializerReasons, deserializerReasons)
             && hasDirectIterableProperties(element)
-            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
-            return decision(shapeKind, serializerReasons, deserializerReasons);
-        }
-        if (!isBothFailed(serializerReasons, deserializerReasons)
-            && hasCustomPropertyNames(element)
             && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
             return decision(shapeKind, serializerReasons, deserializerReasons);
         }
@@ -441,18 +460,17 @@ public final class SimpleSerdeShapeAnalyzer {
 
     private void collectJacksonAnnotationNames(Set<String> annotationNames,
                                                Map<String, Boolean> annotations) {
+        collectJacksonAnnotationNames(annotationNames, annotations, SUPPORTED_JACKSON_ANNOTATIONS);
+    }
+
+    private void collectJacksonAnnotationNames(Set<String> annotationNames,
+                                               Map<String, Boolean> annotations,
+                                               Set<String> supportedAnnotations) {
         for (String annotationName : annotationNames) {
-            if (isJacksonAnnotationName(annotationName) && !isSupportedXmlAnnotation(annotationName)) {
+            if (isJacksonAnnotationName(annotationName) && !supportedAnnotations.contains(annotationName)) {
                 annotations.putIfAbsent(displayAnnotationName(annotationName), Boolean.TRUE);
             }
         }
-    }
-
-    private boolean isSupportedXmlAnnotation(String annotationName) {
-        return JACKSON_XML_PROPERTY.equals(annotationName)
-            || JACKSON_XML_ELEMENT_WRAPPER.equals(annotationName)
-            || JACKSON_XML_TEXT.equals(annotationName)
-            || JACKSON_XML_CDATA.equals(annotationName);
     }
 
     private boolean isJacksonAnnotationName(String name) {
@@ -620,15 +638,15 @@ public final class SimpleSerdeShapeAnalyzer {
         if (!element.isEnum()) {
             return annotations;
         }
-        collectJacksonAnnotationNames(element.getAnnotationNames(), annotations);
+        collectJacksonAnnotationNames(element.getAnnotationNames(), annotations, SUPPORTED_ENUM_JACKSON_ANNOTATIONS);
         for (EnumConstantElement enumConstant : ((EnumElement) element).elements()) {
-            collectJacksonAnnotationNames(enumConstant.getAnnotationNames(), annotations);
+            collectJacksonAnnotationNames(enumConstant.getAnnotationNames(), annotations, SUPPORTED_ENUM_JACKSON_ANNOTATIONS);
         }
         for (Element field : element.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyDeclared())) {
-            collectJacksonAnnotationNames(field.getAnnotationNames(), annotations);
+            collectJacksonAnnotationNames(field.getAnnotationNames(), annotations, SUPPORTED_ENUM_JACKSON_ANNOTATIONS);
         }
         for (MethodElement method : element.getEnclosedElements(ElementQuery.ALL_METHODS.onlyDeclared())) {
-            collectJacksonAnnotationNames(method.getAnnotationNames(), annotations);
+            collectJacksonAnnotationNames(method.getAnnotationNames(), annotations, SUPPORTED_ENUM_JACKSON_ANNOTATIONS);
         }
         return annotations;
     }
@@ -645,29 +663,6 @@ public final class SimpleSerdeShapeAnalyzer {
             }
         }
         return false;
-    }
-
-    private boolean hasCustomPropertyNames(ClassElement element) {
-        for (PropertyElement property : element.getBeanProperties()) {
-            String configured = property.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(null);
-            if (configured != null
-                && !configured.equals(property.getName())
-                && !hasSupportedXmlPropertyAnnotation(property)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean hasSupportedXmlPropertyAnnotation(PropertyElement property) {
-        return property.hasAnnotation(JACKSON_XML_PROPERTY)
-            || property.hasAnnotation(JAXB_XML_ELEMENT)
-            || property.hasAnnotation(JAXB_XML_ATTRIBUTE)
-            || property.getReadMethod().map(method -> method.hasAnnotation(JACKSON_XML_PROPERTY)).orElse(false)
-            || property.getReadMethod().map(method -> method.hasAnnotation(JAXB_XML_ELEMENT) || method.hasAnnotation(JAXB_XML_ATTRIBUTE)).orElse(false)
-            || property.getWriteMethod().map(method -> method.hasAnnotation(JACKSON_XML_PROPERTY)).orElse(false)
-            || property.getWriteMethod().map(method -> method.hasAnnotation(JAXB_XML_ELEMENT) || method.hasAnnotation(JAXB_XML_ATTRIBUTE)).orElse(false)
-            || property.getField().map(field -> field.hasAnnotation(JACKSON_XML_PROPERTY) || field.hasAnnotation(JAXB_XML_ELEMENT) || field.hasAnnotation(JAXB_XML_ATTRIBUTE)).orElse(false);
     }
 
     private boolean usesDocumentIds(ClassElement element) {
@@ -804,21 +799,7 @@ public final class SimpleSerdeShapeAnalyzer {
     }
 
     private boolean hasUnsupportedSerdeConfig(Element element) {
-        return element.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false)
-            || element.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED_SERIALIZATION).orElse(false)
-            || element.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED_DESERIALIZATION).orElse(false)
-            || element.stringValue(SerdeConfig.class, SerdeConfig.FILTER).isPresent()
-            || element.booleanValue(SerdeConfig.class, SerdeConfig.REQUIRED).orElse(false)
-            || element.booleanValue(SerdeConfig.class, SerdeConfig.READ_ONLY).orElse(false)
-            || element.booleanValue(SerdeConfig.class, SerdeConfig.WRITE_ONLY).orElse(false)
-            || SerdePropertyAccess.hasRestrictedAccess(element.getAnnotationMetadata())
-            || element.booleanValue(SerdeConfig.class, SerdeConfig.MERGE).orElse(false)
-            || FormatConfiguration.from(element.getAnnotationMetadata()) != null
-            || hasFeatureOverrides(element.getAnnotationMetadata())
-            || hasSerializeAsOverride(element)
-            || hasDeserializeAsOverride(element)
-            || hasCustomNaming(element)
-            || hasCustomSerdeClass(element.getAnnotationMetadata());
+        return hasUnsupportedSerdeConfigMetadata(element.getAnnotationMetadata());
     }
 
     private boolean hasUnsupportedSerdeConfigMetadata(AnnotationMetadata annotationMetadata) {
@@ -836,7 +817,15 @@ public final class SimpleSerdeShapeAnalyzer {
             || hasSerializeAsOverride(annotationMetadata)
             || hasDeserializeAsOverride(annotationMetadata)
             || hasCustomNaming(annotationMetadata)
-            || hasCustomSerdeClass(annotationMetadata);
+            || hasCustomSerdeClass(annotationMetadata)
+            || hasBindableDefaultValue(annotationMetadata);
+    }
+
+    /**
+     * A declared default value is applied by the runtime deserializer when the property is absent.
+     */
+    private boolean hasBindableDefaultValue(AnnotationMetadata annotationMetadata) {
+        return annotationMetadata.stringValue(BINDABLE, BINDABLE_DEFAULT_VALUE).isPresent();
     }
 
     private boolean hasFeatureOverrides(AnnotationMetadata annotationMetadata) {
@@ -868,11 +857,11 @@ public final class SimpleSerdeShapeAnalyzer {
         return hasCustomNaming(element.getAnnotationMetadata());
     }
 
+    /**
+     * A naming strategy resolved during annotation processing is written into the property names the
+     * generated serdes use. Only a strategy that has to be looked up at runtime needs the runtime serde.
+     */
     private boolean hasCustomNaming(AnnotationMetadata annotationMetadata) {
-        String naming = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.NAMING).orElse(null);
-        if (naming != null && !naming.equals(PropertyNamingStrategy.IDENTITY.getClass().getName())) {
-            return true;
-        }
         return annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.RUNTIME_NAMING).isPresent();
     }
 

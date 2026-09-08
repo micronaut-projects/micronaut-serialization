@@ -102,6 +102,60 @@ record UnorderedRecord(int c, int a, int b) {
         context.close()
     }
 
+    void 'test renamed properties are sourcegen eligible unless a default value is declared'() {
+        given:
+        def context = buildContext('test.RenamedBean', '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+import io.micronaut.core.annotation.Introspected;
+
+@Serdeable
+@Introspected
+class RenamedBean {
+    @JsonProperty("first_name")
+    private String firstName;
+
+    public RenamedBean() {
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+}
+
+@Serdeable
+@Introspected
+record RenamedRecord(@JsonProperty("first_name") String firstName) {
+}
+
+@Serdeable(naming = SnakeCaseStrategy.class)
+@Introspected
+record CompileTimeNamingRecord(String firstName) {
+}
+
+@Serdeable
+@Introspected
+record DefaultValueRecord(@JsonProperty(value = "first_name", defaultValue = "Ada") String firstName) {
+}
+''')
+
+        expect:
+        assertRegistrySelection(context, 'test.RenamedBean', true, true)
+        assertRegistrySelection(context, 'test.RenamedRecord', true, true)
+        assertRegistrySelection(context, 'test.CompileTimeNamingRecord', true, true)
+        assertRegistrySelection(context, 'test.DefaultValueRecord', false, false)
+
+        cleanup:
+        context.close()
+    }
+
     void 'test any-getter and any-setter are directional fallback reasons'() {
         given:
         def context = buildContext('test.AnyGetterBean', '''
