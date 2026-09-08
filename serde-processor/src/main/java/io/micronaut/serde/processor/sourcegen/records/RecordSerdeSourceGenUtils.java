@@ -27,14 +27,20 @@ import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 final class RecordSerdeSourceGenUtils {
     private static final String EMPTY_METHOD = "empty";
@@ -46,6 +52,20 @@ final class RecordSerdeSourceGenUtils {
     private static final TypeDef ARGUMENT_TYPE = TypeDef.of(Argument.class);
     private static final ClassTypeDef SERDE_ARGUMENT_CONSTANTS = ClassTypeDef.of("io.micronaut.serde.util.SerdeArgumentConstants");
     private static final ClassTypeDef SERDE_CONFIG_TYPE = ClassTypeDef.of(SerdeConfig.class);
+
+    /**
+     * The default implementations used for non-null collection and map properties, ordered from the
+     * most generic to the most specific implementation.
+     */
+    private static final List<Class<?>> DEFAULT_COLLECTION_IMPLEMENTATIONS = List.of(
+        ArrayList.class,
+        LinkedHashSet.class,
+        TreeSet.class,
+        ArrayDeque.class,
+        LinkedList.class,
+        LinkedHashMap.class,
+        TreeMap.class
+    );
 
     private static final Method ARGUMENT_OF_METHOD = ReflectionUtils.getRequiredMethod(Argument.class, "of", Class.class);
     private static final Method ARGUMENT_OF_WITH_TYPE_PARAMETERS_METHOD = ReflectionUtils.getRequiredMethod(Argument.class, "of", Class.class, Argument[].class);
@@ -132,14 +152,9 @@ final class RecordSerdeSourceGenUtils {
             default:
         }
         if (nonNullCollectionDefault) {
-            if (classElement.isAssignable(List.class) || classElement.isAssignable(Collection.class)) {
-                return ClassTypeDef.of(ArrayList.class).instantiate().cast(TypeDef.erasure(classElement));
-            }
-            if (classElement.isAssignable(java.util.Set.class)) {
-                return ClassTypeDef.of(java.util.LinkedHashSet.class).instantiate().cast(TypeDef.erasure(classElement));
-            }
-            if (classElement.isAssignable(Map.class)) {
-                return ClassTypeDef.of(java.util.LinkedHashMap.class).instantiate().cast(TypeDef.erasure(classElement));
+            ExpressionDef emptyCollection = emptyCollectionExpression(classElement);
+            if (emptyCollection != null) {
+                return emptyCollection;
             }
         }
         if (!classElement.isPrimitive() || classElement.isArray()) {
@@ -155,6 +170,44 @@ final class RecordSerdeSourceGenUtils {
             case "byte", SHORT_TYPE, "int" -> ExpressionDef.constant(0).cast(TypeDef.erasure(classElement));
             default -> ExpressionDef.constant(0).cast(TypeDef.erasure(classElement));
         };
+    }
+
+    /**
+     * Resolves an empty collection or map instance that can be assigned to the given type.
+     *
+     * <p>The chosen implementation must be a subtype of the declared type, otherwise the generated
+     * default would fail with a {@link ClassCastException} at runtime.</p>
+     *
+     * @param classElement The declared type
+     * @return The expression creating an empty collection or {@code null} if the type is not a supported collection
+     */
+    private static @Nullable ExpressionDef emptyCollectionExpression(ClassElement classElement) {
+        if (classElement.isPrimitive() || classElement.isArray()) {
+            return null;
+        }
+        if (!classElement.isAssignable(Iterable.class) && !classElement.isAssignable(Map.class)) {
+            return null;
+        }
+        String declaredTypeName = classElement.getName();
+        for (Class<?> implementationType : DEFAULT_COLLECTION_IMPLEMENTATIONS) {
+            if (isSubtypeOf(implementationType, declaredTypeName)) {
+                return ClassTypeDef.of(implementationType).instantiate().cast(TypeDef.erasure(classElement));
+            }
+        }
+        return null;
+    }
+
+    private static boolean isSubtypeOf(Class<?> type, String supertypeName) {
+        if (type.getName().equals(supertypeName)) {
+            return true;
+        }
+        for (Class<?> anInterface : type.getInterfaces()) {
+            if (isSubtypeOf(anInterface, supertypeName)) {
+                return true;
+            }
+        }
+        Class<?> superclass = type.getSuperclass();
+        return superclass != null && isSubtypeOf(superclass, supertypeName);
     }
 
     static TypeDef deserializedCastType(ClassElement classElement) {
