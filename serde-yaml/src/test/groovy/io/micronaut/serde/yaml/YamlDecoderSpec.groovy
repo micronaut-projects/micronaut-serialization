@@ -133,6 +133,37 @@ merged:
         map.merged.y == 1
     }
 
+    def "keys defined by the mapping override the merged ones"() {
+        when:
+        def map = mapper.readValue('''
+base: &base
+  a: 1
+  b: 2
+derived:
+  <<: *base
+  b: 3
+  c: 4
+''', Argument.mapOf(String, Object))
+
+        then:
+        map.derived == [a: 1, b: 3, c: 4]
+        map.base == [a: 1, b: 2]
+    }
+
+    def "an earlier mapping of a merged sequence overrides a later one"() {
+        when:
+        def map = mapper.readValue('''
+first: &first {x: 1, y: 1}
+second: &second {y: 2, z: 2}
+merged:
+  <<: [*first, *second]
+  z: 3
+''', Argument.mapOf(String, Object))
+
+        then:
+        map.merged == [x: 1, y: 1, z: 3]
+    }
+
     def "a merge key with an inline mapping is spliced"() {
         expect:
         mapper.readValue("m:\n  <<: {a: 1}\n  b: 2\n", Argument.mapOf(String, Object)).m == [a: 1, b: 2]

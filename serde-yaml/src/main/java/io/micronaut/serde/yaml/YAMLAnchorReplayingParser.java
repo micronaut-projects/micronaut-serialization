@@ -24,7 +24,6 @@ import org.snakeyaml.engine.v2.events.CollectionEndEvent;
 import org.snakeyaml.engine.v2.events.CollectionStartEvent;
 import org.snakeyaml.engine.v2.events.CommentEvent;
 import org.snakeyaml.engine.v2.events.Event;
-import org.snakeyaml.engine.v2.events.MappingEndEvent;
 import org.snakeyaml.engine.v2.events.MappingStartEvent;
 import org.snakeyaml.engine.v2.events.NodeEvent;
 import org.snakeyaml.engine.v2.events.ScalarEvent;
@@ -37,10 +36,12 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Resolves YAML anchors, aliases and merge keys on top of the low level event stream.
@@ -84,9 +85,8 @@ final class YAMLAnchorReplayingParser {
     private final Map<String, List<Event>> anchors = new HashMap<>();
     private final Deque<AnchorContext> openAnchors = new ArrayDeque<>();
     private final Deque<Event> replay = new ArrayDeque<>();
-    private final Deque<Integer> mergedMappings = new ArrayDeque<>();
     private final Deque<Position> positions = new ArrayDeque<>();
-    private int depth;
+    private int merges;
 
     YAMLAnchorReplayingParser(Iterator<Event> events) {
         this.events = events;
@@ -116,87 +116,168 @@ final class YAMLAnchorReplayingParser {
                 expandAlias(alias);
                 continue;
             }
-            if (event instanceof CollectionStartEvent) {
-                depth++;
-            } else if (event instanceof CollectionEndEvent) {
-                if (event instanceof MappingEndEvent && !mergedMappings.isEmpty() && mergedMappings.peek() == depth) {
-                    // the end of a merged mapping, its keys were spliced into the enclosing mapping
-                    mergedMappings.pop();
-                    depth--;
-                    continue;
-                }
-                depth--;
-            } else if (event instanceof ScalarEvent scalar && isMergeKey(scalar)) {
-                Event value = nextResolvedEvent(scalar);
-                if (value instanceof MappingStartEvent) {
-                    depth++;
-                    pushMerge();
-                } else if (value instanceof SequenceStartEvent) {
-                    spliceMergedSequence(scalar);
-                } else {
-                    throw new SerdeException("The value of a merge key '<<' must be a mapping or a sequence of mappings" + location(scalar));
-                }
+            if (event instanceof ScalarEvent scalar && isMergeKey(scalar)) {
+                spliceMerge(scalar);
                 continue;
             }
             return event;
         }
     }
 
-    private void pushMerge() throws SerdeException {
-        if (mergedMappings.size() >= MAX_MERGES) {
-            throw new SerdeException("Too many merges in the YAML document");
+    /**
+     * Applies a {@code <<} merge key.
+     *
+     * <p>The merged mappings and the rest of the mapping the merge key belongs to are buffered so
+     * that the keys the mapping defines itself override the merged ones, and the first mapping of
+     * a merged sequence overrides the ones after it, as the merge key specification requires.</p>
+     *
+     * @param mergeKey The merge key event, used for error locations
+     * @throws SerdeException if the merged value is not a mapping or a sequence of mappings
+     */
+    private void spliceMerge(ScalarEvent mergeKey) throws SerdeException {
+        if (++merges > MAX_MERGES) {
+            throw new SerdeException("Too many merges in the YAML document" + location(mergeKey));
         }
-        mergedMappings.push(depth);
+        List<List<Event>> merged = new ArrayList<>();
+        Event value = nextResolvedEvent(mergeKey);
+        if (value instanceof MappingStartEvent) {
+            merged.add(readMappingBody(mergeKey));
+        } else if (value instanceof SequenceStartEvent) {
+            while (true) {
+                Event item = nextResolvedEvent(mergeKey);
+                if (item instanceof SequenceEndEvent) {
+                    break;
+                }
+                if (!(item instanceof MappingStartEvent)) {
+                    throw new SerdeException("A sequence merged with '<<' may only contain mappings" + location(item));
+                }
+                merged.add(readMappingBody(mergeKey));
+            }
+        } else {
+            throw new SerdeException("The value of a merge key '<<' must be a mapping or a sequence of mappings" + location(mergeKey));
+        }
+
+        List<Event> remainder = readEnclosingMappingRemainder(mergeKey);
+        Set<String> taken = new HashSet<>(topLevelKeys(remainder));
+        List<Event> spliced = new ArrayList<>();
+        for (List<Event> mapping : merged) {
+            appendUntakenEntries(mapping, taken, spliced, mergeKey);
+        }
+        spliced.addAll(remainder);
+        queueForReplay(spliced, mergeKey);
     }
 
     /**
-     * Buffers the mappings of a merged sequence and queues their entries for replay. Mappings
-     * earlier in the sequence take precedence, so they are queued last and override the keys of
-     * the mappings after them.
-     *
-     * @param mergeKey The merge key event, for error locations
+     * Reads the events of a mapping whose start event was already consumed, up to but not
+     * including its end event.
      */
-    private void spliceMergedSequence(ScalarEvent mergeKey) throws SerdeException {
-        Deque<List<Event>> mappings = new ArrayDeque<>();
-        List<Event> current = null;
-        int size = 0;
+    private List<Event> readMappingBody(ScalarEvent mergeKey) throws SerdeException {
+        List<Event> body = new ArrayList<>();
         int nested = 0;
         while (true) {
             Event event = nextResolvedEvent(mergeKey);
-            if (current == null) {
-                if (event instanceof SequenceEndEvent) {
-                    break;
+            if (event instanceof CollectionStartEvent) {
+                nested++;
+            } else if (event instanceof CollectionEndEvent) {
+                if (nested == 0) {
+                    return body;
                 }
-                if (!(event instanceof MappingStartEvent)) {
-                    throw new SerdeException("A sequence merged with '<<' may only contain mappings" + location(event));
-                }
-                current = new ArrayList<>();
-                continue;
+                nested--;
+            }
+            if (body.size() >= MAX_EVENTS) {
+                throw new SerdeException("Too many events to replay for the merge key" + location(mergeKey));
+            }
+            body.add(event);
+        }
+    }
+
+    /**
+     * Reads the rest of the mapping the merge key belongs to, including its end event. Aliases and
+     * merges inside it are left untouched, they are resolved when the events are replayed.
+     */
+    private List<Event> readEnclosingMappingRemainder(ScalarEvent mergeKey) throws SerdeException {
+        List<Event> remainder = new ArrayList<>();
+        int nested = 0;
+        while (true) {
+            Event event = pollNext();
+            if (event == null) {
+                throw new SerdeException("Unexpected end of YAML input after the merge key" + location(mergeKey));
             }
             if (event instanceof CollectionStartEvent) {
                 nested++;
             } else if (event instanceof CollectionEndEvent) {
                 if (nested == 0) {
-                    mappings.addFirst(current);
-                    current = null;
-                    continue;
+                    remainder.add(event);
+                    return remainder;
                 }
                 nested--;
             }
-            if (++size > MAX_EVENTS) {
+            if (remainder.size() >= MAX_EVENTS) {
                 throw new SerdeException("Too many events to replay for the merge key" + location(mergeKey));
             }
-            current.add(event);
+            remainder.add(event);
         }
-        if (replay.size() + size > MAX_EVENTS) {
+    }
+
+    /**
+     * Collects the keys a mapping defines at its own level, skipping over the nodes of the values.
+     */
+    private static Set<String> topLevelKeys(List<Event> events) {
+        Set<String> keys = new HashSet<>();
+        int i = 0;
+        while (i < events.size() && events.get(i) instanceof ScalarEvent key) {
+            keys.add(key.getValue());
+            i = skipNode(events, i + 1);
+        }
+        return keys;
+    }
+
+    /**
+     * Appends the entries of a merged mapping whose keys are not taken by the mapping itself or by
+     * a mapping merged before it.
+     */
+    private void appendUntakenEntries(List<Event> mapping,
+                                      Set<String> taken,
+                                      List<Event> target,
+                                      ScalarEvent mergeKey) throws SerdeException {
+        int i = 0;
+        while (i < mapping.size() && mapping.get(i) instanceof ScalarEvent key) {
+            int end = skipNode(mapping, i + 1);
+            if (taken.add(key.getValue())) {
+                target.addAll(mapping.subList(i, end));
+                if (target.size() > MAX_EVENTS) {
+                    throw new SerdeException("Too many events to replay for the merge key" + location(mergeKey));
+                }
+            }
+            i = end;
+        }
+    }
+
+    /**
+     * Returns the index of the event after the node that starts at the given index.
+     */
+    private static int skipNode(List<Event> events, int index) {
+        if (index >= events.size() || !(events.get(index) instanceof CollectionStartEvent)) {
+            return index + 1;
+        }
+        int nested = 0;
+        for (int i = index; i < events.size(); i++) {
+            Event event = events.get(i);
+            if (event instanceof CollectionStartEvent) {
+                nested++;
+            } else if (event instanceof CollectionEndEvent && --nested == 0) {
+                return i + 1;
+            }
+        }
+        return events.size();
+    }
+
+    private void queueForReplay(List<Event> events, ScalarEvent mergeKey) throws SerdeException {
+        if (replay.size() + events.size() > MAX_EVENTS) {
             throw new SerdeException("Too many events to replay for the merge key" + location(mergeKey));
         }
         // queue in front of anything already pending, keeping the order of the buffered events
-        List<Event> spliced = new ArrayList<>(size);
-        for (List<Event> mapping : mappings) {
-            spliced.addAll(mapping);
-        }
-        for (ListIterator<Event> it = spliced.listIterator(spliced.size()); it.hasPrevious(); ) {
+        for (ListIterator<Event> it = events.listIterator(events.size()); it.hasPrevious(); ) {
             replay.addFirst(it.previous());
         }
     }
