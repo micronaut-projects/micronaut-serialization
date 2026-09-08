@@ -226,4 +226,22 @@ hex: 0xFF
         def e = thrown(InvalidFormatException)
         e.originalValue == "92233720368547758070"
     }
+    def "malformed yaml is reported as a serde exception with a location"() {
+        when:
+        mapper.readValue("title: [unclosed\npages: 1\n", Book)
+
+        then:
+        def e = thrown(SerdeException)
+        e.message.contains("Invalid YAML input")
+        e.message.contains("line")
+    }
+
+    def "type errors carry the location of the scalar"() {
+        when:
+        mapper.readValue("title: T\npages: many\n", Book)
+
+        then:
+        def e = thrown(SerdeException)
+        e.message.contains("line 2")
+    }
 }

@@ -27,6 +27,7 @@ import org.snakeyaml.engine.v2.events.CollectionEndEvent;
 import org.snakeyaml.engine.v2.events.CollectionStartEvent;
 import org.snakeyaml.engine.v2.events.Event;
 import org.snakeyaml.engine.v2.events.ScalarEvent;
+import org.snakeyaml.engine.v2.exceptions.YamlEngineException;
 import org.snakeyaml.engine.v2.nodes.Tag;
 import org.snakeyaml.engine.v2.resolver.ScalarResolver;
 
@@ -99,9 +100,14 @@ public final class YamlDecoder extends AbstractStreamDecoder {
         this.booleanAsStrings = readSettings.booleanAsStrings();
         this.emptyStringAsNull = readSettings.emptyStringAsNull();
         this.resolver = readSettings.loadSettings().getSchema().getScalarResolver();
-        Iterator<Event> events = new Parse(readSettings.loadSettings())
-            .parseReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
-            .iterator();
+        Iterator<Event> events;
+        try {
+            events = new Parse(readSettings.loadSettings())
+                .parseReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
+                .iterator();
+        } catch (YamlEngineException e) {
+            throw new SerdeException("Invalid YAML input: " + e.getMessage(), e);
+        }
         this.eventReader = new YAMLAnchorReplayingParser(events);
         Event first = eventReader.getEvent();
         while (first != null && (first.getEventId() == Event.ID.StreamStart || first.getEventId() == Event.ID.DocumentStart)) {
@@ -329,7 +335,7 @@ public final class YamlDecoder extends AbstractStreamDecoder {
     }
 
     private IOException invalidNumber(String value, NumberFormatException cause) {
-        return new InvalidFormatException("Unable to parse YAML scalar as a number", cause, value);
+        return new InvalidFormatException("Unable to parse YAML scalar as a number" + currentLocation(), cause, value);
     }
 
     @Override
@@ -361,7 +367,14 @@ public final class YamlDecoder extends AbstractStreamDecoder {
 
     @Override
     public @NonNull IOException createDeserializationException(@NonNull String message, @Nullable Object invalidValue) {
-        return new SerdeException(message);
+        if (invalidValue != null) {
+            return new InvalidFormatException(message + currentLocation(), null, invalidValue);
+        }
+        return new SerdeException(message + currentLocation());
+    }
+
+    private String currentLocation() {
+        return currentEvent == null ? "" : location(currentEvent);
     }
 
     private static String location(Event event) {

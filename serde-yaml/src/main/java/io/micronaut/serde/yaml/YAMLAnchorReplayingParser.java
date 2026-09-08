@@ -30,6 +30,7 @@ import org.snakeyaml.engine.v2.events.NodeEvent;
 import org.snakeyaml.engine.v2.events.ScalarEvent;
 import org.snakeyaml.engine.v2.events.SequenceEndEvent;
 import org.snakeyaml.engine.v2.events.SequenceStartEvent;
+import org.snakeyaml.engine.v2.exceptions.YamlEngineException;
 import org.snakeyaml.engine.v2.nodes.Tag;
 
 import java.util.ArrayDeque;
@@ -248,13 +249,17 @@ final class YAMLAnchorReplayingParser {
         if (!replay.isEmpty()) {
             return replay.removeFirst();
         }
-        while (events.hasNext()) {
-            Event event = events.next();
-            if (!(event instanceof CommentEvent)) {
-                return event;
+        try {
+            while (events.hasNext()) {
+                Event event = events.next();
+                if (!(event instanceof CommentEvent)) {
+                    return event;
+                }
             }
+            return null;
+        } catch (YamlEngineException e) {
+            throw new SerdeException("Invalid YAML input: " + e.getMessage(), e);
         }
-        return null;
     }
 
     private void record(Event event) throws SerdeException {
