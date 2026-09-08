@@ -17,6 +17,27 @@ class YamlEncoderSpec extends Specification {
         !mapper.writeValueAsString(["multi\nline"]).contains("\r")
     }
 
+    def "floats are written with float precision, not the widened double"() {
+        expect:
+        mapper.writeValueAsString([v: 0.1f]) == "v: 0.1\n"
+        mapper.writeValueAsString([v: 1.1f]) == "v: 1.1\n"
+        mapper.writeValueAsString([v: 0.1d]) == "v: 0.1\n"
+    }
+
+    def "non-finite floats and doubles use the yaml notation"() {
+        expect:
+        mapper.writeValueAsString([v: value]) == "v: " + written + "\n"
+
+        where:
+        value                       || written
+        Float.NaN                   || ".nan"
+        Float.POSITIVE_INFINITY     || ".inf"
+        Float.NEGATIVE_INFINITY     || "-.inf"
+        Double.NaN                  || ".nan"
+        Double.POSITIVE_INFINITY    || ".inf"
+        Double.NEGATIVE_INFINITY    || "-.inf"
+    }
+
     def "chars are written like strings"() {
         expect:
         mapper.writeValueAsString([c: 'a' as char]) == "c: a\n"

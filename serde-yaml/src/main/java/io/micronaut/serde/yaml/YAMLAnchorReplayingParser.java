@@ -40,6 +40,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -49,9 +50,11 @@ import java.util.Set;
  * are still open, so an alias replays exactly what the consumer saw for the anchored node,
  * including the content of aliases and merges that were resolved inside it. Aliases are
  * expanded in place, and {@code <<} merge keys splice the keys of the merged mapping, or of
- * each mapping in a merged sequence, into the enclosing mapping. Mappings earlier in a merged
- * sequence take precedence over later ones; keys the enclosing mapping defines after the merge
- * key take precedence over merged keys.</p>
+ * each mapping in a merged sequence, into the enclosing mapping. A key the enclosing mapping
+ * defines itself always wins over a merged key, wherever in the mapping it is written, and a
+ * mapping earlier in a merged sequence wins over the ones after it. Because the keys a mapping
+ * defines are only all known once it ends, merged entries are handed out at the end of the
+ * enclosing mapping rather than at the position of the merge key.</p>
  *
  * @see <a href="https://github.com/FasterXML/jackson-dataformats-text/pull/502">the Jackson anchor replaying parser this is modelled on</a>
  * @since 3.2.0
@@ -69,7 +72,7 @@ final class YAMLAnchorReplayingParser {
     static final int MAX_ANCHORS = 9999;
 
     /**
-     * The maximum number of merges that may be open at once.
+     * The maximum number of merge keys a document may use.
      */
     static final int MAX_MERGES = 9999;
 
@@ -84,7 +87,7 @@ final class YAMLAnchorReplayingParser {
     private final Map<String, List<Event>> anchors = new HashMap<>();
     private final Deque<AnchorContext> openAnchors = new ArrayDeque<>();
     private final Deque<Event> replay = new ArrayDeque<>();
-    private final Deque<Position> positions = new ArrayDeque<>();
+    private final Deque<Frame> frames = new ArrayDeque<>();
     private int merges;
 
     YAMLAnchorReplayingParser(Iterator<Event> events) {
@@ -116,7 +119,10 @@ final class YAMLAnchorReplayingParser {
                 continue;
             }
             if (event instanceof ScalarEvent scalar && isMergeKey(scalar)) {
-                spliceMerge(scalar);
+                bufferMerge(scalar);
+                continue;
+            }
+            if (event instanceof CollectionEndEvent && spliceMergesBefore(event)) {
                 continue;
             }
             return event;
@@ -124,39 +130,36 @@ final class YAMLAnchorReplayingParser {
     }
 
     /**
-     * Applies a {@code <<} merge key.
-     *
-     * <p>The merged mappings and the rest of the mapping the merge key belongs to are buffered so
-     * that the keys the mapping defines itself override the merged ones, and the first mapping of
-     * a merged sequence overrides the ones after it, as the merge key specification requires.</p>
+     * Reads the value of a {@code <<} merge key and keeps its entries pending on the mapping the
+     * merge key belongs to. The entries are spliced in when that mapping ends, once every key the
+     * mapping defines itself is known, because a merged key never overrides a key the mapping
+     * defines, wherever in the mapping it is written.
      *
      * @param mergeKey The merge key event, used for error locations
      * @throws SerdeException if the merged value is not a mapping or a sequence of mappings
      */
-    private void spliceMerge(ScalarEvent mergeKey) throws SerdeException {
+    private void bufferMerge(ScalarEvent mergeKey) throws SerdeException {
         if (++merges > MAX_MERGES) {
             throw new SerdeException("Too many merges in the YAML document" + location(mergeKey));
         }
-        List<List<Event>> merged = readMergedMappings(mergeKey);
-        List<Event> remainder = readEnclosingMappingRemainder(mergeKey);
-        Set<String> taken = new HashSet<>(topLevelKeys(remainder));
-        List<Event> spliced = new ArrayList<>();
-        for (List<Event> mapping : merged) {
-            appendUntakenEntries(mapping, taken, spliced, mergeKey);
-        }
-        spliced.addAll(remainder);
-        queueForReplay(spliced, mergeKey);
+        // isMergeKey only answers true while a mapping expects a key, so the frame is that mapping
+        readMergedMappings(mergeKey, Objects.requireNonNull(frames.peek()));
     }
 
     /**
-     * Reads the mappings a merge key refers to, in the order they take precedence.
+     * Reads the mappings a merge key refers to, in the order they take precedence, and keeps them
+     * pending on the frame. The events of a merged node are consumed here rather than handed out,
+     * so unlike every other node it is not recorded on the way out and any anchor it carries is
+     * registered here.
      */
-    private List<List<Event>> readMergedMappings(ScalarEvent mergeKey) throws SerdeException {
-        List<List<Event>> merged = new ArrayList<>();
+    private void readMergedMappings(ScalarEvent mergeKey, Frame frame) throws SerdeException {
+        List<Event> node = new ArrayList<>();
         Event value = nextResolvedEvent(mergeKey);
+        node.add(value);
         if (value instanceof MappingStartEvent) {
-            merged.add(readMappingBody(mergeKey));
-            return merged;
+            frame.addPendingMerge(readMappingBody(mergeKey, node));
+            rememberAnchorOf(value, node);
+            return;
         }
         if (!(value instanceof SequenceStartEvent)) {
             throw new SerdeException("The value of a merge key '<<' must be a mapping or a sequence of mappings" + location(mergeKey));
@@ -166,18 +169,61 @@ final class YAMLAnchorReplayingParser {
             if (!(item instanceof MappingStartEvent)) {
                 throw new SerdeException("A sequence merged with '<<' may only contain mappings" + location(item));
             }
-            merged.add(readMappingBody(mergeKey));
+            int start = node.size();
+            node.add(item);
+            frame.addPendingMerge(readMappingBody(mergeKey, node));
+            rememberAnchorOf(item, new ArrayList<>(node.subList(start, node.size())));
             item = nextResolvedEvent(mergeKey);
         }
-        return merged;
+        node.add(item);
+        rememberAnchorOf(value, node);
     }
 
     /**
-     * Reads the events of a mapping whose start event was already consumed, up to but not
-     * including its end event.
+     * Queues the entries of the mappings merged into the mapping that the given end event closes,
+     * skipping every key the mapping defines itself and every key an earlier merge already
+     * supplied. The end event is queued behind them.
+     *
+     * @param end The collection end event that is about to be handed out
+     * @return {@code true} if entries were queued, so the end event must be polled again
      */
-    private List<Event> readMappingBody(ScalarEvent mergeKey) throws SerdeException {
-        List<Event> body = new ArrayList<>();
+    private boolean spliceMergesBefore(Event end) throws SerdeException {
+        Frame frame = frames.peek();
+        if (frame == null || frame.pendingMerges.isEmpty()) {
+            return false;
+        }
+        List<List<Event>> pending = frame.pendingMerges;
+        frame.pendingMerges = new ArrayList<>();
+        Set<String> taken = new HashSet<>(frame.keys);
+        List<Event> spliced = new ArrayList<>();
+        for (List<Event> mapping : pending) {
+            appendUntakenEntries(mapping, taken, spliced);
+        }
+        if (spliced.isEmpty()) {
+            return false;
+        }
+        replay.addFirst(end);
+        queueForReplay(spliced, end);
+        return true;
+    }
+
+    /**
+     * Registers the anchor an anchored merge value carries. The events of a merged node are
+     * consumed by the merge itself, so unlike every other node it is not recorded on the way out.
+     */
+    private void rememberAnchorOf(Event start, List<Event> node) throws SerdeException {
+        if (start instanceof NodeEvent nodeEvent && nodeEvent.getAnchor().isPresent()) {
+            remember(nodeEvent.getAnchor().get().getValue(), node);
+        }
+    }
+
+    /**
+     * Reads the events of a mapping whose start event was already consumed. Every event, the end
+     * event included, is appended to {@code node}; the entries of the mapping, which are the
+     * events before its end event, are returned.
+     */
+    private List<Event> readMappingBody(ScalarEvent mergeKey, List<Event> node) throws SerdeException {
+        int start = node.size();
         int nested = 0;
         while (true) {
             Event event = nextResolvedEvent(mergeKey);
@@ -185,56 +231,17 @@ final class YAMLAnchorReplayingParser {
                 nested++;
             } else if (event instanceof CollectionEndEvent) {
                 if (nested == 0) {
+                    List<Event> body = new ArrayList<>(node.subList(start, node.size()));
+                    node.add(event);
                     return body;
                 }
                 nested--;
             }
-            if (body.size() >= MAX_EVENTS) {
+            if (node.size() - start >= MAX_EVENTS) {
                 throw new SerdeException("Too many events to replay for the merge key" + location(mergeKey));
             }
-            body.add(event);
+            node.add(event);
         }
-    }
-
-    /**
-     * Reads the rest of the mapping the merge key belongs to, including its end event. Aliases and
-     * merges inside it are left untouched, they are resolved when the events are replayed.
-     */
-    private List<Event> readEnclosingMappingRemainder(ScalarEvent mergeKey) throws SerdeException {
-        List<Event> remainder = new ArrayList<>();
-        int nested = 0;
-        while (true) {
-            Event event = pollNext();
-            if (event == null) {
-                throw new SerdeException("Unexpected end of YAML input after the merge key" + location(mergeKey));
-            }
-            if (event instanceof CollectionStartEvent) {
-                nested++;
-            } else if (event instanceof CollectionEndEvent) {
-                if (nested == 0) {
-                    remainder.add(event);
-                    return remainder;
-                }
-                nested--;
-            }
-            if (remainder.size() >= MAX_EVENTS) {
-                throw new SerdeException("Too many events to replay for the merge key" + location(mergeKey));
-            }
-            remainder.add(event);
-        }
-    }
-
-    /**
-     * Collects the keys a mapping defines at its own level, skipping over the nodes of the values.
-     */
-    private static Set<String> topLevelKeys(List<Event> events) {
-        Set<String> keys = new HashSet<>();
-        int i = 0;
-        while (i < events.size() && events.get(i) instanceof ScalarEvent key) {
-            keys.add(key.getValue());
-            i = skipNode(events, i + 1);
-        }
-        return keys;
     }
 
     /**
@@ -243,15 +250,14 @@ final class YAMLAnchorReplayingParser {
      */
     private void appendUntakenEntries(List<Event> mapping,
                                       Set<String> taken,
-                                      List<Event> target,
-                                      ScalarEvent mergeKey) throws SerdeException {
+                                      List<Event> target) throws SerdeException {
         int i = 0;
         while (i < mapping.size() && mapping.get(i) instanceof ScalarEvent key) {
             int end = skipNode(mapping, i + 1);
             if (taken.add(key.getValue())) {
                 target.addAll(mapping.subList(i, end));
                 if (target.size() > MAX_EVENTS) {
-                    throw new SerdeException("Too many events to replay for the merge key" + location(mergeKey));
+                    throw new SerdeException("Too many events to replay for the merge key" + location(mapping.get(i)));
                 }
             }
             i = end;
@@ -277,7 +283,7 @@ final class YAMLAnchorReplayingParser {
         return events.size();
     }
 
-    private void queueForReplay(List<Event> events, ScalarEvent mergeKey) throws SerdeException {
+    private void queueForReplay(List<Event> events, Event mergeKey) throws SerdeException {
         if (replay.size() + events.size() > MAX_EVENTS) {
             throw new SerdeException("Too many events to replay for the merge key" + location(mergeKey));
         }
@@ -322,7 +328,8 @@ final class YAMLAnchorReplayingParser {
     }
 
     private boolean isMergeKey(ScalarEvent scalar) {
-        if (!MERGE_KEY.equals(scalar.getValue()) || positions.peek() != Position.KEY) {
+        Frame frame = frames.peek();
+        if (!MERGE_KEY.equals(scalar.getValue()) || frame == null || frame.position != Position.KEY) {
             return false;
         }
         if (scalar.getTag().isPresent()) {
@@ -411,16 +418,17 @@ final class YAMLAnchorReplayingParser {
 
     private void trackStructure(Event event) {
         if (event instanceof MappingStartEvent) {
-            positions.push(Position.KEY);
+            frames.push(new Frame(Position.KEY));
         } else if (event instanceof SequenceStartEvent) {
-            positions.push(Position.SEQUENCE);
+            frames.push(new Frame(Position.SEQUENCE));
         } else if (event instanceof CollectionEndEvent) {
-            positions.pop();
+            frames.pop();
             valueConsumed();
-        } else if (event instanceof ScalarEvent) {
-            if (positions.peek() == Position.KEY) {
-                positions.pop();
-                positions.push(Position.VALUE);
+        } else if (event instanceof ScalarEvent scalar) {
+            Frame frame = frames.peek();
+            if (frame != null && frame.position == Position.KEY) {
+                frame.position = Position.VALUE;
+                frame.keys.add(scalar.getValue());
             } else {
                 valueConsumed();
             }
@@ -429,9 +437,9 @@ final class YAMLAnchorReplayingParser {
 
     private void valueConsumed() {
         // a sequence never expects a key; only a mapping flips back to a key after a value
-        if (positions.peek() == Position.VALUE) {
-            positions.pop();
-            positions.push(Position.KEY);
+        Frame frame = frames.peek();
+        if (frame != null && frame.position == Position.VALUE) {
+            frame.position = Position.KEY;
         }
     }
 
@@ -446,6 +454,27 @@ final class YAMLAnchorReplayingParser {
      */
     private enum Position {
         SEQUENCE, KEY, VALUE
+    }
+
+    /**
+     * An open collection: where its next node lands, the keys it defines itself, and the mappings
+     * merged into it that are still waiting to be spliced in before its end event.
+     */
+    private static final class Frame {
+        private final Set<String> keys = new HashSet<>();
+        private Position position;
+        private List<List<Event>> pendingMerges = List.of();
+
+        private Frame(Position position) {
+            this.position = position;
+        }
+
+        private void addPendingMerge(List<Event> mapping) {
+            if (pendingMerges.isEmpty()) {
+                pendingMerges = new ArrayList<>();
+            }
+            pendingMerges.add(mapping);
+        }
     }
 
     private static final class AnchorContext {

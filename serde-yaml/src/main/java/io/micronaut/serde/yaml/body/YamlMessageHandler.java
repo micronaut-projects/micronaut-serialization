@@ -105,8 +105,9 @@ public final class YamlMessageHandler<T> implements MessageBodyHandler<T>, Respo
         return new CodecException("Error decoding YAML stream for type [" + type.getName() + "]: " + e.getMessage(), e);
     }
 
-    private static CodecException decorateWrite(Object object, IOException e) {
-        return new CodecException("Error encoding object of type [" + object.getClass().getName() + "] to YAML: " + e.getMessage(), e);
+    private static CodecException decorateWrite(@Nullable Object object, IOException e) {
+        String type = object == null ? "null" : object.getClass().getName();
+        return new CodecException("Error encoding object of type [" + type + "] to YAML: " + e.getMessage(), e);
     }
 
     @Override

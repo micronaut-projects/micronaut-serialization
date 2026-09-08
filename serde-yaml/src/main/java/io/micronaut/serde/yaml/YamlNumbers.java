@@ -32,6 +32,14 @@ import java.math.BigInteger;
 @Internal
 final class YamlNumbers {
 
+    /**
+     * The largest exponent a decimal scalar may carry. A scalar such as {@code 1e200000000} is a
+     * dozen characters long, so no input size limit bounds it, but expanding it to an unscaled
+     * value claims hundreds of megabytes and minutes of CPU. The limit matches the one Jackson
+     * applies to the same conversion.
+     */
+    static final int MAX_SCALE = 100_000;
+
     private YamlNumbers() {
     }
 
@@ -77,7 +85,13 @@ final class YamlNumbers {
         if (parseNonFinite(text) != null) {
             throw new NumberFormatException("Non-finite value " + text + " cannot be represented as a BigDecimal");
         }
-        return new BigDecimal(text);
+        BigDecimal decimal = new BigDecimal(text);
+        // Math.abs overflows on Integer.MIN_VALUE, compare against the bounds instead
+        if (decimal.scale() > MAX_SCALE || decimal.scale() < -MAX_SCALE) {
+            throw new NumberFormatException(
+                "Value " + text + " has an exponent beyond the supported range of " + MAX_SCALE + " digits");
+        }
+        return decimal;
     }
 
     private static @org.jspecify.annotations.Nullable Number parseNonFinite(String text) {

@@ -79,15 +79,6 @@ public class YamlEncoder extends LimitingStream implements Encoder {
     private boolean documentClosed;
 
     /**
-     * Creates a YAML encoder with the supplied stream limits.
-     *
-     * @param remainingLimits The remaining stream limits
-     */
-    public YamlEncoder(@NonNull RemainingLimits remainingLimits) {
-        this(OutputStream.nullOutputStream(), remainingLimits);
-    }
-
-    /**
      * Creates a YAML encoder with the supplied output stream and stream limits.
      *
      * @param outputStream The output stream
@@ -301,12 +292,14 @@ public class YamlEncoder extends LimitingStream implements Encoder {
 
     @Override
     public void encodeFloat(float value) throws IOException {
-        emitScalar(formatDouble(value), ScalarStyle.PLAIN);
+        // Float.toString, not Double.toString of the widened value: the latter writes 0.1f as
+        // 0.10000000149011612
+        emitScalar(nonFinite(value).orElseGet(() -> Float.toString(value)), ScalarStyle.PLAIN);
     }
 
     @Override
     public void encodeDouble(double value) throws IOException {
-        emitScalar(formatDouble(value), ScalarStyle.PLAIN);
+        emitScalar(nonFinite(value).orElseGet(() -> Double.toString(value)), ScalarStyle.PLAIN);
     }
 
     @Override
@@ -334,17 +327,24 @@ public class YamlEncoder extends LimitingStream implements Encoder {
         flipKeyIfInMapping();
     }
 
-    private String formatDouble(double value) {
+    /**
+     * The YAML notation of a non-finite value, when it is one and the notation is enabled. Empty
+     * otherwise, so that the caller formats the value with the precision of its own type.
+     *
+     * @param value The value, a float widens to a double without changing what it represents
+     * @return The YAML notation of the value
+     */
+    private Optional<String> nonFinite(double value) {
         if (!useYamlNonfiniteNotation) {
-            return Double.toString(value);
+            return Optional.empty();
         }
         if (Double.isNaN(value)) {
-            return ".nan";
+            return Optional.of(".nan");
         }
         if (Double.isInfinite(value)) {
-            return value > 0 ? ".inf" : "-.inf";
+            return Optional.of(value > 0 ? ".inf" : "-.inf");
         }
-        return Double.toString(value);
+        return Optional.empty();
     }
 
     private static final class CollectionContext {

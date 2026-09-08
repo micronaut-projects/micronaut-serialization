@@ -118,6 +118,21 @@ derived:
         read.base.age == 21
     }
 
+    void "an anchor on a merged value can be aliased"() {
+        when:
+        def read = readYamlWithAliases('''
+derived:
+  <<: &base {name: Hamza}
+  age: 30
+other: *base
+''', Argument.mapOf(String, SimpleBean))
+
+        then:
+        read.derived.name == "Hamza"
+        read.derived.age == 30
+        read.other.name == "Hamza"
+    }
+
     void "a merge key accepts an inline mapping"() {
         when:
         def read = readYamlWithAliases('''

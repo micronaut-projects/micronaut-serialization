@@ -33,10 +33,8 @@ import org.snakeyaml.engine.v2.resolver.ScalarResolver;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Iterator;
@@ -102,8 +100,10 @@ public final class YamlDecoder extends AbstractStreamDecoder {
         this.resolver = readSettings.loadSettings().getSchema().getScalarResolver();
         Iterator<Event> events;
         try {
+            // parseInputStream, not a fixed UTF-8 reader: YAML documents may be UTF-8, UTF-16LE or
+            // UTF-16BE, and the encoding is detected from the byte order mark as the spec requires
             events = new Parse(readSettings.loadSettings())
-                .parseReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
+                .parseInputStream(inputStream)
                 .iterator();
         } catch (YamlEngineException e) {
             throw new SerdeException("Invalid YAML input: " + e.getMessage(), e);
@@ -335,7 +335,10 @@ public final class YamlDecoder extends AbstractStreamDecoder {
     }
 
     private IOException invalidNumber(String value, NumberFormatException cause) {
-        return new InvalidFormatException("Unable to parse YAML scalar as a number" + currentLocation(), cause, value);
+        // the cause explains which limit or which character the scalar tripped over, and only the
+        // message of the top level exception reaches the caller
+        String detail = cause.getMessage() == null ? "" : ": " + cause.getMessage();
+        return new InvalidFormatException("Unable to parse YAML scalar as a number" + currentLocation() + detail, cause, value);
     }
 
     @Override

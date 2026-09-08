@@ -46,7 +46,9 @@ service:
   retries: 5
 ----
 
-An alias replays the anchored node, including any aliases or merges that were resolved inside it. A merge key `<<` splices the entries of the referenced mapping, or of each mapping in a referenced sequence, into the enclosing mapping. Entries written after the merge key override merged entries, and mappings earlier in a merged sequence take precedence over later ones, so write the merge key first. Unknown properties, including nested mappings and sequences, are skipped like they are for JSON.
+An alias replays the anchored node, including any aliases or merges that were resolved inside it. A merge key `<<` splices the entries of the referenced mapping, or of each mapping in a referenced sequence, into the enclosing mapping. A key the mapping defines itself always wins over a merged key, wherever in the mapping it is written, and a mapping earlier in a merged sequence wins over the ones after it, as the merge key specification requires. Unknown properties, including nested mappings and sequences, are skipped like they are for JSON.
+
+NOTE: Because the keys a mapping defines are only all known once the mapping ends, merged entries are read at the end of the enclosing mapping. That is invisible for beans and records, and only changes the iteration order of a `Map` read from a mapping that uses a merge key. Jackson Databind instead lets a merged key override a key written before the merge key; Micronaut Serialization follows the specification here.
 
 == Read Features
 

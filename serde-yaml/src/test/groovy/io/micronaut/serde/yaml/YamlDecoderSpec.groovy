@@ -10,6 +10,8 @@ import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 import spock.lang.Specification
 
+import java.nio.charset.StandardCharsets
+
 @MicronautTest
 class YamlDecoderSpec extends Specification {
 
@@ -150,6 +152,49 @@ derived:
         map.base == [a: 1, b: 2]
     }
 
+    def "a key defined before the merge key still overrides the merged one"() {
+        when:
+        def map = mapper.readValue('''
+base: &base
+  a: 1
+  b: 2
+derived:
+  b: 3
+  <<: *base
+''', Argument.mapOf(String, Object))
+
+        then:
+        map.derived == [a: 1, b: 3]
+    }
+
+    def "an anchor on a merged value can be aliased"() {
+        when:
+        def map = mapper.readValue('''
+derived:
+  <<: &defaults {a: 1}
+  b: 2
+other: *defaults
+''', Argument.mapOf(String, Object))
+
+        then:
+        map.derived == [a: 1, b: 2]
+        map.other == [a: 1]
+    }
+
+    def "a merge key in a mapping with many entries is spliced"() {
+        given:
+        def yaml = new StringBuilder("base: &base\n  seed: 0\nbig:\n  <<: *base\n")
+        6000.times { yaml.append("  k").append(it).append(": ").append(it).append("\n") }
+
+        when:
+        def map = mapper.readValue(yaml.toString(), Argument.mapOf(String, Object))
+
+        then:
+        map.big.size() == 6001
+        map.big.seed == 0
+        map.big.k5999 == 5999
+    }
+
     def "an earlier mapping of a merged sequence overrides a later one"() {
         when:
         def map = mapper.readValue('''
@@ -275,6 +320,40 @@ hex: 0xFF
         def e = thrown(SerdeException)
         e.message.contains("line 2")
     }
+    def "input is read in the encoding its byte order mark declares"() {
+        expect:
+        mapper.readValue(encode("title: T\npages: 3\n", bom, charset), Book) == new Book("T", 3)
+
+        where:
+        bom                        | charset
+        []                         | StandardCharsets.UTF_8
+        [0xEF, 0xBB, 0xBF]         | StandardCharsets.UTF_8
+        []                         | StandardCharsets.UTF_16    // this one writes the mark itself
+        [0xFF, 0xFE]               | StandardCharsets.UTF_16LE
+        [0xFE, 0xFF]               | StandardCharsets.UTF_16BE
+    }
+
+    private static byte[] encode(String yaml, List<Integer> bom, java.nio.charset.Charset charset) {
+        def bytes = new ByteArrayOutputStream()
+        bom.each { bytes.write(it) }
+        bytes.write(yaml.getBytes(charset))
+        bytes.toByteArray()
+    }
+
+    def "a number whose exponent would expand without bound is rejected"() {
+        when:
+        mapper.readValue("bigInteger: 1e200000000\n", Numbers)
+
+        then:
+        def e = thrown(InvalidFormatException)
+        e.message.contains("exponent beyond the supported range")
+    }
+
+    def "the same exponent is read as a double, nothing is expanded for it"() {
+        expect:
+        mapper.readValue("d: 1e200000000\n", Numbers).d() == Double.POSITIVE_INFINITY
+    }
+
     def "input larger than the code point limit is rejected"() {
         given:
         def context = ApplicationContext.run(['micronaut.serde.format.yaml.read-features.code-point-limit': 20])
