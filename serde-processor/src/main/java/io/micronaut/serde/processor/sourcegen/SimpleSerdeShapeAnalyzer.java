@@ -77,6 +77,7 @@ public final class SimpleSerdeShapeAnalyzer {
         JACKSON_ANNOTATION_PREFIX + "JsonIgnoreType",
         JACKSON_ANNOTATION_PREFIX + "JsonIncludeProperties",
         JACKSON_ANNOTATION_PREFIX + "JsonPropertyOrder",
+        JACKSON_ANNOTATION_PREFIX + "JsonInclude",
         JACKSON_ANNOTATION_PREFIX + "JsonClassDescription",
         JACKSON_ANNOTATION_PREFIX + "JsonPropertyDescription",
         JACKSON_XML_PROPERTY,
@@ -179,8 +180,11 @@ public final class SimpleSerdeShapeAnalyzer {
                 return decision(shapeKind, serializerReasons, deserializerReasons);
             }
         }
+        // A property inclusion declared on the type, a property or the package is applied at build time by
+        // the generated bean and record serializers. A content inclusion is applied by the value serializer
+        // through the property argument, which only the runtime serializer carries.
         if (!isBothFailed(serializerReasons, deserializerReasons)
-            && hasIncludeConfig(element)
+            && (shapeKind == SimpleSerdeShapeDecision.ShapeKind.ENUM ? hasIncludeConfig(element) : hasContentIncludeConfig(element))
             && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.INCLUDE)) {
             return decision(shapeKind, serializerReasons, deserializerReasons);
         }
@@ -220,7 +224,7 @@ public final class SimpleSerdeShapeAnalyzer {
             && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
             return decision(shapeKind, serializerReasons, deserializerReasons);
         }
-        if (!hasIncludeConfig(element)
+        if (!isBothFailed(serializerReasons, deserializerReasons)
             && hasUnsupportedIncludedConfig(element, propertyExclusionSupported)
             && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
             return decision(shapeKind, serializerReasons, deserializerReasons);
@@ -446,6 +450,19 @@ public final class SimpleSerdeShapeAnalyzer {
     private boolean hasIncludeConfig(AnnotationMetadata annotationMetadata) {
         return annotationMetadata.enumValue(SerdeConfig.class, SerdeConfig.INCLUDE, SerdeConfig.SerInclude.class).isPresent()
             || annotationMetadata.enumValue(SerdeConfig.class, SerdeConfig.INCLUDE_CONTENT, SerdeConfig.SerInclude.class).isPresent();
+    }
+
+    private boolean hasContentIncludeConfig(ClassElement element) {
+        if (hasAnnotationMetadata(element, this::hasContentIncludeConfig)) {
+            return true;
+        }
+        return hasContentIncludeConfig(element.getPackage().getAnnotationMetadata());
+    }
+
+    private boolean hasContentIncludeConfig(AnnotationMetadata annotationMetadata) {
+        return annotationMetadata.enumValue(SerdeConfig.class, SerdeConfig.INCLUDE_CONTENT, SerdeConfig.SerInclude.class)
+            .filter(include -> include != SerdeConfig.SerInclude.ALWAYS)
+            .isPresent();
     }
 
     private Map<String, Boolean> unsupportedJacksonAnnotations(ClassElement element) {

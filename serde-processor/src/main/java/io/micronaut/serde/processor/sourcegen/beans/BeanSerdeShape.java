@@ -18,6 +18,7 @@ package io.micronaut.serde.processor.sourcegen.beans;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.FieldElement;
 import io.micronaut.inject.ast.MethodElement;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -50,6 +51,7 @@ public record BeanSerdeShape(
      * @param nonNull             Whether the property is non-null.
      * @param nullable            Whether the property is nullable.
      * @param keyMetadata         Pre-resolved metadata contributed with the property key.
+     * @param include             The inclusion resolved at build time, or {@code null} when the configuration decides.
      * @param readMethod          Bean getter method.
      * @param writeMethod         Bean setter method.
      * @param readField           Bean field used for reading.
@@ -62,6 +64,7 @@ public record BeanSerdeShape(
         boolean nonNull,
         boolean nullable,
         Map<String, String> keyMetadata,
+        SerdeConfig.@Nullable SerInclude include,
         @Nullable MethodElement readMethod,
         @Nullable MethodElement writeMethod,
         @Nullable FieldElement readField,
@@ -98,6 +101,7 @@ public record BeanSerdeShape(
                 nonNull,
                 nullable,
                 Map.of(),
+                null,
                 readMethod,
                 writeMethod,
                 readField,

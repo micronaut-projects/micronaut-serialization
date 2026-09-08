@@ -21,6 +21,7 @@ import io.micronaut.inject.ast.ParameterElement;
 import io.micronaut.inject.ast.PropertyElement;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.serde.config.annotation.SerdeConfig;
+import io.micronaut.serde.processor.sourcegen.SerdeInclusionSourceGen;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,11 +57,13 @@ public final class RecordSerdeShapeResolver {
             if (propertyElement == null) {
                 return Optional.empty();
             }
+            Map<String, String> keyMetadata = resolveKeyMetadata(propertyElement);
             components.add(new RecordSerdeShape.RecordComponent(
                 parameter.getName(),
                 stringValue(propertyElement, SerdeConfig.PROPERTY).orElse(parameter.getName()),
                 parameter.getType(),
-                resolveKeyMetadata(propertyElement),
+                keyMetadata,
+                SerdeInclusionSourceGen.resolvePropertyInclude(element, propertyElement, keyMetadata),
                 propertyElement
             ));
         }

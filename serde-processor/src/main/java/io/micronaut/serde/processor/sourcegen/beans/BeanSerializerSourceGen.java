@@ -29,6 +29,7 @@ import io.micronaut.serde.Keys;
 import io.micronaut.serde.KeysAwareEncoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.processor.sourcegen.SerdeInclusionSourceGen;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
@@ -128,6 +129,16 @@ public final class BeanSerializerSourceGen {
     }
 
     public ClassDef generate(ClassElement element, BeanSerdeShape beanSerdeShape) {
+        // A property whose inclusion is NEVER is not written by the runtime serializer either
+        beanSerdeShape = new BeanSerdeShape(
+            beanSerdeShape.defaultConstructor(),
+            beanSerdeShape.serializationProperties().stream()
+                .filter(property -> property.include() != SerdeConfig.SerInclude.NEVER)
+                .toList(),
+            beanSerdeShape.deserializationProperties(),
+            beanSerdeShape.ignoredDeserializationNames(),
+            beanSerdeShape.ignoreUnknown()
+        );
         TypeDef beanTypeDef = TypeDef.of(element);
         ClassTypeDef serializerClassTypeDef = ClassTypeDef.of(SerdeSourceGenClassNaming.generatedSerializerClassName(element));
         Map<String, String> keyFieldNames = new LinkedHashMap<>();
@@ -172,8 +183,10 @@ public final class BeanSerializerSourceGen {
                 .initializer(keysCreateExpression(serializerClassTypeDef, beanSerdeShape.serializationProperties(), new ArrayList<>(keyFieldNames.values())))
                 .build());
         }
-        // The active inclusion is resolved once per serializer, never per property and per document
-        boolean inclusionAware = !beanSerdeShape.serializationProperties().isEmpty();
+        // The active inclusion is resolved once per serializer, never per property and per document,
+        // and only when a property defers to the runtime configuration
+        boolean inclusionAware = beanSerdeShape.serializationProperties().stream().anyMatch(property -> property.include() == null);
+        boolean constructorRequired = !beanSerdeShape.serializationProperties().isEmpty();
         if (inclusionAware) {
             fields.addAll(SerdeInclusionSourceGen.fields());
         }
@@ -189,14 +202,15 @@ public final class BeanSerializerSourceGen {
             .addMethod(generateCreateSpecificMethod(beanTypeDef))
             .addMethod(generateSerializeMethod(beanTypeDef))
             .addMethod(generateSerializeIntoMethod(beanTypeDef, serializerClassTypeDef, beanSerdeShape, argumentFieldNames, serializerFieldNames));
-        if (inclusionAware) {
+        if (constructorRequired) {
             classDefBuilder.addMethod(generateConstructor(
                 element,
                 beanTypeDef,
                 serializerClassTypeDef,
                 beanSerdeShape,
                 argumentFieldNames,
-                serializerFieldNames
+                serializerFieldNames,
+                inclusionAware
             ));
         }
 
@@ -220,7 +234,8 @@ public final class BeanSerializerSourceGen {
                                           ClassTypeDef serializerClassTypeDef,
                                           BeanSerdeShape beanSerdeShape,
                                           Map<String, String> argumentFieldNames,
-                                          Map<String, String> serializerFieldNames) {
+                                          Map<String, String> serializerFieldNames,
+                                          boolean inclusionAware) {
         MethodDef.MethodDefBuilder constructorBuilder = MethodDef.constructor()
             .addModifiers(Modifier.PUBLIC)
             .addParameter(parameter(CONTEXT_PARAMETER, TypeDef.of(Serializer.EncoderContext.class)))
@@ -229,7 +244,9 @@ public final class BeanSerializerSourceGen {
         return constructorBuilder.build((aThis, methodParameters) -> {
             List<StatementDef> statements = new ArrayList<>();
             VariableDef.MethodParameter context = methodParameters.get(0);
-            statements.addAll(SerdeInclusionSourceGen.resolveStatements(aThis, context));
+            if (inclusionAware) {
+                statements.addAll(SerdeInclusionSourceGen.resolveStatements(aThis, context));
+            }
             for (Map.Entry<String, String> serializerFieldEntry : serializerFieldNames.entrySet()) {
                 String propertyName = serializerFieldEntry.getKey();
                 String serializerFieldName = serializerFieldEntry.getValue();
@@ -412,7 +429,10 @@ public final class BeanSerializerSourceGen {
                 );
                 return wrapWithPropertyPath(StatementDef.multi(
                     scalarValueDef,
-                    SerdeInclusionSourceGen.shouldSerializePrimitive(aThis, propertyType, scalarValueDef.variable()).ifTrue(writePrimitive)
+                    SerdeInclusionSourceGen.guard(
+                        SerdeInclusionSourceGen.shouldSerializePrimitive(aThis, property.include(), propertyType, scalarValueDef.variable()),
+                        writePrimitive
+                    )
                 ), type, argumentExpression);
             }
             StatementDef writeScalar = StatementDef.multi(
@@ -424,7 +444,10 @@ public final class BeanSerializerSourceGen {
             );
             return wrapWithPropertyPath(StatementDef.multi(
                 scalarValueDef,
-                SerdeInclusionSourceGen.shouldSerializeScalar(aThis, propertyType, scalarValueDef.variable()).ifTrue(writeScalar)
+                SerdeInclusionSourceGen.guard(
+                    SerdeInclusionSourceGen.shouldSerializeScalar(aThis, property.include(), propertyType, scalarValueDef.variable()),
+                    writeScalar
+                )
             ), type, argumentExpression);
         }
         String serializerFieldName = required(serializerFieldNames, property.name());
@@ -444,7 +467,10 @@ public final class BeanSerializerSourceGen {
             );
             return wrapWithPropertyPath(StatementDef.multi(
                 propertyValueDef,
-                SerdeInclusionSourceGen.shouldSerializePrimitive(aThis, propertyType, propertyValueDef.variable()).ifTrue(writePrimitive)
+                SerdeInclusionSourceGen.guard(
+                    SerdeInclusionSourceGen.shouldSerializePrimitive(aThis, property.include(), propertyType, propertyValueDef.variable()),
+                    writePrimitive
+                )
             ), type, argumentExpression);
         }
         StatementDef writeValue = StatementDef.multi(
@@ -464,7 +490,10 @@ public final class BeanSerializerSourceGen {
         );
         return wrapWithPropertyPath(StatementDef.multi(
             propertyValueDef,
-            SerdeInclusionSourceGen.shouldSerializeValue(aThis, context, serializer, propertyValueDef.variable()).ifTrue(writeValue)
+            SerdeInclusionSourceGen.guard(
+                SerdeInclusionSourceGen.shouldSerializeValue(aThis, property.include(), context, serializer, propertyValueDef.variable()),
+                writeValue
+            )
         ), type, argumentExpression);
     }
 

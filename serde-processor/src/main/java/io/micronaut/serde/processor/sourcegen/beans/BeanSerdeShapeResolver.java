@@ -24,6 +24,7 @@ import io.micronaut.inject.ast.MethodElement;
 import io.micronaut.inject.ast.PropertyElement;
 import io.micronaut.inject.ast.PropertyElementQuery;
 import io.micronaut.serde.config.annotation.SerdeConfig;
+import io.micronaut.serde.processor.sourcegen.SerdeInclusionSourceGen;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenPropertyOrder;
 import io.micronaut.serde.util.SerdePropertyAccess;
 import org.jspecify.annotations.Nullable;
@@ -63,7 +64,7 @@ public final class BeanSerdeShapeResolver {
             String name = stringValue(property, SerdeConfig.PROPERTY).orElse(property.getName());
             if (propertyAccess.readable()) {
                 if (isSerialized(property)) {
-                    BeanSerdeShape.BeanProperty beanProperty = resolveProperty(name, property, propertyAccess).orElse(null);
+                    BeanSerdeShape.BeanProperty beanProperty = resolveProperty(element, name, property, propertyAccess).orElse(null);
                     if (beanProperty == null) {
                         return Optional.empty();
                     }
@@ -72,7 +73,7 @@ public final class BeanSerdeShapeResolver {
             }
             if (propertyAccess.writable()) {
                 if (isDeserialized(property)) {
-                    BeanSerdeShape.BeanProperty beanProperty = resolveProperty(name, property, propertyAccess).orElse(null);
+                    BeanSerdeShape.BeanProperty beanProperty = resolveProperty(element, name, property, propertyAccess).orElse(null);
                     if (beanProperty == null) {
                         return Optional.empty();
                     }
@@ -178,7 +179,8 @@ public final class BeanSerdeShapeResolver {
         return Boolean.parseBoolean(property.keyMetadata().get(SerdeConfig.XML_ATTRIBUTE_PROPERTY));
     }
 
-    private static Optional<BeanSerdeShape.BeanProperty> resolveProperty(String name,
+    private static Optional<BeanSerdeShape.BeanProperty> resolveProperty(ClassElement element,
+                                                                         String name,
                                                                          PropertyElement property,
                                                                          PropertyAccess propertyAccess) {
         ClassElement readType = property.getReadType().orElse(null);
@@ -191,13 +193,15 @@ public final class BeanSerdeShapeResolver {
         if (serializationType.isTypeVariable() || deserializationType.isTypeVariable()) {
             return Optional.empty();
         }
+        Map<String, String> keyMetadata = resolveKeyMetadata(property);
         return Optional.of(new BeanSerdeShape.BeanProperty(
             name,
             serializationType,
             deserializationType,
             property.isNonNull(),
             property.isNullable(),
-            resolveKeyMetadata(property),
+            keyMetadata,
+            SerdeInclusionSourceGen.resolvePropertyInclude(element, property, keyMetadata),
             propertyAccess.readMethod(),
             propertyAccess.writeMethod(),
             propertyAccess.readField(),

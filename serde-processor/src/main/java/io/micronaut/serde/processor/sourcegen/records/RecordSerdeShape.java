@@ -18,6 +18,8 @@ package io.micronaut.serde.processor.sourcegen.records;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.MethodElement;
 import io.micronaut.inject.ast.PropertyElement;
+import io.micronaut.serde.config.annotation.SerdeConfig;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -39,6 +41,7 @@ public record RecordSerdeShape(
      * @param serializedName The serialized component name.
      * @param type The component type.
      * @param keyMetadata Pre-resolved metadata contributed with the component key.
+     * @param include The inclusion resolved at build time, or {@code null} when the configuration decides.
      * @param propertyElement The associated bean property element.
      */
     public record RecordComponent(
@@ -46,6 +49,7 @@ public record RecordSerdeShape(
         String serializedName,
         ClassElement type,
         Map<String, String> keyMetadata,
+        SerdeConfig.@Nullable SerInclude include,
         PropertyElement propertyElement
     ) {
         /**
@@ -56,7 +60,7 @@ public record RecordSerdeShape(
          * @param propertyElement The associated bean property element.
          */
         public RecordComponent(String name, ClassElement type, PropertyElement propertyElement) {
-            this(name, name, type, Map.of(), propertyElement);
+            this(name, name, type, Map.of(), null, propertyElement);
         }
     }
 }

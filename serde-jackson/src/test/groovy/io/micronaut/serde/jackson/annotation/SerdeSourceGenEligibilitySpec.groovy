@@ -577,7 +577,7 @@ class JsonFormatPropertyHolder {
         context.close()
     }
 
-    void 'test json include usage falls back from sourcegen fast path'() {
+    void 'test json include usage is sourcegen eligible unless a content inclusion is declared'() {
         given:
         def context = buildContext('test.JsonIncludeTypeBean', '''
 package test;
@@ -585,8 +585,27 @@ package test;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.core.annotation.Introspected;
+import java.util.Map;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+
+@Serdeable
+@Introspected
+class JsonIncludeContentBean {
+    @JsonInclude(content = NON_NULL)
+    private Map<String, String> values;
+
+    public JsonIncludeContentBean() {
+    }
+
+    public Map<String, String> getValues() {
+        return values;
+    }
+
+    public void setValues(Map<String, String> values) {
+        this.values = values;
+    }
+}
 
 @Serdeable
 @Introspected
@@ -626,8 +645,9 @@ class JsonIncludePropertyBean {
 ''')
 
         expect:
-        assertRegistrySelection(context, 'test.JsonIncludeTypeBean', false, false)
-        assertRegistrySelection(context, 'test.JsonIncludePropertyBean', false, false)
+        assertRegistrySelection(context, 'test.JsonIncludeTypeBean', true, true)
+        assertRegistrySelection(context, 'test.JsonIncludePropertyBean', true, true)
+        assertRegistrySelection(context, 'test.JsonIncludeContentBean', false, false)
 
         cleanup:
         context.close()
