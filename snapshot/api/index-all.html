@@ -2881,6 +2881,10 @@ empty bean.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/tst/Aggregation.html#FIELD_2" class="member-name-link">FIELD_2</a> - Enum constant in enum class io.micronaut.serde.jackson.tst.<a href="io/micronaut/serde/jackson/tst/Aggregation.html" title="enum class in io.micronaut.serde.jackson.tst">Aggregation</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/SerdeInclusionSourceGen.html#fields()" class="member-name-link">fields()</a> - Static method in class io.micronaut.serde.processor.sourcegen.<a href="io/micronaut/serde/processor/sourcegen/SerdeInclusionSourceGen.html" title="class in io.micronaut.serde.processor.sourcegen">SerdeInclusionSourceGen</a></dt>
+<dd>
+<div class="block">The fields holding the resolved inclusion.</div>
+</dd>
 <dt><a href="io/micronaut/serde/exceptions/NullValueSerdeException.html#fillInStackTrace()" class="member-name-link">fillInStackTrace()</a> - Method in exception class io.micronaut.serde.exceptions.<a href="io/micronaut/serde/exceptions/NullValueSerdeException.html" title="class in io.micronaut.serde.exceptions">NullValueSerdeException</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#FILTER" class="member-name-link">FILTER</a> - Static variable in annotation interface io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig</a></dt>
@@ -3155,6 +3159,12 @@ empty bean.</div>
 <dt><a href="io/micronaut/serde/util/GeneratedSerdeFallbackUtil.html" class="type-name-link" title="class in io.micronaut.serde.util">GeneratedSerdeFallbackUtil</a> - Class in <a href="io/micronaut/serde/util/package-summary.html">io.micronaut.serde.util</a></dt>
 <dd>
 <div class="block">Fallback helpers used by generated serdes when a runtime object serde is required.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeInclusionUtil.html" class="type-name-link" title="class in io.micronaut.serde.util">GeneratedSerdeInclusionUtil</a> - Class in <a href="io/micronaut/serde/util/package-summary.html">io.micronaut.serde.util</a></dt>
+<dd>
+<div class="block">Inclusion helpers used by generated serializers so that the global
+<code>micronaut.serde.serialization.inclusion</code> setting is honored without falling back to the
+runtime object serializer for every simple shape.</div>
 </dd>
 <dt><a href="io/micronaut/serde/processor/sourcegen/SerdeSourceGenClassNaming.html#generatedSerializerClassName(io.micronaut.inject.ast.ClassElement)" class="member-name-link">generatedSerializerClassName(ClassElement)</a> - Static method in class io.micronaut.serde.processor.sourcegen.<a href="io/micronaut/serde/processor/sourcegen/SerdeSourceGenClassNaming.html" title="class in io.micronaut.serde.processor.sourcegen">SerdeSourceGenClassNaming</a></dt>
 <dd>&nbsp;</dd>
@@ -4297,6 +4307,11 @@ or each element of a referenced collection, is written as its identifier.</div>
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#INCLUDE_CONTENT" class="member-name-link">INCLUDE_CONTENT</a> - Static variable in annotation interface io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig</a></dt>
 <dd>
 <div class="block">Include content strategy.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeInclusionUtil.html#includeAlways(io.micronaut.serde.config.annotation.SerdeConfig.SerInclude)" class="member-name-link">includeAlways(SerdeConfig.SerInclude)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeInclusionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeInclusionUtil</a></dt>
+<dd>
+<div class="block">Whether the resolved inclusion writes every property, which lets generated serializers skip the
+per-property inclusion check entirely.</div>
 </dd>
 <dt><a href="io/micronaut/serde/LimitingStream.html#increaseDepth()" class="member-name-link">increaseDepth()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/LimitingStream.html" title="class in io.micronaut.serde">LimitingStream</a></dt>
 <dd>
@@ -6904,6 +6919,10 @@ when read, a scalar value is an identifier reference that may precede the refere
 </dd>
 <dt><a href="io/micronaut/serde/support/util/SerdeArgumentConf.html#resolveAllowPropertyPredicate(boolean)" class="member-name-link">resolveAllowPropertyPredicate(boolean)</a> - Method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/SerdeArgumentConf.html" title="class in io.micronaut.serde.support.util">SerdeArgumentConf</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeInclusionUtil.html#resolveInclusion(io.micronaut.serde.Serializer.EncoderContext)" class="member-name-link">resolveInclusion(Serializer.EncoderContext)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeInclusionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeInclusionUtil</a></dt>
+<dd>
+<div class="block">Resolve the inclusion to apply for the given context.</div>
+</dd>
 <dt><a href="io/micronaut/serde/support/DefaultSerdeIntrospections.html#resolveIntrospectionForDeserialization(io.micronaut.core.type.Argument,io.micronaut.core.beans.BeanIntrospection)" class="member-name-link">resolveIntrospectionForDeserialization(Argument, BeanIntrospection)</a> - Method in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/DefaultSerdeIntrospections.html" title="class in io.micronaut.serde.support">DefaultSerdeIntrospections</a></dt>
 <dd>
 <div class="block">Resolve an introspection.</div>
@@ -6923,6 +6942,10 @@ when read, a scalar value is an identifier reference that may precede the refere
 <dt><a href="io/micronaut/serde/Serializer.EncoderContext.html#resolveReference(io.micronaut.serde.reference.SerializationReference)" class="member-name-link">resolveReference(SerializationReference)</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a></dt>
 <dd>
 <div class="block">Resolve a reference for the given type and value.</div>
+</dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/SerdeInclusionSourceGen.html#resolveStatements(io.micronaut.sourcegen.model.VariableDef.This,io.micronaut.sourcegen.model.VariableDef.MethodParameter)" class="member-name-link">resolveStatements(VariableDef.This, VariableDef.MethodParameter)</a> - Static method in class io.micronaut.serde.processor.sourcegen.<a href="io/micronaut/serde/processor/sourcegen/SerdeInclusionSourceGen.html" title="class in io.micronaut.serde.processor.sourcegen">SerdeInclusionSourceGen</a></dt>
+<dd>
+<div class="block">The constructor statements resolving the inclusion once per serializer instance.</div>
 </dd>
 <dt><a href="io/micronaut/serde/support/util/SerdeAnnotationUtil.html#resolveViews(io.micronaut.core.annotation.AnnotationMetadata,io.micronaut.core.annotation.AnnotationMetadata)" class="member-name-link">resolveViews(AnnotationMetadata, AnnotationMetadata)</a> - Static method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/SerdeAnnotationUtil.html" title="class in io.micronaut.serde.support.util">SerdeAnnotationUtil</a></dt>
 <dd>
@@ -7175,6 +7198,10 @@ as configured by <a href="io/micronaut/serde/config/SerdeConfiguration.html#getT
 <dt><a href="io/micronaut/serde/annotation/SerdeImport.Repeated.html" class="type-name-link" title="annotation interface in io.micronaut.serde.annotation">SerdeImport.Repeated</a> - Annotation Interface in <a href="io/micronaut/serde/annotation/package-summary.html">io.micronaut.serde.annotation</a></dt>
 <dd>
 <div class="block">Repeated wrapper for this annotation.</div>
+</dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/SerdeInclusionSourceGen.html" class="type-name-link" title="class in io.micronaut.serde.processor.sourcegen">SerdeInclusionSourceGen</a> - Class in <a href="io/micronaut/serde/processor/sourcegen/package-summary.html">io.micronaut.serde.processor.sourcegen</a></dt>
+<dd>
+<div class="block">Generates the inclusion handling shared by the bean and record serializer generators.</div>
 </dd>
 <dt><a href="io/micronaut/serde/SerdeIntrospections.html" class="type-name-link" title="interface in io.micronaut.serde">SerdeIntrospections</a> - Interface in <a href="io/micronaut/serde/package-summary.html">io.micronaut.serde</a></dt>
 <dd>
@@ -7580,6 +7607,42 @@ for the serialization project.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/PropertyFilter.html#shouldInclude(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.serde.Serializer,java.lang.Object,java.lang.String,java.lang.Object)" class="member-name-link">shouldInclude(Serializer.EncoderContext, Serializer, Object, String, Object)</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/PropertyFilter.html" title="interface in io.micronaut.serde">PropertyFilter</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeInclusionUtil.html#shouldSerialize(io.micronaut.serde.config.annotation.SerdeConfig.SerInclude,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.serde.Serializer,java.lang.Object)" class="member-name-link">shouldSerialize(SerdeConfig.SerInclude, Serializer.EncoderContext, Serializer, Object)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeInclusionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeInclusionUtil</a></dt>
+<dd>
+<div class="block">Whether a property written by the given serializer should be included.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeInclusionUtil.html#shouldSerializeBoolean(io.micronaut.serde.config.annotation.SerdeConfig.SerInclude,java.lang.Boolean)" class="member-name-link">shouldSerializeBoolean(SerdeConfig.SerInclude, Boolean)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeInclusionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeInclusionUtil</a></dt>
+<dd>
+<div class="block">Whether a <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Boolean.html" title="class or interface in java.lang" class="external-link"><code>Boolean</code></a> property should be included.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeInclusionUtil.html#shouldSerializeCharacter(io.micronaut.serde.config.annotation.SerdeConfig.SerInclude,java.lang.Character)" class="member-name-link">shouldSerializeCharacter(SerdeConfig.SerInclude, Character)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeInclusionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeInclusionUtil</a></dt>
+<dd>
+<div class="block">Whether a <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Character.html" title="class or interface in java.lang" class="external-link"><code>Character</code></a> property should be included.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeInclusionUtil.html#shouldSerializeNumber(io.micronaut.serde.config.annotation.SerdeConfig.SerInclude,java.lang.Number)" class="member-name-link">shouldSerializeNumber(SerdeConfig.SerInclude, Number)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeInclusionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeInclusionUtil</a></dt>
+<dd>
+<div class="block">Whether a <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Number.html" title="class or interface in java.lang" class="external-link"><code>Number</code></a> property should be included.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeInclusionUtil.html#shouldSerializePrimitive(io.micronaut.serde.config.annotation.SerdeConfig.SerInclude,boolean)" class="member-name-link">shouldSerializePrimitive(SerdeConfig.SerInclude, boolean)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeInclusionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeInclusionUtil</a></dt>
+<dd>
+<div class="block">Whether a primitive property should be included.</div>
+</dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/SerdeInclusionSourceGen.html#shouldSerializePrimitive(io.micronaut.sourcegen.model.VariableDef.This,io.micronaut.inject.ast.ClassElement,io.micronaut.sourcegen.model.ExpressionDef)" class="member-name-link">shouldSerializePrimitive(VariableDef.This, ClassElement, ExpressionDef)</a> - Static method in class io.micronaut.serde.processor.sourcegen.<a href="io/micronaut/serde/processor/sourcegen/SerdeInclusionSourceGen.html" title="class in io.micronaut.serde.processor.sourcegen">SerdeInclusionSourceGen</a></dt>
+<dd>
+<div class="block">The condition for writing a primitive property.</div>
+</dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/SerdeInclusionSourceGen.html#shouldSerializeScalar(io.micronaut.sourcegen.model.VariableDef.This,io.micronaut.inject.ast.ClassElement,io.micronaut.sourcegen.model.ExpressionDef)" class="member-name-link">shouldSerializeScalar(VariableDef.This, ClassElement, ExpressionDef)</a> - Static method in class io.micronaut.serde.processor.sourcegen.<a href="io/micronaut/serde/processor/sourcegen/SerdeInclusionSourceGen.html" title="class in io.micronaut.serde.processor.sourcegen">SerdeInclusionSourceGen</a></dt>
+<dd>
+<div class="block">The condition for writing a scalar property encoded without a property serializer.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeInclusionUtil.html#shouldSerializeString(io.micronaut.serde.config.annotation.SerdeConfig.SerInclude,java.lang.String)" class="member-name-link">shouldSerializeString(SerdeConfig.SerInclude, String)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeInclusionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeInclusionUtil</a></dt>
+<dd>
+<div class="block">Whether a <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link"><code>String</code></a> property should be included.</div>
+</dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/SerdeInclusionSourceGen.html#shouldSerializeValue(io.micronaut.sourcegen.model.VariableDef.This,io.micronaut.sourcegen.model.VariableDef.MethodParameter,io.micronaut.sourcegen.model.ExpressionDef,io.micronaut.sourcegen.model.ExpressionDef)" class="member-name-link">shouldSerializeValue(VariableDef.This, VariableDef.MethodParameter, ExpressionDef, ExpressionDef)</a> - Static method in class io.micronaut.serde.processor.sourcegen.<a href="io/micronaut/serde/processor/sourcegen/SerdeInclusionSourceGen.html" title="class in io.micronaut.serde.processor.sourcegen">SerdeInclusionSourceGen</a></dt>
+<dd>
+<div class="block">The condition for writing a property through its property serializer.</div>
+</dd>
 <dt><a href="io/micronaut/serde/Simple.html" class="type-name-link" title="class in io.micronaut.serde">Simple</a> - Class in <a href="io/micronaut/serde/package-summary.html">io.micronaut.serde</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/Simple.html#%3Cinit%3E()" class="member-name-link">Simple()</a> - Constructor for class io.micronaut.serde.<a href="io/micronaut/serde/Simple.html" title="class in io.micronaut.serde">Simple</a></dt>
