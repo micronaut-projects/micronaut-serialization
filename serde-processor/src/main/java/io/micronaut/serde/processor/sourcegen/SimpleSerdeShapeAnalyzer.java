@@ -33,6 +33,7 @@ import io.micronaut.serde.Serializer;
 import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.serde.annotation.SerdeableGenerated;
 import io.micronaut.serde.config.annotation.SerdeConfig;
+import io.micronaut.serde.processor.sourcegen.beans.BeanSerdeShapeResolver;
 import io.micronaut.serde.util.SerdePropertyAccess;
 
 import java.lang.annotation.Annotation;
@@ -62,8 +63,6 @@ public final class SimpleSerdeShapeAnalyzer {
         "tools.jackson.dataformat.xml.annotation.JacksonXmlText";
     private static final String JACKSON_XML_CDATA =
         "tools.jackson.dataformat.xml.annotation.JacksonXmlCData";
-    private static final String JAXB_XML_ELEMENT = "jakarta.xml.bind.annotation.XmlElement";
-    private static final String JAXB_XML_ATTRIBUTE = "jakarta.xml.bind.annotation.XmlAttribute";
     private static final String JAXB_XML_MIXED = "jakarta.xml.bind.annotation.XmlMixed";
     private static final String JAXB_XML_ACCESSOR_TYPE = "jakarta.xml.bind.annotation.XmlAccessorType";
     private static final String BINDABLE = "io.micronaut.core.bind.annotation.Bindable";
@@ -74,6 +73,10 @@ public final class SimpleSerdeShapeAnalyzer {
      */
     private static final Set<String> SUPPORTED_JACKSON_ANNOTATIONS = Set.of(
         JACKSON_ANNOTATION_PREFIX + "JsonProperty",
+        JACKSON_ANNOTATION_PREFIX + "JsonIgnore",
+        JACKSON_ANNOTATION_PREFIX + "JsonIgnoreProperties",
+        JACKSON_ANNOTATION_PREFIX + "JsonIgnoreType",
+        JACKSON_ANNOTATION_PREFIX + "JsonIncludeProperties",
         JACKSON_ANNOTATION_PREFIX + "JsonClassDescription",
         JACKSON_ANNOTATION_PREFIX + "JsonPropertyDescription",
         JACKSON_XML_PROPERTY,
@@ -107,6 +110,17 @@ public final class SimpleSerdeShapeAnalyzer {
         if (shapeKind == SimpleSerdeShapeDecision.ShapeKind.UNSUPPORTED) {
             failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
             return decision(shapeKind, serializerReasons, deserializerReasons);
+        }
+        if (shapeKind == SimpleSerdeShapeDecision.ShapeKind.DEFAULT_CONSTRUCTOR_BEAN) {
+            if (serializerReasons.isEmpty() && hasUnsupportedSerializedBeanProperty(element)) {
+                failSerializer(serializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
+            }
+            if (deserializerReasons.isEmpty() && hasUnsupportedDeserializedBeanProperty(element)) {
+                failDeserializer(deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
+            }
+            if (isBothFailed(serializerReasons, deserializerReasons)) {
+                return decision(shapeKind, serializerReasons, deserializerReasons);
+            }
         }
 
         if (shapeKind == SimpleSerdeShapeDecision.ShapeKind.ENUM) {
@@ -184,15 +198,16 @@ public final class SimpleSerdeShapeAnalyzer {
             )) {
             return decision(shapeKind, serializerReasons, deserializerReasons);
         }
+        // Generated bean serdes honor ignored, read-only and write-only properties; the record
+        // generators still hand those shapes to the runtime serde.
+        boolean propertyExclusionSupported = shapeKind == SimpleSerdeShapeDecision.ShapeKind.DEFAULT_CONSTRUCTOR_BEAN;
         if (!isBothFailed(serializerReasons, deserializerReasons)
-            && hasUnsupportedSerdeConfigMetadata(element.getAnnotationMetadata())
+            && hasUnsupportedSerdeConfigMetadata(element.getAnnotationMetadata(), propertyExclusionSupported)
             && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
             return decision(shapeKind, serializerReasons, deserializerReasons);
         }
         if (!isBothFailed(serializerReasons, deserializerReasons)
-            && (element.hasAnnotation(SerdeConfig.SerIgnored.class)
-            || hasAnnotation(element, SerdeConfig.SerIgnored.class)
-            || element.hasDeclaredAnnotation(SerdeConfig.SerIgnored.class))
+            && hasUnsupportedIgnoredConfig(element, propertyExclusionSupported)
             && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
             return decision(shapeKind, serializerReasons, deserializerReasons);
         }
@@ -202,9 +217,7 @@ public final class SimpleSerdeShapeAnalyzer {
             return decision(shapeKind, serializerReasons, deserializerReasons);
         }
         if (!hasIncludeConfig(element)
-            && (element.hasAnnotation(SerdeConfig.SerIncluded.class)
-            || hasAnnotation(element, SerdeConfig.SerIncluded.class)
-            || element.hasDeclaredAnnotation(SerdeConfig.SerIncluded.class))
+            && hasUnsupportedIncludedConfig(element, propertyExclusionSupported)
             && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
             return decision(shapeKind, serializerReasons, deserializerReasons);
         }
@@ -274,7 +287,7 @@ public final class SimpleSerdeShapeAnalyzer {
             return decision(shapeKind, serializerReasons, deserializerReasons);
         }
         if (!isBothFailed(serializerReasons, deserializerReasons)
-            && hasUnsupportedPropertySerdeConfig(element)
+            && hasUnsupportedPropertySerdeConfig(element, propertyExclusionSupported)
             && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
             return decision(shapeKind, serializerReasons, deserializerReasons);
         }
@@ -535,28 +548,41 @@ public final class SimpleSerdeShapeAnalyzer {
         if (!hasDefaultConstructor) {
             return false;
         }
-        List<PropertyElement> beanProperties = element.getBeanProperties();
-        if (beanProperties.isEmpty()) {
-            return false;
-        }
-        for (PropertyElement property : beanProperties) {
-            if (!isSupportedBeanProperty(element, property)) {
-                return false;
-            }
-        }
-        return true;
+        return !element.getBeanProperties().isEmpty();
     }
 
-    private boolean isSupportedBeanProperty(ClassElement element,
-                                            PropertyElement property) {
-        ClassElement readType = property.getReadType().orElse(null);
-        ClassElement writeType = property.getWriteType().orElse(null);
-        return readType != null
-            && writeType != null
-            && !hasTypeVariable(readType)
-            && !hasTypeVariable(writeType)
-            && isSupportedReadAccess(element, property)
-            && isSupportedWriteAccess(element, property);
+    /**
+     * A property the runtime serializer writes must be read through a supported member and must not
+     * carry an unresolved type variable. Properties without read access are not serialized at all.
+     */
+    private boolean hasUnsupportedSerializedBeanProperty(ClassElement element) {
+        for (PropertyElement property : BeanSerdeShapeResolver.introspectedProperties(element)) {
+            if (!isSupportedReadAccess(element, property) || !BeanSerdeShapeResolver.isSerialized(property)) {
+                continue;
+            }
+            ClassElement readType = property.getReadType().orElse(null);
+            if (readType == null || hasTypeVariable(readType)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * A property the runtime deserializer reads must be written through a supported member and must
+     * not carry an unresolved type variable. Properties without write access are unknown on input.
+     */
+    private boolean hasUnsupportedDeserializedBeanProperty(ClassElement element) {
+        for (PropertyElement property : BeanSerdeShapeResolver.introspectedProperties(element)) {
+            if (!isSupportedWriteAccess(element, property) || !BeanSerdeShapeResolver.isDeserialized(property)) {
+                continue;
+            }
+            ClassElement writeType = property.getWriteType().orElse(null);
+            if (writeType == null || hasTypeVariable(writeType)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean hasTypeVariable(ClassElement type) {
@@ -671,30 +697,80 @@ public final class SimpleSerdeShapeAnalyzer {
             || annotationMetadata.enumValue(SerdeConfig.class, SerdeConfig.ID_REFERENCE, SerdeConfig.IdReference.class).isPresent());
     }
 
-    private boolean hasUnsupportedPropertySerdeConfig(ClassElement element) {
+    private boolean hasUnsupportedPropertySerdeConfig(ClassElement element, boolean propertyExclusionSupported) {
+        Predicate<AnnotationMetadata> unsupported = annotationMetadata -> hasUnsupportedSerdeConfigMetadata(annotationMetadata, propertyExclusionSupported);
         for (PropertyElement property : element.getBeanProperties()) {
-            if (hasUnsupportedSerdeConfig(property)) {
+            if (unsupported.test(property.getAnnotationMetadata())) {
                 return true;
             }
-            if (property.getReadMethod().map(this::hasUnsupportedSerdeConfig).orElse(false)) {
+            if (property.getReadMethod().map(method -> unsupported.test(method.getAnnotationMetadata())).orElse(false)) {
                 return true;
             }
-            if (property.getWriteMethod().map(this::hasUnsupportedSerdeConfig).orElse(false)) {
+            if (property.getWriteMethod().map(method -> unsupported.test(method.getAnnotationMetadata())).orElse(false)) {
                 return true;
             }
         }
         var primaryConstructor = element.getPrimaryConstructor();
         if (element.isRecord() && primaryConstructor.isPresent()) {
             for (ParameterElement parameter : primaryConstructor.orElseThrow().getParameters()) {
-                if (hasUnsupportedSerdeConfig(parameter)) {
+                if (unsupported.test(parameter.getAnnotationMetadata())) {
                     return true;
                 }
             }
         }
-        if (!element.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyInstance().onlyDeclared().annotated(this::hasUnsupportedSerdeConfigMetadata)).isEmpty()) {
+        if (!element.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyInstance().onlyDeclared().annotated(unsupported)).isEmpty()) {
             return true;
         }
-        return !element.getEnclosedElements(ElementQuery.ALL_METHODS.onlyInstance().onlyDeclared().annotated(this::hasUnsupportedSerdeConfigMetadata)).isEmpty();
+        return !element.getEnclosedElements(ElementQuery.ALL_METHODS.onlyInstance().onlyDeclared().annotated(unsupported)).isEmpty();
+    }
+
+    /**
+     * A type-level ignore configuration is honored by the generated bean serdes. The annotation on a
+     * member configures the nested value instead, which only the runtime serde supports.
+     */
+    private boolean hasUnsupportedIgnoredConfig(ClassElement element, boolean propertyExclusionSupported) {
+        if (hasDeclaredMemberAnnotation(element, SerdeConfig.SerIgnored.class)) {
+            return true;
+        }
+        return !propertyExclusionSupported && element.hasAnnotation(SerdeConfig.SerIgnored.class);
+    }
+
+    private boolean hasUnsupportedIncludedConfig(ClassElement element, boolean propertyExclusionSupported) {
+        if (hasDeclaredMemberAnnotation(element, SerdeConfig.SerIncluded.class)) {
+            return true;
+        }
+        return !propertyExclusionSupported && element.hasAnnotation(SerdeConfig.SerIncluded.class);
+    }
+
+    /**
+     * Whether a member declares the annotation itself. Member metadata also exposes the annotations of
+     * the declaring type, so a plain {@code hasAnnotation} would report every type-level annotation.
+     */
+    private boolean hasDeclaredMemberAnnotation(ClassElement element, Class<? extends Annotation> annotation) {
+        if (element.getPrimaryConstructor().map(c -> hasDeclaredAnnotation(c, annotation)).orElse(false)) {
+            return true;
+        }
+        if (element.getBeanProperties().stream().anyMatch(p -> p.hasDeclaredAnnotation(annotation))) {
+            return true;
+        }
+        if (!element.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyInstance().onlyDeclared()
+            .annotated(a -> a.hasDeclaredAnnotation(annotation))).isEmpty()) {
+            return true;
+        }
+        return !element.getEnclosedElements(ElementQuery.ALL_METHODS.onlyInstance().onlyDeclared()
+            .annotated(a -> a.hasDeclaredAnnotation(annotation))).isEmpty();
+    }
+
+    private boolean hasDeclaredAnnotation(MethodElement methodElement, Class<? extends Annotation> annotation) {
+        if (methodElement.hasDeclaredAnnotation(annotation)) {
+            return true;
+        }
+        for (ParameterElement parameter : methodElement.getParameters()) {
+            if (parameter.hasDeclaredAnnotation(annotation)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean hasPropertyOrderConfig(ClassElement element) {
@@ -798,19 +874,18 @@ public final class SimpleSerdeShapeAnalyzer {
         return false;
     }
 
-    private boolean hasUnsupportedSerdeConfig(Element element) {
-        return hasUnsupportedSerdeConfigMetadata(element.getAnnotationMetadata());
-    }
-
-    private boolean hasUnsupportedSerdeConfigMetadata(AnnotationMetadata annotationMetadata) {
-        return annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false)
+    private boolean hasUnsupportedSerdeConfigMetadata(AnnotationMetadata annotationMetadata, boolean propertyExclusionSupported) {
+        if (!propertyExclusionSupported
+            && (annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false)
             || annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED_SERIALIZATION).orElse(false)
             || annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED_DESERIALIZATION).orElse(false)
-            || annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.FILTER).isPresent()
-            || annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.REQUIRED).orElse(false)
             || annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.READ_ONLY).orElse(false)
             || annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.WRITE_ONLY).orElse(false)
-            || SerdePropertyAccess.hasRestrictedAccess(annotationMetadata)
+            || SerdePropertyAccess.hasRestrictedAccess(annotationMetadata))) {
+            return true;
+        }
+        return annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.FILTER).isPresent()
+            || annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.REQUIRED).orElse(false)
             || annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.MERGE).orElse(false)
             || FormatConfiguration.from(annotationMetadata) != null
             || hasFeatureOverrides(annotationMetadata)
@@ -847,10 +922,6 @@ public final class SimpleSerdeShapeAnalyzer {
 
     private boolean hasDeserializeAsOverride(AnnotationMetadata annotationMetadata) {
         return annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.DESERIALIZE_AS).isPresent();
-    }
-
-    private boolean hasCustomNaming(Element element) {
-        return hasCustomNaming(element.getAnnotationMetadata());
     }
 
     private boolean hasCustomNaming(ClassElement element) {

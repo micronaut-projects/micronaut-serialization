@@ -216,7 +216,7 @@ public final class BeanDeserializerSourceGen {
         boolean failOnNullForPrimitives = requiresFailOnNullForPrimitives(beanSerdeShape);
 
         int index = 0;
-        for (BeanSerdeShape.BeanProperty property : beanSerdeShape.properties()) {
+        for (BeanSerdeShape.BeanProperty property : beanSerdeShape.deserializationProperties()) {
             String keyFieldName = indexedName("KEY", index);
             String argumentFieldName = indexedName("ARGUMENT", index);
             keyFieldNames.put(property.name(), keyFieldName);
@@ -246,10 +246,21 @@ public final class BeanDeserializerSourceGen {
             }
             index++;
         }
-        if (!keyFieldNames.isEmpty()) {
+        // Writable properties excluded from deserialization are matched by the key index and skipped,
+        // which is what the runtime object deserializer does with its ignored property keys.
+        List<String> ignoredKeyFieldNames = new ArrayList<>(beanSerdeShape.ignoredDeserializationNames().size());
+        for (String ignoredName : beanSerdeShape.ignoredDeserializationNames()) {
+            String ignoredKeyFieldName = indexedName("IGNORED_KEY", ignoredKeyFieldNames.size());
+            ignoredKeyFieldNames.add(ignoredKeyFieldName);
+            fields.add(FieldDef.builder(ignoredKeyFieldName, STRING_TYPE)
+                .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                .initializer(ExpressionDef.constant(ignoredName))
+                .build());
+        }
+        if (!keyFieldNames.isEmpty() || !ignoredKeyFieldNames.isEmpty()) {
             fields.add(FieldDef.builder(KEYS_FIELD, KEYS_TYPE)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                .initializer(keysCreateExpression(deserializerClassTypeDef, beanSerdeShape.properties(), new ArrayList<>(keyFieldNames.values())))
+                .initializer(keysCreateExpression(deserializerClassTypeDef, beanSerdeShape.deserializationProperties(), new ArrayList<>(keyFieldNames.values()), ignoredKeyFieldNames))
                 .build());
         }
         if (failOnNullForPrimitives) {
@@ -326,9 +337,11 @@ public final class BeanDeserializerSourceGen {
                         .invokeStatic(FAIL_ON_NULL_FOR_PRIMITIVES_METHOD, context)
                 ));
             }
+            // A type-level unknown property policy is a build-time constant; otherwise the configuration decides
             statements.add(aThis.field(IGNORE_UNKNOWN_FIELD, BOOLEAN_TYPE).put(
-                ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
-                    .invokeStatic(IGNORE_UNKNOWN_METHOD, context)
+                beanSerdeShape.ignoreUnknown() != null
+                    ? ExpressionDef.constant(beanSerdeShape.ignoreUnknown().booleanValue())
+                    : ClassTypeDef.of(GeneratedSerdeExceptionUtil.class).invokeStatic(IGNORE_UNKNOWN_METHOD, context)
             ));
             for (Map.Entry<String, String> deserializerFieldEntry : deserializerFieldNames.entrySet()) {
                 String propertyName = deserializerFieldEntry.getKey();
@@ -428,7 +441,7 @@ public final class BeanDeserializerSourceGen {
 
         ExpressionDef ignoreUnknownExpression = aThis.field(IGNORE_UNKNOWN_FIELD, BOOLEAN_TYPE);
 
-        List<BeanSerdeShape.BeanProperty> properties = beanSerdeShape.properties();
+        List<BeanSerdeShape.BeanProperty> properties = beanSerdeShape.deserializationProperties();
         List<VariableDef.Local> seenPropertyVariables = new ArrayList<>(properties.size());
         VariableDef.@Nullable Local seenPropertiesMaskVariable = null;
         boolean seenPropertiesMaskLong = false;
@@ -468,7 +481,7 @@ public final class BeanDeserializerSourceGen {
             beanVariable,
             primitiveNullMode
         );
-        if (properties.isEmpty()) {
+        if (properties.isEmpty() && beanSerdeShape.ignoredDeserializationNames().isEmpty()) {
             BeanDispatchInfo dispatchInfo = buildBeanDispatchInfo(
                 deserializeContext,
                 beanSerdeShape,
@@ -532,7 +545,7 @@ public final class BeanDeserializerSourceGen {
                                                    VariableDef.@Nullable Local seenPropertiesMaskVariable,
                                                    boolean seenPropertiesMaskLong,
                                                    List<VariableDef.Local> seenPropertyVariables) {
-        List<BeanSerdeShape.BeanProperty> properties = beanSerdeShape.properties();
+        List<BeanSerdeShape.BeanProperty> properties = beanSerdeShape.deserializationProperties();
         List<StatementDef> propertyDeserializers = new ArrayList<>(properties.size());
         for (int i = 0; i < properties.size(); i++) {
             BeanSerdeShape.BeanProperty property = properties.get(i);
@@ -559,7 +572,8 @@ public final class BeanDeserializerSourceGen {
             seenPropertiesMaskVariable,
             seenPropertiesMaskLong,
             seenPropertyVariables,
-            propertyDeserializers
+            propertyDeserializers,
+            beanSerdeShape.ignoredDeserializationNames().size()
         );
     }
 
@@ -705,6 +719,10 @@ public final class BeanDeserializerSourceGen {
                 );
             }
             cases.put(ExpressionDef.constant(i), deserializeAndAssignProperty);
+        }
+        int ignoredKeyIndex = dispatchInfo.properties().size();
+        for (int i = 0; i < dispatchInfo.ignoredKeyCount(); i++) {
+            cases.put(ExpressionDef.constant(ignoredKeyIndex + i), objectDecoder.invoke(SKIP_VALUE_METHOD));
         }
         return keyIndexExpression.asStatementSwitch(INT_TYPE, cases);
     }
@@ -1181,7 +1199,7 @@ public final class BeanDeserializerSourceGen {
     }
 
     private boolean requiresFailOnNullForPrimitives(BeanSerdeShape beanSerdeShape) {
-        for (BeanSerdeShape.BeanProperty property : beanSerdeShape.properties()) {
+        for (BeanSerdeShape.BeanProperty property : beanSerdeShape.deserializationProperties()) {
             if (property.deserializationType().isPrimitive() && !property.deserializationType().isArray()) {
                 return true;
             }
@@ -1195,17 +1213,22 @@ public final class BeanDeserializerSourceGen {
 
     private ExpressionDef keysCreateExpression(ClassTypeDef deserializerClassTypeDef,
                                                List<BeanSerdeShape.BeanProperty> properties,
-                                               List<String> keyFieldNames) {
-        List<ExpressionDef> keyExpressions = keyFieldNames.stream()
-            .map(keyFieldName -> (ExpressionDef) deserializerClassTypeDef.getStaticField(keyFieldName, STRING_TYPE))
-            .toList();
+                                               List<String> keyFieldNames,
+                                               List<String> ignoredKeyFieldNames) {
+        List<ExpressionDef> keyExpressions = new ArrayList<>(keyFieldNames.size() + ignoredKeyFieldNames.size());
+        for (String keyFieldName : keyFieldNames) {
+            keyExpressions.add(deserializerClassTypeDef.getStaticField(keyFieldName, STRING_TYPE));
+        }
+        for (String ignoredKeyFieldName : ignoredKeyFieldNames) {
+            keyExpressions.add(deserializerClassTypeDef.getStaticField(ignoredKeyFieldName, STRING_TYPE));
+        }
         if (properties.stream().noneMatch(property -> !property.keyMetadata().isEmpty())) {
             return KEYS_TYPE.invokeStatic(
                 KEYS_CREATE_METHOD,
                 STRING_TYPE.array().instantiate(keyExpressions)
             );
         }
-        List<ExpressionDef> descriptorExpressions = new ArrayList<>(properties.size());
+        List<ExpressionDef> descriptorExpressions = new ArrayList<>(keyExpressions.size());
         for (int i = 0; i < properties.size(); i++) {
             List<ExpressionDef> metadataExpressions = properties.get(i).keyMetadata().entrySet().stream()
                 .sorted(Map.Entry.comparingByKey())
@@ -1221,6 +1244,9 @@ public final class BeanDeserializerSourceGen {
                     keyExpressions.get(i),
                     STRING_TYPE.array().instantiate(metadataExpressions)
                 ));
+        }
+        for (int i = properties.size(); i < keyExpressions.size(); i++) {
+            descriptorExpressions.add(KEY_DESCRIPTOR_TYPE.instantiate(keyExpressions.get(i)));
         }
         return KEYS_TYPE.invokeStatic(
             KEYS_CREATE_WITH_METADATA_METHOD,
@@ -1267,7 +1293,7 @@ public final class BeanDeserializerSourceGen {
     private boolean isSelfReferentialProperty(ClassElement element,
                                              BeanSerdeShape beanSerdeShape,
                                              String propertyName) {
-        for (BeanSerdeShape.BeanProperty property : beanSerdeShape.properties()) {
+        for (BeanSerdeShape.BeanProperty property : beanSerdeShape.deserializationProperties()) {
             if (property.name().equals(propertyName) && property.deserializationType().getName().equals(element.getName())) {
                 return true;
             }
@@ -1313,6 +1339,7 @@ public final class BeanDeserializerSourceGen {
                                     VariableDef.@Nullable Local seenPropertiesMask,
                                     boolean seenPropertiesMaskLong,
                                     List<VariableDef.Local> seenPropertyVariables,
-                                    List<StatementDef> propertyDeserializers) {
+                                    List<StatementDef> propertyDeserializers,
+                                    int ignoredKeyCount) {
     }
 }

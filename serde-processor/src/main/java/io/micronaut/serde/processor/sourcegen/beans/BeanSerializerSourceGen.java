@@ -137,7 +137,7 @@ public final class BeanSerializerSourceGen {
         boolean fieldAccessProperties = false;
 
         int index = 0;
-        for (BeanSerdeShape.BeanProperty property : beanSerdeShape.properties()) {
+        for (BeanSerdeShape.BeanProperty property : beanSerdeShape.serializationProperties()) {
             String keyFieldName = indexedName("KEY", index);
             String argumentFieldName = indexedName("ARGUMENT", index);
             keyFieldNames.put(property.name(), keyFieldName);
@@ -169,11 +169,11 @@ public final class BeanSerializerSourceGen {
         if (!keyFieldNames.isEmpty()) {
             fields.add(FieldDef.builder(KEYS_FIELD, KEYS_TYPE)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                .initializer(keysCreateExpression(serializerClassTypeDef, beanSerdeShape.properties(), new ArrayList<>(keyFieldNames.values())))
+                .initializer(keysCreateExpression(serializerClassTypeDef, beanSerdeShape.serializationProperties(), new ArrayList<>(keyFieldNames.values())))
                 .build());
         }
         // The active inclusion is resolved once per serializer, never per property and per document
-        boolean inclusionAware = !beanSerdeShape.properties().isEmpty();
+        boolean inclusionAware = !beanSerdeShape.serializationProperties().isEmpty();
         if (inclusionAware) {
             fields.addAll(SerdeInclusionSourceGen.fields());
         }
@@ -311,7 +311,7 @@ public final class BeanSerializerSourceGen {
                 VariableDef.MethodParameter context = methodParameters.get(1);
                 VariableDef.MethodParameter type = methodParameters.get(2);
                 VariableDef.MethodParameter value = methodParameters.get(3);
-                if (beanSerdeShape.properties().isEmpty()) {
+                if (beanSerdeShape.serializationProperties().isEmpty()) {
                     return StatementDef.multi(serializeIntoStatements(
                         aThis,
                         serializerClassTypeDef,
@@ -355,7 +355,7 @@ public final class BeanSerializerSourceGen {
                                                        Map<String, String> serializerFieldNames) {
         List<StatementDef> statements = new ArrayList<>();
         int index = 0;
-        for (BeanSerdeShape.BeanProperty property : beanSerdeShape.properties()) {
+        for (BeanSerdeShape.BeanProperty property : beanSerdeShape.serializationProperties()) {
             statements.add(serializeProperty(
                 aThis,
                 serializerClassTypeDef,
@@ -540,7 +540,7 @@ public final class BeanSerializerSourceGen {
     private boolean isSelfReferentialProperty(ClassElement element,
                                              BeanSerdeShape beanSerdeShape,
                                              String propertyName) {
-        for (BeanSerdeShape.BeanProperty property : beanSerdeShape.properties()) {
+        for (BeanSerdeShape.BeanProperty property : beanSerdeShape.serializationProperties()) {
             if (property.name().equals(propertyName) && property.serializationType().getName().equals(element.getName())) {
                 return true;
             }

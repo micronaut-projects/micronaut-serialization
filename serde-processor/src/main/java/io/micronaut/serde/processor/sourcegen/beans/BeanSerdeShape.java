@@ -26,12 +26,20 @@ import java.util.Map;
 /**
  * Shape model for bean-based source generation.
  *
- * @param defaultConstructor The selected default constructor.
- * @param properties         Bean properties included in generated serialization.
+ * @param defaultConstructor        The selected default constructor.
+ * @param serializationProperties   Bean properties written by the generated serializer, in write order.
+ * @param deserializationProperties Bean properties read by the generated deserializer.
+ * @param ignoredDeserializationNames Serialized names the generated deserializer skips silently: writable
+ *                                  properties excluded from deserialization through configuration.
+ * @param ignoreUnknown             The type-level unknown property policy, or {@code null} when the
+ *                                  runtime configuration decides.
  */
 public record BeanSerdeShape(
     MethodElement defaultConstructor,
-    List<BeanProperty> properties
+    List<BeanProperty> serializationProperties,
+    List<BeanProperty> deserializationProperties,
+    List<String> ignoredDeserializationNames,
+    @Nullable Boolean ignoreUnknown
 ) {
     /**
      * Bean property metadata used by source generation.

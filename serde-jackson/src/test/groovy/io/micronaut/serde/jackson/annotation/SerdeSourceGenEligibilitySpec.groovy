@@ -156,6 +156,121 @@ record DefaultValueRecord(@JsonProperty(value = "first_name", defaultValue = "Ad
         context.close()
     }
 
+    void 'test excluded and one-directional bean properties are sourcegen eligible'() {
+        given:
+        def context = buildContext('test.GetterOnlyBean', '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.core.annotation.Introspected;
+
+@Serdeable
+@Introspected
+class GetterOnlyBean {
+    private String value;
+
+    public GetterOnlyBean() {
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public String getComputed() {
+        return value + "!";
+    }
+}
+
+@Serdeable
+@Introspected
+class SetterOnlyBean {
+    private String value;
+
+    public SetterOnlyBean() {
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public void setOther(String other) {
+        this.value = other;
+    }
+}
+
+@Serdeable
+@Introspected
+@JsonIgnoreProperties(ignoreUnknown = true)
+class IgnoredBean {
+    private String value;
+    @JsonIgnore
+    private String secret;
+
+    public IgnoredBean() {
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public String getSecret() {
+        return secret;
+    }
+
+    public void setSecret(String secret) {
+        this.secret = secret;
+    }
+}
+
+@Serdeable
+@Introspected
+class NestedIgnoreBean {
+    @JsonIgnoreProperties({"secret"})
+    private IgnoredBean nested;
+
+    public NestedIgnoreBean() {
+    }
+
+    public IgnoredBean getNested() {
+        return nested;
+    }
+
+    public void setNested(IgnoredBean nested) {
+        this.nested = nested;
+    }
+}
+
+@Serdeable
+@Introspected
+record IgnoredRecord(String value, @JsonIgnore String secret) {
+}
+''')
+
+        expect:
+        assertRegistrySelection(context, 'test.GetterOnlyBean', true, true)
+        assertRegistrySelection(context, 'test.SetterOnlyBean', true, true)
+        assertRegistrySelection(context, 'test.IgnoredBean', true, true)
+        assertRegistrySelection(context, 'test.NestedIgnoreBean', false, false)
+        assertRegistrySelection(context, 'test.IgnoredRecord', false, false)
+
+        cleanup:
+        context.close()
+    }
+
     void 'test any-getter and any-setter are directional fallback reasons'() {
         given:
         def context = buildContext('test.AnyGetterBean', '''

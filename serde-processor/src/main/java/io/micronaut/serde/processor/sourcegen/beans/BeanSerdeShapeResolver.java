@@ -15,13 +15,16 @@
  */
 package io.micronaut.serde.processor.sourcegen.beans;
 
+import io.micronaut.core.annotation.AnnotationMetadata;
+import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.ConstructorElement;
 import io.micronaut.inject.ast.FieldElement;
 import io.micronaut.inject.ast.MethodElement;
 import io.micronaut.inject.ast.PropertyElement;
-import io.micronaut.core.util.CollectionUtils;
+import io.micronaut.inject.ast.PropertyElementQuery;
 import io.micronaut.serde.config.annotation.SerdeConfig;
+import io.micronaut.serde.util.SerdePropertyAccess;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -31,6 +34,11 @@ import java.util.Optional;
 
 /**
  * Resolves bean shapes eligible for source-generated serdes.
+ *
+ * <p>Properties are resolved per direction the way the runtime serdes resolve them: a property is
+ * written when it is readable and not excluded from serialization, and read when it is writable and
+ * not excluded from deserialization. Writable properties excluded from deserialization are skipped
+ * silently by the generated deserializer, matching the runtime object deserializer.</p>
  */
 public final class BeanSerdeShapeResolver {
 
@@ -42,8 +50,107 @@ public final class BeanSerdeShapeResolver {
         if (defaultConstructor == null) {
             return Optional.empty();
         }
-        return resolveProperties(element)
-            .map(properties -> new BeanSerdeShape(defaultConstructor, List.copyOf(properties)));
+        List<PropertyElement> beanProperties = introspectedProperties(element);
+        if (beanProperties.isEmpty()) {
+            return Optional.empty();
+        }
+        List<BeanSerdeShape.BeanProperty> serializationProperties = new ArrayList<>(beanProperties.size());
+        List<BeanSerdeShape.BeanProperty> deserializationProperties = new ArrayList<>(beanProperties.size());
+        List<String> ignoredDeserializationNames = new ArrayList<>(2);
+        for (PropertyElement property : beanProperties) {
+            PropertyAccess propertyAccess = resolvePropertyAccess(element, property);
+            String name = stringValue(property, SerdeConfig.PROPERTY).orElse(property.getName());
+            if (propertyAccess.readable()) {
+                if (isSerialized(property)) {
+                    BeanSerdeShape.BeanProperty beanProperty = resolveProperty(name, property, propertyAccess).orElse(null);
+                    if (beanProperty == null) {
+                        return Optional.empty();
+                    }
+                    serializationProperties.add(beanProperty);
+                }
+            }
+            if (propertyAccess.writable()) {
+                if (isDeserialized(property)) {
+                    BeanSerdeShape.BeanProperty beanProperty = resolveProperty(name, property, propertyAccess).orElse(null);
+                    if (beanProperty == null) {
+                        return Optional.empty();
+                    }
+                    deserializationProperties.add(beanProperty);
+                } else {
+                    ignoredDeserializationNames.add(name);
+                }
+            }
+        }
+        serializationProperties.sort((left, right) -> Boolean.compare(isXmlAttribute(right), isXmlAttribute(left)));
+        deserializationProperties.sort((left, right) -> Boolean.compare(isXmlAttribute(right), isXmlAttribute(left)));
+        return Optional.of(new BeanSerdeShape(
+            defaultConstructor,
+            List.copyOf(serializationProperties),
+            List.copyOf(deserializationProperties),
+            List.copyOf(ignoredDeserializationNames),
+            resolveIgnoreUnknown(element)
+        ));
+    }
+
+    /**
+     * The bean properties as the introspection resolves them. The list a class element caches can be
+     * older than the metadata {@code SerdeAnnotationVisitor} rewrites, so the properties are resolved
+     * again with the query the introspection visitor uses.
+     *
+     * @param element The bean type
+     * @return The introspected properties
+     */
+    public static List<PropertyElement> introspectedProperties(ClassElement element) {
+        return element.getBeanProperties(PropertyElementQuery.of(element));
+    }
+
+    /**
+     * Whether the runtime object serializer writes the property.
+     *
+     * @param property The property
+     * @return {@code true} if the property is serialized
+     */
+    public static boolean isSerialized(PropertyElement property) {
+        return !booleanValue(property, SerdeConfig.IGNORED).orElse(false)
+            && !booleanValue(property, SerdeConfig.IGNORED_SERIALIZATION).orElse(false)
+            && canSerialize(property);
+    }
+
+    /**
+     * Whether the runtime object deserializer reads the property.
+     *
+     * @param property The property
+     * @return {@code true} if the property is deserialized
+     */
+    public static boolean isDeserialized(PropertyElement property) {
+        return !booleanValue(property, SerdeConfig.IGNORED).orElse(false)
+            && !booleanValue(property, SerdeConfig.IGNORED_DESERIALIZATION).orElse(false)
+            && canDeserialize(property);
+    }
+
+    private static boolean canSerialize(PropertyElement property) {
+        return SerdePropertyAccess.canSerialize(property.getAnnotationMetadata())
+            && property.getReadMethod().map(method -> SerdePropertyAccess.canSerialize(method.getAnnotationMetadata())).orElse(true)
+            && property.getWriteMethod().map(method -> SerdePropertyAccess.canSerialize(method.getAnnotationMetadata())).orElse(true)
+            && property.getField().map(field -> SerdePropertyAccess.canSerialize(field.getAnnotationMetadata())).orElse(true);
+    }
+
+    private static boolean canDeserialize(PropertyElement property) {
+        return SerdePropertyAccess.canDeserialize(property.getAnnotationMetadata())
+            && property.getReadMethod().map(method -> SerdePropertyAccess.canDeserialize(method.getAnnotationMetadata())).orElse(true)
+            && property.getWriteMethod().map(method -> SerdePropertyAccess.canDeserialize(method.getAnnotationMetadata())).orElse(true)
+            && property.getField().map(field -> SerdePropertyAccess.canDeserialize(field.getAnnotationMetadata())).orElse(true);
+    }
+
+    /**
+     * The unknown property policy declared on the type, mirroring the runtime object deserializer:
+     * included properties always ignore the rest, otherwise the declared value wins over the configuration.
+     */
+    private static @Nullable Boolean resolveIgnoreUnknown(ClassElement element) {
+        if (element.isAnnotationPresent(SerdeConfig.SerIncluded.class)) {
+            return Boolean.TRUE;
+        }
+        return element.booleanValue(SerdeConfig.SerIgnored.class, SerdeConfig.SerIgnored.IGNORE_UNKNOWN).orElse(null);
     }
 
     private static boolean isBeanShapeCandidate(ClassElement element) {
@@ -59,34 +166,17 @@ public final class BeanSerdeShapeResolver {
             .findFirst();
     }
 
-    private static Optional<List<BeanSerdeShape.BeanProperty>> resolveProperties(ClassElement element) {
-        List<PropertyElement> beanProperties = element.getBeanProperties();
-        if (beanProperties.isEmpty()) {
-            return Optional.empty();
-        }
-        List<BeanSerdeShape.BeanProperty> properties = new ArrayList<>(beanProperties.size());
-        for (PropertyElement property : beanProperties) {
-            BeanSerdeShape.BeanProperty beanProperty = resolveProperty(element, property).orElse(null);
-            if (beanProperty == null) {
-                return Optional.empty();
-            }
-            properties.add(beanProperty);
-        }
-        properties.sort((left, right) -> Boolean.compare(isXmlAttribute(right), isXmlAttribute(left)));
-        return Optional.of(properties);
-    }
-
     private static boolean isXmlAttribute(BeanSerdeShape.BeanProperty property) {
         return Boolean.parseBoolean(property.keyMetadata().get(SerdeConfig.XML_ATTRIBUTE_PROPERTY));
     }
 
-    private static Optional<BeanSerdeShape.BeanProperty> resolveProperty(ClassElement element, PropertyElement property) {
-        PropertyAccess propertyAccess = resolvePropertyAccess(element, property).orElse(null);
-        if (propertyAccess == null) {
-            return Optional.empty();
-        }
-        ClassElement serializationType = property.getReadType().orElse(null);
-        ClassElement deserializationType = property.getWriteType().orElse(null);
+    private static Optional<BeanSerdeShape.BeanProperty> resolveProperty(String name,
+                                                                         PropertyElement property,
+                                                                         PropertyAccess propertyAccess) {
+        ClassElement readType = property.getReadType().orElse(null);
+        ClassElement writeType = property.getWriteType().orElse(null);
+        ClassElement serializationType = readType != null ? readType : writeType;
+        ClassElement deserializationType = writeType != null ? writeType : readType;
         if (serializationType == null || deserializationType == null) {
             return Optional.empty();
         }
@@ -94,7 +184,7 @@ public final class BeanSerdeShapeResolver {
             return Optional.empty();
         }
         return Optional.of(new BeanSerdeShape.BeanProperty(
-            stringValue(property, SerdeConfig.PROPERTY).orElse(property.getName()),
+            name,
             serializationType,
             deserializationType,
             property.isNonNull(),
@@ -156,20 +246,28 @@ public final class BeanSerdeShapeResolver {
     }
 
     private static Optional<Boolean> booleanValue(PropertyElement property, String member) {
-        Optional<Boolean> value = property.booleanValue(SerdeConfig.class, member);
+        Optional<Boolean> value = booleanValue(property.getAnnotationMetadata(), member);
         if (value.isEmpty()) {
-            value = property.getReadMethod().flatMap(method -> method.booleanValue(SerdeConfig.class, member));
+            value = property.getReadMethod().flatMap(method -> booleanValue(method.getAnnotationMetadata(), member));
         }
         if (value.isEmpty()) {
-            value = property.getWriteMethod().flatMap(method -> method.booleanValue(SerdeConfig.class, member));
+            value = property.getWriteMethod().flatMap(method -> booleanValue(method.getAnnotationMetadata(), member));
         }
         if (value.isEmpty()) {
-            value = property.getField().flatMap(field -> field.booleanValue(SerdeConfig.class, member));
+            value = property.getField().flatMap(field -> booleanValue(field.getAnnotationMetadata(), member));
         }
         return value;
     }
 
-    private static Optional<PropertyAccess> resolvePropertyAccess(ClassElement element, PropertyElement property) {
+    private static Optional<Boolean> booleanValue(AnnotationMetadata annotationMetadata, String member) {
+        return annotationMetadata.booleanValue(SerdeConfig.class, member);
+    }
+
+    /**
+     * Resolves the accessible read and write members of a property. A missing member in one direction
+     * only excludes the property from that direction.
+     */
+    private static PropertyAccess resolvePropertyAccess(ClassElement element, PropertyElement property) {
         MethodElement readMethod = null;
         MethodElement writeMethod = null;
         FieldElement readField = null;
@@ -189,10 +287,7 @@ public final class BeanSerdeShapeResolver {
         } else {
             writeMethod = property.getWriteMethod().orElse(null);
         }
-        if ((readMethod == null && readField == null) || (writeMethod == null && writeField == null)) {
-            return Optional.empty();
-        }
-        return Optional.of(new PropertyAccess(readMethod, writeMethod, readField, writeField));
+        return new PropertyAccess(readMethod, writeMethod, readField, writeField);
     }
 
     private record PropertyAccess(
@@ -200,5 +295,13 @@ public final class BeanSerdeShapeResolver {
         @Nullable MethodElement writeMethod,
         @Nullable FieldElement readField,
         @Nullable FieldElement writeField) {
+
+        boolean readable() {
+            return readMethod != null || readField != null;
+        }
+
+        boolean writable() {
+            return writeMethod != null || writeField != null;
+        }
     }
 }
