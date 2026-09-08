@@ -1,10 +1,14 @@
 package io.micronaut.serde.cbor
 
+import io.micronaut.context.annotation.Property
 import io.micronaut.serde.cbor.data.BinaryBean
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 import spock.lang.Specification
 
+// An empty byte array is empty under the default NON_EMPTY inclusion, so pin the inclusion here:
+// this spec is about the binary encoding of the value, not about whether it is written at all.
+@Property(name = 'micronaut.serde.serialization.inclusion', value = 'ALWAYS')
 @MicronautTest
 class CborByteArraySpec extends Specification {
 
