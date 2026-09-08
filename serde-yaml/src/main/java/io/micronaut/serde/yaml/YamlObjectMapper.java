@@ -45,6 +45,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.io.OutputStream;
 import java.util.Objects;
 
@@ -105,9 +106,12 @@ public final class YamlObjectMapper implements ObjectMapper {
         this.streamLimits = serdeConfiguration == null
             ? LimitingStream.DEFAULT_LIMITS
             : LimitingStream.limitsFromConfiguration(serdeConfiguration);
-        this.coercionPolicy = CoercionPolicy.fromConfiguration(
-            registry.newDecoderContext(view).getDeserializationConfiguration().orElse(null)
-        );
+        try (Deserializer.DecoderContext context = registry.newDecoderContext(view)) {
+            this.coercionPolicy = CoercionPolicy.fromConfiguration(context.getDeserializationConfiguration().orElse(null));
+        } catch (IOException e) {
+            // the context is only read from here, so completing it cannot fail in practice
+            throw new UncheckedIOException(e);
+        }
     }
 
     @Override
@@ -241,7 +245,7 @@ public final class YamlObjectMapper implements ObjectMapper {
     public void updateValueFromTree(Object value, JsonNode tree) throws IOException {
         Objects.requireNonNull(value, "Value to update cannot be null");
         // for jackson compat we need to support deserializing null, but most deserializers don't support it.
-        if (tree == null || tree.isNull()) {
+        if (tree.isNull()) {
             return;
         }
         @SuppressWarnings("unchecked")

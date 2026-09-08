@@ -28,7 +28,6 @@ import java.util.Set;
  */
 @Internal
 @Singleton
-@SuppressWarnings("checkstyle:missingswitchdefault")
 final class YamlStringQuotingChecker {
     /**
      * As per <a href="https://yaml.org/type/bool.html">YAML Spec</a> there are a few
@@ -85,53 +84,32 @@ final class YamlStringQuotingChecker {
      * @return {@code true} if given value is a Boolean or Null representation
      *   (as per YAML 1.1 specification) or empty String
      */
-    private boolean isReservedKeyword(String value) {
-        if (value.length() == 0) {
-            return true;
-        }
-        return isReservedKeyword(value.charAt(0), value);
+    private static boolean isReservedKeyword(String value) {
+        return value.isEmpty() || isReservedKeyword(value.charAt(0), value);
     }
 
-    private boolean isReservedKeyword(int firstChar, String name) {
-        switch (firstChar) {
-            // First, reserved name starting chars:
-            case 'f': // false
-            case 'n': // no/n/null
-            case 'o': // on/off
-            case 't': // true
-            case 'y': // yes/y
-            case 'F': // False
-            case 'N': // No/N/Null
-            case 'O': // On/Off
-            case 'T': // True
-            case 'Y': // Yes/Y
-                return RESERVED_KEYWORDS.contains(name);
-            case '~': // null alias (see [dataformats-text#274])
-                return true;
-        }
-        return false;
+    private static boolean isReservedKeyword(char firstChar, String name) {
+        return switch (firstChar) {
+            // false, no/n/null, on/off, true, yes/y and their capitalised spellings
+            case 'f', 'n', 'o', 't', 'y', 'F', 'N', 'O', 'T', 'Y' -> RESERVED_KEYWORDS.contains(name);
+            // null alias (see [dataformats-text#274])
+            case '~' -> true;
+            default -> false;
+        };
     }
 
     /**
      * Helper method to see if given String value looks like a YAML 1.1 numeric value and would likely be considered
      * a number when parsing unless quoting is used.
      */
-    private boolean looksLikeYAMLNumber(String name) {
-        if (name.length() > 0) {
-            return looksLikeYAMLNumber(name.charAt(0), name);
+    private static boolean looksLikeYAMLNumber(String name) {
+        if (name.isEmpty()) {
+            return false;
         }
-        return false;
-    }
-
-    private boolean looksLikeYAMLNumber(int firstChar, String name) {
-        switch (firstChar) {
-            // And then numbers
-            case '0': case '1': case '2': case '3': case '4':
-            case '5': case '6': case '7': case '8': case '9':
-            case '-' : case '+': case '.':
-                return true;
-        }
-        return false;
+        return switch (name.charAt(0)) {
+            case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '+', '.' -> true;
+            default -> false;
+        };
     }
 
     /**

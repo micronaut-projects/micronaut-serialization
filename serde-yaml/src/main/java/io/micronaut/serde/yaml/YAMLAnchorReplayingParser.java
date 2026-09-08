@@ -39,7 +39,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -101,7 +100,7 @@ final class YAMLAnchorReplayingParser {
     @Nullable Event getEvent() throws SerdeException {
         Event event = nextOutputEvent();
         if (event != null) {
-            record(event);
+            recordEvent(event);
         }
         return event;
     }
@@ -138,25 +137,7 @@ final class YAMLAnchorReplayingParser {
         if (++merges > MAX_MERGES) {
             throw new SerdeException("Too many merges in the YAML document" + location(mergeKey));
         }
-        List<List<Event>> merged = new ArrayList<>();
-        Event value = nextResolvedEvent(mergeKey);
-        if (value instanceof MappingStartEvent) {
-            merged.add(readMappingBody(mergeKey));
-        } else if (value instanceof SequenceStartEvent) {
-            while (true) {
-                Event item = nextResolvedEvent(mergeKey);
-                if (item instanceof SequenceEndEvent) {
-                    break;
-                }
-                if (!(item instanceof MappingStartEvent)) {
-                    throw new SerdeException("A sequence merged with '<<' may only contain mappings" + location(item));
-                }
-                merged.add(readMappingBody(mergeKey));
-            }
-        } else {
-            throw new SerdeException("The value of a merge key '<<' must be a mapping or a sequence of mappings" + location(mergeKey));
-        }
-
+        List<List<Event>> merged = readMergedMappings(mergeKey);
         List<Event> remainder = readEnclosingMappingRemainder(mergeKey);
         Set<String> taken = new HashSet<>(topLevelKeys(remainder));
         List<Event> spliced = new ArrayList<>();
@@ -165,6 +146,30 @@ final class YAMLAnchorReplayingParser {
         }
         spliced.addAll(remainder);
         queueForReplay(spliced, mergeKey);
+    }
+
+    /**
+     * Reads the mappings a merge key refers to, in the order they take precedence.
+     */
+    private List<List<Event>> readMergedMappings(ScalarEvent mergeKey) throws SerdeException {
+        List<List<Event>> merged = new ArrayList<>();
+        Event value = nextResolvedEvent(mergeKey);
+        if (value instanceof MappingStartEvent) {
+            merged.add(readMappingBody(mergeKey));
+            return merged;
+        }
+        if (!(value instanceof SequenceStartEvent)) {
+            throw new SerdeException("The value of a merge key '<<' must be a mapping or a sequence of mappings" + location(mergeKey));
+        }
+        Event item = nextResolvedEvent(mergeKey);
+        while (!(item instanceof SequenceEndEvent)) {
+            if (!(item instanceof MappingStartEvent)) {
+                throw new SerdeException("A sequence merged with '<<' may only contain mappings" + location(item));
+            }
+            merged.add(readMappingBody(mergeKey));
+            item = nextResolvedEvent(mergeKey);
+        }
+        return merged;
     }
 
     /**
@@ -277,8 +282,8 @@ final class YAMLAnchorReplayingParser {
             throw new SerdeException("Too many events to replay for the merge key" + location(mergeKey));
         }
         // queue in front of anything already pending, keeping the order of the buffered events
-        for (ListIterator<Event> it = events.listIterator(events.size()); it.hasPrevious(); ) {
-            replay.addFirst(it.previous());
+        for (Event event : events.reversed()) {
+            replay.addFirst(event);
         }
     }
 
@@ -311,8 +316,8 @@ final class YAMLAnchorReplayingParser {
             throw new SerdeException("Too many events to replay for alias *" + anchor);
         }
         // the replayed events must come before anything that is already queued
-        for (ListIterator<Event> it = recorded.listIterator(recorded.size()); it.hasPrevious(); ) {
-            replay.addFirst(it.previous());
+        for (Event event : recorded.reversed()) {
+            replay.addFirst(event);
         }
     }
 
@@ -343,21 +348,9 @@ final class YAMLAnchorReplayingParser {
         }
     }
 
-    private void record(Event event) throws SerdeException {
+    private void recordEvent(Event event) throws SerdeException {
         trackStructure(event);
-        if (event instanceof NodeEvent node && node.getAnchor().isPresent()) {
-            String anchor = node.getAnchor().get().getValue();
-            if (event instanceof CollectionStartEvent) {
-                if (openAnchors.size() >= MAX_ANCHORS) {
-                    throw new SerdeException("Too many anchors in the YAML document");
-                }
-                openAnchors.push(new AnchorContext(anchor));
-            } else {
-                List<Event> single = new ArrayList<>(1);
-                single.add(event);
-                remember(anchor, single);
-            }
-        }
+        openAnchorOf(event);
         AnchorContext open = openAnchors.peek();
         if (open == null) {
             return;
@@ -368,20 +361,45 @@ final class YAMLAnchorReplayingParser {
         open.events.add(event);
         if (event instanceof CollectionStartEvent) {
             open.depth++;
-        } else if (event instanceof CollectionEndEvent) {
-            open.depth--;
-            if (open.depth == 0) {
-                openAnchors.pop();
-                remember(open.anchor, open.events);
-                AnchorContext parent = openAnchors.peek();
-                if (parent != null) {
-                    if (parent.events.size() + open.events.size() > MAX_EVENTS) {
-                        throw new SerdeException("Too many events to record for anchor &" + parent.anchor);
-                    }
-                    parent.events.addAll(open.events);
-                }
-            }
+        } else if (event instanceof CollectionEndEvent && --open.depth == 0) {
+            closeAnchor(open);
         }
+    }
+
+    /**
+     * Starts recording an anchored collection, or remembers an anchored scalar or alias outright.
+     */
+    private void openAnchorOf(Event event) throws SerdeException {
+        if (!(event instanceof NodeEvent node) || node.getAnchor().isEmpty()) {
+            return;
+        }
+        String anchor = node.getAnchor().get().getValue();
+        if (event instanceof CollectionStartEvent) {
+            if (openAnchors.size() >= MAX_ANCHORS) {
+                throw new SerdeException("Too many anchors in the YAML document");
+            }
+            openAnchors.push(new AnchorContext(anchor));
+        } else {
+            List<Event> single = new ArrayList<>(1);
+            single.add(event);
+            remember(anchor, single);
+        }
+    }
+
+    /**
+     * Finishes an anchored collection, and hands its events to the anchor that encloses it.
+     */
+    private void closeAnchor(AnchorContext open) throws SerdeException {
+        openAnchors.pop();
+        remember(open.anchor, open.events);
+        AnchorContext parent = openAnchors.peek();
+        if (parent == null) {
+            return;
+        }
+        if (parent.events.size() + open.events.size() > MAX_EVENTS) {
+            throw new SerdeException("Too many events to record for anchor &" + parent.anchor);
+        }
+        parent.events.addAll(open.events);
     }
 
     private void remember(String anchor, List<Event> recorded) throws SerdeException {

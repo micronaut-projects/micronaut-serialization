@@ -122,10 +122,18 @@ public class YamlEncoder extends LimitingStream implements Encoder {
 
     private static DumpSettings createEmitterOptions(SerdeYamlConfiguration configuration) {
         boolean indentArraysWithIndicator = configuration.isIndentArraysWithIndicator();
+        int indicatorIndent;
+        if (indentArraysWithIndicator) {
+            indicatorIndent = 2;
+        } else if (configuration.isIndentArrays()) {
+            indicatorIndent = 1;
+        } else {
+            indicatorIndent = 0;
+        }
         return DumpSettings.builder()
             .setCanonical(configuration.isCanonicalOutput())
             .setIndent(configuration.getIndent())
-            .setIndicatorIndent(indentArraysWithIndicator ? 2 : configuration.isIndentArrays() ? 1 : 0)
+            .setIndicatorIndent(indicatorIndent)
             .setIndentWithIndicator(indentArraysWithIndicator)
             // always emit LF so documents are identical on every platform
             .setBestLineBreak("\n")
