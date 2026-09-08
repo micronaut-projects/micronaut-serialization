@@ -24,6 +24,7 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
@@ -239,18 +240,38 @@ class ScalarTypeCoverageTest {
 
     @Test
     void nullableAndOptionalPropertiesKeepTheirDefaults() throws Exception {
-        // the same values, declared so that presence is explicit, do survive
-        var nullable = new ScalarModels.ExplicitPresence("", 0, false, new byte[0]);
+        // Presence is a property of the encoder, but it only gets the chance to apply it to values
+        // the serializer hands over. The default inclusion is NON_EMPTY, which drops an empty
+        // string before any encoder sees it, so this asks for ALWAYS to isolate what is under test.
+        try (ApplicationContext scoped = ApplicationContext.run(
+                Map.of("micronaut.serde.serialization.inclusion", "always"))) {
+            ProtobufMapper always = scoped.getBean(ProtobufMapper.class);
 
-        ScalarModels.ExplicitPresence back = roundTrip(ScalarModels.ExplicitPresence.class, nullable);
+            var nullable = new ScalarModels.ExplicitPresence("", 0, false, new byte[0]);
+            ScalarModels.ExplicitPresence back = always.readValue(
+                always.writeValueAsBytes(Argument.of(ScalarModels.ExplicitPresence.class), nullable),
+                Argument.of(ScalarModels.ExplicitPresence.class));
 
-        assertEquals("", back.text());
-        assertEquals(0, back.whole());
-        assertEquals(false, back.flag());
-        assertArrayEquals(new byte[0], back.blob());
+            assertEquals("", back.text());
+            assertEquals(0, back.whole());
+            assertEquals(false, back.flag());
+            assertArrayEquals(new byte[0], back.blob());
 
-        var optional = new ScalarModels.Optionals(Optional.of(""), OptionalInt.of(0), OptionalLong.of(0L), OptionalDouble.of(0d));
-        assertEquals(optional, roundTrip(ScalarModels.Optionals.class, optional));
+            var optional = new ScalarModels.Optionals(Optional.of(""), OptionalInt.of(0), OptionalLong.of(0L), OptionalDouble.of(0d));
+            assertEquals(optional, always.readValue(
+                always.writeValueAsBytes(Argument.of(ScalarModels.Optionals.class), optional),
+                Argument.of(ScalarModels.Optionals.class)));
+        }
+    }
+
+    @Test
+    void theDefaultInclusionDropsEmptyValuesBeforeTheEncoderSeesThem() throws Exception {
+        // micronaut.serde.serialization.inclusion defaults to NON_EMPTY, so an empty string never
+        // reaches the encoder and no amount of explicit presence can bring it back. Worth pinning:
+        // it is the difference between a protobuf rule and a serde one.
+        var value = new ScalarModels.ExplicitPresence("", 0, false, new byte[0]);
+
+        assertNull(roundTrip(ScalarModels.ExplicitPresence.class, value).text());
     }
 
     private static byte[] payloadOfSecondField(ScalarModels.BigNumbers value) throws Exception {

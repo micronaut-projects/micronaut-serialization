@@ -123,13 +123,16 @@ class CollectionShapeCoverageTest {
     }
 
     @Test
-    void readingIntoASetIsNotSupportedBySerdeItself() {
-        // a Set property writes correctly but cannot be read back: the deserializer builds an
-        // ArrayList and casts it. Not a protobuf limitation - readValueFromTree fails identically,
-        // and List, Collection and Iterable all work.
-        Exception e = assertThrows(Exception.class,
-            () -> mapper.readValue(reference(true), Argument.of(ShapeModels.AsSet.class)));
-        assertTrue(rootMessage(e).contains("ArrayList cannot be cast to class java.util.Set"), rootMessage(e));
+    void aSetReadsBackFromTheReferenceMessage() throws Exception {
+        // this asserted a ClassCastException until Set deserialization was fixed upstream
+        ShapeModels.AsSet value = mapper.readValue(reference(true), Argument.of(ShapeModels.AsSet.class));
+
+        assertEquals(ordered(TEXTS), value.texts());
+        assertEquals(ordered(WHOLES), value.wholes());
+        assertEquals(ordered(WIDES), value.wides());
+        assertEquals(ordered(FLAGS), value.flags());
+        assertEquals(ordered(ADDRESSES), value.addresses());
+        assertEquals(BLOBS.size(), value.blobs().size());
     }
 
     @Test
