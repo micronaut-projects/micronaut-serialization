@@ -4,7 +4,6 @@ plugins {
 }
 
 dependencies {
-    testImplementation(platform("tools.jackson:jackson-bom:3.2.0"))
     testImplementation(projects.micronautSerdeYamlTck)
-    testImplementation("tools.jackson.dataformat:jackson-dataformat-yaml")
+    testImplementation(libs.jackson.dataformat.yaml)
 }

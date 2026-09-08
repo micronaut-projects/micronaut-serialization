@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.serde.yaml.jackson.databind
+package io.micronaut.serde.yaml.tck;
 
-import io.micronaut.serde.yaml.AbstractJacksonDatabindYamlSpec
-import tools.jackson.dataformat.yaml.YAMLMapper
+import io.micronaut.serde.annotation.Serdeable;
 
-class DatabindYamlSpec extends AbstractJacksonDatabindYamlSpec {
-
-    private final YAMLMapper mapper = new YAMLMapper()
-
-    @Override
-    YAMLMapper getDatabindYamlMapper() {
-        mapper
-    }
-
+/**
+ * A record with two scalar components.
+ *
+ * @param title The title
+ * @param pages The page count
+ */
+@Serdeable
+public record RecordBean(String title, int pages) {
 }

@@ -56,6 +56,7 @@ include("test-suite-tck-jackson-databind")
 include("test-suite-tck-serde")
 include("test-suite-http-server-tck-netty")
 include("test-suite-properties-jackson-databind")
+include("test-suite-yaml-serde")
 include("test-suite-yaml-jackson-databind")
 
 include("tests:jsonp-tck")

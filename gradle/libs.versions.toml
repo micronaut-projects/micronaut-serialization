@@ -30,6 +30,9 @@ micronaut-reactor = "4.0.0"
 micronaut-validation = "5.0.0"
 micronaut-gradle-plugin = "5.0.0"
 micronaut-sourcegen = "2.0.0"
+# Only used by the YAML TCK parity suite. Ahead of the platform Jackson line because the YAML
+# schema selection the parity suite needs (YAMLSchema.CORE) arrived in 3.2.0.
+jackson-dataformat-yaml = "3.2.0"
 jsonassert = "1.5.3"
 xmlunit = "2.12.0"
 
@@ -88,6 +91,7 @@ nullaway = { module = "com.uber.nullaway:nullaway", version.ref = "nullaway" }
 error-prone-core = { module = "com.google.errorprone:error_prone_core", version.ref = "error_prone_core" }
 
 oci-aidocument = { module = "com.oracle.oci.sdk:oci-java-sdk-aidocument" }
+jackson-dataformat-yaml = { module = "tools.jackson.dataformat:jackson-dataformat-yaml", version.ref = "jackson-dataformat-yaml" }
 jsonassert = { module = 'org.skyscreamer:jsonassert', version.ref = 'jsonassert'}
 xmlunit-core = { module = "org.xmlunit:xmlunit-core", version.ref = "xmlunit" }
 

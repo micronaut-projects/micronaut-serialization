@@ -25,7 +25,6 @@ dependencies {
 
     testImplementation(projects.micronautSerdeProcessor)
     testImplementation(projects.micronautSerdeTck)
-    testImplementation(projects.micronautSerdeYamlTck)
     testImplementation(mn.micronaut.inject.java.test)
     testImplementation(mnTest.micronaut.test.spock)
     testImplementation(mn.micronaut.http.server.netty)
