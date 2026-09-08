@@ -15,22 +15,23 @@
  */
 package io.micronaut.serde.yaml;
 
+import io.micronaut.serde.config.CoercionPolicy;
+import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.AbstractStreamDecoder;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.snakeyaml.engine.v2.api.LoadSettings;
 import org.snakeyaml.engine.v2.api.lowlevel.Parse;
 import org.snakeyaml.engine.v2.common.ScalarStyle;
+import org.snakeyaml.engine.v2.events.CollectionEndEvent;
+import org.snakeyaml.engine.v2.events.CollectionStartEvent;
 import org.snakeyaml.engine.v2.events.Event;
 import org.snakeyaml.engine.v2.events.ScalarEvent;
 import org.snakeyaml.engine.v2.nodes.Tag;
 import org.snakeyaml.engine.v2.resolver.ScalarResolver;
-import org.snakeyaml.engine.v2.schema.CoreSchema;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -41,175 +42,226 @@ import java.util.Iterator;
 /**
  * YAML implementation of the {@link io.micronaut.serde.Decoder} interface.
  *
- * @since 3.1.0
+ * <p>The decoder reads exactly one YAML document. The root node may be a mapping, a sequence or a
+ * scalar. Anchors, aliases and merge keys are resolved while reading, quoted scalars are always
+ * strings, and plain scalars are typed with the YAML 1.2 core schema. Additional documents in the
+ * input are rejected.</p>
+ *
+ * @since 3.2.0
  */
-@SuppressWarnings("NullAway")
-public class YamlDecoder extends AbstractStreamDecoder {
+public final class YamlDecoder extends AbstractStreamDecoder {
 
     private final YAMLAnchorReplayingParser eventReader;
-    private final Deque<CollectionContext> mappingContextStack = new ArrayDeque<>();
-    private Event currrentEvent;
-    private boolean inDocument = false;
     private final ScalarResolver resolver;
     private final boolean booleanAsStrings;
     private final boolean emptyStringAsNull;
+    private final Deque<CollectionContext> contextStack = new ArrayDeque<>();
+    @Nullable
+    private Event currentEvent;
+    @Nullable
+    private TokenType currentToken;
+    private boolean documentFinished;
 
     /**
-     * Creates a YAML decoder with the supplied input stream and stream limits.
+     * Creates a YAML decoder with the default read settings and every coercion allowed.
      *
      * @param inputStream The YAML input stream
      * @param remainingLimits The remaining stream limits
+     * @throws IOException if the input cannot be read or holds no YAML document
      */
-    public YamlDecoder(@NonNull InputStream inputStream, @NonNull RemainingLimits remainingLimits) {
-        this(inputStream, remainingLimits, new SerdeYamlConfiguration());
+    public YamlDecoder(@NonNull InputStream inputStream, @NonNull RemainingLimits remainingLimits) throws IOException {
+        this(inputStream, remainingLimits, CoercionPolicy.LENIENT, YamlReadSettings.DEFAULT);
     }
 
+    /**
+     * Creates a YAML decoder.
+     *
+     * @param inputStream The YAML input stream
+     * @param remainingLimits The remaining stream limits
+     * @param coercionPolicy The coercions this decoder may perform
+     * @param readSettings The read settings
+     * @throws IOException if the input cannot be read or holds no YAML document
+     */
     YamlDecoder(@NonNull InputStream inputStream,
                 @NonNull RemainingLimits remainingLimits,
-                @NonNull SerdeYamlConfiguration yamlConfiguration) {
-        super(remainingLimits);
-        booleanAsStrings = yamlConfiguration.isBooleanAsStrings();
-        emptyStringAsNull = yamlConfiguration.isEmptyStringAsNull();
-        LoadSettings loadSettings = LoadSettings.builder()
-            .setSchema(new CoreSchema())
-            .build();
-        resolver = loadSettings.getSchema().getScalarResolver();
-        Reader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-        Iterator<Event> events = new Parse(loadSettings).parseReader(reader).iterator();
-        while (events.hasNext()) {
-            Event nextEvent = events.next();
-            if (nextEvent.getEventId() == Event.ID.DocumentStart) {
-                inDocument = true;
-            }
-            if (nextEvent.getEventId() == Event.ID.MappingStart) {
-                eventReader = new YAMLAnchorReplayingParser(events);
-                mappingContextStack.push(new CollectionContext(false));
-                this.currrentEvent = nextEvent;
-                return;
-            }
+                @NonNull CoercionPolicy coercionPolicy,
+                @NonNull YamlReadSettings readSettings) throws IOException {
+        super(remainingLimits, coercionPolicy);
+        this.booleanAsStrings = readSettings.booleanAsStrings();
+        this.emptyStringAsNull = readSettings.emptyStringAsNull();
+        this.resolver = readSettings.loadSettings().getSchema().getScalarResolver();
+        Iterator<Event> events = new Parse(readSettings.loadSettings())
+            .parseReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
+            .iterator();
+        this.eventReader = new YAMLAnchorReplayingParser(events);
+        Event first = eventReader.getEvent();
+        while (first != null && (first.getEventId() == Event.ID.StreamStart || first.getEventId() == Event.ID.DocumentStart)) {
+            first = eventReader.getEvent();
         }
-        eventReader = new YAMLAnchorReplayingParser(events);
+        if (first == null || first.getEventId() == Event.ID.StreamEnd) {
+            throw new SerdeException("No YAML document found in the input");
+        }
+        setCurrent(first);
     }
 
     @Override
-    protected TokenType currentToken() {
-        return switch (currrentEvent.getEventId()) {
-            case MappingStart -> TokenType.START_OBJECT;
-            case MappingEnd -> TokenType.END_OBJECT;
-            case SequenceEnd -> TokenType.END_ARRAY;
-            case SequenceStart -> TokenType.START_ARRAY;
-            case Scalar -> {
-                assert !mappingContextStack.isEmpty() : "Empty sequence/mapping context, no sequence/mapping found.";
-                CollectionContext ctx = mappingContextStack.peekFirst();
-                if (!ctx.isSequence() && ctx.isExpectingKey()) {
-                    yield TokenType.KEY;
-                }
-                yield resolveScalarType((ScalarEvent) currrentEvent);
-            }
-            case Alias, StreamEnd, StreamStart, Comment, DocumentEnd, DocumentStart -> null;
-        };
+    protected @Nullable TokenType currentToken() {
+        return currentToken;
     }
 
     @Override
     protected void nextToken() throws IOException {
-        Event nextEvent = eventReader.getEvent();
-        if (nextEvent == null) {
-            this.currrentEvent = null;
+        if (documentFinished) {
             return;
         }
-        if (inDocument) {
-            Event.ID eventId = nextEvent.getEventId();
-
-            if (eventId == Event.ID.Comment) {
-                nextToken();
-                return;
-            }
-            if (eventId == Event.ID.StreamStart || eventId == Event.ID.DocumentStart) {
-                throw createDeserializationException("Multiple documents encounter, deserialization failed.", null);
-            }
-            if (eventId == Event.ID.MappingEnd || eventId == Event.ID.SequenceEnd) {
-                mappingContextStack.removeFirst();
-                CollectionContext ctx = mappingContextStack.peekFirst();
-                if (ctx != null && !ctx.isSequence() && ctx.isExpectingKey()) {
-                    ctx.setExpectingKey(false);
-                }
-            }
-            if (eventId == Event.ID.MappingStart) {
-                mappingContextStack.push(new CollectionContext(false));
-            }
-            if (eventId == Event.ID.SequenceStart) {
-                mappingContextStack.push(new CollectionContext(true));
-            }
-            if (eventId == Event.ID.StreamEnd || eventId == Event.ID.DocumentEnd) {
-                if (eventId == Event.ID.DocumentEnd) {
-                    failIfAnotherDocumentExists();
-                }
-                inDocument = false;
-                finishStructure();
-            }
-            if (eventId == Event.ID.Scalar) {
-                assert !mappingContextStack.isEmpty() : "Mapping context can't be empty while decoding a scalar.";
-                CollectionContext ctx = mappingContextStack.peekFirst();
-                if (!ctx.isSequence()) {
-                    mappingContextStack.peekFirst().setExpectingKey(!mappingContextStack.peekFirst().isExpectingKey());
-                }
-            }
-            this.currrentEvent = nextEvent;
+        Event event = eventReader.getEvent();
+        if (event == null) {
+            finishDocument();
+            return;
         }
-
+        switch (event.getEventId()) {
+            case DocumentEnd, StreamEnd -> {
+                rejectFurtherDocuments();
+                finishDocument();
+            }
+            case DocumentStart, StreamStart -> throw multipleDocuments();
+            default -> setCurrent(event);
+        }
     }
 
-    private void failIfAnotherDocumentExists() throws IOException {
-        Event nextEvent;
-        while ((nextEvent = eventReader.getEvent()) != null) {
-            if (nextEvent.getEventId() == Event.ID.StreamEnd || nextEvent.getEventId() == Event.ID.Comment) {
-                continue;
+    private void finishDocument() {
+        documentFinished = true;
+        currentEvent = null;
+        currentToken = null;
+    }
+
+    private void rejectFurtherDocuments() throws IOException {
+        Event event;
+        while ((event = eventReader.getEvent()) != null) {
+            if (event.getEventId() != Event.ID.DocumentEnd && event.getEventId() != Event.ID.StreamEnd) {
+                throw multipleDocuments();
             }
-            throw createDeserializationException("Multiple documents encounter, deserialization failed.", null);
+        }
+    }
+
+    private SerdeException multipleDocuments() {
+        return new SerdeException("Multiple YAML documents were found in the input but only one document is supported");
+    }
+
+    private void setCurrent(Event event) throws IOException {
+        currentEvent = event;
+        switch (event.getEventId()) {
+            case MappingStart -> {
+                requireValuePosition(event);
+                contextStack.push(new CollectionContext(true));
+                currentToken = TokenType.START_OBJECT;
+            }
+            case SequenceStart -> {
+                requireValuePosition(event);
+                contextStack.push(new CollectionContext(false));
+                currentToken = TokenType.START_ARRAY;
+            }
+            case MappingEnd, SequenceEnd -> {
+                CollectionContext closed = contextStack.pollFirst();
+                if (closed == null) {
+                    throw new SerdeException("Unexpected end of a YAML collection" + location(event));
+                }
+                valueConsumed();
+                currentToken = closed.mapping ? TokenType.END_OBJECT : TokenType.END_ARRAY;
+            }
+            case Scalar -> {
+                ScalarEvent scalar = (ScalarEvent) event;
+                CollectionContext context = contextStack.peekFirst();
+                if (context != null && context.mapping && context.expectingKey) {
+                    context.expectingKey = false;
+                    currentToken = TokenType.KEY;
+                } else {
+                    currentToken = resolveScalarType(scalar);
+                    valueConsumed();
+                }
+            }
+            case Alias -> throw new SerdeException("Unresolved YAML alias" + location(event));
+            default -> throw new SerdeException("Unexpected YAML event " + event.getEventId() + location(event));
+        }
+    }
+
+    private void requireValuePosition(Event event) throws SerdeException {
+        CollectionContext context = contextStack.peekFirst();
+        if (context != null && context.mapping && context.expectingKey) {
+            throw new SerdeException("Complex YAML mapping keys are not supported, only scalar keys can be decoded" + location(event));
+        }
+    }
+
+    private void valueConsumed() {
+        CollectionContext context = contextStack.peekFirst();
+        if (context != null && context.mapping) {
+            context.expectingKey = true;
+        }
+    }
+
+    private TokenType resolveScalarType(ScalarEvent event) {
+        String value = event.getValue();
+        Tag tag;
+        if (event.getTag().isPresent()) {
+            tag = new Tag(event.getTag().get());
+        } else if (event.getScalarStyle() != ScalarStyle.PLAIN) {
+            tag = Tag.STR;
+        } else if (value.isEmpty()) {
+            tag = emptyStringAsNull ? Tag.NULL : Tag.STR;
+        } else if (!booleanAsStrings && isLegacyBoolean(value)) {
+            tag = Tag.BOOL;
+        } else {
+            tag = resolver.resolve(value, true);
+        }
+        if (Tag.INT.equals(tag) || Tag.FLOAT.equals(tag)) {
+            return TokenType.NUMBER;
+        } else if (Tag.BOOL.equals(tag)) {
+            return TokenType.BOOLEAN;
+        } else if (Tag.NULL.equals(tag)) {
+            return TokenType.NULL;
+        } else {
+            return TokenType.STRING;
         }
     }
 
     @Override
     protected String getCurrentKey() throws IOException {
-        if (currrentEvent instanceof ScalarEvent scalarEvent) {
-            return scalarEvent.getValue();
-        }
-        throw createDeserializationException("Current token is not a field name.", null);
+        return scalarValue();
     }
 
     @Override
     protected String coerceScalarToString(TokenType currentToken) throws IOException {
-        if (currrentEvent instanceof ScalarEvent scalarEvent) {
-            return scalarEvent.getValue();
-        }
-        throw createDeserializationException("Current token is not a scalar.", null);
+        return scalarValue();
     }
 
     @Override
     protected String getString() throws IOException {
-        if (currrentEvent instanceof ScalarEvent scalarEvent) {
-            return scalarEvent.getValue();
+        return scalarValue();
+    }
+
+    private String scalarValue() throws IOException {
+        if (currentEvent instanceof ScalarEvent scalar) {
+            return scalar.getValue();
         }
-        throw createDeserializationException("Current token is not a scalar.", null);
+        throw createDeserializationException("Current token is not a scalar", null);
     }
 
     @Override
     protected boolean getBoolean() throws IOException {
-        String value = getString();
+        String value = scalarValue();
         return "true".equalsIgnoreCase(value)
             || "yes".equalsIgnoreCase(value)
-            || "y".equalsIgnoreCase(value)
             || "on".equalsIgnoreCase(value);
     }
 
     @Override
     protected long getLong() throws IOException {
-        return Long.parseLong(getString());
+        return Long.parseLong(scalarValue());
     }
 
     @Override
     protected double getDouble() throws IOException {
-        return Double.parseDouble(getString());
+        return Double.parseDouble(scalarValue());
     }
 
     @Override
@@ -224,59 +276,35 @@ public class YamlDecoder extends AbstractStreamDecoder {
 
     @Override
     protected Number getBestNumber() throws IOException {
-        return Float.valueOf(getString());
+        return Float.valueOf(scalarValue());
     }
 
-    @Override
-    protected void skipChildren() throws IOException {
-    }
-
-    @Override
-    public @NonNull IOException createDeserializationException(@NonNull String message, @Nullable Object invalidValue) {
-        return new IOException(message);
-    }
-
-    private TokenType resolveScalarType(ScalarEvent event) {
-        String value = event.getValue();
-        ScalarStyle scalarStyle = event.getScalarStyle();
-        Tag tag;
-
-        if (!emptyStringAsNull && value.isEmpty()) {
-            tag = Tag.STR;
-        } else if (event.getTag().isPresent()) {
-            tag = new Tag(event.getTag().get());
-        } else if (scalarStyle != ScalarStyle.PLAIN) {
-            tag = Tag.STR;
-        } else {
-            tag = resolver.resolve(value, event.getImplicit().canOmitTagInPlainScalar());
-        }
-
-        if (Tag.FLOAT.equals(tag) || Tag.INT.equals(tag)) {
-            return TokenType.NUMBER;
-        } else if (!booleanAsStrings && isLegacyBoolean(value)) {
-            return TokenType.BOOLEAN;
-        // yes —> false and TRUE —> true
-        } else if (Tag.BOOL.equals(tag) && booleanAsStrings && !isCanonicalBoolean(value)) {
-            return TokenType.STRING;
-        } else if (Tag.BOOL.equals(tag)) {
-            return TokenType.BOOLEAN;
-        } else if (Tag.NULL.equals(tag)) {
-            return TokenType.NULL;
-        } else {
-            return TokenType.STRING;
-        }
-    }
-
-    private boolean isCanonicalBoolean(String value) {
-        // yes —> false and TRUE —> true
-        return "true".equalsIgnoreCase(value) || "false".equalsIgnoreCase(value);
-    }
-
-    private boolean isLegacyBoolean(String value) {
+    private static boolean isLegacyBoolean(String value) {
         return "yes".equalsIgnoreCase(value)
             || "no".equalsIgnoreCase(value)
             || "on".equalsIgnoreCase(value)
             || "off".equalsIgnoreCase(value);
+    }
+
+    @Override
+    protected void skipChildren() throws IOException {
+        if (currentToken != TokenType.START_OBJECT && currentToken != TokenType.START_ARRAY) {
+            return;
+        }
+        int depth = 1;
+        while (true) {
+            Event event = eventReader.getEvent();
+            if (event == null) {
+                throw new SerdeException("Unexpected end of YAML input inside a collection");
+            }
+            if (event instanceof CollectionStartEvent) {
+                depth++;
+            } else if (event instanceof CollectionEndEvent && --depth == 0) {
+                // the matching end event becomes the current token, skipValue() then moves past it
+                setCurrent(event);
+                return;
+            }
+        }
     }
 
     @Override
@@ -285,25 +313,24 @@ public class YamlDecoder extends AbstractStreamDecoder {
         nextToken();
     }
 
-    static final class CollectionContext {
-        private boolean expectingKey = false;
-        private final boolean sequence;
-
-        CollectionContext(boolean sequence) {
-            this.sequence = sequence;
-        }
-
-        public boolean isExpectingKey() {
-            return expectingKey;
-        }
-
-        public void setExpectingKey(boolean expectingKey) {
-            this.expectingKey = expectingKey;
-        }
-
-        public boolean isSequence() {
-            return sequence;
-        }
+    @Override
+    public @NonNull IOException createDeserializationException(@NonNull String message, @Nullable Object invalidValue) {
+        return new SerdeException(message);
     }
 
+    private static String location(Event event) {
+        return event.getStartMark()
+            .map(mark -> " at line " + (mark.getLine() + 1) + ", column " + (mark.getColumn() + 1))
+            .orElse("");
+    }
+
+    private static final class CollectionContext {
+        private final boolean mapping;
+        private boolean expectingKey;
+
+        CollectionContext(boolean mapping) {
+            this.mapping = mapping;
+            this.expectingKey = mapping;
+        }
+    }
 }

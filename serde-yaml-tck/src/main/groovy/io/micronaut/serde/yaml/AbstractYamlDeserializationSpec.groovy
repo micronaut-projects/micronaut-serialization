@@ -64,6 +64,54 @@ abstract class AbstractYamlDeserializationSpec extends AbstractYamlCompileSpec {
         context.close()
     }
 
+    void "deserialization - root sequence"() {
+        given:
+        def context = ApplicationContext.run(getContextProperties())
+        initializeMapper(context)
+
+        expect:
+        readYaml('- A\n- B\n', Argument.listOf(String)) == ["A", "B"]
+        readYaml('- a: 1\n- b: 2\n', Argument.listOf(Argument.mapOf(String, Integer))) == [[a: 1], [b: 2]]
+
+        cleanup:
+        context.close()
+    }
+
+    void "deserialization - root scalar"() {
+        given:
+        def context = ApplicationContext.run(getContextProperties())
+        initializeMapper(context)
+
+        expect:
+        readYaml('hello\n', Argument.of(String)) == "hello"
+        readYaml('42\n', Argument.of(Integer)) == 42
+        readYaml('true\n', Argument.of(Boolean))
+
+        cleanup:
+        context.close()
+    }
+
+    void "deserialization - unknown nested collections are ignored"() {
+        given:
+        def context = buildContext('test.Test', '''
+        package test;
+        import io.micronaut.serde.annotation.Serdeable;
+        @Serdeable
+        record Test(String value1, String value2) {}
+    ''')
+
+        expect:
+        def obj = readYaml(
+                'value1: A\nextra:\n  nested:\n    - 1\n    - k: v\n  other: [x, y]\nvalue2: B\nmore: [1, 2]\n',
+                typeUnderTest
+        )
+        obj.value1() == "A"
+        obj.value2() == "B"
+
+        cleanup:
+        context.close()
+    }
+
     void "deserialization - missing optional-like nullable field becomes null"() {
         given:
         def context = buildContext('test.Test', '''
@@ -623,9 +671,13 @@ value: *missing
         readYaml(yaml, type)
     }
 
-    // This method will be overridden in the jackson-databind TCK YAML module
+    /*
+    * This method will be overridden in the jackson-databind TCK YAML module, where the reader
+    * unwraps the root name. Micronaut Serialization has no root name wrapping, so the wrapped
+    * document is read as a mapping from the root name to the value.
+    */
     protected <T> T readYamlWithRootWrapper(String yaml, Argument<T> type) {
-        readYaml(yaml, type)
+        readYaml(yaml, Argument.mapOf(Argument.STRING, type)).get(type.type.simpleName)
     }
 
 }

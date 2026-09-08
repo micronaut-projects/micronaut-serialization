@@ -23,6 +23,7 @@ import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.ObjectMapper;
 import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.config.CoercionPolicy;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
 import io.micronaut.serde.support.util.JsonViewUtil;
@@ -58,6 +59,7 @@ public final class YamlObjectMapper implements ObjectMapper {
     final SerdeConfiguration serdeConfiguration;
     final SerdeYamlConfiguration yamlConfiguration;
     final YamlStringQuotingChecker quotingChecker;
+    final YamlReadSettings readSettings;
     @Nullable
     final Class<?> view;
 
@@ -80,6 +82,7 @@ public final class YamlObjectMapper implements ObjectMapper {
         this.serdeConfiguration = serdeConfiguration;
         this.yamlConfiguration = yamlConfiguration;
         this.quotingChecker = quotingChecker;
+        this.readSettings = YamlReadSettings.from(yamlConfiguration);
         this.view = view;
     }
 
@@ -110,7 +113,7 @@ public final class YamlObjectMapper implements ObjectMapper {
         Deserializer.DecoderContext context = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view));
         final Deserializer<? extends T> deserializer = context.findDeserializer(type).createSpecific(context, type);
         return deserializer.deserialize(
-            new YamlDecoder(inputStream, limits(), yamlConfiguration),
+            new YamlDecoder(inputStream, limits(), CoercionPolicy.LENIENT, readSettings),
             context,
             type
         );
