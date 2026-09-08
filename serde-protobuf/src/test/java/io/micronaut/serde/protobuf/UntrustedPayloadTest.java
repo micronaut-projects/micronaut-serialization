@@ -7,7 +7,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 
@@ -81,7 +80,7 @@ class UntrustedPayloadTest {
     }
 
     @Test
-    void aValueInsideANestedMessageCannotReadPastIt() throws Exception {
+    void aValueInsideANestedMessageCannotReadPastIt() {
         // the nested message declares one byte and then contains a fixed64 tag: without the limit
         // reaching the varint and fixed reads, those eight bytes would be taken from the parent and
         // then read again by the parent as its own fields
@@ -197,6 +196,5 @@ class UntrustedPayloadTest {
             () -> mapper.readValue(payload, Argument.of(BigNumberHolder.class)));
 
         assertTrue(message(e).contains("above the limit of 1000"), message(e));
-        assertEquals(BigDecimal.class, BigDecimal.class);
     }
 }
