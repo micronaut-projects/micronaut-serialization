@@ -16,6 +16,7 @@
 package io.micronaut.serde.yaml;
 
 import io.micronaut.serde.config.CoercionPolicy;
+import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.AbstractStreamDecoder;
 import org.jspecify.annotations.NonNull;
@@ -38,6 +39,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Iterator;
+import java.util.Set;
 
 /**
  * YAML implementation of the {@link io.micronaut.serde.Decoder} interface.
@@ -51,6 +53,11 @@ import java.util.Iterator;
  */
 public final class YamlDecoder extends AbstractStreamDecoder {
 
+    private static final Set<String> LEGACY_BOOLEANS = Set.of(
+        "yes", "Yes", "YES", "no", "No", "NO",
+        "on", "On", "ON", "off", "Off", "OFF"
+    );
+
     private final YAMLAnchorReplayingParser eventReader;
     private final ScalarResolver resolver;
     private final boolean booleanAsStrings;
@@ -60,6 +67,8 @@ public final class YamlDecoder extends AbstractStreamDecoder {
     private Event currentEvent;
     @Nullable
     private TokenType currentToken;
+    @Nullable
+    private Tag currentScalarTag;
     private boolean documentFinished;
 
     /**
@@ -133,6 +142,7 @@ public final class YamlDecoder extends AbstractStreamDecoder {
         documentFinished = true;
         currentEvent = null;
         currentToken = null;
+        currentScalarTag = null;
     }
 
     private void rejectFurtherDocuments() throws IOException {
@@ -150,6 +160,7 @@ public final class YamlDecoder extends AbstractStreamDecoder {
 
     private void setCurrent(Event event) throws IOException {
         currentEvent = event;
+        currentScalarTag = null;
         switch (event.getEventId()) {
             case MappingStart -> {
                 requireValuePosition(event);
@@ -208,11 +219,12 @@ public final class YamlDecoder extends AbstractStreamDecoder {
             tag = Tag.STR;
         } else if (value.isEmpty()) {
             tag = emptyStringAsNull ? Tag.NULL : Tag.STR;
-        } else if (!booleanAsStrings && isLegacyBoolean(value)) {
+        } else if (!booleanAsStrings && LEGACY_BOOLEANS.contains(value)) {
             tag = Tag.BOOL;
         } else {
             tag = resolver.resolve(value, true);
         }
+        currentScalarTag = tag;
         if (Tag.INT.equals(tag) || Tag.FLOAT.equals(tag)) {
             return TokenType.NUMBER;
         } else if (Tag.BOOL.equals(tag)) {
@@ -255,35 +267,69 @@ public final class YamlDecoder extends AbstractStreamDecoder {
     }
 
     @Override
+    protected boolean isCurrentNumberFloat() {
+        return Tag.FLOAT.equals(currentScalarTag);
+    }
+
+    @Override
     protected long getLong() throws IOException {
-        return Long.parseLong(scalarValue());
+        String value = scalarValue();
+        try {
+            Number number = YamlNumbers.parse(value);
+            if (number instanceof BigInteger bigInteger) {
+                if (bigInteger.bitLength() > 63) {
+                    throw createDeserializationException("Numeric value out of range of long", value);
+                }
+                return bigInteger.longValue();
+            }
+            return number.longValue();
+        } catch (NumberFormatException e) {
+            throw invalidNumber(value, e);
+        }
     }
 
     @Override
     protected double getDouble() throws IOException {
-        return Double.parseDouble(scalarValue());
+        String value = scalarValue();
+        try {
+            return YamlNumbers.parse(value).doubleValue();
+        } catch (NumberFormatException e) {
+            throw invalidNumber(value, e);
+        }
     }
 
     @Override
     protected BigInteger getBigInteger() throws IOException {
-        return BigInteger.valueOf(getLong());
+        String value = scalarValue();
+        try {
+            return YamlNumbers.parseBigDecimal(value).toBigInteger();
+        } catch (NumberFormatException e) {
+            throw invalidNumber(value, e);
+        }
     }
 
     @Override
     protected BigDecimal getBigDecimal() throws IOException {
-        return BigDecimal.valueOf(getDouble());
+        String value = scalarValue();
+        try {
+            return YamlNumbers.parseBigDecimal(value);
+        } catch (NumberFormatException e) {
+            throw invalidNumber(value, e);
+        }
     }
 
     @Override
     protected Number getBestNumber() throws IOException {
-        return Float.valueOf(scalarValue());
+        String value = scalarValue();
+        try {
+            return YamlNumbers.parse(value);
+        } catch (NumberFormatException e) {
+            throw invalidNumber(value, e);
+        }
     }
 
-    private static boolean isLegacyBoolean(String value) {
-        return "yes".equalsIgnoreCase(value)
-            || "no".equalsIgnoreCase(value)
-            || "on".equalsIgnoreCase(value)
-            || "off".equalsIgnoreCase(value);
+    private IOException invalidNumber(String value, NumberFormatException cause) {
+        return new InvalidFormatException("Unable to parse YAML scalar as a number", cause, value);
     }
 
     @Override

@@ -112,6 +112,30 @@ abstract class AbstractYamlDeserializationSpec extends AbstractYamlCompileSpec {
         context.close()
     }
 
+    void "deserialization - big numbers keep their precision"() {
+        given:
+        def context = buildContext('test.Test', '''
+        package test;
+        import io.micronaut.serde.annotation.Serdeable;
+        import java.math.BigDecimal;
+        import java.math.BigInteger;
+        @Serdeable
+        record Test(long l, BigInteger bigInteger, BigDecimal bigDecimal) {}
+    ''')
+
+        expect:
+        def obj = readYaml(
+                'l: 9223372036854775807\nbigInteger: 92233720368547758070\nbigDecimal: 0.10000000000000000555111512312578\n',
+                typeUnderTest
+        )
+        obj.l() == Long.MAX_VALUE
+        obj.bigInteger() == new BigInteger("92233720368547758070")
+        obj.bigDecimal() == new BigDecimal("0.10000000000000000555111512312578")
+
+        cleanup:
+        context.close()
+    }
+
     void "deserialization - missing optional-like nullable field becomes null"() {
         given:
         def context = buildContext('test.Test', '''

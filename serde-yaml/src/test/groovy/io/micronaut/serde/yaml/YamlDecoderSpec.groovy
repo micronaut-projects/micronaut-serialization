@@ -2,8 +2,10 @@ package io.micronaut.serde.yaml
 
 import io.micronaut.context.ApplicationContext
 import io.micronaut.core.type.Argument
+import io.micronaut.serde.exceptions.InvalidFormatException
 import io.micronaut.serde.exceptions.SerdeException
 import io.micronaut.serde.yaml.data.Book
+import io.micronaut.serde.yaml.data.Numbers
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 import spock.lang.Specification
@@ -148,5 +150,80 @@ merged:
         then:
         def e = thrown(SerdeException)
         e.message.contains("merge key")
+    }
+    def "core schema integers are parsed"() {
+        expect:
+        mapper.readValue("i: $yaml\n", Numbers).i() == expected
+
+        where:
+        yaml   || expected
+        "12"   || 12
+        "+12"  || 12
+        "-12"  || -12
+        "0x1F" || 31
+        "0o17" || 15
+        "0"    || 0
+    }
+
+    def "core schema floats are parsed"() {
+        expect:
+        mapper.readValue("d: $yaml\n", Numbers).d() == expected
+
+        where:
+        yaml    || expected
+        "1.5"   || 1.5d
+        ".5"    || 0.5d
+        "1e3"   || 1000d
+        "-2.5E-1" || -0.25d
+        ".inf"  || Double.POSITIVE_INFINITY
+        "-.Inf" || Double.NEGATIVE_INFINITY
+        "+.INF" || Double.POSITIVE_INFINITY
+    }
+
+    def "nan is parsed"() {
+        expect:
+        Double.isNaN(mapper.readValue("d: .nan\n", Numbers).d())
+        Float.isNaN(mapper.readValue("f: .NaN\n", Numbers).f())
+    }
+
+    def "big numbers keep their precision"() {
+        when:
+        def numbers = mapper.readValue('''
+l: 9223372036854775807
+bigInteger: 92233720368547758070
+bigDecimal: 0.10000000000000000555111512312578
+''', Numbers)
+
+        then:
+        numbers.l() == Long.MAX_VALUE
+        numbers.bigInteger() == new BigInteger("92233720368547758070")
+        numbers.bigDecimal() == new BigDecimal("0.10000000000000000555111512312578")
+    }
+
+    def "untyped numbers use the narrowest type"() {
+        when:
+        def map = mapper.readValue('''
+i: 1
+l: 4294967296
+big: 92233720368547758070
+d: 1.5
+hex: 0xFF
+''', Argument.mapOf(String, Object))
+
+        then:
+        map.i instanceof Integer
+        map.l instanceof Long
+        map.big instanceof BigInteger
+        map.d instanceof Double
+        map.hex == 255
+    }
+
+    def "a long that does not fit fails as an invalid format"() {
+        when:
+        mapper.readValue("l: 92233720368547758070\n", Numbers)
+
+        then:
+        def e = thrown(InvalidFormatException)
+        e.originalValue == "92233720368547758070"
     }
 }
