@@ -182,7 +182,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         } else if (element.hasDeclaredAnnotation(SerdeConfig.SerValue.class)) {
             if (jsonValueField != null) {
                 throw new ProcessingException(element, "A JsonValue field is already defined: " + jsonValueField);
-            } else if (jsonValueMethod != null) {
+            } else if (jsonValueMethod != null && !isSameRecordComponent(jsonValueMethod, element)) {
                 throw new ProcessingException(element, "A JsonValue method is already defined: " + jsonValueMethod);
             } else {
                 this.jsonValueField = element;
@@ -191,12 +191,28 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         if (element.hasDeclaredAnnotation(SerdeConfig.SerKey.class)) {
             if (jsonKeyField != null) {
                 throw new ProcessingException(element, "A JsonKey field is already defined: " + jsonKeyField);
-            } else if (jsonKeyMethod != null) {
+            } else if (jsonKeyMethod != null && !isSameRecordComponent(jsonKeyMethod, element)) {
                 throw new ProcessingException(element, "A JsonKey method is already defined: " + jsonKeyMethod);
             } else {
                 this.jsonKeyField = element;
             }
         }
+    }
+
+    /**
+     * Checks whether a method and a field are the accessor and the backing field of the same record component.
+     * An annotation declared on a record component is propagated to the component's field, accessor and
+     * constructor parameter, so seeing it on both the field and the accessor is not a duplicate declaration.
+     *
+     * @param method The method
+     * @param field  The field
+     * @return true if both elements represent the same record component
+     */
+    private boolean isSameRecordComponent(MethodElement method, FieldElement field) {
+        return currentClass().isRecord()
+            && !method.hasParameters()
+            && !method.isStatic()
+            && method.getName().equals(field.getName());
     }
 
     @Override
@@ -283,7 +299,9 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             }
         } else if (methodMetadata.hasDeclaredAnnotation(SerdeConfig.SerValue.class)) {
             if (jsonValueField != null) {
-                throw new ProcessingException(element, "A JsonValue field is already defined: " + jsonValueField);
+                if (!isSameRecordComponent(element, jsonValueField)) {
+                    throw new ProcessingException(element, "A JsonValue field is already defined: " + jsonValueField);
+                }
             } else if (jsonValueMethod != null) {
                 throw new ProcessingException(element, "A JsonValue method is already defined: " + jsonValueMethod);
             } else {
@@ -298,7 +316,9 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             } else if (element.hasParameters()) {
                 throw new ProcessingException(element, "A JsonKey method cannot define arguments");
             } else if (jsonKeyField != null) {
-                throw new ProcessingException(element, "A JsonKey field is already defined: " + jsonKeyField);
+                if (!isSameRecordComponent(element, jsonKeyField)) {
+                    throw new ProcessingException(element, "A JsonKey field is already defined: " + jsonKeyField);
+                }
             } else if (jsonKeyMethod != null) {
                 throw new ProcessingException(element, "A JsonKey method is already defined: " + jsonKeyMethod);
             } else {
