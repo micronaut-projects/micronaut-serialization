@@ -8,6 +8,7 @@ managed-jakarta-json-bindApi = "3.0.3"
 managed-jakarta-xml-bindApi = "4.0.5"
 jaxb-runtime = "4.0.9"
 managed-eclipse-parsson = "1.1.9"
+managed-snakeyaml-engine = "3.0.1"
 
 aws-lambda-events = "3.16.1"
 aws-lambda-serialization = "1.4.1"
@@ -29,6 +30,9 @@ micronaut-reactor = "4.0.0"
 micronaut-validation = "5.0.0"
 micronaut-gradle-plugin = "5.0.0"
 micronaut-sourcegen = "2.0.0"
+# Only used by the YAML TCK parity suite. Ahead of the platform Jackson line because the YAML
+# schema selection the parity suite needs (YAMLSchema.CORE) arrived in 3.2.0.
+jackson-dataformat-yaml = "3.2.0"
 jsonassert = "1.5.3"
 xmlunit = "2.12.0"
 
@@ -58,6 +62,7 @@ managed-jakarta-json-api = { module = "jakarta.json:jakarta.json-api", version.r
 managed-jakarta-json-bindApi = { module = "jakarta.json.bind:jakarta.json.bind-api", version.ref = "managed-jakarta-json-bindApi" }
 managed-jakarta-xml-bindApi = { module = "jakarta.xml.bind:jakarta.xml.bind-api", version.ref = "managed-jakarta-xml-bindApi" }
 jaxb-runtime = { module = "org.glassfish.jaxb:jaxb-runtime", version.ref = "jaxb-runtime" }
+managed-snakeyaml-engine = { module = "org.snakeyaml:snakeyaml-engine", version.ref = "managed-snakeyaml-engine" }
 
 # Dependencies used only by Jakarta TCK verification tasks.
 jakarta-enterprise-cdi-api = { module = "jakarta.enterprise:jakarta.enterprise.cdi-api", version.ref = "jakarta-enterprise-cdi-api" }
@@ -86,6 +91,7 @@ nullaway = { module = "com.uber.nullaway:nullaway", version.ref = "nullaway" }
 error-prone-core = { module = "com.google.errorprone:error_prone_core", version.ref = "error_prone_core" }
 
 oci-aidocument = { module = "com.oracle.oci.sdk:oci-java-sdk-aidocument" }
+jackson-dataformat-yaml = { module = "tools.jackson.dataformat:jackson-dataformat-yaml", version.ref = "jackson-dataformat-yaml" }
 jsonassert = { module = 'org.skyscreamer:jsonassert', version.ref = 'jsonassert'}
 xmlunit-core = { module = "org.xmlunit:xmlunit-core", version.ref = "xmlunit" }
 
