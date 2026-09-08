@@ -48,12 +48,31 @@ import java.math.BigInteger;
 @Internal
 public final class ProtobufDecoder extends LimitingStream implements KeysAwareDecoder {
 
+    /**
+     * The longest digit string accepted for {@code BigInteger} and {@code BigDecimal}, matching
+     * Jackson's {@code StreamReadConstraints} default.
+     */
+    private static final int MAX_NUMBER_LENGTH = 1000;
+
+    /**
+     * How many times the payload's own length may be spent on normalized copies of its messages.
+     *
+     * <p>Each nested message is normalized into a fresh array, and every copy along the current
+     * path stays reachable until its parent finishes, so a deeply nested payload can retain many
+     * times its own size. Legitimate documents partition their bytes between siblings and stay far
+     * below this; a payload built so each child is nearly as large as its parent does not.</p>
+     */
+    private static final long NORMALIZED_BUDGET_FACTOR = 16L;
+
+    private static final long MIN_NORMALIZED_BUDGET = 1L << 20;
+
     private final ProtoInput input;
     private final int limit;
     private final Kind kind;
     private final @Nullable ProtoSchema schema;
     private final @Nullable ProtoProperty owner;
     private final DecoderContext decoderContext;
+    private final NormalizationBudget budget;
 
     private @Nullable ProtoProperty currentProperty;
     private int currentWireType = -1;
@@ -81,6 +100,10 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
         this.schema = null;
         this.owner = null;
         this.decoderContext = decoderContext;
+        // a long: for a payload past ~128 MiB an int multiply overflows, and the max below would
+        // then pick the 1 MiB floor and reject a perfectly valid message
+        this.budget = new NormalizationBudget(
+            Math.max(MIN_NORMALIZED_BUDGET, payload.length * NORMALIZED_BUDGET_FACTOR));
     }
 
     private ProtobufDecoder(ProtoInput input,
@@ -89,6 +112,7 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
                             @Nullable ProtoSchema schema,
                             @Nullable ProtoProperty owner,
                             DecoderContext decoderContext,
+                            NormalizationBudget budget,
                             RemainingLimits remainingLimits) {
         super(remainingLimits);
         this.input = input;
@@ -97,6 +121,7 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
         this.schema = schema;
         this.owner = owner;
         this.decoderContext = decoderContext;
+        this.budget = budget;
     }
 
     @Override
@@ -106,9 +131,10 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
             // the payload itself is the top-level message; it has no tag and no length prefix
             case ROOT -> {
                 byte[] normalized = ProtoMessageNormalizer.normalize(input.buffer(), input.position(), limit, childSchema);
+                budget.charge(normalized.length);
                 input.position(limit);
                 yield new ProtobufDecoder(new ProtoInput(normalized), normalized.length, Kind.MESSAGE, childSchema, null,
-                    decoderContext, childLimits());
+                    decoderContext, budget, childLimits());
             }
             case MESSAGE, REPEATED -> {
                 expectWireType(ProtoWire.LENGTH_DELIMITED, "a nested message");
@@ -118,8 +144,9 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
                 input.position(end);
                 valueConsumed();
                 byte[] normalized = ProtoMessageNormalizer.normalize(input.buffer(), start, end, childSchema);
+                budget.charge(normalized.length);
                 yield new ProtobufDecoder(new ProtoInput(normalized), normalized.length, Kind.MESSAGE, childSchema, currentProperty,
-                    decoderContext, childLimits());
+                    decoderContext, budget, childLimits());
             }
             default -> throw new SerdeException("A packed protobuf field cannot contain messages");
         };
@@ -136,7 +163,7 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
             int length = input.readLength(limit);
             valueConsumed();
             return new ProtobufDecoder(input, input.position() + length, Kind.BYTES, schema, property,
-                decoderContext, childLimits());
+                decoderContext, budget, childLimits());
         }
         // a byte[] read element by element is still one bytes field, and a repeated scalar is
         // packed into a single length-delimited run
@@ -145,12 +172,12 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
             int length = input.readLength(limit);
             Kind childKind = property.bytesField() ? Kind.BYTES : Kind.PACKED;
             return new ProtobufDecoder(input, input.position() + length, childKind, schema, property,
-                decoderContext, childLimits());
+                decoderContext, budget, childLimits());
         }
         // one element has already been positioned by the tag that opened this field; further
         // elements follow as repeats of the same tag, up to the end of the enclosing message
         ProtobufDecoder repeated = new ProtobufDecoder(input, limit, Kind.REPEATED, schema, property,
-            decoderContext, childLimits());
+            decoderContext, budget, childLimits());
         repeated.currentProperty = property;
         repeated.currentWireType = currentWireType;
         repeated.firstElement = true;
@@ -275,7 +302,7 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
     @Override
     public float decodeFloat() throws IOException {
         expectWireType(ProtoWire.FIXED32, "a float");
-        float value = Float.intBitsToFloat(input.readFixed32());
+        float value = Float.intBitsToFloat(input.readFixed32(limit));
         valueConsumed();
         return value;
     }
@@ -283,19 +310,38 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
     @Override
     public double decodeDouble() throws IOException {
         expectWireType(ProtoWire.FIXED64, "a double");
-        double value = Double.longBitsToDouble(input.readFixed64());
+        double value = Double.longBitsToDouble(input.readFixed64(limit));
         valueConsumed();
         return value;
     }
 
     @Override
     public BigInteger decodeBigInteger() throws IOException {
-        return new BigInteger(decodeString());
+        return new BigInteger(decodeNumberText("an integer"));
     }
 
     @Override
     public BigDecimal decodeBigDecimal() throws IOException {
-        return new BigDecimal(decodeString());
+        return new BigDecimal(decodeNumberText("a decimal"));
+    }
+
+    /**
+     * Read the text of an arbitrary-precision number, refusing one long enough to be a denial of
+     * service.
+     *
+     * <p>Parsing a decimal string into a {@link BigInteger} is superlinear, so an unbounded digit
+     * string lets a payload of a few megabytes hold a request thread for minutes. Jackson caps this
+     * the same way through {@code StreamReadConstraints}, and the limit here matches its default.
+     * A number longer than this has no protobuf representation anyway &mdash; it travels as a
+     * string only because the format has no arbitrary-precision type.</p>
+     */
+    private String decodeNumberText(String what) throws IOException {
+        String text = decodeString();
+        if (text.length() > MAX_NUMBER_LENGTH) {
+            throw new SerdeException("The protobuf field " + describeCurrent() + " carries " + what
+                + " of " + text.length() + " characters, above the limit of " + MAX_NUMBER_LENGTH + ".");
+        }
+        return text;
     }
 
     @Override
@@ -330,7 +376,7 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
     @Override
     public Decoder decodeBuffer() throws IOException {
         ProtobufDecoder buffered = new ProtobufDecoder(
-            new ProtoInput(input.buffer()), limit, kind, schema, owner, decoderContext, ourLimits());
+            new ProtoInput(input.buffer()), limit, kind, schema, owner, decoderContext, budget, ourLimits());
         buffered.input.position(input.position());
         buffered.currentProperty = currentProperty;
         buffered.currentWireType = currentWireType;
@@ -344,7 +390,7 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
     public void skipValue() throws IOException {
         ProtoProperty property = currentProperty;
         int wireType = valueWireType(ProtoWire.VARINT);
-        input.skip(property == null ? 0 : property.number(), wireType, limit);
+        input.skip(wireType, limit);
         if (kind == Kind.REPEATED) {
             firstElement = false;
         }
@@ -408,7 +454,7 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
             int slot = currentSchema.slotOf(fieldNumber);
             if (slot < 0) {
                 // a field this version does not know about: skipping keeps readers forward compatible
-                input.skip(fieldNumber, wireType, limit);
+                input.skip(wireType, limit);
                 continue;
             }
             currentProperty = currentSchema.propertyAt(slot);
@@ -428,7 +474,7 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
         }
         long value = switch (expectedWireType) {
             case ProtoWire.VARINT -> {
-                long raw = input.readVarint64();
+                long raw = input.readVarint64(limit);
                 if (property == null || property.intKind() != ProtoProperty.KIND_ZIGZAG) {
                     yield raw;
                 }
@@ -438,8 +484,8 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
                     ? ProtoWire.zigZagDecode32((int) raw)
                     : ProtoWire.zigZagDecode64(raw);
             }
-            case ProtoWire.FIXED32 -> input.readFixed32();
-            case ProtoWire.FIXED64 -> input.readFixed64();
+            case ProtoWire.FIXED32 -> input.readFixed32(limit);
+            case ProtoWire.FIXED64 -> input.readFixed64(limit);
             default -> throw new SerdeException("Expected a numeric protobuf value but the field "
                 + describeCurrent() + " is length-delimited");
         };
@@ -516,7 +562,7 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
                 input.position(mark);
                 return;
             }
-            input.skip(fieldNumber, ProtoWire.wireType(tag), limit);
+            input.skip(ProtoWire.wireType(tag), limit);
         }
     }
 
@@ -536,7 +582,7 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
     private void consumeRemainingRepeatedValues() throws IOException {
         ProtoProperty property = requireOwner();
         if (firstElement || valuePending) {
-            input.skip(property.number(), currentWireType, limit);
+            input.skip(currentWireType, limit);
             firstElement = false;
             valuePending = false;
         }
@@ -552,6 +598,32 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
         Deserializer<? extends T> deserializer = context.findDeserializer(argument)
             .createSpecific(context, argument);
         return deserializer.deserialize(this, context, argument);
+    }
+
+    /**
+     * A running total of the bytes spent normalizing a single payload's messages.
+     *
+     * <p>Shared by every decoder reading one payload, so the cost is bounded across the whole tree
+     * rather than per message. Without it, nesting multiplies the retained bytes by the depth
+     * limit, and a payload of a megabyte can hold three orders of magnitude more heap than its
+     * size suggests.</p>
+     */
+    private static final class NormalizationBudget {
+        private final long limit;
+        private long spent;
+
+        private NormalizationBudget(long limit) {
+            this.limit = limit;
+        }
+
+        private void charge(int bytes) throws SerdeException {
+            spent += bytes;
+            if (spent > limit) {
+                throw new SerdeException("This protobuf payload expands to more than " + limit
+                    + " bytes of nested messages, which is far more than its own size. Refusing to"
+                    + " continue: a payload this deeply nested is a denial of service rather than data.");
+            }
+        }
     }
 
     private enum Kind {

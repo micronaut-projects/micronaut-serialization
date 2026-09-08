@@ -14,6 +14,8 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Coverage for the wire shapes beyond the simple scalar case: repeated messages, byte strings, the
@@ -161,7 +163,7 @@ class ProtobufWireShapesTest {
     }
 
     @Test
-    void skipsAnUnknownGroup() throws Exception {
+    void rejectsAGroupRatherThanSkippingIt() {
         byte[] payload = {
             27,             // unknown field 3, start group
             8, 1,           // nested field
@@ -169,8 +171,14 @@ class ProtobufWireShapesTest {
             10, 1, 'a'
         };
 
-        assertEquals(new NameAndAge("a", 0),
-            mapper.readValue(payload, Argument.of(NameAndAge.class)));
+        // groups are a proto2-only encoding this backend does not support. Skipping them meant
+        // recursing per nested start-group tag, and a start-group tag is one byte, so a small
+        // payload could exhaust the stack; see UntrustedPayloadTest.
+        Exception e = assertThrows(Exception.class,
+            () -> mapper.readValue(payload, Argument.of(NameAndAge.class)));
+        assertTrue(String.valueOf(e.getMessage()).contains("group encoding is not supported")
+            || String.valueOf(e.getCause()).contains("group encoding is not supported"),
+            () -> String.valueOf(e));
     }
 }
 

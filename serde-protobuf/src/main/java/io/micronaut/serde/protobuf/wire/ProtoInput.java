@@ -19,6 +19,10 @@ import io.micronaut.core.annotation.Internal;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -127,22 +131,33 @@ public final class ProtoInput {
      * @throws IOException If the payload is truncated or malformed
      */
     public long readVarint64() throws IOException {
+        return readVarint64(buffer.length);
+    }
+
+    /**
+     * Read a variable-width integer without reading past an enclosing structure's limit.
+     *
+     * @param limit The position the value must not extend past
+     * @return The value
+     * @throws IOException If the payload is truncated or malformed
+     */
+    public long readVarint64(int limit) throws IOException {
         // single-byte varints cover tags, small ints, booleans and most lengths
         int p = position;
-        if (p < buffer.length) {
+        if (p < limit) {
             byte b = buffer[p];
             if (b >= 0) {
                 position = p + 1;
                 return b;
             }
         }
-        return readVarint64MultiByte();
+        return readVarint64MultiByte(limit);
     }
 
-    private long readVarint64MultiByte() throws IOException {
+    private long readVarint64MultiByte(int limit) throws IOException {
         long result = 0;
         for (int shift = 0; shift < 64; shift += 7) {
-            byte b = readByte();
+            byte b = readByte(limit);
             result |= (long) (b & 0x7F) << shift;
             if ((b & 0x80) == 0) {
                 return result;
@@ -158,7 +173,18 @@ public final class ProtoInput {
      * @throws IOException If the payload is truncated
      */
     public int readFixed32() throws IOException {
-        require(4);
+        return readFixed32(buffer.length);
+    }
+
+    /**
+     * Read a fixed four-byte little-endian value without reading past a limit.
+     *
+     * @param limit The position the value must not extend past
+     * @return The value
+     * @throws IOException If the payload is truncated
+     */
+    public int readFixed32(int limit) throws IOException {
+        require(4, limit);
         int p = position;
         position = p + 4;
         return (buffer[p] & 0xFF)
@@ -174,7 +200,18 @@ public final class ProtoInput {
      * @throws IOException If the payload is truncated
      */
     public long readFixed64() throws IOException {
-        require(8);
+        return readFixed64(buffer.length);
+    }
+
+    /**
+     * Read a fixed eight-byte little-endian value without reading past a limit.
+     *
+     * @param limit The position the value must not extend past
+     * @return The value
+     * @throws IOException If the payload is truncated
+     */
+    public long readFixed64(int limit) throws IOException {
+        require(8, limit);
         int p = position;
         position = p + 8;
         long result = 0;
@@ -210,7 +247,7 @@ public final class ProtoInput {
     public String readString(int limit) throws IOException {
         int length = readLength(limit);
         require(length);
-        String result = new String(buffer, position, length, StandardCharsets.UTF_8);
+        String result = decodeUtf8(position, length);
         position += length;
         return result;
     }
@@ -240,7 +277,9 @@ public final class ProtoInput {
         if (length < 0) {
             throw new IOException("Malformed protobuf payload: negative length " + length);
         }
-        if (position + length > limit) {
+        // subtract rather than add: position + length overflows for a length near Integer.MAX_VALUE
+        // and wraps negative, which would let the check pass
+        if (length > limit - position) {
             throw new IOException("Malformed protobuf payload: a value of " + length
                 + " bytes reaches past the end of its enclosing structure");
         }
@@ -265,26 +304,14 @@ public final class ProtoInput {
      * @throws IOException If the payload is truncated or the wire type is unknown
      */
     public void skip(int wireType, int limit) throws IOException {
-        skip(0, wireType, limit);
-    }
-
-    /**
-     * Skip a complete field value, including a deprecated group.
-     *
-     * @param fieldNumber The field number
-     * @param wireType    The wire type
-     * @param limit       The position the value must not extend past
-     * @throws IOException If the payload is truncated or the group is malformed
-     */
-    public void skip(int fieldNumber, int wireType, int limit) throws IOException {
         switch (wireType) {
-            case ProtoWire.VARINT -> readVarint64();
+            case ProtoWire.VARINT -> readVarint64(limit);
             case ProtoWire.FIXED64 -> {
-                require(8);
+                require(8, limit);
                 position += 8;
             }
             case ProtoWire.FIXED32 -> {
-                require(4);
+                require(4, limit);
                 position += 4;
             }
             case ProtoWire.LENGTH_DELIMITED -> {
@@ -293,27 +320,14 @@ public final class ProtoInput {
                 int length = readLength(limit);
                 position += length;
             }
-            case ProtoWire.START_GROUP -> skipGroup(fieldNumber, limit);
-            case ProtoWire.END_GROUP -> throw new IOException("Malformed protobuf payload: unexpected end-group tag");
+            // groups are a proto2-only encoding this backend does not support. Skipping them meant
+            // recursing once per nested start-group tag, and a start-group tag is a single byte, so
+            // a small payload could exhaust the stack. Rejecting them removes the recursion instead
+            // of bounding it, and stops group-internal tags bypassing readTag validation.
+            case ProtoWire.START_GROUP, ProtoWire.END_GROUP ->
+                throw new IOException("Malformed protobuf payload: group encoding is not supported");
             default -> throw new IOException("Malformed protobuf payload: unsupported wire type " + wireType);
         }
-    }
-
-    private void skipGroup(int fieldNumber, int limit) throws IOException {
-        while (position < limit) {
-            int tag = readVarint32();
-            int nestedFieldNumber = ProtoWire.fieldNumber(tag);
-            int nestedWireType = ProtoWire.wireType(tag);
-            if (nestedWireType == ProtoWire.END_GROUP) {
-                if (nestedFieldNumber != fieldNumber) {
-                    throw new IOException("Malformed protobuf payload: group " + fieldNumber
-                        + " ended with field number " + nestedFieldNumber);
-                }
-                return;
-            }
-            skip(nestedFieldNumber, nestedWireType, limit);
-        }
-        throw new EOFException("Truncated protobuf group " + fieldNumber);
     }
 
     /**
@@ -323,18 +337,54 @@ public final class ProtoInput {
      * @throws IOException If the payload is truncated
      */
     public byte readRawByte() throws IOException {
-        return readByte();
+        return readByte(buffer.length);
     }
 
-    private byte readByte() throws IOException {
-        if (position >= buffer.length) {
+    /**
+     * Decode UTF-8, rejecting malformed input.
+     *
+     * <p>The {@link String} constructor substitutes U+FFFD for an invalid sequence, which silently
+     * corrupts the value and disagrees with the reference implementation. Protobuf requires
+     * {@code string} fields to be valid UTF-8, so an invalid one is a malformed payload.</p>
+     *
+     * <p>ASCII is always valid UTF-8 and is the common case, so it keeps the fast constructor;
+     * only a payload with a high bit set pays for the checking decoder.</p>
+     */
+    private String decodeUtf8(int offset, int length) throws IOException {
+        int end = offset + length;
+        for (int i = offset; i < end; i++) {
+            if (buffer[i] < 0) {
+                return decodeUtf8Checked(offset, length);
+            }
+        }
+        return new String(buffer, offset, length, StandardCharsets.UTF_8);
+    }
+
+    private String decodeUtf8Checked(int offset, int length) throws IOException {
+        CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder()
+            .onMalformedInput(CodingErrorAction.REPORT)
+            .onUnmappableCharacter(CodingErrorAction.REPORT);
+        try {
+            return decoder.decode(ByteBuffer.wrap(buffer, offset, length)).toString();
+        } catch (CharacterCodingException e) {
+            throw new IOException("Malformed protobuf payload: a string field is not valid UTF-8", e);
+        }
+    }
+
+    private byte readByte(int limit) throws IOException {
+        if (position >= limit) {
             throw new EOFException("Truncated protobuf payload");
         }
         return buffer[position++];
     }
 
     private void require(int bytes) throws IOException {
-        if (position + bytes > buffer.length) {
+        require(bytes, buffer.length);
+    }
+
+    private void require(int bytes, int limit) throws IOException {
+        // subtract rather than add, for the same overflow reason as readLength
+        if (bytes > limit - position) {
             throw new EOFException("Truncated protobuf payload");
         }
     }

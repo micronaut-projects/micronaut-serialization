@@ -112,6 +112,12 @@ Protobuf payloads are not self-describing. On the wire a length-delimited value 
 * Maps and polymorphic types.
 * A null top-level message. Protobuf has no wire representation that distinguishes it from a valid empty message.
 
+== Reading untrusted payloads
+
+The decoder requires the complete payload in memory and reads it in one pass, so a caller has to bound the payload's size itself. Over HTTP the server's maximum request size does that; on Kafka, Pulsar or any other transport where the caller owns the buffer, set a limit there.
+
+Within a payload the decoder bounds its own work. A length prefix may not reach past the structure that encloses it, so a nested message cannot claim bytes belonging to its parent. Group encoding, a proto2-only feature this backend does not support, is rejected rather than skipped. A `string` field that is not valid UTF-8 is rejected rather than silently substituted. Arbitrary-precision numbers travel as text and are capped at 1000 characters, because parsing a long decimal string costs far more than its length suggests. And because every nested message is normalized into a fresh array before it is read, the total spent on those copies is capped relative to the payload's own size &mdash; a payload nested so that each level is nearly as large as its parent is refused rather than allowed to multiply memory by its depth.
+
 Two behavioural differences are worth knowing about:
 
 * proto3 omits fields holding their type's default value, so a reader cannot distinguish an absent field from an empty string or a zero. Properties that Micronaut Serialization treats as required may fail on payloads the reference implementation considers valid.

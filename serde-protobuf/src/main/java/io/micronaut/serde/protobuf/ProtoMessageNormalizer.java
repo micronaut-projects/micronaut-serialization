@@ -36,10 +36,9 @@ final class ProtoMessageNormalizer {
     static byte[] normalize(byte[] source, int start, int limit, ProtoSchema schema) throws IOException {
         var input = new ProtoInput(source);
         input.position(start);
+        // left null until a slot is actually mentioned: a wide schema would otherwise allocate an
+        // accumulator and its buffer for every declared field of every message, present or not
         var fields = new FieldAccumulator[schema.slotCount()];
-        for (int i = 0; i < fields.length; i++) {
-            fields[i] = new FieldAccumulator();
-        }
         while (input.position() < limit) {
             accumulateField(source, input, limit, schema, fields);
         }
@@ -64,7 +63,7 @@ final class ProtoMessageNormalizer {
             payloadStart = input.position();
             input.position(payloadStart + length);
         } else {
-            input.skip(fieldNumber, wireType, limit);
+            input.skip(wireType, limit);
         }
         int valueEnd = input.position();
 
@@ -74,9 +73,8 @@ final class ProtoMessageNormalizer {
             return;
         }
         ProtoProperty property = schema.propertyAt(slot);
-        FieldAccumulator field = fields[slot];
         if (property.repeatedField() && property.packableElement()) {
-            accumulatePackable(source, property, field, wireType, valueStart, payloadStart, valueEnd);
+            accumulatePackable(source, property, accumulator(fields, slot), wireType, valueStart, payloadStart, valueEnd);
             return;
         }
         // protobuf treats a wire type that disagrees with the field as an unknown field. That
@@ -85,6 +83,7 @@ final class ProtoMessageNormalizer {
         if (!property.opaqueWireType() && wireType != property.wireType()) {
             return;
         }
+        FieldAccumulator field = accumulator(fields, slot);
         if (property.repeatedField()) {
             field.combined.writeTag(ProtoWire.tag(property.number(), wireType));
             field.combined.writeRaw(source, valueStart, valueEnd - valueStart);
@@ -103,6 +102,21 @@ final class ProtoMessageNormalizer {
      * A repeated scalar may arrive packed into one run or as separately tagged values, and the two
      * shapes may be mixed within a message. Either way the values are concatenated.
      */
+    /**
+     * The accumulator for a slot, created on first use.
+     *
+     * <p>Allocating one per schema slot per message meant a wide schema paid for every declared
+     * field whether the payload mentioned it or not, buffer included.</p>
+     */
+    private static FieldAccumulator accumulator(FieldAccumulator[] fields, int slot) {
+        FieldAccumulator field = fields[slot];
+        if (field == null) {
+            field = new FieldAccumulator();
+            fields[slot] = field;
+        }
+        return field;
+    }
+
     private static void accumulatePackable(byte[] source,
                                            ProtoProperty property,
                                            FieldAccumulator field,
@@ -127,8 +141,12 @@ final class ProtoMessageNormalizer {
                                FieldAccumulator[] fields) {
         var normalized = new ProtoOutput(Math.max(64, limit - start));
         for (int slot = 0; slot < fields.length; slot++) {
-            ProtoProperty property = schema.propertyAt(slot);
             FieldAccumulator field = fields[slot];
+            if (field == null) {
+                // the payload never mentioned this field
+                continue;
+            }
+            ProtoProperty property = schema.propertyAt(slot);
             if (property.repeatedField()) {
                 emitRepeated(normalized, property, field);
             } else if (property.messageField()) {

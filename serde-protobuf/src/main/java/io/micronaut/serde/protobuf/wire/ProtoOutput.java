@@ -289,9 +289,10 @@ public final class ProtoOutput {
     }
 
     private void ensure(int additional) {
-        int required = size + additional;
-        if (required > buffer.length) {
-            buffer = Arrays.copyOf(buffer, Math.max(buffer.length << 1, required));
+        // subtract rather than add: size + additional overflows near 2 GB of output, which would
+        // leave the array ungrown and turn the following copy into an AIOOBE
+        if (additional > buffer.length - size) {
+            buffer = Arrays.copyOf(buffer, Math.max(buffer.length << 1, size + additional));
         }
     }
 }
