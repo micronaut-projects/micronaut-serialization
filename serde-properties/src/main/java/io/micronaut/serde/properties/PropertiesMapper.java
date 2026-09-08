@@ -15,8 +15,6 @@
  */
 package io.micronaut.serde.properties;
 
-import io.micronaut.context.annotation.BootstrapContextCompatible;
-import io.micronaut.context.annotation.Secondary;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.JsonStreamConfig;
@@ -59,7 +57,6 @@ import java.io.OutputStream;
  * @since 3.1.0
  */
 @Singleton
-@Secondary
 @Named(PropertiesMapper.NAME)
 public final class PropertiesMapper implements ObjectMapper {
 
