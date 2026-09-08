@@ -377,4 +377,41 @@ class ValueOnlyCatalogEntry {
         cleanup:
             context.close()
     }
+
+    void "JsonKey on a record component is used for map keys"() {
+        given:
+            def context = buildContext('''
+package example;
+
+import com.fasterxml.jackson.annotation.JsonKey;
+import io.micronaut.serde.annotation.Serdeable;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+@Serdeable
+class Basket {
+    private Map<Fruit, Integer> fruits = new LinkedHashMap<>();
+
+    public Map<Fruit, Integer> getFruits() {
+        return fruits;
+    }
+
+    public void setFruits(Map<Fruit, Integer> fruits) {
+        this.fruits = fruits;
+    }
+}
+
+@Serdeable
+record Fruit(@JsonKey String name) {}
+''')
+            def fruit = newInstance(context, 'example.Fruit', 'Mango')
+            def basket = newInstance(context, 'example.Basket')
+            basket.fruits.put(fruit, 1)
+
+        expect:
+            writeJson(jsonMapper, basket) == '{"fruits":{"Mango":1}}'
+
+        cleanup:
+            context.close()
+    }
 }
