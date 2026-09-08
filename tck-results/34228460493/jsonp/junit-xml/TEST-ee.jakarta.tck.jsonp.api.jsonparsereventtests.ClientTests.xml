@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests" tests="2" skipped="0" failures="0" errors="0" timestamp="SANITIZED" hostname="SANITIZED" time="0">
+  <properties/>
+  <testcase name="jsonValuesTest()" classname="ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests" time="0"/>
+  <testcase name="jsonValueOfTest()" classname="ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests" time="0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValuesTest
+INFO: Testing API method JsonParser.Event.values() to return array of enums.
+Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValuesTest
+INFO: Got START_ARRAY for enum START_ARRAY
+Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValuesTest
+INFO: Got START_OBJECT for enum START_OBJECT
+Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValuesTest
+INFO: Got KEY_NAME for enum KEY_NAME
+Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValuesTest
+INFO: Got VALUE_STRING for enum VALUE_STRING
+Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValuesTest
+INFO: Got VALUE_NUMBER for enum VALUE_NUMBER
+Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValuesTest
+INFO: Got VALUE_TRUE for enum VALUE_TRUE
+Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValuesTest
+INFO: Got VALUE_FALSE for enum VALUE_FALSE
+Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValuesTest
+INFO: Got VALUE_NULL for enum VALUE_NULL
+Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValuesTest
+INFO: Got END_OBJECT for enum END_OBJECT
+Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValuesTest
+INFO: Got END_ARRAY for enum END_ARRAY
+Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValueOfTest
+INFO: Testing enum value for string constant name END_ARRAY
+Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValueOfTest
+INFO: Got enum type END_ARRAY for enum string constant named END_ARRAY
+Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValueOfTest
+INFO: Testing enum value for string constant name END_OBJECT
+Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValueOfTest
+INFO: Got enum type END_OBJECT for enum string constant named END_OBJECT
+Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValueOfTest
+INFO: Testing enum value for string constant name KEY_NAME
+Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValueOfTest
+INFO: Got enum type KEY_NAME for enum string constant named KEY_NAME
+Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValueOfTest
+INFO: Testing enum value for string constant name START_ARRAY
+Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValueOfTest
+INFO: Got enum type START_ARRAY for enum string constant named START_ARRAY
+Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValueOfTest
+INFO: Testing enum value for string constant name START_OBJECT
+Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValueOfTest
+INFO: Got enum type START_OBJECT for enum string constant named START_OBJECT
+Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValueOfTest
+INFO: Testing enum value for string constant name VALUE_FALSE
+Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValueOfTest
+INFO: Got enum type VALUE_FALSE for enum string constant named VALUE_FALSE
+Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValueOfTest
+INFO: Testing enum value for string constant name VALUE_NULL
+Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValueOfTest
+INFO: Got enum type VALUE_NULL for enum string constant named VALUE_NULL
+Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValueOfTest
+INFO: Testing enum value for string constant name VALUE_NUMBER
+Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValueOfTest
+INFO: Got enum type VALUE_NUMBER for enum string constant named VALUE_NUMBER
+Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValueOfTest
+INFO: Testing enum value for string constant name VALUE_STRING
+Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValueOfTest
+INFO: Got enum type VALUE_STRING for enum string constant named VALUE_STRING
+Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValueOfTest
+INFO: Testing enum value for string constant name VALUE_TRUE
+Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValueOfTest
+INFO: Got enum type VALUE_TRUE for enum string constant named VALUE_TRUE
+Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValueOfTest
+INFO: Testing negative test case for NullPointerException
+Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValueOfTest
+INFO: Got expected NullPointerException
+Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValueOfTest
+INFO: Testing negative test case for IllegalArgumentException
+Aug 31, 2026 3:55:02 PM ee.jakarta.tck.jsonp.api.jsonparsereventtests.ClientTests jsonValueOfTest
+INFO: Got expected IllegalArgumentException
+]]></system-err>
+</testsuite>
