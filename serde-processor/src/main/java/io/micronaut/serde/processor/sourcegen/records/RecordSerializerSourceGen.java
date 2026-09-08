@@ -28,10 +28,10 @@ import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.processor.sourcegen.SerdeInclusionSourceGen;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
 import io.micronaut.serde.util.GeneratedSerdeExceptionUtil;
 import io.micronaut.serde.util.GeneratedSerdeFallbackUtil;
-import io.micronaut.serde.util.GeneratedSerdeInclusionUtil;
 import io.micronaut.sourcegen.model.AnnotationDef;
 import io.micronaut.sourcegen.model.ClassDef;
 import io.micronaut.sourcegen.model.ClassTypeDef;
@@ -64,8 +64,6 @@ public final class RecordSerializerSourceGen {
     private static final String VALUE_LOCAL_PREFIX = "value";
     private static final String GENERATED_VALUE_MEMBER = "value";
     private static final String KEYS_FIELD = "KEYS";
-    private static final String INCLUDE_FIELD = "include";
-    private static final String INCLUDE_ALL_FIELD = "includeAll";
 
     private static final TypeDef ARGUMENT_TYPE = TypeDef.of(Argument.class);
     private static final TypeDef SERIALIZER_TYPE = TypeDef.of(Serializer.class);
@@ -122,58 +120,6 @@ public final class RecordSerializerSourceGen {
         Argument.class,
         Argument.class
     );
-    private static final Method RESOLVE_INCLUSION_METHOD = ReflectionUtils.getRequiredMethod(
-        GeneratedSerdeInclusionUtil.class,
-        "resolveInclusion",
-        Serializer.EncoderContext.class
-    );
-    private static final Method INCLUDE_ALWAYS_METHOD = ReflectionUtils.getRequiredMethod(
-        GeneratedSerdeInclusionUtil.class,
-        "includeAlways",
-        SerdeConfig.SerInclude.class
-    );
-    private static final Method SHOULD_SERIALIZE_METHOD = ReflectionUtils.getRequiredMethod(
-        GeneratedSerdeInclusionUtil.class,
-        "shouldSerialize",
-        SerdeConfig.SerInclude.class,
-        Serializer.EncoderContext.class,
-        Serializer.class,
-        Object.class
-    );
-    private static final Method SHOULD_SERIALIZE_PRIMITIVE_METHOD = ReflectionUtils.getRequiredMethod(
-        GeneratedSerdeInclusionUtil.class,
-        "shouldSerializePrimitive",
-        SerdeConfig.SerInclude.class,
-        boolean.class
-    );
-    private static final Method SHOULD_SERIALIZE_STRING_METHOD = ReflectionUtils.getRequiredMethod(
-        GeneratedSerdeInclusionUtil.class,
-        "shouldSerializeString",
-        SerdeConfig.SerInclude.class,
-        String.class
-    );
-    private static final Method SHOULD_SERIALIZE_NUMBER_METHOD = ReflectionUtils.getRequiredMethod(
-        GeneratedSerdeInclusionUtil.class,
-        "shouldSerializeNumber",
-        SerdeConfig.SerInclude.class,
-        Number.class
-    );
-    private static final Method SHOULD_SERIALIZE_BOOLEAN_METHOD = ReflectionUtils.getRequiredMethod(
-        GeneratedSerdeInclusionUtil.class,
-        "shouldSerializeBoolean",
-        SerdeConfig.SerInclude.class,
-        Boolean.class
-    );
-    private static final Method SHOULD_SERIALIZE_CHARACTER_METHOD = ReflectionUtils.getRequiredMethod(
-        GeneratedSerdeInclusionUtil.class,
-        "shouldSerializeCharacter",
-        SerdeConfig.SerInclude.class,
-        Character.class
-    );
-    private static final Method FLOAT_COMPARE_METHOD = ReflectionUtils.getRequiredMethod(Float.class, "compare", float.class, float.class);
-    private static final Method DOUBLE_COMPARE_METHOD = ReflectionUtils.getRequiredMethod(Double.class, "compare", double.class, double.class);
-    private static final ClassTypeDef INCLUSION_UTIL_TYPE = ClassTypeDef.of(GeneratedSerdeInclusionUtil.class);
-    private static final TypeDef SER_INCLUDE_TYPE = TypeDef.of(SerdeConfig.SerInclude.class);
 
     public ClassDef generate(ClassElement element, RecordSerdeShape recordSerdeShape) {
         recordSerdeShape = new RecordSerdeShape(
@@ -225,12 +171,7 @@ public final class RecordSerializerSourceGen {
         // The active inclusion is resolved once per serializer, never per component and per document
         boolean inclusionAware = !recordSerdeShape.components().isEmpty();
         if (inclusionAware) {
-            fields.add(FieldDef.builder(INCLUDE_FIELD, SER_INCLUDE_TYPE)
-                .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
-                .build());
-            fields.add(FieldDef.builder(INCLUDE_ALL_FIELD, TypeDef.Primitive.BOOLEAN)
-                .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
-                .build());
+            fields.addAll(SerdeInclusionSourceGen.fields());
         }
         ClassDef.ClassDefBuilder classDefBuilder = ClassDef.builder(SerdeSourceGenClassNaming.generatedSerializerClassName(element))
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
@@ -272,9 +213,7 @@ public final class RecordSerializerSourceGen {
         return constructorBuilder.build((aThis, methodParameters) -> {
             List<StatementDef> statements = new ArrayList<>();
             VariableDef.MethodParameter context = methodParameters.get(0);
-            statements.add(includeField(aThis).put(INCLUSION_UTIL_TYPE.invokeStatic(RESOLVE_INCLUSION_METHOD, context)));
-            statements.add(aThis.field(INCLUDE_ALL_FIELD, TypeDef.Primitive.BOOLEAN)
-                .put(INCLUSION_UTIL_TYPE.invokeStatic(INCLUDE_ALWAYS_METHOD, includeField(aThis))));
+            statements.addAll(SerdeInclusionSourceGen.resolveStatements(aThis, context));
             for (Map.Entry<String, String> serializerFieldEntry : serializerFieldNames.entrySet()) {
                 String componentName = serializerFieldEntry.getKey();
                 String serializerFieldName = serializerFieldEntry.getValue();
@@ -459,7 +398,7 @@ public final class RecordSerializerSourceGen {
                 );
                 return wrapWithPropertyPath(StatementDef.multi(
                     scalarValueDef,
-                    shouldSerializePrimitive(aThis, componentType, scalarValueDef.variable()).ifTrue(writePrimitive)
+                    SerdeInclusionSourceGen.shouldSerializePrimitive(aThis, componentType, scalarValueDef.variable()).ifTrue(writePrimitive)
                 ), type, argumentExpression);
             }
             StatementDef writeScalar = StatementDef.multi(
@@ -471,7 +410,7 @@ public final class RecordSerializerSourceGen {
             );
             return wrapWithPropertyPath(StatementDef.multi(
                 scalarValueDef,
-                shouldSerializeScalar(aThis, componentType, scalarValueDef.variable()).ifTrue(writeScalar)
+                SerdeInclusionSourceGen.shouldSerializeScalar(aThis, componentType, scalarValueDef.variable()).ifTrue(writeScalar)
             ), type, argumentExpression);
         }
         String serializerFieldName = required(serializerFieldNames, component.name());
@@ -491,7 +430,7 @@ public final class RecordSerializerSourceGen {
             );
             return wrapWithPropertyPath(StatementDef.multi(
                 propertyValueDef,
-                shouldSerializePrimitive(aThis, componentType, propertyValueDef.variable()).ifTrue(writePrimitive)
+                SerdeInclusionSourceGen.shouldSerializePrimitive(aThis, componentType, propertyValueDef.variable()).ifTrue(writePrimitive)
             ), type, argumentExpression);
         }
         StatementDef writeValue = StatementDef.multi(
@@ -511,94 +450,8 @@ public final class RecordSerializerSourceGen {
         );
         return wrapWithPropertyPath(StatementDef.multi(
             propertyValueDef,
-            shouldSerializeValue(aThis, context, serializer, propertyValueDef.variable()).ifTrue(writeValue)
+            SerdeInclusionSourceGen.shouldSerializeValue(aThis, context, serializer, propertyValueDef.variable()).ifTrue(writeValue)
         ), type, argumentExpression);
-    }
-
-    private VariableDef.Field includeField(VariableDef.This aThis) {
-        return aThis.field(INCLUDE_FIELD, SER_INCLUDE_TYPE);
-    }
-
-    /**
-     * Combines an inclusion check with the precomputed "writes everything" flag so a configuration that
-     * never skips a property costs a single field read on the serialization hot path.
-     */
-    private ExpressionDef.ConditionExpressionDef inclusionCheck(VariableDef.This aThis, ExpressionDef check) {
-        return aThis.field(INCLUDE_ALL_FIELD, TypeDef.Primitive.BOOLEAN).isTrue().or(check.isTrue());
-    }
-
-    private ExpressionDef.ConditionExpressionDef shouldSerializePrimitive(VariableDef.This aThis,
-                                                                         ClassElement type,
-                                                                         ExpressionDef propertyValue) {
-        return inclusionCheck(aThis, INCLUSION_UTIL_TYPE.invokeStatic(
-            SHOULD_SERIALIZE_PRIMITIVE_METHOD,
-            includeField(aThis),
-            primitiveIsDefaultExpression(type, propertyValue)
-        ));
-    }
-
-    private ExpressionDef.ConditionExpressionDef shouldSerializeScalar(VariableDef.This aThis,
-                                                                      ClassElement type,
-                                                                      ExpressionDef propertyValue) {
-        return inclusionCheck(aThis, INCLUSION_UTIL_TYPE.invokeStatic(
-            scalarInclusionMethod(type),
-            includeField(aThis),
-            propertyValue
-        ));
-    }
-
-    private ExpressionDef.ConditionExpressionDef shouldSerializeValue(VariableDef.This aThis,
-                                                                     VariableDef.MethodParameter context,
-                                                                     ExpressionDef serializer,
-                                                                     ExpressionDef propertyValue) {
-        return inclusionCheck(aThis, INCLUSION_UTIL_TYPE.invokeStatic(
-            SHOULD_SERIALIZE_METHOD,
-            includeField(aThis),
-            context,
-            serializer,
-            propertyValue.cast(TypeDef.OBJECT)
-        ));
-    }
-
-    /**
-     * The inclusion helper matching the serde that writes the value at runtime. Every scalar type
-     * handled by {@link #scalarEncoderMethod} other than string, boolean and character is a number.
-     */
-    private Method scalarInclusionMethod(ClassElement type) {
-        return switch (type.getName()) {
-            case "java.lang.String" -> SHOULD_SERIALIZE_STRING_METHOD;
-            case "java.lang.Boolean" -> SHOULD_SERIALIZE_BOOLEAN_METHOD;
-            case "java.lang.Character" -> SHOULD_SERIALIZE_CHARACTER_METHOD;
-            default -> SHOULD_SERIALIZE_NUMBER_METHOD;
-        };
-    }
-
-    /**
-     * Whether a primitive value equals the default value the matching serde reports for its type.
-     * Float and double go through {@code compare} so {@code -0.0} and {@code NaN} agree with
-     * {@code FloatSerde}/{@code DoubleSerde}, which compare the boxed value using {@code equals}.
-     */
-    private ExpressionDef primitiveIsDefaultExpression(ClassElement type, ExpressionDef propertyValue) {
-        return switch (type.getName()) {
-            case "boolean" -> propertyValue.isFalse();
-            case "char" -> isEqual(propertyValue, ExpressionDef.constant(0).cast(TypeDef.Primitive.CHAR));
-            case "float" -> isEqual(
-                ClassTypeDef.of(Float.class).invokeStatic(FLOAT_COMPARE_METHOD, propertyValue, ExpressionDef.constant(0F)),
-                ExpressionDef.constant(0)
-            );
-            case "double" -> isEqual(
-                ClassTypeDef.of(Double.class).invokeStatic(DOUBLE_COMPARE_METHOD, propertyValue, ExpressionDef.constant(0D)),
-                ExpressionDef.constant(0)
-            );
-            case "long" -> isEqual(propertyValue, ExpressionDef.constant(0L));
-            case "byte" -> isEqual(propertyValue, ExpressionDef.constant(0).cast(TypeDef.Primitive.BYTE));
-            case "short" -> isEqual(propertyValue, ExpressionDef.constant(0).cast(TypeDef.Primitive.SHORT));
-            default -> isEqual(propertyValue, ExpressionDef.constant(0));
-        };
-    }
-
-    private ExpressionDef isEqual(ExpressionDef left, ExpressionDef right) {
-        return left.compare(ExpressionDef.ComparisonOperation.OpType.EQUAL_TO, right);
     }
 
     private String indexedName(String prefix, int index) {
