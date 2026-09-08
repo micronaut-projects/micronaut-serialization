@@ -23,11 +23,19 @@ import io.micronaut.serde.config.annotation.SerdeConfig;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Inclusion helpers used by generated serializers so global
- * {@code micronaut.serde.serialization.inclusion} is honored without falling
- * back to the runtime object serializer for every simple shape.
+ * Inclusion helpers used by generated serializers so that the global
+ * {@code micronaut.serde.serialization.inclusion} setting is honored without falling back to the
+ * runtime object serializer for every simple shape.
  *
- * @since 3.1.1
+ * <p>The active inclusion is resolved once, when a generated serializer is created, and is stored in
+ * a generated field. The per-property methods take the already resolved inclusion so that no
+ * configuration lookup happens on the serialization hot path.</p>
+ *
+ * <p>The scalar methods mirror the {@code isEmpty} / {@code isAbsent} / {@code isDefault} contract of
+ * the runtime serde that would otherwise write the value, so a generated serializer and the runtime
+ * object serializer agree for the same model and configuration.</p>
+ *
+ * @since 3.2
  */
 @Internal
 @UsedByGeneratedCode
@@ -37,19 +45,44 @@ public final class GeneratedSerdeInclusionUtil {
     }
 
     /**
-     * Whether a property value should be written using the active global inclusion strategy
-     * and the property serializer's empty/absent/default checks.
+     * Resolve the inclusion to apply for the given context. Invoked once per generated serializer
+     * instance, never on the per-property path.
      *
+     * @param context The encoder context
+     * @return The active inclusion
+     */
+    public static SerdeConfig.SerInclude resolveInclusion(Serializer.EncoderContext context) {
+        SerializationConfiguration configuration = context.getSerializationConfiguration().orElse(null);
+        // Matches CustomizedObjectSerializer, which also falls back to ALWAYS for a context that
+        // exposes no serialization configuration.
+        return configuration == null ? SerdeConfig.SerInclude.ALWAYS : configuration.getInclusion();
+    }
+
+    /**
+     * Whether the resolved inclusion writes every property, which lets generated serializers skip the
+     * per-property inclusion check entirely.
+     *
+     * @param include The resolved inclusion
+     * @return {@code true} if no property can be skipped
+     */
+    public static boolean includeAlways(SerdeConfig.SerInclude include) {
+        return include == SerdeConfig.SerInclude.ALWAYS || include == SerdeConfig.SerInclude.USE_DEFAULTS;
+    }
+
+    /**
+     * Whether a property written by the given serializer should be included.
+     *
+     * @param include    The resolved inclusion
      * @param context    The encoder context
      * @param serializer The property serializer
      * @param value      The property value
      * @return {@code true} if the property should be serialized
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public static boolean shouldSerialize(Serializer.EncoderContext context,
+    public static boolean shouldSerialize(SerdeConfig.SerInclude include,
+                                          Serializer.EncoderContext context,
                                           Serializer serializer,
                                           @Nullable Object value) {
-        SerdeConfig.SerInclude include = resolveInclusion(context);
         return switch (include) {
             case ALWAYS, USE_DEFAULTS -> true;
             case NON_NULL -> value != null;
@@ -62,35 +95,14 @@ public final class GeneratedSerdeInclusionUtil {
     }
 
     /**
-     * Whether a scalar reference property (encoded without a cached property serializer)
-     * should be written using the active global inclusion strategy.
+     * Whether a primitive property should be included. Primitive values are never {@code null} and
+     * never empty, so only {@code NEVER} and {@code NON_DEFAULT} can skip them.
      *
-     * @param context The encoder context
-     * @param value   The property value
+     * @param include   The resolved inclusion
+     * @param isDefault Whether the value equals the default the matching serde reports for its type
      * @return {@code true} if the property should be serialized
      */
-    public static boolean shouldSerializeScalar(Serializer.EncoderContext context,
-                                                @Nullable Object value) {
-        SerdeConfig.SerInclude include = resolveInclusion(context);
-        return switch (include) {
-            case ALWAYS, USE_DEFAULTS -> true;
-            case NEVER -> false;
-            case NON_NULL, NON_ABSENT -> value != null;
-            case NON_EMPTY -> value != null && !isEmptyCharSequence(value);
-            case NON_DEFAULT -> value != null && !isDefaultScalar(value);
-        };
-    }
-
-    /**
-     * Whether a primitive property should be written using the active global inclusion strategy.
-     *
-     * @param context   The encoder context
-     * @param isDefault Whether the primitive value equals the Java language default for its type
-     * @return {@code true} if the property should be serialized
-     */
-    public static boolean shouldSerializePrimitive(Serializer.EncoderContext context,
-                                                   boolean isDefault) {
-        SerdeConfig.SerInclude include = resolveInclusion(context);
+    public static boolean shouldSerializePrimitive(SerdeConfig.SerInclude include, boolean isDefault) {
         return switch (include) {
             case NEVER -> false;
             case NON_DEFAULT -> !isDefault;
@@ -98,43 +110,94 @@ public final class GeneratedSerdeInclusionUtil {
         };
     }
 
-    private static SerdeConfig.SerInclude resolveInclusion(Serializer.EncoderContext context) {
-        return context.getSerializationConfiguration()
-            .map(SerializationConfiguration::getInclusion)
-            .orElse(SerdeConfig.SerInclude.NON_EMPTY);
-    }
-
-    private static boolean isEmptyCharSequence(Object value) {
-        return value instanceof CharSequence charSequence && charSequence.isEmpty();
+    /**
+     * Whether a {@link String} property should be included. Mirrors {@code StringSerde}, which reports
+     * {@code null} and the empty string as empty and reports no default value.
+     *
+     * @param include The resolved inclusion
+     * @param value   The property value
+     * @return {@code true} if the property should be serialized
+     */
+    public static boolean shouldSerializeString(SerdeConfig.SerInclude include, @Nullable String value) {
+        return switch (include) {
+            case ALWAYS, USE_DEFAULTS -> true;
+            case NON_NULL, NON_ABSENT -> value != null;
+            // NON_DEFAULT skips empty values too, and StringSerde reports no default value
+            case NON_EMPTY, NON_DEFAULT -> value != null && !value.isEmpty();
+            case NEVER -> false;
+        };
     }
 
     /**
-     * Default-value check for scalar wrappers encoded without a property serializer field.
-     * Empty char sequences are treated as default (matches {@code NON_DEFAULT} vs {@code NON_EMPTY}
-     * for strings); numeric zero / false / NUL match the corresponding number/boolean serdes.
-     * Only the boxed primitive-wrapper number types (Byte/Short/Integer/Long/Float/Double) treat
-     * zero as default, matching {@link io.micronaut.serde.support.serdes.NumberSerde} subtypes such
-     * as {@code IntegerSerde}/{@code LongSerde}. {@link java.math.BigInteger} and
-     * {@link java.math.BigDecimal} (and any other {@code Number}) don't override
-     * {@link Serializer#isDefault}, so their runtime-serializer default is {@code false} regardless
-     * of value; treating {@code BigInteger.ZERO}/{@code BigDecimal.ZERO} as default here would
-     * incorrectly omit them under {@code NON_DEFAULT} where the runtime path would not.
+     * Whether a {@link Number} property should be included. Mirrors the number serdes, which report
+     * only {@code null} as empty and treat the boxed zero of their own type as the default value.
+     *
+     * @param include The resolved inclusion
+     * @param value   The property value
+     * @return {@code true} if the property should be serialized
      */
-    private static boolean isDefaultScalar(Object value) {
-        if (value instanceof CharSequence charSequence) {
-            return charSequence.isEmpty();
-        }
-        if (value instanceof Byte || value instanceof Short || value instanceof Integer
-            || value instanceof Long || value instanceof Float || value instanceof Double) {
-            return ((Number) value).doubleValue() == 0d;
-        }
-        if (value instanceof Boolean bool) {
-            return !bool;
-        }
-        if (value instanceof Character character) {
-            return character == '\0';
-        }
-        return false;
+    public static boolean shouldSerializeNumber(SerdeConfig.SerInclude include, @Nullable Number value) {
+        return switch (include) {
+            case ALWAYS, USE_DEFAULTS -> true;
+            case NON_NULL, NON_ABSENT, NON_EMPTY -> value != null;
+            case NON_DEFAULT -> value != null && !isDefaultNumber(value);
+            case NEVER -> false;
+        };
+    }
+
+    /**
+     * Whether a {@link Boolean} property should be included. Mirrors {@code BooleanSerde}, which
+     * treats {@code false} as the default value.
+     *
+     * @param include The resolved inclusion
+     * @param value   The property value
+     * @return {@code true} if the property should be serialized
+     */
+    public static boolean shouldSerializeBoolean(SerdeConfig.SerInclude include, @Nullable Boolean value) {
+        return switch (include) {
+            case ALWAYS, USE_DEFAULTS -> true;
+            case NON_NULL, NON_ABSENT, NON_EMPTY -> value != null;
+            case NON_DEFAULT -> value != null && value;
+            case NEVER -> false;
+        };
+    }
+
+    /**
+     * Whether a {@link Character} property should be included. Mirrors {@code CharSerde}, which treats
+     * the NUL character as the default value.
+     *
+     * @param include The resolved inclusion
+     * @param value   The property value
+     * @return {@code true} if the property should be serialized
+     */
+    public static boolean shouldSerializeCharacter(SerdeConfig.SerInclude include, @Nullable Character value) {
+        return switch (include) {
+            case ALWAYS, USE_DEFAULTS -> true;
+            case NON_NULL, NON_ABSENT, NON_EMPTY -> value != null;
+            // Character.MIN_VALUE is the NUL character CharSerde reports as the default value
+            case NON_DEFAULT -> value != null && !value.equals(Character.MIN_VALUE);
+            case NEVER -> false;
+        };
+    }
+
+    /**
+     * Default-value check matching the number serdes registered for each boxed type. Only the boxed
+     * primitive wrappers override {@code Serializer#isDefault}; {@link java.math.BigInteger},
+     * {@link java.math.BigDecimal} and any other {@link Number} keep the {@code false} default, so
+     * treating their zero as a default value here would omit values the runtime path writes.
+     *
+     * @param value The value
+     * @return {@code true} if the value is the default value for its type
+     */
+    private static boolean isDefaultNumber(Number value) {
+        return switch (value) {
+            case Integer integer -> integer.equals(0);
+            case Long longValue -> longValue.equals(0L);
+            case Double doubleValue -> doubleValue.equals(0D);
+            case Float floatValue -> floatValue.equals(0F);
+            case Short shortValue -> shortValue.equals((short) 0);
+            case Byte byteValue -> byteValue.equals((byte) 0);
+            default -> false;
+        };
     }
 }
-
