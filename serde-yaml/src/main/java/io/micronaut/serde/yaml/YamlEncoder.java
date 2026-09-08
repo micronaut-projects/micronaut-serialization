@@ -57,9 +57,8 @@ import java.util.Optional;
  * YAML implementation of the {@link Encoder} interface. <br/>
  * ImplicitTuple(true, true) means that (type) tags won't be shown. and sometimes we specifically DO want explicit tag we specify ImplicitTuple(false, false)
  *
- * @since 3.1.0
+ * @since 3.2.0
  */
-@SuppressWarnings("NullAway")
 public class YamlEncoder extends LimitingStream implements Encoder {
 
     private final YamlOutputStreamWriter writer;
@@ -125,7 +124,8 @@ public class YamlEncoder extends LimitingStream implements Encoder {
             .setIndent(configuration.getIndent())
             .setIndicatorIndent(indentArraysWithIndicator ? 2 : configuration.isIndentArrays() ? 1 : 0)
             .setIndentWithIndicator(indentArraysWithIndicator)
-            .setBestLineBreak(System.lineSeparator())
+            // always emit LF so documents are identical on every platform
+            .setBestLineBreak("\n")
             .setSplitLines(configuration.isSplitLines())
             .setMaxSimpleKeyLength(configuration.isAllowLongKeys() ? 1024 : 128)
             .build();
@@ -275,7 +275,7 @@ public class YamlEncoder extends LimitingStream implements Encoder {
 
     @Override
     public void encodeChar(char value) throws IOException {
-        emitScalar(String.valueOf(value), ScalarStyle.SINGLE_QUOTED);
+        encodeString(String.valueOf(value));
     }
 
     @Override
