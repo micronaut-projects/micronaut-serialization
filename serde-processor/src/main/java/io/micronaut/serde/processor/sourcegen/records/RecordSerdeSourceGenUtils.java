@@ -182,9 +182,6 @@ final class RecordSerdeSourceGenUtils {
      * @return The expression creating an empty collection or {@code null} if the type is not a supported collection
      */
     private static @Nullable ExpressionDef emptyCollectionExpression(ClassElement classElement) {
-        if (classElement.isPrimitive() || classElement.isArray()) {
-            return null;
-        }
         if (!classElement.isAssignable(Iterable.class) && !classElement.isAssignable(Map.class)) {
             return null;
         }
