@@ -29,6 +29,7 @@ import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.processor.sourcegen.SerdeInclusionSourceGen;
+import io.micronaut.serde.processor.sourcegen.SerdeSourceGenPropertyOrder;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
 import io.micronaut.serde.util.GeneratedSerdeExceptionUtil;
 import io.micronaut.serde.util.GeneratedSerdeFallbackUtil;
@@ -124,9 +125,13 @@ public final class RecordSerializerSourceGen {
     public ClassDef generate(ClassElement element, RecordSerdeShape recordSerdeShape) {
         recordSerdeShape = new RecordSerdeShape(
             recordSerdeShape.canonicalConstructor(),
-            recordSerdeShape.components().stream()
-                .sorted((left, right) -> Boolean.compare(isXmlAttribute(right), isXmlAttribute(left)))
-                .toList()
+            SerdeSourceGenPropertyOrder.order(
+                element,
+                recordSerdeShape.components(),
+                RecordSerdeShape.RecordComponent::serializedName,
+                RecordSerdeShape.RecordComponent::name,
+                RecordSerializerSourceGen::isXmlAttribute
+            )
         );
         TypeDef recordTypeDef = TypeDef.of(element);
         ClassTypeDef serializerClassTypeDef = ClassTypeDef.of(SerdeSourceGenClassNaming.generatedSerializerClassName(element));

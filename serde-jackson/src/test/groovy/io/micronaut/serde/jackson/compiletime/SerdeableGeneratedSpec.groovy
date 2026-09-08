@@ -247,9 +247,9 @@ public class GeneratedJsonUnwrappedBean {
         assertRequiredGenerationFailure(e, 'test.GeneratedJsonUnwrappedBean', 'Unwrapped properties not supported')
     }
 
-    void 'test serdeable generated required reports unsupported property order annotation'() {
-        when:
-        buildContext('test.GeneratedJsonPropertyOrderBean', '''
+    void 'test serdeable generated applies a type-level property order'() {
+        given:
+        def context = buildContext('test.GeneratedJsonPropertyOrderBean', '''
 package test;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -281,10 +281,20 @@ public class GeneratedJsonPropertyOrderBean {
     }
 }
 ''')
+        def registry = context.getBean(SerdeRegistry)
+        Class<?> beanType = context.classLoader.loadClass('test.GeneratedJsonPropertyOrderBean')
+        Argument argument = Argument.of(beanType)
+        def bean = beanType.getDeclaredConstructor().newInstance()
+        bean.first = '1'
+        bean.second = '2'
 
-        then:
-        def e = thrown(RuntimeException)
-        assertRequiredGenerationFailure(e, 'test.GeneratedJsonPropertyOrderBean', 'Property order not supported')
+        expect:
+        assertRegistrySelection(registry, argument, 'Serializer', true)
+        assertRegistrySelection(registry, argument, 'Deserializer', true)
+        serializeToString(context.getBean(JsonMapper), bean) == '{"second":"2","first":"1"}'
+
+        cleanup:
+        context.close()
     }
 
     void 'test serdeable generated required reports unsupported enum jackson annotations'() {

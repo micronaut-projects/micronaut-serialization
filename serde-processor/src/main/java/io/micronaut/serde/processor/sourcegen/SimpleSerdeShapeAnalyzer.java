@@ -39,7 +39,6 @@ import io.micronaut.serde.util.SerdePropertyAccess;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -77,6 +76,7 @@ public final class SimpleSerdeShapeAnalyzer {
         JACKSON_ANNOTATION_PREFIX + "JsonIgnoreProperties",
         JACKSON_ANNOTATION_PREFIX + "JsonIgnoreType",
         JACKSON_ANNOTATION_PREFIX + "JsonIncludeProperties",
+        JACKSON_ANNOTATION_PREFIX + "JsonPropertyOrder",
         JACKSON_ANNOTATION_PREFIX + "JsonClassDescription",
         JACKSON_ANNOTATION_PREFIX + "JsonPropertyDescription",
         JACKSON_XML_PROPERTY,
@@ -184,8 +184,10 @@ public final class SimpleSerdeShapeAnalyzer {
             && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.INCLUDE)) {
             return decision(shapeKind, serializerReasons, deserializerReasons);
         }
+        // A type-level property order is applied by the generated serializer; an order declared on a
+        // member configures the nested value, which only the runtime serializer applies.
         if (!isBothFailed(serializerReasons, deserializerReasons)
-            && hasPropertyOrderConfig(element)
+            && hasDeclaredMemberAnnotation(element, SerdeConfig.META_ANNOTATION_PROPERTY_ORDER)
             && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.PROPERTY_ORDER)) {
             return decision(shapeKind, serializerReasons, deserializerReasons);
         }
@@ -774,6 +776,33 @@ public final class SimpleSerdeShapeAnalyzer {
             .annotated(a -> a.hasDeclaredAnnotation(annotation))).isEmpty();
     }
 
+    private boolean hasDeclaredMemberAnnotation(ClassElement element, String annotationName) {
+        if (element.getPrimaryConstructor().map(c -> hasDeclaredAnnotation(c, annotationName)).orElse(false)) {
+            return true;
+        }
+        if (element.getBeanProperties().stream().anyMatch(p -> p.hasDeclaredAnnotation(annotationName))) {
+            return true;
+        }
+        if (!element.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyInstance().onlyDeclared()
+            .annotated(a -> a.hasDeclaredAnnotation(annotationName))).isEmpty()) {
+            return true;
+        }
+        return !element.getEnclosedElements(ElementQuery.ALL_METHODS.onlyInstance().onlyDeclared()
+            .annotated(a -> a.hasDeclaredAnnotation(annotationName))).isEmpty();
+    }
+
+    private boolean hasDeclaredAnnotation(MethodElement methodElement, String annotationName) {
+        if (methodElement.hasDeclaredAnnotation(annotationName)) {
+            return true;
+        }
+        for (ParameterElement parameter : methodElement.getParameters()) {
+            if (parameter.hasDeclaredAnnotation(annotationName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private boolean hasDeclaredAnnotation(MethodElement methodElement, Class<? extends Annotation> annotation) {
         if (methodElement.hasDeclaredAnnotation(annotation)) {
             return true;
@@ -784,15 +813,6 @@ public final class SimpleSerdeShapeAnalyzer {
             }
         }
         return false;
-    }
-
-    private boolean hasPropertyOrderConfig(ClassElement element) {
-        return hasAnnotationMetadata(element, this::hasPropertyOrderConfig);
-    }
-
-    private boolean hasPropertyOrderConfig(AnnotationMetadata annotationMetadata) {
-        return annotationMetadata.isAnnotationPresent(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER)
-            || annotationMetadata.stringValues(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER).length > 0;
     }
 
     private boolean hasSerValueInPropertyTypes(ClassElement element) {

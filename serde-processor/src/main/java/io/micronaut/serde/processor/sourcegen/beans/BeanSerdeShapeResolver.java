@@ -24,6 +24,7 @@ import io.micronaut.inject.ast.MethodElement;
 import io.micronaut.inject.ast.PropertyElement;
 import io.micronaut.inject.ast.PropertyElementQuery;
 import io.micronaut.serde.config.annotation.SerdeConfig;
+import io.micronaut.serde.processor.sourcegen.SerdeSourceGenPropertyOrder;
 import io.micronaut.serde.util.SerdePropertyAccess;
 import org.jspecify.annotations.Nullable;
 
@@ -54,7 +55,7 @@ public final class BeanSerdeShapeResolver {
         if (beanProperties.isEmpty()) {
             return Optional.empty();
         }
-        List<BeanSerdeShape.BeanProperty> serializationProperties = new ArrayList<>(beanProperties.size());
+        List<NamedProperty> serializationProperties = new ArrayList<>(beanProperties.size());
         List<BeanSerdeShape.BeanProperty> deserializationProperties = new ArrayList<>(beanProperties.size());
         List<String> ignoredDeserializationNames = new ArrayList<>(2);
         for (PropertyElement property : beanProperties) {
@@ -66,7 +67,7 @@ public final class BeanSerdeShapeResolver {
                     if (beanProperty == null) {
                         return Optional.empty();
                     }
-                    serializationProperties.add(beanProperty);
+                    serializationProperties.add(new NamedProperty(property.getName(), beanProperty));
                 }
             }
             if (propertyAccess.writable()) {
@@ -81,11 +82,17 @@ public final class BeanSerdeShapeResolver {
                 }
             }
         }
-        serializationProperties.sort((left, right) -> Boolean.compare(isXmlAttribute(right), isXmlAttribute(left)));
+        List<BeanSerdeShape.BeanProperty> orderedSerializationProperties = SerdeSourceGenPropertyOrder.order(
+            element,
+            serializationProperties,
+            named -> named.property().name(),
+            NamedProperty::originalName,
+            named -> isXmlAttribute(named.property())
+        ).stream().map(NamedProperty::property).toList();
         deserializationProperties.sort((left, right) -> Boolean.compare(isXmlAttribute(right), isXmlAttribute(left)));
         return Optional.of(new BeanSerdeShape(
             defaultConstructor,
-            List.copyOf(serializationProperties),
+            orderedSerializationProperties,
             List.copyOf(deserializationProperties),
             List.copyOf(ignoredDeserializationNames),
             resolveIgnoreUnknown(element)
@@ -289,6 +296,9 @@ public final class BeanSerdeShapeResolver {
             writeMethod = property.getWriteMethod().orElse(null);
         }
         return new PropertyAccess(readMethod, writeMethod, readField, writeField);
+    }
+
+    private record NamedProperty(String originalName, BeanSerdeShape.BeanProperty property) {
     }
 
     private record PropertyAccess(

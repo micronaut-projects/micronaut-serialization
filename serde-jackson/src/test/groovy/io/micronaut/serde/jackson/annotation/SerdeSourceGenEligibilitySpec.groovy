@@ -271,6 +271,35 @@ record IgnoredRecord(String value, @JsonIgnore String secret) {
         context.close()
     }
 
+    void 'test a type-level property order is sourcegen eligible and a member-level one is not'() {
+        given:
+        def context = buildContext('test.OrderedRecord', '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.core.annotation.Introspected;
+
+@Serdeable
+@Introspected
+@JsonPropertyOrder({"b", "a"})
+record OrderedRecord(String a, String b) {
+}
+
+@Serdeable
+@Introspected
+record NestedOrderRecord(@JsonPropertyOrder({"b", "a"}) OrderedRecord nested) {
+}
+''')
+
+        expect:
+        assertRegistrySelection(context, 'test.OrderedRecord', true, true)
+        assertRegistrySelection(context, 'test.NestedOrderRecord', false, false)
+
+        cleanup:
+        context.close()
+    }
+
     void 'test any-getter and any-setter are directional fallback reasons'() {
         given:
         def context = buildContext('test.AnyGetterBean', '''
