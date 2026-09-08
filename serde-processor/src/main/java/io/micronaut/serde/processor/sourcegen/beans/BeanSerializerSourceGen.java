@@ -118,7 +118,7 @@ public final class BeanSerializerSourceGen {
     private static final Method FINISH_STRUCTURE_METHOD = ReflectionUtils.getRequiredMethod(Encoder.class, "finishStructure");
     private static final Method WITH_PROPERTY_PATH_THROWABLE_METHOD = ReflectionUtils.getRequiredMethod(
         GeneratedSerdeExceptionUtil.class,
-        "withPropertyPath",
+        "withSerializationPropertyPath",
         Throwable.class,
         Argument.class,
         Argument.class

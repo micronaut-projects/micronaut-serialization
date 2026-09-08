@@ -469,6 +469,8 @@ public final class BeanDeserializerSourceGen {
         statements.add(objectDecoderDef);
         VariableDef objectDecoder = objectDecoderDef.variable();
 
+        // The default constructor is invoked directly: wrapping it measurably slows the generated
+        // deserializer, and a throwing default constructor is not a shape worth that cost
         StatementDef.DefineAndAssign beanDef = ClassTypeDef.of(element).instantiate().newLocal(BEAN_LOCAL);
         statements.add(beanDef);
         VariableDef beanVariable = beanDef.variable();

@@ -25,6 +25,8 @@ import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
 import org.jspecify.annotations.Nullable;
 
+import java.io.IOException;
+
 /**
  * Exception helpers used by generated serdes.
  */
@@ -135,6 +137,23 @@ public final class GeneratedSerdeExceptionUtil {
                                            Argument<?> propertyArgument) {
         return new SerdeException("Unable to deserialize type [" + beanType.getType().getName() +
             "]. Non-null property [" + propertyArgument + "] is null in the supplied data");
+    }
+
+    /**
+     * Creates an exception for a null value assigned to a constructor parameter that cannot accept null,
+     * with the message the runtime object deserializer produces.
+     *
+     * @param beanType         The declaring bean argument.
+     * @param propertyArgument The parameter argument.
+     * @param index            The parameter index.
+     * @return The configured exception.
+     * @since 3.2
+     */
+    public static SerdeException nullConstructorParameter(Argument<?> beanType,
+                                                          Argument<?> propertyArgument,
+                                                          int index) {
+        return new SerdeException("Unable to deserialize type [" + beanType.getType().getName() +
+            "]. Non-null constructor parameter [" + propertyArgument + "] at index [" + index + "] is null in the supplied data");
     }
 
     /**
@@ -260,15 +279,54 @@ public final class GeneratedSerdeExceptionUtil {
     public static SerdeException withPropertyPath(Throwable exception,
                                                   Argument<?> beanType,
                                                   Argument<?> propertyArgument) {
+        return withPropertyPath(exception, beanType, propertyArgument, "Error decoding property [");
+    }
+
+    /**
+     * Converts any {@link Throwable} raised while writing a property into a {@link SerdeException}
+     * and appends a property path segment, with the message the runtime object serializer produces.
+     *
+     * @param exception        The original exception.
+     * @param beanType         The declaring bean argument.
+     * @param propertyArgument The property argument.
+     * @return A serde exception enriched with property path information.
+     * @since 3.2
+     */
+    public static SerdeException withSerializationPropertyPath(Throwable exception,
+                                                               Argument<?> beanType,
+                                                               Argument<?> propertyArgument) {
+        return withPropertyPath(exception, beanType, propertyArgument, "Error getting property [");
+    }
+
+    private static SerdeException withPropertyPath(Throwable exception,
+                                                   Argument<?> beanType,
+                                                   Argument<?> propertyArgument,
+                                                   String messagePrefix) {
         SerdeException serdeException;
         if (exception instanceof NullValueSerdeException) {
             serdeException = nullValue(beanType, propertyArgument);
         } else if (exception instanceof SerdeException existing) {
             serdeException = existing;
         } else {
-            serdeException = new SerdeException("Error processing property [" + propertyArgument.getName() + "] of type [" + beanType + "]: " + exception.getMessage(), exception);
+            serdeException = new SerdeException(messagePrefix + propertyArgument + "] of type [" + beanType.getType() + "]: " + exception.getMessage(), exception);
         }
         serdeException.getPath().add(ReferencePath.ofProperty(beanType.getType(), propertyArgument));
         return serdeException;
+    }
+
+    /**
+     * Converts a failure raised while instantiating the deserialized type into the exception the
+     * runtime object deserializer produces; I/O failures pass through unchanged.
+     *
+     * @param exception The original exception.
+     * @param beanType  The deserialized type.
+     * @return The exception to throw.
+     * @since 3.2
+     */
+    public static IOException instantiationFailure(Exception exception, Argument<?> beanType) {
+        if (exception instanceof IOException ioException) {
+            return ioException;
+        }
+        return new SerdeException("Error deserializing type: " + beanType, exception);
     }
 }

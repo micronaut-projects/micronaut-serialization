@@ -68,8 +68,9 @@ public final class RecordSerdeShapeResolver {
                 SerdeInclusionSourceGen.resolvePropertyInclude(element, propertyElement, keyMetadata),
                 booleanValue(propertyElement, SerdeConfig.REQUIRED).orElse(parameter.booleanValue(SerdeConfig.class, SerdeConfig.REQUIRED).orElse(false)),
                 aliases(propertyElement, parameter),
-                // The runtime merges the parameter and the property metadata for a constructor argument
-                parameter.isNonNull() || propertyElement.isNonNull(),
+                // The runtime merges the parameter and the property metadata for a constructor argument,
+                // and an explicit nullable declaration wins over a non-null one
+                !(parameter.isNullable() || propertyElement.isNullable()) && (parameter.isNonNull() || propertyElement.isNonNull()),
                 parameter.isNullable() || propertyElement.isNullable(),
                 propertyElement
             ));

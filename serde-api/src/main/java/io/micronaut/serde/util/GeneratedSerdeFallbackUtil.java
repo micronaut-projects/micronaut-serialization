@@ -208,10 +208,21 @@ public final class GeneratedSerdeFallbackUtil {
         AnnotationMetadata annotationMetadata = type.getAnnotationMetadata();
         return annotationMetadata.hasAnnotation(SerdeConfig.SerUnwrapped.class)
             || annotationMetadata.hasAnnotation(SerdeConfig.SerIncluded.class)
+            || annotationMetadata.hasAnnotation(SerdeConfig.SerIgnored.class)
             || annotationMetadata.hasAnnotation(SerdeConfig.SerSubtyped.class)
             || annotationMetadata.hasAnnotation(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER)
             || hasIncludeConfig(annotationMetadata)
-            || hasFormatConfig(annotationMetadata);
+            || hasFormatConfig(annotationMetadata)
+            || hasDiscriminatorConfig(annotationMetadata);
+    }
+
+    /**
+     * A discriminator declared on the argument, such as a BSON property that uses one, is written by the
+     * runtime object serializer.
+     */
+    private static boolean hasDiscriminatorConfig(AnnotationMetadata annotationMetadata) {
+        return annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.TYPE_PROPERTY).isPresent()
+            || annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME).isPresent();
     }
 
     private static boolean hasIncludeConfig(AnnotationMetadata annotationMetadata) {

@@ -163,6 +163,13 @@ public final class RecordDeserializerSourceGen {
         REQUIRE_ALL_CREATOR_PARAMETERS_FIELD,
         Deserializer.DecoderContext.class
     );
+    private static final Method NULL_CONSTRUCTOR_PARAMETER_METHOD = ReflectionUtils.getRequiredMethod(
+        GeneratedSerdeExceptionUtil.class,
+        "nullConstructorParameter",
+        Argument.class,
+        Argument.class,
+        int.class
+    );
     private static final Method REQUIRED_CONSTRUCTOR_PARAMETER_METHOD = ReflectionUtils.getRequiredMethod(
         GeneratedSerdeExceptionUtil.class,
         "requiredConstructorParameter",
@@ -188,6 +195,12 @@ public final class RecordDeserializerSourceGen {
         "withPropertyPath",
         Throwable.class,
         Argument.class,
+        Argument.class
+    );
+    private static final Method INSTANTIATION_FAILURE_METHOD = ReflectionUtils.getRequiredMethod(
+        GeneratedSerdeExceptionUtil.class,
+        "instantiationFailure",
+        Exception.class,
         Argument.class
     );
 
@@ -478,7 +491,15 @@ public final class RecordDeserializerSourceGen {
                 if (missingRequiredStatement != null) {
                     finishStatements.add(missingRequiredStatement);
                 }
-                finishStatements.add(ClassTypeDef.of(element).instantiate(recordSerdeShape.canonicalConstructor(), constructorValues).returning());
+                // A failing constructor is reported the way the runtime object deserializer reports it
+                finishStatements.add(StatementDef.doTry(
+                        ClassTypeDef.of(element).instantiate(recordSerdeShape.canonicalConstructor(), constructorValues).returning()
+                    )
+                    .doCatch(ClassTypeDef.of(Exception.class), exceptionVariable ->
+                        ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
+                            .invokeStatic(INSTANTIATION_FAILURE_METHOD, exceptionVariable, type)
+                            .doThrow()
+                    ));
                 StatementDef finishStatement = StatementDef.multi(finishStatements);
                 StatementDef stringDispatchLoop = buildStringComponentDispatchLoop(
                     aThis,
@@ -1041,11 +1062,15 @@ public final class RecordDeserializerSourceGen {
             && component.nonNull()
             && !component.nullable()
             && !usesNonNullScalarDecode) {
+            // The runtime names the constructor parameter and its index for an explicit null
+            StatementDef rejectNull = dispatchResultVariable == null
+                ? ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
+                    .invokeStatic(NULL_CONSTRUCTOR_PARAMETER_METHOD, type, argumentExpression, ExpressionDef.constant(index))
+                    .doThrow()
+                : nullValueOrDispatchStatement(type, argumentExpression, dispatchResultVariable);
             deserializeAndAssign = StatementDef.multi(
                 deserializeAndAssign,
-                valueVariable.isNull().ifTrue(
-                    nullValueOrDispatchStatement(type, argumentExpression, dispatchResultVariable)
-                )
+                valueVariable.isNull().ifTrue(rejectNull)
             );
         }
         return deserializeAndAssign;

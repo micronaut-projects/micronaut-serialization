@@ -109,6 +109,14 @@ public final class SimpleSerdeShapeAnalyzer {
         if (isDeserializerSkipped(element)) {
             failDeserializer(deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.SOURCEGEN_SKIPPED);
         }
+        // A type declared serializable only, such as a serialize-only import, has no deserializable
+        // introspection; a generated deserializer would bypass that contract.
+        if (!element.hasStereotype(Serdeable.Serializable.class) && !element.hasStereotype(Serdeable.class)) {
+            failSerializer(serializerReasons, SimpleSerdeShapeDecision.FallbackReason.SOURCEGEN_SKIPPED);
+        }
+        if (!element.hasStereotype(Serdeable.Deserializable.class) && !element.hasStereotype(Serdeable.class)) {
+            failDeserializer(deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.SOURCEGEN_SKIPPED);
+        }
 
         if (shapeKind == SimpleSerdeShapeDecision.ShapeKind.UNSUPPORTED) {
             failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
