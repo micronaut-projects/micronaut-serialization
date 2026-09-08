@@ -106,7 +106,7 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Object, O
 
     private void generateSerializerClass(ClassElement element, SimpleSerdeShapeDecision decision, VisitorContext context) {
         String generatedSerializerClassName = SerdeSourceGenClassNaming.generatedSerializerClassName(element);
-        if (decision.shapeKind() == SimpleSerdeShapeDecision.ShapeKind.RECORD) {
+        if (isConstructorBound(decision)) {
             RecordSerdeShape recordSerdeShape = recordSerdeShapeResolver.resolve(element).orElse(null);
             if (recordSerdeShape != null) {
                 write(context, element, generatedSerializerClassName, new RecordSerializerSourceGen().generate(element, recordSerdeShape));
@@ -138,7 +138,7 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Object, O
 
     private void generateDeserializerClass(ClassElement element, SimpleSerdeShapeDecision decision, VisitorContext context) {
         String generatedDeserializerClassName = SerdeSourceGenClassNaming.generatedDeserializerClassName(element);
-        if (decision.shapeKind() == SimpleSerdeShapeDecision.ShapeKind.RECORD) {
+        if (isConstructorBound(decision)) {
             RecordSerdeShape recordSerdeShape = recordSerdeShapeResolver.resolve(element).orElse(null);
             if (recordSerdeShape != null) {
                 write(context, element, generatedDeserializerClassName, new RecordDeserializerSourceGen().generate(element, recordSerdeShape));
@@ -166,6 +166,11 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Object, O
                 .build())
             .addSuperinterface(TypeDef.parameterized(Deserializer.class, TypeDef.of(element)))
             .build());
+    }
+
+    private static boolean isConstructorBound(SimpleSerdeShapeDecision decision) {
+        return decision.shapeKind() == SimpleSerdeShapeDecision.ShapeKind.RECORD
+            || decision.shapeKind() == SimpleSerdeShapeDecision.ShapeKind.CONSTRUCTOR_BEAN;
     }
 
     private void write(VisitorContext context, ClassElement element, String generatedClassName, ClassDef classDef) {

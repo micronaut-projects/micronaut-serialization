@@ -34,6 +34,7 @@ import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.serde.annotation.SerdeableGenerated;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.processor.sourcegen.beans.BeanSerdeShapeResolver;
+import io.micronaut.serde.processor.sourcegen.records.RecordSerdeShapeResolver;
 import io.micronaut.serde.util.SerdePropertyAccess;
 
 import java.lang.annotation.Annotation;
@@ -296,7 +297,7 @@ public final class SimpleSerdeShapeAnalyzer {
             return decision(shapeKind, serializerReasons, deserializerReasons);
         }
         if (!isBothFailed(serializerReasons, deserializerReasons)
-            && hasUnsupportedPropertySerdeConfig(element, propertyExclusionSupported)
+            && hasUnsupportedPropertySerdeConfig(element, propertyExclusionSupported, shapeKind == SimpleSerdeShapeDecision.ShapeKind.CONSTRUCTOR_BEAN)
             && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
             return decision(shapeKind, serializerReasons, deserializerReasons);
         }
@@ -556,6 +557,9 @@ public final class SimpleSerdeShapeAnalyzer {
         if (element.isRecord()) {
             return SimpleSerdeShapeDecision.ShapeKind.RECORD;
         }
+        if (RecordSerdeShapeResolver.isConstructorBean(element)) {
+            return SimpleSerdeShapeDecision.ShapeKind.CONSTRUCTOR_BEAN;
+        }
         if (isDefaultConstructorBean(element)) {
             return SimpleSerdeShapeDecision.ShapeKind.DEFAULT_CONSTRUCTOR_BEAN;
         }
@@ -730,7 +734,7 @@ public final class SimpleSerdeShapeAnalyzer {
             || annotationMetadata.enumValue(SerdeConfig.class, SerdeConfig.ID_REFERENCE, SerdeConfig.IdReference.class).isPresent());
     }
 
-    private boolean hasUnsupportedPropertySerdeConfig(ClassElement element, boolean propertyExclusionSupported) {
+    private boolean hasUnsupportedPropertySerdeConfig(ClassElement element, boolean propertyExclusionSupported, boolean constructorBound) {
         Predicate<AnnotationMetadata> unsupported = annotationMetadata -> hasUnsupportedSerdeConfigMetadata(annotationMetadata, propertyExclusionSupported);
         for (PropertyElement property : element.getBeanProperties()) {
             if (unsupported.test(property.getAnnotationMetadata())) {
@@ -744,7 +748,7 @@ public final class SimpleSerdeShapeAnalyzer {
             }
         }
         var primaryConstructor = element.getPrimaryConstructor();
-        if (element.isRecord() && primaryConstructor.isPresent()) {
+        if ((element.isRecord() || constructorBound) && primaryConstructor.isPresent()) {
             for (ParameterElement parameter : primaryConstructor.orElseThrow().getParameters()) {
                 if (unsupported.test(parameter.getAnnotationMetadata())) {
                     return true;

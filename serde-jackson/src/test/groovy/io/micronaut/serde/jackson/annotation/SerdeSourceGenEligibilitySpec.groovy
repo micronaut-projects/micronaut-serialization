@@ -352,6 +352,87 @@ record RequiredRecord(@JsonProperty(required = true) String value, @JsonAlias("o
         context.close()
     }
 
+    void 'test constructor bound classes are sourcegen eligible when every property is a parameter'() {
+        given:
+        def context = buildContext('test.ImmutableBean', '''
+package test;
+
+import io.micronaut.core.annotation.Creator;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.core.annotation.Introspected;
+
+@Serdeable
+@Introspected
+class ImmutableBean {
+    private final String value;
+    private final int count;
+
+    public ImmutableBean(String value, int count) {
+        this.value = value;
+        this.count = count;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public int getCount() {
+        return count;
+    }
+}
+
+@Serdeable
+@Introspected
+class PartiallyBoundBean {
+    private final String value;
+    private String extra;
+
+    public PartiallyBoundBean(String value) {
+        this.value = value;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public String getExtra() {
+        return extra;
+    }
+
+    public void setExtra(String extra) {
+        this.extra = extra;
+    }
+}
+
+@Serdeable
+@Introspected
+class FactoryBean {
+    private final String value;
+
+    private FactoryBean(String value) {
+        this.value = value;
+    }
+
+    @Creator
+    public static FactoryBean of(String value) {
+        return new FactoryBean(value);
+    }
+
+    public String getValue() {
+        return value;
+    }
+}
+''')
+
+        expect:
+        assertRegistrySelection(context, 'test.ImmutableBean', true, true)
+        assertRegistrySelection(context, 'test.PartiallyBoundBean', false, false)
+        assertRegistrySelection(context, 'test.FactoryBean', false, false)
+
+        cleanup:
+        context.close()
+    }
+
     void 'test any-getter and any-setter are directional fallback reasons'() {
         given:
         def context = buildContext('test.AnyGetterBean', '''

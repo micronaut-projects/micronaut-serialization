@@ -44,6 +44,8 @@ public record RecordSerdeShape(
      * @param include The inclusion resolved at build time, or {@code null} when the configuration decides.
      * @param required Whether the component has to be present in the input.
      * @param aliases Additional names the component is read from.
+     * @param nonNull Whether the component rejects null, declared on the parameter or the property.
+     * @param nullable Whether the component accepts null, declared on the parameter or the property.
      * @param propertyElement The associated bean property element.
      */
     public record RecordComponent(
@@ -54,6 +56,8 @@ public record RecordSerdeShape(
         SerdeConfig.@Nullable SerInclude include,
         boolean required,
         List<String> aliases,
+        boolean nonNull,
+        boolean nullable,
         PropertyElement propertyElement
     ) {
         /**
@@ -64,7 +68,7 @@ public record RecordSerdeShape(
          * @param propertyElement The associated bean property element.
          */
         public RecordComponent(String name, ClassElement type, PropertyElement propertyElement) {
-            this(name, name, type, Map.of(), null, false, List.of(), propertyElement);
+            this(name, name, type, Map.of(), null, false, List.of(), propertyElement.isNonNull(), propertyElement.isNullable(), propertyElement);
         }
     }
 }

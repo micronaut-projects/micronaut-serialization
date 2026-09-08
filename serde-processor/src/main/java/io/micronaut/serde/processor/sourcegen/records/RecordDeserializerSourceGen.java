@@ -434,7 +434,7 @@ public final class RecordDeserializerSourceGen {
                 List<StatementDef> componentDeserializers = new ArrayList<>(components.size());
                 int index = 0;
                 for (RecordSerdeShape.RecordComponent component : components) {
-                    boolean nonNull = component.propertyElement().isNonNull();
+                    boolean nonNull = component.nonNull();
                     StatementDef.DefineAndAssign valueDef = RecordSerdeSourceGenUtils.defaultValueExpression(component.type(), nonNull)
                         .newLocal(RecordSerdeSourceGenUtils.localName("propertyValue", index));
                     statements.add(valueDef);
@@ -1006,8 +1006,8 @@ public final class RecordDeserializerSourceGen {
                 );
             } else {
                 Method nonNullScalarDecodeMethod = nonNullScalarDecoderMethod(component.type());
-                if (component.propertyElement().isNonNull()
-                    && !component.propertyElement().isNullable()
+                if (component.nonNull()
+                    && !component.nullable()
                     && nonNullScalarDecodeMethod != null) {
                     scalarDecodeMethod = nonNullScalarDecodeMethod;
                     usesNonNullScalarDecode = true;
@@ -1038,8 +1038,8 @@ public final class RecordDeserializerSourceGen {
             );
         }
         if (reference
-            && component.propertyElement().isNonNull()
-            && !component.propertyElement().isNullable()
+            && component.nonNull()
+            && !component.nullable()
             && !usesNonNullScalarDecode) {
             deserializeAndAssign = StatementDef.multi(
                 deserializeAndAssign,
@@ -1215,8 +1215,8 @@ public final class RecordDeserializerSourceGen {
     }
 
     private boolean requiresStrictNullableCheck(RecordSerdeShape.RecordComponent component) {
-        return component.propertyElement().isNonNull()
-            && !component.propertyElement().isNullable()
+        return component.nonNull()
+            && !component.nullable()
             && (!component.type().isPrimitive() || component.type().isArray());
     }
 
