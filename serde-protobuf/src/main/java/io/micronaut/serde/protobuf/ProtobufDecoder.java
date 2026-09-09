@@ -371,6 +371,8 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
     }
 
     @Override
+    // the buffered decoder is the return value, so it is the caller that owns and closes it
+    @SuppressWarnings("java:S2095")
     public Decoder decodeBuffer() throws IOException {
         ProtobufDecoder buffered = new ProtobufDecoder(
             new ProtoInput(input.buffer()), limit, kind, schema, owner, scope, ourLimits());
@@ -598,14 +600,6 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
     }
 
     /**
-     * A running total of the bytes spent normalizing a single payload's messages.
-     *
-     * <p>Shared by every decoder reading one payload, so the cost is bounded across the whole tree
-     * rather than per message. Without it, nesting multiplies the retained bytes by the depth
-     * limit, and a payload of a megabyte can hold three orders of magnitude more heap than its
-     * size suggests.</p>
-     */
-    /**
      * The collaborators that belong to one payload rather than to one structure within it, carried
      * together so every nested decoder shares the same context and the same budget.
      *
@@ -615,6 +609,14 @@ public final class ProtobufDecoder extends LimitingStream implements KeysAwareDe
     private record PayloadScope(DecoderContext decoderContext, NormalizationBudget budget) {
     }
 
+    /**
+     * A running total of the bytes spent normalizing a single payload's messages.
+     *
+     * <p>Shared by every decoder reading one payload, so the cost is bounded across the whole tree
+     * rather than per message. Without it, nesting multiplies the retained bytes by the depth
+     * limit, and a payload of a megabyte can hold three orders of magnitude more heap than its
+     * size suggests.</p>
+     */
     private static final class NormalizationBudget {
         private final long limit;
         private long spent;

@@ -99,10 +99,6 @@ final class ProtoMessageNormalizer {
     }
 
     /**
-     * A repeated scalar may arrive packed into one run or as separately tagged values, and the two
-     * shapes may be mixed within a message. Either way the values are concatenated.
-     */
-    /**
      * The accumulator for a slot, created on first use.
      *
      * <p>Allocating one per schema slot per message meant a wide schema paid for every declared
@@ -117,6 +113,10 @@ final class ProtoMessageNormalizer {
         return field;
     }
 
+    /**
+     * A repeated scalar may arrive packed into one run or as separately tagged values, and the two
+     * shapes may be mixed within a message. Either way the values are concatenated.
+     */
     private static void accumulatePackable(byte[] source,
                                            ProtoProperty property,
                                            FieldAccumulator field,
