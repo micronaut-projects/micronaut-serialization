@@ -53,3 +53,6 @@ io.micronaut.serde.tck.tests.bytebuffer
 io.micronaut.serde.util
 io.micronaut.serde.xml
 io.micronaut.serde.xml.tck
+io.micronaut.serde.yaml
+io.micronaut.serde.yaml.body
+io.micronaut.serde.yaml.tck

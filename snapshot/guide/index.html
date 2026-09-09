@@ -119,11 +119,13 @@
         
         <div class="toc-item" style="margin-left:10px" id="toc-item-cborQuick"><a href="#cborQuick"><strong>3.4</strong><span>CBOR</span></a></div>
         
-        <div class="toc-item" style="margin-left:10px" id="toc-item-tomlQuick"><a href="#tomlQuick"><strong>3.5</strong><span>TOML</span></a></div>
+        <div class="toc-item" style="margin-left:10px" id="toc-item-yamlQuick"><a href="#yamlQuick"><strong>3.5</strong><span>YAML</span></a></div>
         
-        <div class="toc-item" style="margin-left:10px" id="toc-item-propertiesQuick"><a href="#propertiesQuick"><strong>3.6</strong><span>Java Properties</span></a></div>
+        <div class="toc-item" style="margin-left:10px" id="toc-item-tomlQuick"><a href="#tomlQuick"><strong>3.6</strong><span>TOML</span></a></div>
         
-        <div class="toc-item" style="margin-left:10px" id="toc-item-xmlQuick"><a href="#xmlQuick"><strong>3.7</strong><span>XML</span></a></div>
+        <div class="toc-item" style="margin-left:10px" id="toc-item-propertiesQuick"><a href="#propertiesQuick"><strong>3.7</strong><span>Java Properties</span></a></div>
+        
+        <div class="toc-item" style="margin-left:10px" id="toc-item-xmlQuick"><a href="#xmlQuick"><strong>3.8</strong><span>XML</span></a></div>
         
         <div class="toc-item" style="margin-left:0px" id="toc-item-jacksonAnnotations"><a href="#jacksonAnnotations"><strong>4</strong><span>Jackson Annotations</span></a></div>
         
@@ -182,7 +184,7 @@
 <p>It does so using build-time <a href="https://docs.micronaut.io/latest/guide/#introspection">Bean Introspections</a> that do not use reflection and allows using a variety of common annotation models including <a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/package-summary.html">Jackson annotations</a>, JSON-B annotations or <a href="https://mongodb.github.io/mongo-java-driver/3.5/javadoc/?org/bson/codecs/pojo/annotations/package-summary.html">BSON annotations</a>.</p>
 </div>
 <div class="paragraph">
-<p>Micronaut Serialization can be used to replace the use of Jackson Databind in a Micronaut application and allows serialization on top of a number of different encoding runtimes including Jackson Core, JSON-P, BSON, or CBOR.</p>
+<p>Micronaut Serialization can be used to replace the use of Jackson Databind in a Micronaut application and allows serialization on top of a number of different encoding runtimes including Jackson Core, JSON-P, BSON, CBOR, or YAML.</p>
 </div>
 
 <h2 id="why"><a class="anchor" href="#why"></a>1.1 Why Micronaut Serialization?</h2>
@@ -1932,7 +1934,692 @@ These control token encoding details (for example minimal integer width). They d
 </div>
 </div>
 
-<h2 id="tomlQuick"><a class="anchor" href="#tomlQuick"></a>3.5 TOML</h2>
+<h2 id="yamlQuick"><a class="anchor" href="#yamlQuick"></a>3.5 YAML</h2>
+
+<div class='contribute-btn'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/quickStart/yamlQuick.adoc"'>
+        <i class='fa fa-pencil-square-o'></i> Improve this doc
+    </button>
+</div>
+
+
+<div class="paragraph">
+<p>Micronaut Serialization includes support for reading and writing YAML documents with the <code>micronaut-serde-yaml</code> module.</p>
+</div>
+<div class="paragraph">
+<p>Add the following artifact to the <code>dependencies</code> block:</p>
+</div>
+<div class="paragraph">
+<p>        <div class="listingblock multi-language-sample">
+<div class="title"></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">implementation(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-yaml")</span></code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="maven">&lt;dependency&gt;
+    &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
+    &lt;artifactId&gt;micronaut-serde-yaml&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></pre>
+</div>
+</div>
+</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<code>micronaut-serde-yaml</code> uses the event based parser and emitter of <code>snakeyaml-engine</code> only as a token source and sink. Object mapping is performed by Micronaut Serialization&#8217;s build-time serializers and deserializers, and neither SnakeYAML&#8217;s object construction nor Jackson Databind is involved.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The YAML mapper is exposed as a named <a href="../api/io/micronaut/serde/ObjectMapper.html">ObjectMapper</a> bean. Inject it with the <code>yaml</code> qualifier, or by its concrete type <a href="../api/io/micronaut/serde/yaml/YamlObjectMapper.html">YamlObjectMapper</a>, when you want to read or write YAML data. When <code>micronaut-serde-jackson</code> is also present, Jackson remains the primary JSON mapper:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
+
+import io.micronaut.serde.ObjectMapper;
+import io.micronaut.serde.yaml.YamlObjectMapper;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+
+@Singleton
+final class YamlReportService {
+    private final ObjectMapper yamlMapper;
+
+    YamlReportService(@Named(YamlObjectMapper.YAML) ObjectMapper yamlMapper) {
+        this.yamlMapper = yamlMapper;
+    }
+
+    ObjectMapper yamlMapper() {
+        return yamlMapper;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>With the correct dependencies in place, define a serializable type:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+import java.util.List;
+
+@Serdeable
+public record YamlLibrary(String name, List&lt;String&gt; books) {
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The mapper reads and writes the same types supported by Micronaut Serialization. The example model is written as:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">name: City Library
+books:
+- The Stand
+- VALIS</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The following executable example writes and reads this model:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
+
+import io.micronaut.context.ApplicationContext;
+import io.micronaut.core.type.Argument;
+import io.micronaut.serde.ObjectMapper;
+import io.micronaut.serde.yaml.YamlObjectMapper;
+import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
+class YamlQuickStartTest {
+
+    @Test
+    void testWriteAndReadYaml() throws IOException {
+        try (ApplicationContext context = ApplicationContext.run()) {
+            ObjectMapper yamlMapper = context.getBean(YamlObjectMapper.class);
+            YamlLibrary library = new YamlLibrary("City Library", List.of("The Stand", "VALIS"));
+
+            String yaml = yamlMapper.writeValueAsString(library);
+
+            assertEquals("name: City Library\nbooks:\n- The Stand\n- VALIS\n", yaml);
+            assertEquals(library, yamlMapper.readValue(yaml, YamlLibrary.class));
+        }
+    }
+
+    @Test
+    void testReadFeatures() throws IOException {
+        assertEquals("yes", read(Map.of(), "key: yes\n", Argument.mapOf(String.class, Object.class)).get("key"));
+        assertEquals(true, read(
+            Map.of("micronaut.serde.format.yaml.read-features.boolean-as-strings", false),
+            "key: yes\n",
+            Argument.mapOf(String.class, Object.class)
+        ).get("key"));
+
+        assertNull(read(Map.of(), "key:\n", Argument.mapOf(String.class, Object.class)).get("key"));
+        assertEquals("", read(
+            Map.of("micronaut.serde.format.yaml.read-features.empty-string-as-null", false),
+            "key:\n",
+            Argument.mapOf(String.class, Object.class)
+        ).get("key"));
+
+    }
+
+    @Test
+    void testScalarWriteFeatures() throws IOException {
+        assertEquals("text: \"hello world\"\n", write(
+            Map.of("micronaut.serde.format.yaml.write-features.minimize-quotes", false),
+            Map.of("text", "hello world")
+        ));
+        assertEquals("text: |-\n  Hello\n  World\n", write(Map.of(
+            "micronaut.serde.format.yaml.write-features.minimize-quotes", false,
+            "micronaut.serde.format.yaml.write-features.literal-block-style", true
+        ), Map.of("text", "Hello\nWorld")));
+
+        String longText = "1234567890 ".repeat(9).trim();
+        assertEquals("- \"" + longText + "\"\n", write(Map.of(
+            "micronaut.serde.format.yaml.write-features.minimize-quotes", false,
+            "micronaut.serde.format.yaml.write-features.split-lines", false
+        ), List.of(longText)));
+
+        assertEquals("value: NaN\n", write(
+            Map.of("micronaut.serde.format.yaml.write-features.use-yaml-nonfinite-notation", false),
+            Map.of("value", Double.NaN)
+        ));
+    }
+
+    @Test
+    void testLayoutWriteFeatures() throws IOException {
+        assertEquals("{values: [A, B]}\n", write(
+            Map.of("micronaut.serde.format.yaml.write-features.write-style", "FLOW"),
+            Map.of("values", List.of("A", "B"))
+        ));
+        assertEquals("outer:\n    key: value\n", write(
+            Map.of("micronaut.serde.format.yaml.write-features.indent", 4),
+            Map.of("outer", Map.of("key", "value"))
+        ));
+        assertEquals("---\nkey: value\n...\n", write(Map.of(
+            "micronaut.serde.format.yaml.write-features.explicit-start", true,
+            "micronaut.serde.format.yaml.write-features.explicit-end", true
+        ), Map.of("key", "value")));
+        assertEquals("---\n{\n  ? \"key\"\n  : \"value\",\n}\n", write(
+            Map.of("micronaut.serde.format.yaml.write-features.canonical-output", true),
+            Map.of("key", "value")
+        ));
+        assertEquals("values:\n - A\n - B\n", write(
+            Map.of("micronaut.serde.format.yaml.write-features.indent-arrays", true),
+            Map.of("values", List.of("A", "B"))
+        ));
+        assertEquals("values:\n  - A\n  - B\n", write(
+            Map.of("micronaut.serde.format.yaml.write-features.indent-arrays-with-indicator", true),
+            Map.of("values", List.of("A", "B"))
+        ));
+
+        String longKey = "a".repeat(129);
+        assertEquals(longKey + ": value\n", write(
+            Map.of("micronaut.serde.format.yaml.write-features.allow-long-keys", true),
+            Map.of(longKey, "value")
+        ));
+    }
+
+    private static String write(Map&lt;String, Object&gt; properties, Object value) throws IOException {
+        try (ApplicationContext context = ApplicationContext.run(properties)) {
+            return context.getBean(YamlObjectMapper.class).writeValueAsString(value);
+        }
+    }
+
+    private static &lt;T&gt; T read(Map&lt;String, Object&gt; properties, String yaml, Argument&lt;T&gt; type) throws IOException {
+        try (ApplicationContext context = ApplicationContext.run(properties)) {
+            return context.getBean(YamlObjectMapper.class).readValue(yaml, type);
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_reading_yaml">Reading YAML</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A document may have a mapping, a sequence or a scalar as its root node, so a <code>List&lt;Book&gt;</code> reads from a top-level sequence and a <code>String</code> from a bare scalar. Exactly one document is read: an explicit <code>---</code> start marker and <code>&#8230;&#8203;</code> end marker are accepted, but a second document in the same input is rejected. Empty input is rejected as well.</p>
+</div>
+<div class="paragraph">
+<p>Plain scalars are typed with the YAML 1.2 core schema. Quoted scalars are always strings, integers may be written in decimal, octal (<code>0o17</code>) or hexadecimal (<code>0x1F</code>) notation, and <code>.inf</code>, <code>-.inf</code> and <code>.nan</code> are read as the non-finite floating-point values. Numbers that do not fit a <code>long</code> or a <code>double</code> keep their precision when read into a <code>BigInteger</code> or <code>BigDecimal</code>. Mapping keys must be scalars; complex keys written with the <code>?</code> indicator are rejected.</p>
+</div>
+<div class="paragraph">
+<p>Anchors, aliases and merge keys are resolved while reading:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">defaults: &amp;defaults
+  timeout: 30
+  retries: 3
+service:
+  &lt;&lt;: *defaults
+  retries: 5</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>An alias replays the anchored node, including any aliases or merges that were resolved inside it. A merge key <code>&lt;&lt;</code> splices the entries of the referenced mapping, or of each mapping in a referenced sequence, into the enclosing mapping. A key the mapping defines itself always wins over a merged key, wherever in the mapping it is written, and a mapping earlier in a merged sequence wins over the ones after it, as the merge key specification requires. Unknown properties, including nested mappings and sequences, are skipped like they are for JSON.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Because the keys a mapping defines are only all known once the mapping ends, merged entries are read at the end of the enclosing mapping. That is invisible for beans and records, and only changes the iteration order of a <code>Map</code> read from a mapping that uses a merge key. Jackson Databind instead lets a merged key override a key written before the merge key; Micronaut Serialization follows the specification here.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_read_features">Read Features</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>YAML read behavior is configured under <code>micronaut.serde.format.yaml.read-features</code>:</p>
+</div>
+<div class="openblock">
+<div class="content">
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">micronaut.serde.format.yaml.read-features.boolean-as-strings=true
+micronaut.serde.format.yaml.read-features.empty-string-as-null=true
+micronaut.serde.format.yaml.read-features.code-point-limit=3145728</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">micronaut:
+  serde:
+    format:
+      yaml:
+        read-features:
+          boolean-as-strings: true
+          empty-string-as-null: true
+          code-point-limit: 3145728</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="toml">[micronaut]
+  [micronaut.serde]
+    [micronaut.serde.format]
+      [micronaut.serde.format.yaml]
+        [micronaut.serde.format.yaml.read-features]
+          boolean-as-strings=true
+          empty-string-as-null=true
+          code-point-limit=3145728</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy-config hljs" data-lang="groovy-config">micronaut {
+  serde {
+    format {
+      yaml {
+        readFeatures {
+          booleanAsStrings = true
+          emptyStringAsNull = true
+          codePointLimit = 3145728
+        }
+      }
+    }
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-hocon hljs" data-lang="hocon">{
+  micronaut {
+    serde {
+      format {
+        yaml {
+          read-features {
+            boolean-as-strings = true
+            empty-string-as-null = true
+            code-point-limit = 3145728
+          }
+        }
+      }
+    }
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json-config hljs" data-lang="json-config">{
+  "micronaut": {
+    "serde": {
+      "format": {
+        "yaml": {
+          "read-features": {
+            "boolean-as-strings": true,
+            "empty-string-as-null": true,
+            "code-point-limit": 3145728
+          }
+        }
+      }
+    }
+  }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>boolean-as-strings</code></dt>
+<dd>
+<p>When enabled, legacy YAML boolean-like values such as <code>yes</code>, <code>no</code>, <code>on</code>, and <code>off</code> are read as strings. The canonical <code>true</code> and <code>false</code> values remain booleans. Disable it to interpret the legacy values as booleans.</p>
+</dd>
+<dt class="hdlist1"><code>empty-string-as-null</code></dt>
+<dd>
+<p>When enabled, an empty plain scalar such as <code>key:</code> is read as <code>null</code>. Disable it to read the value as an empty string. Quoted empty strings remain strings.</p>
+</dd>
+<dt class="hdlist1"><code>code-point-limit</code></dt>
+<dd>
+<p>The maximum number of characters a single YAML input may contain. Larger input is rejected before it is parsed, which bounds the memory an untrusted document can claim. The default is 3 MiB. The nesting depth of documents is bounded by <code>micronaut.serde.maximum-nesting-depth</code> like it is for the other formats. Alias expansion is capped as well, per alias and for the document as a whole, so that recursive documents, exponentially expanding ones and documents that simply repeat an alias to a large anchored node fail instead of consuming memory.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_write_features">Write Features</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>YAML write behavior is configured under <code>micronaut.serde.format.yaml.write-features</code>. All available settings can be configured together as follows; normally, only settings that differ from their defaults need to be specified:</p>
+</div>
+<div class="openblock">
+<div class="content">
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">micronaut.serde.format.yaml.write-features.write-style=BLOCK
+micronaut.serde.format.yaml.write-features.indent=2
+micronaut.serde.format.yaml.write-features.explicit-start=false
+micronaut.serde.format.yaml.write-features.explicit-end=false
+micronaut.serde.format.yaml.write-features.minimize-quotes=true
+micronaut.serde.format.yaml.write-features.literal-block-style=false
+micronaut.serde.format.yaml.write-features.split-lines=true
+micronaut.serde.format.yaml.write-features.canonical-output=false
+micronaut.serde.format.yaml.write-features.indent-arrays=false
+micronaut.serde.format.yaml.write-features.indent-arrays-with-indicator=false
+micronaut.serde.format.yaml.write-features.allow-long-keys=false
+micronaut.serde.format.yaml.write-features.use-yaml-nonfinite-notation=true</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">micronaut:
+  serde:
+    format:
+      yaml:
+        write-features:
+          write-style: BLOCK
+          indent: 2
+          explicit-start: false
+          explicit-end: false
+          minimize-quotes: true
+          literal-block-style: false
+          split-lines: true
+          canonical-output: false
+          indent-arrays: false
+          indent-arrays-with-indicator: false
+          allow-long-keys: false
+          use-yaml-nonfinite-notation: true</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="toml">[micronaut]
+  [micronaut.serde]
+    [micronaut.serde.format]
+      [micronaut.serde.format.yaml]
+        [micronaut.serde.format.yaml.write-features]
+          write-style="BLOCK"
+          indent=2
+          explicit-start=false
+          explicit-end=false
+          minimize-quotes=true
+          literal-block-style=false
+          split-lines=true
+          canonical-output=false
+          indent-arrays=false
+          indent-arrays-with-indicator=false
+          allow-long-keys=false
+          use-yaml-nonfinite-notation=true</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy-config hljs" data-lang="groovy-config">micronaut {
+  serde {
+    format {
+      yaml {
+        writeFeatures {
+          writeStyle = "BLOCK"
+          indent = 2
+          explicitStart = false
+          explicitEnd = false
+          minimizeQuotes = true
+          literalBlockStyle = false
+          splitLines = true
+          canonicalOutput = false
+          indentArrays = false
+          indentArraysWithIndicator = false
+          allowLongKeys = false
+          useYamlNonfiniteNotation = true
+        }
+      }
+    }
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-hocon hljs" data-lang="hocon">{
+  micronaut {
+    serde {
+      format {
+        yaml {
+          write-features {
+            write-style = "BLOCK"
+            indent = 2
+            explicit-start = false
+            explicit-end = false
+            minimize-quotes = true
+            literal-block-style = false
+            split-lines = true
+            canonical-output = false
+            indent-arrays = false
+            indent-arrays-with-indicator = false
+            allow-long-keys = false
+            use-yaml-nonfinite-notation = true
+          }
+        }
+      }
+    }
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json-config hljs" data-lang="json-config">{
+  "micronaut": {
+    "serde": {
+      "format": {
+        "yaml": {
+          "write-features": {
+            "write-style": "BLOCK",
+            "indent": 2,
+            "explicit-start": false,
+            "explicit-end": false,
+            "minimize-quotes": true,
+            "literal-block-style": false,
+            "split-lines": true,
+            "canonical-output": false,
+            "indent-arrays": false,
+            "indent-arrays-with-indicator": false,
+            "allow-long-keys": false,
+            "use-yaml-nonfinite-notation": true
+          }
+        }
+      }
+    }
+  }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_document_and_collection_layout">Document and Collection Layout</h3>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>write-style</code></dt>
+<dd>
+<p>Selects <code>BLOCK</code> or <code>FLOW</code> collection output. For example, flow style writes a mapping containing a sequence as <code>{values: [A, B]}</code>.</p>
+</dd>
+<dt class="hdlist1"><code>indent</code></dt>
+<dd>
+<p>Controls the number of spaces used for each nested mapping level. The default is two.</p>
+</dd>
+<dt class="hdlist1"><code>explicit-start</code> and <code>explicit-end</code></dt>
+<dd>
+<p>Add the YAML document markers <code>---</code> and <code>&#8230;&#8203;</code>, respectively:</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">---
+key: value
+...</code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>canonical-output</code></dt>
+<dd>
+<p>Forces canonical YAML output. Collections use explicit flow syntax, scalars are quoted, mapping keys use <code>?</code>, and the document starts with <code>---</code>:</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">---
+{
+  ? "key"
+  : "value",
+}</code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>indent-arrays</code></dt>
+<dd>
+<p>Adds one space before block sequence indicators:</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">values:
+ - A
+ - B</code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>indent-arrays-with-indicator</code></dt>
+<dd>
+<p>Indents sequence indicators by two spaces and includes that offset when aligning nested sequence content. When both array indentation features are enabled, this setting takes precedence:</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">values:
+  - A
+  - B</code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>allow-long-keys</code></dt>
+<dd>
+<p>Raises the simple-key limit from 128 to 1024 characters. Without it, longer keys are written with YAML&#8217;s explicit <code>?</code> key syntax; with it, eligible long keys remain in <code>key: value</code> form.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_scalar_formatting">Scalar Formatting</h3>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>minimize-quotes</code></dt>
+<dd>
+<p>Omits quotes from strings when YAML permits. Strings that would otherwise be read back as another type, such as <code>true</code>, <code>null</code> or <code>123</code>, and strings containing YAML indicators stay quoted. Disable it to write strings such as <code>hello world</code> as <code>"hello world"</code>. Multiline strings are written in literal block style while quotes are minimized.</p>
+</dd>
+<dt class="hdlist1"><code>literal-block-style</code></dt>
+<dd>
+<p>Writes multiline strings in YAML literal block style even when <code>minimize-quotes</code> is disabled:</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">text: |-
+  Hello
+  World</code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>split-lines</code></dt>
+<dd>
+<p>Allows long double-quoted strings to wrap across lines. Disable it when quoted strings must remain on one output line.</p>
+</dd>
+<dt class="hdlist1"><code>use-yaml-nonfinite-notation</code></dt>
+<dd>
+<p>Writes non-finite floating-point values as <code>.nan</code>, <code>.inf</code>, and <code>-.inf</code>. Disable it to use <code>NaN</code>, <code>Infinity</code>, and <code>-Infinity</code> for compatibility with Java-oriented consumers.</p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>Documents are always written with <code>\n</code> line breaks so the output is identical on every platform.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_http">HTTP</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The module registers a message body handler for <code>application/yaml</code> (RFC 9512) and the legacy <code>application/x-yaml</code> media type, so controllers and clients can consume and produce YAML bodies:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Post(uri = "/books", processes = YamlMediaTypes.APPLICATION_YAML)
+Book save(@Body Book book) {
+    return book;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The constants <a href="../api/io/micronaut/serde/yaml/YamlMediaTypes.html">YamlMediaTypes</a>#APPLICATION_YAML and <a href="../api/io/micronaut/serde/yaml/YamlMediaTypes.html">YamlMediaTypes</a>#APPLICATION_X_YAML are provided for convenience. JSON stays the default for content negotiation; YAML is selected by the request <code>Content-Type</code> and <code>Accept</code> headers.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_limitations">Limitations</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>Only one document per input is supported.</p>
+</li>
+<li>
+<p>Mapping keys must be scalars.</p>
+</li>
+<li>
+<p>Explicit YAML tags are honoured for the core schema types (<code>!!str</code>, <code>!!int</code>, <code>!!float</code>, <code>!!bool</code>, <code>!!null</code>); other tags are read as strings and no tags are written.</p>
+</li>
+<li>
+<p>Anchors and aliases are not written. Repeated object references are serialized as copies, and the Jackson <code>USE_NATIVE_OBJECT_ID</code> and <code>USE_NATIVE_TYPE_ID</code> features have no equivalent.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+<h2 id="tomlQuick"><a class="anchor" href="#tomlQuick"></a>3.6 TOML</h2>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/quickStart/tomlQuick.adoc"'>
@@ -1948,7 +2635,7 @@ These control token encoding details (for example minimal integer width). They d
 <p>See the <a href="https://micronaut-projects.github.io/micronaut-toml/latest/guide/#tomlQuick">Micronaut TOML serialization documentation</a> for dependency setup, the named TOML <a href="../api/io/micronaut/serde/ObjectMapper.html">ObjectMapper</a> bean, source-backed examples, mapper configuration, and TOML output layout.</p>
 </div>
 
-<h2 id="propertiesQuick"><a class="anchor" href="#propertiesQuick"></a>3.6 Java Properties</h2>
+<h2 id="propertiesQuick"><a class="anchor" href="#propertiesQuick"></a>3.7 Java Properties</h2>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/quickStart/propertiesQuick.adoc"'>
@@ -2106,7 +2793,7 @@ Java <code>*.properties</code> documents require keys. Root objects can be writt
 </table>
 </div>
 
-<h2 id="xmlQuick"><a class="anchor" href="#xmlQuick"></a>3.7 XML</h2>
+<h2 id="xmlQuick"><a class="anchor" href="#xmlQuick"></a>3.8 XML</h2>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/quickStart/xmlQuick.adoc"'>
