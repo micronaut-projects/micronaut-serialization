@@ -65,6 +65,7 @@ public final class SimpleSerdeShapeAnalyzer {
         "tools.jackson.dataformat.xml.annotation.JacksonXmlCData";
     private static final String JAXB_XML_MIXED = "jakarta.xml.bind.annotation.XmlMixed";
     private static final String JAXB_XML_ACCESSOR_TYPE = "jakarta.xml.bind.annotation.XmlAccessorType";
+    private static final String JAXB_XML_ROOT_ELEMENT = "jakarta.xml.bind.annotation.XmlRootElement";
     private static final String BINDABLE = "io.micronaut.core.bind.annotation.Bindable";
     private static final String BINDABLE_DEFAULT_VALUE = "defaultValue";
     /**
@@ -166,7 +167,8 @@ public final class SimpleSerdeShapeAnalyzer {
         if (!isBothFailed(serializerReasons, deserializerReasons)
             && (usesDocumentIds(element)
                 || hasAnnotation(element, JAXB_XML_MIXED)
-                || element.hasDeclaredAnnotation(JAXB_XML_ACCESSOR_TYPE))
+                || element.hasDeclaredAnnotation(JAXB_XML_ACCESSOR_TYPE)
+                || hasXmlRootElement(element))
             && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
             return decision(shapeKind, serializerReasons, deserializerReasons);
         }
@@ -734,6 +736,16 @@ public final class SimpleSerdeShapeAnalyzer {
             }
         }
         return false;
+    }
+
+    /**
+     * An XML root element name is written through the introspection metadata the runtime serializer
+     * attaches to the document argument, which the generated serializers do not carry.
+     */
+    private boolean hasXmlRootElement(ClassElement element) {
+        return element.booleanValue(SerdeConfig.class, SerdeConfig.XML_ROOT_ELEMENT).orElse(false)
+            || element.hasAnnotation(JAXB_XML_ROOT_ELEMENT)
+            || element.hasAnnotation("com.fasterxml.jackson.annotation.JsonRootName");
     }
 
     private boolean usesDocumentIds(ClassElement element) {
