@@ -76,6 +76,11 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
     private final List<BeanDefinition<Serializer>> serializers = new ArrayList<>(100);
     private final List<BeanDefinition<Deserializer>> deserializers = new ArrayList<>(100);
+    /**
+     * A pre-instantiate callback observes every object instantiation; only the runtime object
+     * deserializers invoke it, so generated deserializers stand down while one is registered.
+     */
+    private final boolean preInstantiateCallbackPresent;
     private final List<BeanDefinition<Serde>> internalSerdes = new ArrayList<>(100);
 
     // if there is a single Serde that is part of the serializerMap *and* deserializerMap, this can
@@ -126,10 +131,12 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             serdeConfiguration,
             serializationConfiguration,
             beanContext);
+        SerdeDeserializationPreInstantiateCallback preInstantiateCallback = beanContext.findBean(SerdeDeserializationPreInstantiateCallback.class).orElse(null);
+        this.preInstantiateCallbackPresent = preInstantiateCallback != null;
         this.objectDeserializer = new ObjectDeserializer(introspections,
             deserializationConfiguration,
             serdeConfiguration,
-            beanContext.findBean(SerdeDeserializationPreInstantiateCallback.class).orElse(null)
+            preInstantiateCallback
         );
         this.objectArraySerde = new ObjectArraySerde();
     }
@@ -275,6 +282,9 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         Collection<BeanDefinition<Deserializer>> beanDefinitions = MatchArgumentQualifier.covariant(Deserializer.class, type)
             .filter(Deserializer.class, deserializers);
         beanDefinitions = withoutSpecificSerdesForOtherTypes(beanDefinitions, Deserializer.class, type, this::createSpecificDeserializerConstructor);
+        if (preInstantiateCallbackPresent) {
+            beanDefinitions = beanDefinitions.stream().filter(candidate -> !createSpecificDeserializerConstructor(candidate)).toList();
+        }
         BeanDefinition<Deserializer> deserBeanDefinition;
         if (beanDefinitions.size() == 1) {
             deserBeanDefinition = beanDefinitions.iterator().next();
