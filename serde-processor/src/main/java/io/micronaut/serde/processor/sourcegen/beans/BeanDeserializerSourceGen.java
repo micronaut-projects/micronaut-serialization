@@ -1113,70 +1113,28 @@ public final class BeanDeserializerSourceGen {
                 primitiveNullMode
             );
         } else if (scalarDecodeMethod != null) {
-            Method nonNullScalarDecodeMethod = nonNullScalarDecoderMethod(property.deserializationType());
-            if (property.required()) {
-                StatementDef.DefineAndAssign decodedValueDef = objectDecoder.invoke(scalarDecodeMethod)
-                    .cast(BeanSerdeSourceGenUtils.deserializedCastType(property.deserializationType()))
-                    .newLocal(BeanSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, index));
-                deserializeAndAssign = StatementDef.multi(
-                    decodedValueDef,
-                    decodedValueDef.variable().isNull().ifTrue(
-                        requiredPropertyNullStatement(type, argumentExpression),
-                        assignProperty(beanVariable, property, decodedValueDef.variable())
-                    )
-                );
-            } else if (property.nonNull() && !property.nullable() && nonNullScalarDecodeMethod != null) {
-                deserializeAndAssign = assignProperty(
-                    beanVariable,
-                    property,
-                    objectDecoder.invoke(nonNullScalarDecodeMethod)
-                );
-            } else if (property.nonNull() && !property.nullable()) {
-                StatementDef.DefineAndAssign decodedValueDef = objectDecoder.invoke(scalarDecodeMethod)
-                    .cast(BeanSerdeSourceGenUtils.deserializedCastType(property.deserializationType()))
-                    .newLocal(BeanSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, index));
-                deserializeAndAssign = StatementDef.multi(
-                    decodedValueDef,
-                    decodedValueDef.variable().isNull().ifTrue(
-                        nullValueOrDispatchStatement(type, argumentExpression, dispatchResultVariable),
-                        assignProperty(beanVariable, property, decodedValueDef.variable())
-                    )
-                );
-            } else {
-                deserializeAndAssign = assignProperty(
-                    beanVariable,
-                    property,
-                    objectDecoder.invoke(scalarDecodeMethod)
-                        .cast(BeanSerdeSourceGenUtils.deserializedCastType(property.deserializationType()))
-                );
-            }
+            deserializeAndAssign = deserializeAndAssignScalarProperty(
+                objectDecoder,
+                type,
+                beanVariable,
+                property,
+                index,
+                argumentExpression,
+                scalarDecodeMethod,
+                dispatchResultVariable
+            );
         } else {
-            String deserializerFieldName = required(deserializerFieldNames, property.name());
-            StatementDef.DefineAndAssign deserializedValueDef = aThis.field(deserializerFieldName, DESERIALIZER_TYPE).invoke(
-                DESERIALIZE_NULLABLE_METHOD,
+            deserializeAndAssign = deserializeAndAssignDeserializedProperty(
+                aThis,
                 objectDecoder,
                 context,
-                argumentExpression
-            ).cast(BeanSerdeSourceGenUtils.deserializedCastType(property.deserializationType())).newLocal(BeanSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, index));
-            deserializeAndAssign = deserializedValueDef;
-            StatementDef assignStatement = assignProperty(beanVariable, property, deserializedValueDef.variable());
-            StatementDef propertyAssignment;
-            if (property.required()) {
-                propertyAssignment = deserializedValueDef.variable().isNull().ifTrue(
-                    requiredPropertyNullStatement(type, argumentExpression),
-                    assignStatement
-                );
-            } else if (property.nonNull() && !property.nullable()) {
-                propertyAssignment = deserializedValueDef.variable().isNull().ifTrue(
-                    nullValueOrDispatchStatement(type, argumentExpression, dispatchResultVariable),
-                    assignStatement
-                );
-            } else {
-                propertyAssignment = assignStatement;
-            }
-            deserializeAndAssign = StatementDef.multi(
-                deserializeAndAssign,
-                propertyAssignment
+                type,
+                beanVariable,
+                property,
+                index,
+                argumentExpression,
+                required(deserializerFieldNames, property.name()),
+                dispatchResultVariable
             );
         }
         return StatementDef.doTry(deserializeAndAssign)
@@ -1190,6 +1148,93 @@ public final class BeanDeserializerSourceGen {
                     )
                     .doThrow()
             );
+    }
+
+    @SuppressWarnings("java:S107")
+    private StatementDef deserializeAndAssignScalarProperty(VariableDef objectDecoder,
+                                                            VariableDef.MethodParameter type,
+                                                            VariableDef beanVariable,
+                                                            BeanSerdeShape.BeanProperty property,
+                                                            int index,
+                                                            ExpressionDef argumentExpression,
+                                                            Method scalarDecodeMethod,
+                                                            @Nullable VariableDef dispatchResultVariable) {
+        Method nonNullScalarDecodeMethod = nonNullScalarDecoderMethod(property.deserializationType());
+        if (property.required()) {
+            StatementDef.DefineAndAssign decodedValueDef = objectDecoder.invoke(scalarDecodeMethod)
+                .cast(BeanSerdeSourceGenUtils.deserializedCastType(property.deserializationType()))
+                .newLocal(BeanSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, index));
+            return StatementDef.multi(
+                decodedValueDef,
+                decodedValueDef.variable().isNull().ifTrue(
+                    requiredPropertyNullStatement(type, argumentExpression),
+                    assignProperty(beanVariable, property, decodedValueDef.variable())
+                )
+            );
+        }
+        if (property.nonNull() && !property.nullable() && nonNullScalarDecodeMethod != null) {
+            return assignProperty(
+                beanVariable,
+                property,
+                objectDecoder.invoke(nonNullScalarDecodeMethod)
+            );
+        }
+        if (property.nonNull() && !property.nullable()) {
+            StatementDef.DefineAndAssign decodedValueDef = objectDecoder.invoke(scalarDecodeMethod)
+                .cast(BeanSerdeSourceGenUtils.deserializedCastType(property.deserializationType()))
+                .newLocal(BeanSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, index));
+            return StatementDef.multi(
+                decodedValueDef,
+                decodedValueDef.variable().isNull().ifTrue(
+                    nullValueOrDispatchStatement(type, argumentExpression, dispatchResultVariable),
+                    assignProperty(beanVariable, property, decodedValueDef.variable())
+                )
+            );
+        }
+        return assignProperty(
+            beanVariable,
+            property,
+            objectDecoder.invoke(scalarDecodeMethod)
+                .cast(BeanSerdeSourceGenUtils.deserializedCastType(property.deserializationType()))
+        );
+    }
+
+    @SuppressWarnings("java:S107")
+    private StatementDef deserializeAndAssignDeserializedProperty(VariableDef.This aThis,
+                                                                  VariableDef objectDecoder,
+                                                                  VariableDef.MethodParameter context,
+                                                                  VariableDef.MethodParameter type,
+                                                                  VariableDef beanVariable,
+                                                                  BeanSerdeShape.BeanProperty property,
+                                                                  int index,
+                                                                  ExpressionDef argumentExpression,
+                                                                  String deserializerFieldName,
+                                                                  @Nullable VariableDef dispatchResultVariable) {
+        StatementDef.DefineAndAssign deserializedValueDef = aThis.field(deserializerFieldName, DESERIALIZER_TYPE).invoke(
+            DESERIALIZE_NULLABLE_METHOD,
+            objectDecoder,
+            context,
+            argumentExpression
+        ).cast(BeanSerdeSourceGenUtils.deserializedCastType(property.deserializationType())).newLocal(BeanSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, index));
+        StatementDef assignStatement = assignProperty(beanVariable, property, deserializedValueDef.variable());
+        StatementDef propertyAssignment;
+        if (property.required()) {
+            propertyAssignment = deserializedValueDef.variable().isNull().ifTrue(
+                requiredPropertyNullStatement(type, argumentExpression),
+                assignStatement
+            );
+        } else if (property.nonNull() && !property.nullable()) {
+            propertyAssignment = deserializedValueDef.variable().isNull().ifTrue(
+                nullValueOrDispatchStatement(type, argumentExpression, dispatchResultVariable),
+                assignStatement
+            );
+        } else {
+            propertyAssignment = assignStatement;
+        }
+        return StatementDef.multi(
+            deserializedValueDef,
+            propertyAssignment
+        );
     }
 
     @SuppressWarnings("java:S107")

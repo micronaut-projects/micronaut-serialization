@@ -3,10 +3,8 @@ package io.micronaut.serde.jackson.compiletime
 import io.micronaut.context.ApplicationContext
 import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
-import io.micronaut.serde.Deserializer
 import io.micronaut.serde.SerdeIntrospections
 import io.micronaut.serde.SerdeRegistry
-import io.micronaut.serde.Serializer
 import io.micronaut.serde.config.annotation.SerdeConfig
 import io.micronaut.serde.jackson.JsonCompileSpec
 import spock.lang.Unroll

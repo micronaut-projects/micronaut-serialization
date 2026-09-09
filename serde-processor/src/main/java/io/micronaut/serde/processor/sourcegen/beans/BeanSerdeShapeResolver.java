@@ -60,27 +60,8 @@ public final class BeanSerdeShapeResolver {
         List<BeanSerdeShape.BeanProperty> deserializationProperties = new ArrayList<>(beanProperties.size());
         List<String> ignoredDeserializationNames = new ArrayList<>(2);
         for (PropertyElement property : beanProperties) {
-            PropertyAccess propertyAccess = resolvePropertyAccess(element, property);
-            String name = stringValue(property, SerdeConfig.PROPERTY).orElse(property.getName());
-            if (propertyAccess.readable()) {
-                if (isSerialized(property)) {
-                    BeanSerdeShape.BeanProperty beanProperty = resolveProperty(element, name, property, propertyAccess).orElse(null);
-                    if (beanProperty == null) {
-                        return Optional.empty();
-                    }
-                    serializationProperties.add(new NamedProperty(property.getName(), beanProperty));
-                }
-            }
-            if (propertyAccess.writable()) {
-                if (isDeserialized(property)) {
-                    BeanSerdeShape.BeanProperty beanProperty = resolveProperty(element, name, property, propertyAccess).orElse(null);
-                    if (beanProperty == null) {
-                        return Optional.empty();
-                    }
-                    deserializationProperties.add(beanProperty);
-                } else {
-                    ignoredDeserializationNames.add(name);
-                }
+            if (!collectProperty(element, property, serializationProperties, deserializationProperties, ignoredDeserializationNames)) {
+                return Optional.empty();
             }
         }
         List<BeanSerdeShape.BeanProperty> orderedSerializationProperties = SerdeSourceGenPropertyOrder.order(
@@ -98,6 +79,39 @@ public final class BeanSerdeShapeResolver {
             List.copyOf(ignoredDeserializationNames),
             resolveIgnoreUnknown(element)
         ));
+    }
+
+    /**
+     * Adds the property to the direction the runtime serdes resolve it for.
+     *
+     * @return {@code false} when the property cannot be generated, so the whole shape is unsupported
+     */
+    private boolean collectProperty(ClassElement element,
+                                    PropertyElement property,
+                                    List<NamedProperty> serializationProperties,
+                                    List<BeanSerdeShape.BeanProperty> deserializationProperties,
+                                    List<String> ignoredDeserializationNames) {
+        PropertyAccess propertyAccess = resolvePropertyAccess(element, property);
+        String name = stringValue(property, SerdeConfig.PROPERTY).orElse(property.getName());
+        boolean serialized = propertyAccess.readable() && isSerialized(property);
+        boolean deserialized = propertyAccess.writable() && isDeserialized(property);
+        if (propertyAccess.writable() && !deserialized) {
+            ignoredDeserializationNames.add(name);
+        }
+        if (!serialized && !deserialized) {
+            return true;
+        }
+        BeanSerdeShape.BeanProperty beanProperty = resolveProperty(element, name, property, propertyAccess).orElse(null);
+        if (beanProperty == null) {
+            return false;
+        }
+        if (serialized) {
+            serializationProperties.add(new NamedProperty(property.getName(), beanProperty));
+        }
+        if (deserialized) {
+            deserializationProperties.add(beanProperty);
+        }
+        return true;
     }
 
     /**
@@ -185,9 +199,15 @@ public final class BeanSerdeShapeResolver {
                                                                          PropertyAccess propertyAccess) {
         ClassElement readType = property.getReadType().orElse(null);
         ClassElement writeType = property.getWriteType().orElse(null);
-        ClassElement serializationType = readType != null ? readType : writeType;
-        ClassElement deserializationType = writeType != null ? writeType : readType;
-        if (serializationType == null || deserializationType == null) {
+        ClassElement serializationType;
+        ClassElement deserializationType;
+        if (readType != null) {
+            serializationType = readType;
+            deserializationType = writeType != null ? writeType : readType;
+        } else if (writeType != null) {
+            serializationType = writeType;
+            deserializationType = writeType;
+        } else {
             return Optional.empty();
         }
         if (serializationType.isTypeVariable() || deserializationType.isTypeVariable()) {

@@ -375,27 +375,30 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                                                                                         Class<S> serdeType,
                                                                                         Argument<?> type,
                                                                                         Predicate<BeanDefinition<S>> specific) {
-        if (candidates.isEmpty()) {
+        boolean anyExcluded = false;
+        for (BeanDefinition<S> candidate : candidates) {
+            if (isSpecificForOtherType(candidate, serdeType, type, specific)) {
+                anyExcluded = true;
+                break;
+            }
+        }
+        if (!anyExcluded) {
             return candidates;
         }
-        List<BeanDefinition<S>> filtered = null;
+        List<BeanDefinition<S>> filtered = new ArrayList<>(candidates.size());
         for (BeanDefinition<S> candidate : candidates) {
-            boolean excluded = specific.test(candidate) && !declaresExactType(candidate, serdeType, type);
-            if (excluded) {
-                if (filtered == null) {
-                    filtered = new ArrayList<>(candidates.size());
-                    for (BeanDefinition<S> previous : candidates) {
-                        if (previous == candidate) {
-                            break;
-                        }
-                        filtered.add(previous);
-                    }
-                }
-            } else if (filtered != null) {
+            if (!isSpecificForOtherType(candidate, serdeType, type, specific)) {
                 filtered.add(candidate);
             }
         }
-        return filtered == null ? candidates : filtered;
+        return filtered;
+    }
+
+    private static <S> boolean isSpecificForOtherType(BeanDefinition<S> candidate,
+                                                      Class<S> serdeType,
+                                                      Argument<?> type,
+                                                      Predicate<BeanDefinition<S>> specific) {
+        return specific.test(candidate) && !declaresExactType(candidate, serdeType, type);
     }
 
     private static <S> boolean declaresExactType(BeanDefinition<S> candidate, Class<S> serdeType, Argument<?> type) {

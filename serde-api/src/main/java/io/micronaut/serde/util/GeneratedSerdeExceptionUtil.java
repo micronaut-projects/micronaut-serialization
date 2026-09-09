@@ -34,6 +34,9 @@ import java.io.IOException;
 @UsedByGeneratedCode
 public final class GeneratedSerdeExceptionUtil {
 
+    private static final String UNABLE_TO_DESERIALIZE_TYPE = "Unable to deserialize type [";
+    private static final String NOT_PRESENT_OR_NULL_MESSAGE = "] is not present or is null in the supplied data";
+
     private GeneratedSerdeExceptionUtil() {
     }
 
@@ -135,7 +138,7 @@ public final class GeneratedSerdeExceptionUtil {
      */
     public static SerdeException nullValue(Argument<?> beanType,
                                            Argument<?> propertyArgument) {
-        return new SerdeException("Unable to deserialize type [" + beanType.getType().getName() +
+        return new SerdeException(UNABLE_TO_DESERIALIZE_TYPE + beanType.getType().getName() +
             "]. Non-null property [" + propertyArgument + "] is null in the supplied data");
     }
 
@@ -152,7 +155,7 @@ public final class GeneratedSerdeExceptionUtil {
     public static SerdeException nullConstructorParameter(Argument<?> beanType,
                                                           Argument<?> propertyArgument,
                                                           int index) {
-        return new SerdeException("Unable to deserialize type [" + beanType.getType().getName() +
+        return new SerdeException(UNABLE_TO_DESERIALIZE_TYPE + beanType.getType().getName() +
             "]. Non-null constructor parameter [" + propertyArgument + "] at index [" + index + "] is null in the supplied data");
     }
 
@@ -166,7 +169,7 @@ public final class GeneratedSerdeExceptionUtil {
      */
     public static SerdeException requiredProperty(Argument<?> beanType,
                                                   Argument<?> propertyArgument) {
-        return new SerdeException("Unable to deserialize type [" + beanType.getType().getName() +
+        return new SerdeException(UNABLE_TO_DESERIALIZE_TYPE + beanType.getType().getName() +
             "]. Required property [" + propertyArgument + "] is not present in supplied data");
     }
 
@@ -180,8 +183,8 @@ public final class GeneratedSerdeExceptionUtil {
      */
     public static SerdeException requiredPropertyNull(Argument<?> beanType,
                                                       Argument<?> propertyArgument) {
-        return new SerdeException("Unable to deserialize type [" + beanType.getType().getName() +
-            "]. Required property [" + propertyArgument + "] is not present or is null in the supplied data");
+        return new SerdeException(UNABLE_TO_DESERIALIZE_TYPE + beanType.getType().getName() +
+            "]. Required property [" + propertyArgument + NOT_PRESENT_OR_NULL_MESSAGE);
     }
 
     /**
@@ -196,8 +199,8 @@ public final class GeneratedSerdeExceptionUtil {
     public static SerdeException requiredConstructorParameter(Argument<?> beanType,
                                                               Argument<?> propertyArgument,
                                                               int index) {
-        return new SerdeException("Unable to deserialize type [" + beanType.getType().getName() +
-            "]. Required constructor parameter [" + propertyArgument + "] at index [" + index + "] is not present or is null in the supplied data");
+        return new SerdeException(UNABLE_TO_DESERIALIZE_TYPE + beanType.getType().getName() +
+            "]. Required constructor parameter [" + propertyArgument + "] at index [" + index + NOT_PRESENT_OR_NULL_MESSAGE);
     }
 
     /**
@@ -262,8 +265,8 @@ public final class GeneratedSerdeExceptionUtil {
      */
     public static SerdeException strictNullableConstructorParameter(Argument<?> beanType,
                                                                     Argument<?> propertyArgument) {
-        SerdeException serdeException = new SerdeException("Unable to deserialize type [" + beanType.getType().getName() +
-            "]. Non-null constructor parameter [" + propertyArgument + "] is not present or is null in the supplied data");
+        SerdeException serdeException = new SerdeException(UNABLE_TO_DESERIALIZE_TYPE + beanType.getType().getName() +
+            "]. Non-null constructor parameter [" + propertyArgument + NOT_PRESENT_OR_NULL_MESSAGE);
         serdeException.getPath().add(ReferencePath.ofProperty(beanType.getType(), propertyArgument));
         return serdeException;
     }

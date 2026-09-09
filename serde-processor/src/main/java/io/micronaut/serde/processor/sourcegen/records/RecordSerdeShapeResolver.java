@@ -15,17 +15,16 @@
  */
 package io.micronaut.serde.processor.sourcegen.records;
 
+import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.ConstructorElement;
 import io.micronaut.inject.ast.MethodElement;
 import io.micronaut.inject.ast.ParameterElement;
 import io.micronaut.inject.ast.PropertyElement;
-import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.processor.sourcegen.SerdeInclusionSourceGen;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -96,7 +95,7 @@ public final class RecordSerdeShapeResolver {
             return false;
         }
         List<PropertyElement> beanProperties = element.getBeanProperties();
-        Map<String, PropertyElement> propertiesByName = new HashMap<>(beanProperties.size());
+        Map<String, PropertyElement> propertiesByName = CollectionUtils.newHashMap(beanProperties.size());
         for (PropertyElement property : beanProperties) {
             propertiesByName.put(property.getName(), property);
         }

@@ -775,28 +775,36 @@ public final class SimpleSerdeShapeAnalyzer {
     private boolean hasUnsupportedPropertySerdeConfig(ClassElement element, boolean propertyExclusionSupported, boolean constructorBound) {
         Predicate<AnnotationMetadata> unsupported = annotationMetadata -> hasUnsupportedSerdeConfigMetadata(annotationMetadata, propertyExclusionSupported);
         for (PropertyElement property : element.getBeanProperties()) {
-            if (unsupported.test(property.getAnnotationMetadata())) {
-                return true;
-            }
-            if (property.getReadMethod().map(method -> unsupported.test(method.getAnnotationMetadata())).orElse(false)) {
-                return true;
-            }
-            if (property.getWriteMethod().map(method -> unsupported.test(method.getAnnotationMetadata())).orElse(false)) {
+            if (hasUnsupportedPropertyMetadata(property, unsupported)) {
                 return true;
             }
         }
-        var primaryConstructor = element.getPrimaryConstructor();
-        if ((element.isRecord() || constructorBound) && primaryConstructor.isPresent()) {
-            for (ParameterElement parameter : primaryConstructor.orElseThrow().getParameters()) {
-                if (unsupported.test(parameter.getAnnotationMetadata())) {
-                    return true;
-                }
-            }
+        if ((element.isRecord() || constructorBound) && hasUnsupportedConstructorParameterMetadata(element, unsupported)) {
+            return true;
         }
         if (!element.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyInstance().onlyDeclared().annotated(unsupported)).isEmpty()) {
             return true;
         }
         return !element.getEnclosedElements(ElementQuery.ALL_METHODS.onlyInstance().onlyDeclared().annotated(unsupported)).isEmpty();
+    }
+
+    private static boolean hasUnsupportedPropertyMetadata(PropertyElement property, Predicate<AnnotationMetadata> unsupported) {
+        return unsupported.test(property.getAnnotationMetadata())
+            || property.getReadMethod().map(method -> unsupported.test(method.getAnnotationMetadata())).orElse(false)
+            || property.getWriteMethod().map(method -> unsupported.test(method.getAnnotationMetadata())).orElse(false);
+    }
+
+    private static boolean hasUnsupportedConstructorParameterMetadata(ClassElement element, Predicate<AnnotationMetadata> unsupported) {
+        MethodElement primaryConstructor = element.getPrimaryConstructor().orElse(null);
+        if (primaryConstructor == null) {
+            return false;
+        }
+        for (ParameterElement parameter : primaryConstructor.getParameters()) {
+            if (unsupported.test(parameter.getAnnotationMetadata())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

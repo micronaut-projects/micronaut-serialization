@@ -396,6 +396,7 @@ public final class RecordDeserializerSourceGen {
             });
     }
 
+    @SuppressWarnings("java:S107")
     private MethodDef generateDeserializeMethod(ClassElement element,
                                                 TypeDef recordTypeDef,
                                                 ClassTypeDef deserializerClassTypeDef,
@@ -984,20 +985,6 @@ public final class RecordDeserializerSourceGen {
             if (component.type().isPrimitive() && !component.type().isArray()) {
                 scalarDecodeMethod = Objects.requireNonNull(scalarDecoderMethod(component.type(), false));
                 StatementDef keepDefaultOnNullStatement;
-                if (useNullableScalarDecodeForDefaultPrimitive(component.type())) {
-                    Method nullableScalarDecodeMethod = Objects.requireNonNull(nullableScalarDecoderMethod(component.type()));
-                    StatementDef.DefineAndAssign nullableValueDef = objectDecoder.invoke(nullableScalarDecodeMethod)
-                        .cast(RecordSerdeSourceGenUtils.deserializedCastType(component.type()))
-                        .newLocal(RecordSerdeSourceGenUtils.localName("decodedValue", index));
-                    keepDefaultOnNullStatement = StatementDef.multi(
-                        nullableValueDef,
-                        nullableValueDef.variable().isNonNull()
-                            .doIf(valueVariable.assign(nullableValueDef.variable()))
-                    );
-                } else {
-                    keepDefaultOnNullStatement = objectDecoder.invoke(DECODE_NULL_METHOD)
-                        .ifFalse(valueVariable.assign(objectDecoder.invoke(scalarDecodeMethod)));
-                }
                 if (useNullableScalarDecodeForDefaultPrimitive(component.type())) {
                     // The runtime rejects an explicit null for a required parameter before the primitive default applies
                     Method nullableScalarDecodeMethod = Objects.requireNonNull(nullableScalarDecoderMethod(component.type()));

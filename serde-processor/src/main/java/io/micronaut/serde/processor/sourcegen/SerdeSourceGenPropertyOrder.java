@@ -16,12 +16,12 @@
 package io.micronaut.serde.processor.sourcegen;
 
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
@@ -65,7 +65,7 @@ public final class SerdeSourceGenPropertyOrder {
             // The annotation visitor expands an alphabetic order into the sorted serialized names
             ordered.sort(Comparator.comparing(serializedName));
         } else if (explicitOrder.length > 0) {
-            Set<String> serializedNames = new HashSet<>(properties.size());
+            Set<String> serializedNames = CollectionUtils.newHashSet(properties.size());
             for (T property : properties) {
                 serializedNames.add(serializedName.apply(property));
             }
