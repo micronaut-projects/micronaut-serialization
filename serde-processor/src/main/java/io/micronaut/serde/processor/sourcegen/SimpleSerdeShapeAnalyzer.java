@@ -1089,22 +1089,22 @@ public final class SimpleSerdeShapeAnalyzer {
         }
 
         private boolean failBoth(FallbackReason reason, String message) {
-            record(serializerReasons, reason, message);
-            record(deserializerReasons, reason, message);
+            recordReason(serializerReasons, reason, message);
+            recordReason(deserializerReasons, reason, message);
             return bothFailed();
         }
 
         private boolean failSerializer(FallbackReason reason) {
-            record(serializerReasons, reason, reason.message());
+            recordReason(serializerReasons, reason, reason.message());
             return bothFailed();
         }
 
         private boolean failDeserializer(FallbackReason reason) {
-            record(deserializerReasons, reason, reason.message());
+            recordReason(deserializerReasons, reason, reason.message());
             return bothFailed();
         }
 
-        private static void record(Map<FallbackReason, String> reasons, FallbackReason reason, String message) {
+        private static void recordReason(Map<FallbackReason, String> reasons, FallbackReason reason, String message) {
             if (reasons.isEmpty()) {
                 reasons.put(reason, message);
             }
