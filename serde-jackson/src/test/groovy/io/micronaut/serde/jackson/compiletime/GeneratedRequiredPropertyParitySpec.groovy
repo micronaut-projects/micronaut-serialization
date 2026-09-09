@@ -22,7 +22,7 @@ class GeneratedRequiredPropertyParitySpec extends JsonCompileSpec {
         def registry = context.getBean(SerdeRegistry)
 
         expect:
-        [SourceGenRequiredPropertiesBean, SourceGenRequiredComponentsRecord].every { type ->
+        [SourceGenRequiredPropertiesBean, SourceGenRequiredComponentsRecord, SourceGenNullableRequiredBean, SourceGenNullableRequiredRecord].every { type ->
             Argument argument = Argument.of(type)
             Deserializer deserializer = registry.findDeserializer(argument).createSpecific(registry.newDecoderContext(Object), argument)
             assert deserializer.class.name == "io.micronaut.serde.jackson.compiletime.Serde${type.simpleName}Deserializer".toString()
@@ -64,12 +64,37 @@ class GeneratedRequiredPropertyParitySpec extends JsonCompileSpec {
         SourceGenRequiredComponentsRecord | '{"name":"ada","note":"x","count":1,"label":"l"}'  | [:]                                                                        | [name: 'ada', note: 'x', count: 1, label: 'l']
         SourceGenRequiredComponentsRecord | '{"note":"x","count":1}'                           | [:]                                                                        | 'Required constructor parameter [String name] at index [0] is not present or is null in the supplied data'
         SourceGenRequiredComponentsRecord | '{"name":null,"note":"x","count":1}'               | [:]                                                                        | 'Required constructor parameter [String name] at index [0] is not present or is null in the supplied data'
-        SourceGenRequiredComponentsRecord | '{"name":"ada","note":null,"count":1}'             | [:]                                                                        | 'Required constructor parameter [String note] at index [1] is not present or is null in the supplied data'
         SourceGenRequiredComponentsRecord | '{"name":"ada","count":1}'                         | [:]                                                                        | 'Required constructor parameter [String note] at index [1] is not present or is null in the supplied data'
         SourceGenRequiredComponentsRecord | '{"name":"ada","note":"x","n":7}'                  | [:]                                                                        | [name: 'ada', note: 'x', count: 7, label: null]
         SourceGenRequiredComponentsRecord | '{"name":"ada","note":"x","count":1}'              | ['micronaut.serde.deserialization.require-all-creator-parameters': true]   | 'Required constructor parameter [String label] at index [3] is not present or is null in the supplied data'
         SourceGenRequiredComponentsRecord | '{"name":"ada","note":"x","count":null,"label":"l"}' | ['micronaut.serde.deserialization.require-all-creator-parameters': true, 'micronaut.serde.deserialization.fail-on-null-for-primitives': false] | 'Required constructor parameter [int count] at index [2] is not present or is null in the supplied data'
         SourceGenRequiredComponentsRecord | '{"name":"ada","note":"x","count":1,"label":"l"}'  | ['micronaut.serde.deserialization.require-all-creator-parameters': true]   | [name: 'ada', note: 'x', count: 1, label: 'l']
+        SourceGenNullableRequiredBean    | '{"name":null,"label":null,"count":null,"note":"x"}' | [:]                                                                       | [name: null, label: null, count: null, note: 'x']
+        SourceGenNullableRequiredBean    | '{"name":"ada","label":"l","count":1}'              | [:]                                                                        | [name: 'ada', label: 'l', count: 1, note: null]
+        SourceGenNullableRequiredBean    | '{"label":"l","count":1}'                           | [:]                                                                        | 'Required property [String name] is not present in supplied data'
+        SourceGenNullableRequiredBean    | '{"name":"ada","count":1}'                          | [:]                                                                        | 'Required property [String label] is not present in supplied data'
+        SourceGenNullableRequiredRecord  | '{"name":null,"label":null,"count":null,"note":"x"}' | [:]                                                                       | [name: null, label: null, count: null, note: 'x']
+        SourceGenNullableRequiredRecord  | '{"label":"l","count":1}'                           | [:]                                                                        | 'Required constructor parameter [String name] at index [0] is not present or is null in the supplied data'
+        SourceGenNullableRequiredRecord  | '{"name":"ada","count":1}'                          | [:]                                                                        | 'Required constructor parameter [String label] at index [1] is not present or is null in the supplied data'
+        SourceGenNullableRequiredRecord  | '{"name":null,"label":"l","count":1,"note":"x"}'    | ['micronaut.serde.deserialization.require-all-creator-parameters': true]   | [name: null, label: 'l', count: 1, note: 'x']
+        SourceGenNullableRequiredRecord  | '{"name":null,"label":"l","count":1,"note":null}'   | ['micronaut.serde.deserialization.require-all-creator-parameters': true]   | 'Required constructor parameter [String note] at index [3] is not present or is null in the supplied data'
+    }
+
+    void 'test an explicit null for a nullable required component follows the constructor value rule'() {
+        given: 'the record declares an alias, which routes the runtime to its specific object deserializer'
+        def generatedContext = ApplicationContext.run()
+        def runtimeContext = ApplicationContext.run(['micronaut.serde.deserialization.disable-generated-deserializer': true])
+        String json = '{"name":"ada","note":null,"count":1}'
+
+        expect: 'the generated deserializer accepts the null the way DeserBean.deserializeConstructorValue does for a nullable parameter'
+        readOutcome(generatedContext.getBean(JsonMapper), SourceGenRequiredComponentsRecord, json) == [name: 'ada', note: null, count: 1, label: null]
+
+        and: 'the runtime specific object deserializer treats the explicit null as a missing parameter instead'
+        readOutcome(runtimeContext.getBean(JsonMapper), SourceGenRequiredComponentsRecord, json) == 'Required constructor parameter [String note] at index [1] is not present or is null in the supplied data'
+
+        cleanup:
+        generatedContext.close()
+        runtimeContext.close()
     }
 
     void 'test aliases agree with Jackson Databind'() {

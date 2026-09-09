@@ -1160,7 +1160,7 @@ public final class BeanDeserializerSourceGen {
                                                             Method scalarDecodeMethod,
                                                             @Nullable VariableDef dispatchResultVariable) {
         Method nonNullScalarDecodeMethod = nonNullScalarDecoderMethod(property.deserializationType());
-        if (property.required()) {
+        if (property.required() && !property.nullable()) {
             StatementDef.DefineAndAssign decodedValueDef = objectDecoder.invoke(scalarDecodeMethod)
                 .cast(BeanSerdeSourceGenUtils.deserializedCastType(property.deserializationType()))
                 .newLocal(BeanSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, index));
@@ -1218,7 +1218,7 @@ public final class BeanDeserializerSourceGen {
         ).cast(BeanSerdeSourceGenUtils.deserializedCastType(property.deserializationType())).newLocal(BeanSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, index));
         StatementDef assignStatement = assignProperty(beanVariable, property, deserializedValueDef.variable());
         StatementDef propertyAssignment;
-        if (property.required()) {
+        if (property.required() && !property.nullable()) {
             propertyAssignment = deserializedValueDef.variable().isNull().ifTrue(
                 requiredPropertyNullStatement(type, argumentExpression),
                 assignStatement
@@ -1263,7 +1263,7 @@ public final class BeanDeserializerSourceGen {
         }
         if (scalarDecodeMethod != null) {
             Method nonNullScalarDecodeMethod = nonNullScalarDecoderMethod(property.deserializationType());
-            if (property.required()) {
+            if (property.required() && !property.nullable()) {
                 StatementDef.DefineAndAssign decodedValueDef = objectDecoder.invoke(scalarDecodeMethod)
                     .cast(BeanSerdeSourceGenUtils.deserializedCastType(property.deserializationType()))
                     .newLocal(BeanSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, index));
@@ -1310,7 +1310,7 @@ public final class BeanDeserializerSourceGen {
             argumentExpression
         ).cast(BeanSerdeSourceGenUtils.deserializedCastType(property.deserializationType())).newLocal(BeanSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, index));
         StatementDef assignStatement = assignProperty(beanVariable, property, deserializedValueDef.variable());
-        if (property.required()) {
+        if (property.required() && !property.nullable()) {
             return StatementDef.multi(
                 deserializedValueDef,
                 deserializedValueDef.variable().isNull().ifTrue(

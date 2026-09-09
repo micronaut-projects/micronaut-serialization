@@ -1036,8 +1036,9 @@ public final class RecordDeserializerSourceGen {
             deserializeAndAssign = valueVariable.assign(deserializedValueExpression);
         }
         boolean reference = !component.type().isPrimitive() || component.type().isArray();
-        if (reference && !usesNonNullScalarDecode) {
-            // The runtime rejects an explicit null for a required parameter, nullable or not
+        if (reference && !usesNonNullScalarDecode && !component.nullable()) {
+            // The runtime accepts an explicit null for a nullable parameter before it checks whether
+            // the parameter is required
             deserializeAndAssign = StatementDef.multi(
                 deserializeAndAssign,
                 valueVariable.isNull().and(requiredComponentCondition(aThis, component)).ifTrue(

@@ -37,10 +37,13 @@ import io.micronaut.serde.processor.sourcegen.beans.BeanSerdeShapeResolver;
 import io.micronaut.serde.processor.sourcegen.records.RecordSerdeShapeResolver;
 import io.micronaut.serde.util.SerdePropertyAccess;
 
+import org.jspecify.annotations.Nullable;
+
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -101,6 +104,24 @@ public final class SimpleSerdeShapeAnalyzer {
     );
 
     @SuppressWarnings("java:S3776")
+    private @Nullable ClassElement analyzedElement;
+    private @Nullable List<PropertyElement> analyzedProperties;
+
+    /**
+     * The properties as the introspection resolves them, so that every eligibility check looks at
+     * the same property set the shape resolvers and the generated code are built from. The list is
+     * kept for the type being analyzed since the checks read it many times.
+     */
+    private List<PropertyElement> beanProperties(ClassElement element) {
+        List<PropertyElement> properties = analyzedProperties;
+        if (analyzedElement != element || properties == null) {
+            properties = BeanSerdeShapeResolver.introspectedProperties(element);
+            analyzedElement = element;
+            analyzedProperties = properties;
+        }
+        return properties;
+    }
+
     public SimpleSerdeShapeDecision analyze(ClassElement element) {
         LinkedHashMap<SimpleSerdeShapeDecision.FallbackReason, String> serializerReasons = new LinkedHashMap<>();
         LinkedHashMap<SimpleSerdeShapeDecision.FallbackReason, String> deserializerReasons = new LinkedHashMap<>();
@@ -394,7 +415,7 @@ public final class SimpleSerdeShapeAnalyzer {
         if (element.getPrimaryConstructor().map(c -> hasAnnotation(c, annotation)).orElse(false)) {
             return true;
         }
-        if (element.getBeanProperties().stream().anyMatch(p -> p.hasAnnotation(annotation) || p.hasDeclaredAnnotation(annotation))) {
+        if (beanProperties(element).stream().anyMatch(p -> p.hasAnnotation(annotation) || p.hasDeclaredAnnotation(annotation))) {
             return true;
         }
         if (!element.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyInstance().onlyDeclared()
@@ -409,7 +430,7 @@ public final class SimpleSerdeShapeAnalyzer {
         if (element.getPrimaryConstructor().map(c -> hasAnnotation(c, annotationName)).orElse(false)) {
             return true;
         }
-        if (element.getBeanProperties().stream().anyMatch(p -> p.hasAnnotation(annotationName) || p.hasDeclaredAnnotation(annotationName))) {
+        if (beanProperties(element).stream().anyMatch(p -> p.hasAnnotation(annotationName) || p.hasDeclaredAnnotation(annotationName))) {
             return true;
         }
         if (!element.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyInstance().onlyDeclared()
@@ -427,7 +448,7 @@ public final class SimpleSerdeShapeAnalyzer {
         if (element.getPrimaryConstructor().map(c -> hasAnnotationMetadata(c, predicate)).orElse(false)) {
             return true;
         }
-        for (PropertyElement property : element.getBeanProperties()) {
+        for (PropertyElement property : beanProperties(element)) {
             if (predicate.test(property.getAnnotationMetadata())
                 || property.getReadMethod().map(method -> hasAnnotationMetadata(method, predicate)).orElse(false)
                 || property.getWriteMethod().map(method -> hasAnnotationMetadata(method, predicate)).orElse(false)) {
@@ -487,7 +508,7 @@ public final class SimpleSerdeShapeAnalyzer {
     private Map<String, Boolean> unsupportedJacksonAnnotations(ClassElement element) {
         var annotations = new LinkedHashMap<String, Boolean>();
         collectJacksonAnnotationsInTypeHierarchy(element, annotations, new LinkedHashMap<>());
-        for (PropertyElement property : element.getBeanProperties()) {
+        for (PropertyElement property : beanProperties(element)) {
             ClassElement serializationType = property.getReadMethod().map(MethodElement::getReturnType).orElse(property.getType());
             collectJacksonAnnotationsInTypeHierarchy(serializationType, annotations, new LinkedHashMap<>());
             ClassElement deserializationType = property.getWriteMethod().map(m -> m.getParameters()[0].getType()).orElse(property.getType());
@@ -591,7 +612,7 @@ public final class SimpleSerdeShapeAnalyzer {
         if (!hasDefaultConstructor) {
             return false;
         }
-        return !element.getBeanProperties().isEmpty();
+        return !beanProperties(element).isEmpty();
     }
 
     /**
@@ -676,7 +697,7 @@ public final class SimpleSerdeShapeAnalyzer {
 
     private boolean hasDuplicateSerializedNames(ClassElement element) {
         Set<String> serializedNames = new HashSet<>();
-        for (PropertyElement property : element.getBeanProperties()) {
+        for (PropertyElement property : beanProperties(element)) {
             String serializedName = property.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(property.getName());
             if (!serializedNames.add(serializedName)) {
                 return true;
@@ -686,7 +707,7 @@ public final class SimpleSerdeShapeAnalyzer {
     }
 
     private boolean hasDirectIterableProperties(ClassElement element) {
-        for (PropertyElement property : element.getBeanProperties()) {
+        for (PropertyElement property : beanProperties(element)) {
             ClassElement serializationType = property.getReadMethod().map(m -> m.getReturnType()).orElse(property.getType());
             if (isDirectIterableType(serializationType)) {
                 return true;
@@ -743,7 +764,7 @@ public final class SimpleSerdeShapeAnalyzer {
     }
 
     private boolean hasSubtypedPropertyTypes(ClassElement element) {
-        for (PropertyElement property : element.getBeanProperties()) {
+        for (PropertyElement property : beanProperties(element)) {
             ClassElement serializationType = property.getReadMethod().map(MethodElement::getReturnType).orElse(property.getType());
             if (serializationType.hasDeclaredAnnotation(SerdeConfig.SerSubtyped.class)) {
                 return true;
@@ -774,7 +795,7 @@ public final class SimpleSerdeShapeAnalyzer {
 
     private boolean hasUnsupportedPropertySerdeConfig(ClassElement element, boolean propertyExclusionSupported, boolean constructorBound) {
         Predicate<AnnotationMetadata> unsupported = annotationMetadata -> hasUnsupportedSerdeConfigMetadata(annotationMetadata, propertyExclusionSupported);
-        for (PropertyElement property : element.getBeanProperties()) {
+        for (PropertyElement property : beanProperties(element)) {
             if (hasUnsupportedPropertyMetadata(property, unsupported)) {
                 return true;
             }
@@ -833,7 +854,7 @@ public final class SimpleSerdeShapeAnalyzer {
         if (element.getPrimaryConstructor().map(c -> hasDeclaredAnnotation(c, annotation)).orElse(false)) {
             return true;
         }
-        if (element.getBeanProperties().stream().anyMatch(p -> p.hasDeclaredAnnotation(annotation))) {
+        if (beanProperties(element).stream().anyMatch(p -> p.hasDeclaredAnnotation(annotation))) {
             return true;
         }
         if (!element.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyInstance().onlyDeclared()
@@ -848,7 +869,7 @@ public final class SimpleSerdeShapeAnalyzer {
         if (element.getPrimaryConstructor().map(c -> hasDeclaredAnnotation(c, annotationName)).orElse(false)) {
             return true;
         }
-        if (element.getBeanProperties().stream().anyMatch(p -> p.hasDeclaredAnnotation(annotationName))) {
+        if (beanProperties(element).stream().anyMatch(p -> p.hasDeclaredAnnotation(annotationName))) {
             return true;
         }
         if (!element.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyInstance().onlyDeclared()
@@ -884,7 +905,7 @@ public final class SimpleSerdeShapeAnalyzer {
     }
 
     private boolean hasSerValueInPropertyTypes(ClassElement element) {
-        for (PropertyElement property : element.getBeanProperties()) {
+        for (PropertyElement property : beanProperties(element)) {
             ClassElement serializationType = property.getReadMethod().map(MethodElement::getReturnType).orElse(property.getType());
             if (hasAnnotation(serializationType, SerdeConfig.SerValue.class)) {
                 return true;
@@ -898,7 +919,7 @@ public final class SimpleSerdeShapeAnalyzer {
     }
 
     private boolean hasPropertyLevelSerializableOverride(ClassElement element) {
-        if (element.getBeanProperties().stream().anyMatch(p -> p.hasAnnotation(SERDEABLE_SERIALIZABLE))) {
+        if (beanProperties(element).stream().anyMatch(p -> p.hasAnnotation(SERDEABLE_SERIALIZABLE))) {
             return true;
         }
         if (!element.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyInstance().onlyDeclared()
@@ -920,7 +941,7 @@ public final class SimpleSerdeShapeAnalyzer {
     }
 
     private boolean hasPropertyLevelDeserializableOverride(ClassElement element) {
-        if (element.getBeanProperties().stream().anyMatch(p -> p.hasAnnotation(SERDEABLE_DESERIALIZABLE))) {
+        if (beanProperties(element).stream().anyMatch(p -> p.hasAnnotation(SERDEABLE_DESERIALIZABLE))) {
             return true;
         }
         if (!element.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyInstance().onlyDeclared()
@@ -967,7 +988,7 @@ public final class SimpleSerdeShapeAnalyzer {
     }
 
     private boolean hasPropertyNamedIgnored(ClassElement element) {
-        for (PropertyElement property : element.getBeanProperties()) {
+        for (PropertyElement property : beanProperties(element)) {
             if ("ignored".equals(property.getName())) {
                 return true;
             }

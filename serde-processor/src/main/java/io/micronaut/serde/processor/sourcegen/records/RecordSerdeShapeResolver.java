@@ -23,6 +23,7 @@ import io.micronaut.inject.ast.ParameterElement;
 import io.micronaut.inject.ast.PropertyElement;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.processor.sourcegen.SerdeInclusionSourceGen;
+import io.micronaut.serde.processor.sourcegen.beans.BeanSerdeShapeResolver;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +48,7 @@ public final class RecordSerdeShapeResolver {
         if (canonicalConstructor == null) {
             return Optional.empty();
         }
-        Map<String, PropertyElement> propertiesByName = element.getBeanProperties().stream()
+        Map<String, PropertyElement> propertiesByName = BeanSerdeShapeResolver.introspectedProperties(element).stream()
             .collect(Collectors.toMap(PropertyElement::getName, Function.identity()));
         List<RecordSerdeShape.RecordComponent> components = new ArrayList<>();
         for (ParameterElement parameter : canonicalConstructor.getParameters()) {
@@ -94,7 +95,7 @@ public final class RecordSerdeShapeResolver {
         if (!(primaryConstructor instanceof ConstructorElement) || primaryConstructor.getParameters().length == 0) {
             return false;
         }
-        List<PropertyElement> beanProperties = element.getBeanProperties();
+        List<PropertyElement> beanProperties = BeanSerdeShapeResolver.introspectedProperties(element);
         Map<String, PropertyElement> propertiesByName = CollectionUtils.newHashMap(beanProperties.size());
         for (PropertyElement property : beanProperties) {
             propertiesByName.put(property.getName(), property);
