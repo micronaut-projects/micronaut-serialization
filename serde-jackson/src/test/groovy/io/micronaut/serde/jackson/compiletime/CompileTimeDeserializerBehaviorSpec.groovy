@@ -421,6 +421,113 @@ class CompileTimeDeserializerBehaviorSpec extends JsonCompileSpec {
         'invalid int'    | '{"count":{"nested":true}}' | null                      | '["count"]'
     }
 
+    void 'test generated record deserializer defaults non null collections to assignable implementations'() {
+        given:
+        def context = ApplicationContext.run()
+        jsonMapper = context.getBean(JsonMapper)
+        def registry = context.getBean(SerdeRegistry)
+
+        when:
+        SourceGenNonNullCollectionsRecord decoded = jsonMapper.readValue(
+            '{}',
+            Argument.of(SourceGenNonNullCollectionsRecord)
+        )
+
+        then:
+        assertGeneratedDeserializer(registry, SourceGenNonNullCollectionsRecord.class)
+        decoded.list() instanceof ArrayList
+        decoded.list().isEmpty()
+        decoded.collection() instanceof ArrayList
+        decoded.collection().isEmpty()
+        decoded.set() instanceof LinkedHashSet
+        decoded.set().isEmpty()
+        decoded.sortedSet() instanceof TreeSet
+        decoded.sortedSet().isEmpty()
+        decoded.deque() instanceof ArrayDeque
+        decoded.deque().isEmpty()
+        decoded.linkedList() instanceof LinkedList
+        decoded.linkedList().isEmpty()
+        decoded.map() instanceof LinkedHashMap
+        decoded.map().isEmpty()
+        decoded.sortedMap() instanceof TreeMap
+        decoded.sortedMap().isEmpty()
+
+        cleanup:
+        context.close()
+    }
+
+    void 'test generated record deserializer reads non null collection values'() {
+        given:
+        def context = ApplicationContext.run()
+        jsonMapper = context.getBean(JsonMapper)
+
+        when:
+        SourceGenNonNullCollectionsRecord decoded = jsonMapper.readValue(
+            '{"list":["a"],"collection":["b"],"set":["d","d"],"sortedSet":["f","e"],"deque":["g"],"linkedList":["h"],"map":{"k":"v"},"sortedMap":{"k2":"v2"}}',
+            Argument.of(SourceGenNonNullCollectionsRecord)
+        )
+
+        then:
+        decoded.list() == ['a']
+        decoded.collection().toList() == ['b']
+        decoded.set() == ['d'] as Set
+        decoded.sortedSet().toList() == ['e', 'f']
+        decoded.deque().toList() == ['g']
+        decoded.linkedList() == ['h']
+        decoded.map() == [k: 'v']
+        decoded.sortedMap() == [k2: 'v2']
+
+        cleanup:
+        context.close()
+    }
+
+    void 'test generated record deserializer source creates collection defaults assignable to the declared type'() {
+        given:
+        def context = ApplicationContext.run()
+        def introspections = context.getBean(SerdeIntrospections)
+        def generatedMetadata = introspections.getDeserializableIntrospection(Argument.of(SourceGenNonNullCollectionsRecord)).annotationMetadata
+        String deserializerClassName = generatedMetadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_CLASS).orElseThrow()
+        String deserializerSource = generatedTestSource(deserializerClassName)
+
+        expect:
+        deserializerSource.contains('ArrayList()')
+        deserializerSource.contains('LinkedHashSet()')
+        deserializerSource.contains('TreeSet()')
+        deserializerSource.contains('ArrayDeque()')
+        deserializerSource.contains('LinkedList()')
+        deserializerSource.contains('LinkedHashMap()')
+        deserializerSource.contains('TreeMap()')
+
+        cleanup:
+        context.close()
+    }
+
+    void 'test generated record deserializer defaults null marked collections to assignable implementations'() {
+        given:
+        def context = ApplicationContext.run()
+        jsonMapper = context.getBean(JsonMapper)
+        def registry = context.getBean(SerdeRegistry)
+
+        when:
+        SourceGenNullMarkedCollectionsRecord decoded = jsonMapper.readValue(
+            '{"name":"Ada"}',
+            Argument.of(SourceGenNullMarkedCollectionsRecord)
+        )
+
+        then:
+        assertGeneratedDeserializer(registry, SourceGenNullMarkedCollectionsRecord.class)
+        decoded.name() == 'Ada'
+        decoded.list() instanceof ArrayList
+        decoded.list().isEmpty()
+        decoded.set() instanceof LinkedHashSet
+        decoded.set().isEmpty()
+        decoded.map() instanceof LinkedHashMap
+        decoded.map().isEmpty()
+
+        cleanup:
+        context.close()
+    }
+
     void 'test generated dispatch bean deserializer covers primitive null defaults and unknown skip'() {
         given:
         def context = ApplicationContext.run([

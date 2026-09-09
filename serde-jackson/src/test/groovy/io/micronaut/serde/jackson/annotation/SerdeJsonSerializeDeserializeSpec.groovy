@@ -33,7 +33,7 @@ class RecursiveView {
         this.view = view;
     }
 }
-""")
+""", true, ['micronaut.serde.serialization.inclusion': 'ALWAYS'])
             def recursiveType = argumentOf(context, 'test.RecursiveView')
             def root = newInstance(context, 'test.RecursiveView', [id: 'root'])
             def child = newInstance(context, 'test.RecursiveView', [id: 'child'])
@@ -63,7 +63,7 @@ import io.micronaut.serde.annotation.Serdeable;
 @Serdeable
 public record RecursiveRecordView(String id, RecursiveRecordView view) {
 }
-""")
+""", true, ['micronaut.serde.serialization.inclusion': 'ALWAYS'])
             def recursiveType = argumentOf(context, 'test.RecursiveRecordView')
             def recursiveClass = recursiveType.type
             def constructor = recursiveClass.getDeclaredConstructor(String, recursiveClass)

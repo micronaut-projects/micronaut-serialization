@@ -12,6 +12,7 @@ dependencies {
     annotationProcessor(projects.micronautSerdeProcessor)
 
     implementation(projects.micronautSerdeJackson)
+    implementation(projects.micronautSerdeYaml)
     implementation(mn.micronaut.http.client)
     implementation(libs.oci.aidocument)
 
