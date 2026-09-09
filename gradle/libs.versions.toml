@@ -35,6 +35,7 @@ micronaut-sourcegen = "2.0.0"
 jackson-dataformat-yaml = "3.2.0"
 jsonassert = "1.5.3"
 xmlunit = "2.12.0"
+protobuf-java = "4.36.0"
 
 # Dependencies used only by Jakarta TCK verification tasks.
 jakarta-enterprise-cdi-api = "4.0.1"
@@ -94,6 +95,7 @@ oci-aidocument = { module = "com.oracle.oci.sdk:oci-java-sdk-aidocument" }
 jackson-dataformat-yaml = { module = "tools.jackson.dataformat:jackson-dataformat-yaml", version.ref = "jackson-dataformat-yaml" }
 jsonassert = { module = 'org.skyscreamer:jsonassert', version.ref = 'jsonassert'}
 xmlunit-core = { module = "org.xmlunit:xmlunit-core", version.ref = "xmlunit" }
+protobuf-java = { module = 'com.google.protobuf:protobuf-java', version.ref = 'protobuf-java' }
 
 #PLUGINS
 gradle-micronaut = { module = "io.micronaut.gradle:micronaut-gradle-plugin", version.ref = "micronaut-gradle-plugin" }
