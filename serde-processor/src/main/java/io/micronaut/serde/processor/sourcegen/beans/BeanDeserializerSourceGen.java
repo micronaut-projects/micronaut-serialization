@@ -1262,75 +1262,28 @@ public final class BeanDeserializerSourceGen {
             );
         }
         if (scalarDecodeMethod != null) {
-            Method nonNullScalarDecodeMethod = nonNullScalarDecoderMethod(property.deserializationType());
-            if (property.required() && !property.nullable()) {
-                StatementDef.DefineAndAssign decodedValueDef = objectDecoder.invoke(scalarDecodeMethod)
-                    .cast(BeanSerdeSourceGenUtils.deserializedCastType(property.deserializationType()))
-                    .newLocal(BeanSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, index));
-                return StatementDef.multi(
-                    decodedValueDef,
-                    decodedValueDef.variable().isNull().ifTrue(
-                        requiredPropertyNullStatement(type, argumentExpression),
-                        assignProperty(beanVariable, property, decodedValueDef.variable())
-                    )
-                );
-            }
-            if (property.nonNull() && !property.nullable() && nonNullScalarDecodeMethod != null) {
-                return assignProperty(
-                    beanVariable,
-                    property,
-                    objectDecoder.invoke(nonNullScalarDecodeMethod)
-                );
-            }
-            if (property.nonNull() && !property.nullable()) {
-                StatementDef.DefineAndAssign decodedValueDef = objectDecoder.invoke(scalarDecodeMethod)
-                    .cast(BeanSerdeSourceGenUtils.deserializedCastType(property.deserializationType()))
-                    .newLocal(BeanSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, index));
-                StatementDef assignStatement = assignProperty(beanVariable, property, decodedValueDef.variable());
-                return StatementDef.multi(
-                    decodedValueDef,
-                    decodedValueDef.variable().isNull().ifTrue(
-                        nullValueOrDispatchStatement(type, argumentExpression, null),
-                        assignStatement
-                    )
-                );
-            }
-            return assignProperty(
+            return deserializeAndAssignScalarProperty(
+                objectDecoder,
+                type,
                 beanVariable,
                 property,
-                objectDecoder.invoke(scalarDecodeMethod)
-                    .cast(BeanSerdeSourceGenUtils.deserializedCastType(property.deserializationType()))
+                index,
+                argumentExpression,
+                scalarDecodeMethod,
+                null
             );
         }
-        String deserializerFieldName = required(deserializerFieldNames, property.name());
-        StatementDef.DefineAndAssign deserializedValueDef = aThis.field(deserializerFieldName, DESERIALIZER_TYPE).invoke(
-            DESERIALIZE_NULLABLE_METHOD,
+        return deserializeAndAssignDeserializedProperty(
+            aThis,
             objectDecoder,
             context,
-            argumentExpression
-        ).cast(BeanSerdeSourceGenUtils.deserializedCastType(property.deserializationType())).newLocal(BeanSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, index));
-        StatementDef assignStatement = assignProperty(beanVariable, property, deserializedValueDef.variable());
-        if (property.required() && !property.nullable()) {
-            return StatementDef.multi(
-                deserializedValueDef,
-                deserializedValueDef.variable().isNull().ifTrue(
-                    requiredPropertyNullStatement(type, argumentExpression),
-                    assignStatement
-                )
-            );
-        }
-        if (property.nonNull() && !property.nullable()) {
-            return StatementDef.multi(
-                deserializedValueDef,
-                deserializedValueDef.variable().isNull().ifTrue(
-                    nullValueOrDispatchStatement(type, argumentExpression, null),
-                    assignStatement
-                )
-            );
-        }
-        return StatementDef.multi(
-            deserializedValueDef,
-            assignStatement
+            type,
+            beanVariable,
+            property,
+            index,
+            argumentExpression,
+            required(deserializerFieldNames, property.name()),
+            null
         );
     }
 

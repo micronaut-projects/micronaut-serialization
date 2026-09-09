@@ -33,6 +33,8 @@ import io.micronaut.serde.Serializer;
 import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.serde.annotation.SerdeableGenerated;
 import io.micronaut.serde.config.annotation.SerdeConfig;
+import io.micronaut.serde.processor.sourcegen.SimpleSerdeShapeDecision.FallbackReason;
+import io.micronaut.serde.processor.sourcegen.SimpleSerdeShapeDecision.ShapeKind;
 import io.micronaut.serde.processor.sourcegen.beans.BeanSerdeShapeResolver;
 import io.micronaut.serde.processor.sourcegen.records.RecordSerdeShapeResolver;
 import io.micronaut.serde.util.SerdePropertyAccess;
@@ -104,6 +106,19 @@ public final class SimpleSerdeShapeAnalyzer {
     );
 
     @SuppressWarnings("java:S3776")
+    /**
+     * The eligibility checks in the order they apply. Each phase reports whether the analysis is
+     * complete, which is the case once both directions fell back to the runtime serdes.
+     */
+    private final List<Predicate<Analysis>> phases = List.of(
+        this::analyzeShapeKind,
+        this::analyzeTypeStructure,
+        this::analyzeAccessors,
+        this::analyzeTypeConfiguration,
+        this::analyzeValueOverrides,
+        this::analyzeSerdeAsOverrides,
+        this::analyzePropertyShapes
+    );
     private @Nullable ClassElement analyzedElement;
     private @Nullable List<PropertyElement> analyzedProperties;
 
@@ -123,234 +138,233 @@ public final class SimpleSerdeShapeAnalyzer {
     }
 
     public SimpleSerdeShapeDecision analyze(ClassElement element) {
-        LinkedHashMap<SimpleSerdeShapeDecision.FallbackReason, String> serializerReasons = new LinkedHashMap<>();
-        LinkedHashMap<SimpleSerdeShapeDecision.FallbackReason, String> deserializerReasons = new LinkedHashMap<>();
-        SimpleSerdeShapeDecision.ShapeKind shapeKind = resolveShapeKind(element);
+        Analysis analysis = new Analysis(element, resolveShapeKind(element));
+        analyzeStereotypes(analysis);
+        for (Predicate<Analysis> phase : phases) {
+            if (phase.test(analysis)) {
+                break;
+            }
+        }
+        return analysis.decision();
+    }
+
+    private void analyzeStereotypes(Analysis analysis) {
+        ClassElement element = analysis.element;
         if (isSerializerSkipped(element)) {
-            failSerializer(serializerReasons, SimpleSerdeShapeDecision.FallbackReason.SOURCEGEN_SKIPPED);
+            analysis.failSerializer(FallbackReason.SOURCEGEN_SKIPPED);
         }
         if (isDeserializerSkipped(element)) {
-            failDeserializer(deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.SOURCEGEN_SKIPPED);
+            analysis.failDeserializer(FallbackReason.SOURCEGEN_SKIPPED);
         }
         // A type declared serializable only, such as a serialize-only import, has no deserializable
         // introspection; a generated deserializer would bypass that contract.
         if (!element.hasStereotype(Serdeable.Serializable.class) && !element.hasStereotype(Serdeable.class)) {
-            failSerializer(serializerReasons, SimpleSerdeShapeDecision.FallbackReason.SOURCEGEN_SKIPPED);
+            analysis.failSerializer(FallbackReason.SOURCEGEN_SKIPPED);
         }
         if (!element.hasStereotype(Serdeable.Deserializable.class) && !element.hasStereotype(Serdeable.class)) {
-            failDeserializer(deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.SOURCEGEN_SKIPPED);
+            analysis.failDeserializer(FallbackReason.SOURCEGEN_SKIPPED);
         }
+    }
 
-        if (shapeKind == SimpleSerdeShapeDecision.ShapeKind.UNSUPPORTED) {
-            failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
-            return decision(shapeKind, serializerReasons, deserializerReasons);
+    /**
+     * Checks that depend on the shape kind alone.
+     *
+     * @return {@code true} once the analysis is complete
+     */
+    private boolean analyzeShapeKind(Analysis analysis) {
+        ClassElement element = analysis.element;
+        if (analysis.shapeKind == ShapeKind.UNSUPPORTED) {
+            analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE);
+            return true;
         }
-        if (shapeKind == SimpleSerdeShapeDecision.ShapeKind.DEFAULT_CONSTRUCTOR_BEAN) {
-            if (serializerReasons.isEmpty() && hasUnsupportedSerializedBeanProperty(element)) {
-                failSerializer(serializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
+        if (analysis.shapeKind == ShapeKind.DEFAULT_CONSTRUCTOR_BEAN) {
+            if (analysis.serializerOpen() && hasUnsupportedSerializedBeanProperty(element)) {
+                analysis.failSerializer(FallbackReason.UNSUPPORTED_SHAPE);
             }
-            if (deserializerReasons.isEmpty() && hasUnsupportedDeserializedBeanProperty(element)) {
-                failDeserializer(deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
+            if (analysis.deserializerOpen() && hasUnsupportedDeserializedBeanProperty(element)) {
+                analysis.failDeserializer(FallbackReason.UNSUPPORTED_SHAPE);
             }
-            if (isBothFailed(serializerReasons, deserializerReasons)) {
-                return decision(shapeKind, serializerReasons, deserializerReasons);
+            if (analysis.bothFailed()) {
+                return true;
             }
         }
-
-        if (shapeKind == SimpleSerdeShapeDecision.ShapeKind.ENUM) {
+        if (analysis.shapeKind == ShapeKind.ENUM) {
             var unsupportedAnnotations = unsupportedJacksonAnnotationsOnEnum(element);
-            if (!unsupportedAnnotations.isEmpty()
-                && failBoth(
-                    serializerReasons,
-                    deserializerReasons,
-                    SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_ANNOTATIONS,
-                    unsupportedAnnotationsMessage(unsupportedAnnotations)
-                )) {
-                return decision(shapeKind, serializerReasons, deserializerReasons);
-            }
+            return !unsupportedAnnotations.isEmpty()
+                && analysis.failBoth(FallbackReason.UNSUPPORTED_ANNOTATIONS, unsupportedAnnotationsMessage(unsupportedAnnotations));
         }
+        return false;
+    }
 
+    /**
+     * Type declarations the generated serdes cannot represent.
+     *
+     * @return {@code true} once the analysis is complete
+     */
+    private boolean analyzeTypeStructure(Analysis analysis) {
+        ClassElement element = analysis.element;
         // A subtype declaration on the type or on a supertype means the runtime serdes write and
         // resolve the discriminator; the generated serdes know nothing about it.
         if ((element.hasDeclaredAnnotation(SerdeConfig.SerSubtyped.class) || hasSubtypedSupertype(element))
-            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.SUBTYPED)) {
-            return decision(shapeKind, serializerReasons, deserializerReasons);
+            && analysis.failBoth(FallbackReason.SUBTYPED)) {
+            return true;
         }
-        if (!isBothFailed(serializerReasons, deserializerReasons)
-            && hasSubtypedPropertyTypes(element)
-            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.SUBTYPED)) {
-            return decision(shapeKind, serializerReasons, deserializerReasons);
+        if (analysis.open() && hasSubtypedPropertyTypes(element) && analysis.failBoth(FallbackReason.SUBTYPED)) {
+            return true;
         }
-        if (!isBothFailed(serializerReasons, deserializerReasons)
-            && hasAnnotation(element, SerdeConfig.SerUnwrapped.class)
-            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNWRAPPED)) {
-            return decision(shapeKind, serializerReasons, deserializerReasons);
+        if (analysis.open() && hasAnnotation(element, SerdeConfig.SerUnwrapped.class) && analysis.failBoth(FallbackReason.UNWRAPPED)) {
+            return true;
         }
-        if (!isBothFailed(serializerReasons, deserializerReasons)
+        return analysis.open()
             && (usesDocumentIds(element)
                 || hasAnnotation(element, JAXB_XML_MIXED)
                 || element.hasDeclaredAnnotation(JAXB_XML_ACCESSOR_TYPE)
                 || hasXmlRootElement(element))
-            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
-            return decision(shapeKind, serializerReasons, deserializerReasons);
+            && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE);
+    }
+
+    /**
+     * Accessors, builders and type-level inclusion and ordering the runtime serdes own.
+     *
+     * @return {@code true} once the analysis is complete
+     */
+    private boolean analyzeAccessors(Analysis analysis) {
+        ClassElement element = analysis.element;
+        if (analysis.serializerOpen() && hasAnnotation(element, SerdeConfig.SerAnyGetter.class) && analysis.failSerializer(FallbackReason.ANY_GETTER)) {
+            return true;
         }
-        if (serializerReasons.isEmpty() && hasAnnotation(element, SerdeConfig.SerAnyGetter.class)) {
-            failSerializer(serializerReasons, SimpleSerdeShapeDecision.FallbackReason.ANY_GETTER);
-            if (isBothFailed(serializerReasons, deserializerReasons)) {
-                return decision(shapeKind, serializerReasons, deserializerReasons);
-            }
-        }
-        if (deserializerReasons.isEmpty() && hasAnnotation(element, SerdeConfig.SerAnySetter.class)) {
-            failDeserializer(deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.ANY_SETTER);
-            if (isBothFailed(serializerReasons, deserializerReasons)) {
-                return decision(shapeKind, serializerReasons, deserializerReasons);
-            }
+        if (analysis.deserializerOpen() && hasAnnotation(element, SerdeConfig.SerAnySetter.class) && analysis.failDeserializer(FallbackReason.ANY_SETTER)) {
+            return true;
         }
         // A type deserialized through a builder is handled by the introspection-backed deserializer,
         // which owns the builder semantics such as required properties and declared default values.
-        if (deserializerReasons.isEmpty() && hasIntrospectionBuilder(element)) {
-            failDeserializer(deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
-            if (isBothFailed(serializerReasons, deserializerReasons)) {
-                return decision(shapeKind, serializerReasons, deserializerReasons);
-            }
+        if (analysis.deserializerOpen() && hasIntrospectionBuilder(element) && analysis.failDeserializer(FallbackReason.UNSUPPORTED_SHAPE)) {
+            return true;
         }
         // A property inclusion declared on the type, a property or the package is applied at build time by
         // the generated bean and record serializers. A content inclusion is applied by the value serializer
         // through the property argument, which only the runtime serializer carries.
-        if (!isBothFailed(serializerReasons, deserializerReasons)
-            && (shapeKind == SimpleSerdeShapeDecision.ShapeKind.ENUM ? hasIncludeConfig(element) : hasContentIncludeConfig(element))
-            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.INCLUDE)) {
-            return decision(shapeKind, serializerReasons, deserializerReasons);
+        if (analysis.open() && hasUnsupportedInclude(analysis) && analysis.failBoth(FallbackReason.INCLUDE)) {
+            return true;
         }
         // A type-level property order is applied by the generated serializer; an order declared on a
         // member configures the nested value, which only the runtime serializer applies.
-        if (!isBothFailed(serializerReasons, deserializerReasons)
+        return analysis.open()
             && hasDeclaredMemberAnnotation(element, SerdeConfig.META_ANNOTATION_PROPERTY_ORDER)
-            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.PROPERTY_ORDER)) {
-            return decision(shapeKind, serializerReasons, deserializerReasons);
-        }
+            && analysis.failBoth(FallbackReason.PROPERTY_ORDER);
+    }
+
+    private boolean hasUnsupportedInclude(Analysis analysis) {
+        return analysis.shapeKind == ShapeKind.ENUM ? hasIncludeConfig(analysis.element) : hasContentIncludeConfig(analysis.element);
+    }
+
+    /**
+     * Annotations and serde configuration declared on the type.
+     *
+     * @return {@code true} once the analysis is complete
+     */
+    private boolean analyzeTypeConfiguration(Analysis analysis) {
+        ClassElement element = analysis.element;
         var unsupportedAnnotations = unsupportedJacksonAnnotations(element);
-        if (serializerReasons.isEmpty() && deserializerReasons.isEmpty()
+        if (analysis.serializerOpen() && analysis.deserializerOpen()
             && !unsupportedAnnotations.isEmpty()
-            && failBoth(
-                serializerReasons,
-                deserializerReasons,
-                SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_ANNOTATIONS,
-                unsupportedAnnotationsMessage(unsupportedAnnotations)
-            )) {
-            return decision(shapeKind, serializerReasons, deserializerReasons);
+            && analysis.failBoth(FallbackReason.UNSUPPORTED_ANNOTATIONS, unsupportedAnnotationsMessage(unsupportedAnnotations))) {
+            return true;
         }
         // Generated bean serdes honor ignored, read-only and write-only properties; the record
         // generators still hand those shapes to the runtime serde.
-        boolean propertyExclusionSupported = shapeKind == SimpleSerdeShapeDecision.ShapeKind.DEFAULT_CONSTRUCTOR_BEAN;
-        if (!isBothFailed(serializerReasons, deserializerReasons)
+        boolean propertyExclusionSupported = analysis.propertyExclusionSupported();
+        if (analysis.open()
             && hasUnsupportedSerdeConfigMetadata(element.getAnnotationMetadata(), propertyExclusionSupported)
-            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
-            return decision(shapeKind, serializerReasons, deserializerReasons);
+            && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE)) {
+            return true;
         }
-        if (!isBothFailed(serializerReasons, deserializerReasons)
-            && hasUnsupportedIgnoredConfig(element, propertyExclusionSupported)
-            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
-            return decision(shapeKind, serializerReasons, deserializerReasons);
+        if (analysis.open() && hasUnsupportedIgnoredConfig(element, propertyExclusionSupported) && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE)) {
+            return true;
         }
-        if (!isBothFailed(serializerReasons, deserializerReasons)
-            && hasPropertyNamedIgnored(element)
-            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
-            return decision(shapeKind, serializerReasons, deserializerReasons);
+        if (analysis.open() && hasPropertyNamedIgnored(element) && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE)) {
+            return true;
         }
-        if (!isBothFailed(serializerReasons, deserializerReasons)
+        return analysis.open()
             && hasUnsupportedIncludedConfig(element, propertyExclusionSupported)
-            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
-            return decision(shapeKind, serializerReasons, deserializerReasons);
+            && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE);
+    }
+
+    /**
+     * Value, key, custom serde and naming overrides only the runtime serdes apply.
+     *
+     * @return {@code true} once the analysis is complete
+     */
+    private boolean analyzeValueOverrides(Analysis analysis) {
+        ClassElement element = analysis.element;
+        if (!element.isEnum() && analysis.open() && hasAnnotation(element, SerdeConfig.SerValue.class) && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE)) {
+            return true;
         }
-        if (!element.isEnum()
-            && !isBothFailed(serializerReasons, deserializerReasons)
-            && hasAnnotation(element, SerdeConfig.SerValue.class)
-            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
-            return decision(shapeKind, serializerReasons, deserializerReasons);
+        if (analysis.serializerOpen() && hasAnnotation(element, SerdeConfig.SerKey.class) && analysis.failSerializer(FallbackReason.UNSUPPORTED_SHAPE)) {
+            return true;
         }
-        if (serializerReasons.isEmpty()
-            && hasAnnotation(element, SerdeConfig.SerKey.class)) {
-            failSerializer(serializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
-            if (isBothFailed(serializerReasons, deserializerReasons)) {
-                return decision(shapeKind, serializerReasons, deserializerReasons);
-            }
+        if (!element.isEnum() && analysis.open() && hasSerValueInPropertyTypes(element) && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE)) {
+            return true;
         }
-        if (!element.isEnum()
-            && !isBothFailed(serializerReasons, deserializerReasons)
-            && hasSerValueInPropertyTypes(element)
-            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
-            return decision(shapeKind, serializerReasons, deserializerReasons);
+        if (analysis.open() && hasCustomSerdeClassOverride(element) && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE)) {
+            return true;
         }
-        if (!isBothFailed(serializerReasons, deserializerReasons)
-            && hasCustomSerdeClassOverride(element)
-            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
-            return decision(shapeKind, serializerReasons, deserializerReasons);
+        return analysis.open() && hasCustomNaming(element) && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE);
+    }
+
+    /**
+     * Serialize-as and deserialize-as overrides on the type or its properties.
+     *
+     * @return {@code true} once the analysis is complete
+     */
+    private boolean analyzeSerdeAsOverrides(Analysis analysis) {
+        ClassElement element = analysis.element;
+        if (analysis.serializerOpen() && hasSerializeAsOverride(element) && analysis.failSerializer(FallbackReason.UNSUPPORTED_SHAPE)) {
+            return true;
         }
-        if (!isBothFailed(serializerReasons, deserializerReasons)
-            && hasCustomNaming(element)
-            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
-            return decision(shapeKind, serializerReasons, deserializerReasons);
+        if (analysis.deserializerOpen() && hasDeserializeAsOverride(element) && analysis.failDeserializer(FallbackReason.UNSUPPORTED_SHAPE)) {
+            return true;
         }
-        if (serializerReasons.isEmpty() && hasSerializeAsOverride(element)) {
-            failSerializer(serializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
-            if (isBothFailed(serializerReasons, deserializerReasons)) {
-                return decision(shapeKind, serializerReasons, deserializerReasons);
-            }
+        if (analysis.serializerOpen() && hasPropertyLevelSerializableOverride(element) && analysis.failSerializer(FallbackReason.UNSUPPORTED_SHAPE)) {
+            return true;
         }
-        if (deserializerReasons.isEmpty() && hasDeserializeAsOverride(element)) {
-            failDeserializer(deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
-            if (isBothFailed(serializerReasons, deserializerReasons)) {
-                return decision(shapeKind, serializerReasons, deserializerReasons);
-            }
-        }
-        if (serializerReasons.isEmpty() && hasPropertyLevelSerializableOverride(element)) {
-            failSerializer(serializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
-            if (isBothFailed(serializerReasons, deserializerReasons)) {
-                return decision(shapeKind, serializerReasons, deserializerReasons);
-            }
-        }
-        if (deserializerReasons.isEmpty() && hasPropertyLevelDeserializableOverride(element)) {
-            failDeserializer(deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
-            if (isBothFailed(serializerReasons, deserializerReasons)) {
-                return decision(shapeKind, serializerReasons, deserializerReasons);
-            }
-        }
+        return analysis.deserializerOpen()
+            && hasPropertyLevelDeserializableOverride(element)
+            && analysis.failDeserializer(FallbackReason.UNSUPPORTED_SHAPE);
+    }
+
+    /**
+     * The creator and the properties the generated serdes are built from.
+     *
+     * @return {@code true} once the analysis is complete
+     */
+    private boolean analyzePropertyShapes(Analysis analysis) {
+        ClassElement element = analysis.element;
         SerdeConfig.SerCreatorMode creatorMode = element.getPrimaryConstructor()
             .flatMap(c -> c.enumValue(Creator.class, "mode", SerdeConfig.SerCreatorMode.class))
             .orElse(SerdeConfig.SerCreatorMode.PROPERTIES);
-        if (creatorMode == SerdeConfig.SerCreatorMode.DELEGATING
-            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.COMPLEX_CREATOR)) {
-            return decision(shapeKind, serializerReasons, deserializerReasons);
+        if (creatorMode == SerdeConfig.SerCreatorMode.DELEGATING && analysis.failBoth(FallbackReason.COMPLEX_CREATOR)) {
+            return true;
         }
-        if (!isBothFailed(serializerReasons, deserializerReasons)
-            && hasDirectIterableProperties(element)
-            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
-            return decision(shapeKind, serializerReasons, deserializerReasons);
+        if (analysis.open() && hasDirectIterableProperties(element) && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE)) {
+            return true;
         }
         // Two properties serialized under one name cannot share a generated key
-        if (!isBothFailed(serializerReasons, deserializerReasons)
-            && hasDuplicateSerializedNames(element)
-            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
-            return decision(shapeKind, serializerReasons, deserializerReasons);
+        if (analysis.open() && hasDuplicateSerializedNames(element) && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE)) {
+            return true;
         }
-        if (!isBothFailed(serializerReasons, deserializerReasons)
-            && hasUnsupportedPropertySerdeConfig(element, propertyExclusionSupported, shapeKind == SimpleSerdeShapeDecision.ShapeKind.CONSTRUCTOR_BEAN)
-            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
-            return decision(shapeKind, serializerReasons, deserializerReasons);
+        if (analysis.open()
+            && hasUnsupportedPropertySerdeConfig(element, analysis.propertyExclusionSupported(), analysis.shapeKind == ShapeKind.CONSTRUCTOR_BEAN)
+            && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE)) {
+            return true;
         }
-        if (!isBothFailed(serializerReasons, deserializerReasons)
-            && hasAnnotation(element, BSON_REPRESENTATION)
-            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
-            return decision(shapeKind, serializerReasons, deserializerReasons);
+        if (analysis.open() && hasAnnotation(element, BSON_REPRESENTATION) && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE)) {
+            return true;
         }
-        if (shapeKind == SimpleSerdeShapeDecision.ShapeKind.ENUM
-            && !isBothFailed(serializerReasons, deserializerReasons)
+        return analysis.shapeKind == ShapeKind.ENUM
+            && analysis.open()
             && hasComplexEnumCustomization(element)
-            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.COMPLEX_ENUM)) {
-            return decision(shapeKind, serializerReasons, deserializerReasons);
-        }
-        return decision(shapeKind, serializerReasons, deserializerReasons);
+            && analysis.failBoth(FallbackReason.COMPLEX_ENUM);
     }
 
     private SimpleSerdeShapeDecision decision(SimpleSerdeShapeDecision.ShapeKind shapeKind,
@@ -1081,4 +1095,71 @@ public final class SimpleSerdeShapeAnalyzer {
         return false;
     }
 
+    /**
+     * The state of one analysis: the type, its shape and the first reason each direction fell back.
+     */
+    private final class Analysis {
+
+        private final ClassElement element;
+        private final ShapeKind shapeKind;
+        private final Map<FallbackReason, String> serializerReasons = new LinkedHashMap<>();
+        private final Map<FallbackReason, String> deserializerReasons = new LinkedHashMap<>();
+
+        private Analysis(ClassElement element, ShapeKind shapeKind) {
+            this.element = element;
+            this.shapeKind = shapeKind;
+        }
+
+        /**
+         * @return {@code true} while at least one direction can still be generated
+         */
+        private boolean open() {
+            return !bothFailed();
+        }
+
+        private boolean bothFailed() {
+            return isBothFailed(serializerReasons, deserializerReasons);
+        }
+
+        private boolean serializerOpen() {
+            return serializerReasons.isEmpty();
+        }
+
+        private boolean deserializerOpen() {
+            return deserializerReasons.isEmpty();
+        }
+
+        /**
+         * Generated bean serdes honor ignored, read-only and write-only properties; the record
+         * generators still hand those shapes to the runtime serde.
+         */
+        private boolean propertyExclusionSupported() {
+            return shapeKind == ShapeKind.DEFAULT_CONSTRUCTOR_BEAN;
+        }
+
+        /**
+         * @return {@code true} once both directions fell back, so the analysis is complete
+         */
+        private boolean failBoth(FallbackReason reason) {
+            return SimpleSerdeShapeAnalyzer.this.failBoth(serializerReasons, deserializerReasons, reason);
+        }
+
+        private boolean failBoth(FallbackReason reason, String message) {
+            return SimpleSerdeShapeAnalyzer.this.failBoth(serializerReasons, deserializerReasons, reason, message);
+        }
+
+        private boolean failSerializer(FallbackReason reason) {
+            SimpleSerdeShapeAnalyzer.this.failSerializer(serializerReasons, reason);
+            return bothFailed();
+        }
+
+        private boolean failDeserializer(FallbackReason reason) {
+            SimpleSerdeShapeAnalyzer.this.failDeserializer(deserializerReasons, reason);
+            return bothFailed();
+        }
+
+        private SimpleSerdeShapeDecision decision() {
+            return SimpleSerdeShapeAnalyzer.this.decision(shapeKind, serializerReasons, deserializerReasons);
+        }
+    }
 }
