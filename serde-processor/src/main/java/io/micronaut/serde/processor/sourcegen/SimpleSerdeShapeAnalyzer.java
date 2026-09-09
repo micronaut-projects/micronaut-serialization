@@ -39,6 +39,7 @@ import io.micronaut.serde.util.SerdePropertyAccess;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -303,6 +304,12 @@ public final class SimpleSerdeShapeAnalyzer {
         }
         if (!isBothFailed(serializerReasons, deserializerReasons)
             && hasDirectIterableProperties(element)
+            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
+            return decision(shapeKind, serializerReasons, deserializerReasons);
+        }
+        // Two properties serialized under one name cannot share a generated key
+        if (!isBothFailed(serializerReasons, deserializerReasons)
+            && hasDuplicateSerializedNames(element)
             && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
             return decision(shapeKind, serializerReasons, deserializerReasons);
         }
@@ -665,6 +672,17 @@ public final class SimpleSerdeShapeAnalyzer {
     private boolean isDeserializerSkipped(ClassElement element) {
         return element.booleanValue(SerdeableGenerated.class, "skip").orElse(false)
             || element.booleanValue(SerdeableGenerated.class, "skipDeserializer").orElse(false);
+    }
+
+    private boolean hasDuplicateSerializedNames(ClassElement element) {
+        Set<String> serializedNames = new HashSet<>();
+        for (PropertyElement property : element.getBeanProperties()) {
+            String serializedName = property.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(property.getName());
+            if (!serializedNames.add(serializedName)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean hasDirectIterableProperties(ClassElement element) {

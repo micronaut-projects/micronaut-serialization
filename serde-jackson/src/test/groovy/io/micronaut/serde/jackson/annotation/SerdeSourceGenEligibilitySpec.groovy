@@ -144,6 +144,11 @@ record CompileTimeNamingRecord(String firstName) {
 @Introspected
 record DefaultValueRecord(@JsonProperty(value = "first_name", defaultValue = "Ada") String firstName) {
 }
+
+@Serdeable
+@Introspected
+record ClashingNamesRecord(@JsonProperty("name") String first, @JsonProperty("name") String second) {
+}
 ''')
 
         expect:
@@ -151,6 +156,7 @@ record DefaultValueRecord(@JsonProperty(value = "first_name", defaultValue = "Ad
         assertRegistrySelection(context, 'test.RenamedRecord', true, true)
         assertRegistrySelection(context, 'test.CompileTimeNamingRecord', true, true)
         assertRegistrySelection(context, 'test.DefaultValueRecord', false, false)
+        assertRegistrySelection(context, 'test.ClashingNamesRecord', false, false)
 
         cleanup:
         context.close()
