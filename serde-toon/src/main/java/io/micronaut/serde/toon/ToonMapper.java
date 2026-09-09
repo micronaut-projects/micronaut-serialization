@@ -231,9 +231,10 @@ public final class ToonMapper implements ObjectMapper {
      */
     @Override
     public byte[] writeValueAsBytes(@Nullable Object object) throws IOException {
-        final ByteArrayOutputStream output = new ByteArrayOutputStream();
-        writeValue(output, object);
-        return output.toByteArray();
+        try (final ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+            writeValue(output, object);
+            return output.toByteArray();
+        }
     }
 
     /**
@@ -247,9 +248,10 @@ public final class ToonMapper implements ObjectMapper {
      */
     @Override
     public <T> byte[] writeValueAsBytes(Argument<T> type, @Nullable T object) throws IOException {
-        final ByteArrayOutputStream output = new ByteArrayOutputStream();
-        writeValue(output, type, object);
-        return output.toByteArray();
+        try (final ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+            writeValue(output, type, object);
+            return output.toByteArray();
+        }
     }
 
     /**

@@ -31,10 +31,13 @@ import java.util.Map;
  * Builds a JSON tree from a TOON document.
  *
  * <p><strong>Scaffolding note:</strong> this initial implementation only
- * handles flat objects with unquoted primitive fields (no nested objects,
- * arrays, tabular forms, quoting, or comments yet). It exists so that
- * {@code ToonMapper} can be wired and smoke-tested end-to-end before the
- * full parse-side algorithm from the TOON specification is implemented.</p>
+ * handles flat objects with one {@code key: value} pair per line (no nested
+ * objects, arrays, tabular forms, quoting, or comments yet). It performs no
+ * scalar type inference either: every value other than the literal token
+ * {@code null} is parsed as a JSON string, never as a number or boolean. It
+ * exists so that {@code ToonMapper} can be wired and smoke-tested end-to-end
+ * before the full parse-side algorithm from the TOON specification is
+ * implemented.</p>
  *
  * @see <a href="https://github.com/toon-format/spec">TOON specification</a>
  * @since 3.2.0
