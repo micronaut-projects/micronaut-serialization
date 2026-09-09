@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.ClientTests" tests="3" skipped="0" failures="0" errors="0" timestamp="SANITIZED" hostname="SANITIZED" time="0">
+  <properties/>
+  <testcase name="jsonBuilderFactory11Test()" classname="ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.ClientTests" time="0"/>
+  <testcase name="jsonBuilderFactoryTest1()" classname="ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.ClientTests" time="0"/>
+  <testcase name="jsonBuilderFactoryTest2()" classname="ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.ClientTests" time="0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.BuilderFactory test
+INFO: JsonBuilderFactory API methods added in JSON-P 1.1.
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.BuilderFactory testCreateArrayBuilderString
+INFO:  - createArrayBuilder(JsonArray) for String
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.BuilderFactory testCreateArrayBuilderInt
+INFO:  - createArrayBuilder(JsonArray) for int
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.BuilderFactory testCreateArrayBuilderBool
+INFO:  - createArrayBuilder(JsonArray) for boolean
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.BuilderFactory testCreateArrayBuilderObject
+INFO:  - createArrayBuilder(JsonArray) for JsonObject
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.BuilderFactory testCreateArrayBuilderNull
+INFO:  - createArrayBuilder(JsonArray) for null
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.BuilderFactory testCreateArrayBuilderNull
+INFO:     - Expected exception for null argument: Cannot invoke "jakarta.json.JsonArray.forEach(java.util.function.Consumer)" because "array" is null
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.BuilderFactory testCreateObjectBuilderString
+INFO:  - createObjectBuilder(JsonObject) for String
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.BuilderFactory verifyCreateObjectBuilder
+INFO:     - IN: {"address":"In a galaxy far far away"}
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.BuilderFactory testCreateObjectBuilderInt
+INFO:  - createObjectBuilder(JsonObject) for int
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.BuilderFactory verifyCreateObjectBuilder
+INFO:     - IN: {"age":42}
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.BuilderFactory testCreateObjectBuilderBool
+INFO:  - createObjectBuilder(JsonObject) for boolean
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.BuilderFactory verifyCreateObjectBuilder
+INFO:     - IN: {"married":true}
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.BuilderFactory testCreateObjectBuilderObject
+INFO:  - createObjectBuilder(JsonObject) for JsonObject
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.BuilderFactory verifyCreateObjectBuilder
+INFO:     - IN: {"wife":{"name":"Sarah Connor","age":32}}
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.BuilderFactory testCreateObjectBuilderNull
+INFO:  - createObjectBuilder(JsonObject) for null
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.BuilderFactory testCreateObjectBuilderNull
+INFO:     - Expected exception for null argument: Cannot invoke "jakarta.json.JsonObject.forEach(java.util.function.BiConsumer)" because "object" is null
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.ClientTests jsonBuilderFactoryTest1
+INFO: Create JsonBuilderFactory with Map<String, ?> with EMPTY config
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.ClientTests jsonBuilderFactoryTest1
+INFO: Checking factory configuration properties
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpConfigMap
+INFO: *** Beg: Dumping Config Map contents ***
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpConfigMap
+INFO: *** End: Dumping Config Map contents ***
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.common.JSONP_Util doConfigCheck
+INFO: Checking factory configuration property size
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.common.JSONP_Util doConfigCheck
+INFO: Expecting no of properties=0, got=0
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.ClientTests jsonBuilderFactoryTest1
+INFO: ---------------------------------------------------
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.ClientTests jsonBuilderFactoryTest1
+INFO: TEST CASE [JsonBuilderFactory.createArrayBuilder()]
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.ClientTests jsonBuilderFactoryTest1
+INFO: ---------------------------------------------------
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.ClientTests jsonBuilderFactoryTest1
+INFO: Create JsonArrayBuilder using JsonBuilderFactory
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonArrays
+INFO: JsonArray match
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonArrays
+INFO: Expected: [0,2]
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonArrays
+INFO: Actual:   [0,2]
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.ClientTests jsonBuilderFactoryTest1
+INFO: ----------------------------------------------------
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.ClientTests jsonBuilderFactoryTest1
+INFO: TEST CASE [JsonBuilderFactory.createObjectBuilder()]
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.ClientTests jsonBuilderFactoryTest1
+INFO: ----------------------------------------------------
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.ClientTests jsonBuilderFactoryTest1
+INFO: Create JsonObjectBuilder using JsonBuilderFactory
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonObjects
+INFO: JsonObject match
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonObjects
+INFO: Expected: {"foo":"bar"}
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonObjects
+INFO: Actual:   {"foo":"bar"}
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.ClientTests jsonBuilderFactoryTest2
+INFO: ----------------------------------------------
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.ClientTests jsonBuilderFactoryTest2
+INFO: Test scenario1: no supported provider property
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.ClientTests jsonBuilderFactoryTest2
+INFO: ----------------------------------------------
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.ClientTests jsonBuilderFactoryTest2
+INFO: Create JsonBuilderFactory with Map<String, ?> with EMPTY config
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpConfigMap
+INFO: *** Beg: Dumping Config Map contents ***
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpConfigMap
+INFO: *** End: Dumping Config Map contents ***
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.common.JSONP_Util doConfigCheck
+INFO: Checking factory configuration property size
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.common.JSONP_Util doConfigCheck
+INFO: Expecting no of properties=0, got=0
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.ClientTests jsonBuilderFactoryTest2
+INFO: -----------------------------------------------
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.ClientTests jsonBuilderFactoryTest2
+INFO: Test scenario2: non supported provider property
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.ClientTests jsonBuilderFactoryTest2
+INFO: -----------------------------------------------
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.api.jsonbuilderfactorytests.ClientTests jsonBuilderFactoryTest2
+INFO: Create JsonBuilderFactory with Map<String, ?> with FOO config
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.common.JSONP_Util getFooConfig
+INFO: getFooConfig
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.common.JSONP_Util getFooConfig
+INFO: Added property: JSONP_Util.FOO_CONFIG
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpConfigMap
+INFO: *** Beg: Dumping Config Map contents ***
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpConfigMap
+INFO: *** End: Dumping Config Map contents ***
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.common.JSONP_Util doConfigCheck
+INFO: Checking factory configuration property size
+Sep 08, 2026 4:34:42 PM ee.jakarta.tck.jsonp.common.JSONP_Util doConfigCheck
+INFO: Expecting no of properties=0, got=0
+]]></system-err>
+</testsuite>
