@@ -60,19 +60,21 @@
                                 
                                 <div class="toc-item" style="margin-left:0"><a href="#bsonAnnotations"><strong>7</strong><span>BSON Annotations</span></a></div>
                                 
-                                <div class="toc-item" style="margin-left:0"><a href="#coercion"><strong>8</strong><span>Type Coercion</span></a></div>
+                                <div class="toc-item" style="margin-left:0"><a href="#protobuf"><strong>8</strong><span>Protocol Buffers</span></a></div>
                                 
-                                <div class="toc-item" style="margin-left:0"><a href="#builders"><strong>9</strong><span>Builders</span></a></div>
+                                <div class="toc-item" style="margin-left:0"><a href="#coercion"><strong>9</strong><span>Type Coercion</span></a></div>
                                 
-                                <div class="toc-item" style="margin-left:0"><a href="#serdes"><strong>10</strong><span>Custom Serializers &amp; Deserializers</span></a></div>
+                                <div class="toc-item" style="margin-left:0"><a href="#builders"><strong>10</strong><span>Builders</span></a></div>
                                 
-                                <div class="toc-item" style="margin-left:0"><a href="#serdeImport"><strong>11</strong><span>Enabling Serialization of External Classes</span></a></div>
+                                <div class="toc-item" style="margin-left:0"><a href="#serdes"><strong>11</strong><span>Custom Serializers &amp; Deserializers</span></a></div>
                                 
-                                <div class="toc-item" style="margin-left:0"><a href="#keys"><strong>12</strong><span>Custom Key Converters</span></a></div>
+                                <div class="toc-item" style="margin-left:0"><a href="#serdeImport"><strong>12</strong><span>Enabling Serialization of External Classes</span></a></div>
                                 
-                                <div class="toc-item" style="margin-left:0"><a href="#breaks"><strong>13</strong><span>Breaking Changes</span></a></div>
+                                <div class="toc-item" style="margin-left:0"><a href="#keys"><strong>13</strong><span>Custom Key Converters</span></a></div>
                                 
-                                <div class="toc-item" style="margin-left:0"><a href="#repository"><strong>14</strong><span>Repository</span></a></div>
+                                <div class="toc-item" style="margin-left:0"><a href="#breaks"><strong>14</strong><span>Breaking Changes</span></a></div>
+                                
+                                <div class="toc-item" style="margin-left:0"><a href="#repository"><strong>15</strong><span>Repository</span></a></div>
                                 
                             </div>
                         </div>
@@ -143,19 +145,21 @@
         
         <div class="toc-item" style="margin-left:0px" id="toc-item-bsonAnnotations"><a href="#bsonAnnotations"><strong>7</strong><span>BSON Annotations</span></a></div>
         
-        <div class="toc-item" style="margin-left:0px" id="toc-item-coercion"><a href="#coercion"><strong>8</strong><span>Type Coercion</span></a></div>
+        <div class="toc-item" style="margin-left:0px" id="toc-item-protobuf"><a href="#protobuf"><strong>8</strong><span>Protocol Buffers</span></a></div>
         
-        <div class="toc-item" style="margin-left:0px" id="toc-item-builders"><a href="#builders"><strong>9</strong><span>Builders</span></a></div>
+        <div class="toc-item" style="margin-left:0px" id="toc-item-coercion"><a href="#coercion"><strong>9</strong><span>Type Coercion</span></a></div>
         
-        <div class="toc-item" style="margin-left:0px" id="toc-item-serdes"><a href="#serdes"><strong>10</strong><span>Custom Serializers &amp; Deserializers</span></a></div>
+        <div class="toc-item" style="margin-left:0px" id="toc-item-builders"><a href="#builders"><strong>10</strong><span>Builders</span></a></div>
         
-        <div class="toc-item" style="margin-left:0px" id="toc-item-serdeImport"><a href="#serdeImport"><strong>11</strong><span>Enabling Serialization of External Classes</span></a></div>
+        <div class="toc-item" style="margin-left:0px" id="toc-item-serdes"><a href="#serdes"><strong>11</strong><span>Custom Serializers &amp; Deserializers</span></a></div>
         
-        <div class="toc-item" style="margin-left:0px" id="toc-item-keys"><a href="#keys"><strong>12</strong><span>Custom Key Converters</span></a></div>
+        <div class="toc-item" style="margin-left:0px" id="toc-item-serdeImport"><a href="#serdeImport"><strong>12</strong><span>Enabling Serialization of External Classes</span></a></div>
         
-        <div class="toc-item" style="margin-left:0px" id="toc-item-breaks"><a href="#breaks"><strong>13</strong><span>Breaking Changes</span></a></div>
+        <div class="toc-item" style="margin-left:0px" id="toc-item-keys"><a href="#keys"><strong>13</strong><span>Custom Key Converters</span></a></div>
         
-        <div class="toc-item" style="margin-left:0px" id="toc-item-repository"><a href="#repository"><strong>14</strong><span>Repository</span></a></div>
+        <div class="toc-item" style="margin-left:0px" id="toc-item-breaks"><a href="#breaks"><strong>14</strong><span>Breaking Changes</span></a></div>
+        
+        <div class="toc-item" style="margin-left:0px" id="toc-item-repository"><a href="#repository"><strong>15</strong><span>Repository</span></a></div>
         
         </div>
     </div>
@@ -4647,7 +4651,416 @@ public final class ProgrammaticCodeDeserializer implements JsonbDeserializer&lt;
 <p>Note that with BSON you can encode both the JSON and to BSON Binary by injecting one of <a href="../api/io/micronaut/serde/bson/BsonBinaryMapper.html">BsonBinaryMapper</a> (Binary) or <a href="../api/io/micronaut/serde/bson/BsonJsonMapper.html">BsonJsonMapper</a> (JSON).</p>
 </div>
 
-<h1 id="coercion"><a class="anchor" href="#coercion"></a>8 Type Coercion</h1>
+<h1 id="protobuf"><a class="anchor" href="#protobuf"></a>8 Protocol Buffers</h1>
+
+<div class='contribute-btn'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/protobuf.adoc"'>
+        <i class='fa fa-pencil-square-o'></i> Improve this doc
+    </button>
+</div>
+
+
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+Protocol Buffers support is an experimental prototype. The API, the annotations, and the wire mapping may change or be removed in any release.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Micronaut Serialization can read and write the Protocol Buffers binary wire format for ordinary <code>@Serdeable</code> types, with no <code>.proto</code> files, no generated message classes, and no <code>protoc</code> in the build.</p>
+</div>
+<div class="paragraph">
+<p>        <div class="listingblock multi-language-sample">
+<div class="title"></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">implementation(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-protobuf")</span></code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="maven">&lt;dependency&gt;
+    &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
+    &lt;artifactId&gt;micronaut-serde-protobuf&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></pre>
+</div>
+</div>
+</p>
+</div>
+<div class="sect1">
+<h2 id="_assigning_field_numbers">Assigning field numbers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Protobuf identifies fields by number; names never travel on the wire. A number is given with <a href="../api/io/micronaut/serde/protobuf/annotation/ProtoField.html">@ProtoField</a>, either as the annotation&#8217;s value or as its <code>position</code> &mdash; the two are aliases, so <code>@ProtoField(3)</code> and <code>@ProtoField(position = 3)</code> are the same thing.</p>
+</div>
+<div class="paragraph">
+<p>Take a sensor reading sent by a battery-powered device:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Serdeable
+public record SensorReading(
+    @ProtoField(1) String deviceId,
+    @ProtoField(2) long recordedAt,
+    @ProtoField(value = 3, type = ProtoType.SINT32) int temperatureMilliCelsius,   // <b class="conum">(1)</b>
+    @ProtoField(4) List&lt;Integer&gt; signalStrengths,                                  // <b class="conum">(2)</b>
+    @ProtoField(5) @Nullable Coordinates location,                                 // <b class="conum">(3)</b>
+    @ProtoField(6) boolean batteryLow
+) {
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Temperatures below freezing are negative, so <code>sint32</code> is the right representation &mdash; see <a href="#protobufWireTypes">Choosing a wire representation</a> below.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>A <code>List</code> becomes a <code>repeated</code> field, packed into a single run for scalars.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>A nullable property is simply absent from the payload when it is null, which is exactly how protobuf represents an unset field.</td>
+</tr>
+</table>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Serdeable
+public record Coordinates(
+    @ProtoField(value = 1, type = ProtoType.SFIXED32) int latitudeMicros,   // <b class="conum">(1)</b>
+    @ProtoField(value = 2, type = ProtoType.SFIXED32) int longitudeMicros
+) {
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Coordinates in microdegrees are always large numbers, so the fixed four-byte form is never worse than a varint and is cheaper to decode.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Together these are equivalent to the following schema, and produce byte-identical output:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-protobuf hljs" data-lang="protobuf">syntax = "proto3";
+
+message Coordinates {
+  sfixed32 latitudeMicros = 1;
+  sfixed32 longitudeMicros = 2;
+}
+
+message SensorReading {
+  string deviceId = 1;
+  int64 recordedAt = 2;
+  sint32 temperatureMilliCelsius = 3;
+  repeated int32 signalStrengths = 4;
+  Coordinates location = 5;
+  bool batteryLow = 6;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The schema is checked the first time a type is used. A missing, duplicated, out-of-range, or reserved field number is reported with a message naming the property, rather than silently producing a payload nobody else can read.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_reading_and_writing">Reading and writing</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Inject <a href="../api/io/micronaut/serde/protobuf/ProtobufMapper.html">ProtobufMapper</a> by its concrete type. The bean is exposed only by that concrete type, so it cannot be selected as the application&#8217;s JSON mapper.</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Singleton
+public class ReadingCodec {
+
+    private final ProtobufMapper protobufMapper;   // <b class="conum">(1)</b>
+
+    public ReadingCodec(ProtobufMapper protobufMapper) {
+        this.protobufMapper = protobufMapper;
+    }
+
+    public byte[] encode(SensorReading reading) throws IOException {
+        return protobufMapper.writeValueAsBytes(reading);
+    }
+
+    public SensorReading decode(byte[] payload) throws IOException {
+        return protobufMapper.readValue(payload, SensorReading.class);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>ProtobufMapper</code> implements <a href="../api/io/micronaut/serde/ObjectMapper.html">ObjectMapper</a>, so <code>writeValueAsBytes</code> and <code>readValue</code> work as they do for JSON.</td>
+</tr>
+</table>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">    @Test
+    void readsBackWhatItWrote() throws Exception {
+        SensorReading reading = reading();
+
+        byte[] payload = codec.encode(reading);
+
+        assertEquals(reading, codec.decode(payload));
+    }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The reason to reach for it is size. The same reading is markedly smaller than its JSON equivalent, and the gap widens with numeric and repeated data:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">    @Test
+    void isSubstantiallySmallerThanJson() throws Exception {
+        SensorReading reading = reading();
+
+        int protobufBytes = codec.encode(reading).length;
+        int jsonBytes = jsonMapper.writeValueAsBytes(reading).length;
+
+        assertEquals(73, protobufBytes);                    // <b class="conum">(1)</b>
+        assertTrue(protobufBytes * 2 &lt; jsonBytes,           // <b class="conum">(2)</b>
+            () -&gt; "protobuf " + protobufBytes + " bytes vs JSON " + jsonBytes + " bytes");
+    }</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>73 bytes on the wire.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Against 207 bytes for the same object as JSON.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_numbering_by_declaration_order">Numbering by declaration order</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A property that names no position takes its number from where it sits among the message&#8217;s properties: the first is 1, the second is 2, and so on. A property with no annotation at all is numbered the same way, so a plain <code>@Serdeable</code> type needs nothing added to it:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Serdeable
+public record Telemetry(
+    String deviceId,                                                    // <b class="conum">(1)</b>
+    long recordedAt,
+    @ProtoField(type = ProtoType.SINT32) int temperatureMilliCelsius
+) {
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Numbered 1, 2 and 3 by position. The annotation appears only where a wire representation is being chosen, not to supply a number.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Explicit and derived numbers can be mixed. Explicit numbers are claimed first, and anything left still counts from its own position, so a property&#8217;s derived number depends only on where it sits &mdash; not on what its neighbours declare. If a derived number collides with one a sibling declares explicitly, the schema is rejected and names both properties.</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+Derived numbering is convenient and it is also fragile. Inserting, removing or reordering a property silently renumbers everything after it, and payloads written by an earlier version are then read back into the wrong properties. It suits a message whose writer and readers are deployed together. Anything that outlives a single deployment &mdash; stored payloads, a published API, messages on a queue &mdash; should number its fields explicitly.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="protobufWireTypes">Choosing a wire representation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>One Java type maps to several protobuf representations, and the choice is worth making deliberately. A Java <code>int</code> is <code>int32</code> by default, which sign-extends negative values to a full ten bytes. <code>sint32</code> zig-zag encodes them instead, so the cost tracks the magnitude rather than the sign:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">    @Serdeable
+    public record AsInt32(@ProtoField(1) int milliCelsius) {
+    }
+
+    @Serdeable
+    public record AsSint32(@ProtoField(value = 1, type = ProtoType.SINT32) int milliCelsius) {
+    }</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">    @Test
+    void sint32IsFarCheaperForNegativeValues() throws Exception {
+        int belowFreezing = -4250;
+
+        int int32Bytes = protobufMapper.writeValueAsBytes(new Temperature.AsInt32(belowFreezing)).length;
+        int sint32Bytes = protobufMapper.writeValueAsBytes(new Temperature.AsSint32(belowFreezing)).length;
+
+        assertEquals(11, int32Bytes);   // <b class="conum">(1)</b>
+        assertEquals(3, sint32Bytes);   // <b class="conum">(2)</b>
+    }</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>One tag byte plus ten bytes of sign-extended varint.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>One tag byte plus two bytes of zig-zag varint.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>For a positive value <code>p</code>, <code>sint32</code> writes <code>2p</code>. It often occupies the same number of bytes as <code>int32</code>, but can need an extra byte at a varint boundary. Use it when negative values are common rather than assuming it is free for positive values. <code>fixed32</code> and <code>fixed64</code> are the other useful choices: four or eight bytes regardless of value, which wins for numbers that are usually large. See <a href="../api/io/micronaut/serde/protobuf/annotation/ProtoType.html">@ProtoType</a> for the full set.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_evolving_a_message">Evolving a message</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Because numbers rather than names are the contract, a service can add fields without waiting for its readers to be redeployed. A reader that does not know a field number skips it:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">    @Test
+    void anOldReaderIgnoresFieldsItDoesNotKnow() throws Exception {
+        SensorReading current = SensorReadingTest.reading();
+
+        byte[] payload = protobufMapper.writeValueAsBytes(current);
+        LegacyReading asOldReader = protobufMapper.readValue(payload, LegacyReading.class);   // <b class="conum">(1)</b>
+
+        assertEquals("weather-station-7", asOldReader.deviceId());
+        assertEquals(-4250, asOldReader.temperatureMilliCelsius());
+    }</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>LegacyReading</code> declares only fields 1 to 3; everything else in the payload is skipped.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>And the reverse: a newer reader handles a payload written before the extra fields existed. Protobuf has no null, so an absent field arrives as whatever default the property would otherwise hold.</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">    @Test
+    void aNewReaderToleratesFieldsThatAreNotThereYet() throws Exception {
+        LegacyReading old = new LegacyReading("weather-station-7", 1787000000000L, -4250);
+
+        byte[] payload = protobufMapper.writeValueAsBytes(old);
+        SensorReading asNewReader = protobufMapper.readValue(payload, SensorReading.class);   // <b class="conum">(1)</b>
+
+        assertEquals(-4250, asNewReader.temperatureMilliCelsius());
+        assertNull(asNewReader.location());
+        assertNull(asNewReader.signalStrengths());
+        assertFalse(asNewReader.batteryLow());
+    }</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>location</code> and <code>signalStrengths</code> come back as <code>null</code>, and <code>batteryLow</code> as <code>false</code>.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The one rule this depends on: <strong>never reuse a field number</strong>. Removing a property and giving its number to a different property will silently misinterpret older payloads. Protobuf itself has <code>reserved</code> for this; here it is a matter of discipline.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_what_is_not_supported">What is not supported</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Protobuf payloads are not self-describing. On the wire a length-delimited value could be a string, a byte array, a nested message, or a packed repeated field, and only a schema tells them apart. The following therefore cannot work, and fail with an explicit message rather than a wrong answer:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Reading into <code>Object</code>, <a href="../api/io/micronaut/json/tree/JsonNode.html">JsonNode</a>, or any other type without <a href="../api/io/micronaut/serde/protobuf/annotation/ProtoField.html">@ProtoField</a> numbers.</p>
+</li>
+<li>
+<p><code>@JsonAnySetter</code> and other catch-all properties.</p>
+</li>
+<li>
+<p>Reactive parsing, which needs self-delimiting payloads.</p>
+</li>
+<li>
+<p>Maps and polymorphic types.</p>
+</li>
+<li>
+<p>A null top-level message. Protobuf has no wire representation that distinguishes it from a valid empty message.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_reading_untrusted_payloads">Reading untrusted payloads</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The decoder requires the complete payload in memory and reads it in one pass, so a caller has to bound the payload&#8217;s size itself. Over HTTP the server&#8217;s maximum request size does that; on Kafka, Pulsar or any other transport where the caller owns the buffer, set a limit there.</p>
+</div>
+<div class="paragraph">
+<p>Within a payload the decoder bounds its own work. A length prefix may not reach past the structure that encloses it, so a nested message cannot claim bytes belonging to its parent. Group encoding, a proto2-only feature this backend does not support, is rejected rather than skipped. A <code>string</code> field that is not valid UTF-8 is rejected rather than silently substituted. Arbitrary-precision numbers travel as text and are capped at 1000 characters, because parsing a long decimal string costs far more than its length suggests. And because every nested message is normalized into a fresh array before it is read, the total spent on those copies is capped relative to the payload&#8217;s own size &mdash; a payload nested so that each level is nearly as large as its parent is refused rather than allowed to multiply memory by its depth.</p>
+</div>
+<div class="paragraph">
+<p>Two behavioural differences are worth knowing about:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>proto3 omits fields holding their type&#8217;s default value, so a reader cannot distinguish an absent field from an empty string or a zero. Properties that Micronaut Serialization treats as required may fail on payloads the reference implementation considers valid.</p>
+</li>
+<li>
+<p>Unknown fields are skipped rather than retained, so they are not re-emitted when a message is read and written back.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Use <code>Optional</code>, <code>OptionalInt</code>, <code>OptionalLong</code>, or <code>OptionalDouble</code> when scalar presence matters. An empty optional omits the field, while a present optional retains its value even when that value is the scalar default.</p>
+</div>
+</div>
+</div>
+
+<h1 id="coercion"><a class="anchor" href="#coercion"></a>9 Type Coercion</h1>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/coercion.adoc"'>
@@ -4911,7 +5324,7 @@ if ((integerShapes &amp; shape.bit()) == 0) {
 </div>
 </div>
 
-<h1 id="builders"><a class="anchor" href="#builders"></a>9 Builders</h1>
+<h1 id="builders"><a class="anchor" href="#builders"></a>10 Builders</h1>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/builders.adoc"'>
@@ -5088,7 +5501,7 @@ the builder, which keeps the values a builder assigns itself, such as a Lombok <
 </table>
 </div>
 
-<h1 id="serdes"><a class="anchor" href="#serdes"></a>10 Custom Serializers & Deserializers</h1>
+<h1 id="serdes"><a class="anchor" href="#serdes"></a>11 Custom Serializers & Deserializers</h1>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/serdes.adoc"'>
@@ -5689,7 +6102,7 @@ class Place {
 </div>
 </div>
 
-<h1 id="serdeImport"><a class="anchor" href="#serdeImport"></a>11 Enabling Serialization of External Classes</h1>
+<h1 id="serdeImport"><a class="anchor" href="#serdeImport"></a>12 Enabling Serialization of External Classes</h1>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/serdeImport.adoc"'>
@@ -5859,7 +6272,7 @@ class Serdes {}</code></pre>
 </table>
 </div>
 
-<h1 id="keys"><a class="anchor" href="#keys"></a>12 Custom Key Converters</h1>
+<h1 id="keys"><a class="anchor" href="#keys"></a>13 Custom Key Converters</h1>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/keys.adoc"'>
@@ -6037,7 +6450,7 @@ class Feature {
 </table>
 </div>
 
-<h1 id="breaks"><a class="anchor" href="#breaks"></a>13 Breaking Changes</h1>
+<h1 id="breaks"><a class="anchor" href="#breaks"></a>14 Breaking Changes</h1>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/breaks.adoc"'>
@@ -6200,7 +6613,7 @@ The internal constructor <code>OracleJdbcJsonTextObjectMapper(SerdeRegistry regi
 </div>
 </div>
 
-<h1 id="repository"><a class="anchor" href="#repository"></a>14 Repository</h1>
+<h1 id="repository"><a class="anchor" href="#repository"></a>15 Repository</h1>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.2.x/src/main/docs/guide/repository.adoc"'>

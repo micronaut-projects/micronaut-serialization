@@ -38,6 +38,9 @@ io.micronaut.serde.processor.sourcegen.records
 io.micronaut.serde.processor.xml
 io.micronaut.serde.properties
 io.micronaut.serde.properties.util
+io.micronaut.serde.protobuf
+io.micronaut.serde.protobuf.annotation
+io.micronaut.serde.protobuf.wire
 io.micronaut.serde.reference
 io.micronaut.serde.support
 io.micronaut.serde.support.bind
