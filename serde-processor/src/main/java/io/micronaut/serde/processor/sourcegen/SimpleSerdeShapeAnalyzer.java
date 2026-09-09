@@ -367,64 +367,6 @@ public final class SimpleSerdeShapeAnalyzer {
             && analysis.failBoth(FallbackReason.COMPLEX_ENUM);
     }
 
-    private SimpleSerdeShapeDecision decision(SimpleSerdeShapeDecision.ShapeKind shapeKind,
-                                              Map<SimpleSerdeShapeDecision.FallbackReason, String> serializerReasons,
-                                              Map<SimpleSerdeShapeDecision.FallbackReason, String> deserializerReasons) {
-        return new SimpleSerdeShapeDecision(
-            shapeKind,
-            serializerReasons.isEmpty(),
-            deserializerReasons.isEmpty(),
-            serializerReasons,
-            deserializerReasons
-        );
-    }
-
-    private boolean isBothFailed(Map<SimpleSerdeShapeDecision.FallbackReason, String> serializerReasons,
-                                 Map<SimpleSerdeShapeDecision.FallbackReason, String> deserializerReasons) {
-        return !serializerReasons.isEmpty() && !deserializerReasons.isEmpty();
-    }
-
-    private boolean failBoth(Map<SimpleSerdeShapeDecision.FallbackReason, String> serializerReasons,
-                             Map<SimpleSerdeShapeDecision.FallbackReason, String> deserializerReasons,
-                             SimpleSerdeShapeDecision.FallbackReason reason) {
-        return failBoth(serializerReasons, deserializerReasons, reason, reason.message());
-    }
-
-    private boolean failBoth(Map<SimpleSerdeShapeDecision.FallbackReason, String> serializerReasons,
-                             Map<SimpleSerdeShapeDecision.FallbackReason, String> deserializerReasons,
-                             SimpleSerdeShapeDecision.FallbackReason reason,
-                             String message) {
-        failSerializer(serializerReasons, reason, message);
-        failDeserializer(deserializerReasons, reason, message);
-        return isBothFailed(serializerReasons, deserializerReasons);
-    }
-
-    private void failSerializer(Map<SimpleSerdeShapeDecision.FallbackReason, String> serializerReasons,
-                                SimpleSerdeShapeDecision.FallbackReason reason) {
-        failSerializer(serializerReasons, reason, reason.message());
-    }
-
-    private void failSerializer(Map<SimpleSerdeShapeDecision.FallbackReason, String> serializerReasons,
-                                SimpleSerdeShapeDecision.FallbackReason reason,
-                                String message) {
-        if (serializerReasons.isEmpty()) {
-            serializerReasons.put(reason, message);
-        }
-    }
-
-    private void failDeserializer(Map<SimpleSerdeShapeDecision.FallbackReason, String> deserializerReasons,
-                                  SimpleSerdeShapeDecision.FallbackReason reason) {
-        failDeserializer(deserializerReasons, reason, reason.message());
-    }
-
-    private void failDeserializer(Map<SimpleSerdeShapeDecision.FallbackReason, String> deserializerReasons,
-                                  SimpleSerdeShapeDecision.FallbackReason reason,
-                                  String message) {
-        if (deserializerReasons.isEmpty()) {
-            deserializerReasons.put(reason, message);
-        }
-    }
-
     private boolean hasAnnotation(ClassElement element, Class<? extends Annotation> annotation) {
         if (element.getPrimaryConstructor().map(c -> hasAnnotation(c, annotation)).orElse(false)) {
             return true;
@@ -1098,7 +1040,7 @@ public final class SimpleSerdeShapeAnalyzer {
     /**
      * The state of one analysis: the type, its shape and the first reason each direction fell back.
      */
-    private final class Analysis {
+    private static final class Analysis {
 
         private final ClassElement element;
         private final ShapeKind shapeKind;
@@ -1118,7 +1060,7 @@ public final class SimpleSerdeShapeAnalyzer {
         }
 
         private boolean bothFailed() {
-            return isBothFailed(serializerReasons, deserializerReasons);
+            return !serializerReasons.isEmpty() && !deserializerReasons.isEmpty();
         }
 
         private boolean serializerOpen() {
@@ -1138,28 +1080,44 @@ public final class SimpleSerdeShapeAnalyzer {
         }
 
         /**
+         * Records the reason for both directions; the first reason recorded for a direction is kept.
+         *
          * @return {@code true} once both directions fell back, so the analysis is complete
          */
         private boolean failBoth(FallbackReason reason) {
-            return SimpleSerdeShapeAnalyzer.this.failBoth(serializerReasons, deserializerReasons, reason);
+            return failBoth(reason, reason.message());
         }
 
         private boolean failBoth(FallbackReason reason, String message) {
-            return SimpleSerdeShapeAnalyzer.this.failBoth(serializerReasons, deserializerReasons, reason, message);
+            record(serializerReasons, reason, message);
+            record(deserializerReasons, reason, message);
+            return bothFailed();
         }
 
         private boolean failSerializer(FallbackReason reason) {
-            SimpleSerdeShapeAnalyzer.this.failSerializer(serializerReasons, reason);
+            record(serializerReasons, reason, reason.message());
             return bothFailed();
         }
 
         private boolean failDeserializer(FallbackReason reason) {
-            SimpleSerdeShapeAnalyzer.this.failDeserializer(deserializerReasons, reason);
+            record(deserializerReasons, reason, reason.message());
             return bothFailed();
         }
 
+        private static void record(Map<FallbackReason, String> reasons, FallbackReason reason, String message) {
+            if (reasons.isEmpty()) {
+                reasons.put(reason, message);
+            }
+        }
+
         private SimpleSerdeShapeDecision decision() {
-            return SimpleSerdeShapeAnalyzer.this.decision(shapeKind, serializerReasons, deserializerReasons);
+            return new SimpleSerdeShapeDecision(
+                shapeKind,
+                serializerReasons.isEmpty(),
+                deserializerReasons.isEmpty(),
+                serializerReasons,
+                deserializerReasons
+            );
         }
     }
 }
