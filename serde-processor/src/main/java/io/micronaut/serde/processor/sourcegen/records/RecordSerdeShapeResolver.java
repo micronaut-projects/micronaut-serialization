@@ -15,12 +15,15 @@
  */
 package io.micronaut.serde.processor.sourcegen.records;
 
+import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.ast.ClassElement;
+import io.micronaut.inject.ast.ConstructorElement;
 import io.micronaut.inject.ast.MethodElement;
 import io.micronaut.inject.ast.ParameterElement;
 import io.micronaut.inject.ast.PropertyElement;
-import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.serde.config.annotation.SerdeConfig;
+import io.micronaut.serde.processor.sourcegen.SerdeInclusionSourceGen;
+import io.micronaut.serde.processor.sourcegen.beans.BeanSerdeShapeResolver;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +38,7 @@ import java.util.stream.Collectors;
 public final class RecordSerdeShapeResolver {
 
     public Optional<RecordSerdeShape> resolve(ClassElement element) {
-        if (!element.isRecord()) {
+        if (!element.isRecord() && !isConstructorBean(element)) {
             return Optional.empty();
         }
         if (!element.getTypeArguments().isEmpty()) {
@@ -45,7 +48,7 @@ public final class RecordSerdeShapeResolver {
         if (canonicalConstructor == null) {
             return Optional.empty();
         }
-        Map<String, PropertyElement> propertiesByName = element.getBeanProperties().stream()
+        Map<String, PropertyElement> propertiesByName = BeanSerdeShapeResolver.introspectedProperties(element).stream()
             .collect(Collectors.toMap(PropertyElement::getName, Function.identity()));
         List<RecordSerdeShape.RecordComponent> components = new ArrayList<>();
         for (ParameterElement parameter : canonicalConstructor.getParameters()) {
@@ -56,15 +59,60 @@ public final class RecordSerdeShapeResolver {
             if (propertyElement == null) {
                 return Optional.empty();
             }
+            Map<String, String> keyMetadata = resolveKeyMetadata(propertyElement);
             components.add(new RecordSerdeShape.RecordComponent(
                 parameter.getName(),
                 stringValue(propertyElement, SerdeConfig.PROPERTY).orElse(parameter.getName()),
                 parameter.getType(),
-                resolveKeyMetadata(propertyElement),
+                keyMetadata,
+                SerdeInclusionSourceGen.resolvePropertyInclude(element, propertyElement, keyMetadata),
+                booleanValue(propertyElement, SerdeConfig.REQUIRED).orElse(parameter.booleanValue(SerdeConfig.class, SerdeConfig.REQUIRED).orElse(false)),
+                aliases(propertyElement, parameter),
+                // The runtime merges the parameter and the property metadata for a constructor argument,
+                // and an explicit nullable declaration wins over a non-null one
+                !(parameter.isNullable() || propertyElement.isNullable()) && (parameter.isNonNull() || propertyElement.isNonNull()),
+                parameter.isNullable() || propertyElement.isNullable(),
                 propertyElement
             ));
         }
         return Optional.of(new RecordSerdeShape(canonicalConstructor, List.copyOf(components)));
+    }
+
+    /**
+     * Whether a class binds every property through its primary constructor, so that the record
+     * generators apply: the constructor takes at least one parameter, every parameter names a bean
+     * property of the same type, and every bean property is such a parameter. A property outside the
+     * constructor would be written or set by the runtime serdes through other means.
+     *
+     * @param element The type
+     * @return {@code true} if the type is bound through its constructor like a record
+     */
+    public static boolean isConstructorBean(ClassElement element) {
+        if (element.isRecord() || element.isInterface() || element.isAbstract() || element.isEnum()) {
+            return false;
+        }
+        MethodElement primaryConstructor = element.getPrimaryConstructor().orElse(null);
+        if (!(primaryConstructor instanceof ConstructorElement) || primaryConstructor.getParameters().length == 0) {
+            return false;
+        }
+        List<PropertyElement> beanProperties = BeanSerdeShapeResolver.introspectedProperties(element);
+        Map<String, PropertyElement> propertiesByName = CollectionUtils.newHashMap(beanProperties.size());
+        for (PropertyElement property : beanProperties) {
+            propertiesByName.put(property.getName(), property);
+        }
+        ParameterElement[] parameters = primaryConstructor.getParameters();
+        if (parameters.length != beanProperties.size()) {
+            return false;
+        }
+        for (ParameterElement parameter : parameters) {
+            PropertyElement property = propertiesByName.get(parameter.getName());
+            if (property == null
+                || property.getReadMethod().isEmpty()
+                || !property.getType().getName().equals(parameter.getType().getName())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static Map<String, String> resolveKeyMetadata(PropertyElement property) {
@@ -99,6 +147,20 @@ public final class RecordSerdeShapeResolver {
         booleanValue(property, SerdeConfig.XML_WRAPPER_NILLABLE)
             .ifPresent(value -> metadata.put(SerdeConfig.XML_WRAPPER_NILLABLE, value.toString()));
         return Map.copyOf(metadata);
+    }
+
+    private static List<String> aliases(PropertyElement property, ParameterElement parameter) {
+        String[] aliases = property.stringValues(SerdeConfig.class, SerdeConfig.ALIASES);
+        if (aliases.length == 0) {
+            aliases = parameter.stringValues(SerdeConfig.class, SerdeConfig.ALIASES);
+        }
+        if (aliases.length == 0) {
+            aliases = property.getReadMethod().map(method -> method.stringValues(SerdeConfig.class, SerdeConfig.ALIASES)).orElse(aliases);
+        }
+        if (aliases.length == 0) {
+            aliases = property.getField().map(field -> field.stringValues(SerdeConfig.class, SerdeConfig.ALIASES)).orElse(aliases);
+        }
+        return List.of(aliases);
     }
 
     private static Optional<String> stringValue(PropertyElement property, String member) {

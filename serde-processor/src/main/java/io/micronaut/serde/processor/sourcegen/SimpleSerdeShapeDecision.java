@@ -45,6 +45,10 @@ public record SimpleSerdeShapeDecision(
      */
     public enum ShapeKind {
         RECORD,
+        /**
+         * A class whose every property is bound through the primary constructor, generated like a record.
+         */
+        CONSTRUCTOR_BEAN,
         DEFAULT_CONSTRUCTOR_BEAN,
         ENUM,
         UNSUPPORTED

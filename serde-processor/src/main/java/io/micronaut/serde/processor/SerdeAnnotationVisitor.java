@@ -1031,6 +1031,10 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         } else if (isSerdeAnnotated(element) || isImport) {
             if (!element.hasStereotype(Serdeable.Serializable.class) &&
                     !element.hasStereotype(Serdeable.Deserializable.class) && !isImport) {
+                // Resolve the bean properties before field access is granted below: a field-bound type,
+                // such as a JAXB type, is processed through its fields, and the property list must not
+                // pick those fields up as properties or the JAXB collection defaults would apply twice.
+                element.getBeanProperties();
                 element.annotate(Serdeable.class);
                 element.annotate(Introspected.class, i -> {
                     i.member("accessKind", Introspected.AccessKind.METHOD, Introspected.AccessKind.FIELD);

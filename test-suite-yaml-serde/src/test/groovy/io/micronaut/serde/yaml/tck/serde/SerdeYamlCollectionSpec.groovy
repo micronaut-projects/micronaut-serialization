@@ -17,10 +17,16 @@ package io.micronaut.serde.yaml.tck.serde
 
 import io.micronaut.json.JsonMapper
 import io.micronaut.serde.yaml.YamlObjectMapper
+import io.micronaut.context.annotation.Property
 import io.micronaut.serde.yaml.tck.AbstractYamlCollectionSpec
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 
+/**
+ * The shared expectations write a null property explicitly, which Jackson Databind does by default and
+ * Micronaut Serialization does under the {@code ALWAYS} inclusion; the default {@code NON_EMPTY} omits it.
+ */
+@Property(name = "micronaut.serde.serialization.inclusion", value = "ALWAYS")
 @MicronautTest
 class SerdeYamlCollectionSpec extends AbstractYamlCollectionSpec implements MicronautYamlSpec {
 
