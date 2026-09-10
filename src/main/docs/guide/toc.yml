@@ -22,6 +22,7 @@ jsonbAnnotations:
   extensionBeans: JSON-B Extension Beans
   programmaticConfiguration: Programmatic JSON-B Configuration
 bsonAnnotations: BSON Annotations
+protobuf: Protocol Buffers
 coercion: Type Coercion
 builders: Builders
 serdes: Custom Serializers & Deserializers

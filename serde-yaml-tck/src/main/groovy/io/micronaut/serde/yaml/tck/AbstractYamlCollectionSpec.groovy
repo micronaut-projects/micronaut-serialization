@@ -16,6 +16,7 @@
 package io.micronaut.serde.yaml.tck
 
 import io.micronaut.core.type.Argument
+import io.micronaut.serde.config.annotation.SerdeConfig
 import spock.lang.Specification
 
 /**
@@ -25,10 +26,19 @@ abstract class AbstractYamlCollectionSpec extends Specification implements YamlS
 
     void "collections are written as block sequences and mappings"() {
         given:
+        def bean = new CollectionsBean(["A", "B"], [one: 1, two: 2], [new SimpleBean("Hamza", 21)])
+
+        expect:
+        writeYaml(bean) == "values:\n- A\n- B\ncounts:\n  one: 1\n  two: 2\nbeans:\n- name: Hamza\n  age: 21\n"
+    }
+
+    void "a null collection is written as a null scalar when the inclusion writes nulls"() {
+        given:
         def bean = new CollectionsBean(["A", "B"], [one: 1, two: 2], null)
 
         expect:
-        writeYaml(bean) == "values:\n- A\n- B\ncounts:\n  one: 1\n  two: 2\nbeans: null\n"
+        writeYamlWithProperties(['micronaut.serde.serialization.inclusion': SerdeConfig.SerInclude.ALWAYS], bean) ==
+                "values:\n- A\n- B\ncounts:\n  one: 1\n  two: 2\nbeans: null\n"
     }
 
     void "collections round trip"() {
