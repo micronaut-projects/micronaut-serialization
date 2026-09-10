@@ -27,6 +27,24 @@ abstract class JsonTypeInfoSpec extends JsonCompileSpec {
 
     protected abstract boolean jacksonCustomOrder()
 
+    /**
+     * Jackson Databind 3.2 rejects a {@code JsonTypeInfo.As.PROPERTY} type id that has the same name as a bean property
+     * and asks for {@code JsonTypeInfo.As.EXISTING_PROPERTY}, where the bean property holds the type id.
+     *
+     * @return Whether a {@code JsonTypeInfo.As.PROPERTY} type id may share its name with a bean property
+     */
+    protected boolean typeIdPropertyMaySharePropertyName() {
+        return true
+    }
+
+    private String typeIdPropertyInclusion() {
+        return typeIdPropertyMaySharePropertyName() ? "PROPERTY" : "EXISTING_PROPERTY"
+    }
+
+    private Map<String, Object> typeIdBeanProperty(String property, String typeId) {
+        return typeIdPropertyMaySharePropertyName() ? [:] : [(property): typeId]
+    }
+
     def 'test @JsonSubTypes and @JsonTypeName defined'() {
         given:
             def compiled = buildContext('example.Base', '''
@@ -3026,6 +3044,7 @@ import io.micronaut.serde.annotation.Serdeable;
 
 @JsonTypeInfo(
   use = JsonTypeInfo.Id.NAME,
+  include = JsonTypeInfo.As.${typeIdPropertyInclusion()},
   property = "type",
   visible = true)
 @JsonSubTypes({
@@ -3068,8 +3087,8 @@ class Cat implements Animal {
 """)
 
         when:
-            def dog = newInstance(context, 'test.Dog', [name:"Fred", barkVolume:1.1d])
-            def cat = newInstance(context, 'test.Cat', [name:"Joe", likesCream:true, lives: 9])
+            def dog = newInstance(context, 'test.Dog', [name:"Fred", barkVolume:1.1d] + typeIdBeanProperty('type', 'dog'))
+            def cat = newInstance(context, 'test.Cat', [name:"Joe", likesCream:true, lives: 9] + typeIdBeanProperty('type', 'cat'))
             def dogJson = writeJson(jsonMapper, dog)
             def catJson = writeJson(jsonMapper, cat)
 
@@ -3122,6 +3141,7 @@ import io.micronaut.serde.annotation.Serdeable;
 
 @JsonTypeInfo(
   use = JsonTypeInfo.Id.NAME,
+  include = JsonTypeInfo.As.${typeIdPropertyInclusion()},
   property = "type")
 @JsonSubTypes({
   @JsonSubTypes.Type(Dog.class),
@@ -3163,8 +3183,8 @@ class Cat implements Animal {
 """)
 
         when:
-            def dog = newInstance(context, 'test.Dog', [name:"Fred", barkVolume:1.1d])
-            def cat = newInstance(context, 'test.Cat', [name:"Joe", likesCream:true, lives: 9])
+            def dog = newInstance(context, 'test.Dog', [name:"Fred", barkVolume:1.1d] + typeIdBeanProperty('type', 'dog'))
+            def cat = newInstance(context, 'test.Cat', [name:"Joe", likesCream:true, lives: 9] + typeIdBeanProperty('type', 'cat'))
             def dogJson = writeJson(jsonMapper, dog)
             def catJson = writeJson(jsonMapper, cat)
 
@@ -3217,6 +3237,7 @@ import io.micronaut.serde.annotation.Serdeable;
 
 @JsonTypeInfo(
   use = JsonTypeInfo.Id.NAME,
+  include = JsonTypeInfo.As.${typeIdPropertyInclusion()},
   property = "type",
   visible = true)
 @JsonSubTypes({
@@ -3269,8 +3290,8 @@ class Cat extends Animal {
 """)
 
         when:
-            def dog = newInstance(context, 'test.Dog', [name:"Fred", barkVolume:1.1d])
-            def cat = newInstance(context, 'test.Cat', [name:"Joe", likesCream:true, lives: 9])
+            def dog = newInstance(context, 'test.Dog', [name:"Fred", barkVolume:1.1d] + typeIdBeanProperty('objType', 'dog'))
+            def cat = newInstance(context, 'test.Cat', [name:"Joe", likesCream:true, lives: 9] + typeIdBeanProperty('objType', 'cat'))
             def dogJson = writeJson(jsonMapper, dog)
             def catJson = writeJson(jsonMapper, cat)
 

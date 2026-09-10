@@ -24,7 +24,6 @@ class DatabindJsonFormatSpec extends JsonFormatSpec {
                 .findAll { it.typeName != 'java.time.OffsetDateTime' }
     }
 
-    @PendingFeature(reason = "Remove CompoundLocaleObjectMapperListener when Jackson Databind handles compound @JsonFormat(locale) values")
     void "plain Jackson Databind supports compound JsonFormat locale values"() {
         given:
             def mapper = new ObjectMapper().rebuild()
