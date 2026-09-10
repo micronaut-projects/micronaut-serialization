@@ -16,7 +16,6 @@
 package io.micronaut.serde.toon;
 
 import io.micronaut.context.annotation.Secondary;
-import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.JsonStreamConfig;
 import io.micronaut.json.tree.JsonNode;
@@ -27,14 +26,14 @@ import io.micronaut.serde.ObjectMapper;
 import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerdeConfiguration;
-import io.micronaut.serde.json.stream.JsonStreamMapper;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
 import io.micronaut.serde.support.util.JsonNodeEncoder;
-import io.micronaut.serde.toon.util.ToonTreeAdapter;
-import io.micronaut.serde.toon.util.ToonWriter;
+import io.micronaut.serde.toon.util.ToonDecoder;
+import io.micronaut.serde.toon.util.ToonEncoder;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.io.ByteArrayInputStream;
@@ -46,11 +45,9 @@ import java.io.OutputStream;
 /**
  * A TOON (Token-Oriented Object Notation)-backed {@link ObjectMapper}.
  *
- * <p>Reads and parses TOON documents into an intermediate {@link JsonNode}
- * tree before delegating to Micronaut Serialization.</p>
- *
- * <p>Serializes values to a {@link JsonNode} tree first, then encodes that
- * tree as a TOON document.</p>
+ * <p>Reads a TOON document into a {@link JsonNode} tree and deserializes
+ * from that tree. Serializes to a {@link JsonNode} tree and writes it as a
+ * TOON document.</p>
  *
  * @see <a href="https://github.com/toon-format/spec">TOON specification</a>
  * @since 3.2.0
@@ -64,41 +61,33 @@ public final class ToonMapper implements ObjectMapper {
      * The qualifier name of the TOON {@link ObjectMapper} bean.
      */
     public static final String NAME = "toon";
-    private static final Argument<JsonNode> JSON_NODE_TYPE = Argument.of(JsonNode.class);
 
     private final SerdeRegistry registry;
 
     @Nullable
     private final SerdeConfiguration serdeConfiguration;
 
-    @NonNull
-    private final ToonTreeAdapter toonTreeAdapter;
+    private final ToonDecoder toonDecoder;
 
-    @NonNull
-    private final ToonWriter toonWriter;
-
-    private final JsonStreamMapper jsonStreamMapper;
+    private final ToonEncoder toonEncoder;
 
     /**
      * Creates a TOON-backed {@link ObjectMapper}.
      *
      * @param registry           The serde registry used to resolve serializers and deserializers
      * @param serdeConfiguration The serde configuration, when available
-     * @param toonTreeAdapter    The adapter that converts TOON input into a JSON tree
-     * @param toonWriter         The writer that encodes JSON trees as TOON output
-     * @param jsonStreamMapper   The JSON stream mapper used for intermediary tree conversion
+     * @param toonDecoder        The decoder that converts TOON input into a JSON tree
+     * @param toonEncoder        The encoder that writes JSON trees as TOON output
      */
     @Inject
     public ToonMapper(SerdeRegistry registry,
                       @Nullable SerdeConfiguration serdeConfiguration,
-                      ToonTreeAdapter toonTreeAdapter,
-                      ToonWriter toonWriter,
-                      JsonStreamMapper jsonStreamMapper) {
+                      ToonDecoder toonDecoder,
+                      ToonEncoder toonEncoder) {
         this.registry = registry;
         this.serdeConfiguration = serdeConfiguration;
-        this.toonTreeAdapter = toonTreeAdapter;
-        this.toonWriter = toonWriter;
-        this.jsonStreamMapper = jsonStreamMapper;
+        this.toonDecoder = toonDecoder;
+        this.toonEncoder = toonEncoder;
     }
 
     /**
@@ -139,9 +128,8 @@ public final class ToonMapper implements ObjectMapper {
      */
     @Override
     public <T> @Nullable T readValue(InputStream inputStream, Argument<T> type) throws IOException {
-        JsonNode tree = toonTreeAdapter.parse(inputStream);
-        byte[] json = jsonStreamMapper.writeValueAsBytes(JSON_NODE_TYPE, tree);
-        return jsonStreamMapper.readValue(json, type);
+        JsonNode tree = toonDecoder.parse(inputStream, limits());
+        return readValueFromTree(tree, type);
     }
 
     /**
@@ -205,7 +193,7 @@ public final class ToonMapper implements ObjectMapper {
      */
     @Override
     public void writeValue(OutputStream outputStream, @Nullable Object object) throws IOException {
-        toonWriter.write(outputStream, writeValueToTree(object));
+        toonEncoder.write(outputStream, writeValueToTree(object));
     }
 
     /**
@@ -219,7 +207,7 @@ public final class ToonMapper implements ObjectMapper {
      */
     @Override
     public <T> void writeValue(OutputStream outputStream, Argument<T> type, @Nullable T object) throws IOException {
-        toonWriter.write(outputStream, writeValueToTree(type, object));
+        toonEncoder.write(outputStream, writeValueToTree(type, object));
     }
 
     /**
@@ -231,7 +219,7 @@ public final class ToonMapper implements ObjectMapper {
      */
     @Override
     public byte[] writeValueAsBytes(@Nullable Object object) throws IOException {
-        try (final ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+        try (ByteArrayOutputStream output = new ByteArrayOutputStream()) {
             writeValue(output, object);
             return output.toByteArray();
         }
@@ -248,7 +236,7 @@ public final class ToonMapper implements ObjectMapper {
      */
     @Override
     public <T> byte[] writeValueAsBytes(Argument<T> type, @Nullable T object) throws IOException {
-        try (final ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+        try (ByteArrayOutputStream output = new ByteArrayOutputStream()) {
             writeValue(output, type, object);
             return output.toByteArray();
         }

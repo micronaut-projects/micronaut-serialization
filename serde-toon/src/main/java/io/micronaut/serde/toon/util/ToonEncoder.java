@@ -22,6 +22,7 @@ import io.micronaut.serde.toon.SerdeToonConfiguration;
 import jakarta.inject.Singleton;
 import org.jspecify.annotations.Nullable;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -31,42 +32,34 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Writes a JSON tree as a TOON document.
  *
- * <p>Array encoding form (inline, tabular, keyed-tabular, or list) is chosen
- * per the specification by inspecting every element of an array (or every
- * value of an object, for keyed-tabular form) before any output is written -
- * this is a whole-subtree decision, not a per-element streaming one, which is
- * why this class walks a buffered {@link JsonNode} tree rather than
- * implementing the push-style {@code Encoder} interface used by the
- * Jackson/BSON format bindings.</p>
+ * <p>Array form (inline, tabular, keyed-tabular, or list) is chosen by
+ * inspecting all elements of an array, or all values of an object for
+ * keyed-tabular form, before writing.</p>
  *
- * <p><strong>Known simplification:</strong> a uniform array/keyed-object is
- * only recognized as tabular-eligible when every element declares its keys in
- * the exact same order; elements with the same key set but different
- * insertion order fall back to list form instead of being detected as
- * tabular. This is conservative (never misencodes), just not maximally
- * compact for that shape.</p>
+ * <p>An array or keyed object is tabular-eligible only when every element
+ * declares its keys in the same order; the same keys in a different order
+ * fall back to list form.</p>
  *
  * @see <a href="https://github.com/toon-format/spec">TOON specification</a>
  * @since 3.2.0
  */
 @Internal
 @Singleton
-public final class ToonWriter {
+public final class ToonEncoder {
 
     private final char delimiter;
     private final String indentUnit;
 
     /**
-     * Creates a TOON writer.
+     * Creates a TOON encoder.
      *
      * @param toonConfiguration The TOON format configuration
      */
-    public ToonWriter(SerdeToonConfiguration toonConfiguration) {
+    public ToonEncoder(SerdeToonConfiguration toonConfiguration) {
         this.delimiter = toonConfiguration.getDelimiter().getCharacter();
         this.indentUnit = " ".repeat(toonConfiguration.getIndent());
     }
@@ -81,17 +74,23 @@ public final class ToonWriter {
     public void write(OutputStream outputStream, JsonNode tree) throws IOException {
         Objects.requireNonNull(outputStream, "Output stream cannot be null");
 
-        List<String> lines = new ArrayList<>();
-        writeRoot(lines, tree);
-
-        Writer writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
-        writer.write(String.join("\n", lines));
-        writer.flush();
+        try (Writer writer = new BufferedWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8))) {
+            boolean[] firstLine = {true};
+            writeRoot(line -> {
+                if (!firstLine[0]) {
+                    writer.write('\n');
+                } else {
+                    firstLine[0] = false;
+                }
+                writer.write(line);
+            }, tree);
+            writer.flush();
+        }
     }
 
-    private void writeRoot(List<String> lines, JsonNode tree) {
+    private void writeRoot(LineConsumer consumer, JsonNode tree) throws IOException {
         if (tree.isNull()) {
-            lines.add("null");
+            consumer.accept("null");
         } else if (tree.isObject()) {
             if (tree.size() == 0) {
                 // An empty document decodes back to {} per the root-form rules.
@@ -99,81 +98,88 @@ public final class ToonWriter {
             }
 
             if (isKeyedTabularEligible(tree)) {
-                writeKeyedTabular(lines, null, tree, 0);
+                writeKeyedTabular(consumer, null, tree, 0);
             } else {
-                writeObjectFields(lines, tree, 0);
+                writeObjectFields(consumer, tree, 0);
             }
         } else if (tree.isArray()) {
-            writeArrayNode(lines, null, tree, 0);
+            writeArrayNode(consumer, null, tree, 0);
         } else {
-            lines.add(encodeScalar(tree));
+            consumer.accept(encodeScalar(tree));
         }
     }
 
-    private void writeObjectFields(List<String> lines, JsonNode object, int depth) {
+    private void writeObjectFields(LineConsumer consumer, JsonNode object, int depth) throws IOException {
         for (Map.Entry<String, JsonNode> entry : object.entries()) {
             String key = entry.getKey();
             JsonNode value = entry.getValue();
             if (value.isValueNode()) {
-                lines.add(indent(depth) + quoteKey(key) + ": " + encodeScalar(value));
+                consumer.accept(indent(depth) + quoteKey(key) + ": " + encodeScalar(value));
             } else if (value.isObject()) {
                 if (value.size() == 0) {
-                    lines.add(indent(depth) + quoteKey(key) + ":");
+                    consumer.accept(indent(depth) + quoteKey(key) + ":");
                 } else if (isKeyedTabularEligible(value)) {
-                    writeKeyedTabular(lines, key, value, depth);
+                    writeKeyedTabular(consumer, key, value, depth);
                 } else {
-                    lines.add(indent(depth) + quoteKey(key) + ":");
-                    writeObjectFields(lines, value, depth + 1);
+                    consumer.accept(indent(depth) + quoteKey(key) + ":");
+                    writeObjectFields(consumer, value, depth + 1);
                 }
             } else {
-                writeArrayNode(lines, key, value, depth);
+                writeArrayNode(consumer, key, value, depth);
             }
         }
     }
 
-    private void writeArrayNode(List<String> lines, @Nullable String key, JsonNode array, int depth) {
+    private void writeArrayNode(LineConsumer consumer, @Nullable String key, JsonNode array, int depth) throws IOException {
         String prefix = indent(depth) + keyPrefix(key);
         int size = array.size();
         if (size == 0) {
-            lines.add(key == null ? prefix + "[]" : prefix + ": []");
+            consumer.accept(key == null ? prefix + "[]" : prefix + ": []");
             return;
         }
 
         List<JsonNode> elements = CollectionUtils.iterableToList(array.values());
         if (allPrimitive(elements)) {
-            writeInlineArray(lines, prefix, elements);
+            writeInlineArray(consumer, prefix, elements);
         } else if (isTabularEligible(elements)) {
-            writeTabularArray(lines, prefix, elements, depth);
+            writeTabularArray(consumer, prefix, elements, depth);
         } else {
-            writeListArray(lines, prefix, elements, depth);
+            writeListArray(consumer, prefix, elements, depth);
         }
     }
 
-    private void writeInlineArray(List<String> lines, String prefix, List<JsonNode> elements) {
-        String cells = elements.stream().map(this::encodeScalar).collect(Collectors.joining(String.valueOf(delimiter)));
-        lines.add(prefix + bracketSegment(elements.size(), false) + ": " + cells);
+    private void writeInlineArray(LineConsumer consumer, String prefix, List<JsonNode> elements) throws IOException {
+        StringBuilder sb = new StringBuilder(prefix).append(bracketSegment(elements.size(), false)).append(": ");
+        for (int i = 0; i < elements.size(); i++) {
+            if (i > 0) {
+                sb.append(delimiter);
+            }
+            sb.append(encodeScalar(elements.get(i)));
+        }
+        consumer.accept(sb.toString());
     }
 
-    private void writeTabularArray(List<String> lines, String prefix, List<JsonNode> elements, int depth) {
-        JsonNode representative = elements.get(0);
+    private void writeTabularArray(LineConsumer consumer, String prefix, List<JsonNode> elements, int depth) throws IOException {
+        JsonNode representative = elements.getFirst();
         List<String> fieldOrder = keysOf(representative);
         String header = bracketSegment(elements.size(), false) + buildFieldList(fieldOrder, representative);
-        lines.add(prefix + header + ":");
+        consumer.accept(prefix + header + ":");
+        String rowIndent = indent(depth + 1);
         for (JsonNode element : elements) {
-            lines.add(indent(depth + 1) + buildRow(fieldOrder, element));
+            consumer.accept(rowIndent + buildRow(fieldOrder, element));
         }
     }
 
-    private void writeListArray(List<String> lines, String prefix, List<JsonNode> elements, int depth) {
-        lines.add(prefix + bracketSegment(elements.size(), false) + ":");
+    private void writeListArray(LineConsumer consumer, String prefix, List<JsonNode> elements, int depth) throws IOException {
+        consumer.accept(prefix + bracketSegment(elements.size(), false) + ":");
         for (JsonNode element : elements) {
-            writeListItem(lines, element, depth + 1);
+            writeListItem(consumer, element, depth + 1);
         }
     }
 
-    private void writeListItem(List<String> lines, JsonNode item, int depth) {
+    private void writeListItem(LineConsumer consumer, JsonNode item, int depth) throws IOException {
         if (item.isValueNode()) {
-            lines.add(indent(depth) + "- " + encodeScalar(item));
+            consumer.accept(indent(depth) + "- " + encodeScalar(item));
             return;
         }
 
@@ -181,15 +187,8 @@ public final class ToonWriter {
             // Bare "-" for an empty object. The spec requires "- [0<delim?>]:"
             // for an empty array - not "- []" - even though decoders accept
             // both; encoders must not emit the latter.
-            lines.add(item.isArray() ? indent(depth) + "- " + bracketSegment(0, false) + ":" : indent(depth) + "-");
+            consumer.accept(item.isArray() ? indent(depth) + "- " + bracketSegment(0, false) + ":" : indent(depth) + "-");
             return;
-        }
-
-        List<String> nested = new ArrayList<>();
-        if (item.isObject()) {
-            writeObjectFields(nested, item, depth + 1);
-        } else {
-            writeArrayNode(nested, null, item, depth + 1);
         }
 
         // The item's first physical line is hyphenated in place of its normal
@@ -197,34 +196,47 @@ public final class ToonWriter {
         // own nested continuation) is already at the correct depth because it
         // was rendered as if depth + 1 were the item's own depth.
         String childIndent = indent(depth + 1);
-        String first = nested.getFirst();
-        lines.add(indent(depth) + "- " + first.substring(childIndent.length()));
-        lines.addAll(nested.subList(1, nested.size()));
+        String listPrefix = indent(depth) + "- ";
+        LineConsumer itemConsumer = new LineConsumer() {
+            private boolean first = true;
+
+            @Override
+            public void accept(String line) throws IOException {
+                if (first) {
+                    first = false;
+                    consumer.accept(listPrefix + line.substring(childIndent.length()));
+                } else {
+                    consumer.accept(line);
+                }
+            }
+        };
+
+        if (item.isObject()) {
+            writeObjectFields(itemConsumer, item, depth + 1);
+        } else {
+            writeArrayNode(itemConsumer, null, item, depth + 1);
+        }
     }
 
-    private void writeKeyedTabular(List<String> lines, @Nullable String key, JsonNode object, int depth) {
+    private void writeKeyedTabular(LineConsumer consumer, @Nullable String key, JsonNode object, int depth) throws IOException {
         List<Map.Entry<String, JsonNode>> entries = CollectionUtils.iterableToList(object.entries());
-        JsonNode representative = entries.get(0).getValue();
+        JsonNode representative = entries.getFirst().getValue();
         List<String> fieldOrder = keysOf(representative);
         String header = bracketSegment(entries.size(), true) + buildFieldList(fieldOrder, representative);
-        lines.add(indent(depth) + keyPrefix(key) + header + ":");
+        consumer.accept(indent(depth) + keyPrefix(key) + header + ":");
+        String entryIndent = indent(depth + 1);
         for (Map.Entry<String, JsonNode> entry : entries) {
-            lines.add(indent(depth + 1) + quoteKey(entry.getKey()) + ": " + buildRow(fieldOrder, entry.getValue()));
+            consumer.accept(entryIndent + quoteKey(entry.getKey()) + ": " + buildRow(fieldOrder, entry.getValue()));
         }
     }
 
     /**
      * An array is tabular-eligible when it has at least two elements, every
-     * element is a non-empty object, every element declares the same keys in
-     * the same order, and every resulting column is either a
-     * uniform-primitive column or itself a uniform, tabular-eligible column
-     * of nested objects.
-     *
-     * <p>A single element is never treated as eligible: with nothing to
-     * compare it against, "uniform" is vacuously true, which would make an
-     * ordinary single-field nested object (or a single-entry map value)
-     * misencode as a one-row tabular/keyed-tabular block instead of a plain
-     * nested object.</p>
+     * element is a non-empty object with the same keys in the same order,
+     * and every column is a uniform-primitive column or itself a uniform,
+     * tabular-eligible column of nested objects. A single element is never
+     * eligible, so an ordinary single-field nested object or single-entry
+     * map does not encode as a one-row tabular block.
      */
     private boolean isTabularEligible(List<JsonNode> elements) {
         if (elements.size() < 2) {
@@ -246,7 +258,10 @@ public final class ToonWriter {
         }
 
         for (String field : fieldOrder) {
-            List<JsonNode> columnValues = elements.stream().map(e -> requireField(e, field)).toList();
+            List<JsonNode> columnValues = new ArrayList<>(elements.size());
+            for (JsonNode e : elements) {
+                columnValues.add(requireField(e, field));
+            }
             if (!isUniformColumn(columnValues)) {
                 return false;
             }
@@ -256,7 +271,14 @@ public final class ToonWriter {
     }
 
     private boolean isUniformColumn(List<JsonNode> columnValues) {
-        if (columnValues.stream().allMatch(JsonNode::isValueNode)) {
+        boolean allValueNodes = true;
+        for (JsonNode node : columnValues) {
+            if (!node.isValueNode()) {
+                allValueNodes = false;
+                break;
+            }
+        }
+        if (allValueNodes) {
             return true;
         }
         return isTabularEligible(columnValues);
@@ -294,12 +316,12 @@ public final class ToonWriter {
     }
 
     private String buildRow(List<String> fieldOrder, JsonNode element) {
-        List<String> cells = new ArrayList<>();
+        StringBuilder sb = new StringBuilder();
+        boolean[] first = {true};
         for (String field : fieldOrder) {
-            appendLeafCells(cells, requireField(element, field));
+            appendLeafCells(sb, requireField(element, field), first);
         }
-
-        return String.join(String.valueOf(delimiter), cells);
+        return sb.toString();
     }
 
     /**
@@ -310,13 +332,18 @@ public final class ToonWriter {
         return Objects.requireNonNull(node.get(field), () -> "field not present: " + field);
     }
 
-    private void appendLeafCells(List<String> cellsOut, JsonNode value) {
+    private void appendLeafCells(StringBuilder sb, JsonNode value, boolean[] first) {
         if (value.isObject()) {
             for (Map.Entry<String, JsonNode> entry : value.entries()) {
-                appendLeafCells(cellsOut, entry.getValue());
+                appendLeafCells(sb, entry.getValue(), first);
             }
         } else {
-            cellsOut.add(encodeScalar(value));
+            if (!first[0]) {
+                sb.append(delimiter);
+            } else {
+                first[0] = false;
+            }
+            sb.append(encodeScalar(value));
         }
     }
 
@@ -364,7 +391,12 @@ public final class ToonWriter {
     }
 
     private static boolean allPrimitive(List<JsonNode> elements) {
-        return elements.stream().allMatch(JsonNode::isValueNode);
+        for (JsonNode element : elements) {
+            if (!element.isValueNode()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static List<String> keysOf(JsonNode object) {
@@ -373,5 +405,10 @@ public final class ToonWriter {
             keys.add(entry.getKey());
         }
         return keys;
+    }
+
+    @FunctionalInterface
+    private interface LineConsumer {
+        void accept(String line) throws IOException;
     }
 }

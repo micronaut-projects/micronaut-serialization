@@ -17,7 +17,6 @@ package io.micronaut.serde.toon;
 
 import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.ConfigurationProperties;
-import io.micronaut.core.annotation.Internal;
 import io.micronaut.serde.config.SerdeConfiguration;
 
 import java.util.Objects;
@@ -28,11 +27,10 @@ import java.util.Objects;
  * @since 3.2.0
  */
 @BootstrapContextCompatible
-@Internal
 @ConfigurationProperties(SerdeToonConfiguration.PREFIX)
 public final class SerdeToonConfiguration {
 
-    static final String PREFIX = SerdeConfiguration.PREFIX + ".format.toon";
+    public static final String PREFIX = SerdeConfiguration.PREFIX + ".format.toon";
 
     private Delimiter delimiter = Delimiter.COMMA;
     private int indent = 2;

@@ -12,7 +12,6 @@ dependencies {
     api(projects.micronautSerdeApi)
 
     implementation(projects.micronautSerdeSupport)
-    implementation(projects.micronautSerdeJsonp)
 
     testAnnotationProcessor(mn.micronaut.inject.java)
     testAnnotationProcessor(projects.micronautSerdeProcessor)

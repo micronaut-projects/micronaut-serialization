@@ -15,8 +15,11 @@
  */
 package io.micronaut.serde.toon
 
+import io.micronaut.context.ApplicationContext
+import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
 import io.micronaut.serde.AbstractJsonCompileSpec
+import io.micronaut.serde.exceptions.SerdeException
 
 /**
  * Phase 1 scaffolding smoke test: verifies the {@code toon}-qualified
@@ -51,11 +54,47 @@ class Test {
 
         when:
         def bytes = jsonMapper.writeValueAsBytes(beanUnderTest)
-        def read = jsonMapper.readValue(bytes, typeUnderTest)
+        def readFromBytes = jsonMapper.readValue(bytes, typeUnderTest)
+        def readFromStream = jsonMapper.readValue(new ByteArrayInputStream(bytes), typeUnderTest)
 
         then:
         new String(bytes) == 'value: hello'
-        read.value == 'hello'
+        readFromBytes.value == 'hello'
+        readFromStream.value == 'hello'
+
+        cleanup:
+        context.close()
+    }
+
+    void 'test SerdeToonConfiguration is discoverable and configurable via environment properties'() {
+        given:
+        def context = ApplicationContext.run([
+                'micronaut.serde.format.toon.delimiter': 'PIPE',
+                'micronaut.serde.format.toon.indent'   : '4'
+        ])
+
+        when:
+        def toonConfig = context.getBean(SerdeToonConfiguration)
+
+        then:
+        toonConfig != null
+        toonConfig.delimiter == SerdeToonConfiguration.Delimiter.PIPE
+        toonConfig.indent == 4
+
+        cleanup:
+        context.close()
+    }
+
+    void 'test parsing honors the configured maximum nesting depth'() {
+        given:
+        def context = ApplicationContext.run(['micronaut.serde.maximum-nesting-depth': '2'])
+        def mapper = context.getBean(ToonMapper)
+
+        when:
+        mapper.readValue('a:\n  b:\n    c:\n      d: 1'.getBytes('UTF-8'), Argument.of(Object))
+
+        then:
+        thrown(SerdeException)
 
         cleanup:
         context.close()

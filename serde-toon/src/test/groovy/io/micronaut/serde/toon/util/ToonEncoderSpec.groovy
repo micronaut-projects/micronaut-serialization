@@ -21,21 +21,21 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 /**
- * Direct unit tests of {@link ToonWriter} against hand-built {@link JsonNode}
+ * Direct unit tests of {@link ToonEncoder} against hand-built {@link JsonNode}
  * fixtures, independent of bean serialization.
  */
-class ToonWriterSpec extends Specification {
+class ToonEncoderSpec extends Specification {
 
-    private static String toText(ToonWriter writer, JsonNode tree) {
+    private static String toText(ToonEncoder writer, JsonNode tree) {
         def out = new ByteArrayOutputStream()
         writer.write(out, tree)
         return out.toString('UTF-8')
     }
 
-    private static ToonWriter writer(SerdeToonConfiguration.Delimiter delimiter = SerdeToonConfiguration.Delimiter.COMMA) {
+    private static ToonEncoder writer(SerdeToonConfiguration.Delimiter delimiter = SerdeToonConfiguration.Delimiter.COMMA) {
         def config = new SerdeToonConfiguration()
         config.delimiter = delimiter
-        new ToonWriter(config)
+        new ToonEncoder(config)
     }
 
     void 'test a flat object with primitive fields'() {
