@@ -59,7 +59,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#constructor-detail" tabindex="0">Constructor Details</a>
 <ol class="toc-list">
 <li><a href="#%3Cinit%3E(java.lang.String,io.micronaut.inject.ast.ClassElement,io.micronaut.inject.ast.ClassElement,boolean,boolean,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.FieldElement,io.micronaut.inject.ast.FieldElement)" tabindex="0">BeanProperty(String, ClassElement, ClassElement, boolean, boolean, MethodElement, MethodElement, FieldElement, FieldElement)</a></li>
-<li><a href="#%3Cinit%3E(java.lang.String,io.micronaut.inject.ast.ClassElement,io.micronaut.inject.ast.ClassElement,boolean,boolean,java.util.Map,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.FieldElement,io.micronaut.inject.ast.FieldElement)" tabindex="0">BeanProperty(String, ClassElement, ClassElement, boolean, boolean, Map, MethodElement, MethodElement, FieldElement, FieldElement)</a></li>
+<li><a href="#%3Cinit%3E(java.lang.String,io.micronaut.inject.ast.ClassElement,io.micronaut.inject.ast.ClassElement,boolean,boolean,java.util.Map,io.micronaut.serde.config.annotation.SerdeConfig.SerInclude,boolean,java.util.List,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.FieldElement,io.micronaut.inject.ast.FieldElement)" tabindex="0">BeanProperty(String, ClassElement, ClassElement, boolean, boolean, Map, SerdeConfig.SerInclude, boolean, List, MethodElement, MethodElement, FieldElement, FieldElement)</a></li>
 </ol>
 </li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
@@ -73,6 +73,9 @@ loadScripts(document, 'script');</script>
 <li><a href="#nonNull()" tabindex="0">nonNull()</a></li>
 <li><a href="#nullable()" tabindex="0">nullable()</a></li>
 <li><a href="#keyMetadata()" tabindex="0">keyMetadata()</a></li>
+<li><a href="#include()" tabindex="0">include()</a></li>
+<li><a href="#required()" tabindex="0">required()</a></li>
+<li><a href="#aliases()" tabindex="0">aliases()</a></li>
 <li><a href="#readMethod()" tabindex="0">readMethod()</a></li>
 <li><a href="#writeMethod()" tabindex="0">writeMethod()</a></li>
 <li><a href="#readField()" tabindex="0">readField()</a></li>
@@ -100,6 +103,9 @@ loadScripts(document, 'script');</script>
 <dd><code><span id="param-nonNull">nonNull</span></code> - Whether the property is non-null.</dd>
 <dd><code><span id="param-nullable">nullable</span></code> - Whether the property is nullable.</dd>
 <dd><code><span id="param-keyMetadata">keyMetadata</span></code> - Pre-resolved metadata contributed with the property key.</dd>
+<dd><code><span id="param-include">include</span></code> - The inclusion resolved at build time, or <code>null</code> when the configuration decides.</dd>
+<dd><code><span id="param-required">required</span></code> - Whether the property has to be present and non-null in the input.</dd>
+<dd><code><span id="param-aliases">aliases</span></code> - Additional names the property is read from.</dd>
 <dd><code><span id="param-readMethod">readMethod</span></code> - Bean getter method.</dd>
 <dd><code><span id="param-writeMethod">writeMethod</span></code> - Bean setter method.</dd>
 <dd><code><span id="param-readField">readField</span></code> - Bean field used for reading.</dd>
@@ -111,7 +117,7 @@ loadScripts(document, 'script');</script>
 </dl>
 <hr>
 <div class="horizontal-scroll">
-<div class="type-signature"><span class="modifiers">public static record </span><span class="element-name type-name-label">BeanSerdeShape.BeanProperty</span>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;name, io.micronaut.inject.ast.ClassElement&nbsp;serializationType, io.micronaut.inject.ast.ClassElement&nbsp;deserializationType, boolean&nbsp;nonNull, boolean&nbsp;nullable, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>,<wbr><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;&nbsp;keyMetadata, @Nullable io.micronaut.inject.ast.MethodElement&nbsp;readMethod, @Nullable io.micronaut.inject.ast.MethodElement&nbsp;writeMethod, @Nullable io.micronaut.inject.ast.FieldElement&nbsp;readField, @Nullable io.micronaut.inject.ast.FieldElement&nbsp;writeField)
+<div class="type-signature"><span class="modifiers">public static record </span><span class="element-name type-name-label">BeanSerdeShape.BeanProperty</span>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;name, io.micronaut.inject.ast.ClassElement&nbsp;serializationType, io.micronaut.inject.ast.ClassElement&nbsp;deserializationType, boolean&nbsp;nonNull, boolean&nbsp;nullable, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>,<wbr><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;&nbsp;keyMetadata, @Nullable <a href="../../../config/annotation/SerdeConfig.SerInclude.html" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerInclude</a>&nbsp;include, boolean&nbsp;required, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;&nbsp;aliases, @Nullable io.micronaut.inject.ast.MethodElement&nbsp;readMethod, @Nullable io.micronaut.inject.ast.MethodElement&nbsp;writeMethod, @Nullable io.micronaut.inject.ast.FieldElement&nbsp;readField, @Nullable io.micronaut.inject.ast.FieldElement&nbsp;writeField)
 <span class="extends-implements">extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Record.html" title="class or interface in java.lang" class="external-link">Record</a></span></div>
 <div class="block">Bean property metadata used by source generation.</div>
 </div>
@@ -138,12 +144,15 @@ loadScripts(document, 'script');</script>
 <div class="col-last even-row-color">
 <div class="block">Creates a property without contributed key metadata.</div>
 </div>
-<div class="col-constructor-name odd-row-color"><code><a href="#%3Cinit%3E(java.lang.String,io.micronaut.inject.ast.ClassElement,io.micronaut.inject.ast.ClassElement,boolean,boolean,java.util.Map,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.FieldElement,io.micronaut.inject.ast.FieldElement)" class="member-name-link">BeanProperty</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;name,
+<div class="col-constructor-name odd-row-color"><code><a href="#%3Cinit%3E(java.lang.String,io.micronaut.inject.ast.ClassElement,io.micronaut.inject.ast.ClassElement,boolean,boolean,java.util.Map,io.micronaut.serde.config.annotation.SerdeConfig.SerInclude,boolean,java.util.List,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.FieldElement,io.micronaut.inject.ast.FieldElement)" class="member-name-link">BeanProperty</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;name,
  io.micronaut.inject.ast.ClassElement&nbsp;serializationType,
  io.micronaut.inject.ast.ClassElement&nbsp;deserializationType,
  boolean&nbsp;nonNull,
  boolean&nbsp;nullable,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>,<wbr><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;&nbsp;keyMetadata,
+ @Nullable <a href="../../../config/annotation/SerdeConfig.SerInclude.html" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerInclude</a>&nbsp;include,
+ boolean&nbsp;required,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;&nbsp;aliases,
  @Nullable io.micronaut.inject.ast.MethodElement&nbsp;readMethod,
  @Nullable io.micronaut.inject.ast.MethodElement&nbsp;writeMethod,
  @Nullable io.micronaut.inject.ast.FieldElement&nbsp;readField,
@@ -165,20 +174,30 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>io.micronaut.inject.ast.ClassElement</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#deserializationType()" class="member-name-link">deserializationType</a>()</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#aliases()" class="member-name-link">aliases</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Returns the value of the <a href="#param-aliases"><code>aliases</code></a> record component.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>io.micronaut.inject.ast.ClassElement</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#deserializationType()" class="member-name-link">deserializationType</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the value of the <a href="#param-deserializationType"><code>deserializationType</code></a> record component.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#equals(java.lang.Object)" class="member-name-link">equals</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;o)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#equals(java.lang.Object)" class="member-name-link">equals</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;o)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Indicates whether some other object is "equal to" this one.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final int</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#hashCode()" class="member-name-link">hashCode</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final int</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#hashCode()" class="member-name-link">hashCode</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns a hash code value for this object.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@Nullable <a href="../../../config/annotation/SerdeConfig.SerInclude.html" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerInclude</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#include()" class="member-name-link">include</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Returns the value of the <a href="#param-include"><code>include</code></a> record component.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>,<wbr><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#keyMetadata()" class="member-name-link">keyMetadata</a>()</code></div>
@@ -210,24 +229,29 @@ loadScripts(document, 'script');</script>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the value of the <a href="#param-readMethod"><code>readMethod</code></a> record component.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>io.micronaut.inject.ast.ClassElement</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#serializationType()" class="member-name-link">serializationType</a>()</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#required()" class="member-name-link">required</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Returns the value of the <a href="#param-required"><code>required</code></a> record component.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>io.micronaut.inject.ast.ClassElement</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#serializationType()" class="member-name-link">serializationType</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the value of the <a href="#param-serializationType"><code>serializationType</code></a> record component.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#toString()" class="member-name-link">toString</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#toString()" class="member-name-link">toString</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns a string representation of this record class.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@Nullable io.micronaut.inject.ast.FieldElement</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#writeField()" class="member-name-link">writeField</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@Nullable io.micronaut.inject.ast.FieldElement</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#writeField()" class="member-name-link">writeField</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the value of the <a href="#param-writeField"><code>writeField</code></a> record component.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@Nullable io.micronaut.inject.ast.MethodElement</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#writeMethod()" class="member-name-link">writeMethod</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@Nullable io.micronaut.inject.ast.MethodElement</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#writeMethod()" class="member-name-link">writeMethod</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the value of the <a href="#param-writeMethod"><code>writeMethod</code></a> record component.</div>
 </div>
 </div>
@@ -277,7 +301,7 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
-<section class="detail" id="&lt;init&gt;(java.lang.String,io.micronaut.inject.ast.ClassElement,io.micronaut.inject.ast.ClassElement,boolean,boolean,java.util.Map,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.FieldElement,io.micronaut.inject.ast.FieldElement)">
+<section class="detail" id="&lt;init&gt;(java.lang.String,io.micronaut.inject.ast.ClassElement,io.micronaut.inject.ast.ClassElement,boolean,boolean,java.util.Map,io.micronaut.serde.config.annotation.SerdeConfig.SerInclude,boolean,java.util.List,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.FieldElement,io.micronaut.inject.ast.FieldElement)">
 <h3>BeanProperty</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">BeanProperty</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;name,
@@ -286,6 +310,9 @@ loadScripts(document, 'script');</script>
  boolean&nbsp;nonNull,
  boolean&nbsp;nullable,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>,<wbr><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;&nbsp;keyMetadata,
+ @Nullable <a href="../../../config/annotation/SerdeConfig.SerInclude.html" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerInclude</a>&nbsp;include,
+ boolean&nbsp;required,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;&nbsp;aliases,
  @Nullable io.micronaut.inject.ast.MethodElement&nbsp;readMethod,
  @Nullable io.micronaut.inject.ast.MethodElement&nbsp;writeMethod,
  @Nullable io.micronaut.inject.ast.FieldElement&nbsp;readField,
@@ -299,6 +326,9 @@ loadScripts(document, 'script');</script>
 <dd><code>nonNull</code> - the value for the <a href="#param-nonNull"><code>nonNull</code></a> record component</dd>
 <dd><code>nullable</code> - the value for the <a href="#param-nullable"><code>nullable</code></a> record component</dd>
 <dd><code>keyMetadata</code> - the value for the <a href="#param-keyMetadata"><code>keyMetadata</code></a> record component</dd>
+<dd><code>include</code> - the value for the <a href="#param-include"><code>include</code></a> record component</dd>
+<dd><code>required</code> - the value for the <a href="#param-required"><code>required</code></a> record component</dd>
+<dd><code>aliases</code> - the value for the <a href="#param-aliases"><code>aliases</code></a> record component</dd>
 <dd><code>readMethod</code> - the value for the <a href="#param-readMethod"><code>readMethod</code></a> record component</dd>
 <dd><code>writeMethod</code> - the value for the <a href="#param-writeMethod"><code>writeMethod</code></a> record component</dd>
 <dd><code>readField</code> - the value for the <a href="#param-readField"><code>readField</code></a> record component</dd>
@@ -436,6 +466,45 @@ loadScripts(document, 'script');</script>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>the value of the <a href="#param-keyMetadata"><code>keyMetadata</code></a> record component</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="include()">
+<h3>include</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">@Nullable <a href="../../../config/annotation/SerdeConfig.SerInclude.html" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerInclude</a></span>&nbsp;<span class="element-name">include</span>()</div>
+<div class="block">Returns the value of the <a href="#param-include"><code>include</code></a> record component.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>the value of the <a href="#param-include"><code>include</code></a> record component</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="required()">
+<h3>required</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">required</span>()</div>
+<div class="block">Returns the value of the <a href="#param-required"><code>required</code></a> record component.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>the value of the <a href="#param-required"><code>required</code></a> record component</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="aliases()">
+<h3>aliases</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;</span>&nbsp;<span class="element-name">aliases</span>()</div>
+<div class="block">Returns the value of the <a href="#param-aliases"><code>aliases</code></a> record component.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>the value of the <a href="#param-aliases"><code>aliases</code></a> record component</dd>
 </dl>
 </div>
 </section>

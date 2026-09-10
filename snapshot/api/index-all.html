@@ -232,6 +232,14 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">The managed property alias.</div>
 </dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html#aliases()" class="member-name-link">aliases()</a> - Method in record class io.micronaut.serde.processor.sourcegen.beans.<a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html" title="class in io.micronaut.serde.processor.sourcegen.beans">BeanSerdeShape.BeanProperty</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html#param-aliases"><code>aliases</code></a> record component.</div>
+</dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/records/RecordSerdeShape.RecordComponent.html#aliases()" class="member-name-link">aliases()</a> - Method in record class io.micronaut.serde.processor.sourcegen.records.<a href="io/micronaut/serde/processor/sourcegen/records/RecordSerdeShape.RecordComponent.html" title="class in io.micronaut.serde.processor.sourcegen.records">RecordSerdeShape.RecordComponent</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./io/micronaut/serde/processor/sourcegen/records/RecordSerdeShape.RecordComponent.html#param-aliases"><code>aliases</code></a> record component.</div>
+</dd>
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#ALIASES" class="member-name-link">ALIASES</a> - Static variable in annotation interface io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig</a></dt>
 <dd>
 <div class="block">Aliases for deserialization.</div>
@@ -411,7 +419,7 @@ independent of value of the property.</div>
 <dd>
 <div class="block">Creates a property without contributed key metadata.</div>
 </dd>
-<dt><a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html#%3Cinit%3E(java.lang.String,io.micronaut.inject.ast.ClassElement,io.micronaut.inject.ast.ClassElement,boolean,boolean,java.util.Map,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.FieldElement,io.micronaut.inject.ast.FieldElement)" class="member-name-link">BeanProperty(String, ClassElement, ClassElement, boolean, boolean, Map, MethodElement, MethodElement, FieldElement, FieldElement)</a> - Constructor for record class io.micronaut.serde.processor.sourcegen.beans.<a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html" title="class in io.micronaut.serde.processor.sourcegen.beans">BeanSerdeShape.BeanProperty</a></dt>
+<dt><a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html#%3Cinit%3E(java.lang.String,io.micronaut.inject.ast.ClassElement,io.micronaut.inject.ast.ClassElement,boolean,boolean,java.util.Map,io.micronaut.serde.config.annotation.SerdeConfig.SerInclude,boolean,java.util.List,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.FieldElement,io.micronaut.inject.ast.FieldElement)" class="member-name-link">BeanProperty(String, ClassElement, ClassElement, boolean, boolean, Map, SerdeConfig.SerInclude, boolean, List, MethodElement, MethodElement, FieldElement, FieldElement)</a> - Constructor for record class io.micronaut.serde.processor.sourcegen.beans.<a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html" title="class in io.micronaut.serde.processor.sourcegen.beans">BeanSerdeShape.BeanProperty</a></dt>
 <dd>
 <div class="block">Creates an instance of a <code>BeanProperty</code> record class.</div>
 </dd>
@@ -423,7 +431,7 @@ independent of value of the property.</div>
 <dd>
 <div class="block">Shape model for bean-based source generation.</div>
 </dd>
-<dt><a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.html#%3Cinit%3E(io.micronaut.inject.ast.MethodElement,java.util.List)" class="member-name-link">BeanSerdeShape(MethodElement, List)</a> - Constructor for record class io.micronaut.serde.processor.sourcegen.beans.<a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.html" title="class in io.micronaut.serde.processor.sourcegen.beans">BeanSerdeShape</a></dt>
+<dt><a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.html#%3Cinit%3E(io.micronaut.inject.ast.MethodElement,java.util.List,java.util.List,java.util.List,java.lang.Boolean)" class="member-name-link">BeanSerdeShape(MethodElement, List, List, List, Boolean)</a> - Constructor for record class io.micronaut.serde.processor.sourcegen.beans.<a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.html" title="class in io.micronaut.serde.processor.sourcegen.beans">BeanSerdeShape</a></dt>
 <dd>
 <div class="block">Creates an instance of a <code>BeanSerdeShape</code> record class.</div>
 </dd>
@@ -1037,6 +1045,10 @@ type.</div>
 <dt><a href="io/micronaut/serde/processor/sourcegen/enums/EnumSerdeShape.html#constants()" class="member-name-link">constants()</a> - Method in record class io.micronaut.serde.processor.sourcegen.enums.<a href="io/micronaut/serde/processor/sourcegen/enums/EnumSerdeShape.html" title="class in io.micronaut.serde.processor.sourcegen.enums">EnumSerdeShape</a></dt>
 <dd>
 <div class="block">Returns the value of the <a href="./io/micronaut/serde/processor/sourcegen/enums/EnumSerdeShape.html#param-constants"><code>constants</code></a> record component.</div>
+</dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/SimpleSerdeShapeDecision.ShapeKind.html#CONSTRUCTOR_BEAN" class="member-name-link">CONSTRUCTOR_BEAN</a> - Enum constant in enum class io.micronaut.serde.processor.sourcegen.<a href="io/micronaut/serde/processor/sourcegen/SimpleSerdeShapeDecision.ShapeKind.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.ShapeKind</a></dt>
+<dd>
+<div class="block">A class whose every property is bound through the primary constructor, generated like a record.</div>
 </dd>
 <dt><a href="io/micronaut/serde/ConstructorArgs.html" class="type-name-link" title="class in io.micronaut.serde">ConstructorArgs</a> - Class in <a href="io/micronaut/serde/package-summary.html">io.micronaut.serde</a></dt>
 <dd>&nbsp;</dd>
@@ -2193,6 +2205,10 @@ which looks up instrospections from <code>BeanIntrospector.SHARED</code>.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/util/SerdeFeatures.html#deserializationFeaturesWithout(io.micronaut.core.annotation.AnnotationMetadata)" class="member-name-link">deserializationFeaturesWithout(AnnotationMetadata)</a> - Static method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/SerdeFeatures.html" title="class in io.micronaut.serde.support.util">SerdeFeatures</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.html#deserializationProperties()" class="member-name-link">deserializationProperties()</a> - Method in record class io.micronaut.serde.processor.sourcegen.beans.<a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.html" title="class in io.micronaut.serde.processor.sourcegen.beans">BeanSerdeShape</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.html#param-deserializationProperties"><code>deserializationProperties</code></a> record component.</div>
+</dd>
 <dt><a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html#deserializationType()" class="member-name-link">deserializationType()</a> - Method in record class io.micronaut.serde.processor.sourcegen.beans.<a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html" title="class in io.micronaut.serde.processor.sourcegen.beans">BeanSerdeShape.BeanProperty</a></dt>
 <dd>
 <div class="block">Returns the value of the <a href="./io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html#param-deserializationType"><code>deserializationType</code></a> record component.</div>
@@ -4035,7 +4051,9 @@ as serializable by default without the need to add the <a href="io/micronaut/ser
 <dt><a href="io/micronaut/serde/processor/SerdeAnnotationVisitor.html#getOrder()" class="member-name-link">getOrder()</a> - Method in class io.micronaut.serde.processor.<a href="io/micronaut/serde/processor/SerdeAnnotationVisitor.html" title="class in io.micronaut.serde.processor">SerdeAnnotationVisitor</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/sourcegen/SerdeSourceGenVisitor.html#getOrder()" class="member-name-link">getOrder()</a> - Method in class io.micronaut.serde.processor.sourcegen.<a href="io/micronaut/serde/processor/sourcegen/SerdeSourceGenVisitor.html" title="class in io.micronaut.serde.processor.sourcegen">SerdeSourceGenVisitor</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Visitors run from the highest order to the lowest.</div>
+</dd>
 <dt><a href="io/micronaut/serde/exceptions/InvalidFormatException.html#getOriginalValue()" class="member-name-link">getOriginalValue()</a> - Method in exception class io.micronaut.serde.exceptions.<a href="io/micronaut/serde/exceptions/InvalidFormatException.html" title="class in io.micronaut.serde.exceptions">InvalidFormatException</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/ConstructorArgs.html#getOther()" class="member-name-link">getOther()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/ConstructorArgs.html" title="class in io.micronaut.serde">ConstructorArgs</a></dt>
@@ -4374,6 +4392,11 @@ as serializable by default without the need to add the <a href="io/micronaut/ser
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/xml/tck/Users1.User.html#greeting" class="member-name-link">greeting</a> - Variable in class io.micronaut.serde.xml.tck.<a href="io/micronaut/serde/xml/tck/Users1.User.html" title="class in io.micronaut.serde.xml.tck">Users1.User</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/SerdeInclusionSourceGen.html#guard(io.micronaut.sourcegen.model.ExpressionDef.ConditionExpressionDef,io.micronaut.sourcegen.model.StatementDef)" class="member-name-link">guard(ExpressionDef.ConditionExpressionDef, StatementDef)</a> - Static method in class io.micronaut.serde.processor.sourcegen.<a href="io/micronaut/serde/processor/sourcegen/SerdeInclusionSourceGen.html" title="class in io.micronaut.serde.processor.sourcegen">SerdeInclusionSourceGen</a></dt>
+<dd>
+<div class="block">Wraps a write statement in the inclusion condition, or returns it unchanged when the property is
+always written.</div>
+</dd>
 <dt><a href="io/micronaut/serde/data/Users1.User.html#guid" class="member-name-link">guid</a> - Variable in class io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users1.User.html" title="class in io.micronaut.serde.data">Users1.User</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/data/Users2.User.html#guid" class="member-name-link">guid</a> - Variable in class io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users2.User.html" title="class in io.micronaut.serde.data">Users2.User</a></dt>
@@ -4396,6 +4419,10 @@ as serializable by default without the need to add the <a href="io/micronaut/ser
 <dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html#handleUnknownEnumValue(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,java.lang.String)" class="member-name-link">handleUnknownEnumValue(Deserializer.DecoderContext, Argument, String)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil</a></dt>
 <dd>
 <div class="block">Handles an unknown enum value according to deserialization configuration.</div>
+</dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/SerdeSourceGenPropertyOrder.html#hasExplicitOrder(io.micronaut.inject.ast.ClassElement)" class="member-name-link">hasExplicitOrder(ClassElement)</a> - Static method in class io.micronaut.serde.processor.sourcegen.<a href="io/micronaut/serde/processor/sourcegen/SerdeSourceGenPropertyOrder.html" title="class in io.micronaut.serde.processor.sourcegen">SerdeSourceGenPropertyOrder</a></dt>
+<dd>
+<div class="block">Whether the type declares a property order the generated serializer applies.</div>
 </dd>
 <dt><a href="io/micronaut/serde/AllTypesBean.html#hashCode()" class="member-name-link">hashCode()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/AllTypesBean.html" title="class in io.micronaut.serde">AllTypesBean</a></dt>
 <dd>&nbsp;</dd>
@@ -4695,9 +4722,25 @@ or each element of a referenced collection, is written as its identifier.</div>
 <dd>
 <div class="block">Is it ignored for serialization.</div>
 </dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.html#ignoredDeserializationNames()" class="member-name-link">ignoredDeserializationNames()</a> - Method in record class io.micronaut.serde.processor.sourcegen.beans.<a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.html" title="class in io.micronaut.serde.processor.sourcegen.beans">BeanSerdeShape</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.html#param-ignoredDeserializationNames"><code>ignoredDeserializationNames</code></a> record component.</div>
+</dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.html#ignoreUnknown()" class="member-name-link">ignoreUnknown()</a> - Method in record class io.micronaut.serde.processor.sourcegen.beans.<a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.html" title="class in io.micronaut.serde.processor.sourcegen.beans">BeanSerdeShape</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.html#param-ignoreUnknown"><code>ignoreUnknown</code></a> record component.</div>
+</dd>
 <dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html#ignoreUnknown(io.micronaut.serde.Deserializer.DecoderContext)" class="member-name-link">ignoreUnknown(Deserializer.DecoderContext)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil</a></dt>
 <dd>
 <div class="block">Whether unknown properties should be skipped.</div>
+</dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html#include()" class="member-name-link">include()</a> - Method in record class io.micronaut.serde.processor.sourcegen.beans.<a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html" title="class in io.micronaut.serde.processor.sourcegen.beans">BeanSerdeShape.BeanProperty</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html#param-include"><code>include</code></a> record component.</div>
+</dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/records/RecordSerdeShape.RecordComponent.html#include()" class="member-name-link">include()</a> - Method in record class io.micronaut.serde.processor.sourcegen.records.<a href="io/micronaut/serde/processor/sourcegen/records/RecordSerdeShape.RecordComponent.html" title="class in io.micronaut.serde.processor.sourcegen.records">RecordSerdeShape.RecordComponent</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./io/micronaut/serde/processor/sourcegen/records/RecordSerdeShape.RecordComponent.html#param-include"><code>include</code></a> record component.</div>
 </dd>
 <dt><a href="io/micronaut/serde/processor/sourcegen/SimpleSerdeShapeDecision.FallbackReason.html#INCLUDE" class="member-name-link">INCLUDE</a> - Enum constant in enum class io.micronaut.serde.processor.sourcegen.<a href="io/micronaut/serde/processor/sourcegen/SimpleSerdeShapeDecision.FallbackReason.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.FallbackReason</a></dt>
 <dd>
@@ -4766,6 +4809,11 @@ per-property inclusion check entirely.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.InnerDefaultInclude.html#%3Cinit%3E()" class="member-name-link">InnerDefaultInclude()</a> - Constructor for class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.InnerDefaultInclude.html" title="class in io.micronaut.serde.jackson">MyBeanWithUnwrappedAlwaysInclude.InnerDefaultInclude</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html#instantiationFailure(java.lang.Exception,io.micronaut.core.type.Argument)" class="member-name-link">instantiationFailure(Exception, Argument)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil</a></dt>
+<dd>
+<div class="block">Converts a failure raised while instantiating the deserialized type into the exception the
+runtime object deserializer produces; I/O failures pass through unchanged.</div>
+</dd>
 <dt><a href="io/micronaut/serde/support/serdes/InstantSerde.html" class="type-name-link" title="class in io.micronaut.serde.support.serdes">InstantSerde</a> - Class in <a href="io/micronaut/serde/support/serdes/package-summary.html">io.micronaut.serde.support.serdes</a></dt>
 <dd>
 <div class="block">Serde used for <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/Instant.html" title="class or interface in java.time" class="external-link"><code>Instant</code></a>.</div>
@@ -4809,6 +4857,10 @@ per-property inclusion check entirely.</div>
 <dt><a href="io/micronaut/serde/protobuf/ProtoProperty.html#intKind()" class="member-name-link">intKind()</a> - Method in record class io.micronaut.serde.protobuf.<a href="io/micronaut/serde/protobuf/ProtoProperty.html" title="class in io.micronaut.serde.protobuf">ProtoProperty</a></dt>
 <dd>
 <div class="block">Returns the value of the <a href="./io/micronaut/serde/protobuf/ProtoProperty.html#param-intKind"><code>intKind</code></a> record component.</div>
+</dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShapeResolver.html#introspectedProperties(io.micronaut.inject.ast.ClassElement)" class="member-name-link">introspectedProperties(ClassElement)</a> - Static method in class io.micronaut.serde.processor.sourcegen.beans.<a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShapeResolver.html" title="class in io.micronaut.serde.processor.sourcegen.beans">BeanSerdeShapeResolver</a></dt>
+<dd>
+<div class="block">The bean properties as the introspection resolves them.</div>
 </dd>
 <dt><a href="io/micronaut/serde/jackson/jsonvalue/TokenError.html#INVALID_CLIENT" class="member-name-link">INVALID_CLIENT</a> - Enum constant in enum class io.micronaut.serde.jackson.jsonvalue.<a href="io/micronaut/serde/jackson/jsonvalue/TokenError.html" title="enum class in io.micronaut.serde.jackson.jsonvalue">TokenError</a></dt>
 <dd>&nbsp;</dd>
@@ -5154,6 +5206,12 @@ about the property that was incorrect.</div>
 <dd>
 <div class="block">Returns whether YAML should be emitted in canonical form.</div>
 </dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/records/RecordSerdeShapeResolver.html#isConstructorBean(io.micronaut.inject.ast.ClassElement)" class="member-name-link">isConstructorBean(ClassElement)</a> - Static method in class io.micronaut.serde.processor.sourcegen.records.<a href="io/micronaut/serde/processor/sourcegen/records/RecordSerdeShapeResolver.html" title="class in io.micronaut.serde.processor.sourcegen.records">RecordSerdeShapeResolver</a></dt>
+<dd>
+<div class="block">Whether a class binds every property through its primary constructor, so that the record
+generators apply: the constructor takes at least one parameter, every parameter names a bean
+property of the same type, and every bean property is such a parameter.</div>
+</dd>
 <dt><a href="io/micronaut/serde/XmlDecoder.html#isCurrentKeyAttribute()" class="member-name-link">isCurrentKeyAttribute()</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/XmlDecoder.html" title="interface in io.micronaut.serde">XmlDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/bson/BsonReaderDecoder.html#isCurrentNumberFloat()" class="member-name-link">isCurrentNumberFloat()</a> - Method in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/BsonReaderDecoder.html" title="class in io.micronaut.serde.bson">BsonReaderDecoder</a></dt>
@@ -5171,6 +5229,10 @@ about the property that was incorrect.</div>
 <dt><a href="io/micronaut/serde/Serializer.html#isDefault(io.micronaut.serde.Serializer.EncoderContext,T)" class="member-name-link">isDefault(Serializer.EncoderContext, T)</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Serializer.html" title="interface in io.micronaut.serde">Serializer</a></dt>
 <dd>
 <div class="block">Used for <code>JsonInclude.Include#NON_DEFAULT</code> checking.</div>
+</dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShapeResolver.html#isDeserialized(io.micronaut.inject.ast.PropertyElement)" class="member-name-link">isDeserialized(PropertyElement)</a> - Static method in class io.micronaut.serde.processor.sourcegen.beans.<a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShapeResolver.html" title="class in io.micronaut.serde.processor.sourcegen.beans">BeanSerdeShapeResolver</a></dt>
+<dd>
+<div class="block">Whether the runtime object deserializer reads the property.</div>
 </dd>
 <dt><a href="io/micronaut/serde/support/util/DocumentIdUtil.html#isDocumentId(io.micronaut.core.annotation.AnnotationMetadata)" class="member-name-link">isDocumentId(AnnotationMetadata)</a> - Static method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/DocumentIdUtil.html" title="class in io.micronaut.serde.support.util">DocumentIdUtil</a></dt>
 <dd>
@@ -5294,6 +5356,10 @@ read/write methods.</div>
 <dt><a href="io/micronaut/serde/config/DeserializationConfiguration.html#isRequireAllCreatorParameters()" class="member-name-link">isRequireAllCreatorParameters()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a></dt>
 <dd>
 <div class="block">Determines whether every creator parameter must be present in the JSON input.</div>
+</dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShapeResolver.html#isSerialized(io.micronaut.inject.ast.PropertyElement)" class="member-name-link">isSerialized(PropertyElement)</a> - Static method in class io.micronaut.serde.processor.sourcegen.beans.<a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShapeResolver.html" title="class in io.micronaut.serde.processor.sourcegen.beans">BeanSerdeShapeResolver</a></dt>
+<dd>
+<div class="block">Whether the runtime object serializer writes the property.</div>
 </dd>
 <dt><a href="io/micronaut/serde/AllTypesBean.html#isSomeBool()" class="member-name-link">isSomeBool()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/AllTypesBean.html" title="class in io.micronaut.serde">AllTypesBean</a></dt>
 <dd>&nbsp;</dd>
@@ -6762,6 +6828,10 @@ values are to be included.</div>
 <dd>
 <div class="block">Returns the value of the <a href="./io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html#param-nonNull"><code>nonNull</code></a> record component.</div>
 </dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/records/RecordSerdeShape.RecordComponent.html#nonNull()" class="member-name-link">nonNull()</a> - Method in record class io.micronaut.serde.processor.sourcegen.records.<a href="io/micronaut/serde/processor/sourcegen/records/RecordSerdeShape.RecordComponent.html" title="class in io.micronaut.serde.processor.sourcegen.records">RecordSerdeShape.RecordComponent</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./io/micronaut/serde/processor/sourcegen/records/RecordSerdeShape.RecordComponent.html#param-nonNull"><code>nonNull</code></a> record component.</div>
+</dd>
 <dt><a href="io/micronaut/serde/yaml/tck/ScalarsBean.html#nothing()" class="member-name-link">nothing()</a> - Method in record class io.micronaut.serde.yaml.tck.<a href="io/micronaut/serde/yaml/tck/ScalarsBean.html" title="class in io.micronaut.serde.yaml.tck">ScalarsBean</a></dt>
 <dd>
 <div class="block">Returns the value of the <a href="./io/micronaut/serde/yaml/tck/ScalarsBean.html#param-nothing"><code>nothing</code></a> record component.</div>
@@ -6777,6 +6847,10 @@ values are to be included.</div>
 <dt><a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html#nullable()" class="member-name-link">nullable()</a> - Method in record class io.micronaut.serde.processor.sourcegen.beans.<a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html" title="class in io.micronaut.serde.processor.sourcegen.beans">BeanSerdeShape.BeanProperty</a></dt>
 <dd>
 <div class="block">Returns the value of the <a href="./io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html#param-nullable"><code>nullable</code></a> record component.</div>
+</dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/records/RecordSerdeShape.RecordComponent.html#nullable()" class="member-name-link">nullable()</a> - Method in record class io.micronaut.serde.processor.sourcegen.records.<a href="io/micronaut/serde/processor/sourcegen/records/RecordSerdeShape.RecordComponent.html" title="class in io.micronaut.serde.processor.sourcegen.records">RecordSerdeShape.RecordComponent</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./io/micronaut/serde/processor/sourcegen/records/RecordSerdeShape.RecordComponent.html#param-nullable"><code>nullable</code></a> record component.</div>
 </dd>
 <dt><a href="io/micronaut/serde/yaml/tck/NullableBean.html" class="type-name-link" title="class in io.micronaut.serde.yaml.tck">NullableBean</a> - Record Class in <a href="io/micronaut/serde/yaml/tck/package-summary.html">io.micronaut.serde.yaml.tck</a></dt>
 <dd>
@@ -6794,6 +6868,11 @@ through <a href="io/micronaut/serde/util/NullableDeserializer.html#deserializeNu
 <dt><a href="io/micronaut/serde/util/NullableSerde.html" class="type-name-link" title="interface in io.micronaut.serde.util">NullableSerde&lt;T&gt;</a> - Interface in <a href="io/micronaut/serde/util/package-summary.html">io.micronaut.serde.util</a></dt>
 <dd>
 <div class="block">Specialization of <a href="io/micronaut/serde/Serde.html" title="interface in io.micronaut.serde"><code>Serde</code></a> for types that allow a value of <code>null</code>.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html#nullConstructorParameter(io.micronaut.core.type.Argument,io.micronaut.core.type.Argument,int)" class="member-name-link">nullConstructorParameter(Argument, Argument, int)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil</a></dt>
+<dd>
+<div class="block">Creates an exception for a null value assigned to a constructor parameter that cannot accept null,
+with the message the runtime object deserializer produces.</div>
 </dd>
 <dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html#nullValue(io.micronaut.core.type.Argument,io.micronaut.core.type.Argument)" class="member-name-link">nullValue(Argument, Argument)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil</a></dt>
 <dd>
@@ -7087,6 +7166,10 @@ when read, a scalar value is an identifier reference that may precede the refere
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/util/SerdeArgumentConf.html#order()" class="member-name-link">order()</a> - Method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/SerdeArgumentConf.html" title="class in io.micronaut.serde.support.util">SerdeArgumentConf</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/SerdeSourceGenPropertyOrder.html#order(io.micronaut.inject.ast.ClassElement,java.util.List,java.util.function.Function,java.util.function.Function,java.util.function.Predicate)" class="member-name-link">order(ClassElement, List, Function, Function, Predicate)</a> - Static method in class io.micronaut.serde.processor.sourcegen.<a href="io/micronaut/serde/processor/sourcegen/SerdeSourceGenPropertyOrder.html" title="class in io.micronaut.serde.processor.sourcegen">SerdeSourceGenPropertyOrder</a></dt>
+<dd>
+<div class="block">Orders the properties for serialization.</div>
+</dd>
 <dt><a href="io/micronaut/serde/cbor/body/CborMessageHandler.html#ORDER" class="member-name-link">ORDER</a> - Static variable in class io.micronaut.serde.cbor.body.<a href="io/micronaut/serde/cbor/body/CborMessageHandler.html" title="class in io.micronaut.serde.cbor.body">CborMessageHandler</a></dt>
 <dd>
 <div class="block">Prefer JSON handlers for generic negotiation; CBOR is selected by media type.</div>
@@ -7251,10 +7334,6 @@ when read, a scalar value is an identifier reference that may precede the refere
 <dt><a href="io/micronaut/serde/jackson/outerinterface/RecordCommandBrokenToo.PrintCommand.html#%3Cinit%3E(java.lang.String)" class="member-name-link">PrintCommand(String)</a> - Constructor for record class io.micronaut.serde.jackson.outerinterface.<a href="io/micronaut/serde/jackson/outerinterface/RecordCommandBrokenToo.PrintCommand.html" title="class in io.micronaut.serde.jackson.outerinterface">RecordCommandBrokenToo.PrintCommand</a></dt>
 <dd>
 <div class="block">Creates an instance of a <code>PrintCommand</code> record class.</div>
-</dd>
-<dt><a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.html#properties()" class="member-name-link">properties()</a> - Method in record class io.micronaut.serde.processor.sourcegen.beans.<a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.html" title="class in io.micronaut.serde.processor.sourcegen.beans">BeanSerdeShape</a></dt>
-<dd>
-<div class="block">Returns the value of the <a href="./io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.html#param-properties"><code>properties</code></a> record component.</div>
 </dd>
 <dt><a href="io/micronaut/serde/jsonb/MicronautJsonbProvider.MicronautJsonb.html#properties(jakarta.json.bind.JsonbConfig)" class="member-name-link">properties(JsonbConfig)</a> - Static method in class io.micronaut.serde.jsonb.<a href="io/micronaut/serde/jsonb/MicronautJsonbProvider.MicronautJsonb.html" title="class in io.micronaut.serde.jsonb">MicronautJsonbProvider.MicronautJsonb</a></dt>
 <dd>&nbsp;</dd>
@@ -7688,7 +7767,7 @@ and the writer.</div>
 <dd>
 <div class="block">Creates a component whose serialized name matches its Java name and has no key metadata.</div>
 </dd>
-<dt><a href="io/micronaut/serde/processor/sourcegen/records/RecordSerdeShape.RecordComponent.html#%3Cinit%3E(java.lang.String,java.lang.String,io.micronaut.inject.ast.ClassElement,java.util.Map,io.micronaut.inject.ast.PropertyElement)" class="member-name-link">RecordComponent(String, String, ClassElement, Map, PropertyElement)</a> - Constructor for record class io.micronaut.serde.processor.sourcegen.records.<a href="io/micronaut/serde/processor/sourcegen/records/RecordSerdeShape.RecordComponent.html" title="class in io.micronaut.serde.processor.sourcegen.records">RecordSerdeShape.RecordComponent</a></dt>
+<dt><a href="io/micronaut/serde/processor/sourcegen/records/RecordSerdeShape.RecordComponent.html#%3Cinit%3E(java.lang.String,java.lang.String,io.micronaut.inject.ast.ClassElement,java.util.Map,io.micronaut.serde.config.annotation.SerdeConfig.SerInclude,boolean,java.util.List,boolean,boolean,io.micronaut.inject.ast.PropertyElement)" class="member-name-link">RecordComponent(String, String, ClassElement, Map, SerdeConfig.SerInclude, boolean, List, boolean, boolean, PropertyElement)</a> - Constructor for record class io.micronaut.serde.processor.sourcegen.records.<a href="io/micronaut/serde/processor/sourcegen/records/RecordSerdeShape.RecordComponent.html" title="class in io.micronaut.serde.processor.sourcegen.records">RecordSerdeShape.RecordComponent</a></dt>
 <dd>
 <div class="block">Creates an instance of a <code>RecordComponent</code> record class.</div>
 </dd>
@@ -7778,9 +7857,21 @@ and the writer.</div>
 <dd>
 <div class="block">Returns the value of the <a href="./io/micronaut/serde/protobuf/ProtoProperty.html#param-repeatedField"><code>repeatedField</code></a> record component.</div>
 </dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html#requireAllCreatorParameters(io.micronaut.serde.Deserializer.DecoderContext)" class="member-name-link">requireAllCreatorParameters(Deserializer.DecoderContext)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil</a></dt>
+<dd>
+<div class="block">Whether every constructor parameter has to be present in the input.</div>
+</dd>
 <dt><a href="io/micronaut/serde/annotation/SerdeableGenerated.html#required()" class="member-name-link">required()</a> - Element in annotation interface io.micronaut.serde.annotation.<a href="io/micronaut/serde/annotation/SerdeableGenerated.html" title="annotation interface in io.micronaut.serde.annotation">SerdeableGenerated</a></dt>
 <dd>
 <div class="block">Returns whether compilation should fail when a non-skipped serializer or deserializer cannot be generated.</div>
+</dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html#required()" class="member-name-link">required()</a> - Method in record class io.micronaut.serde.processor.sourcegen.beans.<a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html" title="class in io.micronaut.serde.processor.sourcegen.beans">BeanSerdeShape.BeanProperty</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html#param-required"><code>required</code></a> record component.</div>
+</dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/records/RecordSerdeShape.RecordComponent.html#required()" class="member-name-link">required()</a> - Method in record class io.micronaut.serde.processor.sourcegen.records.<a href="io/micronaut/serde/processor/sourcegen/records/RecordSerdeShape.RecordComponent.html" title="class in io.micronaut.serde.processor.sourcegen.records">RecordSerdeShape.RecordComponent</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./io/micronaut/serde/processor/sourcegen/records/RecordSerdeShape.RecordComponent.html#param-required"><code>required</code></a> record component.</div>
 </dd>
 <dt><a href="io/micronaut/serde/yaml/tck/NullableBean.html#required()" class="member-name-link">required()</a> - Method in record class io.micronaut.serde.yaml.tck.<a href="io/micronaut/serde/yaml/tck/NullableBean.html" title="class in io.micronaut.serde.yaml.tck">NullableBean</a></dt>
 <dd>
@@ -7789,6 +7880,18 @@ and the writer.</div>
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#REQUIRED" class="member-name-link">REQUIRED</a> - Static variable in annotation interface io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig</a></dt>
 <dd>
 <div class="block">Whether this property is required (must be present in the input).</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html#requiredConstructorParameter(io.micronaut.core.type.Argument,io.micronaut.core.type.Argument,int)" class="member-name-link">requiredConstructorParameter(Argument, Argument, int)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil</a></dt>
+<dd>
+<div class="block">Creates an exception for a required constructor parameter that is absent or null in the input.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html#requiredProperty(io.micronaut.core.type.Argument,io.micronaut.core.type.Argument)" class="member-name-link">requiredProperty(Argument, Argument)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil</a></dt>
+<dd>
+<div class="block">Creates an exception for a required property that is absent or null in the input.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html#requiredPropertyNull(io.micronaut.core.type.Argument,io.micronaut.core.type.Argument)" class="member-name-link">requiredPropertyNull(Argument, Argument)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil</a></dt>
+<dd>
+<div class="block">Creates an exception for a required property that is explicitly null in the input.</div>
 </dd>
 <dt><a href="io/micronaut/serde/protobuf/wire/ProtoOutput.html#reset()" class="member-name-link">reset()</a> - Method in class io.micronaut.serde.protobuf.wire.<a href="io/micronaut/serde/protobuf/wire/ProtoOutput.html" title="class in io.micronaut.serde.protobuf.wire">ProtoOutput</a></dt>
 <dd>
@@ -7825,6 +7928,12 @@ and the writer.</div>
 <dt><a href="io/micronaut/serde/support/util/DocumentIdUtil.html#resolveOrDefer(io.micronaut.serde.Deserializer.DecoderContext,java.lang.Object,io.micronaut.core.type.Argument,io.micronaut.serde.support.reference.PendingDocumentIdReference.DocumentIdConsumer)" class="member-name-link">resolveOrDefer(Deserializer.DecoderContext, Object, Argument, PendingDocumentIdReference.DocumentIdConsumer)</a> - Static method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/DocumentIdUtil.html" title="class in io.micronaut.serde.support.util">DocumentIdUtil</a></dt>
 <dd>
 <div class="block">Resolves a bean registered in the current document, or defers the reference until it is registered.</div>
+</dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/SerdeInclusionSourceGen.html#resolvePropertyInclude(io.micronaut.inject.ast.ClassElement,io.micronaut.inject.ast.PropertyElement,java.util.Map)" class="member-name-link">resolvePropertyInclude(ClassElement, PropertyElement, Map)</a> - Static method in class io.micronaut.serde.processor.sourcegen.<a href="io/micronaut/serde/processor/sourcegen/SerdeInclusionSourceGen.html" title="class in io.micronaut.serde.processor.sourcegen">SerdeInclusionSourceGen</a></dt>
+<dd>
+<div class="block">Resolves the inclusion declared for a property at build time, the way the runtime object
+serializer resolves it: the property declaration wins over the type, which wins over the
+package.</div>
 </dd>
 <dt><a href="io/micronaut/serde/Deserializer.DecoderContext.html#resolveReference(io.micronaut.serde.reference.PropertyReference)" class="member-name-link">resolveReference(PropertyReference)</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a></dt>
 <dd>
@@ -8175,6 +8284,10 @@ for the serialization project.</div>
 <dd>
 <div class="block">Centralized naming rules for generated serializer and deserializer classes.</div>
 </dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/SerdeSourceGenPropertyOrder.html" class="type-name-link" title="class in io.micronaut.serde.processor.sourcegen">SerdeSourceGenPropertyOrder</a> - Class in <a href="io/micronaut/serde/processor/sourcegen/package-summary.html">io.micronaut.serde.processor.sourcegen</a></dt>
+<dd>
+<div class="block">Orders the properties a generated serializer writes the way the runtime object serializer orders them.</div>
+</dd>
 <dt><a href="io/micronaut/serde/processor/sourcegen/SerdeSourceGenVisitor.html" class="type-name-link" title="class in io.micronaut.serde.processor.sourcegen">SerdeSourceGenVisitor</a> - Class in <a href="io/micronaut/serde/processor/sourcegen/package-summary.html">io.micronaut.serde.processor.sourcegen</a></dt>
 <dd>
 <div class="block">Entry-point visitor that emits simple-shape generated serializers and deserializers.</div>
@@ -8223,6 +8336,10 @@ for the serialization project.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/util/SerdeFeatures.html#serializationFeaturesWithout(io.micronaut.core.annotation.AnnotationMetadata)" class="member-name-link">serializationFeaturesWithout(AnnotationMetadata)</a> - Static method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/SerdeFeatures.html" title="class in io.micronaut.serde.support.util">SerdeFeatures</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.html#serializationProperties()" class="member-name-link">serializationProperties()</a> - Method in record class io.micronaut.serde.processor.sourcegen.beans.<a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.html" title="class in io.micronaut.serde.processor.sourcegen.beans">BeanSerdeShape</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.html#param-serializationProperties"><code>serializationProperties</code></a> record component.</div>
+</dd>
 <dt><a href="io/micronaut/serde/reference/SerializationReference.html" class="type-name-link" title="class in io.micronaut.serde.reference">SerializationReference&lt;B,<wbr>T&gt;</a> - Class in <a href="io/micronaut/serde/reference/package-summary.html">io.micronaut.serde.reference</a></dt>
 <dd>
 <div class="block">Represents a reference to a property for serialization.</div>
@@ -8628,13 +8745,26 @@ for the serialization project.</div>
 <dd>
 <div class="block">The condition for writing a primitive property.</div>
 </dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/SerdeInclusionSourceGen.html#shouldSerializePrimitive(io.micronaut.sourcegen.model.VariableDef.This,io.micronaut.serde.config.annotation.SerdeConfig.SerInclude,io.micronaut.inject.ast.ClassElement,io.micronaut.sourcegen.model.ExpressionDef)" class="member-name-link">shouldSerializePrimitive(VariableDef.This, SerdeConfig.SerInclude, ClassElement, ExpressionDef)</a> - Static method in class io.micronaut.serde.processor.sourcegen.<a href="io/micronaut/serde/processor/sourcegen/SerdeInclusionSourceGen.html" title="class in io.micronaut.serde.processor.sourcegen">SerdeInclusionSourceGen</a></dt>
+<dd>
+<div class="block">The condition for writing a primitive property under an inclusion resolved at build time.</div>
+</dd>
 <dt><a href="io/micronaut/serde/processor/sourcegen/SerdeInclusionSourceGen.html#shouldSerializeScalar(io.micronaut.sourcegen.model.VariableDef.This,io.micronaut.inject.ast.ClassElement,io.micronaut.sourcegen.model.ExpressionDef)" class="member-name-link">shouldSerializeScalar(VariableDef.This, ClassElement, ExpressionDef)</a> - Static method in class io.micronaut.serde.processor.sourcegen.<a href="io/micronaut/serde/processor/sourcegen/SerdeInclusionSourceGen.html" title="class in io.micronaut.serde.processor.sourcegen">SerdeInclusionSourceGen</a></dt>
 <dd>
 <div class="block">The condition for writing a scalar property encoded without a property serializer.</div>
 </dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/SerdeInclusionSourceGen.html#shouldSerializeScalar(io.micronaut.sourcegen.model.VariableDef.This,io.micronaut.serde.config.annotation.SerdeConfig.SerInclude,io.micronaut.inject.ast.ClassElement,io.micronaut.sourcegen.model.ExpressionDef)" class="member-name-link">shouldSerializeScalar(VariableDef.This, SerdeConfig.SerInclude, ClassElement, ExpressionDef)</a> - Static method in class io.micronaut.serde.processor.sourcegen.<a href="io/micronaut/serde/processor/sourcegen/SerdeInclusionSourceGen.html" title="class in io.micronaut.serde.processor.sourcegen">SerdeInclusionSourceGen</a></dt>
+<dd>
+<div class="block">The condition for writing a scalar property under an inclusion resolved at build time.</div>
+</dd>
 <dt><a href="io/micronaut/serde/util/GeneratedSerdeInclusionUtil.html#shouldSerializeString(io.micronaut.serde.config.annotation.SerdeConfig.SerInclude,java.lang.String)" class="member-name-link">shouldSerializeString(SerdeConfig.SerInclude, String)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeInclusionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeInclusionUtil</a></dt>
 <dd>
 <div class="block">Whether a <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link"><code>String</code></a> property should be included.</div>
+</dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/SerdeInclusionSourceGen.html#shouldSerializeValue(io.micronaut.sourcegen.model.VariableDef.This,io.micronaut.serde.config.annotation.SerdeConfig.SerInclude,io.micronaut.sourcegen.model.VariableDef.MethodParameter,io.micronaut.sourcegen.model.ExpressionDef,io.micronaut.sourcegen.model.ExpressionDef)" class="member-name-link">shouldSerializeValue(VariableDef.This, SerdeConfig.SerInclude, VariableDef.MethodParameter, ExpressionDef, ExpressionDef)</a> - Static method in class io.micronaut.serde.processor.sourcegen.<a href="io/micronaut/serde/processor/sourcegen/SerdeInclusionSourceGen.html" title="class in io.micronaut.serde.processor.sourcegen">SerdeInclusionSourceGen</a></dt>
+<dd>
+<div class="block">The condition for writing a property through its property serializer under an inclusion
+resolved at build time.</div>
 </dd>
 <dt><a href="io/micronaut/serde/processor/sourcegen/SerdeInclusionSourceGen.html#shouldSerializeValue(io.micronaut.sourcegen.model.VariableDef.This,io.micronaut.sourcegen.model.VariableDef.MethodParameter,io.micronaut.sourcegen.model.ExpressionDef,io.micronaut.sourcegen.model.ExpressionDef)" class="member-name-link">shouldSerializeValue(VariableDef.This, VariableDef.MethodParameter, ExpressionDef, ExpressionDef)</a> - Static method in class io.micronaut.serde.processor.sourcegen.<a href="io/micronaut/serde/processor/sourcegen/SerdeInclusionSourceGen.html" title="class in io.micronaut.serde.processor.sourcegen">SerdeInclusionSourceGen</a></dt>
 <dd>
@@ -9932,6 +10062,11 @@ the order they are declared.</div>
 <dt><a href="io/micronaut/serde/util/GeneratedSerdeFallbackUtil.html#withRuntimeObjectFallback(io.micronaut.serde.Serializer,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument)" class="member-name-link">withRuntimeObjectFallback(Serializer, Serializer.EncoderContext, Argument)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeFallbackUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeFallbackUtil</a></dt>
 <dd>
 <div class="block">Returns the generated serializer unless the active features require the runtime object serializer.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html#withSerializationPropertyPath(java.lang.Throwable,io.micronaut.core.type.Argument,io.micronaut.core.type.Argument)" class="member-name-link">withSerializationPropertyPath(Throwable, Argument, Argument)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil</a></dt>
+<dd>
+<div class="block">Converts any <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Throwable.html" title="class or interface in java.lang" class="external-link"><code>Throwable</code></a> raised while writing a property into a <a href="io/micronaut/serde/exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions"><code>SerdeException</code></a>
+and appends a property path segment, with the message the runtime object serializer produces.</div>
 </dd>
 <dt><a href="io/micronaut/serde/WrappedDecoder.html#wrappedDecoder()" class="member-name-link">wrappedDecoder()</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/WrappedDecoder.html" title="interface in io.micronaut.serde">WrappedDecoder</a></dt>
 <dd>

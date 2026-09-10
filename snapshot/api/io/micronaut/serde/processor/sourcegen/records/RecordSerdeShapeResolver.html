@@ -63,6 +63,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
 <li><a href="#resolve(io.micronaut.inject.ast.ClassElement)" tabindex="0">resolve(ClassElement)</a></li>
+<li><a href="#isConstructorBean(io.micronaut.inject.ast.ClassElement)" tabindex="0">isConstructorBean(ClassElement)</a></li>
 </ol>
 </li>
 </ol>
@@ -103,15 +104,22 @@ loadScripts(document, 'script');</script>
 <section class="method-summary" id="method-summary">
 <h2>Method Summary</h2>
 <div id="method-summary-table">
-<div class="table-tabs" role="tablist" aria-orientation="horizontal"><button id="method-summary-table-tab0" role="tab" aria-selected="true" aria-controls="method-summary-table.tabpanel" tabindex="0" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table', 3)" class="active-table-tab">All Methods</button><button id="method-summary-table-tab2" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab2', 3)" class="table-tab">Instance Methods</button><button id="method-summary-table-tab4" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab4', 3)" class="table-tab">Concrete Methods</button></div>
+<div class="table-tabs" role="tablist" aria-orientation="horizontal"><button id="method-summary-table-tab0" role="tab" aria-selected="true" aria-controls="method-summary-table.tabpanel" tabindex="0" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table', 3)" class="active-table-tab">All Methods</button><button id="method-summary-table-tab1" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab1', 3)" class="table-tab">Static Methods</button><button id="method-summary-table-tab2" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab2', 3)" class="table-tab">Instance Methods</button><button id="method-summary-table-tab4" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab4', 3)" class="table-tab">Concrete Methods</button></div>
 <div id="method-summary-table.tabpanel" role="tabpanel" aria-labelledby="method-summary-table-tab0">
 <div class="summary-table three-column-summary">
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a><wbr>&lt;<a href="RecordSerdeShape.html" title="class in io.micronaut.serde.processor.sourcegen.records">RecordSerdeShape</a>&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#resolve(io.micronaut.inject.ast.ClassElement)" class="member-name-link">resolve</a><wbr>(io.micronaut.inject.ast.ClassElement&nbsp;element)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#isConstructorBean(io.micronaut.inject.ast.ClassElement)" class="member-name-link">isConstructorBean</a><wbr>(io.micronaut.inject.ast.ClassElement&nbsp;element)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Whether a class binds every property through its primary constructor, so that the record
+generators apply: the constructor takes at least one parameter, every parameter names a bean
+property of the same type, and every bean property is such a parameter.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a><wbr>&lt;<a href="RecordSerdeShape.html" title="class in io.micronaut.serde.processor.sourcegen.records">RecordSerdeShape</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#resolve(io.micronaut.inject.ast.ClassElement)" class="member-name-link">resolve</a><wbr>(io.micronaut.inject.ast.ClassElement&nbsp;element)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 </div>
 </div>
 </div>
@@ -150,6 +158,24 @@ loadScripts(document, 'script');</script>
 <h3>resolve</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a>&lt;<a href="RecordSerdeShape.html" title="class in io.micronaut.serde.processor.sourcegen.records">RecordSerdeShape</a>&gt;</span>&nbsp;<span class="element-name">resolve</span><wbr><span class="parameters">(io.micronaut.inject.ast.ClassElement&nbsp;element)</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="isConstructorBean(io.micronaut.inject.ast.ClassElement)">
+<h3>isConstructorBean</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">isConstructorBean</span><wbr><span class="parameters">(io.micronaut.inject.ast.ClassElement&nbsp;element)</span></div>
+<div class="block">Whether a class binds every property through its primary constructor, so that the record
+generators apply: the constructor takes at least one parameter, every parameter names a bean
+property of the same type, and every bean property is such a parameter. A property outside the
+constructor would be written or set by the runtime serdes through other means.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>element</code> - The type</dd>
+<dt>Returns:</dt>
+<dd><code>true</code> if the type is bound through its constructor like a record</dd>
+</dl>
 </div>
 </section>
 </li>

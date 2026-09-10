@@ -56,11 +56,16 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-summary" tabindex="0">Method Summary</a></li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
+<li><a href="#resolvePropertyInclude(io.micronaut.inject.ast.ClassElement,io.micronaut.inject.ast.PropertyElement,java.util.Map)" tabindex="0">resolvePropertyInclude(ClassElement, PropertyElement, Map)</a></li>
 <li><a href="#fields()" tabindex="0">fields()</a></li>
 <li><a href="#resolveStatements(io.micronaut.sourcegen.model.VariableDef.This,io.micronaut.sourcegen.model.VariableDef.MethodParameter)" tabindex="0">resolveStatements(VariableDef.This, VariableDef.MethodParameter)</a></li>
 <li><a href="#shouldSerializePrimitive(io.micronaut.sourcegen.model.VariableDef.This,io.micronaut.inject.ast.ClassElement,io.micronaut.sourcegen.model.ExpressionDef)" tabindex="0">shouldSerializePrimitive(VariableDef.This, ClassElement, ExpressionDef)</a></li>
+<li><a href="#shouldSerializePrimitive(io.micronaut.sourcegen.model.VariableDef.This,io.micronaut.serde.config.annotation.SerdeConfig.SerInclude,io.micronaut.inject.ast.ClassElement,io.micronaut.sourcegen.model.ExpressionDef)" tabindex="0">shouldSerializePrimitive(VariableDef.This, SerdeConfig.SerInclude, ClassElement, ExpressionDef)</a></li>
 <li><a href="#shouldSerializeScalar(io.micronaut.sourcegen.model.VariableDef.This,io.micronaut.inject.ast.ClassElement,io.micronaut.sourcegen.model.ExpressionDef)" tabindex="0">shouldSerializeScalar(VariableDef.This, ClassElement, ExpressionDef)</a></li>
+<li><a href="#shouldSerializeScalar(io.micronaut.sourcegen.model.VariableDef.This,io.micronaut.serde.config.annotation.SerdeConfig.SerInclude,io.micronaut.inject.ast.ClassElement,io.micronaut.sourcegen.model.ExpressionDef)" tabindex="0">shouldSerializeScalar(VariableDef.This, SerdeConfig.SerInclude, ClassElement, ExpressionDef)</a></li>
 <li><a href="#shouldSerializeValue(io.micronaut.sourcegen.model.VariableDef.This,io.micronaut.sourcegen.model.VariableDef.MethodParameter,io.micronaut.sourcegen.model.ExpressionDef,io.micronaut.sourcegen.model.ExpressionDef)" tabindex="0">shouldSerializeValue(VariableDef.This, VariableDef.MethodParameter, ExpressionDef, ExpressionDef)</a></li>
+<li><a href="#shouldSerializeValue(io.micronaut.sourcegen.model.VariableDef.This,io.micronaut.serde.config.annotation.SerdeConfig.SerInclude,io.micronaut.sourcegen.model.VariableDef.MethodParameter,io.micronaut.sourcegen.model.ExpressionDef,io.micronaut.sourcegen.model.ExpressionDef)" tabindex="0">shouldSerializeValue(VariableDef.This, SerdeConfig.SerInclude, VariableDef.MethodParameter, ExpressionDef, ExpressionDef)</a></li>
+<li><a href="#guard(io.micronaut.sourcegen.model.ExpressionDef.ConditionExpressionDef,io.micronaut.sourcegen.model.StatementDef)" tabindex="0">guard(ExpressionDef.ConditionExpressionDef, StatementDef)</a></li>
 </ol>
 </li>
 </ol>
@@ -109,6 +114,22 @@ resolved value.</p></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">The fields holding the resolved inclusion.</div>
 </div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static io.micronaut.sourcegen.model.StatementDef</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#guard(io.micronaut.sourcegen.model.ExpressionDef.ConditionExpressionDef,io.micronaut.sourcegen.model.StatementDef)" class="member-name-link">guard</a><wbr>(@Nullable io.micronaut.sourcegen.model.ExpressionDef.ConditionExpressionDef&nbsp;condition,
+ io.micronaut.sourcegen.model.StatementDef&nbsp;write)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Wraps a write statement in the inclusion condition, or returns it unchanged when the property is
+always written.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static @Nullable <a href="../../config/annotation/SerdeConfig.SerInclude.html" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerInclude</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#resolvePropertyInclude(io.micronaut.inject.ast.ClassElement,io.micronaut.inject.ast.PropertyElement,java.util.Map)" class="member-name-link">resolvePropertyInclude</a><wbr>(io.micronaut.inject.ast.ClassElement&nbsp;element,
+ io.micronaut.inject.ast.PropertyElement&nbsp;property,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>,<wbr><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;&nbsp;keyMetadata)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Resolves the inclusion declared for a property at build time, the way the runtime object
+serializer resolves it: the property declaration wins over the type, which wins over the
+package.</div>
+</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;io.micronaut.sourcegen.model.StatementDef&gt;</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#resolveStatements(io.micronaut.sourcegen.model.VariableDef.This,io.micronaut.sourcegen.model.VariableDef.MethodParameter)" class="member-name-link">resolveStatements</a><wbr>(io.micronaut.sourcegen.model.VariableDef.This&nbsp;aThis,
  io.micronaut.sourcegen.model.VariableDef.MethodParameter&nbsp;context)</code></div>
@@ -122,19 +143,45 @@ resolved value.</p></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">The condition for writing a primitive property.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static io.micronaut.sourcegen.model.ExpressionDef.ConditionExpressionDef</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#shouldSerializeScalar(io.micronaut.sourcegen.model.VariableDef.This,io.micronaut.inject.ast.ClassElement,io.micronaut.sourcegen.model.ExpressionDef)" class="member-name-link">shouldSerializeScalar</a><wbr>(io.micronaut.sourcegen.model.VariableDef.This&nbsp;aThis,
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static @Nullable io.micronaut.sourcegen.model.ExpressionDef.ConditionExpressionDef</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#shouldSerializePrimitive(io.micronaut.sourcegen.model.VariableDef.This,io.micronaut.serde.config.annotation.SerdeConfig.SerInclude,io.micronaut.inject.ast.ClassElement,io.micronaut.sourcegen.model.ExpressionDef)" class="member-name-link">shouldSerializePrimitive</a><wbr>(io.micronaut.sourcegen.model.VariableDef.This&nbsp;aThis,
+ @Nullable <a href="../../config/annotation/SerdeConfig.SerInclude.html" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerInclude</a>&nbsp;include,
  io.micronaut.inject.ast.ClassElement&nbsp;type,
  io.micronaut.sourcegen.model.ExpressionDef&nbsp;propertyValue)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
-<div class="block">The condition for writing a scalar property encoded without a property serializer.</div>
+<div class="block">The condition for writing a primitive property under an inclusion resolved at build time.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static io.micronaut.sourcegen.model.ExpressionDef.ConditionExpressionDef</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#shouldSerializeValue(io.micronaut.sourcegen.model.VariableDef.This,io.micronaut.sourcegen.model.VariableDef.MethodParameter,io.micronaut.sourcegen.model.ExpressionDef,io.micronaut.sourcegen.model.ExpressionDef)" class="member-name-link">shouldSerializeValue</a><wbr>(io.micronaut.sourcegen.model.VariableDef.This&nbsp;aThis,
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#shouldSerializeScalar(io.micronaut.sourcegen.model.VariableDef.This,io.micronaut.inject.ast.ClassElement,io.micronaut.sourcegen.model.ExpressionDef)" class="member-name-link">shouldSerializeScalar</a><wbr>(io.micronaut.sourcegen.model.VariableDef.This&nbsp;aThis,
+ io.micronaut.inject.ast.ClassElement&nbsp;type,
+ io.micronaut.sourcegen.model.ExpressionDef&nbsp;propertyValue)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">The condition for writing a scalar property encoded without a property serializer.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static @Nullable io.micronaut.sourcegen.model.ExpressionDef.ConditionExpressionDef</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#shouldSerializeScalar(io.micronaut.sourcegen.model.VariableDef.This,io.micronaut.serde.config.annotation.SerdeConfig.SerInclude,io.micronaut.inject.ast.ClassElement,io.micronaut.sourcegen.model.ExpressionDef)" class="member-name-link">shouldSerializeScalar</a><wbr>(io.micronaut.sourcegen.model.VariableDef.This&nbsp;aThis,
+ @Nullable <a href="../../config/annotation/SerdeConfig.SerInclude.html" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerInclude</a>&nbsp;include,
+ io.micronaut.inject.ast.ClassElement&nbsp;type,
+ io.micronaut.sourcegen.model.ExpressionDef&nbsp;propertyValue)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">The condition for writing a scalar property under an inclusion resolved at build time.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static @Nullable io.micronaut.sourcegen.model.ExpressionDef.ConditionExpressionDef</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#shouldSerializeValue(io.micronaut.sourcegen.model.VariableDef.This,io.micronaut.serde.config.annotation.SerdeConfig.SerInclude,io.micronaut.sourcegen.model.VariableDef.MethodParameter,io.micronaut.sourcegen.model.ExpressionDef,io.micronaut.sourcegen.model.ExpressionDef)" class="member-name-link">shouldSerializeValue</a><wbr>(io.micronaut.sourcegen.model.VariableDef.This&nbsp;aThis,
+ @Nullable <a href="../../config/annotation/SerdeConfig.SerInclude.html" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerInclude</a>&nbsp;include,
  io.micronaut.sourcegen.model.VariableDef.MethodParameter&nbsp;context,
  io.micronaut.sourcegen.model.ExpressionDef&nbsp;serializer,
  io.micronaut.sourcegen.model.ExpressionDef&nbsp;propertyValue)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">The condition for writing a property through its property serializer under an inclusion
+resolved at build time.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static io.micronaut.sourcegen.model.ExpressionDef.ConditionExpressionDef</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#shouldSerializeValue(io.micronaut.sourcegen.model.VariableDef.This,io.micronaut.sourcegen.model.VariableDef.MethodParameter,io.micronaut.sourcegen.model.ExpressionDef,io.micronaut.sourcegen.model.ExpressionDef)" class="member-name-link">shouldSerializeValue</a><wbr>(io.micronaut.sourcegen.model.VariableDef.This&nbsp;aThis,
+ io.micronaut.sourcegen.model.VariableDef.MethodParameter&nbsp;context,
+ io.micronaut.sourcegen.model.ExpressionDef&nbsp;serializer,
+ io.micronaut.sourcegen.model.ExpressionDef&nbsp;propertyValue)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">The condition for writing a property through its property serializer.</div>
 </div>
 </div>
@@ -154,6 +201,28 @@ resolved value.</p></div>
 <section class="method-details" id="method-detail">
 <h2>Method Details</h2>
 <ul class="member-list">
+<li>
+<section class="detail" id="resolvePropertyInclude(io.micronaut.inject.ast.ClassElement,io.micronaut.inject.ast.PropertyElement,java.util.Map)">
+<h3>resolvePropertyInclude</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">@Nullable <a href="../../config/annotation/SerdeConfig.SerInclude.html" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerInclude</a></span>&nbsp;<span class="element-name">resolvePropertyInclude</span><wbr><span class="parameters">(io.micronaut.inject.ast.ClassElement&nbsp;element,
+ io.micronaut.inject.ast.PropertyElement&nbsp;property,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>,<wbr><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;&nbsp;keyMetadata)</span></div>
+<div class="block">Resolves the inclusion declared for a property at build time, the way the runtime object
+serializer resolves it: the property declaration wins over the type, which wins over the
+package. <code>USE_DEFAULTS</code> and an absent declaration defer to the runtime configuration and
+resolve to <code>null</code>. XML nillable properties are always written.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>element</code> - The serialized type</dd>
+<dd><code>property</code> - The property</dd>
+<dd><code>keyMetadata</code> - The key metadata contributed with the property</dd>
+<dt>Returns:</dt>
+<dd>The inclusion resolved at build time, or <code>null</code> when the configuration decides</dd>
+</dl>
+</div>
+</section>
+</li>
 <li>
 <section class="detail" id="fields()">
 <h3>fields</h3>
@@ -204,6 +273,28 @@ resolved value.</p></div>
 </section>
 </li>
 <li>
+<section class="detail" id="shouldSerializePrimitive(io.micronaut.sourcegen.model.VariableDef.This,io.micronaut.serde.config.annotation.SerdeConfig.SerInclude,io.micronaut.inject.ast.ClassElement,io.micronaut.sourcegen.model.ExpressionDef)">
+<h3>shouldSerializePrimitive</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">@Nullable io.micronaut.sourcegen.model.ExpressionDef.ConditionExpressionDef</span>&nbsp;<span class="element-name">shouldSerializePrimitive</span><wbr><span class="parameters">(io.micronaut.sourcegen.model.VariableDef.This&nbsp;aThis,
+ @Nullable <a href="../../config/annotation/SerdeConfig.SerInclude.html" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerInclude</a>&nbsp;include,
+ io.micronaut.inject.ast.ClassElement&nbsp;type,
+ io.micronaut.sourcegen.model.ExpressionDef&nbsp;propertyValue)</span></div>
+<div class="block">The condition for writing a primitive property under an inclusion resolved at build time.
+Primitive values are never null and never empty, so only <code>NON_DEFAULT</code> compares the value.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>aThis</code> - The serializer instance</dd>
+<dd><code>include</code> - The inclusion, or <code>null</code> for the runtime configuration</dd>
+<dd><code>type</code> - The property type</dd>
+<dd><code>propertyValue</code> - The local holding the property value</dd>
+<dt>Returns:</dt>
+<dd>The generated condition, or <code>null</code> when the property is always written</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
 <section class="detail" id="shouldSerializeScalar(io.micronaut.sourcegen.model.VariableDef.This,io.micronaut.inject.ast.ClassElement,io.micronaut.sourcegen.model.ExpressionDef)">
 <h3>shouldSerializeScalar</h3>
 <div class="horizontal-scroll">
@@ -218,6 +309,29 @@ resolved value.</p></div>
 <dd><code>propertyValue</code> - The local holding the property value</dd>
 <dt>Returns:</dt>
 <dd>The generated condition</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="shouldSerializeScalar(io.micronaut.sourcegen.model.VariableDef.This,io.micronaut.serde.config.annotation.SerdeConfig.SerInclude,io.micronaut.inject.ast.ClassElement,io.micronaut.sourcegen.model.ExpressionDef)">
+<h3>shouldSerializeScalar</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">@Nullable io.micronaut.sourcegen.model.ExpressionDef.ConditionExpressionDef</span>&nbsp;<span class="element-name">shouldSerializeScalar</span><wbr><span class="parameters">(io.micronaut.sourcegen.model.VariableDef.This&nbsp;aThis,
+ @Nullable <a href="../../config/annotation/SerdeConfig.SerInclude.html" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerInclude</a>&nbsp;include,
+ io.micronaut.inject.ast.ClassElement&nbsp;type,
+ io.micronaut.sourcegen.model.ExpressionDef&nbsp;propertyValue)</span></div>
+<div class="block">The condition for writing a scalar property under an inclusion resolved at build time. The
+common inclusions compile to a null check; the value-dependent ones call the helper matching the
+serde that writes the value with the constant inclusion.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>aThis</code> - The serializer instance</dd>
+<dd><code>include</code> - The inclusion, or <code>null</code> for the runtime configuration</dd>
+<dd><code>type</code> - The property type</dd>
+<dd><code>propertyValue</code> - The local holding the property value</dd>
+<dt>Returns:</dt>
+<dd>The generated condition, or <code>null</code> when the property is always written</dd>
 </dl>
 </div>
 </section>
@@ -239,6 +353,48 @@ resolved value.</p></div>
 <dd><code>propertyValue</code> - The local holding the property value</dd>
 <dt>Returns:</dt>
 <dd>The generated condition</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="shouldSerializeValue(io.micronaut.sourcegen.model.VariableDef.This,io.micronaut.serde.config.annotation.SerdeConfig.SerInclude,io.micronaut.sourcegen.model.VariableDef.MethodParameter,io.micronaut.sourcegen.model.ExpressionDef,io.micronaut.sourcegen.model.ExpressionDef)">
+<h3>shouldSerializeValue</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">@Nullable io.micronaut.sourcegen.model.ExpressionDef.ConditionExpressionDef</span>&nbsp;<span class="element-name">shouldSerializeValue</span><wbr><span class="parameters">(io.micronaut.sourcegen.model.VariableDef.This&nbsp;aThis,
+ @Nullable <a href="../../config/annotation/SerdeConfig.SerInclude.html" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerInclude</a>&nbsp;include,
+ io.micronaut.sourcegen.model.VariableDef.MethodParameter&nbsp;context,
+ io.micronaut.sourcegen.model.ExpressionDef&nbsp;serializer,
+ io.micronaut.sourcegen.model.ExpressionDef&nbsp;propertyValue)</span></div>
+<div class="block">The condition for writing a property through its property serializer under an inclusion
+resolved at build time.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>aThis</code> - The serializer instance</dd>
+<dd><code>include</code> - The inclusion, or <code>null</code> for the runtime configuration</dd>
+<dd><code>context</code> - The encoder context parameter</dd>
+<dd><code>serializer</code> - The property serializer field</dd>
+<dd><code>propertyValue</code> - The local holding the property value</dd>
+<dt>Returns:</dt>
+<dd>The generated condition, or <code>null</code> when the property is always written</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="guard(io.micronaut.sourcegen.model.ExpressionDef.ConditionExpressionDef,io.micronaut.sourcegen.model.StatementDef)">
+<h3>guard</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">io.micronaut.sourcegen.model.StatementDef</span>&nbsp;<span class="element-name">guard</span><wbr><span class="parameters">(@Nullable io.micronaut.sourcegen.model.ExpressionDef.ConditionExpressionDef&nbsp;condition,
+ io.micronaut.sourcegen.model.StatementDef&nbsp;write)</span></div>
+<div class="block">Wraps a write statement in the inclusion condition, or returns it unchanged when the property is
+always written.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>condition</code> - The condition, or <code>null</code></dd>
+<dd><code>write</code> - The write statement</dd>
+<dt>Returns:</dt>
+<dd>The guarded statement</dd>
 </dl>
 </div>
 </section>

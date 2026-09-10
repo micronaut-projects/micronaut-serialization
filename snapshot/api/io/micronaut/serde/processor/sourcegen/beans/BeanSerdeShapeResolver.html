@@ -63,6 +63,9 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
 <li><a href="#resolve(io.micronaut.inject.ast.ClassElement)" tabindex="0">resolve(ClassElement)</a></li>
+<li><a href="#introspectedProperties(io.micronaut.inject.ast.ClassElement)" tabindex="0">introspectedProperties(ClassElement)</a></li>
+<li><a href="#isSerialized(io.micronaut.inject.ast.PropertyElement)" tabindex="0">isSerialized(PropertyElement)</a></li>
+<li><a href="#isDeserialized(io.micronaut.inject.ast.PropertyElement)" tabindex="0">isDeserialized(PropertyElement)</a></li>
 </ol>
 </li>
 </ol>
@@ -80,7 +83,12 @@ loadScripts(document, 'script');</script>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="modifiers">public final class </span><span class="element-name type-name-label">BeanSerdeShapeResolver</span>
 <span class="extends-implements">extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></span></div>
-<div class="block">Resolves bean shapes eligible for source-generated serdes.</div>
+<div class="block">Resolves bean shapes eligible for source-generated serdes.
+
+<p>Properties are resolved per direction the way the runtime serdes resolve them: a property is
+written when it is readable and not excluded from serialization, and read when it is writable and
+not excluded from deserialization. Writable properties excluded from deserialization are skipped
+silently by the generated deserializer, matching the runtime object deserializer.</p></div>
 </div>
 </section>
 <section class="summary">
@@ -103,15 +111,30 @@ loadScripts(document, 'script');</script>
 <section class="method-summary" id="method-summary">
 <h2>Method Summary</h2>
 <div id="method-summary-table">
-<div class="table-tabs" role="tablist" aria-orientation="horizontal"><button id="method-summary-table-tab0" role="tab" aria-selected="true" aria-controls="method-summary-table.tabpanel" tabindex="0" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table', 3)" class="active-table-tab">All Methods</button><button id="method-summary-table-tab2" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab2', 3)" class="table-tab">Instance Methods</button><button id="method-summary-table-tab4" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab4', 3)" class="table-tab">Concrete Methods</button></div>
+<div class="table-tabs" role="tablist" aria-orientation="horizontal"><button id="method-summary-table-tab0" role="tab" aria-selected="true" aria-controls="method-summary-table.tabpanel" tabindex="0" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table', 3)" class="active-table-tab">All Methods</button><button id="method-summary-table-tab1" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab1', 3)" class="table-tab">Static Methods</button><button id="method-summary-table-tab2" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab2', 3)" class="table-tab">Instance Methods</button><button id="method-summary-table-tab4" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab4', 3)" class="table-tab">Concrete Methods</button></div>
 <div id="method-summary-table.tabpanel" role="tabpanel" aria-labelledby="method-summary-table-tab0">
 <div class="summary-table three-column-summary">
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a><wbr>&lt;<a href="BeanSerdeShape.html" title="class in io.micronaut.serde.processor.sourcegen.beans">BeanSerdeShape</a>&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#resolve(io.micronaut.inject.ast.ClassElement)" class="member-name-link">resolve</a><wbr>(io.micronaut.inject.ast.ClassElement&nbsp;element)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;io.micronaut.inject.ast.PropertyElement&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#introspectedProperties(io.micronaut.inject.ast.ClassElement)" class="member-name-link">introspectedProperties</a><wbr>(io.micronaut.inject.ast.ClassElement&nbsp;element)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">The bean properties as the introspection resolves them.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#isDeserialized(io.micronaut.inject.ast.PropertyElement)" class="member-name-link">isDeserialized</a><wbr>(io.micronaut.inject.ast.PropertyElement&nbsp;property)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Whether the runtime object deserializer reads the property.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#isSerialized(io.micronaut.inject.ast.PropertyElement)" class="member-name-link">isSerialized</a><wbr>(io.micronaut.inject.ast.PropertyElement&nbsp;property)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Whether the runtime object serializer writes the property.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a><wbr>&lt;<a href="BeanSerdeShape.html" title="class in io.micronaut.serde.processor.sourcegen.beans">BeanSerdeShape</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#resolve(io.micronaut.inject.ast.ClassElement)" class="member-name-link">resolve</a><wbr>(io.micronaut.inject.ast.ClassElement&nbsp;element)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 </div>
 </div>
 </div>
@@ -150,6 +173,53 @@ loadScripts(document, 'script');</script>
 <h3>resolve</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a>&lt;<a href="BeanSerdeShape.html" title="class in io.micronaut.serde.processor.sourcegen.beans">BeanSerdeShape</a>&gt;</span>&nbsp;<span class="element-name">resolve</span><wbr><span class="parameters">(io.micronaut.inject.ast.ClassElement&nbsp;element)</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="introspectedProperties(io.micronaut.inject.ast.ClassElement)">
+<h3>introspectedProperties</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;io.micronaut.inject.ast.PropertyElement&gt;</span>&nbsp;<span class="element-name">introspectedProperties</span><wbr><span class="parameters">(io.micronaut.inject.ast.ClassElement&nbsp;element)</span></div>
+<div class="block">The bean properties as the introspection resolves them. The list a class element caches can be
+older than the metadata <code>SerdeAnnotationVisitor</code> rewrites, so the properties are resolved
+again with the query the introspection visitor uses.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>element</code> - The bean type</dd>
+<dt>Returns:</dt>
+<dd>The introspected properties</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="isSerialized(io.micronaut.inject.ast.PropertyElement)">
+<h3>isSerialized</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">isSerialized</span><wbr><span class="parameters">(io.micronaut.inject.ast.PropertyElement&nbsp;property)</span></div>
+<div class="block">Whether the runtime object serializer writes the property.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>property</code> - The property</dd>
+<dt>Returns:</dt>
+<dd><code>true</code> if the property is serialized</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="isDeserialized(io.micronaut.inject.ast.PropertyElement)">
+<h3>isDeserialized</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">isDeserialized</span><wbr><span class="parameters">(io.micronaut.inject.ast.PropertyElement&nbsp;property)</span></div>
+<div class="block">Whether the runtime object deserializer reads the property.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>property</code> - The property</dd>
+<dt>Returns:</dt>
+<dd><code>true</code> if the property is deserialized</dd>
+</dl>
 </div>
 </section>
 </li>
