@@ -64,6 +64,7 @@ public final class RecordSerializerSourceGen {
     private static final String VALUE_PARAMETER = "value";
     private static final String VALUE_LOCAL_PREFIX = "value";
     private static final String GENERATED_VALUE_MEMBER = "value";
+    private static final String NULLAWAY_WARNING = "NullAway";
     private static final String KEYS_FIELD = "KEYS";
 
     private static final TypeDef ARGUMENT_TYPE = TypeDef.of(Argument.class);
@@ -188,6 +189,10 @@ public final class RecordSerializerSourceGen {
             .addAnnotation(Prototype.class)
             .addAnnotation(AnnotationDef.builder(Generated.class)
                 .addMember(GENERATED_VALUE_MEMBER, "Micronaut")
+                .build())
+            // Generated serdes keep the runtime null semantics, which NullAway can reject in a null-marked package
+            .addAnnotation(AnnotationDef.builder(SuppressWarnings.class)
+                .addMember(GENERATED_VALUE_MEMBER, NULLAWAY_WARNING)
                 .build())
             .addSuperinterface(TypeDef.parameterized(Serializer.class, recordTypeDef))
             .addSuperinterface(TypeDef.parameterized(ObjectSerializer.class, recordTypeDef))

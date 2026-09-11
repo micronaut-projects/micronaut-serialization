@@ -75,6 +75,7 @@ public final class RecordDeserializerSourceGen {
     private static final String STRICT_NULLABLE_FIELD = "strictNullable";
     private static final String REQUIRE_ALL_CREATOR_PARAMETERS_FIELD = "requireAllCreatorParameters";
     private static final String GENERATED_VALUE_MEMBER = "value";
+    private static final String NULLAWAY_WARNING = "NullAway";
     private static final String HANDLED_DISPATCH_RESULT = "HANDLED";
     private static final String UNKNOWN_DISPATCH_RESULT = "UNKNOWN";
     private static final String DUPLICATE_DISPATCH_RESULT = "DUPLICATE";
@@ -301,6 +302,11 @@ public final class RecordDeserializerSourceGen {
             .addAnnotation(Prototype.class)
             .addAnnotation(AnnotationDef.builder(Generated.class)
                 .addMember(GENERATED_VALUE_MEMBER, "Micronaut")
+                .build())
+            // Like the runtime deserializer, an absent component is passed to the constructor as null
+            // unless strict nullability is enabled, which NullAway rejects in a null-marked package
+            .addAnnotation(AnnotationDef.builder(SuppressWarnings.class)
+                .addMember(GENERATED_VALUE_MEMBER, NULLAWAY_WARNING)
                 .build())
             .addSuperinterface(TypeDef.parameterized(Deserializer.class, recordTypeDef))
             .addFields(fields)
