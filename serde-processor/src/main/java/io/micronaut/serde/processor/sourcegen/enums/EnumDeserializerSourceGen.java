@@ -56,6 +56,7 @@ public final class EnumDeserializerSourceGen {
     private static final TypeDef DESERIALIZER_TYPE = TypeDef.of(Deserializer.class);
     private static final String CONTEXT_PARAMETER = "context";
     private static final String GENERATED_VALUE_MEMBER = "value";
+    private static final String NULLAWAY_WARNING = "NullAway";
     private static final String ARGUMENT_STRING_FIELD = "ARGUMENT_STRING";
     private static final String STRING_DESERIALIZER_FIELD = "stringDeserializer";
     private static final String STRING_DESERIALIZER_LOCAL = "stringDeserializer";
@@ -111,6 +112,10 @@ public final class EnumDeserializerSourceGen {
             .addAnnotation(Prototype.class)
             .addAnnotation(AnnotationDef.builder(Generated.class)
                 .addMember(GENERATED_VALUE_MEMBER, "Micronaut")
+                .build())
+            // Like the runtime deserializer, an unknown value can be read as null, which NullAway rejects in a null-marked package
+            .addAnnotation(AnnotationDef.builder(SuppressWarnings.class)
+                .addMember(GENERATED_VALUE_MEMBER, NULLAWAY_WARNING)
                 .build())
             .addSuperinterface(TypeDef.parameterized(FormattedDeserializer.class, enumTypeDef))
             .addField(FieldDef.builder(ARGUMENT_STRING_FIELD, ARGUMENT_TYPE)
