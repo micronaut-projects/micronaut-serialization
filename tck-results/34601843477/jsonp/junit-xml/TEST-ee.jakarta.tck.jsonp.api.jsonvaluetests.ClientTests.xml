@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests" tests="7" skipped="0" failures="0" errors="0" timestamp="SANITIZED" hostname="SANITIZED" time="0">
+  <properties/>
+  <testcase name="jsonValueTypesTest()" classname="ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests" time="0"/>
+  <testcase name="jsonValueToStringTest()" classname="ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests" time="0"/>
+  <testcase name="jsonValuesTest()" classname="ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests" time="0"/>
+  <testcase name="jsonStructure11Test()" classname="ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests" time="0"/>
+  <testcase name="jsonValue11Test()" classname="ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests" time="0"/>
+  <testcase name="jsonNumber21Test()" classname="ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests" time="0"/>
+  <testcase name="jsonValueOfTest()" classname="ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests" time="0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueTypesTest
+INFO: Testing getValueType for JsonValue.FALSE value
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueTypesTest
+INFO: Got expected value type for JSON FALSE value
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueTypesTest
+INFO: Testing getValueType for JsonValue.TRUE value
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueTypesTest
+INFO: Got expected value type for JSON TRUE value
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueTypesTest
+INFO: Testing getValueType for JsonValue.NULL value
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueTypesTest
+INFO: Got expected value type for JSON NULL value
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueTypesTest
+INFO: Testing getValueType for JsonValue.String value
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueTypesTest
+INFO: Got expected value type for JSON STRING value
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueTypesTest
+INFO: Testing getValueType for JsonValue.Number value
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueTypesTest
+INFO: Got expected value type for JSON NUMBER value
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueTypesTest
+INFO: Testing getValueType for JsonValue.Array value
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueTypesTest
+INFO: Got expected value type for JSON ARRAY value
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueTypesTest
+INFO: Testing getValueType for JsonValue.Object value
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueTypesTest
+INFO: Got expected value type for JSON OBJECT value
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueToStringTest
+INFO: Testing JsonValue.toString() for JsonValue.FALSE value
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueToStringTest
+INFO: stringValue=false
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueToStringTest
+INFO: Got false
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueToStringTest
+INFO: Testing JsonValue.toString() for JsonValue.TRUE value
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueToStringTest
+INFO: stringValue=true
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueToStringTest
+INFO: Got true
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueToStringTest
+INFO: Testing JsonValue.toString() for JsonValue.NULL value
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueToStringTest
+INFO: stringValue=null
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueToStringTest
+INFO: Got null
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueToStringTest
+INFO: Testing JsonValue.toString() for JsonString value
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueToStringTest
+INFO: stringValue="string"
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueToStringTest
+INFO: Got "string"
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueToStringTest
+INFO: Testing JsonValue.toString() for JsonNumber value
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueToStringTest
+INFO: stringValue=10
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueToStringTest
+INFO: Got 10
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueToStringTest
+INFO: Testing JsonValue.toString() for JsonArray value
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueToStringTest
+INFO: stringValue=[]
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueToStringTest
+INFO: Got []
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueToStringTest
+INFO: Testing JsonValue.toString() for JsonObject value
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueToStringTest
+INFO: stringValue={}
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueToStringTest
+INFO: Got {}
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValuesTest
+INFO: Testing API method JsonValue.ValueType.values() to return array of enums.
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValuesTest
+INFO: Got ARRAY for enum ARRAY
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValuesTest
+INFO: Got OBJECT for enum OBJECT
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValuesTest
+INFO: Got STRING for enum STRING
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValuesTest
+INFO: Got NUMBER for enum NUMBER
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValuesTest
+INFO: Got TRUE for enum TRUE
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValuesTest
+INFO: Got FALSE for enum FALSE
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValuesTest
+INFO: Got NULL for enum NULL
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Structure test
+INFO: JsonStructure API methods added in JSON-P 1.1.
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Structure verifyGetValue
+INFO:  - getValue(String) resolving of "" pointer
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Structure verifyGetValue
+INFO:  - getValue(String) resolving of "/" pointer
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Structure verifyGetValue
+INFO:  - getValue(String) resolving of "/foo" pointer
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Structure verifyGetValue
+INFO:  - getValue(String) resolving of "/foo/0" pointer
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Structure verifyGetValue
+INFO:  - getValue(String) resolving of "/foo/1" pointer
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Structure verifyGetValue
+INFO:  - getValue(String) resolving of "/a~1b" pointer
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Structure verifyGetValueFail
+INFO:  - getValue(String) resolving of invalid "/a/b" pointer
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Structure verifyGetValueFail
+INFO:     - Expected exception: JSON pointer does not resolve: /a/b
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Structure verifyGetValue
+INFO:  - getValue(String) resolving of "/c%d" pointer
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Structure verifyGetValue
+INFO:  - getValue(String) resolving of "/e^f" pointer
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Structure verifyGetValue
+INFO:  - getValue(String) resolving of "/g|h" pointer
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Structure verifyGetValue
+INFO:  - getValue(String) resolving of "/i\j" pointer
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Structure verifyGetValue
+INFO:  - getValue(String) resolving of "/k"l" pointer
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Structure verifyGetValue
+INFO:  - getValue(String) resolving of "/ " pointer
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Structure testResolvePathWithTilde
+INFO:  - resolving of "/m~n" pointer (optional)
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Structure testResolvePathWithTilde
+INFO:     - Pointer resolving accepts '~' outside escape sequence
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Structure verifyGetValue
+INFO:  - getValue(String) resolving of "/m~0n" pointer
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Structure verifyGetValue
+INFO:  - getValue(String) resolving of "/o~01p" pointer
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Structure testResolveValidNumericIndexInArray
+INFO:  - getValue(String) resolving of pointer containing existing numeric array index
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Structure testResolveMemberAfterLastInArray
+INFO:  - getValue(String) resolving of array "/-" pointer
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Structure testResolveMemberAfterLastInArray
+INFO:     - Expected exception: JSON pointer token is not an array index: -
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Structure testResolveMemberAfterLastInArray
+INFO:     - Expected exception: JSON pointer token is not an array index: -
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Structure testResolveMemberAfterLastInArray
+INFO:     - Expected exception: JSON pointer token is not an array index: -
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Structure testResolveMemberAfterLastInArray
+INFO:     - Expected exception: JSON pointer token is not an array index: -
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Structure testResolveMemberAfterLastInArray
+INFO:     - Expected exception: JSON pointer token is not an array index: -
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Structure testResolveNonNumericIndexInArray
+INFO:  - getValue(String) resolving of pointer containing non numeric array index
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Value test
+INFO: JsonValue API methods added in JSON-P 1.1.
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Value testAsJsonObject
+INFO:  - asJsonObject() on JsonObject instances
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Value testAsJsonObjectOnNonObject
+INFO:  - asJsonObject() on non JsonObject instances
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Value testAsJsonObjectOnNonObject
+INFO:     - Expected exception: Cannot cast io.micronaut.serde.jsonp.JsonpValueSupport$JsonArrayValue to jakarta.json.JsonObject
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Value testAsJsonObjectOnNonObject
+INFO:     - Expected exception: Cannot cast io.micronaut.serde.jsonp.JsonpValueSupport$JsonArrayValue to jakarta.json.JsonObject
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Value testAsJsonObjectOnNonObject
+INFO:     - Expected exception: Cannot cast io.micronaut.serde.jsonp.JsonpValueSupport$JsonArrayValue to jakarta.json.JsonObject
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Value testAsJsonObjectOnNonObject
+INFO:     - Expected exception: Cannot cast io.micronaut.serde.jsonp.JsonpValueSupport$JsonArrayValue to jakarta.json.JsonObject
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Value testAsJsonObjectOnNonObject
+INFO:     - Expected exception: Cannot cast io.micronaut.serde.jsonp.JsonpValueSupport$JsonStringValue to jakarta.json.JsonObject
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Value testAsJsonObjectOnNonObject
+INFO:     - Expected exception: Cannot cast io.micronaut.serde.jsonp.JsonpValueSupport$JsonNumberValue to jakarta.json.JsonObject
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Value testAsJsonObjectOnNonObject
+INFO:     - Expected exception: Cannot cast io.micronaut.serde.jsonp.JsonpValueSupport$JsonNumberValue to jakarta.json.JsonObject
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Value testAsJsonObjectOnNonObject
+INFO:     - Expected exception: Cannot cast io.micronaut.serde.jsonp.JsonpValueSupport$JsonNumberValue to jakarta.json.JsonObject
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Value testAsJsonObjectOnNonObject
+INFO:     - Expected exception: Cannot cast io.micronaut.serde.jsonp.JsonpValueSupport$JsonNumberValue to jakarta.json.JsonObject
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Value testAsJsonObjectOnNonObject
+INFO:     - Expected exception: Cannot cast io.micronaut.serde.jsonp.JsonpValueSupport$JsonNumberValue to jakarta.json.JsonObject
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Value testAsJsonObjectOnNonObject
+INFO:     - Expected exception: Cannot cast jakarta.json.JsonValueImpl to jakarta.json.JsonObject
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Value testAsJsonObjectOnNonObject
+INFO:     - Expected exception: Cannot cast jakarta.json.JsonValueImpl to jakarta.json.JsonObject
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Value testAsJsonArray
+INFO:  - asJsonArray() on JsonArray instances
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Value testAsJsonArrayOnNonArray
+INFO:  - asJsonArray() on non JsonArray instances
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Value testAsJsonArrayOnNonArray
+INFO:     - Expected exception: Cannot cast io.micronaut.serde.jsonp.JsonpValueSupport$JsonObjectValue to jakarta.json.JsonArray
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Value testAsJsonArrayOnNonArray
+INFO:     - Expected exception: Cannot cast io.micronaut.serde.jsonp.JsonpValueSupport$JsonObjectValue to jakarta.json.JsonArray
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Value testAsJsonArrayOnNonArray
+INFO:     - Expected exception: Cannot cast io.micronaut.serde.jsonp.JsonpValueSupport$JsonObjectValue to jakarta.json.JsonArray
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Value testAsJsonArrayOnNonArray
+INFO:     - Expected exception: Cannot cast io.micronaut.serde.jsonp.JsonpValueSupport$JsonObjectValue to jakarta.json.JsonArray
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Value testAsJsonArrayOnNonArray
+INFO:     - Expected exception: Cannot cast io.micronaut.serde.jsonp.JsonpValueSupport$JsonObjectValue to jakarta.json.JsonArray
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Value testAsJsonArrayOnNonArray
+INFO:     - Expected exception: Cannot cast io.micronaut.serde.jsonp.JsonpValueSupport$JsonStringValue to jakarta.json.JsonArray
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Value testAsJsonArrayOnNonArray
+INFO:     - Expected exception: Cannot cast io.micronaut.serde.jsonp.JsonpValueSupport$JsonNumberValue to jakarta.json.JsonArray
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Value testAsJsonArrayOnNonArray
+INFO:     - Expected exception: Cannot cast io.micronaut.serde.jsonp.JsonpValueSupport$JsonNumberValue to jakarta.json.JsonArray
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Value testAsJsonArrayOnNonArray
+INFO:     - Expected exception: Cannot cast io.micronaut.serde.jsonp.JsonpValueSupport$JsonNumberValue to jakarta.json.JsonArray
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Value testAsJsonArrayOnNonArray
+INFO:     - Expected exception: Cannot cast io.micronaut.serde.jsonp.JsonpValueSupport$JsonNumberValue to jakarta.json.JsonArray
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Value testAsJsonArrayOnNonArray
+INFO:     - Expected exception: Cannot cast io.micronaut.serde.jsonp.JsonpValueSupport$JsonNumberValue to jakarta.json.JsonArray
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Value testAsJsonArrayOnNonArray
+INFO:     - Expected exception: Cannot cast jakarta.json.JsonValueImpl to jakarta.json.JsonArray
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.Value testAsJsonArrayOnNonArray
+INFO:     - Expected exception: Cannot cast jakarta.json.JsonValueImpl to jakarta.json.JsonArray
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueOfTest
+INFO: Testing enum value for string constant name ARRAY
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueOfTest
+INFO: Got enum type ARRAY for enum string constant named ARRAY
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueOfTest
+INFO: Testing enum value for string constant name FALSE
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueOfTest
+INFO: Got enum type FALSE for enum string constant named FALSE
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueOfTest
+INFO: Testing enum value for string constant name NULL
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueOfTest
+INFO: Got enum type NULL for enum string constant named NULL
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueOfTest
+INFO: Testing enum value for string constant name NUMBER
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueOfTest
+INFO: Got enum type NUMBER for enum string constant named NUMBER
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueOfTest
+INFO: Testing enum value for string constant name OBJECT
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueOfTest
+INFO: Got enum type OBJECT for enum string constant named OBJECT
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueOfTest
+INFO: Testing enum value for string constant name STRING
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueOfTest
+INFO: Got enum type STRING for enum string constant named STRING
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueOfTest
+INFO: Testing enum value for string constant name TRUE
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueOfTest
+INFO: Got enum type TRUE for enum string constant named TRUE
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueOfTest
+INFO: Testing negative test case for NullPointerException
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueOfTest
+INFO: Got expected NullPointerException
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueOfTest
+INFO: Testing negative test case for IllegalArgumentException
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonvaluetests.ClientTests jsonValueOfTest
+INFO: Got expected IllegalArgumentException
+]]></system-err>
+</testsuite>

@@ -1,0 +1,1665 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests" tests="11" skipped="0" failures="0" errors="0" timestamp="SANITIZED" hostname="SANITIZED" time="0">
+  <properties/>
+  <testcase name="jsonArrayExceptionTests()" classname="ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests" time="0"/>
+  <testcase name="jsonArrayNullValueExceptionTests()" classname="ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests" time="0"/>
+  <testcase name="jsonArrayBuilder11SetTest()" classname="ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests" time="0"/>
+  <testcase name="jsonArrayGetValuesAsTest()" classname="ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests" time="0"/>
+  <testcase name="jsonArrayBuilder11AddTest()" classname="ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests" time="0"/>
+  <testcase name="jsonCreateArrayBuilder11Test()" classname="ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests" time="0"/>
+  <testcase name="jsonArrayTest1()" classname="ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests" time="0"/>
+  <testcase name="jsonArrayTest2()" classname="ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests" time="0"/>
+  <testcase name="jsonArrayTest3()" classname="ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests" time="0"/>
+  <testcase name="jsonArrayTest4()" classname="ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests" time="0"/>
+  <testcase name="jsonArrayBuilder11RemoveTest()" classname="ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests" time="0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Create sample JsonObject for testing
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Create sample JsonArray for testing
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonObject to JsonNumber via getJsonNumber(int)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected ClassCastException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonArray to JsonNumber via getJsonNumber(int)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected ClassCastException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonNumber to JsonString via getJsonString(int)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected ClassCastException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonString to JsonNumber via getJsonNumber(int)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected ClassCastException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonValue.TRUE to JsonNumber via getJsonNumber(int)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected ClassCastException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonObject to JsonArray via getJsonArray(int)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected ClassCastException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonArray to JsonObject via getJsonObject(int)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected ClassCastException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonObject to JsonNumber via getInt(int)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected ClassCastException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonObject to JsonString via getString(int)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected ClassCastException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonArray to JsonString via getString(int)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected ClassCastException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonObject to boolean via getBoolean(int)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected ClassCastException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonArray to boolean via getBoolean(int)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected ClassCastException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonString to boolean via getBoolean(int)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected ClassCastException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip ClassCastException trying to cast a JsonNumber to boolean via getBoolean(int)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected ClassCastException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip IndexOutOfBoundsException passing -1 as index to getJsonNumber(int)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected IndexOutOfBoundsException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip IndexOutOfBoundsException passing 10000 as index to getJsonNumber(int)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected IndexOutOfBoundsException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip IndexOutOfBoundsException passing -1 as index to getJsonArray(int)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected IndexOutOfBoundsException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip IndexOutOfBoundsException passing 10000 as index to getJsonArray(int)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected IndexOutOfBoundsException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip IndexOutOfBoundsException passing -1 as index to getJsonObject(int)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected IndexOutOfBoundsException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip IndexOutOfBoundsException passing 10000 as index to getJsonObject(int)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected IndexOutOfBoundsException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip IndexOutOfBoundsException passing -1 as index to getJsonString(int)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected IndexOutOfBoundsException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip IndexOutOfBoundsException passing 10000 as index to getJsonString(int)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected IndexOutOfBoundsException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip IndexOutOfBoundsException passing -1 as index to getInt(int)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected IndexOutOfBoundsException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip IndexOutOfBoundsException passing 10000 as index to getInt(int)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected IndexOutOfBoundsException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip IndexOutOfBoundsException passing -1 as index to getString(int)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected IndexOutOfBoundsException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip IndexOutOfBoundsException passing 10000 as index to getString(int)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected IndexOutOfBoundsException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip IndexOutOfBoundsException passing -1 as index to getBoolean(int)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected IndexOutOfBoundsException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip IndexOutOfBoundsException passing 10000 as index to getBoolean(int)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected IndexOutOfBoundsException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip IndexOutOfBoundsException passing -1 as index to isNull(int)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected IndexOutOfBoundsException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip IndexOutOfBoundsException passing 10000 as index to isNull(int)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected IndexOutOfBoundsException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip NumberFormatException calling add(Double.NaN)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected NumberFormatException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip NumberFormatException calling add(Double.NEGATIVE_INFINITY)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected NumberFormatException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip NumberFormatException calling add(Double.POSITIVE_INFINITY)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected NumberFormatException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip ArithmeticException calling add(12345.12345) and attempting to extract as an exact integer value
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Call JsonArray.getJsonNumber(0).intValueExact()
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected ArithmeticException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip ArithmeticException calling add(12345.12345) and attempting to extract as an exact long value
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Call JsonArray.getJsonNumber(0).longValueExact()
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected ArithmeticException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip ArithmeticException calling add(12345.12345) and attempting to extract as an exact biginteger value
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Call JsonArray.getJsonNumber(0).bigIntegerValueExact()
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected ArithmeticException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip UnsupportedOperationException JsonArray.add(E) trying to modify JsonArray list which should be immutable
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected UnsupportedOperationException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip UnsupportedOperationException JsonArray.add(int,E) trying to modify JsonArray list which should be immutable
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected UnsupportedOperationException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip UnsupportedOperationException JsonArray.addAll(C) trying to modify JsonArray list which should be immutable
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected UnsupportedOperationException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip UnsupportedOperationException JsonArray.addAll(int, C) trying to modify JsonArray list which should be immutable
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected UnsupportedOperationException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip UnsupportedOperationException JsonArray.clear() trying to modify JsonArray list which should be immutable
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected UnsupportedOperationException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip UnsupportedOperationException JsonArray.remove(int) trying to modify JsonArray list which should be immutable
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected UnsupportedOperationException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip UnsupportedOperationException JsonArray.removeAll(C) trying to modify JsonArray list which should be immutable
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected UnsupportedOperationException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Trip UnsupportedOperationException trying to modify JsonArray list which should be immutable
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayExceptionTests
+INFO: Got expected UnsupportedOperationException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayNullValueExceptionTests
+INFO: Trip NullPointerException for JsonArrayBuilder.add(JsonValue) when JsonValue is null.
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayNullValueExceptionTests
+INFO: Got expected NullPointerException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayNullValueExceptionTests
+INFO: Trip NullPointerException for JsonArrayBuilder.add(BigInteger) when BigInteger is null.
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayNullValueExceptionTests
+INFO: Got expected NullPointerException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayNullValueExceptionTests
+INFO: Trip NullPointerException for JsonArrayBuilder.add(JsonArrayBuilder) when JsonArrayBuilder is null.
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayNullValueExceptionTests
+INFO: Got expected NullPointerException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayNullValueExceptionTests
+INFO: Trip NullPointerException for JsonArrayBuilder.add(JsonObjectBuilder) when JsonObjectBuilder is null.
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayNullValueExceptionTests
+INFO: Got expected NullPointerException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayNullValueExceptionTests
+INFO: Trip NullPointerException for JsonArrayBuilder.add(BigDecimal) when BigDecimal is null.
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayNullValueExceptionTests
+INFO: Got expected NullPointerException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayNullValueExceptionTests
+INFO: Trip NullPointerException for JsonArrayBuilder.add(String) when String is null.
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayNullValueExceptionTests
+INFO: Got expected NullPointerException
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet test
+INFO: JsonArrayBuilder API set() methods added in JSON-P 1.1.
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSet
+INFO:  - set(int,JsonValue)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSet
+INFO:  - set(int,String)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSet
+INFO:  - set(int,Integer)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSet
+INFO:  - set(int,Long)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSet
+INFO:  - set(int,Double)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSet
+INFO:  - set(int,BigInteger)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSet
+INFO:  - set(int,BigDecimal)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSet
+INFO:  - set(int,Boolean)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetOutOfBounds
+INFO:  - set(int,JsonValue)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetOutOfBounds
+INFO:     - Expected exception for index=-1: Index -1 out of bounds for length 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetOutOfBounds
+INFO:     - Expected exception for index=2: Index 2 out of bounds for length 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetOutOfBounds
+INFO:     - Expected exception for index=3: Index 3 out of bounds for length 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetOutOfBounds
+INFO:  - set(int,String)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetOutOfBounds
+INFO:     - Expected exception for index=-1: Index -1 out of bounds for length 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetOutOfBounds
+INFO:     - Expected exception for index=2: Index 2 out of bounds for length 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetOutOfBounds
+INFO:     - Expected exception for index=3: Index 3 out of bounds for length 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetOutOfBounds
+INFO:  - set(int,Integer)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetOutOfBounds
+INFO:     - Expected exception for index=-1: Index -1 out of bounds for length 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetOutOfBounds
+INFO:     - Expected exception for index=2: Index 2 out of bounds for length 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetOutOfBounds
+INFO:     - Expected exception for index=3: Index 3 out of bounds for length 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetOutOfBounds
+INFO:  - set(int,Long)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetOutOfBounds
+INFO:     - Expected exception for index=-1: Index -1 out of bounds for length 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetOutOfBounds
+INFO:     - Expected exception for index=2: Index 2 out of bounds for length 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetOutOfBounds
+INFO:     - Expected exception for index=3: Index 3 out of bounds for length 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetOutOfBounds
+INFO:  - set(int,Double)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetOutOfBounds
+INFO:     - Expected exception for index=-1: Index -1 out of bounds for length 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetOutOfBounds
+INFO:     - Expected exception for index=2: Index 2 out of bounds for length 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetOutOfBounds
+INFO:     - Expected exception for index=3: Index 3 out of bounds for length 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetOutOfBounds
+INFO:  - set(int,BigInteger)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetOutOfBounds
+INFO:     - Expected exception for index=-1: Index -1 out of bounds for length 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetOutOfBounds
+INFO:     - Expected exception for index=2: Index 2 out of bounds for length 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetOutOfBounds
+INFO:     - Expected exception for index=3: Index 3 out of bounds for length 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetOutOfBounds
+INFO:  - set(int,BigDecimal)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetOutOfBounds
+INFO:     - Expected exception for index=-1: Index -1 out of bounds for length 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetOutOfBounds
+INFO:     - Expected exception for index=2: Index 2 out of bounds for length 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetOutOfBounds
+INFO:     - Expected exception for index=3: Index 3 out of bounds for length 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetOutOfBounds
+INFO:  - set(int,Boolean)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetOutOfBounds
+INFO:     - Expected exception for index=-1: Index -1 out of bounds for length 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetOutOfBounds
+INFO:     - Expected exception for index=2: Index 2 out of bounds for length 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetOutOfBounds
+INFO:     - Expected exception for index=3: Index 3 out of bounds for length 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetNullBuilder
+INFO:  - set(int,(JsonValue)null)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetNullBuilder
+INFO:     - Expected exception: value
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetNullBuilder
+INFO:  - set(int,(String)null)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetNullBuilder
+INFO:     - Expected exception: value
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetNullBuilder
+INFO:  - set(int,(BigInteger)null)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetNullBuilder
+INFO:     - Expected exception: Cannot invoke "Object.getClass()" because "val" is null
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetNullBuilder
+INFO:  - set(int,(BigDecimal)null)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetNullBuilder
+INFO:     - Expected exception: value
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetNull
+INFO:  - setNull(int)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetNullOutOfBounds
+INFO:  - setNull(int)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetNullOutOfBounds
+INFO:     - Expected exception for index=-1: Index -1 out of bounds for length 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetNullOutOfBounds
+INFO:     - Expected exception for index=2: Index 2 out of bounds for length 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetNullOutOfBounds
+INFO:     - Expected exception for index=3: Index 3 out of bounds for length 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetArrayBuilder
+INFO:  - set(int,JsonArrayBuilder)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetArrayBuilderNull
+INFO:  - set(int,(JsonArrayBuilder)null)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetArrayBuilderNull
+INFO:     - Expected exception: Cannot invoke "jakarta.json.JsonArrayBuilder.build()" because "builder" is null
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetArrayBuilderOutOfBounds
+INFO:  - set(int,JsonArrayBuilder)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetArrayBuilderOutOfBounds
+INFO:     - Expected exception for index=-1: Index -1 out of bounds for length 4
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetArrayBuilderOutOfBounds
+INFO:     - Expected exception for index=5: Index 5 out of bounds for length 4
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetArrayBuilderOutOfBounds
+INFO:     - Expected exception for index=6: Index 6 out of bounds for length 4
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetObjectBuilder
+INFO:  - set(int,JsonObjectBuilder)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetObjectBuilderNull
+INFO:  - set(int,(JsonObjectBuilder)null)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetObjectBuilderNull
+INFO:     - Expected exception: Cannot invoke "jakarta.json.JsonObjectBuilder.build()" because "builder" is null
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetObjectBuilderOutOfBounds
+INFO:  - set(int,JsonObjectBuilder)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetObjectBuilderOutOfBounds
+INFO:     - Expected exception for index=-1: Index -1 out of bounds for length 4
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetObjectBuilderOutOfBounds
+INFO:     - Expected exception for index=5: Index 5 out of bounds for length 4
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildSet testSetObjectBuilderOutOfBounds
+INFO:     - Expected exception for index=6: Index 6 out of bounds for length 4
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayGetValuesAsTest
+INFO: Create sample JsonArray of JsonNumber types for testing
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayGetValuesAsTest
+INFO: Create the expected list of JsonArray values
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: *** Beg: Dumping List contents ***
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: *** Message: Expected List
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: List: [
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: 100
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: 500
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: ]
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: *** End: Dumping List contents ***
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayGetValuesAsTest
+INFO: Create the JsonNumber list of JsonArray values
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayGetValuesAsTest
+INFO: Create the actual list of JsonArray values
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayGetValuesAsTest
+INFO: Compare actual list with expected list for equality
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsList
+INFO: Lists are equal - match (Success)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsList
+INFO: Expected: List: [100,500]
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsList
+INFO: Actual:   List: [100,500]
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayGetValuesAsTest
+INFO: Create sample JsonArray of JsonString types for testing
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayGetValuesAsTest
+INFO: Create the list of JsonString values
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayGetValuesAsTest
+INFO: Comparing JsonString list elements to expected values.
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: hello
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   hello
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: world
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   world
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd test
+INFO: JsonArrayBuilder API add() methods added in JSON-P 1.1.
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAdd
+INFO:  - add(int,JsonValue)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAdd
+INFO:  - add(int,String)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAdd
+INFO:  - add(int,Integer)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAdd
+INFO:  - add(int,Long)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAdd
+INFO:  - add(int,Double)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAdd
+INFO:  - add(int,BigInteger)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAdd
+INFO:  - add(int,BigDecimal)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAdd
+INFO:  - add(int,Boolean)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddNullBuilder
+INFO:  - add(int,(JsonValue)null)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddNullBuilder
+INFO:     - Expected exception: value
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddNullBuilder
+INFO:  - add(int,(String)null)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddNullBuilder
+INFO:     - Expected exception: value
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddNullBuilder
+INFO:  - add(int,(BigInteger)null)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddNullBuilder
+INFO:     - Expected exception: Cannot invoke "Object.getClass()" because "val" is null
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddNullBuilder
+INFO:  - add(int,(BigDecimal)null)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddNullBuilder
+INFO:     - Expected exception: value
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddOutOfBounds
+INFO:  - add(int,JsonValue)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddOutOfBounds
+INFO:     - Expected exception for index=-1: Index: -1, Size: 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddOutOfBounds
+INFO:     - Expected exception for index=2: Index: 2, Size: 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddOutOfBounds
+INFO:     - Expected exception for index=3: Index: 3, Size: 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddOutOfBounds
+INFO:  - add(int,String)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddOutOfBounds
+INFO:     - Expected exception for index=-1: Index: -1, Size: 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddOutOfBounds
+INFO:     - Expected exception for index=2: Index: 2, Size: 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddOutOfBounds
+INFO:     - Expected exception for index=3: Index: 3, Size: 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddOutOfBounds
+INFO:  - add(int,Integer)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddOutOfBounds
+INFO:     - Expected exception for index=-1: Index: -1, Size: 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddOutOfBounds
+INFO:     - Expected exception for index=2: Index: 2, Size: 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddOutOfBounds
+INFO:     - Expected exception for index=3: Index: 3, Size: 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddOutOfBounds
+INFO:  - add(int,Long)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddOutOfBounds
+INFO:     - Expected exception for index=-1: Index: -1, Size: 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddOutOfBounds
+INFO:     - Expected exception for index=2: Index: 2, Size: 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddOutOfBounds
+INFO:     - Expected exception for index=3: Index: 3, Size: 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddOutOfBounds
+INFO:  - add(int,Double)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddOutOfBounds
+INFO:     - Expected exception for index=-1: Index: -1, Size: 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddOutOfBounds
+INFO:     - Expected exception for index=2: Index: 2, Size: 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddOutOfBounds
+INFO:     - Expected exception for index=3: Index: 3, Size: 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddOutOfBounds
+INFO:  - add(int,BigInteger)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddOutOfBounds
+INFO:     - Expected exception for index=-1: Index: -1, Size: 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddOutOfBounds
+INFO:     - Expected exception for index=2: Index: 2, Size: 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddOutOfBounds
+INFO:     - Expected exception for index=3: Index: 3, Size: 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddOutOfBounds
+INFO:  - add(int,BigDecimal)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddOutOfBounds
+INFO:     - Expected exception for index=-1: Index: -1, Size: 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddOutOfBounds
+INFO:     - Expected exception for index=2: Index: 2, Size: 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddOutOfBounds
+INFO:     - Expected exception for index=3: Index: 3, Size: 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddOutOfBounds
+INFO:  - add(int,Boolean)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddOutOfBounds
+INFO:     - Expected exception for index=-1: Index: -1, Size: 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddOutOfBounds
+INFO:     - Expected exception for index=2: Index: 2, Size: 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddOutOfBounds
+INFO:     - Expected exception for index=3: Index: 3, Size: 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddNull
+INFO:  - addNull(int)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddNullOutOfBounds
+INFO:  - addNull(int)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddNullOutOfBounds
+INFO:     - Expected exception for index=-1: Index: -1, Size: 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddNullOutOfBounds
+INFO:     - Expected exception for index=2: Index: 2, Size: 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddNullOutOfBounds
+INFO:     - Expected exception for index=3: Index: 3, Size: 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddArrayBuilder
+INFO:  - add(int,JsonArrayBuilder)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddArrayBuilderNull
+INFO:  - add(int,(JsonArrayBuilder)null)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddArrayBuilderNull
+INFO:     - Expected exception: Cannot invoke "jakarta.json.JsonArrayBuilder.build()" because "builder" is null
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddArrayBuilderOutOfBounds
+INFO:  - add(int,JsonArrayBuilder)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddArrayBuilderOutOfBounds
+INFO:     - Expected exception for index=-1: Index: -1, Size: 4
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddArrayBuilderOutOfBounds
+INFO:     - Expected exception for index=5: Index: 5, Size: 4
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddArrayBuilderOutOfBounds
+INFO:     - Expected exception for index=6: Index: 6, Size: 4
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddObjectBuilder
+INFO:  - add(int,JsonObjectBuilder)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddObjectBuilderNull
+INFO:  - add(int,(JsonObjectBuilder)null)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddObjectBuilderNull
+INFO:     - Expected exception: Cannot invoke "jakarta.json.JsonObjectBuilder.build()" because "builder" is null
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddObjectBuilderOutOfBounds
+INFO:  - add(int,JsonObjectBuilder)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddObjectBuilderOutOfBounds
+INFO:     - Expected exception for index=-1: Index: -1, Size: 4
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddObjectBuilderOutOfBounds
+INFO:     - Expected exception for index=5: Index: 5, Size: 4
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddObjectBuilderOutOfBounds
+INFO:     - Expected exception for index=6: Index: 6, Size: 4
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddAllString
+INFO:  - addAll(JsonArrayBuilder) for String array
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddAllInt
+INFO:  - addAll(JsonArrayBuilder) for int array
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddAllBool
+INFO:  - addAll(JsonArrayBuilder) for boolean array
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddAllObject
+INFO:  - addAll(JsonArrayBuilder) for JsonObject array
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddAllNull
+INFO:  - addAll(JsonArrayBuilder) for null builder argument
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildAdd testAddAllNull
+INFO:     - Expected exception: Cannot invoke "jakarta.json.JsonArrayBuilder.build()" because "builder" is null
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuilders test
+INFO: JsonArrayBuilder API factory methods added in JSON-P 1.1.
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuilders testCreateFromCollection
+INFO:  - Json#createArrayBuilder(Collection<Object>)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuilders testCreateFromJsonArray
+INFO:  - Json#createArrayBuilder(JsonArray)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuilders testGetStringValuesAs
+INFO:  - getValuesAs(Function<K,T> on String array
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuilders testGetIntValuesAs
+INFO:  - getValuesAs(Function<K,T> on int array
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest1
+INFO: Create sample JsonObject for testing
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest1
+INFO: Create sample JsonArray for testing
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest1
+INFO: Create the expected list of JsonArray values
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: *** Beg: Dumping List contents ***
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: *** Message: Expected List
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: List: [
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: false
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: true
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: null
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: 4.9E-324
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: 0
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: -2147483648
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: 2147483647
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: -9223372036854775808
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: 9223372036854775807
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: 123456789.12345679
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: 123456789
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: "string1"
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: {"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]}
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: [{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: ]
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: *** End: Dumping List contents ***
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest1
+INFO: Create JsonArray using all JsonArrayBuilder API's
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: *** Beg: Dumping List contents ***
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: *** Message: Actual List
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: List: [
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: false
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: true
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: null
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: 4.9E-324
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: 0
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: -2147483648
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: 2147483647
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: -9223372036854775808
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: 9223372036854775807
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: 123456789.12345679
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: 123456789
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: "string1"
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: {"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]}
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: [{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: ]
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpList
+INFO: *** End: Dumping List contents ***
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest1
+INFO: Compare actual list of JsonArray values with expected list of JsonArray values
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsList
+INFO: Lists are equal - match (Success)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsList
+INFO: Expected: List: [false,true,null,4.9E-324,0,-2147483648,2147483647,-9223372036854775808,9223372036854775807,123456789.12345679,123456789,"string1",{"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]},[{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]]
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsList
+INFO: Actual:   List: [false,true,null,4.9E-324,0,-2147483648,2147483647,-9223372036854775808,9223372036854775807,123456789.12345679,123456789,"string1",{"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]},[{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]]
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest2
+INFO: Create sample JsonObject for testing
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest2
+INFO: Create sample JsonArray for testing
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest2
+INFO: Create JsonArray 'myJsonArray1' using all JsonArrayBuilder API's
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest2
+INFO: Write the JsonArray 'myJsonArray1' out to a JsonWriter
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest2
+INFO: Close JsonWriter
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest2
+INFO: Save contents of the JsonWriter as a String
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest2
+INFO: Dump contents of JsonWriter as a String
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest2
+INFO: JsonWriterContents=[false,true,null,4.9E-324,1.7976931348623157E+308,-2147483648,2147483647,-9223372036854775808,9223372036854775807,123456789.12345679,123456789,"string1",{"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]},[{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]]
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest2
+INFO: Read the JsonArray back into 'myJsonArray2' using a JsonReader
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest2
+INFO: Dump contents of JsonArray read from String Contents
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpJsonArray
+INFO: dumpJsonArray->[false,true,null,4.9E-324,0,-2147483648,2147483647,-9223372036854775808,9223372036854775807,123456789.12345679,123456789,"string1",{"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]},[{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]]
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest2
+INFO: Compare myJsonArray1 and myJsonArray2 for equality
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonArrays
+INFO: JsonArray match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonArrays
+INFO: Expected: [false,true,null,4.9E-324,0,-2147483648,2147483647,-9223372036854775808,9223372036854775807,123456789.12345679,123456789,"string1",{"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]},[{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]]
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonArrays
+INFO: Actual:   [false,true,null,4.9E-324,0,-2147483648,2147483647,-9223372036854775808,9223372036854775807,123456789.12345679,123456789,"string1",{"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]},[{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]]
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Create sample JsonObject for testing
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Create sample JsonArray for testing
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Create myArray Jsonarray of 23 elements
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Array size=23
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Checking getValue(0) for correctness
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify (JsonValueType=NUMBER)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: JsonValue.ValueType match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Expected: NUMBER
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Actual:   NUMBER
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and (expect JsonNumber NumberType be one of INTEGRAL|NON_INTEGRAL)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Json NumberType match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Expected: INTEGRAL
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Actual:   INTEGRAL
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify integer value via JsonNumber.intValue()
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: -1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   -1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify integer value via JsonArray.getInt
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: -1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   -1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify integer value via JsonNumber.intValueExact()
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: -1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   -1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Checking getValue(1) for correctness
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify (JsonValueType=NUMBER)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: JsonValue.ValueType match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Expected: NUMBER
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Actual:   NUMBER
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and (expect JsonNumber NumberType be one of INTEGRAL|NON_INTEGRAL)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Json NumberType match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Expected: INTEGRAL
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Actual:   INTEGRAL
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify integer value via JsonNumber.intValue()
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify integer value via JsonArray.getInt
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify integer value via JsonNumber.intValueExact()
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Checking getValue(2) for correctness
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify (JsonValueType=NUMBER)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: JsonValue.ValueType match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Expected: NUMBER
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Actual:   NUMBER
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and (expect JsonNumber NumberType be one of INTEGRAL|NON_INTEGRAL)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Json NumberType match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Expected: INTEGRAL
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Actual:   INTEGRAL
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify integer value via JsonNumber.intValue()
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify integer value via JsonArray.getInt
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify integer value via JsonNumber.intValueExact()
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   1
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Checking getValue(3) for correctness
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify (JsonValueType=NUMBER)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: JsonValue.ValueType match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Expected: NUMBER
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Actual:   NUMBER
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and (expect JsonNumber NumberType be one of INTEGRAL|NON_INTEGRAL)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Json NumberType match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Expected: NON_INTEGRAL
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Actual:   NON_INTEGRAL
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify integer value via JsonNumber.intValue()
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: -1000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   -1000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify integer value via JsonArray.getInt
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: -1000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   -1000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify integer value via JsonNumber.intValueExact()
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: -1000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   -1000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Checking getValue(4) for correctness
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify (JsonValueType=NUMBER)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: JsonValue.ValueType match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Expected: NUMBER
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Actual:   NUMBER
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and (expect JsonNumber NumberType be one of INTEGRAL|NON_INTEGRAL)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Json NumberType match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Expected: NON_INTEGRAL
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Actual:   NON_INTEGRAL
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify integer value via JsonNumber.intValue()
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 1000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   1000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify integer value via JsonArray.getInt
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 1000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   1000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify integer value via JsonNumber.intValueExact()
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 1000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   1000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Checking getValue(5) for correctness
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify (JsonValueType=NUMBER)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: JsonValue.ValueType match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Expected: NUMBER
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Actual:   NUMBER
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and (expect JsonNumber NumberType be one of INTEGRAL|NON_INTEGRAL)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Json NumberType match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Expected: NON_INTEGRAL
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Actual:   NON_INTEGRAL
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify integer value via JsonNumber.intValue()
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 1000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   1000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify integer value via JsonArray.getInt
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 1000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   1000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify integer value via JsonNumber.intValueExact()
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 1000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   1000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Checking getValue(6) for correctness
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify (JsonValueType=NUMBER)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: JsonValue.ValueType match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Expected: NUMBER
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Actual:   NUMBER
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and (expect JsonNumber NumberType be one of INTEGRAL|NON_INTEGRAL)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Json NumberType match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Expected: NON_INTEGRAL
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Actual:   NON_INTEGRAL
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify integer value via JsonNumber.intValue()
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: -2000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   -2000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify integer value via JsonArray.getInt
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: -2000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   -2000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify integer value via JsonNumber.intValueExact()
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: -2000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   -2000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Checking getValue(7) for correctness
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify (JsonValueType=NUMBER)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: JsonValue.ValueType match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Expected: NUMBER
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Actual:   NUMBER
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and (expect JsonNumber NumberType be one of INTEGRAL|NON_INTEGRAL)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Json NumberType match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Expected: NON_INTEGRAL
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Actual:   NON_INTEGRAL
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify integer value via JsonNumber.intValue()
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 2000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   2000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify integer value via JsonArray.getInt
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 2000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   2000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify integer value via JsonNumber.intValueExact()
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 2000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   2000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Checking getValue(8) for correctness
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify (JsonValueType=NUMBER)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: JsonValue.ValueType match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Expected: NUMBER
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Actual:   NUMBER
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and (expect JsonNumber NumberType be one of INTEGRAL|NON_INTEGRAL)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Json NumberType match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Expected: NON_INTEGRAL
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Actual:   NON_INTEGRAL
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify integer value via JsonNumber.intValue()
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 2000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   2000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify integer value via JsonArray.getInt
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 2000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   2000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify integer value via JsonNumber.intValueExact()
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 2000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   2000
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Checking getValue(9) for correctness
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify (JsonValueType=NUMBER)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: JsonValue.ValueType match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Expected: NUMBER
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Actual:   NUMBER
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and (expect JsonNumber NumberType be one of INTEGRAL|NON_INTEGRAL)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Json NumberType match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Expected: INTEGRAL
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Actual:   INTEGRAL
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify integer value via JsonNumber.intValue()
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 2147483647
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   2147483647
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify integer value via JsonArray.getInt
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 2147483647
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   2147483647
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify integer value via JsonNumber.intValueExact()
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 2147483647
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   2147483647
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Checking getValue(10) for correctness
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify (JsonValueType=NUMBER)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: JsonValue.ValueType match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Expected: NUMBER
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Actual:   NUMBER
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and (expect JsonNumber NumberType be one of INTEGRAL|NON_INTEGRAL)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Json NumberType match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Expected: INTEGRAL
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Actual:   INTEGRAL
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify integer value via JsonNumber.intValue()
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: -2147483648
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   -2147483648
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify integer value via JsonArray.getInt
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: -2147483648
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   -2147483648
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify integer value via JsonNumber.intValueExact()
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: -2147483648
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   -2147483648
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Checking getValue(11) for correctness
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify (JsonValueType=NUMBER)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: JsonValue.ValueType match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Expected: NUMBER
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Actual:   NUMBER
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and (expect JsonNumber NumberType be INTEGRAL)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberType
+INFO: Json NumberType match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberType
+INFO: Expected: INTEGRAL
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberType
+INFO: Actual:   INTEGRAL
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify long value via JsonNumber.longValue()
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: long match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 9223372036854775807
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   9223372036854775807
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify long value via JsonNumber.longValueExact()
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: long match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 9223372036854775807
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   9223372036854775807
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Checking getValue(12) for correctness
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify (JsonValueType=NUMBER)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: JsonValue.ValueType match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Expected: NUMBER
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Actual:   NUMBER
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and (expect JsonNumber NumberType be INTEGRAL)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberType
+INFO: Json NumberType match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberType
+INFO: Expected: INTEGRAL
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberType
+INFO: Actual:   INTEGRAL
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify long value via JsonNumber.longValue()
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: long match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: -9223372036854775808
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   -9223372036854775808
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify long value via JsonNumber.longValueExact()
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: long match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: -9223372036854775808
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   -9223372036854775808
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Checking getValue(13) for correctness
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify (JsonValueType=NUMBER)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: JsonValue.ValueType match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Expected: NUMBER
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Actual:   NUMBER
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and (expect JsonNumber NumberType be one of INTEGRAL|NON_INTEGRAL)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Json NumberType match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Expected: INTEGRAL
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Actual:   INTEGRAL
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify double value via JsonNumber.doubleValue()
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: double match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 1.7976931348623157E308
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   1.7976931348623157E308
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Checking getValue(14) for correctness
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify (JsonValueType=NUMBER)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: JsonValue.ValueType match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Expected: NUMBER
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Actual:   NUMBER
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and (expect JsonNumber NumberType be one of INTEGRAL|NON_INTEGRAL)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Json NumberType match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Expected: NON_INTEGRAL
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Actual:   NON_INTEGRAL
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify double value via JsonNumber.doubleValue()
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: double match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 4.9E-324
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   4.9E-324
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Checking getValue(15) for correctness
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify (JsonValueType=NUMBER)
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: JsonValue.ValueType match
+Sep 09, 2026 1:32:38 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Expected: NUMBER
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Actual:   NUMBER
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and (expect JsonNumber NumberType be one of INTEGRAL|NON_INTEGRAL)
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Json NumberType match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Expected: NON_INTEGRAL
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberTypes
+INFO: Actual:   NON_INTEGRAL
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify BigDecimal value via JsonNumber.bigDecimalValue()
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: BigDecimal match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 123456789.12345679
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   123456789.12345679
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Checking getValue(16) for correctness
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify (JsonValueType=NUMBER)
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: JsonValue.ValueType match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Expected: NUMBER
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Actual:   NUMBER
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and (expect JsonNumber NumberType be INTEGRAL)
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberType
+INFO: Json NumberType match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberType
+INFO: Expected: INTEGRAL
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonNumberType
+INFO: Actual:   INTEGRAL
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify BigInteger value via JsonNumber.bigIntegerValue()
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: BigInteger match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 123456789
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   123456789
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify BigInteger value via JsonNumber.bigIntegerValueExact()
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: BigInteger match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 123456789
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   123456789
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify true value via JsonArray.getBoolean(int)
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: boolean match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: true
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   true
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify false value via JsonArray.getBoolean(int)
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: boolean match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: false
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   false
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify null value via JsonArray.isNull(int)
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: boolean match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: true
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   true
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify non-null value via JsonArray.isNull(int)
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: boolean match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: false
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   false
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Checking getValue(20) for correctness
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and (expect JsonValueType=STRING)
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: JsonValue.ValueType match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Expected: STRING
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Actual:   STRING
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify string value via JsonString.getString()
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: !@#$%^&*()_+|~1234567890-=;',./<>? qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   !@#$%^&*()_+|~1234567890-=;',./<>? qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify string value via JsonArray.getString()
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: !@#$%^&*()_+|~1234567890-=;',./<>? qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   !@#$%^&*()_+|~1234567890-=;',./<>? qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Checking getJsonObject(21) for correctness
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and (expect JsonValueType=OBJECT)
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: JsonValue.ValueType match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Expected: OBJECT
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Actual:   OBJECT
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify object value via JsonArray.getJsonObject(int)
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonObjects
+INFO: JsonObject match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonObjects
+INFO: Expected: {"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]}
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonObjects
+INFO: Actual:   {"firstName":"John","lastName":"Smith","age":25,"elderly":false,"patriot":true,"address":{"streetAddress":"21 2nd Street","city":"New York","state":"NY","postalCode":"10021"},"phoneNumber":[{"type":"home","number":"212 555-1234"},{"type":"cell","number":"646 555-4567"}],"objectOfFooBar":{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},"arrayOfFooBar":[{"foo":"bar"},["foo","bar"]]}
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Checking getJsonArray(22) for correctness
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and (expect JsonValueType=ARRAY)
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: JsonValue.ValueType match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Expected: ARRAY
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonValueType
+INFO: Actual:   ARRAY
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Retrieve and verify array value via JsonArray.getJsonArray(int)
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonArrays
+INFO: JsonArray match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonArrays
+INFO: Expected: [{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonArrays
+INFO: Actual:   [{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: boolean match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: true
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   true
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: boolean match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: false
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   false
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Testing JsonArray.getBoolean(int, boolean) with/without default value setting.
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: boolean match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: true
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   true
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: boolean match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: false
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   false
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: boolean match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: false
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   false
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: boolean match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: false
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   false
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: boolean match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: false
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   false
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: boolean match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: false
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   false
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Testing JsonArray.getInt(int, int) with/without default value setting.
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: -1
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   -1
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 10
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   10
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 10
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   10
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 10
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   10
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 10
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   10
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: int match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: 10
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   10
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest3
+INFO: Testing JsonArray.getString(int, String) with/without default value setting.
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: !@#$%^&*()_+|~1234567890-=;',./<>? qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   !@#$%^&*()_+|~1234567890-=;',./<>? qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: foo
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   foo
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: foo
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   foo
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: foo
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   foo
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: foo
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   foo
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: String match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: foo
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   foo
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest4
+INFO: Create sample JsonArray for testing
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest4
+INFO: Write the JsonArray 'myJsonArray1' out to a JsonWriter
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest4
+INFO: Close JsonWriter
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest4
+INFO: Save contents of the JsonWriter as a String
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest4
+INFO: Dump contents of JsonWriter as a String
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest4
+INFO: JsonWriterContents=[{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest4
+INFO: Remove whitespace from contents.
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ClientTests jsonArrayTest4
+INFO: Compare expected JsonArray text with actual JsonArray text for equality
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: [{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   [{"name1":"value1","name2":"value2"},true,false,null,100,200,"string",123456789,123456789,{"name3":"value3","name4":"value4"},true,false,null,[2,4],{"objectFooBar":{"foo":"bar"},"arrayFooBar":["foo","bar"]},[{"foo":"bar"},["foo","bar"]]]
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove test
+INFO: JsonArrayBuilder API remove() methods added in JSON-P 1.1.
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemove
+INFO:  - remove(int,JsonValue)
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemove
+INFO:  - remove(int,String)
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemove
+INFO:  - remove(int,Integer)
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemove
+INFO:  - remove(int,Long)
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemove
+INFO:  - remove(int,Double)
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemove
+INFO:  - remove(int,BigInteger)
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemove
+INFO:  - remove(int,BigDecimal)
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemove
+INFO:  - remove(int,Boolean)
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemoveOutOfBounds
+INFO:  - remove(int,JsonValue)
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemoveOutOfBounds
+INFO:     - Expected exception for index=-1: Index -1 out of bounds for length 1
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemoveOutOfBounds
+INFO:     - Expected exception for index=2: Index 2 out of bounds for length 1
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemoveOutOfBounds
+INFO:     - Expected exception for index=3: Index 3 out of bounds for length 1
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemoveOutOfBounds
+INFO:  - remove(int,String)
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemoveOutOfBounds
+INFO:     - Expected exception for index=-1: Index -1 out of bounds for length 1
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemoveOutOfBounds
+INFO:     - Expected exception for index=2: Index 2 out of bounds for length 1
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemoveOutOfBounds
+INFO:     - Expected exception for index=3: Index 3 out of bounds for length 1
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemoveOutOfBounds
+INFO:  - remove(int,Integer)
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemoveOutOfBounds
+INFO:     - Expected exception for index=-1: Index -1 out of bounds for length 1
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemoveOutOfBounds
+INFO:     - Expected exception for index=2: Index 2 out of bounds for length 1
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemoveOutOfBounds
+INFO:     - Expected exception for index=3: Index 3 out of bounds for length 1
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemoveOutOfBounds
+INFO:  - remove(int,Long)
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemoveOutOfBounds
+INFO:     - Expected exception for index=-1: Index -1 out of bounds for length 1
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemoveOutOfBounds
+INFO:     - Expected exception for index=2: Index 2 out of bounds for length 1
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemoveOutOfBounds
+INFO:     - Expected exception for index=3: Index 3 out of bounds for length 1
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemoveOutOfBounds
+INFO:  - remove(int,Double)
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemoveOutOfBounds
+INFO:     - Expected exception for index=-1: Index -1 out of bounds for length 1
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemoveOutOfBounds
+INFO:     - Expected exception for index=2: Index 2 out of bounds for length 1
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemoveOutOfBounds
+INFO:     - Expected exception for index=3: Index 3 out of bounds for length 1
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemoveOutOfBounds
+INFO:  - remove(int,BigInteger)
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemoveOutOfBounds
+INFO:     - Expected exception for index=-1: Index -1 out of bounds for length 1
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemoveOutOfBounds
+INFO:     - Expected exception for index=2: Index 2 out of bounds for length 1
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemoveOutOfBounds
+INFO:     - Expected exception for index=3: Index 3 out of bounds for length 1
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemoveOutOfBounds
+INFO:  - remove(int,BigDecimal)
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemoveOutOfBounds
+INFO:     - Expected exception for index=-1: Index -1 out of bounds for length 1
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemoveOutOfBounds
+INFO:     - Expected exception for index=2: Index 2 out of bounds for length 1
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemoveOutOfBounds
+INFO:     - Expected exception for index=3: Index 3 out of bounds for length 1
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemoveOutOfBounds
+INFO:  - remove(int,Boolean)
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemoveOutOfBounds
+INFO:     - Expected exception for index=-1: Index -1 out of bounds for length 1
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemoveOutOfBounds
+INFO:     - Expected exception for index=2: Index 2 out of bounds for length 1
+Sep 09, 2026 1:32:39 PM ee.jakarta.tck.jsonp.api.jsonarraytests.ArrayBuildRemove testRemoveOutOfBounds
+INFO:     - Expected exception for index=3: Index 3 out of bounds for length 1
+]]></system-err>
+</testsuite>
