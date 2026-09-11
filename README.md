@@ -37,3 +37,4 @@ Releases are completely automated. To perform a release use the following steps:
 * [Monitor the Workflow](https://github.com/micronaut-projects/micronaut-serialization/actions?query=workflow%3ARelease) to check it passed successfully.
 * If everything went fine, [publish to Maven Central](https://github.com/micronaut-projects/micronaut-serialization/actions?query=workflow%3A"Maven+Central+Sync").
 * Celebrate!
+
