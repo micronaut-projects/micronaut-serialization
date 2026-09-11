@@ -17,9 +17,14 @@ package io.micronaut.serde.toon;
 
 import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.ConfigurationProperties;
+import io.micronaut.core.annotation.Internal;
+import io.micronaut.core.convert.ConversionContext;
+import io.micronaut.core.convert.TypeConverter;
 import io.micronaut.serde.config.SerdeConfiguration;
+import jakarta.inject.Singleton;
 
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * TOON-specific configuration.
@@ -27,10 +32,11 @@ import java.util.Objects;
  * @since 3.2.0
  */
 @BootstrapContextCompatible
+@Internal
 @ConfigurationProperties(SerdeToonConfiguration.PREFIX)
 public final class SerdeToonConfiguration {
 
-    public static final String PREFIX = SerdeConfiguration.PREFIX + ".format.toon";
+    static final String PREFIX = SerdeConfiguration.PREFIX + ".format.toon";
 
     private Delimiter delimiter = Delimiter.COMMA;
     private int indent = 2;
@@ -111,6 +117,36 @@ public final class SerdeToonConfiguration {
          */
         public char getCharacter() {
             return character;
+        }
+    }
+
+    /**
+     * Converts a string representation of a delimiter (either enum name or character) to {@link Delimiter}.
+     */
+    @Singleton
+    @Internal
+    public static final class CharSequenceToDelimiterConverter implements TypeConverter<CharSequence, Delimiter> {
+        @Override
+        public Optional<Delimiter> convert(CharSequence object, Class<Delimiter> targetType, ConversionContext context) {
+            if (object == null || object.isEmpty()) {
+                return Optional.empty();
+            }
+            String s = object.toString();
+            if (s.length() == 1) {
+                char c = s.charAt(0);
+                for (Delimiter d : Delimiter.values()) {
+                    if (d.getCharacter() == c) {
+                        return Optional.of(d);
+                    }
+                }
+            }
+            String trimmed = s.trim();
+            for (Delimiter d : Delimiter.values()) {
+                if (d.name().equalsIgnoreCase(trimmed)) {
+                    return Optional.of(d);
+                }
+            }
+            return Optional.empty();
         }
     }
 }

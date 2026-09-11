@@ -113,8 +113,14 @@ public final class ToonNumbers {
         String mantissa = digits.length() > 1 ? digits.charAt(0) + "." + digits.substring(1) : digits;
 
         if (mantissa.indexOf('.') >= 0) {
-            mantissa = mantissa.replaceAll("0+$", "");
-            mantissa = mantissa.replaceAll("\\.$", "");
+            int end = mantissa.length();
+            while (end > 0 && mantissa.charAt(end - 1) == '0') {
+                end--;
+            }
+            if (end > 0 && mantissa.charAt(end - 1) == '.') {
+                end--;
+            }
+            mantissa = mantissa.substring(0, end);
         }
 
         return (negative ? "-" : "") + mantissa + "e" + (exponent >= 0 ? "+" : "") + exponent;

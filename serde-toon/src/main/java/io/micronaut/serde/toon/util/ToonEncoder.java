@@ -17,6 +17,7 @@ package io.micronaut.serde.toon.util;
 
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.util.CollectionUtils;
+import io.micronaut.core.util.functional.ThrowingConsumer;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.toon.SerdeToonConfiguration;
 import jakarta.inject.Singleton;
@@ -88,7 +89,7 @@ public final class ToonEncoder {
         }
     }
 
-    private void writeRoot(LineConsumer consumer, JsonNode tree) throws IOException {
+    private void writeRoot(ThrowingConsumer<String, IOException> consumer, JsonNode tree) throws IOException {
         if (tree.isNull()) {
             consumer.accept("null");
         } else if (tree.isObject()) {
@@ -109,7 +110,7 @@ public final class ToonEncoder {
         }
     }
 
-    private void writeObjectFields(LineConsumer consumer, JsonNode object, int depth) throws IOException {
+    private void writeObjectFields(ThrowingConsumer<String, IOException> consumer, JsonNode object, int depth) throws IOException {
         for (Map.Entry<String, JsonNode> entry : object.entries()) {
             String key = entry.getKey();
             JsonNode value = entry.getValue();
@@ -130,7 +131,7 @@ public final class ToonEncoder {
         }
     }
 
-    private void writeArrayNode(LineConsumer consumer, @Nullable String key, JsonNode array, int depth) throws IOException {
+    private void writeArrayNode(ThrowingConsumer<String, IOException> consumer, @Nullable String key, JsonNode array, int depth) throws IOException {
         String prefix = indent(depth) + keyPrefix(key);
         int size = array.size();
         if (size == 0) {
@@ -148,7 +149,7 @@ public final class ToonEncoder {
         }
     }
 
-    private void writeInlineArray(LineConsumer consumer, String prefix, List<JsonNode> elements) throws IOException {
+    private void writeInlineArray(ThrowingConsumer<String, IOException> consumer, String prefix, List<JsonNode> elements) throws IOException {
         StringBuilder sb = new StringBuilder(prefix).append(bracketSegment(elements.size(), false)).append(": ");
         for (int i = 0; i < elements.size(); i++) {
             if (i > 0) {
@@ -159,7 +160,7 @@ public final class ToonEncoder {
         consumer.accept(sb.toString());
     }
 
-    private void writeTabularArray(LineConsumer consumer, String prefix, List<JsonNode> elements, int depth) throws IOException {
+    private void writeTabularArray(ThrowingConsumer<String, IOException> consumer, String prefix, List<JsonNode> elements, int depth) throws IOException {
         JsonNode representative = elements.getFirst();
         List<String> fieldOrder = keysOf(representative);
         String header = bracketSegment(elements.size(), false) + buildFieldList(fieldOrder, representative);
@@ -170,14 +171,14 @@ public final class ToonEncoder {
         }
     }
 
-    private void writeListArray(LineConsumer consumer, String prefix, List<JsonNode> elements, int depth) throws IOException {
+    private void writeListArray(ThrowingConsumer<String, IOException> consumer, String prefix, List<JsonNode> elements, int depth) throws IOException {
         consumer.accept(prefix + bracketSegment(elements.size(), false) + ":");
         for (JsonNode element : elements) {
             writeListItem(consumer, element, depth + 1);
         }
     }
 
-    private void writeListItem(LineConsumer consumer, JsonNode item, int depth) throws IOException {
+    private void writeListItem(ThrowingConsumer<String, IOException> consumer, JsonNode item, int depth) throws IOException {
         if (item.isValueNode()) {
             consumer.accept(indent(depth) + "- " + encodeScalar(item));
             return;
@@ -197,7 +198,7 @@ public final class ToonEncoder {
         // was rendered as if depth + 1 were the item's own depth.
         String childIndent = indent(depth + 1);
         String listPrefix = indent(depth) + "- ";
-        LineConsumer itemConsumer = new LineConsumer() {
+        ThrowingConsumer<String, IOException> itemConsumer = new ThrowingConsumer<String, IOException>() {
             private boolean first = true;
 
             @Override
@@ -218,7 +219,7 @@ public final class ToonEncoder {
         }
     }
 
-    private void writeKeyedTabular(LineConsumer consumer, @Nullable String key, JsonNode object, int depth) throws IOException {
+    private void writeKeyedTabular(ThrowingConsumer<String, IOException> consumer, @Nullable String key, JsonNode object, int depth) throws IOException {
         List<Map.Entry<String, JsonNode>> entries = CollectionUtils.iterableToList(object.entries());
         JsonNode representative = entries.getFirst().getValue();
         List<String> fieldOrder = keysOf(representative);
@@ -405,10 +406,5 @@ public final class ToonEncoder {
             keys.add(entry.getKey());
         }
         return keys;
-    }
-
-    @FunctionalInterface
-    private interface LineConsumer {
-        void accept(String line) throws IOException;
     }
 }

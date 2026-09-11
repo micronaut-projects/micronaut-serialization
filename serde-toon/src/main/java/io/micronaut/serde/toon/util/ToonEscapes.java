@@ -51,6 +51,7 @@ public final class ToonEscapes {
     private static final Pattern DECODE_NUMBER = Pattern.compile("^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?(?:e[+-]?[0-9]+)?$", Pattern.CASE_INSENSITIVE);
 
     private static final char CONTROL_CHARACTER_BOUNDARY = 0x20;
+    private static final char[] HEX_DIGITS = "0123456789abcdef".toCharArray();
 
     private ToonEscapes() {
     }
@@ -273,14 +274,20 @@ public final class ToonEscapes {
     }
 
     /**
-     * Strips trailing whitespace (spaces and tabs) from the given line.
+     * Strips trailing spaces from the given line. Tabs are deliberately left
+     * alone: a tab is a legal delimiter, so a trailing tab on a row/entry
+     * line can be significant (an intentionally-empty last cell), not
+     * incidental whitespace. This runs once, before any line is known to be
+     * a row/entry line rather than a bare scalar or list-item marker;
+     * callers that parse a line in a context with no delimiter at all strip
+     * a leftover trailing tab themselves once that context is known.
      *
-     * @param line The line to strip trailing whitespace from
-     * @return The line without trailing spaces or tabs
+     * @param line The line to strip trailing spaces from
+     * @return The line without trailing spaces
      */
     public static String stripTrailingWhitespace(String line) {
         int end = line.length();
-        while (end > 0 && isSpaceOrTab(line.charAt(end - 1))) {
+        while (end > 0 && line.charAt(end - 1) == ' ') {
             end--;
         }
 
@@ -380,7 +387,7 @@ public final class ToonEscapes {
             return true;
         }
 
-        if (NUMERIC_LITERAL.matcher(value).matches()) {
+        if ((first == '+' || isAsciiDigit(first)) && NUMERIC_LITERAL.matcher(value).matches()) {
             return true;
         }
 
@@ -413,7 +420,11 @@ public final class ToonEscapes {
                 default -> {
                     // Convert non-printable characters to their Unicode escape sequences.
                     if (c < CONTROL_CHARACTER_BOUNDARY) {
-                        sb.append(String.format("\\u%04x", (int) c));
+                        sb.append("\\u")
+                            .append(HEX_DIGITS[(c >> 12) & 0xF])
+                            .append(HEX_DIGITS[(c >> 8) & 0xF])
+                            .append(HEX_DIGITS[(c >> 4) & 0xF])
+                            .append(HEX_DIGITS[c & 0xF]);
                     } else {
                         sb.append(c);
                     }

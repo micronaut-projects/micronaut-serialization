@@ -16,6 +16,8 @@
 package io.micronaut.serde.toon.util
 
 import io.micronaut.json.tree.JsonNode
+import io.micronaut.serde.LimitingStream
+import io.micronaut.serde.config.SerdeConfiguration
 import io.micronaut.serde.exceptions.SerdeException
 import io.micronaut.serde.toon.SerdeToonConfiguration
 import spock.lang.Specification
@@ -356,6 +358,58 @@ forecast[2]{day,temp,condition}:
         'huge declared list item count'                | 'items[2000000000]:\n  - a'
     }
 
+    private static LimitingStream.RemainingLimits limitsOf(int maximumNestingDepth) {
+        LimitingStream.limitsFromConfiguration([getMaximumNestingDepth: { ->
+            maximumNestingDepth
+        }] as SerdeConfiguration)
+    }
+
+    private static JsonNode parseWithLimit(String text, int maximumNestingDepth) {
+        new ToonDecoder().parse(new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8)), limitsOf(maximumNestingDepth))
+    }
+
+    void 'test the nesting-depth guard rejects a chain of single-item nested lists at a small configured limit'() {
+        given:
+        int levels = 6
+        def sb = new StringBuilder('[1]:\n')
+        for (int i = 0; i < levels; i++) {
+            sb.append('  ' * (i + 1)).append('- [1]:\n')
+        }
+
+        sb.append('  ' * (levels + 1)).append('- 1')
+        def deeplyNestedList = sb.toString()
+
+        expect:
+        parse(deeplyNestedList) // fits comfortably under the default budget
+
+        when:
+        parseWithLimit(deeplyNestedList, 3)
+
+        then:
+        thrown(SerdeException)
+    }
+
+    void 'test an exponent too large for BigDecimal is a SerdeException, not a raw NumberFormatException'() {
+        when:
+        parse('value: 1e99999999999999999999')
+
+        then:
+        thrown(SerdeException)
+    }
+
+    void 'test invalid UTF-8 is rejected, not silently replaced with U+FFFD'() {
+        given:
+        // 0xC3 starts a 2-byte sequence but must be followed by a
+        // continuation byte in 0x80-0xBF; 0x28 ('(') is not one.
+        byte[] invalidUtf8 = [0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x20, 0xC3, 0x28] as byte[]
+
+        when:
+        new ToonDecoder().parse(new ByteArrayInputStream(invalidUtf8))
+
+        then:
+        thrown(SerdeException)
+    }
+
     void 'test extra spaces after a colon are trimmed, not treated as part of the value'() {
         expect:
         parse('count:  5').get('count').intValue == 5
@@ -367,9 +421,66 @@ forecast[2]{day,temp,condition}:
         parse('items[1]:\n  -   text').get('items').get(0).stringValue == 'text'
     }
 
-    void 'test a trailing tab after a value is stripped'() {
+    void 'test a trailing tab is not stripped, since tab is a legal delimiter'() {
         expect:
-        parse("name: Alice\t").get('name').stringValue == 'Alice'
+        // An intentionally-empty last cell in a tab-delimited row must
+        // survive: stripping a trailing tab would silently drop it.
+        parse('tags[3\t]: a\tb\t').get('tags').values().toList()*.stringValue == ['a', 'b', '']
+    }
+
+    void 'test a trailing tab after a comma-delimited header colon is insignificant, not a one-token inline array'() {
+        expect:
+        // Unlike the tab-delimited case above, a plain tab is not the
+        // active delimiter here, so it carries no significance and must
+        // not be mistaken for a single-token inline array body - the
+        // header has no field list and no meaningful inline tail, so it
+        // is list-form content on the following lines.
+        parse('items[2]:\t\n  - a\n  - b').get('items').values().toList()*.stringValue == ['a', 'b']
+    }
+
+    void 'test a trailing tab on a bare root scalar is insignificant, not part of the value'() {
+        expect:
+        // No delimiter is in play for a lone root scalar, so the trailing
+        // tab must not stop it from being recognized and parsed as a number.
+        parse('42\t').numberValue == 42
+    }
+
+    void 'test a trailing tab after a bare list-item dash is insignificant, not a malformed item'() {
+        expect:
+        // "-\t" is still the empty-object shorthand: no delimiter is in
+        // play for a bare dash marker either.
+        parse('items[1]:\n  -\t').get('items').get(0) == JsonNode.createObjectNode([:])
+    }
+
+    void 'test an unterminated quoted scalar at the document root reports a line number'() {
+        when:
+        parse('"unterminated')
+
+        then:
+        SerdeException ex = thrown(SerdeException)
+        ex.message.contains('at line 1')
+    }
+
+    void 'test an unterminated quoted scalar as a list item value reports a line number'() {
+        when:
+        parse('items[1]:\n  - "unterminated')
+
+        then:
+        SerdeException ex = thrown(SerdeException)
+        ex.message.contains('at line 2')
+    }
+
+    void 'test a line-number annotation is not suppressed by user text that happens to contain "at line "'() {
+        when:
+        // The unterminated quoted value itself contains the literal
+        // substring "at line ", which must not be mistaken for an
+        // already-annotated message and cause the real line number (2)
+        // to be silently dropped.
+        parse('foo: 1\nvalue: "at line 99 nonsense')
+
+        then:
+        SerdeException ex = thrown(SerdeException)
+        ex.message.contains('at line 2')
     }
 
     @Unroll
@@ -382,11 +493,11 @@ forecast[2]{day,temp,condition}:
         ''           | ''
         'abc'        | 'abc'
         'abc '       | 'abc'
-        'abc\t'      | 'abc'
-        'abc  \t \t' | 'abc'
-        '  abc  \t'  | '  abc'
+        'abc\t'      | 'abc\t'
+        'abc  \t \t' | 'abc  \t \t'
+        '  abc  \t'  | '  abc  \t'
         '   '        | ''
-        '\t\t'       | ''
+        '\t\t'       | '\t\t'
     }
 
     @Unroll
@@ -484,5 +595,44 @@ forecast[2]{day,temp,condition}:
         'foo '    | false
         ' foo'    | false
         'foo:bar' | false
+    }
+
+    void 'test parser diagnostics include line numbers in exception messages'() {
+        when:
+        parse('''name: Alice
+age: 30
+  broken_indent: true''')
+
+        then:
+        def e = thrown(SerdeException)
+        e.message.contains('line 3')
+
+        when:
+        parse('''name: Alice
+name: Bob''')
+
+        then:
+        def e2 = thrown(SerdeException)
+        e2.message.contains('line 2')
+        e2.message.contains("Duplicate key 'name'")
+
+        when:
+        parse('''items[2]:
+  - first
+  - second
+  - third''')
+
+        then:
+        def e3 = thrown(SerdeException)
+        e3.message.contains('line 4')
+
+        when:
+        parse('''items[2]{id,name}:
+  1,Alice
+  2''')
+
+        then:
+        def e4 = thrown(SerdeException)
+        e4.message.contains('line 3')
     }
 }

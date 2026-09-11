@@ -18,10 +18,15 @@ package io.micronaut.serde.toon.util;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.LimitingStream;
+import io.micronaut.serde.exceptions.SerdeException;
 import jakarta.inject.Singleton;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -67,7 +72,24 @@ public final class ToonDecoder {
      * @throws IOException If the TOON input cannot be read, is malformed, or nests too deeply
      */
     public JsonNode parse(InputStream stream, LimitingStream.RemainingLimits remainingLimits) throws IOException {
-        String text = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
+        String text = decodeUtf8Strict(stream.readAllBytes());
         return new ToonDocumentParser(text, remainingLimits).parseDocument();
+    }
+
+    /**
+     * Decodes the given bytes as UTF-8, rejecting ill-formed input instead
+     * of silently splicing in {@code U+FFFD} replacement characters (the
+     * behavior {@code new String(bytes, UTF_8)} would otherwise use).
+     */
+    private static String decodeUtf8Strict(byte[] bytes) throws SerdeException {
+        try {
+            CharBuffer decoded = StandardCharsets.UTF_8.newDecoder()
+                .onMalformedInput(CodingErrorAction.REPORT)
+                .onUnmappableCharacter(CodingErrorAction.REPORT)
+                .decode(ByteBuffer.wrap(bytes));
+            return decoded.toString();
+        } catch (CharacterCodingException e) {
+            throw new SerdeException("Invalid UTF-8 in TOON input", e);
+        }
     }
 }
