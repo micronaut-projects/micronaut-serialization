@@ -73,6 +73,7 @@ public final class RecordDeserializerSourceGen {
     private static final String FAIL_ON_NULL_FOR_PRIMITIVES_FIELD = "failOnNullForPrimitives";
     private static final String IGNORE_UNKNOWN_FIELD = "ignoreUnknown";
     private static final String STRICT_NULLABLE_FIELD = "strictNullable";
+    private static final String REQUIRE_ALL_CREATOR_PARAMETERS_FIELD = "requireAllCreatorParameters";
     private static final String GENERATED_VALUE_MEMBER = "value";
     private static final String HANDLED_DISPATCH_RESULT = "HANDLED";
     private static final String UNKNOWN_DISPATCH_RESULT = "UNKNOWN";
@@ -157,6 +158,25 @@ public final class RecordDeserializerSourceGen {
         STRICT_NULLABLE_FIELD,
         Deserializer.DecoderContext.class
     );
+    private static final Method REQUIRE_ALL_CREATOR_PARAMETERS_METHOD = ReflectionUtils.getRequiredMethod(
+        GeneratedSerdeExceptionUtil.class,
+        REQUIRE_ALL_CREATOR_PARAMETERS_FIELD,
+        Deserializer.DecoderContext.class
+    );
+    private static final Method NULL_CONSTRUCTOR_PARAMETER_METHOD = ReflectionUtils.getRequiredMethod(
+        GeneratedSerdeExceptionUtil.class,
+        "nullConstructorParameter",
+        Argument.class,
+        Argument.class,
+        int.class
+    );
+    private static final Method REQUIRED_CONSTRUCTOR_PARAMETER_METHOD = ReflectionUtils.getRequiredMethod(
+        GeneratedSerdeExceptionUtil.class,
+        "requiredConstructorParameter",
+        Argument.class,
+        Argument.class,
+        int.class
+    );
     private static final Method STRICT_NULLABLE_CONSTRUCTOR_PARAMETER_METHOD = ReflectionUtils.getRequiredMethod(
         GeneratedSerdeExceptionUtil.class,
         "strictNullableConstructorParameter",
@@ -175,6 +195,12 @@ public final class RecordDeserializerSourceGen {
         "withPropertyPath",
         Throwable.class,
         Argument.class,
+        Argument.class
+    );
+    private static final Method INSTANTIATION_FAILURE_METHOD = ReflectionUtils.getRequiredMethod(
+        GeneratedSerdeExceptionUtil.class,
+        "instantiationFailure",
+        Exception.class,
         Argument.class
     );
 
@@ -230,10 +256,30 @@ public final class RecordDeserializerSourceGen {
             }
             index++;
         }
+        // An alias is a further key resolving to the same component, so it shares the component's dispatch
+        List<String> aliasKeyFieldNames = new ArrayList<>(2);
+        List<Integer> aliasTargets = new ArrayList<>(2);
+        int componentIndex = 0;
+        for (RecordSerdeShape.RecordComponent component : recordSerdeShape.components()) {
+            for (String alias : component.aliases()) {
+                String aliasKeyFieldName = indexedName("ALIAS_KEY", aliasKeyFieldNames.size());
+                aliasKeyFieldNames.add(aliasKeyFieldName);
+                aliasTargets.add(componentIndex);
+                fields.add(FieldDef.builder(aliasKeyFieldName, STRING_TYPE)
+                    .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                    .initializer(ExpressionDef.constant(alias))
+                    .build());
+            }
+            componentIndex++;
+        }
         if (!keyFieldNames.isEmpty()) {
             fields.add(FieldDef.builder(KEYS_FIELD, KEYS_TYPE)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                .initializer(keysCreateExpression(deserializerClassTypeDef, recordSerdeShape.components(), new ArrayList<>(keyFieldNames.values())))
+                .initializer(keysCreateExpression(deserializerClassTypeDef, recordSerdeShape.components(), new ArrayList<>(keyFieldNames.values()), aliasKeyFieldNames))
+                .build());
+            // Whether every component has to be present is a configuration setting resolved once
+            fields.add(FieldDef.builder(REQUIRE_ALL_CREATOR_PARAMETERS_FIELD, BOOLEAN_TYPE)
+                .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
                 .build());
         }
         if (failOnNullForPrimitives) {
@@ -259,7 +305,7 @@ public final class RecordDeserializerSourceGen {
             .addSuperinterface(TypeDef.parameterized(Deserializer.class, recordTypeDef))
             .addFields(fields)
             .addMethod(generateCreateSpecificMethod(recordTypeDef))
-            .addMethod(generateDeserializeMethod(element, recordTypeDef, deserializerClassTypeDef, recordSerdeShape, keyFieldNames, argumentFieldNames, deserializerFieldNames));
+            .addMethod(generateDeserializeMethod(element, recordTypeDef, deserializerClassTypeDef, recordSerdeShape, keyFieldNames, argumentFieldNames, deserializerFieldNames, new AliasKeys(aliasKeyFieldNames, aliasTargets)));
         classDefBuilder.addMethod(generateConstructor(
             element,
             deserializerClassTypeDef,
@@ -298,6 +344,12 @@ public final class RecordDeserializerSourceGen {
                 ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
                     .invokeStatic(IGNORE_UNKNOWN_METHOD, context)
             ));
+            if (!recordSerdeShape.components().isEmpty()) {
+                statements.add(aThis.field(REQUIRE_ALL_CREATOR_PARAMETERS_FIELD, BOOLEAN_TYPE).put(
+                    ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
+                        .invokeStatic(REQUIRE_ALL_CREATOR_PARAMETERS_METHOD, context)
+                ));
+            }
             if (strictNullable) {
                 statements.add(aThis.field(STRICT_NULLABLE_FIELD, BOOLEAN_TYPE).put(
                     ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
@@ -344,13 +396,15 @@ public final class RecordDeserializerSourceGen {
             });
     }
 
+    @SuppressWarnings("java:S107")
     private MethodDef generateDeserializeMethod(ClassElement element,
                                                 TypeDef recordTypeDef,
                                                 ClassTypeDef deserializerClassTypeDef,
                                                 RecordSerdeShape recordSerdeShape,
                                                 Map<String, String> keyFieldNames,
                                                 Map<String, String> argumentFieldNames,
-                                                Map<String, String> deserializerFieldNames) {
+                                                Map<String, String> deserializerFieldNames,
+                                                AliasKeys aliasKeys) {
         return MethodDef.builder("deserialize")
             .addModifiers(Modifier.PUBLIC)
             .overrides()
@@ -394,7 +448,7 @@ public final class RecordDeserializerSourceGen {
                 List<StatementDef> componentDeserializers = new ArrayList<>(components.size());
                 int index = 0;
                 for (RecordSerdeShape.RecordComponent component : components) {
-                    boolean nonNull = component.propertyElement().isNonNull();
+                    boolean nonNull = component.nonNull();
                     StatementDef.DefineAndAssign valueDef = RecordSerdeSourceGenUtils.defaultValueExpression(component.type(), nonNull)
                         .newLocal(RecordSerdeSourceGenUtils.localName("propertyValue", index));
                     statements.add(valueDef);
@@ -425,7 +479,8 @@ public final class RecordDeserializerSourceGen {
                     seenPropertiesMask,
                     seenPropertyVariables,
                     valueVariables,
-                    componentDeserializers
+                    componentDeserializers,
+                    aliasKeys
                 );
                 List<StatementDef> finishStatements = new ArrayList<>();
                 finishStatements.add(objectDecoder.invoke(FINISH_STRUCTURE_METHOD));
@@ -433,7 +488,19 @@ public final class RecordDeserializerSourceGen {
                 if (strictNullableStatement != null) {
                     finishStatements.add(strictNullableStatement);
                 }
-                finishStatements.add(ClassTypeDef.of(element).instantiate(recordSerdeShape.canonicalConstructor(), constructorValues).returning());
+                StatementDef missingRequiredStatement = missingRequiredComponentStatement(aThis, deserializerClassTypeDef, type, dispatchInfo);
+                if (missingRequiredStatement != null) {
+                    finishStatements.add(missingRequiredStatement);
+                }
+                // A failing constructor is reported the way the runtime object deserializer reports it
+                finishStatements.add(StatementDef.doTry(
+                        ClassTypeDef.of(element).instantiate(recordSerdeShape.canonicalConstructor(), constructorValues).returning()
+                    )
+                    .doCatch(ClassTypeDef.of(Exception.class), exceptionVariable ->
+                        ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
+                            .invokeStatic(INSTANTIATION_FAILURE_METHOD, exceptionVariable, type)
+                            .doThrow()
+                    ));
                 StatementDef finishStatement = StatementDef.multi(finishStatements);
                 StatementDef stringDispatchLoop = buildStringComponentDispatchLoop(
                     aThis,
@@ -563,53 +630,78 @@ public final class RecordDeserializerSourceGen {
             finishStatement
         );
         for (int i = 0; i < dispatchInfo.components().size(); i++) {
-            RecordSerdeShape.RecordComponent component = dispatchInfo.components().get(i);
-            ExpressionDef componentArgumentExpression = deserializerClassTypeDef.getStaticField(required(dispatchInfo.argumentFieldNames(), component.name()), ARGUMENT_TYPE);
-            int componentIndex = i;
-            StatementDef deserializeComponent = dispatchInfo.seenPropertiesMask() == null
-                ? deserializeComponent(
-                    aThis,
-                    deserializerClassTypeDef,
-                    objectDecoder,
-                    context,
-                    type,
-                    dispatchInfo.valueVariables().get(componentIndex),
-                    component,
-                    componentIndex,
-                    dispatchInfo.argumentFieldNames(),
-                    dispatchInfo.deserializerFieldNames(),
-                    null
-                )
-                : deserializeComponentDirect(
-                    aThis,
-                    deserializerClassTypeDef,
-                    objectDecoder,
-                    context,
-                    type,
-                    dispatchInfo.valueVariables().get(componentIndex),
-                    component,
-                    componentIndex,
-                    dispatchInfo.argumentFieldNames(),
-                    dispatchInfo.deserializerFieldNames()
-                );
-            if (dispatchInfo.seenPropertiesMask() != null) {
-                deserializeComponent = StatementDef.multi(
-                    isComponentSeen(dispatchInfo, i).ifTrue(duplicatePropertyStatement(componentArgumentExpression, type)),
-                    markComponentSeen(dispatchInfo, i),
-                    wrapWithPropertyPath(deserializeComponent, type, componentArgumentExpression)
-                );
-            } else {
-                deserializeComponent = isComponentSeen(dispatchInfo, i).doIfElse(
-                    duplicatePropertyStatement(componentArgumentExpression, type),
-                    StatementDef.multi(
-                        markComponentSeen(dispatchInfo, i),
-                        deserializeComponent
-                    )
-                );
-            }
-            cases.put(ExpressionDef.constant(i), deserializeComponent);
+            cases.put(ExpressionDef.constant(i), keyIndexComponentCase(aThis, deserializerClassTypeDef, objectDecoder, context, type, dispatchInfo, i, null));
+        }
+        // Every alias key is matched by index and dispatches exactly like the component it names; a
+        // duplicate is reported under the alias, as the runtime reports the key it read
+        int aliasKeyIndex = dispatchInfo.components().size();
+        for (int i = 0; i < dispatchInfo.aliasKeys().targets().size(); i++) {
+            cases.put(ExpressionDef.constant(aliasKeyIndex + i), keyIndexComponentCase(
+                aThis,
+                deserializerClassTypeDef,
+                objectDecoder,
+                context,
+                type,
+                dispatchInfo,
+                dispatchInfo.aliasKeys().targets().get(i),
+                dynamicPropertyArgument(deserializerClassTypeDef.getStaticField(dispatchInfo.aliasKeys().keyFieldNames().get(i), STRING_TYPE))
+            ));
         }
         return keyIndexExpression.asStatementSwitch(INT_TYPE, cases);
+    }
+
+    @SuppressWarnings("java:S107")
+    private StatementDef keyIndexComponentCase(VariableDef.This aThis,
+                                               ClassTypeDef deserializerClassTypeDef,
+                                               VariableDef objectDecoder,
+                                               VariableDef.MethodParameter context,
+                                               VariableDef.MethodParameter type,
+                                               RecordDispatchInfo dispatchInfo,
+                                               int componentIndex,
+                                               @Nullable ExpressionDef duplicateArgumentExpression) {
+        RecordSerdeShape.RecordComponent component = dispatchInfo.components().get(componentIndex);
+        ExpressionDef componentArgumentExpression = deserializerClassTypeDef.getStaticField(required(dispatchInfo.argumentFieldNames(), component.name()), ARGUMENT_TYPE);
+        ExpressionDef duplicateArgument = duplicateArgumentExpression == null ? componentArgumentExpression : duplicateArgumentExpression;
+        StatementDef deserializeComponent = dispatchInfo.seenPropertiesMask() == null
+            ? deserializeComponent(
+                aThis,
+                deserializerClassTypeDef,
+                objectDecoder,
+                context,
+                type,
+                dispatchInfo.valueVariables().get(componentIndex),
+                component,
+                componentIndex,
+                dispatchInfo.argumentFieldNames(),
+                dispatchInfo.deserializerFieldNames(),
+                null
+            )
+            : deserializeComponentDirect(
+                aThis,
+                deserializerClassTypeDef,
+                objectDecoder,
+                context,
+                type,
+                dispatchInfo.valueVariables().get(componentIndex),
+                component,
+                componentIndex,
+                dispatchInfo.argumentFieldNames(),
+                dispatchInfo.deserializerFieldNames()
+            );
+        if (dispatchInfo.seenPropertiesMask() != null) {
+            return StatementDef.multi(
+                isComponentSeen(dispatchInfo, componentIndex).ifTrue(duplicatePropertyStatement(duplicateArgument, type)),
+                markComponentSeen(dispatchInfo, componentIndex),
+                wrapWithPropertyPath(deserializeComponent, type, componentArgumentExpression)
+            );
+        }
+        return isComponentSeen(dispatchInfo, componentIndex).doIfElse(
+            duplicatePropertyStatement(duplicateArgument, type),
+            StatementDef.multi(
+                markComponentSeen(dispatchInfo, componentIndex),
+                deserializeComponent
+            )
+        );
     }
 
     private Map<ExpressionDef.Constant, StatementDef> buildKeyIndexLifecycleCases(VariableDef keysAwareDecoder,
@@ -894,18 +986,23 @@ public final class RecordDeserializerSourceGen {
                 scalarDecodeMethod = Objects.requireNonNull(scalarDecoderMethod(component.type(), false));
                 StatementDef keepDefaultOnNullStatement;
                 if (useNullableScalarDecodeForDefaultPrimitive(component.type())) {
+                    // The runtime rejects an explicit null for a required parameter before the primitive default applies
                     Method nullableScalarDecodeMethod = Objects.requireNonNull(nullableScalarDecoderMethod(component.type()));
                     StatementDef.DefineAndAssign nullableValueDef = objectDecoder.invoke(nullableScalarDecodeMethod)
                         .cast(RecordSerdeSourceGenUtils.deserializedCastType(component.type()))
                         .newLocal(RecordSerdeSourceGenUtils.localName("decodedValue", index));
                     keepDefaultOnNullStatement = StatementDef.multi(
                         nullableValueDef,
-                        nullableValueDef.variable().isNonNull()
-                            .doIf(valueVariable.assign(nullableValueDef.variable()))
+                        nullableValueDef.variable().isNonNull().doIfElse(
+                            valueVariable.assign(nullableValueDef.variable()),
+                            requiredComponentCondition(aThis, component).ifTrue(requiredConstructorParameterStatement(type, argumentExpression, index))
+                        )
                     );
                 } else {
-                    keepDefaultOnNullStatement = objectDecoder.invoke(DECODE_NULL_METHOD)
-                        .ifFalse(valueVariable.assign(objectDecoder.invoke(scalarDecodeMethod)));
+                    keepDefaultOnNullStatement = objectDecoder.invoke(DECODE_NULL_METHOD).isTrue().doIfElse(
+                        requiredComponentCondition(aThis, component).ifTrue(requiredConstructorParameterStatement(type, argumentExpression, index)),
+                        valueVariable.assign(objectDecoder.invoke(scalarDecodeMethod))
+                    );
                 }
                 deserializeAndAssign = aThis.field(FAIL_ON_NULL_FOR_PRIMITIVES_FIELD, BOOLEAN_TYPE).ifTrue(
                     deserializePrimitiveComponentFailOnNull(
@@ -917,8 +1014,8 @@ public final class RecordDeserializerSourceGen {
                 );
             } else {
                 Method nonNullScalarDecodeMethod = nonNullScalarDecoderMethod(component.type());
-                if (component.propertyElement().isNonNull()
-                    && !component.propertyElement().isNullable()
+                if (component.nonNull()
+                    && !component.nullable()
                     && nonNullScalarDecodeMethod != null) {
                     scalarDecodeMethod = nonNullScalarDecodeMethod;
                     usesNonNullScalarDecode = true;
@@ -938,18 +1035,106 @@ public final class RecordDeserializerSourceGen {
 
             deserializeAndAssign = valueVariable.assign(deserializedValueExpression);
         }
-        if ((!component.type().isPrimitive() || component.type().isArray())
-            && component.propertyElement().isNonNull()
-            && !component.propertyElement().isNullable()
-            && !usesNonNullScalarDecode) {
+        boolean reference = !component.type().isPrimitive() || component.type().isArray();
+        if (reference && !usesNonNullScalarDecode && !component.nullable()) {
+            // The runtime accepts an explicit null for a nullable parameter before it checks whether
+            // the parameter is required
             deserializeAndAssign = StatementDef.multi(
                 deserializeAndAssign,
-                valueVariable.isNull().ifTrue(
-                    nullValueOrDispatchStatement(type, argumentExpression, dispatchResultVariable)
+                valueVariable.isNull().and(requiredComponentCondition(aThis, component)).ifTrue(
+                    requiredConstructorParameterStatement(type, argumentExpression, index)
                 )
             );
         }
+        if (reference
+            && component.nonNull()
+            && !component.nullable()
+            && !usesNonNullScalarDecode) {
+            // The runtime names the constructor parameter and its index for an explicit null
+            StatementDef rejectNull = dispatchResultVariable == null
+                ? ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
+                    .invokeStatic(NULL_CONSTRUCTOR_PARAMETER_METHOD, type, argumentExpression, ExpressionDef.constant(index))
+                    .doThrow()
+                : nullValueOrDispatchStatement(type, argumentExpression, dispatchResultVariable);
+            deserializeAndAssign = StatementDef.multi(
+                deserializeAndAssign,
+                valueVariable.isNull().ifTrue(rejectNull)
+            );
+        }
         return deserializeAndAssign;
+    }
+
+    /**
+     * Whether the component is required: declared as such at build time, or every component through
+     * the configuration resolved once into a field.
+     */
+    private ExpressionDef.ConditionExpressionDef requiredComponentCondition(VariableDef.This aThis,
+                                                                            RecordSerdeShape.RecordComponent component) {
+        if (component.required()) {
+            return ExpressionDef.trueValue().isTrue();
+        }
+        return aThis.field(REQUIRE_ALL_CREATOR_PARAMETERS_FIELD, BOOLEAN_TYPE).isTrue();
+    }
+
+    private StatementDef requiredConstructorParameterStatement(VariableDef.MethodParameter type,
+                                                               ExpressionDef propertyArgumentExpression,
+                                                               int index) {
+        return ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
+            .invokeStatic(REQUIRED_CONSTRUCTOR_PARAMETER_METHOD, type, propertyArgumentExpression, ExpressionDef.constant(index))
+            .doThrow();
+    }
+
+    /**
+     * The check the runtime performs once the object is consumed: a required component, or any
+     * component when the configuration requires all creator parameters, that was never seen fails
+     * deserialization.
+     */
+    private @Nullable StatementDef missingRequiredComponentStatement(VariableDef.This aThis,
+                                                                     ClassTypeDef deserializerClassTypeDef,
+                                                                     VariableDef.MethodParameter type,
+                                                                     RecordDispatchInfo dispatchInfo) {
+        List<RecordSerdeShape.RecordComponent> components = dispatchInfo.components();
+        if (components.isEmpty()) {
+            return null;
+        }
+        List<StatementDef> declaredStatements = new ArrayList<>();
+        List<StatementDef> allStatements = new ArrayList<>(components.size());
+        long requiredMask = 0L;
+        long allMask = 0L;
+        for (int i = 0; i < components.size(); i++) {
+            RecordSerdeShape.RecordComponent component = components.get(i);
+            ExpressionDef argumentExpression = deserializerClassTypeDef.getStaticField(required(dispatchInfo.argumentFieldNames(), component.name()), ARGUMENT_TYPE);
+            StatementDef missing = requiredConstructorParameterStatement(type, argumentExpression, i);
+            StatementDef check = dispatchInfo.seenPropertiesMask() != null
+                ? dispatchInfo.seenPropertiesMask()
+                    .math(ExpressionDef.MathBinaryOperation.OpType.BITWISE_AND, seenComponentMask(i))
+                    .compare(ExpressionDef.ComparisonOperation.OpType.EQUAL_TO, ExpressionDef.constant(0L))
+                    .ifTrue(missing)
+                : dispatchInfo.seenPropertyVariables().get(i).isFalse().ifTrue(missing);
+            allStatements.add(check);
+            allMask |= 1L << i;
+            if (component.required()) {
+                requiredMask |= 1L << i;
+                declaredStatements.add(check);
+            }
+        }
+        List<StatementDef> statements = new ArrayList<>(2);
+        if (!declaredStatements.isEmpty()) {
+            statements.add(dispatchInfo.seenPropertiesMask() != null
+                ? dispatchInfo.seenPropertiesMask()
+                    .math(ExpressionDef.MathBinaryOperation.OpType.BITWISE_AND, ExpressionDef.constant(requiredMask))
+                    .compare(ExpressionDef.ComparisonOperation.OpType.NOT_EQUAL_TO, ExpressionDef.constant(requiredMask))
+                    .ifTrue(StatementDef.multi(declaredStatements))
+                : StatementDef.multi(declaredStatements));
+        }
+        StatementDef requireAllCheck = dispatchInfo.seenPropertiesMask() != null
+            ? dispatchInfo.seenPropertiesMask()
+                .math(ExpressionDef.MathBinaryOperation.OpType.BITWISE_AND, ExpressionDef.constant(allMask))
+                .compare(ExpressionDef.ComparisonOperation.OpType.NOT_EQUAL_TO, ExpressionDef.constant(allMask))
+                .ifTrue(StatementDef.multi(allStatements))
+            : StatementDef.multi(allStatements);
+        statements.add(aThis.field(REQUIRE_ALL_CREATOR_PARAMETERS_FIELD, BOOLEAN_TYPE).isTrue().ifTrue(requireAllCheck));
+        return StatementDef.multi(statements);
     }
 
     private boolean useNullableScalarDecodeForDefaultPrimitive(ClassElement type) {
@@ -1001,17 +1186,22 @@ public final class RecordDeserializerSourceGen {
 
     private ExpressionDef keysCreateExpression(ClassTypeDef deserializerClassTypeDef,
                                                List<RecordSerdeShape.RecordComponent> components,
-                                               List<String> keyFieldNames) {
-        List<ExpressionDef> keyExpressions = keyFieldNames.stream()
-            .map(keyFieldName -> (ExpressionDef) deserializerClassTypeDef.getStaticField(keyFieldName, STRING_TYPE))
-            .toList();
+                                               List<String> keyFieldNames,
+                                               List<String> aliasKeyFieldNames) {
+        List<ExpressionDef> keyExpressions = new ArrayList<>(keyFieldNames.size() + aliasKeyFieldNames.size());
+        for (String keyFieldName : keyFieldNames) {
+            keyExpressions.add(deserializerClassTypeDef.getStaticField(keyFieldName, STRING_TYPE));
+        }
+        for (String aliasKeyFieldName : aliasKeyFieldNames) {
+            keyExpressions.add(deserializerClassTypeDef.getStaticField(aliasKeyFieldName, STRING_TYPE));
+        }
         if (components.stream().noneMatch(component -> !component.keyMetadata().isEmpty())) {
             return KEYS_TYPE.invokeStatic(
                 KEYS_CREATE_METHOD,
                 STRING_TYPE.array().instantiate(keyExpressions)
             );
         }
-        List<ExpressionDef> descriptorExpressions = new ArrayList<>(components.size());
+        List<ExpressionDef> descriptorExpressions = new ArrayList<>(keyExpressions.size());
         for (int i = 0; i < components.size(); i++) {
             List<ExpressionDef> metadataExpressions = components.get(i).keyMetadata().entrySet().stream()
                 .sorted(Map.Entry.comparingByKey())
@@ -1028,6 +1218,9 @@ public final class RecordDeserializerSourceGen {
                     STRING_TYPE.array().instantiate(metadataExpressions)
                 ));
         }
+        for (int i = components.size(); i < keyExpressions.size(); i++) {
+            descriptorExpressions.add(KEY_DESCRIPTOR_TYPE.instantiate(keyExpressions.get(i)));
+        }
         return KEYS_TYPE.invokeStatic(
             KEYS_CREATE_WITH_METADATA_METHOD,
             KEY_DESCRIPTOR_TYPE.array().instantiate(descriptorExpressions)
@@ -1035,8 +1228,8 @@ public final class RecordDeserializerSourceGen {
     }
 
     private boolean requiresStrictNullableCheck(RecordSerdeShape.RecordComponent component) {
-        return component.propertyElement().isNonNull()
-            && !component.propertyElement().isNullable()
+        return component.nonNull()
+            && !component.nullable()
             && (!component.type().isPrimitive() || component.type().isArray());
     }
 
@@ -1228,6 +1421,16 @@ public final class RecordDeserializerSourceGen {
                                       VariableDef.@Nullable Local seenPropertiesMask,
                                       List<VariableDef.Local> seenPropertyVariables,
                                       List<VariableDef> valueVariables,
-                                      List<StatementDef> componentDeserializers) {
+                                      List<StatementDef> componentDeserializers,
+                                      AliasKeys aliasKeys) {
+    }
+
+    /**
+     * The alias keys of the generated deserializer.
+     *
+     * @param keyFieldNames The alias key constant per alias
+     * @param targets       The index of the component each alias resolves to
+     */
+    private record AliasKeys(List<String> keyFieldNames, List<Integer> targets) {
     }
 }
