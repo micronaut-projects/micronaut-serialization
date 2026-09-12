@@ -2,12 +2,47 @@ package io.micronaut.serde.tck.jackson.databind
 
 import io.micronaut.serde.jackson.JsonTypeInfoSpec
 import spock.lang.PendingFeature
+import tools.jackson.databind.exc.InvalidDefinitionException
 
 class DatabindJsonTypeInfoSpec extends JsonTypeInfoSpec {
 
     @Override
     protected boolean jacksonCustomOrder() {
         return true
+    }
+
+    @Override
+    protected boolean typeIdPropertyMaySharePropertyName() {
+        return false
+    }
+
+    def 'test Jackson Databind rejects a @JsonTypeInfo(include=PROPERTY) type id named like a bean property'() {
+        given:
+            def context = buildContext("""
+package test;
+
+import com.fasterxml.jackson.annotation.*;
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonSubTypes(@JsonSubTypes.Type(Dog.class))
+interface Animal {
+}
+
+@JsonTypeName("dog")
+class Dog implements Animal {
+    public String type;
+}
+""")
+
+        when:
+            writeJson(jsonMapper, newInstance(context, 'test.Dog', [:]))
+
+        then:
+            def e = thrown(InvalidDefinitionException)
+            e.message.contains("Conflict between type id property 'type' and bean property with same name")
+
+        cleanup:
+            context.close()
     }
 
     @PendingFeature
