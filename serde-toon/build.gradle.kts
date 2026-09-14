@@ -2,6 +2,11 @@ plugins {
     id("io.micronaut.build.internal.serde-module")
 }
 
+micronautBuild {
+    // No published artifact to baseline against until this module ships in 3.2.0.
+    binaryCompatibility.enabledAfter("3.2.0")
+}
+
 dependencies {
     annotationProcessor(mn.micronaut.inject.java)
     annotationProcessor(projects.micronautSerdeProcessor)
