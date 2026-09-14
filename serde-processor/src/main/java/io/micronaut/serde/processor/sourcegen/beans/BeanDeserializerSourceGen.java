@@ -78,6 +78,7 @@ public final class BeanDeserializerSourceGen {
     private static final String FAIL_ON_NULL_FOR_PRIMITIVES_FIELD = "failOnNullForPrimitives";
     private static final String IGNORE_UNKNOWN_FIELD = "ignoreUnknown";
     private static final String GENERATED_VALUE_MEMBER = "value";
+    private static final String NULLAWAY_WARNING = "NullAway";
     private static final String HANDLED_DISPATCH_RESULT = "HANDLED";
     private static final String UNKNOWN_DISPATCH_RESULT = "UNKNOWN";
     private static final String DUPLICATE_DISPATCH_RESULT = "DUPLICATE";
@@ -333,15 +334,15 @@ public final class BeanDeserializerSourceGen {
             failOnNullForPrimitives
         ));
 
+        // Generated serdes keep the runtime null semantics, which NullAway can reject in a null-marked package
         List<Object> suppressWarnings = new ArrayList<>();
+        suppressWarnings.add(NULLAWAY_WARNING);
         if (fieldAccessProperties) {
             suppressWarnings.add("UnnecessaryParentheses");
         }
-        if (!suppressWarnings.isEmpty()) {
-            classDefBuilder.addAnnotation(AnnotationDef.builder(SuppressWarnings.class)
-                .addMember(GENERATED_VALUE_MEMBER, suppressWarnings)
-                .build());
-        }
+        classDefBuilder.addAnnotation(AnnotationDef.builder(SuppressWarnings.class)
+            .addMember(GENERATED_VALUE_MEMBER, suppressWarnings)
+            .build());
         if (fieldAccessProperties) {
             classDefBuilder.addAnnotation(Secondary.class);
         }
