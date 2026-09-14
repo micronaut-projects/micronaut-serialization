@@ -14,7 +14,23 @@ val jacocoClassExcludes = listOf(
     "**/*Spec\$*.class"
 )
 
+// Null-marked fixtures compiled with NullAway enabled, unlike the test sources, so that the
+// serializers and deserializers generated for them are checked by NullAway too
+val nullMarkedSourceGen: SourceSet by sourceSets.creating {
+    compileClasspath += sourceSets.main.get().output
+    runtimeClasspath += sourceSets.main.get().output
+}
+
+configurations.named(nullMarkedSourceGen.implementationConfigurationName) {
+    extendsFrom(configurations.api.get(), configurations.implementation.get())
+}
+configurations.named(nullMarkedSourceGen.annotationProcessorConfigurationName) {
+    extendsFrom(configurations.annotationProcessor.get())
+}
+
 dependencies {
+    testImplementation(nullMarkedSourceGen.output)
+
     annotationProcessor(mn.micronaut.inject.java)
     annotationProcessor(projects.micronautSerdeProcessor)
 

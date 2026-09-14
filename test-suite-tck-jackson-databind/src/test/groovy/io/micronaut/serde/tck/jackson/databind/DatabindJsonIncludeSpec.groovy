@@ -81,7 +81,7 @@ class Test {
 
         where:
             value | result
-            null  | """{"value":null}"""
+            null  | """{}""" // Jackson Databind 3.2 no longer writes a null that differs from the class default
             "abc"  | """{}"""
             "xyz"  | """{"value":"xyz"}"""
     }

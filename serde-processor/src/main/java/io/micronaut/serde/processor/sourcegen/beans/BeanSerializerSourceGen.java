@@ -66,6 +66,7 @@ public final class BeanSerializerSourceGen {
     private static final String VALUE_PARAMETER = "value";
     private static final String VALUE_LOCAL_PREFIX = "value";
     private static final String GENERATED_VALUE_MEMBER = "value";
+    private static final String NULLAWAY_WARNING = "NullAway";
     private static final String KEYS_FIELD = "KEYS";
 
     private static final TypeDef ARGUMENT_TYPE = TypeDef.of(Argument.class);
@@ -214,15 +215,15 @@ public final class BeanSerializerSourceGen {
             ));
         }
 
+        // Generated serdes keep the runtime null semantics, which NullAway can reject in a null-marked package
         List<Object> suppressWarnings = new ArrayList<>();
+        suppressWarnings.add(NULLAWAY_WARNING);
         if (fieldAccessProperties) {
             suppressWarnings.add("UnnecessaryParentheses");
         }
-        if (!suppressWarnings.isEmpty()) {
-            classDefBuilder.addAnnotation(AnnotationDef.builder(SuppressWarnings.class)
-                .addMember(GENERATED_VALUE_MEMBER, suppressWarnings)
-                .build());
-        }
+        classDefBuilder.addAnnotation(AnnotationDef.builder(SuppressWarnings.class)
+            .addMember(GENERATED_VALUE_MEMBER, suppressWarnings)
+            .build());
         if (fieldAccessProperties) {
             classDefBuilder.addAnnotation(Secondary.class);
         }
