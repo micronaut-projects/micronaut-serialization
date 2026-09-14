@@ -24,7 +24,7 @@
         }
     </script>
     <style type="text/css">
-        .lang-java { display: block }; .lang-python { display: block }; .lang-kotlin { display: block }; .lang-groovy { display: block }; 
+        .lang-java { display: block }; .lang-python { display: block }; .lang-kotlin { display: block }; .lang-groovy { display: block }; .lang-scala { display: block }; 
     </style>
 </head>
 
@@ -1731,10 +1731,7 @@ public class BookTest {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="toml">[micronaut]
-  [micronaut.serde]
-    [micronaut.serde.cbor]
-      write-binary-as-array=true</code></pre>
+<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="toml">micronaut = {serde = {cbor = {write-binary-as-array = true}}}</code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
@@ -1826,14 +1823,7 @@ Book save(@Body Book book) {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="toml">[micronaut]
-  [micronaut.serde]
-    [micronaut.serde.cbor]
-      [micronaut.serde.cbor.cbor-write-features]
-        WRITE_MINIMAL_INTS=true
-      [micronaut.serde.cbor.cbor-read-features]
-      [micronaut.serde.cbor.stream-read-features]
-      [micronaut.serde.cbor.stream-write-features]</code></pre>
+<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="toml">micronaut = {serde = {cbor = {cbor-write-features = {WRITE_MINIMAL_INTS = true}, cbor-read-features = {}, stream-read-features = {}, stream-write-features = {}}}}</code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
@@ -2227,14 +2217,7 @@ micronaut.serde.format.yaml.read-features.code-point-limit=3145728</code></pre>
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="toml">[micronaut]
-  [micronaut.serde]
-    [micronaut.serde.format]
-      [micronaut.serde.format.yaml]
-        [micronaut.serde.format.yaml.read-features]
-          boolean-as-strings=true
-          empty-string-as-null=true
-          code-point-limit=3145728</code></pre>
+<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="toml">micronaut = {serde = {format = {yaml = {read-features = {boolean-as-strings = true, empty-string-as-null = true, code-point-limit = 3145728}}}}}</code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
@@ -2359,23 +2342,7 @@ micronaut.serde.format.yaml.write-features.use-yaml-nonfinite-notation=true</cod
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="toml">[micronaut]
-  [micronaut.serde]
-    [micronaut.serde.format]
-      [micronaut.serde.format.yaml]
-        [micronaut.serde.format.yaml.write-features]
-          write-style="BLOCK"
-          indent=2
-          explicit-start=false
-          explicit-end=false
-          minimize-quotes=true
-          literal-block-style=false
-          split-lines=true
-          canonical-output=false
-          indent-arrays=false
-          indent-arrays-with-indicator=false
-          allow-long-keys=false
-          use-yaml-nonfinite-notation=true</code></pre>
+<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="toml">micronaut = {serde = {format = {yaml = {write-features = {write-style = "BLOCK", indent = 2, explicit-start = false, explicit-end = false, minimize-quotes = true, literal-block-style = false, split-lines = true, canonical-output = false, indent-arrays = false, indent-arrays-with-indicator = false, allow-long-keys = false, use-yaml-nonfinite-notation = true}}}}}</code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
@@ -2723,11 +2690,7 @@ You can configure one-based dotted indexes instead:</p>
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="toml">[micronaut]
-  [micronaut.serde]
-    [micronaut.serde.format]
-      [micronaut.serde.format.properties]
-        array-index-style="DOTTED"</code></pre>
+<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="toml">micronaut = {serde = {format = {properties = {array-index-style = "DOTTED"}}}}</code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
@@ -3216,14 +3179,7 @@ micronaut.serde.format.xml.xml-read-features.EMPTY_ELEMENT_AS_NULL=true</code></
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="toml">[micronaut]
-  [micronaut.serde]
-    [micronaut.serde.format]
-      [micronaut.serde.format.xml]
-        repairing-namespaces=true
-        automatic-empty-elements=false
-        [micronaut.serde.format.xml.xml-read-features]
-          EMPTY_ELEMENT_AS_NULL=true</code></pre>
+<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="toml">micronaut = {serde = {format = {xml = {repairing-namespaces = true, automatic-empty-elements = false, xml-read-features = {EMPTY_ELEMENT_AS_NULL = true}}}}}</code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
@@ -4136,19 +4092,7 @@ micronaut.serde.jackson.stream-write-features.WRITE_BIGDECIMAL_AS_PLAIN=true</co
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="toml">[micronaut]
-  [micronaut.serde]
-    [micronaut.serde.jackson]
-      pretty-print=false
-      [micronaut.serde.jackson.json-read-features]
-        ALLOW_JAVA_COMMENTS=true
-        ALLOW_SINGLE_QUOTES=true
-      [micronaut.serde.jackson.json-write-features]
-        ESCAPE_NON_ASCII=true
-      [micronaut.serde.jackson.stream-read-features]
-        INCLUDE_SOURCE_IN_LOCATION=true
-      [micronaut.serde.jackson.stream-write-features]
-        WRITE_BIGDECIMAL_AS_PLAIN=true</code></pre>
+<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="toml">micronaut = {serde = {jackson = {pretty-print = false, json-read-features = {ALLOW_JAVA_COMMENTS = true, ALLOW_SINGLE_QUOTES = true}, json-write-features = {ESCAPE_NON_ASCII = true}, stream-read-features = {INCLUDE_SOURCE_IN_LOCATION = true}, stream-write-features = {WRITE_BIGDECIMAL_AS_PLAIN = true}}}}</code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
@@ -5108,10 +5052,7 @@ record Item(int id, String name, int count) {} // id = 1234, name = "42", count 
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="toml">[micronaut]
-  [micronaut.serde]
-    [micronaut.serde.deserialization]
-      coercion-mode="STRICT"</code></pre>
+<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="toml">micronaut = {serde = {deserialization = {coercion-mode = "STRICT"}}}</code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
@@ -5181,11 +5122,7 @@ micronaut.serde.deserialization.accept-string-as-number=true</code></pre>
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="toml">[micronaut]
-  [micronaut.serde]
-    [micronaut.serde.deserialization]
-      coercion-mode="STRICT"
-      accept-string-as-number=true</code></pre>
+<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="toml">micronaut = {serde = {deserialization = {coercion-mode = "STRICT", accept-string-as-number = true}}}</code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
