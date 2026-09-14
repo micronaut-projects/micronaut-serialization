@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.processor.sourcegen.records;
 
+import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.type.Argument;
 import io.micronaut.inject.ast.ClassElement;
@@ -69,6 +70,17 @@ final class RecordSerdeSourceGenUtils {
 
     private static final Method ARGUMENT_OF_METHOD = ReflectionUtils.getRequiredMethod(Argument.class, "of", Class.class);
     private static final Method ARGUMENT_OF_WITH_TYPE_PARAMETERS_METHOD = ReflectionUtils.getRequiredMethod(Argument.class, "of", Class.class, Argument[].class);
+    private static final Method ARGUMENT_OF_TYPE_VARIABLE_METHOD = ReflectionUtils.getRequiredMethod(Argument.class, "ofTypeVariable", Class.class, String.class);
+    private static final Method ARGUMENT_OF_TYPE_VARIABLE_WITH_TYPE_PARAMETERS_METHOD = ReflectionUtils.getRequiredMethod(
+        Argument.class,
+        "ofTypeVariable",
+        Class.class,
+        String.class,
+        String.class,
+        AnnotationMetadata.class,
+        Argument[].class
+    );
+    private static final Field EMPTY_ANNOTATION_METADATA_FIELD = ReflectionUtils.getRequiredField(AnnotationMetadata.class, "EMPTY_METADATA");
     private static final Method ARGUMENT_WITH_NAME_METHOD = ReflectionUtils.getRequiredMethod(Argument.class, "withName", String.class);
     private static final Method OPTIONAL_EMPTY_METHOD = ReflectionUtils.getRequiredMethod(Optional.class, EMPTY_METHOD);
     private static final Method OPTIONAL_INT_EMPTY_METHOD = ReflectionUtils.getRequiredMethod(OptionalInt.class, EMPTY_METHOD);
@@ -92,11 +104,21 @@ final class RecordSerdeSourceGenUtils {
 
     static ExpressionDef argumentExpression(ClassElement classElement) {
         ClassElement argumentType = normalizeArgumentType(classElement);
+        Map<String, ClassElement> typeArgumentsByName = argumentType.getTypeArguments();
         List<? extends ClassElement> typeArguments = resolveTypeArguments(argumentType);
         if (!typeArguments.isEmpty()) {
-            List<ExpressionDef> typeArgumentExpressions = typeArguments.stream()
-                .map(RecordSerdeSourceGenUtils::argumentExpression)
-                .toList();
+            List<ExpressionDef> typeArgumentExpressions = new ArrayList<>(typeArguments.size());
+            if (typeArgumentsByName.size() == typeArguments.size()) {
+                // The introspection names every type argument after the declared type variable, which
+                // is part of how the runtime describes the argument in messages
+                for (Map.Entry<String, ClassElement> entry : typeArgumentsByName.entrySet()) {
+                    typeArgumentExpressions.add(typeVariableArgumentExpression(entry.getKey(), entry.getValue()));
+                }
+            } else {
+                for (ClassElement typeArgument : typeArguments) {
+                    typeArgumentExpressions.add(argumentExpression(typeArgument));
+                }
+            }
             ExpressionDef typeArgumentArray = TypeDef.array(TypeDef.of(Argument.class)).instantiate(typeArgumentExpressions);
             return ClassTypeDef.of(Argument.class)
                 .invokeStatic(
@@ -111,6 +133,35 @@ final class RecordSerdeSourceGenUtils {
         }
         return ClassTypeDef.of(Argument.class)
             .invokeStatic(ARGUMENT_OF_METHOD, ExpressionDef.constant(TypeDef.erasure(argumentType)));
+    }
+
+    private static ExpressionDef typeVariableArgumentExpression(String variableName, ClassElement classElement) {
+        ClassElement argumentType = normalizeArgumentType(classElement);
+        Map<String, ClassElement> typeArgumentsByName = argumentType.getTypeArguments();
+        List<? extends ClassElement> typeArguments = resolveTypeArguments(argumentType);
+        if (typeArguments.isEmpty()) {
+            return ClassTypeDef.of(Argument.class)
+                .invokeStatic(ARGUMENT_OF_TYPE_VARIABLE_METHOD, ExpressionDef.constant(TypeDef.erasure(argumentType)), ExpressionDef.constant(variableName));
+        }
+        List<ExpressionDef> typeArgumentExpressions = new ArrayList<>(typeArguments.size());
+        if (typeArgumentsByName.size() == typeArguments.size()) {
+            for (Map.Entry<String, ClassElement> entry : typeArgumentsByName.entrySet()) {
+                typeArgumentExpressions.add(typeVariableArgumentExpression(entry.getKey(), entry.getValue()));
+            }
+        } else {
+            for (ClassElement typeArgument : typeArguments) {
+                typeArgumentExpressions.add(argumentExpression(typeArgument));
+            }
+        }
+        return ClassTypeDef.of(Argument.class)
+            .invokeStatic(
+                ARGUMENT_OF_TYPE_VARIABLE_WITH_TYPE_PARAMETERS_METHOD,
+                ExpressionDef.constant(TypeDef.erasure(argumentType)),
+                ExpressionDef.constant(variableName),
+                ExpressionDef.constant(variableName),
+                ClassTypeDef.of(AnnotationMetadata.class).getStaticField(EMPTY_ANNOTATION_METADATA_FIELD),
+                TypeDef.array(TypeDef.of(Argument.class)).instantiate(typeArgumentExpressions)
+            );
     }
 
     static ExpressionDef argumentExpression(ClassElement classElement, ExpressionDef name) {

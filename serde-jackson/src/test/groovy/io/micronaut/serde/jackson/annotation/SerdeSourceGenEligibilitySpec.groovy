@@ -54,6 +54,391 @@ enum TestEnum {
         context.close()
     }
 
+    void 'test camel case names and declaration order do not affect eligibility'() {
+        given:
+        def context = buildContext('test.CamelCaseBean', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.core.annotation.Introspected;
+
+@Serdeable
+@Introspected
+class CamelCaseBean {
+    private String firstName;
+    private String lastName;
+
+    public CamelCaseBean() {
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+}
+
+@Serdeable
+@Introspected
+record UnorderedRecord(int c, int a, int b) {
+}
+''')
+
+        expect:
+        assertRegistrySelection(context, 'test.CamelCaseBean', true, true)
+        assertRegistrySelection(context, 'test.UnorderedRecord', true, true)
+
+        cleanup:
+        context.close()
+    }
+
+    void 'test renamed properties are sourcegen eligible unless a default value is declared'() {
+        given:
+        def context = buildContext('test.RenamedBean', '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+import io.micronaut.core.annotation.Introspected;
+
+@Serdeable
+@Introspected
+class RenamedBean {
+    @JsonProperty("first_name")
+    private String firstName;
+
+    public RenamedBean() {
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+}
+
+@Serdeable
+@Introspected
+record RenamedRecord(@JsonProperty("first_name") String firstName) {
+}
+
+@Serdeable(naming = SnakeCaseStrategy.class)
+@Introspected
+record CompileTimeNamingRecord(String firstName) {
+}
+
+@Serdeable
+@Introspected
+record DefaultValueRecord(@JsonProperty(value = "first_name", defaultValue = "Ada") String firstName) {
+}
+
+@Serdeable
+@Introspected
+record ClashingNamesRecord(@JsonProperty("name") String first, @JsonProperty("name") String second) {
+}
+''')
+
+        expect:
+        assertRegistrySelection(context, 'test.RenamedBean', true, true)
+        assertRegistrySelection(context, 'test.RenamedRecord', true, true)
+        assertRegistrySelection(context, 'test.CompileTimeNamingRecord', true, true)
+        assertRegistrySelection(context, 'test.DefaultValueRecord', false, false)
+        assertRegistrySelection(context, 'test.ClashingNamesRecord', false, false)
+
+        cleanup:
+        context.close()
+    }
+
+    void 'test excluded and one-directional bean properties are sourcegen eligible'() {
+        given:
+        def context = buildContext('test.GetterOnlyBean', '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.core.annotation.Introspected;
+
+@Serdeable
+@Introspected
+class GetterOnlyBean {
+    private String value;
+
+    public GetterOnlyBean() {
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public String getComputed() {
+        return value + "!";
+    }
+}
+
+@Serdeable
+@Introspected
+class SetterOnlyBean {
+    private String value;
+
+    public SetterOnlyBean() {
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public void setOther(String other) {
+        this.value = other;
+    }
+}
+
+@Serdeable
+@Introspected
+@JsonIgnoreProperties(ignoreUnknown = true)
+class IgnoredBean {
+    private String value;
+    @JsonIgnore
+    private String secret;
+
+    public IgnoredBean() {
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public String getSecret() {
+        return secret;
+    }
+
+    public void setSecret(String secret) {
+        this.secret = secret;
+    }
+}
+
+@Serdeable
+@Introspected
+class NestedIgnoreBean {
+    @JsonIgnoreProperties({"secret"})
+    private IgnoredBean nested;
+
+    public NestedIgnoreBean() {
+    }
+
+    public IgnoredBean getNested() {
+        return nested;
+    }
+
+    public void setNested(IgnoredBean nested) {
+        this.nested = nested;
+    }
+}
+
+@Serdeable
+@Introspected
+record IgnoredRecord(String value, @JsonIgnore String secret) {
+}
+''')
+
+        expect:
+        assertRegistrySelection(context, 'test.GetterOnlyBean', true, true)
+        assertRegistrySelection(context, 'test.SetterOnlyBean', true, true)
+        assertRegistrySelection(context, 'test.IgnoredBean', true, true)
+        assertRegistrySelection(context, 'test.NestedIgnoreBean', false, false)
+        assertRegistrySelection(context, 'test.IgnoredRecord', false, false)
+
+        cleanup:
+        context.close()
+    }
+
+    void 'test a type-level property order is sourcegen eligible and a member-level one is not'() {
+        given:
+        def context = buildContext('test.OrderedRecord', '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.core.annotation.Introspected;
+
+@Serdeable
+@Introspected
+@JsonPropertyOrder({"b", "a"})
+record OrderedRecord(String a, String b) {
+}
+
+@Serdeable
+@Introspected
+record NestedOrderRecord(@JsonPropertyOrder({"b", "a"}) OrderedRecord nested) {
+}
+''')
+
+        expect:
+        assertRegistrySelection(context, 'test.OrderedRecord', true, true)
+        assertRegistrySelection(context, 'test.NestedOrderRecord', false, false)
+
+        cleanup:
+        context.close()
+    }
+
+    void 'test required properties and aliases are sourcegen eligible'() {
+        given:
+        def context = buildContext('test.RequiredBean', '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.core.annotation.Introspected;
+
+@Serdeable
+@Introspected
+class RequiredBean {
+    @JsonProperty(required = true)
+    private String value;
+    @JsonAlias("other")
+    private String alias;
+
+    public RequiredBean() {
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public String getAlias() {
+        return alias;
+    }
+
+    public void setAlias(String alias) {
+        this.alias = alias;
+    }
+}
+
+@Serdeable
+@Introspected
+record RequiredRecord(@JsonProperty(required = true) String value, @JsonAlias("other") String alias) {
+}
+''')
+
+        expect:
+        assertRegistrySelection(context, 'test.RequiredBean', true, true)
+        assertRegistrySelection(context, 'test.RequiredRecord', true, true)
+
+        cleanup:
+        context.close()
+    }
+
+    void 'test constructor bound classes are sourcegen eligible when every property is a parameter'() {
+        given:
+        def context = buildContext('test.ImmutableBean', '''
+package test;
+
+import io.micronaut.core.annotation.Creator;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.core.annotation.Introspected;
+
+@Serdeable
+@Introspected
+class ImmutableBean {
+    private final String value;
+    private final int count;
+
+    public ImmutableBean(String value, int count) {
+        this.value = value;
+        this.count = count;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public int getCount() {
+        return count;
+    }
+}
+
+@Serdeable
+@Introspected
+class PartiallyBoundBean {
+    private final String value;
+    private String extra;
+
+    public PartiallyBoundBean(String value) {
+        this.value = value;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public String getExtra() {
+        return extra;
+    }
+
+    public void setExtra(String extra) {
+        this.extra = extra;
+    }
+}
+
+@Serdeable
+@Introspected
+class FactoryBean {
+    private final String value;
+
+    private FactoryBean(String value) {
+        this.value = value;
+    }
+
+    @Creator
+    public static FactoryBean of(String value) {
+        return new FactoryBean(value);
+    }
+
+    public String getValue() {
+        return value;
+    }
+}
+''')
+
+        expect:
+        assertRegistrySelection(context, 'test.ImmutableBean', true, true)
+        assertRegistrySelection(context, 'test.PartiallyBoundBean', false, false)
+        assertRegistrySelection(context, 'test.FactoryBean', false, false)
+
+        cleanup:
+        context.close()
+    }
+
     void 'test any-getter and any-setter are directional fallback reasons'() {
         given:
         def context = buildContext('test.AnyGetterBean', '''
@@ -331,7 +716,7 @@ class JsonFormatPropertyHolder {
         context.close()
     }
 
-    void 'test json include usage falls back from sourcegen fast path'() {
+    void 'test json include usage is sourcegen eligible unless a content inclusion is declared'() {
         given:
         def context = buildContext('test.JsonIncludeTypeBean', '''
 package test;
@@ -339,8 +724,27 @@ package test;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.core.annotation.Introspected;
+import java.util.Map;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+
+@Serdeable
+@Introspected
+class JsonIncludeContentBean {
+    @JsonInclude(content = NON_NULL)
+    private Map<String, String> values;
+
+    public JsonIncludeContentBean() {
+    }
+
+    public Map<String, String> getValues() {
+        return values;
+    }
+
+    public void setValues(Map<String, String> values) {
+        this.values = values;
+    }
+}
 
 @Serdeable
 @Introspected
@@ -380,8 +784,9 @@ class JsonIncludePropertyBean {
 ''')
 
         expect:
-        assertRegistrySelection(context, 'test.JsonIncludeTypeBean', false, false)
-        assertRegistrySelection(context, 'test.JsonIncludePropertyBean', false, false)
+        assertRegistrySelection(context, 'test.JsonIncludeTypeBean', true, true)
+        assertRegistrySelection(context, 'test.JsonIncludePropertyBean', true, true)
+        assertRegistrySelection(context, 'test.JsonIncludeContentBean', false, false)
 
         cleanup:
         context.close()

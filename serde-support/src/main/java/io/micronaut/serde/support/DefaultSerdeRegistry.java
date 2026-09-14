@@ -65,6 +65,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 
 /**
  * Default implementation of the {@link io.micronaut.serde.SerdeRegistry} interface.
@@ -75,6 +76,11 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
     private final List<BeanDefinition<Serializer>> serializers = new ArrayList<>(100);
     private final List<BeanDefinition<Deserializer>> deserializers = new ArrayList<>(100);
+    /**
+     * A pre-instantiate callback observes every object instantiation; only the runtime object
+     * deserializers invoke it, so generated deserializers stand down while one is registered.
+     */
+    private final boolean preInstantiateCallbackPresent;
     private final List<BeanDefinition<Serde>> internalSerdes = new ArrayList<>(100);
 
     // if there is a single Serde that is part of the serializerMap *and* deserializerMap, this can
@@ -125,10 +131,12 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             serdeConfiguration,
             serializationConfiguration,
             beanContext);
+        SerdeDeserializationPreInstantiateCallback preInstantiateCallback = beanContext.findBean(SerdeDeserializationPreInstantiateCallback.class).orElse(null);
+        this.preInstantiateCallbackPresent = preInstantiateCallback != null;
         this.objectDeserializer = new ObjectDeserializer(introspections,
             deserializationConfiguration,
             serdeConfiguration,
-            beanContext.findBean(SerdeDeserializationPreInstantiateCallback.class).orElse(null)
+            preInstantiateCallback
         );
         this.objectArraySerde = new ObjectArraySerde();
     }
@@ -273,6 +281,10 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
         Collection<BeanDefinition<Deserializer>> beanDefinitions = MatchArgumentQualifier.covariant(Deserializer.class, type)
             .filter(Deserializer.class, deserializers);
+        beanDefinitions = withoutSpecificSerdesForOtherTypes(beanDefinitions, Deserializer.class, type, this::createSpecificDeserializerConstructor);
+        if (preInstantiateCallbackPresent) {
+            beanDefinitions = beanDefinitions.stream().filter(candidate -> !createSpecificDeserializerConstructor(candidate)).toList();
+        }
         BeanDefinition<Deserializer> deserBeanDefinition;
         if (beanDefinitions.size() == 1) {
             deserBeanDefinition = beanDefinitions.iterator().next();
@@ -323,6 +335,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
         Collection<BeanDefinition<Serializer>> beanDefinitions = MatchArgumentQualifier.contravariant(Serializer.class, type)
             .filter(Serializer.class, serializers);
+        beanDefinitions = withoutSpecificSerdesForOtherTypes(beanDefinitions, Serializer.class, type, this::createSpecificSerializerConstructor);
         BeanDefinition<Serializer> serializerBeanDefinition;
         if (beanDefinitions.size() == 1) {
             serializerBeanDefinition = beanDefinitions.iterator().next();
@@ -349,6 +362,48 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
         serializerMap.put(key, new SerializerWrapper(objectSerializer));
         return objectSerializer;
+    }
+
+    /**
+     * A serde created per type from the context and the argument, such as a generated serde, is
+     * written for exactly the type it declares. It must not be picked for a supertype or a subtype
+     * of that type through variance: a generated subtype deserializer cannot resolve the
+     * discriminator of its supertype, and a generated supertype serializer would drop the properties
+     * of a subtype. Those lookups keep resolving to the runtime object serdes.
+     */
+    private static <S> Collection<BeanDefinition<S>> withoutSpecificSerdesForOtherTypes(Collection<BeanDefinition<S>> candidates,
+                                                                                        Class<S> serdeType,
+                                                                                        Argument<?> type,
+                                                                                        Predicate<BeanDefinition<S>> specific) {
+        boolean anyExcluded = false;
+        for (BeanDefinition<S> candidate : candidates) {
+            if (isSpecificForOtherType(candidate, serdeType, type, specific)) {
+                anyExcluded = true;
+                break;
+            }
+        }
+        if (!anyExcluded) {
+            return candidates;
+        }
+        List<BeanDefinition<S>> filtered = new ArrayList<>(candidates.size());
+        for (BeanDefinition<S> candidate : candidates) {
+            if (!isSpecificForOtherType(candidate, serdeType, type, specific)) {
+                filtered.add(candidate);
+            }
+        }
+        return filtered;
+    }
+
+    private static <S> boolean isSpecificForOtherType(BeanDefinition<S> candidate,
+                                                      Class<S> serdeType,
+                                                      Argument<?> type,
+                                                      Predicate<BeanDefinition<S>> specific) {
+        return specific.test(candidate) && !declaresExactType(candidate, serdeType, type);
+    }
+
+    private static <S> boolean declaresExactType(BeanDefinition<S> candidate, Class<S> serdeType, Argument<?> type) {
+        List<Argument<?>> typeArguments = candidate.getTypeArguments(serdeType);
+        return !typeArguments.isEmpty() && typeArguments.get(0).getType().equals(type.getType());
     }
 
     private boolean createSpecificSerializerConstructor(BeanDefinition<Serializer> serializerBeanDefinition) {

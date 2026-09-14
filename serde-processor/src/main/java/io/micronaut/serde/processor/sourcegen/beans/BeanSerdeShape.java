@@ -18,6 +18,7 @@ package io.micronaut.serde.processor.sourcegen.beans;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.FieldElement;
 import io.micronaut.inject.ast.MethodElement;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -26,12 +27,20 @@ import java.util.Map;
 /**
  * Shape model for bean-based source generation.
  *
- * @param defaultConstructor The selected default constructor.
- * @param properties         Bean properties included in generated serialization.
+ * @param defaultConstructor        The selected default constructor.
+ * @param serializationProperties   Bean properties written by the generated serializer, in write order.
+ * @param deserializationProperties Bean properties read by the generated deserializer.
+ * @param ignoredDeserializationNames Serialized names the generated deserializer skips silently: writable
+ *                                  properties excluded from deserialization through configuration.
+ * @param ignoreUnknown             The type-level unknown property policy, or {@code null} when the
+ *                                  runtime configuration decides.
  */
 public record BeanSerdeShape(
     MethodElement defaultConstructor,
-    List<BeanProperty> properties
+    List<BeanProperty> serializationProperties,
+    List<BeanProperty> deserializationProperties,
+    List<String> ignoredDeserializationNames,
+    @Nullable Boolean ignoreUnknown
 ) {
     /**
      * Bean property metadata used by source generation.
@@ -42,6 +51,9 @@ public record BeanSerdeShape(
      * @param nonNull             Whether the property is non-null.
      * @param nullable            Whether the property is nullable.
      * @param keyMetadata         Pre-resolved metadata contributed with the property key.
+     * @param include             The inclusion resolved at build time, or {@code null} when the configuration decides.
+     * @param required            Whether the property has to be present and non-null in the input.
+     * @param aliases             Additional names the property is read from.
      * @param readMethod          Bean getter method.
      * @param writeMethod         Bean setter method.
      * @param readField           Bean field used for reading.
@@ -54,6 +66,9 @@ public record BeanSerdeShape(
         boolean nonNull,
         boolean nullable,
         Map<String, String> keyMetadata,
+        SerdeConfig.@Nullable SerInclude include,
+        boolean required,
+        List<String> aliases,
         @Nullable MethodElement readMethod,
         @Nullable MethodElement writeMethod,
         @Nullable FieldElement readField,
@@ -90,6 +105,9 @@ public record BeanSerdeShape(
                 nonNull,
                 nullable,
                 Map.of(),
+                null,
+                false,
+                List.of(),
                 readMethod,
                 writeMethod,
                 readField,

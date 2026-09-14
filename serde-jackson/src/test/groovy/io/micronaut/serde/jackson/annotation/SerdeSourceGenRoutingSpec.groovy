@@ -217,8 +217,8 @@ class JsonIncludeBean {
         assertRouting(
             context,
             'test.JsonIncludeBean',
-            false,
-            false
+            true,
+            true
         )
 
         cleanup:

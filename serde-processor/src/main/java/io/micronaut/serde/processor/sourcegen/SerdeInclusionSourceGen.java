@@ -15,9 +15,11 @@
  */
 package io.micronaut.serde.processor.sourcegen;
 
+import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.inject.ast.ClassElement;
+import io.micronaut.inject.ast.PropertyElement;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.util.GeneratedSerdeInclusionUtil;
@@ -27,10 +29,13 @@ import io.micronaut.sourcegen.model.FieldDef;
 import io.micronaut.sourcegen.model.StatementDef;
 import io.micronaut.sourcegen.model.TypeDef;
 import io.micronaut.sourcegen.model.VariableDef;
+import org.jspecify.annotations.Nullable;
 
 import javax.lang.model.element.Modifier;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Generates the inclusion handling shared by the bean and record serializer generators.
@@ -98,10 +103,44 @@ public final class SerdeInclusionSourceGen {
     private static final Method FLOAT_COMPARE_METHOD = ReflectionUtils.getRequiredMethod(Float.class, "compare", float.class, float.class);
     private static final Method DOUBLE_COMPARE_METHOD = ReflectionUtils.getRequiredMethod(Double.class, "compare", double.class, double.class);
 
+    private static final Method STRING_IS_EMPTY_METHOD = ReflectionUtils.getRequiredMethod(String.class, "isEmpty");
+
     private static final ClassTypeDef INCLUSION_UTIL_TYPE = ClassTypeDef.of(GeneratedSerdeInclusionUtil.class);
+    private static final ClassTypeDef SER_INCLUDE_CLASS_TYPE = ClassTypeDef.of(SerdeConfig.SerInclude.class);
     private static final TypeDef SER_INCLUDE_TYPE = TypeDef.of(SerdeConfig.SerInclude.class);
 
     private SerdeInclusionSourceGen() {
+    }
+
+    /**
+     * Resolves the inclusion declared for a property at build time, the way the runtime object
+     * serializer resolves it: the property declaration wins over the type, which wins over the
+     * package. {@code USE_DEFAULTS} and an absent declaration defer to the runtime configuration and
+     * resolve to {@code null}. XML nillable properties are always written.
+     *
+     * @param element     The serialized type
+     * @param property    The property
+     * @param keyMetadata The key metadata contributed with the property
+     * @return The inclusion resolved at build time, or {@code null} when the configuration decides
+     */
+    public static SerdeConfig.@Nullable SerInclude resolvePropertyInclude(ClassElement element,
+                                                                         PropertyElement property,
+                                                                         Map<String, String> keyMetadata) {
+        if (Boolean.parseBoolean(keyMetadata.get(SerdeConfig.XML_NILLABLE)) || keyMetadata.containsKey(SerdeConfig.XML_WRAPPER_NILLABLE)) {
+            return SerdeConfig.SerInclude.ALWAYS;
+        }
+        SerdeConfig.SerInclude include = includeValue(property.getAnnotationMetadata())
+            .or(() -> property.getReadMethod().flatMap(method -> includeValue(method.getAnnotationMetadata())))
+            .or(() -> property.getWriteMethod().flatMap(method -> includeValue(method.getAnnotationMetadata())))
+            .or(() -> property.getField().flatMap(field -> includeValue(field.getAnnotationMetadata())))
+            .or(() -> includeValue(element.getAnnotationMetadata()))
+            .or(() -> includeValue(element.getPackage().getAnnotationMetadata()))
+            .orElse(null);
+        return include == SerdeConfig.SerInclude.USE_DEFAULTS ? null : include;
+    }
+
+    private static Optional<SerdeConfig.SerInclude> includeValue(AnnotationMetadata annotationMetadata) {
+        return annotationMetadata.enumValue(SerdeConfig.class, SerdeConfig.INCLUDE, SerdeConfig.SerInclude.class);
     }
 
     /**
@@ -154,6 +193,30 @@ public final class SerdeInclusionSourceGen {
     }
 
     /**
+     * The condition for writing a primitive property under an inclusion resolved at build time.
+     * Primitive values are never null and never empty, so only {@code NON_DEFAULT} compares the value.
+     *
+     * @param aThis         The serializer instance
+     * @param include       The inclusion, or {@code null} for the runtime configuration
+     * @param type          The property type
+     * @param propertyValue The local holding the property value
+     * @return The generated condition, or {@code null} when the property is always written
+     */
+    public static ExpressionDef.@Nullable ConditionExpressionDef shouldSerializePrimitive(VariableDef.This aThis,
+                                                                                         SerdeConfig.@Nullable SerInclude include,
+                                                                                         ClassElement type,
+                                                                                         ExpressionDef propertyValue) {
+        if (include == null) {
+            return shouldSerializePrimitive(aThis, type, propertyValue);
+        }
+        return switch (include) {
+            case NEVER -> ExpressionDef.falseValue().isTrue();
+            case NON_DEFAULT -> primitiveIsDefaultExpression(type, propertyValue).isFalse();
+            default -> null;
+        };
+    }
+
+    /**
      * The condition for writing a scalar property encoded without a property serializer.
      *
      * @param aThis         The serializer instance
@@ -169,6 +232,36 @@ public final class SerdeInclusionSourceGen {
             includeField(aThis),
             propertyValue
         ));
+    }
+
+    /**
+     * The condition for writing a scalar property under an inclusion resolved at build time. The
+     * common inclusions compile to a null check; the value-dependent ones call the helper matching the
+     * serde that writes the value with the constant inclusion.
+     *
+     * @param aThis         The serializer instance
+     * @param include       The inclusion, or {@code null} for the runtime configuration
+     * @param type          The property type
+     * @param propertyValue The local holding the property value
+     * @return The generated condition, or {@code null} when the property is always written
+     */
+    public static ExpressionDef.@Nullable ConditionExpressionDef shouldSerializeScalar(VariableDef.This aThis,
+                                                                                      SerdeConfig.@Nullable SerInclude include,
+                                                                                      ClassElement type,
+                                                                                      ExpressionDef propertyValue) {
+        if (include == null) {
+            return shouldSerializeScalar(aThis, type, propertyValue);
+        }
+        boolean string = "java.lang.String".equals(type.getName());
+        return switch (include) {
+            case ALWAYS, USE_DEFAULTS -> null;
+            case NEVER -> ExpressionDef.falseValue().isTrue();
+            case NON_NULL, NON_ABSENT -> propertyValue.isNonNull();
+            case NON_EMPTY -> string
+                ? propertyValue.isNonNull().and(propertyValue.invoke(STRING_IS_EMPTY_METHOD).isFalse())
+                : propertyValue.isNonNull();
+            case NON_DEFAULT -> INCLUSION_UTIL_TYPE.invokeStatic(scalarInclusionMethod(type), includeConstant(include), propertyValue).isTrue();
+        };
     }
 
     /**
@@ -191,6 +284,55 @@ public final class SerdeInclusionSourceGen {
             serializer,
             propertyValue.cast(TypeDef.OBJECT)
         ));
+    }
+
+    /**
+     * The condition for writing a property through its property serializer under an inclusion
+     * resolved at build time.
+     *
+     * @param aThis         The serializer instance
+     * @param include       The inclusion, or {@code null} for the runtime configuration
+     * @param context       The encoder context parameter
+     * @param serializer    The property serializer field
+     * @param propertyValue The local holding the property value
+     * @return The generated condition, or {@code null} when the property is always written
+     */
+    public static ExpressionDef.@Nullable ConditionExpressionDef shouldSerializeValue(VariableDef.This aThis,
+                                                                                     SerdeConfig.@Nullable SerInclude include,
+                                                                                     VariableDef.MethodParameter context,
+                                                                                     ExpressionDef serializer,
+                                                                                     ExpressionDef propertyValue) {
+        if (include == null) {
+            return shouldSerializeValue(aThis, context, serializer, propertyValue);
+        }
+        return switch (include) {
+            case ALWAYS, USE_DEFAULTS -> null;
+            case NEVER -> ExpressionDef.falseValue().isTrue();
+            case NON_NULL -> propertyValue.isNonNull();
+            case NON_ABSENT, NON_EMPTY, NON_DEFAULT -> INCLUSION_UTIL_TYPE.invokeStatic(
+                SHOULD_SERIALIZE_METHOD,
+                includeConstant(include),
+                context,
+                serializer,
+                propertyValue.cast(TypeDef.OBJECT)
+            ).isTrue();
+        };
+    }
+
+    /**
+     * Wraps a write statement in the inclusion condition, or returns it unchanged when the property is
+     * always written.
+     *
+     * @param condition The condition, or {@code null}
+     * @param write     The write statement
+     * @return The guarded statement
+     */
+    public static StatementDef guard(ExpressionDef.@Nullable ConditionExpressionDef condition, StatementDef write) {
+        return condition == null ? write : condition.ifTrue(write);
+    }
+
+    private static ExpressionDef includeConstant(SerdeConfig.SerInclude include) {
+        return SER_INCLUDE_CLASS_TYPE.getStaticField(include.name(), SER_INCLUDE_TYPE);
     }
 
     private static VariableDef.Field includeField(VariableDef.This aThis) {

@@ -106,7 +106,7 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Object, O
 
     private void generateSerializerClass(ClassElement element, SimpleSerdeShapeDecision decision, VisitorContext context) {
         String generatedSerializerClassName = SerdeSourceGenClassNaming.generatedSerializerClassName(element);
-        if (decision.shapeKind() == SimpleSerdeShapeDecision.ShapeKind.RECORD) {
+        if (isConstructorBound(decision)) {
             RecordSerdeShape recordSerdeShape = recordSerdeShapeResolver.resolve(element).orElse(null);
             if (recordSerdeShape != null) {
                 write(context, element, generatedSerializerClassName, new RecordSerializerSourceGen().generate(element, recordSerdeShape));
@@ -138,7 +138,7 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Object, O
 
     private void generateDeserializerClass(ClassElement element, SimpleSerdeShapeDecision decision, VisitorContext context) {
         String generatedDeserializerClassName = SerdeSourceGenClassNaming.generatedDeserializerClassName(element);
-        if (decision.shapeKind() == SimpleSerdeShapeDecision.ShapeKind.RECORD) {
+        if (isConstructorBound(decision)) {
             RecordSerdeShape recordSerdeShape = recordSerdeShapeResolver.resolve(element).orElse(null);
             if (recordSerdeShape != null) {
                 write(context, element, generatedDeserializerClassName, new RecordDeserializerSourceGen().generate(element, recordSerdeShape));
@@ -168,6 +168,11 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Object, O
             .build());
     }
 
+    private static boolean isConstructorBound(SimpleSerdeShapeDecision decision) {
+        return decision.shapeKind() == SimpleSerdeShapeDecision.ShapeKind.RECORD
+            || decision.shapeKind() == SimpleSerdeShapeDecision.ShapeKind.CONSTRUCTOR_BEAN;
+    }
+
     private void write(VisitorContext context, ClassElement element, String generatedClassName, ClassDef classDef) {
         SourceGenerator generator = sourceGenerator;
         if (generator == null) {
@@ -186,9 +191,15 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Object, O
         }
     }
 
+    /**
+     * Visitors run from the highest order to the lowest. The generated serdes have to observe the
+     * metadata {@code SerdeAnnotationVisitor} adds to the properties, such as names resolved through a
+     * naming strategy or properties ignored through a type-level annotation, so this visitor runs after
+     * it and before the introspection is written.
+     */
     @Override
     public int getOrder() {
-        return IntrospectedTypeElementVisitor.POSITION + 200;
+        return IntrospectedTypeElementVisitor.POSITION + 50;
     }
 
     @Override

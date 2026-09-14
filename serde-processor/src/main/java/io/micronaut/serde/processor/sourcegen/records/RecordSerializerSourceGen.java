@@ -29,6 +29,7 @@ import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.processor.sourcegen.SerdeInclusionSourceGen;
+import io.micronaut.serde.processor.sourcegen.SerdeSourceGenPropertyOrder;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
 import io.micronaut.serde.util.GeneratedSerdeExceptionUtil;
 import io.micronaut.serde.util.GeneratedSerdeFallbackUtil;
@@ -115,18 +116,25 @@ public final class RecordSerializerSourceGen {
     private static final Method FINISH_STRUCTURE_METHOD = ReflectionUtils.getRequiredMethod(Encoder.class, "finishStructure");
     private static final Method WITH_PROPERTY_PATH_THROWABLE_METHOD = ReflectionUtils.getRequiredMethod(
         GeneratedSerdeExceptionUtil.class,
-        "withPropertyPath",
+        "withSerializationPropertyPath",
         Throwable.class,
         Argument.class,
         Argument.class
     );
 
     public ClassDef generate(ClassElement element, RecordSerdeShape recordSerdeShape) {
+        // A component whose inclusion is NEVER is not written by the runtime serializer either
         recordSerdeShape = new RecordSerdeShape(
             recordSerdeShape.canonicalConstructor(),
-            recordSerdeShape.components().stream()
-                .sorted((left, right) -> Boolean.compare(isXmlAttribute(right), isXmlAttribute(left)))
-                .toList()
+            SerdeSourceGenPropertyOrder.order(
+                element,
+                recordSerdeShape.components().stream()
+                    .filter(component -> component.include() != SerdeConfig.SerInclude.NEVER)
+                    .toList(),
+                RecordSerdeShape.RecordComponent::serializedName,
+                RecordSerdeShape.RecordComponent::name,
+                RecordSerializerSourceGen::isXmlAttribute
+            )
         );
         TypeDef recordTypeDef = TypeDef.of(element);
         ClassTypeDef serializerClassTypeDef = ClassTypeDef.of(SerdeSourceGenClassNaming.generatedSerializerClassName(element));
@@ -168,8 +176,10 @@ public final class RecordSerializerSourceGen {
                 .initializer(keysCreateExpression(serializerClassTypeDef, recordSerdeShape.components(), new ArrayList<>(keyFieldNames.values())))
                 .build());
         }
-        // The active inclusion is resolved once per serializer, never per component and per document
-        boolean inclusionAware = !recordSerdeShape.components().isEmpty();
+        // The active inclusion is resolved once per serializer, never per component and per document,
+        // and only when a component defers to the runtime configuration
+        boolean inclusionAware = recordSerdeShape.components().stream().anyMatch(component -> component.include() == null);
+        boolean constructorRequired = !recordSerdeShape.components().isEmpty();
         if (inclusionAware) {
             fields.addAll(SerdeInclusionSourceGen.fields());
         }
@@ -185,14 +195,15 @@ public final class RecordSerializerSourceGen {
             .addMethod(generateCreateSpecificMethod(recordTypeDef))
             .addMethod(generateSerializeMethod(recordTypeDef))
             .addMethod(generateSerializeIntoMethod(recordTypeDef, serializerClassTypeDef, recordSerdeShape, argumentFieldNames, serializerFieldNames));
-        if (inclusionAware) {
+        if (constructorRequired) {
             classDefBuilder.addMethod(generateConstructor(
                 element,
                 recordTypeDef,
                 serializerClassTypeDef,
                 recordSerdeShape,
                 argumentFieldNames,
-                serializerFieldNames
+                serializerFieldNames,
+                inclusionAware
             ));
         }
 
@@ -204,7 +215,8 @@ public final class RecordSerializerSourceGen {
                                           ClassTypeDef serializerClassTypeDef,
                                           RecordSerdeShape recordSerdeShape,
                                           Map<String, String> argumentFieldNames,
-                                          Map<String, String> serializerFieldNames) {
+                                          Map<String, String> serializerFieldNames,
+                                          boolean inclusionAware) {
         MethodDef.MethodDefBuilder constructorBuilder = MethodDef.constructor()
             .addModifiers(Modifier.PUBLIC)
             .addParameter(parameter(CONTEXT_PARAMETER, TypeDef.of(Serializer.EncoderContext.class)))
@@ -213,7 +225,9 @@ public final class RecordSerializerSourceGen {
         return constructorBuilder.build((aThis, methodParameters) -> {
             List<StatementDef> statements = new ArrayList<>();
             VariableDef.MethodParameter context = methodParameters.get(0);
-            statements.addAll(SerdeInclusionSourceGen.resolveStatements(aThis, context));
+            if (inclusionAware) {
+                statements.addAll(SerdeInclusionSourceGen.resolveStatements(aThis, context));
+            }
             for (Map.Entry<String, String> serializerFieldEntry : serializerFieldNames.entrySet()) {
                 String componentName = serializerFieldEntry.getKey();
                 String serializerFieldName = serializerFieldEntry.getValue();
@@ -398,7 +412,10 @@ public final class RecordSerializerSourceGen {
                 );
                 return wrapWithPropertyPath(StatementDef.multi(
                     scalarValueDef,
-                    SerdeInclusionSourceGen.shouldSerializePrimitive(aThis, componentType, scalarValueDef.variable()).ifTrue(writePrimitive)
+                    SerdeInclusionSourceGen.guard(
+                        SerdeInclusionSourceGen.shouldSerializePrimitive(aThis, component.include(), componentType, scalarValueDef.variable()),
+                        writePrimitive
+                    )
                 ), type, argumentExpression);
             }
             StatementDef writeScalar = StatementDef.multi(
@@ -410,7 +427,10 @@ public final class RecordSerializerSourceGen {
             );
             return wrapWithPropertyPath(StatementDef.multi(
                 scalarValueDef,
-                SerdeInclusionSourceGen.shouldSerializeScalar(aThis, componentType, scalarValueDef.variable()).ifTrue(writeScalar)
+                SerdeInclusionSourceGen.guard(
+                    SerdeInclusionSourceGen.shouldSerializeScalar(aThis, component.include(), componentType, scalarValueDef.variable()),
+                    writeScalar
+                )
             ), type, argumentExpression);
         }
         String serializerFieldName = required(serializerFieldNames, component.name());
@@ -430,7 +450,10 @@ public final class RecordSerializerSourceGen {
             );
             return wrapWithPropertyPath(StatementDef.multi(
                 propertyValueDef,
-                SerdeInclusionSourceGen.shouldSerializePrimitive(aThis, componentType, propertyValueDef.variable()).ifTrue(writePrimitive)
+                SerdeInclusionSourceGen.guard(
+                    SerdeInclusionSourceGen.shouldSerializePrimitive(aThis, component.include(), componentType, propertyValueDef.variable()),
+                    writePrimitive
+                )
             ), type, argumentExpression);
         }
         StatementDef writeValue = StatementDef.multi(
@@ -450,7 +473,10 @@ public final class RecordSerializerSourceGen {
         );
         return wrapWithPropertyPath(StatementDef.multi(
             propertyValueDef,
-            SerdeInclusionSourceGen.shouldSerializeValue(aThis, context, serializer, propertyValueDef.variable()).ifTrue(writeValue)
+            SerdeInclusionSourceGen.guard(
+                SerdeInclusionSourceGen.shouldSerializeValue(aThis, component.include(), context, serializer, propertyValueDef.variable()),
+                writeValue
+            )
         ), type, argumentExpression);
     }
 
