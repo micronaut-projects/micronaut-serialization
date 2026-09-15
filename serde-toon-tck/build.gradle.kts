@@ -1,0 +1,30 @@
+plugins {
+    id("groovy")
+    id("java-library")
+    id("io.micronaut.build.internal.serde-tests")
+}
+
+dependencies {
+    annotationProcessor(mn.micronaut.inject.java)
+    annotationProcessor(projects.micronautSerdeProcessor)
+
+    api(projects.micronautSerdeApi)
+    api(projects.micronautSerdeTck)
+    api(mn.micronaut.inject.java.test)
+    api(mnTest.micronaut.test.spock)
+    api(mnTest.junit.jupiter.api)
+    api(libs.jetbrains.annotations)
+    api(libs.jtoon)
+
+    compileOnly(mn.micronaut.inject.groovy)
+}
+
+tasks.named("spotlessGroovyCheck").configure {
+    enabled = false
+}
+tasks.named("spotlessJavaCheck").configure {
+    enabled = false
+}
+tasks.named("checkstyleMain").configure {
+    enabled = false
+}
