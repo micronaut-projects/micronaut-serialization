@@ -17,11 +17,14 @@ package io.micronaut.serde.support.util;
 
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
+import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.LimitingStream;
+import io.micronaut.serde.config.CoercionPolicy;
+import io.micronaut.serde.config.CoercionPolicy.Coercion;
 import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.util.BinaryCodecUtil;
@@ -39,12 +42,81 @@ import java.util.Map;
  */
 @Internal
 public abstract sealed class JsonNodeDecoder extends LimitingStream implements Decoder permits JsonArrayNodeDecoder, JsonNodeDecoder.Buffered, JsonObjectNodeDecoder {
+    final CoercionPolicy coercionPolicy;
+
     JsonNodeDecoder(LimitingStream.RemainingLimits remainingLimits) {
+        this(remainingLimits, CoercionPolicy.LENIENT);
+    }
+
+    JsonNodeDecoder(LimitingStream.RemainingLimits remainingLimits, CoercionPolicy coercionPolicy) {
         super(remainingLimits);
+        this.coercionPolicy = coercionPolicy;
     }
 
     public static JsonNodeDecoder create(JsonNode node, LimitingStream.RemainingLimits remainingLimits) {
-        return new Buffered(node, remainingLimits);
+        return create(node, remainingLimits, CoercionPolicy.LENIENT);
+    }
+
+    public static JsonNodeDecoder create(JsonNode node, LimitingStream.RemainingLimits remainingLimits,
+                                         CoercionPolicy coercionPolicy) {
+        return new Buffered(node, remainingLimits, coercionPolicy);
+    }
+
+    @Override
+    public final CoercionPolicy getCoercionPolicy() {
+        return coercionPolicy;
+    }
+
+    private void checkIntegerNode(JsonNode node) throws IOException {
+        if (!coercionPolicy.isAllowed(Coercion.FLOAT_AS_INT)) {
+            Number number = node.getNumberValue();
+            if (number instanceof Double || number instanceof Float || number instanceof BigDecimal) {
+                throw createDeserializationException(Coercion.FLOAT_AS_INT.message(), number);
+            }
+        }
+    }
+
+    @Nullable
+    private Number coerceToNumber(JsonNode node, boolean integral) throws IOException {
+        if (node.isString()) {
+            if (!coercionPolicy.isAllowed(Coercion.STRING_AS_NUMBER)) {
+                return null;
+            }
+            String string = node.getStringValue();
+            try {
+                return integral ? new BigInteger(string) : new BigDecimal(string);
+            } catch (NumberFormatException e) {
+                throw createDeserializationException("Unable to coerce string to number", string);
+            }
+        }
+        if (node.isBoolean()) {
+            if (!coercionPolicy.isAllowed(Coercion.BOOLEAN_AS_NUMBER)) {
+                return null;
+            }
+            return node.getBooleanValue() ? 1 : 0;
+        }
+        return null;
+    }
+
+    @Nullable
+    private Boolean coerceToBoolean(JsonNode node) {
+        if (node.isNumber() && coercionPolicy.isAllowed(Coercion.NUMBER_AS_BOOLEAN)) {
+            return node.getNumberValue().doubleValue() != 0;
+        }
+        if (node.isString() && coercionPolicy.isAllowed(Coercion.STRING_AS_BOOLEAN)) {
+            return Boolean.parseBoolean(node.getStringValue());
+        }
+        return null;
+    }
+
+    private void checkUnwrapArray() throws IOException {
+        if (!coercionPolicy.isAllowed(Coercion.UNWRAP_SINGLE_VALUE_ARRAY)) {
+            throw createDeserializationException(Coercion.UNWRAP_SINGLE_VALUE_ARRAY.message(), null);
+        }
+    }
+
+    private IOException unexpectedNullToken(String expected) {
+        return createDeserializationException("Unexpected token NULL, expected " + expected, null);
     }
 
     protected abstract JsonNode peekValue() throws IOException;
@@ -54,7 +126,7 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
         JsonNode peeked = peekValue();
         if (peeked.isArray()) {
             skipValue();
-            return new JsonArrayNodeDecoder(peeked, childLimits());
+            return new JsonArrayNodeDecoder(peeked, childLimits(), coercionPolicy);
         } else {
             throw createDeserializationException("Not an array", toArbitrary(peeked));
         }
@@ -65,7 +137,7 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
         JsonNode peeked = peekValue();
         if (peeked.isObject()) {
             skipValue();
-            return new JsonObjectNodeDecoder(peeked, childLimits());
+            return new JsonObjectNodeDecoder(peeked, childLimits(), coercionPolicy);
         } else {
             throw createDeserializationException("Not an array", toArbitrary(peeked));
         }
@@ -77,7 +149,10 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
         if (peeked.isString()) {
             skipValue();
             return peeked.getStringValue();
+        } else if (peeked.isNull()) {
+            throw unexpectedNullToken("STRING");
         } else if (peeked.isArray()) {
+            checkUnwrapArray();
             try (Decoder decoder = decodeArray(Argument.STRING)) {
                 String unwrapped = decoder.decodeString();
                 if (decoder.hasNextArrayValue()) {
@@ -86,6 +161,10 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
                     return unwrapped;
                 }
             }
+        } else if ((peeked.isNumber() || peeked.isBoolean())
+            && coercionPolicy.isAllowed(Coercion.SCALAR_AS_STRING)) {
+            skipValue();
+            return peeked.coerceStringValue();
         } else {
             throw createDeserializationException("Not a string", toArbitrary(peeked));
         }
@@ -97,7 +176,10 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
         if (peeked.isBoolean()) {
             skipValue();
             return peeked.getBooleanValue();
+        } else if (peeked.isNull()) {
+            throw unexpectedNullToken("BOOLEAN");
         } else if (peeked.isArray()) {
+            checkUnwrapArray();
             try (Decoder decoder = decodeArray(Argument.BOOLEAN)) {
                 boolean unwrapped = decoder.decodeBoolean();
                 if (decoder.hasNextArrayValue()) {
@@ -107,7 +189,12 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
                 }
             }
         } else {
-            throw createDeserializationException("Not a boolean", toArbitrary(peeked));
+            Boolean coerced = coerceToBoolean(peeked);
+            if (coerced == null) {
+                throw createDeserializationException("Not a boolean", toArbitrary(peeked));
+            }
+            skipValue();
+            return coerced;
         }
     }
 
@@ -115,9 +202,13 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
     public byte decodeByte() throws IOException {
         JsonNode peeked = peekValue();
         if (peeked.isNumber()) {
+            checkIntegerNode(peeked);
             skipValue();
             return (byte) peeked.getIntValue();
+        } else if (peeked.isNull()) {
+            throw unexpectedNullToken("NUMBER");
         } else if (peeked.isArray()) {
+            checkUnwrapArray();
             try (Decoder decoder = decodeArray(Argument.BYTE)) {
                 byte unwrapped = decoder.decodeByte();
                 if (decoder.hasNextArrayValue()) {
@@ -127,7 +218,12 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
                 }
             }
         } else {
-            throw createDeserializationException("Not a number", toArbitrary(peeked));
+            Number coerced = coerceToNumber(peeked, true);
+            if (coerced == null) {
+                throw createDeserializationException("Not a number", toArbitrary(peeked));
+            }
+            skipValue();
+            return (byte) coerced.intValue();
         }
     }
 
@@ -135,9 +231,13 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
     public short decodeShort() throws IOException {
         JsonNode peeked = peekValue();
         if (peeked.isNumber()) {
+            checkIntegerNode(peeked);
             skipValue();
             return (short) peeked.getIntValue();
+        } else if (peeked.isNull()) {
+            throw unexpectedNullToken("NUMBER");
         } else if (peeked.isArray()) {
+            checkUnwrapArray();
             try (Decoder decoder = decodeArray(Argument.SHORT)) {
                 short unwrapped = decoder.decodeShort();
                 if (decoder.hasNextArrayValue()) {
@@ -147,17 +247,33 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
                 }
             }
         } else {
-            throw createDeserializationException("Not a number", toArbitrary(peeked));
+            Number coerced = coerceToNumber(peeked, true);
+            if (coerced == null) {
+                throw createDeserializationException("Not a number", toArbitrary(peeked));
+            }
+            skipValue();
+            return (short) coerced.intValue();
         }
     }
 
     @Override
     public char decodeChar() throws IOException {
         JsonNode peeked = peekValue();
-        if (peeked.isNumber()) {
+        if (peeked.isString()) {
+            String string = peeked.getStringValue();
+            if (string.length() != 1) {
+                throw createDeserializationException("When decoding char value, must give a single character", string);
+            }
+            skipValue();
+            return string.charAt(0);
+        } else if (peeked.isNumber()) {
+            checkIntegerNode(peeked);
             skipValue();
             return (char) peeked.getIntValue();
+        } else if (peeked.isNull()) {
+            throw unexpectedNullToken("NUMBER");
         } else if (peeked.isArray()) {
+            checkUnwrapArray();
             try (Decoder decoder = decodeArray(Argument.CHAR)) {
                 char unwrapped = decoder.decodeChar();
                 if (decoder.hasNextArrayValue()) {
@@ -167,7 +283,12 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
                 }
             }
         } else {
-            throw createDeserializationException("Not a number", toArbitrary(peeked));
+            Number coerced = coerceToNumber(peeked, true);
+            if (coerced == null) {
+                throw createDeserializationException("Not a number", toArbitrary(peeked));
+            }
+            skipValue();
+            return (char) coerced.intValue();
         }
     }
 
@@ -175,9 +296,13 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
     public int decodeInt() throws IOException {
         JsonNode peeked = peekValue();
         if (peeked.isNumber()) {
+            checkIntegerNode(peeked);
             skipValue();
             return peeked.getIntValue();
+        } else if (peeked.isNull()) {
+            throw unexpectedNullToken("NUMBER");
         } else if (peeked.isArray()) {
+            checkUnwrapArray();
             try (Decoder decoder = decodeArray(Argument.INT)) {
                 int unwrapped = decoder.decodeInt();
                 if (decoder.hasNextArrayValue()) {
@@ -187,7 +312,12 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
                 }
             }
         } else {
-            throw createDeserializationException("Not a number", toArbitrary(peeked));
+            Number coerced = coerceToNumber(peeked, true);
+            if (coerced == null) {
+                throw createDeserializationException("Not a number", toArbitrary(peeked));
+            }
+            skipValue();
+            return coerced.intValue();
         }
     }
 
@@ -195,9 +325,13 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
     public long decodeLong() throws IOException {
         JsonNode peeked = peekValue();
         if (peeked.isNumber()) {
+            checkIntegerNode(peeked);
             skipValue();
             return peeked.getLongValue();
+        } else if (peeked.isNull()) {
+            throw unexpectedNullToken("NUMBER");
         } else if (peeked.isArray()) {
+            checkUnwrapArray();
             try (Decoder decoder = decodeArray(Argument.LONG)) {
                 long unwrapped = decoder.decodeLong();
                 if (decoder.hasNextArrayValue()) {
@@ -207,7 +341,12 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
                 }
             }
         } else {
-            throw createDeserializationException("Not a number", toArbitrary(peeked));
+            Number coerced = coerceToNumber(peeked, true);
+            if (coerced == null) {
+                throw createDeserializationException("Not a number", toArbitrary(peeked));
+            }
+            skipValue();
+            return coerced.longValue();
         }
     }
 
@@ -217,7 +356,10 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
         if (peeked.isNumber()) {
             skipValue();
             return peeked.getFloatValue();
+        } else if (peeked.isNull()) {
+            throw unexpectedNullToken("NUMBER");
         } else if (peeked.isArray()) {
+            checkUnwrapArray();
             try (Decoder decoder = decodeArray(Argument.FLOAT)) {
                 float unwrapped = decoder.decodeFloat();
                 if (decoder.hasNextArrayValue()) {
@@ -227,7 +369,12 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
                 }
             }
         } else {
-            throw createDeserializationException("Not a number", toArbitrary(peeked));
+            Number coerced = coerceToNumber(peeked, false);
+            if (coerced == null) {
+                throw createDeserializationException("Not a number", toArbitrary(peeked));
+            }
+            skipValue();
+            return coerced.floatValue();
         }
     }
 
@@ -237,7 +384,10 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
         if (peeked.isNumber()) {
             skipValue();
             return peeked.getDoubleValue();
+        } else if (peeked.isNull()) {
+            throw unexpectedNullToken("NUMBER");
         } else if (peeked.isArray()) {
+            checkUnwrapArray();
             try (Decoder decoder = decodeArray(Argument.DOUBLE)) {
                 double unwrapped = decoder.decodeDouble();
                 if (decoder.hasNextArrayValue()) {
@@ -247,7 +397,12 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
                 }
             }
         } else {
-            throw createDeserializationException("Not a number", toArbitrary(peeked));
+            Number coerced = coerceToNumber(peeked, false);
+            if (coerced == null) {
+                throw createDeserializationException("Not a number", toArbitrary(peeked));
+            }
+            skipValue();
+            return coerced.doubleValue();
         }
     }
 
@@ -255,9 +410,13 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
     public BigInteger decodeBigInteger() throws IOException {
         JsonNode peeked = peekValue();
         if (peeked.isNumber()) {
+            checkIntegerNode(peeked);
             skipValue();
             return peeked.getBigIntegerValue();
+        } else if (peeked.isNull()) {
+            throw unexpectedNullToken("NUMBER");
         } else if (peeked.isArray()) {
+            checkUnwrapArray();
             try (Decoder decoder = decodeArray()) {
                 BigInteger unwrapped = decoder.decodeBigInteger();
                 if (decoder.hasNextArrayValue()) {
@@ -267,7 +426,12 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
                 }
             }
         } else {
-            throw createDeserializationException("Not a number", toArbitrary(peeked));
+            Number coerced = coerceToNumber(peeked, true);
+            if (coerced == null) {
+                throw createDeserializationException("Not a number", toArbitrary(peeked));
+            }
+            skipValue();
+            return coerced instanceof BigInteger ? (BigInteger) coerced : BigInteger.valueOf(coerced.longValue());
         }
     }
 
@@ -277,7 +441,10 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
         if (peeked.isNumber()) {
             skipValue();
             return peeked.getBigDecimalValue();
+        } else if (peeked.isNull()) {
+            throw unexpectedNullToken("NUMBER");
         } else if (peeked.isArray()) {
+            checkUnwrapArray();
             try (Decoder decoder = decodeArray()) {
                 BigDecimal unwrapped = decoder.decodeBigDecimal();
                 if (decoder.hasNextArrayValue()) {
@@ -287,7 +454,12 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
                 }
             }
         } else {
-            throw createDeserializationException("Not a number", toArbitrary(peeked));
+            Number coerced = coerceToNumber(peeked, false);
+            if (coerced == null) {
+                throw createDeserializationException("Not a number", toArbitrary(peeked));
+            }
+            skipValue();
+            return coerced instanceof BigDecimal ? (BigDecimal) coerced : new BigDecimal(coerced.toString());
         }
     }
 
@@ -355,7 +527,7 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
     public Decoder decodeBuffer() throws IOException {
         JsonNode peeked = peekValue();
         skipValue();
-        return new Buffered(peeked, ourLimits());
+        return new Buffered(peeked, ourLimits(), coercionPolicy);
     }
 
     @Override
@@ -371,8 +543,8 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
         private final JsonNode node;
         private boolean complete = false;
 
-        Buffered(JsonNode node, RemainingLimits remainingLimits) {
-            super(remainingLimits);
+        Buffered(JsonNode node, RemainingLimits remainingLimits, CoercionPolicy coercionPolicy) {
+            super(remainingLimits, coercionPolicy);
             this.node = node;
         }
 

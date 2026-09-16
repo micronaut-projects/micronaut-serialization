@@ -39,7 +39,7 @@ configurations {
 }
 
 jmh {
-    includes = ["io.micronaut.serde.StartupBenchmark"]
+    includes = [".*(StartupBenchmark|CoercionPolicyBenchmark).*"]
     fork = 10
     iterations = 1
     warmupIterations = 0

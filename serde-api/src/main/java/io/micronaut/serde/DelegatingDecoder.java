@@ -19,6 +19,7 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.type.Argument;
+import io.micronaut.serde.config.CoercionPolicy;
 import io.micronaut.json.tree.JsonNode;
 
 import java.io.IOException;
@@ -207,6 +208,16 @@ public abstract class DelegatingDecoder implements Decoder {
     @Override
     public @NonNull JsonNode decodeNode() throws IOException {
         return delegate().decodeNode();
+    }
+
+    @Override
+    public CoercionPolicy getCoercionPolicy() {
+        try {
+            return delegate().getCoercionPolicy();
+        } catch (IOException ignored) {
+            // the delegate is not available yet, the caller will hit the same failure when it decodes
+            return Decoder.super.getCoercionPolicy();
+        }
     }
 
     @Override

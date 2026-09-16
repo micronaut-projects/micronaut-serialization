@@ -49,6 +49,7 @@ jobs:
         with:
           java: ${{ matrix.java }}
           distribution: ${{ matrix.distribution }}
+          gradle-java: ${{ matrix.java }}
       - name: Build Steps
         uses: micronaut-projects/github-actions/graalvm/build@master
         id: build

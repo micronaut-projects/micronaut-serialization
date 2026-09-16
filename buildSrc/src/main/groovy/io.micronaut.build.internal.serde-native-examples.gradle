@@ -6,3 +6,17 @@ plugins {
 micronaut {
     version libs.versions.micronaut.platform.get()
 }
+
+graalvmNative {
+    toolchainDetection = false
+    binaries {
+        all {
+            buildArgs.add('--initialize-at-build-time=org.junit.platform.launcher.core.LauncherPhase')
+            buildArgs.add('--initialize-at-build-time=org.junit.platform.launcher.core.DiscoveryIssueNotifier')
+            buildArgs.add('--initialize-at-build-time=org.junit.platform.engine.support.store.NamespacedHierarchicalStore$EvaluatedValue')
+        }
+    }
+    metadataRepository {
+        enabled = true
+    }
+}

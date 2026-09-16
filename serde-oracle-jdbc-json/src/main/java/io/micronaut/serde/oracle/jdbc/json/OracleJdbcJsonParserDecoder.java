@@ -19,6 +19,7 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.util.StringUtils;
+import io.micronaut.serde.config.CoercionPolicy;
 import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.AbstractStreamDecoder;
@@ -45,6 +46,12 @@ public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
 
     private final OracleJsonParser jsonParser;
     private OracleJsonParser.Event currentEvent;
+
+    OracleJdbcJsonParserDecoder(OracleJsonParser jsonParser, RemainingLimits remainingLimits, CoercionPolicy coercionPolicy) {
+        super(remainingLimits, coercionPolicy);
+        this.jsonParser = jsonParser;
+        nextToken();
+    }
 
     OracleJdbcJsonParserDecoder(OracleJsonParser jsonParser, RemainingLimits remainingLimits) {
         super(remainingLimits);
@@ -137,6 +144,14 @@ public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
     @Override
     protected BigDecimal getBigDecimal() {
         return jsonParser.getBigDecimal();
+    }
+
+    @Override
+    protected boolean isCurrentNumberFloat() {
+        return switch (currentEvent) {
+            case VALUE_DECIMAL, VALUE_DOUBLE, VALUE_FLOAT -> true;
+            default -> false;
+        };
     }
 
     @Override

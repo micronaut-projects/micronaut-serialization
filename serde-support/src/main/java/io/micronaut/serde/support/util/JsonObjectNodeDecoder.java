@@ -16,6 +16,7 @@
 package io.micronaut.serde.support.util;
 
 import io.micronaut.json.tree.JsonNode;
+import io.micronaut.serde.config.CoercionPolicy;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -24,8 +25,8 @@ final class JsonObjectNodeDecoder extends JsonNodeDecoder {
     private final Iterator<Map.Entry<String, JsonNode>> iterator;
     private JsonNode nextValue = null;
 
-    JsonObjectNodeDecoder(JsonNode node, RemainingLimits remainingLimits) {
-        super(remainingLimits);
+    JsonObjectNodeDecoder(JsonNode node, RemainingLimits remainingLimits, CoercionPolicy coercionPolicy) {
+        super(remainingLimits, coercionPolicy);
         iterator = node.entries().iterator();
     }
 

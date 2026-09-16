@@ -18,6 +18,7 @@ package io.micronaut.serde.support;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
+import io.micronaut.serde.config.CoercionPolicy;
 import io.micronaut.serde.exceptions.SerdeException;
 
 import java.io.IOException;
@@ -39,7 +40,7 @@ public abstract class AbstractDecoderPerStructureStreamDecoder extends AbstractS
      * @param remainingLimits The limits for this decoder
      */
     protected AbstractDecoderPerStructureStreamDecoder(@NonNull AbstractDecoderPerStructureStreamDecoder parent, @NonNull RemainingLimits remainingLimits) {
-        this(remainingLimits);
+        this(remainingLimits, parent.getCoercionPolicy());
         this.parent = parent;
     }
 
@@ -50,6 +51,16 @@ public abstract class AbstractDecoderPerStructureStreamDecoder extends AbstractS
      */
     protected AbstractDecoderPerStructureStreamDecoder(@NonNull RemainingLimits remainingLimits) {
         super(remainingLimits);
+    }
+
+    /**
+     * Root constructor using the supplied coercion policy.
+     *
+     * @param remainingLimits The limits for this decoder
+     * @param coercionPolicy The coercions this decoder may perform
+     */
+    protected AbstractDecoderPerStructureStreamDecoder(RemainingLimits remainingLimits, CoercionPolicy coercionPolicy) {
+        super(remainingLimits, coercionPolicy);
     }
 
     /**

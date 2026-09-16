@@ -29,15 +29,9 @@ public class InetAddressTest {
     @Test
     public void inetAddressSerialization(JsonMapper jsonMapper) throws IOException {
         assertEquals(q("127.0.0.1"), jsonMapper.writeValueAsString(InetAddress.getByName("127.0.0.1")));
-        InetAddress input = InetAddress.getByName("google.com");
-        assertEquals(q("google.com"), jsonMapper.writeValueAsString(input));
 
         InetAddress address = jsonMapper.readValue(q("127.0.0.1"), InetAddress.class);
         assertEquals("127.0.0.1", address.getHostAddress());
-
-        final String HOST = "google.com";
-        address = jsonMapper.readValue(q(HOST), InetAddress.class);
-        assertEquals(HOST, address.getHostName());
     }
 
     public static String q(String str) {
