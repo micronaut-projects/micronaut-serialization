@@ -13,6 +13,7 @@ dependencies {
 
     implementation(projects.micronautSerdeJackson)
     implementation(projects.micronautSerdeYaml)
+    implementation(projects.micronautSerdeProperties)
     implementation(mn.micronaut.http.client)
     implementation(libs.oci.aidocument)
 
