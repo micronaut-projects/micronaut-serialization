@@ -6,7 +6,7 @@ pluginManagement {
 }
 
 plugins {
-    id("io.micronaut.build.shared.settings") version "8.0.2"
+    id("io.micronaut.build.shared.settings") version "8.1.1"
 }
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
@@ -40,16 +40,32 @@ include("serde-jackson-cbor")
 include("serde-yaml")
 include("serde-yaml-tck")
 
+include("doc-examples:example-bson-groovy")
 include("doc-examples:example-bson-java")
+include("doc-examples:example-bson-kotlin")
+include("doc-examples:example-bson-python")
+include("doc-examples:example-jackson-cbor-groovy")
 include("doc-examples:example-jackson-cbor-java")
+include("doc-examples:example-jackson-cbor-kotlin")
+include("doc-examples:example-jackson-cbor-python")
 include("doc-examples:example-groovy")
 include("doc-examples:example-java")
+include("doc-examples:example-jsonb-groovy")
 include("doc-examples:example-jsonb-java")
+include("doc-examples:example-jsonb-kotlin")
+include("doc-examples:example-jsonb-python")
+include("doc-examples:example-protobuf-groovy")
 include("doc-examples:example-protobuf-java")
+include("doc-examples:example-protobuf-kotlin")
+include("doc-examples:example-protobuf-python")
 include("doc-examples:example-kotlin")
 include("doc-examples:example-kotlin-ksp")
+include("doc-examples:example-python")
 include("doc-examples:example-standalone-java-jackson")
+include("doc-examples:example-stax-xml-groovy")
 include("doc-examples:example-stax-xml-java")
+include("doc-examples:example-stax-xml-kotlin")
+include("doc-examples:example-stax-xml-python")
 include("doc-examples:example-woodstox-xml-java")
 
 include("benchmarks")

@@ -12,6 +12,8 @@ dependencies {
     kapt(projects.micronautSerdeProcessor)
 
     implementation(projects.micronautSerdeJackson)
+    implementation(projects.micronautSerdeYaml)
+    implementation(projects.micronautSerdeProperties)
     implementation(mn.micronaut.http.client)
 
     runtimeOnly(mnLogging.logback.classic)

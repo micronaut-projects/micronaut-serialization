@@ -166,13 +166,7 @@ Documents are always written with `\n` line breaks so the output is identical on
 
 The module registers a message body handler for `application/yaml` (RFC 9512) and the legacy `application/x-yaml` media type, so controllers and clients can consume and produce YAML bodies:
 
-[source,java]
-----
-@Post(uri = "/books", processes = YamlMediaTypes.APPLICATION_YAML)
-Book save(@Body Book book) {
-    return book;
-}
-----
+snippet::example.YamlBookController[project-base="doc-examples/example", source="main"]
 
 The constants api:serde.yaml.YamlMediaTypes[]#APPLICATION_YAML and api:serde.yaml.YamlMediaTypes[]#APPLICATION_X_YAML are provided for convenience. JSON stays the default for content negotiation; YAML is selected by the request `Content-Type` and `Accept` headers.
 
