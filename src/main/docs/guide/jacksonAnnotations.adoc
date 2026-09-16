@@ -201,25 +201,9 @@ In addition, limited support for 3 `jackson-databind` annotations is included to
 | Only the `as` member
 |===
 
-Note that when using these annotations it is recommended that you make `jackson-databind` a `compileOnly` dependency since it is not needed at runtime. For example for Gradle:
+Note that when using these annotations it is recommended that you make `jackson-databind` a `compileOnly` (Maven `provided`) dependency since it is not needed at runtime:
 
-.`jackson-databind` as `compileOnly` scope
-[source,groovy]
-----
-compileOnly("com.fasterxml.jackson.core:jackson-databind")
-----
-
-or Maven:
-
-.`jackson-databind` as `provided` scope
-[source,xml]
-----
-<dependency>
-  <groupId>com.fasterxml.jackson.core</groupId>
-  <artifactId>jackson-databind</artifactId>
-  <scope>provided</scope>
-</dependency>
-----
+dependency:jackson-databind[groupId="com.fasterxml.jackson.core",scope="compileOnly"]
 
 === `@JsonView` on controllers
 
