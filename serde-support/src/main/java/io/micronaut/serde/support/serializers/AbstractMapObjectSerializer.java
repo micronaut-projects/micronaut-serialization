@@ -18,7 +18,6 @@ package io.micronaut.serde.support.serializers;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
-import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
@@ -153,7 +152,7 @@ abstract sealed class AbstractMapObjectSerializer<K, V> implements ObjectSeriali
 
     @Override
     public final boolean isEmpty(EncoderContext context, @Nullable Map<K, V> value) {
-        if (CollectionUtils.isEmpty(value)) {
+        if (value == null || value.isEmpty()) {
             return true;
         }
         if (includeContent != SerdeConfig.SerInclude.ALWAYS) {

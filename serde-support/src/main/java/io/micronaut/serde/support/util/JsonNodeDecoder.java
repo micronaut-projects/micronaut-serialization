@@ -40,6 +40,8 @@ import java.util.Map;
  */
 @Internal
 public abstract sealed class JsonNodeDecoder extends LimitingStream implements Decoder permits JsonArrayNodeDecoder, JsonNodeDecoder.Buffered, JsonObjectNodeDecoder {
+    private static final String NUMBER_TOKEN = "NUMBER";
+
     JsonNodeDecoder(LimitingStream.RemainingLimits remainingLimits) {
         super(remainingLimits);
     }
@@ -127,7 +129,7 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
             skipValue();
             return (byte) peeked.getIntValue();
         } else if (peeked.isNull()) {
-            throw unexpectedNullToken("NUMBER");
+            throw unexpectedNullToken(NUMBER_TOKEN);
         } else if (peeked.isArray()) {
             try (Decoder decoder = decodeArray(Argument.BYTE)) {
                 byte unwrapped = decoder.decodeByte();
@@ -149,7 +151,7 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
             skipValue();
             return (short) peeked.getIntValue();
         } else if (peeked.isNull()) {
-            throw unexpectedNullToken("NUMBER");
+            throw unexpectedNullToken(NUMBER_TOKEN);
         } else if (peeked.isArray()) {
             try (Decoder decoder = decodeArray(Argument.SHORT)) {
                 short unwrapped = decoder.decodeShort();
@@ -171,7 +173,7 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
             skipValue();
             return (char) peeked.getIntValue();
         } else if (peeked.isNull()) {
-            throw unexpectedNullToken("NUMBER");
+            throw unexpectedNullToken(NUMBER_TOKEN);
         } else if (peeked.isArray()) {
             try (Decoder decoder = decodeArray(Argument.CHAR)) {
                 char unwrapped = decoder.decodeChar();
@@ -193,7 +195,7 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
             skipValue();
             return peeked.getIntValue();
         } else if (peeked.isNull()) {
-            throw unexpectedNullToken("NUMBER");
+            throw unexpectedNullToken(NUMBER_TOKEN);
         } else if (peeked.isArray()) {
             try (Decoder decoder = decodeArray(Argument.INT)) {
                 int unwrapped = decoder.decodeInt();
@@ -215,7 +217,7 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
             skipValue();
             return peeked.getLongValue();
         } else if (peeked.isNull()) {
-            throw unexpectedNullToken("NUMBER");
+            throw unexpectedNullToken(NUMBER_TOKEN);
         } else if (peeked.isArray()) {
             try (Decoder decoder = decodeArray(Argument.LONG)) {
                 long unwrapped = decoder.decodeLong();
@@ -237,7 +239,7 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
             skipValue();
             return peeked.getFloatValue();
         } else if (peeked.isNull()) {
-            throw unexpectedNullToken("NUMBER");
+            throw unexpectedNullToken(NUMBER_TOKEN);
         } else if (peeked.isArray()) {
             try (Decoder decoder = decodeArray(Argument.FLOAT)) {
                 float unwrapped = decoder.decodeFloat();
@@ -259,7 +261,7 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
             skipValue();
             return peeked.getDoubleValue();
         } else if (peeked.isNull()) {
-            throw unexpectedNullToken("NUMBER");
+            throw unexpectedNullToken(NUMBER_TOKEN);
         } else if (peeked.isArray()) {
             try (Decoder decoder = decodeArray(Argument.DOUBLE)) {
                 double unwrapped = decoder.decodeDouble();
@@ -281,7 +283,7 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
             skipValue();
             return peeked.getBigIntegerValue();
         } else if (peeked.isNull()) {
-            throw unexpectedNullToken("NUMBER");
+            throw unexpectedNullToken(NUMBER_TOKEN);
         } else if (peeked.isArray()) {
             try (Decoder decoder = decodeArray()) {
                 BigInteger unwrapped = decoder.decodeBigInteger();
@@ -303,7 +305,7 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
             skipValue();
             return peeked.getBigDecimalValue();
         } else if (peeked.isNull()) {
-            throw unexpectedNullToken("NUMBER");
+            throw unexpectedNullToken(NUMBER_TOKEN);
         } else if (peeked.isArray()) {
             try (Decoder decoder = decodeArray()) {
                 BigDecimal unwrapped = decoder.decodeBigDecimal();

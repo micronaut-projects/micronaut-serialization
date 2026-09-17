@@ -21,7 +21,7 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.serde.config.SerdeConfiguration;
 import tools.jackson.core.StreamReadFeature;
 import tools.jackson.core.StreamWriteFeature;
-import tools.jackson.core.json.JsonFactory;
+import tools.jackson.core.TokenStreamFactory;
 import tools.jackson.core.json.JsonReadFeature;
 import tools.jackson.core.json.JsonWriteFeature;
 
@@ -44,7 +44,7 @@ public final class SerdeJacksonConfiguration {
     // TODO: document breaking changes
     private Map<JsonReadFeature, Boolean> jsonReadFeatures = Collections.emptyMap();
     private Map<JsonWriteFeature, Boolean> jsonWriteFeatures = Collections.emptyMap();
-    private Map<JsonFactory.Feature, Boolean> jsonFactoryFeatures = Collections.emptyMap();
+    private Map<TokenStreamFactory.Feature, Boolean> jsonFactoryFeatures = Collections.emptyMap();
     private Map<StreamReadFeature, Boolean> streamReadFeatures = Collections.emptyMap();
     private Map<StreamWriteFeature, Boolean> streamWriteFeatures = Collections.emptyMap();
     private boolean prettyPrint;
@@ -65,11 +65,11 @@ public final class SerdeJacksonConfiguration {
         this.jsonWriteFeatures = jsonWriteFeatures;
     }
 
-    public Map<JsonFactory.Feature, Boolean> getJsonFactoryFeatures() {
+    public Map<TokenStreamFactory.Feature, Boolean> getJsonFactoryFeatures() {
         return jsonFactoryFeatures;
     }
 
-    public void setJsonFactoryFeatures(Map<JsonFactory.Feature, Boolean> jsonFactoryFeatures) {
+    public void setJsonFactoryFeatures(Map<TokenStreamFactory.Feature, Boolean> jsonFactoryFeatures) {
         this.jsonFactoryFeatures = jsonFactoryFeatures;
     }
 

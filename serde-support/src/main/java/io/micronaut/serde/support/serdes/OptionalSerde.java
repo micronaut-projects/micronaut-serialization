@@ -69,6 +69,7 @@ final class OptionalSerde<T> implements CustomizableSerializer<Optional<T>>, Cus
             }
 
             @Override
+            @SuppressWarnings("java:S2789") // the Serializer contract allows a null value
             public boolean isEmpty(EncoderContext context, @Nullable Optional<T> value) {
                 if (value == null || value.isEmpty()) {
                     return true;
@@ -80,6 +81,7 @@ final class OptionalSerde<T> implements CustomizableSerializer<Optional<T>>, Cus
             }
 
             @Override
+            @SuppressWarnings("java:S2789") // the Serializer contract allows a null value
             public boolean isAbsent(EncoderContext context, @Nullable Optional<T> value) {
                 if (value == null || value.isEmpty()) {
                     return true;
