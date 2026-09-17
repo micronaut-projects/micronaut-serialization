@@ -40,6 +40,8 @@ import java.util.Map;
  */
 @Internal
 public abstract sealed class JsonNodeDecoder extends LimitingStream implements Decoder permits JsonArrayNodeDecoder, JsonNodeDecoder.Buffered, JsonObjectNodeDecoder {
+    private static final String NUMBER_TOKEN = "NUMBER";
+
     JsonNodeDecoder(LimitingStream.RemainingLimits remainingLimits) {
         super(remainingLimits);
     }
@@ -49,8 +51,6 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
     }
 
     protected abstract JsonNode peekValue() throws IOException;
-
-    private static final String NUMBER_TOKEN = "NUMBER";
 
     private static NullValueSerdeException unexpectedNullToken(String expected) {
         return NullValueSerdeException.unexpectedToken(expected, "NULL");

@@ -1,6 +1,7 @@
 package io.micronaut.serde
 
 import io.micronaut.json.tree.JsonNode
+import io.micronaut.serde.exceptions.NullValueSerdeException
 import io.micronaut.serde.exceptions.SerdeException
 import io.micronaut.serde.support.util.JsonNodeDecoder
 import spock.lang.Specification
@@ -24,6 +25,18 @@ class JsonNodeDecoderSpec extends Specification {
         create(JsonNode.createStringNode('foo')).decodeString() == 'foo'
         create(JsonNode.createBooleanNode(true)).decodeBoolean()
         create(JsonNode.nullNode()).decodeNull()
+    }
+
+    def 'null node fails for #method'() {
+        when:
+        create(JsonNode.nullNode())."$method"()
+
+        then:
+        thrown(NullValueSerdeException)
+
+        where:
+        method << ['decodeByte', 'decodeShort', 'decodeChar', 'decodeInt', 'decodeLong',
+                   'decodeFloat', 'decodeDouble', 'decodeBigInteger', 'decodeBigDecimal']
     }
 
     def 'array decode'() {
