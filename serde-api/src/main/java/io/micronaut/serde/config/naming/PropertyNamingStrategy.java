@@ -16,7 +16,6 @@
 package io.micronaut.serde.config.naming;
 
 import io.micronaut.core.annotation.AnnotatedElement;
-import io.micronaut.core.util.StringUtils;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
@@ -83,7 +82,7 @@ public interface PropertyNamingStrategy {
      * @return The naming strategy
      */
     static Optional<PropertyNamingStrategy> forName(@Nullable String namingStrategy) {
-        if (StringUtils.isNotEmpty(namingStrategy)) {
+        if (namingStrategy != null && !namingStrategy.isEmpty()) {
             return switch (namingStrategy) {
                 case "KEBAB_CASE", "io.micronaut.serde.config.naming.KebabCaseStrategy" ->
                     Optional.of(KEBAB_CASE);

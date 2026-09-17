@@ -597,9 +597,6 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     }
 
     private boolean isNumberType(ClassElement type) {
-        if (type == null) {
-            return false;
-        }
         return type.isAssignable(Number.class) ||
                 (type.isPrimitive() && ClassUtils.getPrimitiveType(type.getName())
                         .map(ReflectionUtils::getWrapperType)
@@ -740,6 +737,9 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                     typeName = name;
                 }
                 allNames.add(typeName);
+            }
+            case DEDUCTION -> {
+                // handled above
             }
         }
 
@@ -1607,9 +1607,6 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     }
 
     private static boolean isBasicType(ClassElement propertyType) {
-        if (propertyType == null) {
-            return false;
-        }
         String name = propertyType.getName();
         return ClassUtils.isJavaBasicType(name) || (propertyType.isPrimitive() && !propertyType.isArray());
     }

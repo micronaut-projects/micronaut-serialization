@@ -55,6 +55,7 @@ public final class EnumDeserializerSourceGen {
     private static final TypeDef ARGUMENT_TYPE = TypeDef.of(Argument.class);
     private static final TypeDef DESERIALIZER_TYPE = TypeDef.of(Deserializer.class);
     private static final String CONTEXT_PARAMETER = "context";
+    private static final String CREATE_SPECIFIC_METHOD_NAME = "createSpecific";
     private static final String GENERATED_VALUE_MEMBER = "value";
     private static final String ARGUMENT_STRING_FIELD = "ARGUMENT_STRING";
     private static final String STRING_DESERIALIZER_FIELD = "stringDeserializer";
@@ -63,7 +64,7 @@ public final class EnumDeserializerSourceGen {
     private static final Method FIND_DESERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(Deserializer.DecoderContext.class, "findDeserializer", Argument.class);
     private static final Method CREATE_SPECIFIC_DESERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
         Deserializer.class,
-        "createSpecific",
+        CREATE_SPECIFIC_METHOD_NAME,
         Deserializer.DecoderContext.class,
         Argument.class
     );
@@ -145,7 +146,7 @@ public final class EnumDeserializerSourceGen {
     }
 
     private MethodDef generateCreateSpecificMethod(TypeDef enumTypeDef) {
-        return MethodDef.builder("createSpecific")
+        return MethodDef.builder(CREATE_SPECIFIC_METHOD_NAME)
             .addModifiers(Modifier.PUBLIC)
             .overrides()
             .returns(TypeDef.parameterized(Deserializer.class, enumTypeDef))
@@ -168,7 +169,7 @@ public final class EnumDeserializerSourceGen {
     }
 
     private MethodDef generateCreateSpecificWithFormatMethod(TypeDef enumTypeDef) {
-        return MethodDef.builder("createSpecific")
+        return MethodDef.builder(CREATE_SPECIFIC_METHOD_NAME)
             .addModifiers(Modifier.PUBLIC)
             .overrides()
             .returns(TypeDef.parameterized(Deserializer.class, enumTypeDef))
