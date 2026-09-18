@@ -1,0 +1,80 @@
+Micronaut Serialization includes support for reading and writing CSV documents with the `micronaut-serde-csv` module.
+
+Add the following artifact to the `dependencies` block:
+
+dependency:micronaut-serde-csv[groupId="io.micronaut.serde",scope="implementation"]
+
+The CSV mapper is exposed as a named api:serde.ObjectMapper[] bean. Inject it with the `csv` qualifier when you want to read or write CSV data:
+
+snippet::example.CsvReportService[project-base="doc-examples/example", source="main"]
+
+CSV data without a header row can be read as a list of rows, where every row is a list of cell values:
+
+NOTE: Use `Argument<List<List<String>>>` for matrix-shaped CSV data when there is no header row or when column names are not part of the schema. Each inner `List<String>` represents one CSV row.
+
+snippet::example.CsvRowsExample[project-base="doc-examples/example", source="main"]
+
+The same row-oriented shape is used when writing `List<List<String>>` values:
+
+[source,csv]
+----
+1,2,true
+2,9,false
+-13,0,true
+----
+
+To read CSV documents where the first row contains column names, enable first-row header handling:
+
+[configuration]
+----
+micronaut:
+  serde:
+    format:
+      csv:
+        read-features:
+          header: FIRST_ROW
+----
+
+With header handling enabled, the first row is used as object keys when reading map rows or bean rows:
+
+NOTE: Use `Argument<List<Map<String, String>>>` when the CSV has a header row and first-row header handling is enabled. Each `Map<String, String>` represents one row keyed by the header names. Use a bean type such as `Argument.listOf(CsvPointRow.class)` when the schema is fixed and should bind to bean properties.
+
+snippet::example.CsvPointRow[project-base="doc-examples/example", source="main"]
+
+[source,csv]
+----
+x,y,visible
+1,2,true
+2,9,false
+-13,0,true
+----
+
+To write a header row, enable the write header feature:
+
+[configuration]
+----
+micronaut:
+  serde:
+    format:
+      csv:
+        write-features:
+          header: FIRST_ROW
+----
+
+When writing maps, the header is inferred from the map keys. When writing beans with a declared type, the header is inferred from the bean properties:
+
+[source,csv]
+----
+x,y,visible
+1,2,true
+2,9,false
+-13,0,true
+----
+
+The following executable example reads row-oriented CSV data and reads and writes bean rows with first-row headers:
+
+snippet::example.CsvQuickStartTest[project-base="doc-examples/example"]
+
+NOTE: CSV support is row-oriented. Root arrays of arrays are written without a header row, even when write header handling is enabled.
+
+WARNING: CSV cells can only contain scalar values. Nested object and map properties are not supported. Attempting to write a bean property that serializes as a nested object or map throws a api:serde.exceptions.SerdeException[].

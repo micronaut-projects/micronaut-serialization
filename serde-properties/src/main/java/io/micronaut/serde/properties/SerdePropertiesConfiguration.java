@@ -15,7 +15,6 @@
  */
 package io.micronaut.serde.properties;
 
-import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.ConfigurationProperties;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.serde.config.SerdeConfiguration;
@@ -27,7 +26,6 @@ import java.util.Objects;
  *
  * @since 3.1.0
  */
-@BootstrapContextCompatible
 @Internal
 @ConfigurationProperties(SerdePropertiesConfiguration.PREFIX)
 public final class SerdePropertiesConfiguration {
