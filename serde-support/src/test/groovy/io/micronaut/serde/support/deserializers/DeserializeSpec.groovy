@@ -71,16 +71,16 @@ class DeserializeSpec extends Specification {
         def valueBean = objectDeserializer.getDeserializableBean(valueArgument, null, decoderContext)
         def deserializer = new SpecificObjectDeserializer(false, valueBean, null)
 
-        when:
-        deserializer.deserializeNullable(
+        when: "an explicit empty object is deserialized into a nullable bean"
+        def result = deserializer.deserializeNullable(
                 JsonNodeDecoder.create(JsonNode.createObjectNode([:]), LimitingStream.DEFAULT_LIMITS),
                 decoderContext,
                 valueArgument)
 
-        then:
+        then: "an explicit '{}' yields a non-null instance with all-null properties, not null (see gh-1411)"
         valueArgument.nullable
-        def error = thrown(SerdeException)
-        error.message == 'Null value encountered during deserialization of type: NullableConstructorValue value'
+        result != null
+        result.value() == null
 
         cleanup:
         ctx.close()
