@@ -50,7 +50,7 @@ public final class DeserializableMapper
         );
         annotation.annotationClassValue("naming").ifPresent(naming ->
             builder
-                .member(SerdeConfig.NAMING, naming)
+                .member(SerdeConfig.DESERIALIZE_NAMING, naming)
         );
         return List.of(builder.build());
     }

@@ -626,8 +626,12 @@ final class DeserBean<T> {
     private PropertyNamingStrategy getPropertyNamingStrategy(AnnotationMetadata annotationMetadata,
                                                              Deserializer.DecoderContext decoderContext,
                                                              @Nullable PropertyNamingStrategy defaultNamingStrategy) throws SerdeException {
-        Class<? extends PropertyNamingStrategy> namingStrategyClass = annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.RUNTIME_NAMING)
+        Class<? extends PropertyNamingStrategy> namingStrategyClass = annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.DESERIALIZE_RUNTIME_NAMING)
             .orElse(null);
+        if (namingStrategyClass == null) {
+            namingStrategyClass = annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.RUNTIME_NAMING)
+                .orElse(null);
+        }
         return namingStrategyClass == null ? defaultNamingStrategy : decoderContext.findNamingStrategy(namingStrategyClass);
     }
 
@@ -718,6 +722,10 @@ final class DeserBean<T> {
                                List<AnnotationMetadata> annotationMetadata,
                                @Nullable PropertyNamingStrategy namingStrategy) {
         for (AnnotationMetadata metadataElement : annotationMetadata) {
+            Optional<String> deserProp = metadataElement.stringValue(SerdeConfig.class, SerdeConfig.DESERIALIZE_PROPERTY_NAME);
+            if (deserProp.isPresent()) {
+                return deserProp.get();
+            }
             Optional<String> serde = metadataElement.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY);
             if (serde.isPresent()) {
                 return serde.get();

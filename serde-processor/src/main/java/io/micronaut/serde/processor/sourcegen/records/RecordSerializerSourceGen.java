@@ -131,7 +131,7 @@ public final class RecordSerializerSourceGen {
 
             fields.add(FieldDef.builder(keyFieldName, STRING_TYPE)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                .initializer(ExpressionDef.constant(component.name()))
+                .initializer(ExpressionDef.constant(component.serializationName()))
                 .build());
             fields.add(FieldDef.builder(argumentFieldName, ARGUMENT_TYPE)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)

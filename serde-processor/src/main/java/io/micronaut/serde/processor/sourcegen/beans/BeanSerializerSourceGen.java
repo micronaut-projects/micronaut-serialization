@@ -139,7 +139,7 @@ public final class BeanSerializerSourceGen {
 
             fields.add(FieldDef.builder(keyFieldName, STRING_TYPE)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                .initializer(ExpressionDef.constant(property.name()))
+                .initializer(ExpressionDef.constant(property.serializationName()))
                 .build());
             fields.add(FieldDef.builder(argumentFieldName, ARGUMENT_TYPE)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)

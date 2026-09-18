@@ -50,7 +50,7 @@ public final class SerializableMapper
         );
         annotation.annotationClassValue("naming").ifPresent(naming ->
             builder
-                .member(SerdeConfig.NAMING, naming)
+                .member(SerdeConfig.SERIALIZE_NAMING, naming)
         );
         return List.of(builder.build());
     }

@@ -36,6 +36,8 @@ public record BeanSerdeShape(
      * Bean property metadata used by source generation.
      *
      * @param name                Property name.
+     * @param serializationName   Property name used for serialization.
+     * @param deserializationName Property name used for deserialization.
      * @param serializationType   Property type used for serialization.
      * @param deserializationType Property type used for deserialization.
      * @param nonNull             Whether the property is non-null.
@@ -47,6 +49,8 @@ public record BeanSerdeShape(
      */
     public record BeanProperty(
         String name,
+        String serializationName,
+        String deserializationName,
         ClassElement serializationType,
         ClassElement deserializationType,
         boolean nonNull,
