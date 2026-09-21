@@ -86,7 +86,7 @@ final class EnumSerde<E extends Enum<E>> implements CustomizableDeserializer<E>,
                         for (EnumConstant<E> enumConstant : constants) {
                             E enumValue = enumConstant.getValue();
                             Object deserializedValue = beanMethod.invoke(enumValue);
-                            cache.put(deserializedValue, enumValue);
+                            cache.putIfAbsent(deserializedValue, enumValue);
                         }
                         return new EnumValueDeserializer<>(
                             valueType,
@@ -108,7 +108,7 @@ final class EnumSerde<E extends Enum<E>> implements CustomizableDeserializer<E>,
                         for (EnumConstant<E> enumConstant : constants) {
                             E enumValue = enumConstant.getValue();
                             Object deserializedValue = beanProperty.get(enumValue);
-                            cache.put(deserializedValue, enumValue);
+                            cache.putIfAbsent(deserializedValue, enumValue);
                         }
                         return new EnumValueDeserializer<>(
                             valueType,
@@ -127,6 +127,10 @@ final class EnumSerde<E extends Enum<E>> implements CustomizableDeserializer<E>,
                     E enumValue = enumConstant.getValue();
                     String enumAsString = enumConstant.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(enumValue.name());
                     cache.put(enumAsString, enumValue);
+                    for (String alias : enumConstant.stringValues(SerdeConfig.class, SerdeConfig.ALIASES)) {
+                        // Explicit names take precedence over aliases, regardless of declaration order.
+                        cache.putIfAbsent(alias, enumValue);
+                    }
                 }
                 return new EnumPropertyDeserializer<>(
                     cache,
