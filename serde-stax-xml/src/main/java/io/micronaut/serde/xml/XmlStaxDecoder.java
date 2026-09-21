@@ -220,7 +220,7 @@ public abstract sealed class XmlStaxDecoder extends LimitingStream implements De
         return new SerdeException(message + (invalidValue == null ? "" : " (value: " + invalidValue + ")"));
     }
 
-    static @Nullable Object readArbitraryValue(Cursor cursor) throws IOException {
+    final @Nullable Object readArbitraryValue() throws IOException {
         StringBuilder text = null;
         while (true) {
             int e = cursor.current();
@@ -241,7 +241,12 @@ public abstract sealed class XmlStaxDecoder extends LimitingStream implements De
                     }
                     return text.toString();
                 case XMLStreamConstants.START_ELEMENT:
-                    return readArbitraryObject(cursor);
+                    increaseDepth();
+                    try {
+                        return readArbitraryObject();
+                    } finally {
+                        decreaseDepth();
+                    }
                 case XMLStreamConstants.END_DOCUMENT:
                     return text == null ? null : text.toString();
                 default:
@@ -252,24 +257,41 @@ public abstract sealed class XmlStaxDecoder extends LimitingStream implements De
 
     final void skipCurrentElement(String operation) throws IOException {
         int depth = 1;
-        while (depth > 0) {
-            int e = cursor.current();
-            if (e == XMLStreamConstants.START_ELEMENT) {
-                depth++;
-            } else if (e == XMLStreamConstants.END_ELEMENT) {
-                depth--;
-                if (depth == 0) {
-                    cursor.advance();
-                    return;
+        int structureDepth = 0;
+        try {
+            while (depth > 0) {
+                int e = cursor.current();
+                if (e == XMLStreamConstants.START_ELEMENT) {
+                    // The first child proves the current element is a nested structure.
+                    if (depth > structureDepth) {
+                        increaseDepth();
+                        structureDepth = depth;
+                    }
+                    depth++;
+                } else if (e == XMLStreamConstants.END_ELEMENT) {
+                    if (depth == structureDepth) {
+                        decreaseDepth();
+                        structureDepth--;
+                    }
+                    depth--;
+                    if (depth == 0) {
+                        cursor.advance();
+                        return;
+                    }
+                } else if (e == XMLStreamConstants.END_DOCUMENT) {
+                    throw new EOFException("Unexpected end of XML document while " + operation);
                 }
-            } else if (e == XMLStreamConstants.END_DOCUMENT) {
-                throw new EOFException("Unexpected end of XML document while " + operation);
+                cursor.advance();
             }
-            cursor.advance();
+        } finally {
+            while (structureDepth > 0) {
+                decreaseDepth();
+                structureDepth--;
+            }
         }
     }
 
-    private static Map<String, Object> readArbitraryObject(Cursor cursor) throws IOException {
+    private Map<String, Object> readArbitraryObject() throws IOException {
         Map<String, Object> map = new LinkedHashMap<>();
         while (true) {
             int e = cursor.current();
@@ -277,7 +299,7 @@ public abstract sealed class XmlStaxDecoder extends LimitingStream implements De
                 case XMLStreamConstants.START_ELEMENT:
                     String childName = cursor.localName();
                     cursor.advance();
-                    Object childValue = readArbitraryValue(cursor);
+                    Object childValue = readArbitraryValue();
                     Object existing = map.get(childName);
                     if (existing == null && !map.containsKey(childName)) {
                         map.put(childName, childValue);
@@ -769,7 +791,7 @@ public abstract sealed class XmlStaxDecoder extends LimitingStream implements De
                 case null -> false;
             };
             enterCurrentElement();
-            Object v = readArbitraryValue(cursor);
+            Object v = readArbitraryValue();
             clearKeyState();
             if (textProperty) {
                 finished = true;
@@ -1094,7 +1116,7 @@ public abstract sealed class XmlStaxDecoder extends LimitingStream implements De
             }
             requireItem();
             enterCurrentItem();
-            Object v = readArbitraryValue(cursor);
+            Object v = readArbitraryValue();
             clearItem();
             return v;
         }
@@ -1407,22 +1429,8 @@ public abstract sealed class XmlStaxDecoder extends LimitingStream implements De
                 return;
             }
             valueConsumed = true;
-            int depth = 0;
-            int e = cursor.current();
-            while (true) {
-                if (e == XMLStreamConstants.START_ELEMENT) {
-                    depth++;
-                } else if (e == XMLStreamConstants.END_ELEMENT) {
-                    depth--;
-                    if (depth == 0) {
-                        cursor.advance();
-                        return;
-                    }
-                } else if (e == XMLStreamConstants.END_DOCUMENT) {
-                    return;
-                }
-                e = cursor.advance();
-            }
+            cursor.advance();
+            skipCurrentElement("skipping XML root");
         }
 
     }

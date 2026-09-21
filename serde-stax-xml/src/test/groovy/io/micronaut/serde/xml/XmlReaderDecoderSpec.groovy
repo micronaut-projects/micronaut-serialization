@@ -6,6 +6,7 @@ import io.micronaut.serde.KeyDescriptor
 import io.micronaut.serde.Keys
 import io.micronaut.serde.KeysAwareDecoder
 import io.micronaut.serde.LimitingStream
+import io.micronaut.serde.config.SerdeConfiguration
 import io.micronaut.serde.config.annotation.SerdeConfig
 import io.micronaut.serde.exceptions.SerdeException
 import org.intellij.lang.annotations.Language
@@ -44,6 +45,16 @@ class XmlReaderDecoderSpec extends Specification {
         def reader = XMLInputFactory.newFactory()
             .createXMLStreamReader(new StringReader(xml))
         new XmlStaxDecoder.DocumentDecoder(LimitingStream.DEFAULT_LIMITS, reader, emptyElementAsNull)
+    }
+
+    private Decoder createDepthLimitedDecoder(String xml, int maximumDepth) {
+        def configuration = Stub(SerdeConfiguration) {
+            getMaximumNestingDepth() >> maximumDepth
+        }
+        def reader = XMLInputFactory.newFactory()
+            .createXMLStreamReader(new StringReader(xml))
+        new XmlStaxDecoder.DocumentDecoder(
+            LimitingStream.limitsFromConfiguration(configuration), reader, false)
     }
 
     def "decode root scalar values"() {
@@ -157,6 +168,53 @@ class XmlReaderDecoderSpec extends Specification {
         expect:
         object.decodeKey() == 'nested'
         object.decodeArbitrary() == [key: ['a', 'b']]
+    }
+
+    def "arbitrary and skipped XML can reach the maximum nesting depth"() {
+        given:
+        def arbitrary = createDepthLimitedDecoder(
+            '<root><value><nested>text</nested></value></root>', 2)
+            .decodeObject(Argument.of(Map))
+        def skipped = createDepthLimitedDecoder(
+            '<root><ignored><nested>text</nested></ignored><last>value</last></root>', 2)
+            .decodeObject(Argument.of(Map))
+
+        expect:
+        arbitrary.decodeKey() == 'value'
+        arbitrary.decodeArbitrary() == [nested: 'text']
+
+        skipped.decodeKey() == 'ignored'
+        skipped.skipValue()
+        skipped.decodeKey() == 'last'
+        skipped.decodeString() == 'value'
+    }
+
+    def "arbitrary XML cannot bypass the maximum nesting depth"() {
+        given:
+        def xml = '<root><value>' + '<nested>' * 10 + 'text' + '</nested>' * 10 + '</value></root>'
+        def object = createDepthLimitedDecoder(xml, 2)
+            .decodeObject(Argument.of(Map))
+        object.decodeKey() == 'value'
+
+        when:
+        object.decodeArbitrary()
+
+        then:
+        thrown(SerdeException)
+    }
+
+    def "skipped XML cannot bypass the maximum nesting depth"() {
+        given:
+        def object = createDepthLimitedDecoder(
+            '<root><ignored><nested><nested>text</nested></nested></ignored></root>', 2)
+            .decodeObject(Argument.of(Map))
+        object.decodeKey() == 'ignored'
+
+        when:
+        object.skipValue()
+
+        then:
+        thrown(SerdeException)
     }
 
     def "nested element cannot be decoded as scalar array item"() {
