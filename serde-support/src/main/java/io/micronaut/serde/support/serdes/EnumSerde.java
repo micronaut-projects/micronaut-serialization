@@ -82,7 +82,7 @@ final class EnumSerde<E extends Enum<E>> implements CustomizableDeserializer<E>,
                     if (beanMethod.getAnnotationMetadata().hasDeclaredAnnotation(SerdeConfig.SerValue.class)) {
                         Argument<Object> valueType = beanMethod.getReturnType().asArgument();
                         Deserializer<?> valueDeserializer = context.findDeserializer(valueType);
-                        Map<Object, E> cache = CollectionUtils.newHashMap(constants.size());
+                        Map<Object, E> cache = CollectionUtils.newLinkedHashMap(constants.size());
                         for (EnumConstant<E> enumConstant : constants) {
                             E enumValue = enumConstant.getValue();
                             Object deserializedValue = beanMethod.invoke(enumValue);
@@ -104,7 +104,7 @@ final class EnumSerde<E extends Enum<E>> implements CustomizableDeserializer<E>,
                     if (beanProperty.getAnnotationMetadata().hasDeclaredAnnotation(SerdeConfig.SerValue.class)) {
                         Argument<Object> valueType = beanProperty.asArgument();
                         Deserializer<?> valueDeserializer = context.findDeserializer(valueType);
-                        Map<Object, E> cache = CollectionUtils.newHashMap(constants.size());
+                        Map<Object, E> cache = CollectionUtils.newLinkedHashMap(constants.size());
                         for (EnumConstant<E> enumConstant : constants) {
                             E enumValue = enumConstant.getValue();
                             Object deserializedValue = beanProperty.get(enumValue);
@@ -122,14 +122,17 @@ final class EnumSerde<E extends Enum<E>> implements CustomizableDeserializer<E>,
                         );
                     }
                 }
-                Map<String, E> cache = CollectionUtils.newHashMap(constants.size());
+                // Insertion ordered: names before aliases, so explicit names take precedence over aliases
+                // regardless of declaration order, also for the case-insensitive lookup.
+                Map<String, E> cache = CollectionUtils.newLinkedHashMap(constants.size());
                 for (EnumConstant<E> enumConstant : constants) {
                     E enumValue = enumConstant.getValue();
                     String enumAsString = enumConstant.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(enumValue.name());
                     cache.put(enumAsString, enumValue);
+                }
+                for (EnumConstant<E> enumConstant : constants) {
                     for (String alias : enumConstant.stringValues(SerdeConfig.class, SerdeConfig.ALIASES)) {
-                        // Explicit names take precedence over aliases, regardless of declaration order.
-                        cache.putIfAbsent(alias, enumValue);
+                        cache.putIfAbsent(alias, enumConstant.getValue());
                     }
                 }
                 return new EnumPropertyDeserializer<>(
