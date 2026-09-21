@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-/** Exposes a validated token tape to the ordinary serde deserializers. */
+/** Exposes JSON tokens to the ordinary serde deserializers. */
 @Internal
 final class PatchedDecoder extends AbstractStreamDecoder {
     private final TokenReader reader;
@@ -34,7 +34,7 @@ final class PatchedDecoder extends AbstractStreamDecoder {
     private final @Nullable ReplayStore ownedStore;
 
     /**
-     * Creates a decoder over a validated patch result.
+     * Creates a decoder over patch input or a validated patch result.
      * @param reader Token cursor
      * @param limits Remaining limits
      * @param coercionPolicy Mapper coercion policy

@@ -151,8 +151,9 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
 
     @Override
     public JsonPatch readJsonPatch(InputStream input, JsonPatchOptions options) throws IOException {
-        try (JsonParser parser = jsonFactory.createParser(PatchStreams.input(input))) {
-            return PatchEngine.readPatch(new JacksonPatchReader(parser), options, serdeConfiguration.getMaximumNestingDepth());
+        try (JsonParser parser = jsonFactory.createParser(PatchStreams.input(input));
+             var context = registry.newDecoderContext(view)) {
+            return PatchEngine.readPatch(new JacksonPatchReader(parser), context, options, serdeConfiguration.getMaximumNestingDepth(), streamLimits);
         } catch (StreamReadException | StreamWriteException e) {
             throw new IOException("JSON Patch parser or generator failure", e);
         }

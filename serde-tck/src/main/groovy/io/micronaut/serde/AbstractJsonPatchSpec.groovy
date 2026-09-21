@@ -85,6 +85,8 @@ abstract class AbstractJsonPatchSpec extends Specification {
         '0.123456789012345678901' | '[{"op":"test","path":"","value":0.123456789012345678901}]' | '0.123456789012345678901'
         '{"a":1}' | '[{"path":"/a","extra":{"anything":[1]},"value":2,"from":false,"op":"replace"}]' | '{"a":2}'
         '{"a":1}' | '[{"op":"remove","path":"/a","value":{"x":1,"x":2}}]' | '{}'
+        '{"a":1}' | '[{"value":[{"x":1,"x":2}],"from":false,"from":{},"path":"/a","op":"remove"},{"value":null,"path":"/b","op":"add"}]' | '{"b":null}'
+        '{"a":1}' | '[{"extra":{"x":1,"x":2},"extra":null,"path":"/a","value":[{"x":1},{"x":2}],"op":"replace"}]' | '{"a":[{"x":1},{"x":2}]}'
         '{"a":1,"ab":{}}' | '[{"op":"move","from":"/a","path":"/ab/x"}]' | '{"ab":{"x":1}}'
         'false' | '[]' | 'false'
     }
@@ -134,15 +136,32 @@ abstract class AbstractJsonPatchSpec extends Specification {
         thrown(IOException)
 
         where:
-        json << ['{}', '[1]', '[{}]', '[{"op":"foo","path":""}]',
+        json << ['{}', 'null', '[null]', '[[]]', '[1]', '[{}]', '[{"op":"foo","path":""}]',
                  '[{"op":"add","path":""}]', '[{"op":"replace","path":""}]',
                  '[{"op":"test","path":""}]', '[{"op":"copy","path":""}]',
                  '[{"op":"remove","path":1}]', '[{"op":1,"path":""}]',
                  '[{"op":"remove","path":"bad"}]', '[{"op":"remove","path":"/~2"}]',
                  '[{"op":"remove","path":"/~"}]', '[{"op":"remove","op":"add","path":"","value":1}]',
                  '[{"op":"remove","path":"","path":"/a"}]',
+                 '[{"value":1,"value":2,"path":"","op":"add"}]',
+                 '[{"value":{"a":{"x":1,"x":2}},"path":"","op":"test"}]',
+                 '[{"value":[{"x":1,"x":2}],"path":"","op":"replace"}]',
+                 '[{"from":"/a","from":"/b","path":"/c","op":"copy"}]',
+                 '[{"op":"remove","path":null}]',
+                 '[{"op":"add","path":"","value":1e9999999999}]',
                  '[{"op":"move","from":"/a","path":"/a/b"}]',
                  '[{"op":"move","from":"","path":"/a"}]', '[] []']
+    }
+
+    def 'serde parsing keeps validation failures associated with their operation'() {
+        when:
+        patch('[{"op":"remove","path":"/a"},{"value":{"x":1,"x":2},"path":"/b","op":"add"}]')
+
+        then:
+        def error = thrown(JsonPatchException)
+        error.operationIndex == 1
+        error.operation == 'add'
+        error.pointer == '/b'
     }
 
     def 'later operations cannot hide an earlier failure'() {

@@ -20,9 +20,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -91,44 +89,6 @@ final class TokenIO {
         } else {
             writer.write(PatchToken.NULL, "");
         }
-    }
-
-    static JsonNode readNode(TokenReader reader, boolean[] duplicateMembers) throws IOException {
-        PatchToken token = reader.current();
-        if (token == null) {
-            throw new IOException("Expected patch value");
-        }
-        JsonNode result;
-        switch (token) {
-            case START_OBJECT -> {
-                Map<String, JsonNode> members = new LinkedHashMap<>();
-                reader.next();
-                while (reader.current() != PatchToken.END_OBJECT) {
-                    require(reader, PatchToken.KEY);
-                    String key = reader.text();
-                    reader.next();
-                    if (members.put(key, readNode(reader, duplicateMembers)) != null) {
-                        duplicateMembers[0] = true;
-                    }
-                }
-                result = JsonNode.createObjectNode(members);
-            }
-            case START_ARRAY -> {
-                var values = new ArrayList<JsonNode>();
-                reader.next();
-                while (reader.current() != PatchToken.END_ARRAY) {
-                    values.add(readNode(reader, duplicateMembers));
-                }
-                result = JsonNode.createArrayNode(values);
-            }
-            case STRING -> result = JsonNode.createStringNode(reader.text());
-            case NUMBER -> result = JsonNode.createNumberNode(new BigDecimal(reader.text()));
-            case TRUE, FALSE -> result = JsonNode.createBooleanNode(token == PatchToken.TRUE);
-            case NULL -> result = JsonNode.nullNode();
-            default -> throw new IOException("Expected patch value");
-        }
-        reader.next();
-        return result;
     }
 
     /** Compares while forwarding tokens. Auxiliary memory is bounded by the expected patch value. */

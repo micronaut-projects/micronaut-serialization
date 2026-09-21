@@ -16,8 +16,10 @@
 package io.micronaut.serde.support.patch;
 
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.config.CoercionPolicy;
 import io.micronaut.serde.patch.JsonPatch;
@@ -28,67 +30,51 @@ import org.jspecify.annotations.Nullable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 /** Sequential RFC 6902 evaluator over replayable token streams. */
 @Internal
 public final class PatchEngine {
+    private static final Argument<List<JsonNode>> PATCH_TYPE = Argument.listOf(JsonNode.class);
+
     private PatchEngine() {
     }
 
     /**
-     * Parses only the patch document into immutable values.
+     * Deserializes only the patch document through serde, then validates its operations.
      * @param input Patch token cursor
+     * @param context Mapper decoder context
      * @param options Resource limits
      * @param maxDepth Maximum JSON depth
+     * @param limits Decoder nesting limits
      * @return Validated patch
      * @throws IOException If the patch is invalid
      */
-    public static JsonPatch readPatch(TokenReader input, JsonPatchOptions options, int maxDepth) throws IOException {
-        TokenReader reader = new TokenIO.LimitedReader(input, maxDepth, options.maxPatchCharacters());
-        TokenIO.require(reader, PatchToken.START_ARRAY);
-        reader.next();
-        List<JsonPatch.Operation> operations = new ArrayList<>();
-        while (reader.current() != PatchToken.END_ARRAY) {
-            int index = operations.size();
+    public static JsonPatch readPatch(TokenReader input, Deserializer.DecoderContext context, JsonPatchOptions options,
+                                      int maxDepth, LimitingStream.RemainingLimits limits) throws IOException {
+        var reader = new PatchDocumentReader(new TokenIO.LimitedReader(input, maxDepth, options.maxPatchCharacters()), options.maxOperations());
+        List<JsonNode> document;
+        try (var scope = new ReplayStore.Scope(options)) {
+            var decoder = new PatchedDecoder(reader, limits, CoercionPolicy.STRICT, scope, null);
+            Deserializer<? extends List<JsonNode>> deserializer = context.findDeserializer(PATCH_TYPE).createSpecific(context, PATCH_TYPE);
+            document = deserializer.deserialize(decoder, context, PATCH_TYPE);
+        } catch (NumberFormatException e) {
+            throw new IOException("Invalid JSON Patch number", e);
+        }
+        TokenIO.eof(reader);
+        List<JsonPatch.Operation> operations = new ArrayList<>(document.size());
+        for (int index = 0; index < document.size(); index++) {
             String op = "";
             String path = "";
             try {
-                if (index >= options.maxOperations()) {
-                    throw new IOException("Operation count limit exceeded");
-                }
-                TokenIO.require(reader, PatchToken.START_OBJECT);
-                reader.next();
-                Map<String, JsonNode> fields = new HashMap<>();
-                Set<String> duplicates = new HashSet<>();
-                Set<String> duplicateValues = new HashSet<>();
-                while (reader.current() != PatchToken.END_OBJECT) {
-                    TokenIO.require(reader, PatchToken.KEY);
-                    String key = reader.text();
-                    reader.next();
-                    if (key.equals("op") || key.equals("path") || key.equals("from") || key.equals("value")) {
-                        boolean[] duplicateMembers = {false};
-                        if (fields.put(key, TokenIO.readNode(reader, duplicateMembers)) != null) {
-                            duplicates.add(key);
-                        }
-                        if (duplicateMembers[0]) {
-                            duplicateValues.add(key);
-                        }
-                    } else {
-                        TokenIO.copyValue(reader, TokenIO.DISCARD);
-                    }
-                }
-                reader.next();
+                JsonNode fields = document.get(index);
                 op = stringField(fields, "op");
                 path = stringField(fields, "path");
                 boolean source = op.equals("copy") || op.equals("move");
                 boolean value = op.equals("add") || op.equals("replace") || op.equals("test");
-                if (duplicates.contains("op") || duplicates.contains("path")
-                    || (source && duplicates.contains("from")) || (value && (duplicates.contains("value") || duplicateValues.contains("value")))) {
+                if (reader.hasDuplicates(index, source, value)) {
                     throw new IOException("Duplicate operation member");
                 }
                 operations.add(new JsonPatch.Operation(op, path, source ? stringField(fields, "from") : null,
@@ -97,12 +83,10 @@ public final class PatchEngine {
                 throw failure(index, op, path, e);
             }
         }
-        reader.next();
-        TokenIO.eof(reader);
         return new JsonPatch(operations);
     }
 
-    private static String stringField(Map<String, JsonNode> fields, String name) throws IOException {
+    private static String stringField(JsonNode fields, String name) throws IOException {
         JsonNode node = fields.get(name);
         if (node == null || !node.isString()) {
             throw new IOException("Missing or non-string '" + name + "'");

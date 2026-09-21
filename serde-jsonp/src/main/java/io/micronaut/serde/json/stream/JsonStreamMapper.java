@@ -97,8 +97,10 @@ public class JsonStreamMapper implements ObjectMapper {
 
     @Override
     public JsonPatch readJsonPatch(InputStream input, JsonPatchOptions options) throws IOException {
-        try (JsonParser parser = Json.createParser(new InputStreamReader(PatchStreams.input(input), StandardCharsets.UTF_8.newDecoder()))) {
-            return PatchEngine.readPatch(new JsonpPatchReader(parser), options, (serdeConfiguration == null ? LimitingStream.DEFAULT_MAXIMUM_DEPTH : serdeConfiguration.getMaximumNestingDepth()));
+        try (JsonParser parser = Json.createParser(new InputStreamReader(PatchStreams.input(input), StandardCharsets.UTF_8.newDecoder()));
+             var context = registry.newDecoderContext(view)) {
+            return PatchEngine.readPatch(new JsonpPatchReader(parser), context, options,
+                serdeConfiguration == null ? LimitingStream.DEFAULT_MAXIMUM_DEPTH : serdeConfiguration.getMaximumNestingDepth(), limits());
         } catch (JsonException e) {
             throw new IOException("JSON Patch parser or generator failure", e);
         }
