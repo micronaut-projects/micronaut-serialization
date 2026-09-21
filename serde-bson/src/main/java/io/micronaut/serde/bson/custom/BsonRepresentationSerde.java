@@ -103,82 +103,78 @@ public final class BsonRepresentationSerde extends AbstractBsonSerde<Object> {
 
     @Override
     protected void doSerialize(BsonWriterEncoder encoder, EncoderContext context, Object value, Argument<?> type) throws IOException {
-        if (value == null) {
-            encoder.encodeNull();
-        } else {
-            BsonWriter bsonWriter = encoder.getBsonWriter();
-            BsonType bsonType = getBsonType(type);
-            switch (bsonType) {
-                case DOUBLE:
-                    bsonWriter.writeDouble(convert(context, value, Double.class));
-                    break;
-                case STRING:
-                    if (value instanceof ObjectId) {
-                        bsonWriter.writeString(((ObjectId) value).toHexString());
-                    } else {
-                        bsonWriter.writeString(convert(context, value, String.class));
-                    }
-                    break;
-                case BINARY:
-                    if (value instanceof byte[]) {
-                        bsonWriter.writeBinaryData(new BsonBinary((byte[]) value));
-                    } else if (value instanceof UUID) {
-                        bsonWriter.writeBinaryData(new BsonBinary((UUID) value));
-                    } else {
-                        bsonWriter.writeBinaryData(convert(context, value, BsonBinary.class));
-                    }
-                    break;
-                case OBJECT_ID:
-                    if (value instanceof String) {
-                        bsonWriter.writeObjectId(new ObjectId((String) value));
-                    } else {
-                        bsonWriter.writeObjectId(convert(context, value, ObjectId.class));
-                    }
-                    break;
-                case BOOLEAN:
-                    bsonWriter.writeBoolean(convert(context, value, Boolean.class));
-                    break;
-                case DATE_TIME:
-                    if (value instanceof Long) {
-                        bsonWriter.writeDateTime((Long) value);
-                    } else {
-                        bsonWriter.writeDateTime(convert(context, value, Instant.class).getEpochSecond());
-                    }
-                    break;
-                case REGULAR_EXPRESSION:
-                    bsonWriter.writeRegularExpression(convert(context, value, BsonRegularExpression.class));
-                    break;
-                case DB_POINTER:
-                    bsonWriter.writeDBPointer(convert(context, value, BsonDbPointer.class));
-                    break;
-                case JAVASCRIPT:
-                    bsonWriter.writeJavaScript(convert(context, value, String.class));
-                    break;
-                case SYMBOL:
-                    bsonWriter.writeSymbol(convert(context, value, String.class));
-                    break;
-                case JAVASCRIPT_WITH_SCOPE:
-                    bsonWriter.writeJavaScriptWithScope(convert(context, value, String.class));
-                    break;
-                case INT32:
-                    bsonWriter.writeInt32(convert(context, value, Integer.class));
-                    break;
-                case TIMESTAMP:
-                    bsonWriter.writeTimestamp(convert(context, value, BsonTimestamp.class));
-                    break;
-                case INT64:
-                    bsonWriter.writeInt64(convert(context, value, Long.class));
-                    break;
-                case DECIMAL128:
-                    if (value instanceof BigDecimal) {
-                        bsonWriter.writeDecimal128(new Decimal128((BigDecimal) value));
-                    } else {
-                        bsonWriter.writeDecimal128(convert(context, value, Decimal128.class));
-                    }
-                    break;
-                default:
-                    throw new SerdeException("Unsupported BsonType: " + bsonType);
-            }
+        BsonWriter bsonWriter = encoder.getBsonWriter();
+        BsonType bsonType = getBsonType(type);
+        switch (bsonType) {
+            case DOUBLE:
+                bsonWriter.writeDouble(convert(context, value, Double.class));
+                break;
+            case STRING:
+                if (value instanceof ObjectId) {
+                    bsonWriter.writeString(((ObjectId) value).toHexString());
+                } else {
+                    bsonWriter.writeString(convert(context, value, String.class));
+                }
+                break;
+            case BINARY:
+                if (value instanceof byte[]) {
+                    bsonWriter.writeBinaryData(new BsonBinary((byte[]) value));
+                } else if (value instanceof UUID) {
+                    bsonWriter.writeBinaryData(new BsonBinary((UUID) value));
+                } else {
+                    bsonWriter.writeBinaryData(convert(context, value, BsonBinary.class));
+                }
+                break;
+            case OBJECT_ID:
+                if (value instanceof String) {
+                    bsonWriter.writeObjectId(new ObjectId((String) value));
+                } else {
+                    bsonWriter.writeObjectId(convert(context, value, ObjectId.class));
+                }
+                break;
+            case BOOLEAN:
+                bsonWriter.writeBoolean(convert(context, value, Boolean.class));
+                break;
+            case DATE_TIME:
+                if (value instanceof Long) {
+                    bsonWriter.writeDateTime((Long) value);
+                } else {
+                    bsonWriter.writeDateTime(convert(context, value, Instant.class).getEpochSecond());
+                }
+                break;
+            case REGULAR_EXPRESSION:
+                bsonWriter.writeRegularExpression(convert(context, value, BsonRegularExpression.class));
+                break;
+            case DB_POINTER:
+                bsonWriter.writeDBPointer(convert(context, value, BsonDbPointer.class));
+                break;
+            case JAVASCRIPT:
+                bsonWriter.writeJavaScript(convert(context, value, String.class));
+                break;
+            case SYMBOL:
+                bsonWriter.writeSymbol(convert(context, value, String.class));
+                break;
+            case JAVASCRIPT_WITH_SCOPE:
+                bsonWriter.writeJavaScriptWithScope(convert(context, value, String.class));
+                break;
+            case INT32:
+                bsonWriter.writeInt32(convert(context, value, Integer.class));
+                break;
+            case TIMESTAMP:
+                bsonWriter.writeTimestamp(convert(context, value, BsonTimestamp.class));
+                break;
+            case INT64:
+                bsonWriter.writeInt64(convert(context, value, Long.class));
+                break;
+            case DECIMAL128:
+                if (value instanceof BigDecimal) {
+                    bsonWriter.writeDecimal128(new Decimal128((BigDecimal) value));
+                } else {
+                    bsonWriter.writeDecimal128(convert(context, value, Decimal128.class));
+                }
+                break;
+            default:
+                throw new SerdeException("Unsupported BsonType: " + bsonType);
         }
     }
 

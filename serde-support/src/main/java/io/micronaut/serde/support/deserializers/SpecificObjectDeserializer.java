@@ -1649,6 +1649,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
 
         @Override
         void init(DecoderContext decoderContext) {
+            // no-op
         }
 
         @Override

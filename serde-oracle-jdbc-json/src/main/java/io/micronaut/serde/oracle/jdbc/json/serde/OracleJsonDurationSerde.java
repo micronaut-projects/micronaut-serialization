@@ -45,10 +45,6 @@ public class OracleJsonDurationSerde implements Serde<Duration> {
     @Override
     public void serialize(Encoder encoder, EncoderContext context,
                           Argument<? extends Duration> type, Duration value) throws IOException {
-        if (value == null) {
-            encoder.encodeNull();
-        } else {
-            encoder.encodeString(value.toString());
-        }
+        encoder.encodeString(value.toString());
     }
 }
