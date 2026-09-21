@@ -3479,6 +3479,32 @@ If an unsupported annotation or member is used, a compilation error will result.
 </tbody>
 </table>
 <div class="sect2">
+<h3 id="_jsonignore_and_creator_parameters"><code>@JsonIgnore</code> and creator parameters</h3>
+<div class="paragraph">
+<p>A <code>@JsonCreator</code> constructor or factory method parameter is matched with the bean property that has the same Java name, and <code>@JsonIgnore</code> on the field, getter or setter of that property applies to the parameter the same way as in Jackson Databind:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>If the parameter or any accessor of the property is explicitly annotated with <code>@JsonProperty</code>, only the ignored accessor is dropped and the creator parameter is still bound.</p>
+</li>
+<li>
+<p>Otherwise the whole property is ignored and the creator parameter receives <code>null</code> (or its default value).</p>
+</li>
+<li>
+<p>A record component annotated with <code>@JsonIgnore</code> is always ignored, even if it is also annotated with <code>@JsonProperty</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><code>@JsonIgnoreProperties</code> and access restrictions such as <code>@JsonProperty(access = READ_ONLY)</code> are applied to creator parameters as before.</p>
+</div>
+<div class="paragraph">
+<p>A property with the same Java name but a different explicit <code>@JsonProperty</code> name is a different JSON property and its annotations are not applied to the creator parameter.
+For example, a subclass can rename and ignore an inherited getter with <code>@JsonProperty("valuesView") @JsonIgnore</code>, and a creator parameter named after the same bean property but annotated with <code>@JsonProperty("values")</code> still binds the <code>values</code> JSON property.</p>
+</div>
+</div>
+<div class="sect2">
 <h3 id="_jsonmerge"><code>@JsonMerge</code></h3>
 <div class="paragraph">
 <p>The <a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonMerge.html">@JsonMerge</a> annotation enables merge behavior when updating an existing mutable object with <a href="../api/io/micronaut/serde/ObjectMapper.html">ObjectMapper</a>.</p>
@@ -6413,6 +6439,9 @@ class Feature {
 </li>
 <li>
 <p>A property that is buffered before it is read, because a polymorphic discriminator or a creator argument appears later in the document, is now coerced exactly like a property that is read inline. Previously the buffered path rejected a string read into a numeric property, and a number read into a <code>String</code> property, while the inline path accepted them, so whether a document was accepted depended on the order of its properties.</p>
+</li>
+<li>
+<p><code>@JsonIgnore</code> on a field, getter or setter no longer ignores the <code>@JsonCreator</code> parameter with the same name when the parameter or any accessor of the property is explicitly annotated with <code>@JsonProperty</code>, matching Jackson Databind. Previously the creator parameter was always ignored and received <code>null</code>. The parameter is now bound, so its type must be deserializable. To keep ignoring it, remove <code>@JsonProperty</code> from the parameter and the accessors of the property. See <a href="#jacksonAnnotations">[jacksonAnnotations]</a>.</p>
 </li>
 </ul>
 </div>
