@@ -56,8 +56,7 @@ final class ShapeModels {
 
     /**
      * Positions are explicit here so the record still lines up with the reference message despite
-     * having no {@code blobs}: a {@code byte[][]} property cannot be serialized by Micronaut
-     * Serialization at all, which {@link CollectionShapeCoverageTest} records separately.
+     * having no {@code blobs}, which {@link ShapeModels.ByteMatrix} covers on its own.
      */
     @Serdeable
     record AsArray(@ProtoField(1) String[] texts,
@@ -67,8 +66,12 @@ final class ShapeModels {
                    @ProtoField(6) Address[] addresses) {
     }
 
+    /**
+     * The {@code blobs} field of the reference message as a {@code byte[][]}, the array shape of a
+     * repeated bytes field.
+     */
     @Serdeable
-    record ByteMatrix(byte[][] blobs) {
+    record ByteMatrix(@ProtoField(5) byte[][] blobs) {
     }
 
     /**

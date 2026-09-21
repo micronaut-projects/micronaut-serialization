@@ -35,6 +35,10 @@ import java.util.Set;
  * Mapper for JsonTypeInfo.
  */
 public class JsonTypeInfoMapper extends ValidatingAnnotationMapper {
+    private static final String PROPERTY_MEMBER = "property";
+    private static final String INCLUDE_MEMBER = "include";
+    private static final String VISIBLE_MEMBER = "visible";
+
     @Override
     public String getName() {
         return "com.fasterxml.jackson.annotation.JsonTypeInfo";
@@ -44,10 +48,10 @@ public class JsonTypeInfoMapper extends ValidatingAnnotationMapper {
     protected Set<String> getSupportedMemberNames() {
         return CollectionUtils.setOf(
                 "defaultImpl",
-                "property",
-                "include",
+                PROPERTY_MEMBER,
+                INCLUDE_MEMBER,
                 "use",
-                "visible"
+                VISIBLE_MEMBER
         );
     }
 
@@ -74,25 +78,25 @@ public class JsonTypeInfoMapper extends ValidatingAnnotationMapper {
 
         if ("DEDUCTION".equals(use)) {
             builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_VALUE, SerdeConfig.SerSubtyped.DiscriminatorValueKind.DEDUCTION);
-            if (annotation.booleanValue("visible").isPresent()) {
+            if (annotation.booleanValue(VISIBLE_MEMBER).isPresent()) {
                 return mapError("JsonTypeInfo with DEDUCTION strategy doesn't support: 'visible'");
             }
-            if (annotation.stringValue("property").isPresent()) {
+            if (annotation.stringValue(PROPERTY_MEMBER).isPresent()) {
                 return mapError("JsonTypeInfo with DEDUCTION strategy doesn't support: 'property'");
             }
-            if (annotation.stringValue("include").isPresent()) {
+            if (annotation.stringValue(INCLUDE_MEMBER).isPresent()) {
                 return mapError("JsonTypeInfo with DEDUCTION strategy doesn't support: 'include'");
             }
             // visible, include and property are not allowed
         } else {
             builder.member(
                 SerdeConfig.SerSubtyped.DISCRIMINATOR_VISIBLE,
-                annotation.booleanValue("visible").orElse(false)
+                annotation.booleanValue(VISIBLE_MEMBER).orElse(false)
             );
-            String include = annotation.stringValue("include").orElse("PROPERTY");
+            String include = annotation.stringValue(INCLUDE_MEMBER).orElse("PROPERTY");
             builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_TYPE, include);
 
-            Optional<String> propertyValue = annotation.stringValue("property");
+            Optional<String> propertyValue = annotation.stringValue(PROPERTY_MEMBER);
             switch (use) {
                 case "CLASS" -> {
                     builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_VALUE, SerdeConfig.SerSubtyped.DiscriminatorValueKind.CLASS_NAME);
