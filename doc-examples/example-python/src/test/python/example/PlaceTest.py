@@ -3,13 +3,12 @@ from typing import Annotated
 from jakarta.inject import Inject
 from micronaut.serde import ObjectMapper
 from micronaut.test.extensions.junit5.annotation import MicronautTest
-from org.junit.jupiter.api import Disabled, Test
+from org.junit.jupiter.api import Test
 
 from example.Place import Place
 from example.Point import Point
 
 
-@Disabled("TODO(python): @Serdeable.Serializable(using=...) on a Python attribute is not mapped to a serializer class, see DISABLED_TESTS.md")
 @MicronautTest
 class PlaceTest:
     object_mapper: Annotated[ObjectMapper, Inject]

@@ -33,7 +33,7 @@ class BookTest:
         assert book.title == "The Stand"
         assert list(book.authors) == ["Stephen King"]
 
-    @Disabled("TODO(python): JAXB field access (@XmlRootElement without a dataclass) yields no properties, see DISABLED_TESTS.md")
+    @Disabled("TODO(python): a nil <subtitle/> element is read as None instead of the @XmlElement defaultValue on a Python class, see DISABLED_TESTS.md")
     @Test
     def test_write_read_jaxb_book(self):
         input = JaxbBook()

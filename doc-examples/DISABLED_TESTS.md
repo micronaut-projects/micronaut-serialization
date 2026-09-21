@@ -26,28 +26,23 @@ The Python examples are compiled by every build and their tests run with
   (`ObjectMapper.updateValue`) is written as a plain class with attribute type hints and defaults.
 - Python `int` is a Java `int`; use `java.lang.Long` as the attribute type for 64-bit values.
 - Builder methods called by generated Java code (`@Introspected(builder=...)`) need `@Executable` to be bridged.
-- A Python test class is a `@MicronautTest` with injected beans. Do not create nested
-  `ApplicationContext.run(...)` contexts inside a Python test: closing the nested context closes
-  the shared GraalPy context.
-- The main and test Python sources of a `doc-examples/example-*-python` project are compiled together
-  into the test output (`compilePython` is disabled by the `serde-python-examples` convention),
-  because two GraalPy virtual file systems on the same classpath shadow each other's generated shims.
+- A Python test class is a `@MicronautTest` with injected beans. A test that documents manual context
+  creation may start nested `ApplicationContext.run(...)` contexts (`YamlQuickStartTest`); they reuse the
+  GraalPy runtime of the enclosing test context.
+- The main and test Python sources of a `doc-examples/example-*-python` project are separate source roots
+  (`src/main/python`, `src/test/python`), compiled by `compilePython` and `compileTestPython`.
 
 ## Active `@Disabled` Tests
 
 | Test | Reason |
 | --- | --- |
-| `example-python` `example.PlaceTest` | `@Serdeable.Serializable(using=ReversePointSerde)` / `@Serdeable.Deserializable(using=...)` on a Python dataclass attribute are not mapped to `SerdeConfig.serializerClass` / `deserializerClass` (the class-valued `using` member does not reach the serde `SerializableMapper`), so the `ReversePointSerde` is ignored. |
-| `example-python` `example.ProductTest` | `@SerdeImport(value=Product, mixin=ProductMixin)` generates the `Product` introspection, but the abstract methods of the Python `ProductMixin` are not bridged to the generated Java interface, so the `p_name` / `p_quantity` renames are not applied. |
-| `example-stax-xml-python` `example.BookTest.test_write_read_jaxb_book` | `@XmlRootElement` on a plain Python class (JAXB field access, `@Introspected(accessKind = [METHOD, FIELD])`) produces an introspection without properties, so `JaxbBook` is written as an empty string. The Jackson XML annotated `Book` works. |
+| `example-python` `example.LocationTest` | `Location`, `Feature` and the Python `FeatureConverter` (`TypeConverter` bean) compile and run, but `__str__` of the Python `Feature` class is not bridged to `toString()` of its generated Java class, so the map key is written as `example.Feature@<hash>` instead of `Tree` (the converter then reads that string back as the feature name). |
+| `example-python` `example.ProductTest` | `@SerdeImport(value=Product, mixin=ProductMixin)` generates the `Product` introspection, but the `@JsonProperty` renames of the Python `ProductMixin` methods are not applied: the output is `{"name":"Apple","quantity":10}` instead of `{"p_name":"Apple","p_quantity":10}`. |
+| `example-stax-xml-python` `example.BookTest.test_write_read_jaxb_book` | Writing the JAXB-annotated Python `JaxbBook` now produces the expected XML, but reading the nil `<subtitle xsi:nil="true"/>` element back yields `None` instead of the `@XmlElement(defaultValue="Untitled")` default the Java class gets (`isbn`, `title` and `authors` are read correctly). |
 
 ## Commented Unsupported Snippet Ports
 
-| Target | Reason |
-| --- | --- |
-| `example-python` `example.Location` (`keys.adoc`) | A dataclass attribute typed `dict[Feature, Point]` cannot be exposed to Java: the generated stub calls `PythonCoercion.coerceMap`, which only accepts `Map<String, V>`, and the stub does not compile. |
-| `example-python` `example.Feature` (`keys.adoc`) | A Python `TypeConverter` bean cannot be instantiated: the conversion service loads all `TypeConverter` beans before the `@Context` GraalPy context bean is initialized (`GraalPy context has not been initialized`). |
-| `example-python` `example.LocationTest` | Depends on the two targets above. |
+None.
 
 ## `java.type` usages
 
@@ -57,6 +52,6 @@ None. Every Java or Python class used by the snippets is imported.
 
 | Target | Difference |
 | --- | --- |
-| `example-python` `example.YamlQuickStartTest` | Only the write/read round trip is ported. The Java read/write feature tests create one `ApplicationContext` per feature combination, which is not possible from a Python test (see the migration rules). |
+| `example-python` `example.YamlQuickStartTest` | `test_write_and_read_yaml` compares the `name` and `books` attributes of the read `YamlLibrary` instead of `assertEquals(library, ...)`: the object returned by `readValue` (the generated Java class of the dataclass) does not compare equal to a `YamlLibrary` constructed in Python (`read == library` is `False`, `repr(read)` is `<polyglot.ForeignObject ...>` and `read.asPolyglotValue()` is a foreign object rather than the Python dataclass instance). The feature tests use one `ApplicationContext.run(properties)` per feature combination like the Java test. |
 | `example-python` `example.BookTest` | The generic `Box<I>` record test is not ported. |
 | `example-jsonb-python` `example.JsonbExtensionTest` | Split into `JsonbExtensionTest` and `JsonbProgrammaticConfigTest`, one `@MicronautTest` per `spec.name`, instead of two manual `ApplicationContext.run` contexts. |

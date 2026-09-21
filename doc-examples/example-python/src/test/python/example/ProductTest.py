@@ -8,7 +8,7 @@ from org.junit.jupiter.api import Disabled, Test
 from example.Product import Product
 
 
-@Disabled("TODO(python): the @SerdeImport mixin is not applied, see DISABLED_TESTS.md")
+@Disabled("TODO(python): the @SerdeImport mixin is not applied to a Python mixin, see DISABLED_TESTS.md")
 @MicronautTest
 class ProductTest:
     object_mapper: Annotated[ObjectMapper, Inject]
