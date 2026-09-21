@@ -21,7 +21,7 @@ import io.micronaut.core.util.StringIntMap;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -59,7 +59,7 @@ public final class KeysSupport {
      */
     public static Keys create(List<String> keys, boolean caseInsensitive) {
         List<String> keyList = List.copyOf(Objects.requireNonNull(keys, "keys"));
-        return new DefaultKeys(keyList, caseInsensitive, createContributedKeys(keyList, null, caseInsensitive));
+        return new DefaultKeys(keyList, null, caseInsensitive, createContributedKeys(keyList, null, caseInsensitive));
     }
 
     /**
@@ -84,25 +84,24 @@ public final class KeysSupport {
     public static Keys createWithMetadata(List<KeyDescriptor> keys, boolean caseInsensitive) {
         List<KeyDescriptor> descriptors = List.copyOf(Objects.requireNonNull(keys, "keys"));
         List<String> keyList = descriptors.stream().map(KeyDescriptor::name).toList();
-        return new DefaultKeys(keyList, caseInsensitive, createContributedKeys(keyList, descriptors, caseInsensitive));
+        return new DefaultKeys(
+            keyList,
+            descriptors,
+            caseInsensitive,
+            createContributedKeys(keyList, descriptors, caseInsensitive)
+        );
     }
 
     /**
-     * Find the contributed key data index for the given provider.
+     * Find or register the contributed key data index for the given provider.
      *
      * @param provider The keys provider
-     * @return The contributed data index, or {@code -1} if no provider contributes this type
+     * @return The contributed data index
      */
     public static int indexOf(KeysProvider provider) {
         Objects.requireNonNull(provider, "provider");
         Class<?> keysType = Objects.requireNonNull(provider.keysType(), "keysType");
-        List<KeysProvider> providers = LazyKeysProviders.PROVIDERS;
-        for (int i = 0; i < providers.size(); i++) {
-            if (providers.get(i).keysType().equals(keysType)) {
-                return i;
-            }
-        }
-        return -1;
+        return LazyKeysProviders.indexOf(keysType, provider);
     }
 
     /**
@@ -123,31 +122,43 @@ public final class KeysSupport {
     private static Object[][] createContributedKeys(List<String> keys,
                                                     @Nullable List<KeyDescriptor> descriptors,
                                                     boolean caseInsensitive) {
-        List<KeysProvider> providers = LazyKeysProviders.PROVIDERS;
+        List<ProviderEntry> providers = LazyKeysProviders.snapshot();
         if (providers.isEmpty()) {
             return EMPTY_CONTRIBUTIONS;
         }
         Object[][] contributions = new Object[providers.size()][];
         for (int i = 0; i < providers.size(); i++) {
-            KeysProvider provider = providers.get(i);
-            contributions[i] = Objects.requireNonNull(
-                descriptors == null
-                    ? provider.create(keys, caseInsensitive)
-                    : provider.createWithMetadata(descriptors, caseInsensitive),
-                "keys contribution"
-            );
+            contributions[i] = createContribution(providers.get(i).provider(), keys, descriptors, caseInsensitive);
         }
         return contributions;
     }
 
+    private static Object[] createContribution(KeysProvider provider,
+                                               List<String> keys,
+                                               @Nullable List<KeyDescriptor> descriptors,
+                                               boolean caseInsensitive) {
+        return Objects.requireNonNull(
+            descriptors == null
+                ? provider.create(keys, caseInsensitive)
+                : provider.createWithMetadata(descriptors, caseInsensitive),
+            "keys contribution"
+        );
+    }
+
     private static final class DefaultKeys implements Keys {
         private final List<String> keys;
+        @Nullable
+        private final List<KeyDescriptor> descriptors;
         private final boolean caseInsensitive;
         private final StringIntMap keyToIndex;
-        private final Object[][] contributedKeys;
+        private volatile Object[][] contributedKeys;
 
-        private DefaultKeys(List<String> keys, boolean caseInsensitive, Object[][] contributedKeys) {
+        private DefaultKeys(List<String> keys,
+                            @Nullable List<KeyDescriptor> descriptors,
+                            boolean caseInsensitive,
+                            Object[][] contributedKeys) {
             this.keys = keys;
+            this.descriptors = descriptors;
             this.caseInsensitive = caseInsensitive;
             this.keyToIndex = new StringIntMap(keys.size());
             for (int i = 0; i < keys.size(); i++) {
@@ -171,7 +182,28 @@ public final class KeysSupport {
         }
 
         private Object[] get(int keysIndex) {
-            return contributedKeys[keysIndex];
+            Object[][] contributions = contributedKeys;
+            if (keysIndex < contributions.length) {
+                return contributions[keysIndex];
+            }
+            synchronized (this) {
+                contributions = contributedKeys;
+                if (keysIndex < contributions.length) {
+                    return contributions[keysIndex];
+                }
+                List<ProviderEntry> providers = LazyKeysProviders.snapshot();
+                Object[][] expanded = Arrays.copyOf(contributions, providers.size());
+                for (int i = contributions.length; i < expanded.length; i++) {
+                    expanded[i] = createContribution(
+                        providers.get(i).provider(),
+                        keys,
+                        descriptors,
+                        caseInsensitive
+                    );
+                }
+                contributedKeys = expanded;
+                return expanded[keysIndex];
+            }
         }
 
         private String keyAt(int keyIndex) {
@@ -183,15 +215,42 @@ public final class KeysSupport {
         }
     }
 
+    private record ProviderEntry(Class<?> keysType, KeysProvider provider) {
+    }
+
     private static final class LazyKeysProviders {
-        private static final List<KeysProvider> PROVIDERS;
+        private static final List<ProviderEntry> PROVIDERS;
 
         static {
             List<KeysProvider> providers = new ArrayList<>(2);
             SoftServiceLoader.load(KeysProvider.class, KeysSupport.class.getClassLoader())
                 .disableFork()
                 .collectAll(providers);
-            PROVIDERS = Collections.unmodifiableList(providers);
+            PROVIDERS = new ArrayList<>(providers.size());
+            for (KeysProvider provider : providers) {
+                PROVIDERS.add(new ProviderEntry(
+                    Objects.requireNonNull(provider.keysType(), "keysType"),
+                    provider
+                ));
+            }
+        }
+
+        private static int indexOf(Class<?> keysType, KeysProvider provider) {
+            synchronized (PROVIDERS) {
+                for (int i = 0; i < PROVIDERS.size(); i++) {
+                    if (PROVIDERS.get(i).keysType().equals(keysType)) {
+                        return i;
+                    }
+                }
+                PROVIDERS.add(new ProviderEntry(keysType, provider));
+                return PROVIDERS.size() - 1;
+            }
+        }
+
+        private static List<ProviderEntry> snapshot() {
+            synchronized (PROVIDERS) {
+                return List.copyOf(PROVIDERS);
+            }
         }
     }
 }
