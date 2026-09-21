@@ -168,6 +168,58 @@ select `writePatchedFile`. Compare typed results with
 The earlier `JsonPatchBenchmark` remains useful for small in-memory inputs. Its `elements`,
 `shape`, and `strategy` parameters can also be selected through `-Pjmh.param.<name>`.
 
+### Other JSON Patch implementations (`JsonPatchComparisonBenchmark`)
+
+This opt-in comparison reuses `JsonPatchFileBenchmark`'s exact files and patch documents.
+Each invocation opens the input file, parses the source, applies the patch, and serializes JSON
+into the same counting sink. It compares the complete file-to-JSON operation, including any
+replay spill, rather than timing only a patch applied to an already materialized source tree.
+Patch JSON parsing and reusable patch construction happen during trial setup. Any operation
+interpretation performed by a library's `apply` API remains in the measurement.
+
+| `stack` | Implementation |
+| --- | --- |
+| `serde-streaming` | Micronaut token patching with progressive output, 1 MiB replay memory, and temporary-file spill. |
+| `serde-validated` | Micronaut token patching with all operations validated before emitting JSON, using the same replay limits. |
+| `zjsonpatch` | [zjsonpatch 0.6.3](https://github.com/flipkart-incubator/zjsonpatch), Jackson 3 API, default `apply` with a copied source tree. |
+| `zjsonpatch-inplace` | zjsonpatch's `applyInPlace` on a freshly parsed tree. These fixtures have an object root and do not exercise unsupported root replacement/removal. |
+| `java-json-tools` | [java-json-tools/json-patch 1.13](https://github.com/java-json-tools/json-patch), with Jackson 2.22.2. |
+| `parsson` | [Eclipse Parsson 1.1.9](https://github.com/eclipse-ee4j/parsson), using Jakarta JSON-P 2.1.3 `JsonPatch`. |
+
+Parsson's `org.eclipse.parsson.maxParsingLimit` is raised from its default 15,000,000 to
+268,435,456 parser-consumed characters so the generated files up to 64 MiB can be read.
+
+Jackson 3 stacks use the repository's resolved Jackson version. The Jackson 2 BOM and all
+comparison dependencies are confined to the JMH classpath. Library/parser differences are part
+of the measured pipeline. The tree implementations hold the complete input in memory; they do
+not provide the bounded replay/spill behavior of the Micronaut implementation. The progressive
+Micronaut mode can emit output before a later operation fails. The fixtures are all successful
+patches; this benchmark does not compare failure atomicity or prove complete RFC conformance.
+
+The verifier checks all 216 shape/operation/stack combinations against known edits. It compares
+parsed JSON values, including missing versus null members, so key order and numeric formatting
+do not require byte-identical output. It also checks byte counts separately for each stack and
+runs from `:micronaut-benchmarks:check`.
+
+```bash
+./gradlew -q :micronaut-benchmarks:verifyJsonPatchComparisons
+./gradlew -q :micronaut-benchmarks:verifyJsonPatchComparisons -PjsonPatch.verifySizeMiB=16
+
+./gradlew -q :micronaut-benchmarks:jmh \
+  -Pjmh.includes='.*JsonPatchComparisonBenchmark.writePatchedJson' \
+  -Pjmh.param.sizeMiB=16 -Pjmh.param.shape=flat \
+  -Pjmh.param.operation=replaceLate,dependent \
+  -Pjmh.param.stack=serde-streaming,serde-validated,zjsonpatch,zjsonpatch-inplace,java-json-tools,parsson \
+  -Pjmh.forks=3 -Pjmh.warmupIterations=5 -Pjmh.iterations=10 \
+  -Pjmh.warmup=1s -Pjmh.timeOnIteration=1s -Pjmh.profilers=gc \
+  -Pjmh.resultFormat=JSON -Pjmh.resultsFile=build/results/jmh/json-patch-comparison.json
+```
+
+Select any of the existing twelve operations and three shapes with the same `operation` and
+`shape` parameters, or use `sizeMiB=1,16,64` for a size sweep. Compare elapsed time and allocation
+per operation separately. Neither measures peak retained heap; use a separate constrained-heap
+or retained-memory experiment for a claim about memory capacity.
+
 ## Run
 
 From repository root:

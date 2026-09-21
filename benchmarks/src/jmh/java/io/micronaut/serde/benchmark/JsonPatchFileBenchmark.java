@@ -58,8 +58,8 @@ import java.util.concurrent.TimeUnit;
 @Fork(3)
 public class JsonPatchFileBenchmark {
     private static final Argument<Document> DOCUMENT = Argument.of(Document.class);
-    private static final List<String> SHAPES = List.of("flat", "nested", "strings");
-    private static final List<String> OPERATIONS = List.of("addFirst", "addLast", "removeMiddle", "removeRecords",
+    static final List<String> SHAPES = List.of("flat", "nested", "strings");
+    static final List<String> OPERATIONS = List.of("addFirst", "addLast", "removeMiddle", "removeRecords",
         "replaceEarly", "replaceLate", "moveForward", "moveBackward", "copyRecords", "test", "independent", "dependent");
 
     /**
@@ -141,14 +141,15 @@ public class JsonPatchFileBenchmark {
         @Param({"replaceLate", "independent", "moveBackward", "copyRecords", "dependent"})
         public String operation = "replaceLate";
 
-        private ObjectMapper.CloseableObjectMapper mapper;
+        ObjectMapper.CloseableObjectMapper mapper;
         private Path directory;
-        private Path source;
-        private Path destination;
+        Path source;
+        Path destination;
         private Path spill;
-        private JsonPatch patch;
-        private JsonPatchOptions streaming;
-        private JsonPatchOptions validated;
+        JsonPatch patch;
+        byte[] patchDocument;
+        JsonPatchOptions streaming;
+        JsonPatchOptions validated;
         private String payload;
         private @Nullable Details details;
         private int records;
@@ -179,7 +180,8 @@ public class JsonPatchFileBenchmark {
                 writeFixture();
                 validated = new JsonPatchOptions(1 << 20, 2L << 30, 1000, 1 << 20, spill, true);
                 streaming = validated.withValidationBeforeWrite(false);
-                patch = mapper.readJsonPatch(new ByteArrayInputStream(mapper.writeValueAsBytes(operations())));
+                patchDocument = mapper.writeValueAsBytes(operations());
+                patch = mapper.readJsonPatch(new ByteArrayInputStream(patchDocument));
             } catch (IOException | RuntimeException | Error e) {
                 try {
                     cleanup();
@@ -379,8 +381,8 @@ public class JsonPatchFileBenchmark {
     public record Details(int level, BigDecimal amount, List<String> tags, @Nullable Details child) {
     }
 
-    private static final class CountingOutput extends OutputStream {
-        private long bytes;
+    static final class CountingOutput extends OutputStream {
+        long bytes;
 
         @Override
         public void write(int value) {

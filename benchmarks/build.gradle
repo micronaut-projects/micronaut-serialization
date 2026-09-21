@@ -27,6 +27,12 @@ dependencies {
     implementation(libs.jackson.module.blackbird)
 
     jmh(libs.jmh.core)
+    jmh(libs.benchmark.zjsonpatch)
+    jmh(libs.benchmark.json.patch)
+    jmh(platform(libs.benchmark.jackson2.bom))
+    jmh(libs.benchmark.jackson2.databind)
+    jmh(libs.managed.jakarta.json.api)
+    jmh(libs.managed.eclipse.parsson)
     runtimeOnly(mnLogging.logback.classic)
 }
 
@@ -133,6 +139,15 @@ tasks.register("verifyJsonPatchBenchmarks", JavaExec) {
     args(providers.gradleProperty("jsonPatch.verifySizeMiB").getOrElse("1"))
 }
 
+tasks.register("verifyJsonPatchComparisons", JavaExec) {
+    group = "verification"
+    description = "Verify identical JSON Patch results across benchmark implementations"
+    dependsOn(tasks.named("jmhClasses"))
+    classpath = sourceSets.jmh.runtimeClasspath
+    mainClass.set("io.micronaut.serde.benchmark.JsonPatchComparisonBenchmark")
+    args(providers.gradleProperty("jsonPatch.verifySizeMiB").getOrElse("1"))
+}
+
 tasks.named("check") {
-    dependsOn(tasks.named("verifyJsonPatchBenchmarks"))
+    dependsOn(tasks.named("verifyJsonPatchBenchmarks"), tasks.named("verifyJsonPatchComparisons"))
 }
