@@ -215,6 +215,8 @@ final class DeserBean<T> {
             }
         }
 
+        // Jackson ignores record components completely, even if they are explicitly included
+        boolean isRecord = introspection.getBeanType().isRecord();
         List<DerProperty<T, ?>> creatorUnwrapped = null;
         AnySetter anySetterValue = null;
         List<DerProperty<T, ?>> unwrappedProperties = null;
@@ -238,7 +240,14 @@ final class DeserBean<T> {
             PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(annotationMetadata, decoderContext, entityPropertyNamingStrategy);
             final String propertyName = resolveName(serdeArgumentConf, constructorArgument, annotationMetadata, propertyNamingStrategy);
 
-            boolean isIgnored = isIgnored(annotationMetadata) || (allowPropertyPredicate != null && !allowPropertyPredicate.test(propertyName));
+            boolean isIgnored = allowPropertyPredicate != null && !allowPropertyPredicate.test(propertyName);
+            if (!isIgnored && isIgnored(annotationMetadata)) {
+                // Jackson only drops the ignored accessor of an explicitly included property and keeps the creator parameter
+                isIgnored = isRecord
+                    || !SerdePropertyAccess.canDeserialize(annotationMetadata)
+                    || isIgnored(constructorArgument.getAnnotationMetadata())
+                    || !isExplicitlyIncluded(annotationMetadata);
+            }
             if (isIgnored) {
                 ignoredProperties.add(propertyName);
             }
@@ -1875,8 +1884,30 @@ final class DeserBean<T> {
         // records store metadata in the bean property
         final AnnotationMetadata propertyMetadata = introspection.getProperty(argument.getName(), argument.getType())
             .map(BeanProperty::getAnnotationMetadata)
+            // A property with the same Java name but a different explicit JSON name is a different JSON property,
+            // its metadata (ignore, access, etc.) must not be applied to the argument
+            .filter(metadata -> !hasDifferentExplicitName(annotationMetadata, metadata))
             .orElse(AnnotationMetadata.EMPTY_METADATA);
         return new AnnotationMetadataHierarchy(propertyMetadata, annotationMetadata);
+    }
+
+    private static boolean hasDifferentExplicitName(AnnotationMetadata argumentMetadata, AnnotationMetadata propertyMetadata) {
+        String argumentName = findExplicitName(argumentMetadata);
+        if (argumentName == null) {
+            return false;
+        }
+        String propertyName = findExplicitName(propertyMetadata);
+        return propertyName != null && !propertyName.equals(argumentName);
+    }
+
+    private static boolean isExplicitlyIncluded(AnnotationMetadata annotationMetadata) {
+        return findExplicitName(annotationMetadata) != null || annotationMetadata.hasAnnotation(JK_PROP);
+    }
+
+    private static @Nullable String findExplicitName(AnnotationMetadata annotationMetadata) {
+        return annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY)
+            .or(() -> annotationMetadata.stringValue(JK_PROP))
+            .orElse(null);
     }
 
     private static final class BeanMethodAsBeanProperty<B, P> implements UnsafeBeanWriteProperty<B, P> {

@@ -148,6 +148,19 @@ NOTE: If an unsupported annotation or member is used, a compilation error will r
 |
 |===
 
+=== `@JsonIgnore` and creator parameters
+
+A `@JsonCreator` constructor or factory method parameter is matched with the bean property that has the same Java name, and `@JsonIgnore` on the field, getter or setter of that property applies to the parameter the same way as in Jackson Databind:
+
+- If the parameter or any accessor of the property is explicitly annotated with `@JsonProperty`, only the ignored accessor is dropped and the creator parameter is still bound.
+- Otherwise the whole property is ignored and the creator parameter receives `null` (or its default value).
+- A record component annotated with `@JsonIgnore` is always ignored, even if it is also annotated with `@JsonProperty`.
+
+`@JsonIgnoreProperties` and access restrictions such as `@JsonProperty(access = READ_ONLY)` are applied to creator parameters as before.
+
+A property with the same Java name but a different explicit `@JsonProperty` name is a different JSON property and its annotations are not applied to the creator parameter.
+For example, a subclass can rename and ignore an inherited getter with `@JsonProperty("valuesView") @JsonIgnore`, and a creator parameter named after the same bean property but annotated with `@JsonProperty("values")` still binds the `values` JSON property.
+
 === `@JsonMerge`
 
 The link:{jacksonAnnotationJavadoc}/JsonMerge.html[@JsonMerge] annotation enables merge behavior when updating an existing mutable object with api:serde.ObjectMapper[].

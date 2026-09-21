@@ -14,7 +14,7 @@ class SerdeJsonIgnoreSpec extends JsonIgnoreSpec {
         return "Unknown field [$propertyName] encountered during deserialization of type: ${NameUtils.getSimpleName(className)}"
     }
 
-    void "json ignore on a constructor parameter"() {
+    void "json ignore on a field ignores the creator parameter that is not explicitly included"() {
         given:
             def context = buildContext('example.Test', '''
 package example;
@@ -31,7 +31,7 @@ class Test{
     private final String bar;
 
     @JsonCreator
-    public Test(@JsonProperty("foo") Ignored foo, @JsonProperty("bar") String bar) {
+    public Test(Ignored foo, String bar) {
         this.foo = foo;
         this.bar = bar;
     }
