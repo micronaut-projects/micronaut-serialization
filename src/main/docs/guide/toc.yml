@@ -24,6 +24,7 @@ jsonbAnnotations:
 bsonAnnotations: BSON Annotations
 protobuf: Protocol Buffers
 coercion: Type Coercion
+jsonPatch: JSON Patch
 builders: Builders
 serdes: Custom Serializers & Deserializers
 serdeImport: Enabling Serialization of External Classes

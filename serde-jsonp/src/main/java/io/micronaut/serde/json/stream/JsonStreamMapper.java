@@ -21,6 +21,11 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.json.JsonMapper;
 import io.micronaut.json.JsonStreamConfig;
 import io.micronaut.json.tree.JsonNode;
+import io.micronaut.serde.patch.JsonPatch;
+import io.micronaut.serde.patch.JsonPatchOptions;
+import io.micronaut.serde.support.patch.PatchEngine;
+import io.micronaut.serde.support.patch.PatchStreams;
+import io.micronaut.serde.support.patch.TokenWriter;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
@@ -40,6 +45,7 @@ import io.micronaut.serde.support.util.JsonViewUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import jakarta.json.Json;
+import jakarta.json.JsonException;
 import jakarta.json.stream.JsonGenerator;
 import jakarta.json.stream.JsonParser;
 import org.reactivestreams.Processor;
@@ -48,8 +54,11 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.math.BigDecimal;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -83,6 +92,53 @@ public class JsonStreamMapper implements ObjectMapper {
             return CoercionPolicy.fromConfiguration(context.getDeserializationConfiguration().orElse(null));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        }
+    }
+
+    @Override
+    public JsonPatch readJsonPatch(InputStream input, JsonPatchOptions options) throws IOException {
+        try (JsonParser parser = Json.createParser(new InputStreamReader(PatchStreams.input(input), StandardCharsets.UTF_8.newDecoder()))) {
+            return PatchEngine.readPatch(new JsonpPatchReader(parser), options, (serdeConfiguration == null ? LimitingStream.DEFAULT_MAXIMUM_DEPTH : serdeConfiguration.getMaximumNestingDepth()));
+        } catch (JsonException e) {
+            throw new IOException("JSON Patch parser or generator failure", e);
+        }
+    }
+
+    @Override
+    public void writePatchedValue(InputStream input, JsonPatch patch, OutputStream output, JsonPatchOptions options) throws IOException {
+        try (JsonParser parser = Json.createParser(new InputStreamReader(PatchStreams.input(input), StandardCharsets.UTF_8.newDecoder()));
+             JsonGenerator generator = Json.createGenerator(PatchStreams.output(output))) {
+            TokenWriter writer = (token, text) -> {
+                switch (token) {
+                    case START_OBJECT -> generator.writeStartObject();
+                    case END_OBJECT -> generator.writeEnd();
+                    case START_ARRAY -> generator.writeStartArray();
+                    case END_ARRAY -> generator.writeEnd();
+                    case KEY -> generator.writeKey(text);
+                    case STRING -> generator.write(text);
+                    case NUMBER -> generator.write(new BigDecimal(text));
+                    case TRUE -> generator.write(true);
+                    case FALSE -> generator.write(false);
+                    case NULL -> generator.writeNull();
+                    default -> throw new IllegalStateException("Unexpected patch token: " + token);
+                }
+            };
+            PatchEngine.write(new JsonpPatchReader(parser), patch, writer, options, (serdeConfiguration == null ? LimitingStream.DEFAULT_MAXIMUM_DEPTH : serdeConfiguration.getMaximumNestingDepth()));
+            generator.flush();
+        } catch (JsonException e) {
+            throw new IOException("JSON Patch parser or generator failure", e);
+        }
+    }
+
+    @Override
+    public <T> @Nullable T readPatchedValue(InputStream input, JsonPatch patch, Argument<T> type, JsonPatchOptions options) throws IOException {
+        try (JsonParser parser = Json.createParser(new InputStreamReader(PatchStreams.input(input), StandardCharsets.UTF_8.newDecoder()));
+             PatchEngine.Result result = PatchEngine.apply(new JsonpPatchReader(parser), patch, options, (serdeConfiguration == null ? LimitingStream.DEFAULT_MAXIMUM_DEPTH : serdeConfiguration.getMaximumNestingDepth()));
+             var context = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view))) {
+            Deserializer<? extends T> deserializer = context.findDeserializer(type).createSpecific(context, type);
+            return deserializer.deserializeNullable(result.decoder(limits(), coercionPolicy), context, type);
+        } catch (JsonException e) {
+            throw new IOException("JSON Patch parser or generator failure", e);
         }
     }
 

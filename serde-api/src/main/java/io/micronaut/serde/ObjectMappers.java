@@ -23,6 +23,8 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.json.JsonStreamConfig;
 import io.micronaut.json.tree.JsonNode;
+import io.micronaut.serde.patch.JsonPatch;
+import io.micronaut.serde.patch.JsonPatchOptions;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.SerializationConfiguration;
@@ -95,6 +97,21 @@ final class ObjectMappers {
         context.start();
         ObjectMapper objectMapper = context.getBean(ObjectMapper.class);
         return new ObjectMapper.CloseableObjectMapper() {
+
+            @Override
+            public JsonPatch readJsonPatch(InputStream input, JsonPatchOptions options) throws IOException {
+                return objectMapper.readJsonPatch(input, options);
+            }
+
+            @Override
+            public void writePatchedValue(InputStream input, JsonPatch patch, OutputStream output, JsonPatchOptions options) throws IOException {
+                objectMapper.writePatchedValue(input, patch, output, options);
+            }
+
+            @Override
+            public <T> @Nullable T readPatchedValue(InputStream input, JsonPatch patch, Argument<T> type, JsonPatchOptions options) throws IOException {
+                return objectMapper.readPatchedValue(input, patch, type, options);
+            }
 
             @Override
             public SerdeRegistry getSerdeRegistry() {

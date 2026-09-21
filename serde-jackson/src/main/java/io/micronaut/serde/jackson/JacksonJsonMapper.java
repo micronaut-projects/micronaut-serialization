@@ -28,6 +28,11 @@ import io.micronaut.json.JsonMapper;
 import io.micronaut.json.JsonStreamConfig;
 import io.micronaut.json.JsonSyntaxException;
 import io.micronaut.json.tree.JsonNode;
+import io.micronaut.serde.patch.JsonPatch;
+import io.micronaut.serde.patch.JsonPatchOptions;
+import io.micronaut.serde.support.patch.PatchEngine;
+import io.micronaut.serde.support.patch.PatchStreams;
+import io.micronaut.serde.support.patch.TokenWriter;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
@@ -142,6 +147,53 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
         this.specificType = specificType;
         this.specificDeserializer = specificDeserializer;
         this.specificSerializer = serializer;
+    }
+
+    @Override
+    public JsonPatch readJsonPatch(InputStream input, JsonPatchOptions options) throws IOException {
+        try (JsonParser parser = jsonFactory.createParser(PatchStreams.input(input))) {
+            return PatchEngine.readPatch(new JacksonPatchReader(parser), options, serdeConfiguration.getMaximumNestingDepth());
+        } catch (StreamReadException | StreamWriteException e) {
+            throw new IOException("JSON Patch parser or generator failure", e);
+        }
+    }
+
+    @Override
+    public void writePatchedValue(InputStream input, JsonPatch patch, OutputStream output, JsonPatchOptions options) throws IOException {
+        try (JsonParser parser = jsonFactory.createParser(PatchStreams.input(input));
+             JsonGenerator generator = createGenerator(PatchStreams.output(output))) {
+            TokenWriter writer = (token, text) -> {
+                switch (token) {
+                    case START_OBJECT -> generator.writeStartObject();
+                    case END_OBJECT -> generator.writeEndObject();
+                    case START_ARRAY -> generator.writeStartArray();
+                    case END_ARRAY -> generator.writeEndArray();
+                    case KEY -> generator.writeName(text);
+                    case STRING -> generator.writeString(text);
+                    case NUMBER -> generator.writeNumber(text);
+                    case TRUE -> generator.writeBoolean(true);
+                    case FALSE -> generator.writeBoolean(false);
+                    case NULL -> generator.writeNull();
+                    default -> throw new IllegalStateException("Unexpected patch token: " + token);
+                }
+            };
+            PatchEngine.write(new JacksonPatchReader(parser), patch, writer, options, serdeConfiguration.getMaximumNestingDepth());
+            generator.flush();
+        } catch (StreamReadException | StreamWriteException e) {
+            throw new IOException("JSON Patch parser or generator failure", e);
+        }
+    }
+
+    @Override
+    public <T> @Nullable T readPatchedValue(InputStream input, JsonPatch patch, Argument<T> type, JsonPatchOptions options) throws IOException {
+        try (JsonParser parser = jsonFactory.createParser(PatchStreams.input(input));
+             PatchEngine.Result result = PatchEngine.apply(new JacksonPatchReader(parser), patch, options, serdeConfiguration.getMaximumNestingDepth());
+             var context = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view))) {
+            Deserializer<? extends T> deserializer = context.findDeserializer(type).createSpecific(context, type);
+            return deserializer.deserializeNullable(result.decoder(streamLimits, coercionPolicy), context, type);
+        } catch (StreamReadException | StreamWriteException e) {
+            throw new IOException("JSON Patch parser or generator failure", e);
+        }
     }
 
     @Override

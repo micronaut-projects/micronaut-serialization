@@ -21,6 +21,8 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.json.JsonFeatures;
 import io.micronaut.json.JsonMapper;
 import io.micronaut.json.tree.JsonNode;
+import io.micronaut.serde.patch.JsonPatch;
+import io.micronaut.serde.patch.JsonPatchOptions;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.SerializationConfiguration;
@@ -28,6 +30,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Map;
 import java.util.Objects;
 
@@ -37,6 +40,102 @@ import java.util.Objects;
  * @author graemerocher
  */
 public interface ObjectMapper extends JsonMapper {
+
+    /**
+     * Read and validate an RFC 6902 patch.
+     * Streams remain owned by the caller. A final removed root is an error.
+     * @param input Patch input
+     * @return Reusable patch
+     * @throws IOException If parsing, patch evaluation or I/O fails
+     * @throws UnsupportedOperationException If this mapper does not support JSON Patch
+     * @since 3.2.0
+     */
+    @Experimental
+    default JsonPatch readJsonPatch(InputStream input) throws IOException {
+        return readJsonPatch(input, JsonPatchOptions.DEFAULT);
+    }
+
+    /**
+     * Read and validate an RFC 6902 patch.
+     * Streams remain owned by the caller. A final removed root is an error.
+     * @param input Patch input
+     * @return Reusable patch
+     * @param options Resource and output policy
+     * @throws IOException If parsing, patch evaluation or I/O fails
+     * @throws UnsupportedOperationException If this mapper does not support JSON Patch
+     * @since 3.2.0
+     */
+    @Experimental
+    default JsonPatch readJsonPatch(InputStream input, JsonPatchOptions options) throws IOException {
+        throw new UnsupportedOperationException("JSON Patch is not supported by this mapper");
+    }
+
+    /**
+     * Apply an RFC 6902 patch and write JSON without building a target tree.
+     * Streams remain owned by the caller. A final removed root is an error.
+     * @param input Target JSON
+     * @param patch Patch to apply
+     * @param output Patched JSON destination
+     * @throws IOException If parsing, patch evaluation or I/O fails
+     * @throws UnsupportedOperationException If this mapper does not support JSON Patch
+     * @since 3.2.0
+     */
+    @Experimental
+    default void writePatchedValue(InputStream input, JsonPatch patch, OutputStream output) throws IOException {
+        writePatchedValue(input, patch, output, JsonPatchOptions.DEFAULT);
+    }
+
+    /**
+     * Apply an RFC 6902 patch and write JSON without building a target tree.
+     * Streams remain owned by the caller. A final removed root is an error.
+     * @param input Target JSON
+     * @param patch Patch to apply
+     * @param output Patched JSON destination
+     * @param options Resource and output policy
+     * @throws IOException If parsing, patch evaluation or I/O fails
+     * @throws UnsupportedOperationException If this mapper does not support JSON Patch
+     * @since 3.2.0
+     */
+    @Experimental
+    default void writePatchedValue(InputStream input, JsonPatch patch, OutputStream output, JsonPatchOptions options) throws IOException {
+        throw new UnsupportedOperationException("JSON Patch is not supported by this mapper");
+    }
+
+    /**
+     * Apply an RFC 6902 patch and deserialize a new value.
+     * Streams remain owned by the caller. A final removed root is an error.
+     * @param input Target JSON
+     * @param patch Patch to apply
+     * @param type Result type
+     * @param <T> Result type
+     * @return Patched value, or null for JSON null
+     * @throws IOException If parsing, patch evaluation or I/O fails
+     * @throws UnsupportedOperationException If this mapper does not support JSON Patch
+     * @since 3.2.0
+     */
+    @Experimental
+    default <T> @Nullable T readPatchedValue(InputStream input, JsonPatch patch, Argument<T> type) throws IOException {
+        return readPatchedValue(input, patch, type, JsonPatchOptions.DEFAULT);
+    }
+
+    /**
+     * Apply an RFC 6902 patch and deserialize a new value.
+     * Streams remain owned by the caller. A final removed root is an error.
+     * @param input Target JSON
+     * @param patch Patch to apply
+     * @param type Result type
+     * @param <T> Result type
+     * @return Patched value, or null for JSON null
+     * @param options Resource and output policy
+     * @throws IOException If parsing, patch evaluation or I/O fails
+     * @throws UnsupportedOperationException If this mapper does not support JSON Patch
+     * @since 3.2.0
+     */
+    @Experimental
+    default <T> @Nullable T readPatchedValue(InputStream input, JsonPatch patch, Argument<T> type, JsonPatchOptions options) throws IOException {
+        throw new UnsupportedOperationException("JSON Patch is not supported by this mapper");
+    }
+
 
     /**
      * Update an existing mutable value from the supplied override value.

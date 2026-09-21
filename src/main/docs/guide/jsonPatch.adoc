@@ -1,0 +1,37 @@
+The experimental JSON Patch API applies https://datatracker.ietf.org/doc/html/rfc6902/[RFC 6902] operations to JSON input and either writes JSON output or deserializes a new object. It is available with the Jackson and JSON-P backends through api:serde.ObjectMapper[].
+
+The engine reads JSON tokens without constructing a complete source `JsonNode`, map, or Java object. Patch values are materialized when the patch is read. Operations execute in their specified order, including array-index changes made by earlier operations.
+
+=== Applying a Patch
+
+Read a reusable `JsonPatch`, then apply it to independently supplied input streams:
+
+snippet::example.JsonPatchExampleTest[project-base="doc-examples/example", tags="patch"]
+
+`readPatchedValue` validates the complete patch before invoking the result deserializer. It uses the mapper's views, custom deserializers, generic arguments, and coercion configuration. It creates a new object; it does not update an existing instance. The final object still requires its normal allocation.
+
+Input streams contain UTF-8 JSON. Input and output streams remain owned by the caller. Output preserves JSON values, but does not promise identical whitespace, escaping, or number formatting.
+
+=== Buffering and Temporary Storage
+
+Operations that need replay use a compact token tape. The default options permit 1 MiB of combined replay-buffer capacity, up to 256 MiB of live token storage, 1,000 operations, and 1 MiB of decoded patch-token characters, including token overhead. Replay buffers allocate in 8 KiB chunks. Parser scalar allocations, patch metadata, per-stream I/O buffers, and the final Java result are additional to the replay-buffer capacity.
+
+Disk spill is opt-in. Supply an existing temporary directory to support replay larger than the memory budget:
+
+snippet::example.JsonPatchExampleTest[project-base="doc-examples/example", tags="spill"]
+
+The engine removes its temporary files when the call completes or fails. The caller owns the directory. With spill disabled, exceeding the memory budget raises an exception. The storage budget covers all live tapes together, including source snapshots and intermediate results, rather than only the input document size. The same storage limit bounds each generated token stream, including direct output.
+
+By default, `writePatchedValue` stages the result until every operation has succeeded. To permit progressive output, use `JsonPatchOptions.DEFAULT.withValidationBeforeWrite(false)`. An empty patch or a single `add`, `remove`, `replace`, or `test` can then run without a document replay buffer. Independent `add`, `remove`, and `replace` operations on distinct immediate object members also share a single pass. Other multi-operation patches replay intermediate results, and `move`/`copy` capture a source snapshot. The conservative implementation can scan the document once per operation and may spill the complete document. It does not guarantee a single pass for every patch.
+
+WARNING: With progressive output, a late patch failure can leave partial JSON in the destination. With either mode, a destination I/O failure can leave partial output. Use a transactional destination when publication must be atomic, such as an HTTP resource update.
+
+=== Semantics and Errors
+
+All six operations (`add`, `remove`, `replace`, `move`, `copy`, and `test`) are supported. JSON pointers use serialized JSON member names and RFC 6901 escaping. An array `-` destination appends for `add`, `move`, and `copy`. `test` uses JSON equality without mapper coercions: `1` and `1.00` compare equally; `1` and `"1"` do not. Object member order is ignored.
+
+Missing required operation members, duplicate required members, invalid pointers, missing targets, invalid array indices, and failed tests raise exceptions. Referenced duplicate source-object member names are rejected. Duplicate members inside an operation's required `value` are also rejected. Unknown operation members are ignored.
+
+An empty pointer addresses the root, including scalar and JSON-null roots. The engine distinguishes an absent document from JSON `null`: removing the root is allowed as an intermediate step, but a call whose final result has no root fails. RFC 6902 leaves the representation of root removal unspecified; this API never silently substitutes JSON `null`.
+
+`JsonPatchException` exposes the zero-based operation index, operation name, and target pointer. Failures while resolving a copy/move source also include the source pointer in the message. Parsing, resource-limit, and I/O errors may be reported as `IOException`.
