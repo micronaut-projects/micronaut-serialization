@@ -93,6 +93,81 @@ the default JMH includes list.
 ./gradlew :micronaut-benchmarks:jmh -Pjmh.includes='.*CborBenchmark.*' -Pjmh.forks=1
 ```
 
+### Large JSON files and JSON Patch (`JsonPatchFileBenchmark`)
+
+This opt-in benchmark generates deterministic UTF-8 JSON files during trial setup. It writes one
+record at a time and retains neither the complete source bytes nor a source object during timing.
+Patch parsing is also outside the timed operation. Every invocation opens the same source file.
+
+| Parameter | Values |
+| --- | --- |
+| `sizeMiB` | Any integer from 1 to 64; default 16. Use `1,16,64` for a size sweep. Files reach the requested size plus at most one record and the closing fields. |
+| `shape` | `flat`: many small records; `nested`: eight nested objects per record with decimals and arrays; `strings`: large strings containing Unicode, quotes, backslashes, and newlines. |
+| `strategy` | `streaming` or `validated`, only for JSON-output methods. |
+| `operation` | The scenarios below. Default: `replaceLate,independent,moveBackward,copyRecords,dependent`. |
+
+| Operation | Patch workload |
+| --- | --- |
+| `addFirst`, `addLast` | Insert a record at index zero or append with `-`. |
+| `removeMiddle` | Remove an array element and shift later indices. |
+| `removeRecords` | Remove the complete large array while still reading and validating the input. |
+| `replaceEarly`, `replaceLate` | Change a property in the first or last record. |
+| `moveForward`, `moveBackward` | Move the first record to the end or the last record to the beginning. |
+| `copyRecords` | Copy the entire array into the `archive` member, approximately doubling JSON output. |
+| `test` | Compare the complete last record, including its nested values. |
+| `independent` | Four independent root-member edits, exercising combined streaming. |
+| `dependent` | Six ordered operations: add, move, replace, copy, remove, and test. Later paths depend on earlier array changes. |
+
+Four methods measure different endpoints:
+
+- `writePatchedJson`: read a file and write JSON to a counting sink. Includes replay spill I/O.
+- `writePatchedFile`: read a file and overwrite a buffered output file, including open, close, and size lookup.
+- `readPatchedObject`: read a file and materialize a patched `Document` through serde.
+- `materializeThenPatch`: deserialize the complete input and apply the equivalent known edits in Java.
+  This is a typed-object baseline, not a general RFC 6902 implementation. Immutable record values
+  can be shared when the reference operation copies them.
+
+The patch engine gets 1 MiB of replay memory and a 2 GiB live-storage limit, with spill enabled.
+The larger storage limit accommodates source snapshots and doubled output for the largest files;
+parser scalars and final Java objects remain additional allocations. Output files are truncated
+between invocations. Trial cleanup checks for leaked spill files and deletes the fixtures.
+
+These are repeated-file measurements: the operating system can cache input and temporary files.
+Buffered output is closed but not forced to durable storage. Results do not measure cold-disk
+latency. Use `-prof gc` for allocation rate; allocation per operation is not peak retained heap.
+
+Validate all 36 combinations of shape and operation on 1 MiB files before timing. The verifier
+compares typed output and both JSON-output policies against independent known edits, and checks
+stream/file byte counts and cleanup. It is also included in `:micronaut-benchmarks:check`.
+
+```bash
+./gradlew -q :micronaut-benchmarks:verifyJsonPatchBenchmarks
+# Optional larger correctness fixtures:
+./gradlew -q :micronaut-benchmarks:verifyJsonPatchBenchmarks -PjsonPatch.verifySizeMiB=16
+```
+
+Start with a focused exploratory run rather than the full Cartesian product:
+
+```bash
+./gradlew -q :micronaut-benchmarks:jmh \
+  -Pjmh.includes='.*JsonPatchFileBenchmark.writePatchedJson' \
+  -Pjmh.param.sizeMiB=16 \
+  -Pjmh.param.shape=nested \
+  -Pjmh.param.operation=replaceLate,copyRecords,dependent \
+  -Pjmh.param.strategy=streaming,validated \
+  -Pjmh.forks=1 -Pjmh.warmupIterations=3 -Pjmh.iterations=5 \
+  -Pjmh.warmup=1s -Pjmh.timeOnIteration=1s -Pjmh.profilers=gc \
+  -Pjmh.resultFormat=JSON -Pjmh.resultsFile=build/results/jmh/json-patch-files.json
+```
+
+For a size sweep, change `sizeMiB` to `1,16,64` and select a small operation set. For file output,
+select `writePatchedFile`. Compare typed results with
+`-Pjmh.includes='.*JsonPatchFileBenchmark.(readPatchedObject|materializeThenPatch)'` and omit
+`strategy`. Use at least three forks with longer warmup and measurement for performance claims.
+
+The earlier `JsonPatchBenchmark` remains useful for small in-memory inputs. Its `elements`,
+`shape`, and `strategy` parameters can also be selected through `-Pjmh.param.<name>`.
+
 ## Run
 
 From repository root:

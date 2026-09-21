@@ -104,7 +104,7 @@ tasks.named("jmh").configure { task ->
     }
 
     def benchmarkParametersOverride = [:]
-    ["stack", "shape", "valueKind", "failOnNullForPrimitives"].each { parameterName ->
+    ["stack", "shape", "valueKind", "failOnNullForPrimitives", "sizeMiB", "operation", "strategy", "elements"].each { parameterName ->
         def values = csvProperty("jmh.param.${parameterName}")
         if (values != null) {
             benchmarkParametersOverride[parameterName] = listProperty(values)
@@ -121,4 +121,18 @@ shadowJar {
 
 configurations.configureEach {
     resolutionStrategy.preferProjectModules()
+}
+
+// Fixture validation is separate from timing, including every supported patch scenario.
+tasks.register("verifyJsonPatchBenchmarks", JavaExec) {
+    group = "verification"
+    description = "Verify large-file JSON Patch benchmark fixtures against known edits"
+    dependsOn(tasks.named("jmhClasses"))
+    classpath = sourceSets.jmh.runtimeClasspath
+    mainClass.set("io.micronaut.serde.benchmark.JsonPatchFileBenchmark")
+    args(providers.gradleProperty("jsonPatch.verifySizeMiB").getOrElse("1"))
+}
+
+tasks.named("check") {
+    dependsOn(tasks.named("verifyJsonPatchBenchmarks"))
 }
