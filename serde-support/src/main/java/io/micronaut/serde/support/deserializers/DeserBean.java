@@ -215,8 +215,8 @@ final class DeserBean<T> {
             }
         }
 
-        // Jackson also ignores record components completely
-        boolean jacksonCompatibleIgnore = deserializationConfiguration.isJacksonCompatibleIgnore() && !introspection.getBeanType().isRecord();
+        // Jackson ignores record components completely, even if they are explicitly included
+        boolean isRecord = introspection.getBeanType().isRecord();
         List<DerProperty<T, ?>> creatorUnwrapped = null;
         AnySetter anySetterValue = null;
         List<DerProperty<T, ?>> unwrappedProperties = null;
@@ -243,7 +243,7 @@ final class DeserBean<T> {
             boolean isIgnored = allowPropertyPredicate != null && !allowPropertyPredicate.test(propertyName);
             if (!isIgnored && isIgnored(annotationMetadata)) {
                 // Jackson only drops the ignored accessor of an explicitly included property and keeps the creator parameter
-                isIgnored = !jacksonCompatibleIgnore
+                isIgnored = isRecord
                     || !SerdePropertyAccess.canDeserialize(annotationMetadata)
                     || isIgnored(constructorArgument.getAnnotationMetadata())
                     || !isExplicitlyIncluded(annotationMetadata);

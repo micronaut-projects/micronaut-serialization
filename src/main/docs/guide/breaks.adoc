@@ -10,6 +10,8 @@ This section documents breaking changes between Micronaut Serialization versions
 
 - A property that is buffered before it is read, because a polymorphic discriminator or a creator argument appears later in the document, is now coerced exactly like a property that is read inline. Previously the buffered path rejected a string read into a numeric property, and a number read into a `String` property, while the inline path accepted them, so whether a document was accepted depended on the order of its properties.
 
+- `@JsonIgnore` on a field, getter or setter no longer ignores the `@JsonCreator` parameter with the same name when the parameter or any accessor of the property is explicitly annotated with `@JsonProperty`, matching Jackson Databind. Previously the creator parameter was always ignored and received `null`. The parameter is now bound, so its type must be deserializable. To keep ignoring it, remove `@JsonProperty` from the parameter and the accessors of the property. See <<jacksonAnnotations>>.
+
 === Micronaut Serialization 3.0.0
 
 ==== Deserialization
