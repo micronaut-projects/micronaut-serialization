@@ -3160,7 +3160,8 @@ public class BookTest {
 <div class="content">
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">micronaut.serde.format.xml.repairing-namespaces=true
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">micronaut.serde.format.xml.maximum-input-size=10MB
+micronaut.serde.format.xml.repairing-namespaces=true
 micronaut.serde.format.xml.automatic-empty-elements=false
 micronaut.serde.format.xml.xml-read-features.EMPTY_ELEMENT_AS_NULL=true</code></pre>
 </div>
@@ -3171,6 +3172,7 @@ micronaut.serde.format.xml.xml-read-features.EMPTY_ELEMENT_AS_NULL=true</code></
   serde:
     format:
       xml:
+        maximum-input-size: 10MB
         repairing-namespaces: true
         automatic-empty-elements: false
         xml-read-features:
@@ -3179,7 +3181,7 @@ micronaut.serde.format.xml.xml-read-features.EMPTY_ELEMENT_AS_NULL=true</code></
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="toml">micronaut = {serde = {format = {xml = {repairing-namespaces = true, automatic-empty-elements = false, xml-read-features = {EMPTY_ELEMENT_AS_NULL = true}}}}}</code></pre>
+<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="toml">micronaut = {serde = {format = {xml = {maximum-input-size = "10MB", repairing-namespaces = true, automatic-empty-elements = false, xml-read-features = {EMPTY_ELEMENT_AS_NULL = true}}}}}</code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
@@ -3188,6 +3190,7 @@ micronaut.serde.format.xml.xml-read-features.EMPTY_ELEMENT_AS_NULL=true</code></
   serde {
     format {
       xml {
+        maximumInputSize = "10MB"
         repairingNamespaces = true
         automaticEmptyElements = false
         xmlReadFeatures {
@@ -3206,6 +3209,7 @@ micronaut.serde.format.xml.xml-read-features.EMPTY_ELEMENT_AS_NULL=true</code></
     serde {
       format {
         xml {
+          maximum-input-size = "10MB"
           repairing-namespaces = true
           automatic-empty-elements = false
           xml-read-features {
@@ -3225,6 +3229,7 @@ micronaut.serde.format.xml.xml-read-features.EMPTY_ELEMENT_AS_NULL=true</code></
     "serde": {
       "format": {
         "xml": {
+          "maximum-input-size": "10MB",
           "repairing-namespaces": true,
           "automatic-empty-elements": false,
           "xml-read-features": {
@@ -3238,6 +3243,9 @@ micronaut.serde.format.xml.xml-read-features.EMPTY_ELEMENT_AS_NULL=true</code></
 </div>
 </div>
 </div>
+</div>
+<div class="paragraph">
+<p><code>maximum-input-size</code> defaults to <code>10MB</code> and stops XML parsing after that many input bytes. Increase it only when trusted payloads legitimately exceed the default; transport-level request limits should remain enabled as the first line of defense.</p>
 </div>
 <div class="paragraph">
 <p><code>repairing-namespaces</code> defaults to <code>true</code> and lets the XML writer declare namespace prefixes when a property or root element has a namespace. Set it to <code>false</code> only when the XML stream writer is expected to receive already-valid namespace bindings.</p>

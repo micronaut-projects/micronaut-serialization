@@ -67,6 +67,8 @@ loadScripts(document, 'script');</script>
 <li><a href="#setRepairingNamespaces(boolean)" tabindex="0">setRepairingNamespaces(boolean)</a></li>
 <li><a href="#isAutomaticEmptyElements()" tabindex="0">isAutomaticEmptyElements()</a></li>
 <li><a href="#setAutomaticEmptyElements(boolean)" tabindex="0">setAutomaticEmptyElements(boolean)</a></li>
+<li><a href="#getMaximumInputSize()" tabindex="0">getMaximumInputSize()</a></li>
+<li><a href="#setMaximumInputSize(long)" tabindex="0">setMaximumInputSize(long)</a></li>
 <li><a href="#getXmlReadFeatures()" tabindex="0">getXmlReadFeatures()</a></li>
 <li><a href="#setXmlReadFeatures(java.util.Map)" tabindex="0">setXmlReadFeatures(Map)</a></li>
 <li><a href="#isReadFeatureEnabled(io.micronaut.serde.xml.XmlSerdeConfiguration.XmlReadFeature)" tabindex="0">isReadFeatureEnabled(XmlSerdeConfiguration.XmlReadFeature)</a></li>
@@ -141,30 +143,40 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a><wbr>&lt;<a href="XmlSerdeConfiguration.XmlReadFeature.html" title="enum class in io.micronaut.serde.xml">XmlSerdeConfiguration.XmlReadFeature</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Boolean.html" title="class or interface in java.lang" class="external-link">Boolean</a>&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getXmlReadFeatures()" class="member-name-link">getXmlReadFeatures</a>()</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>long</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getMaximumInputSize()" class="member-name-link">getMaximumInputSize</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Returns the maximum XML input size.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a><wbr>&lt;<a href="XmlSerdeConfiguration.XmlReadFeature.html" title="enum class in io.micronaut.serde.xml">XmlSerdeConfiguration.XmlReadFeature</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Boolean.html" title="class or interface in java.lang" class="external-link">Boolean</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getXmlReadFeatures()" class="member-name-link">getXmlReadFeatures</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the XML read feature map.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#isAutomaticEmptyElements()" class="member-name-link">isAutomaticEmptyElements</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#isAutomaticEmptyElements()" class="member-name-link">isAutomaticEmptyElements</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns whether the XML writer may use self-closing empty elements.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#isReadFeatureEnabled(io.micronaut.serde.xml.XmlSerdeConfiguration.XmlReadFeature)" class="member-name-link">isReadFeatureEnabled</a><wbr>(<a href="XmlSerdeConfiguration.XmlReadFeature.html" title="enum class in io.micronaut.serde.xml">XmlSerdeConfiguration.XmlReadFeature</a>&nbsp;feature)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#isReadFeatureEnabled(io.micronaut.serde.xml.XmlSerdeConfiguration.XmlReadFeature)" class="member-name-link">isReadFeatureEnabled</a><wbr>(<a href="XmlSerdeConfiguration.XmlReadFeature.html" title="enum class in io.micronaut.serde.xml">XmlSerdeConfiguration.XmlReadFeature</a>&nbsp;feature)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns whether the given XML read feature is enabled.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#isRepairingNamespaces()" class="member-name-link">isRepairingNamespaces</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#isRepairingNamespaces()" class="member-name-link">isRepairingNamespaces</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns whether namespace repairing is enabled.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setAutomaticEmptyElements(boolean)" class="member-name-link">setAutomaticEmptyElements</a><wbr>(boolean&nbsp;automaticEmptyElements)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setAutomaticEmptyElements(boolean)" class="member-name-link">setAutomaticEmptyElements</a><wbr>(boolean&nbsp;automaticEmptyElements)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Sets whether the XML writer may use self-closing empty elements.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setMaximumInputSize(long)" class="member-name-link">setMaximumInputSize</a><wbr>(long&nbsp;maximumInputSize)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Sets the maximum XML input size.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setRepairingNamespaces(boolean)" class="member-name-link">setRepairingNamespaces</a><wbr>(boolean&nbsp;repairingNamespaces)</code></div>
@@ -257,6 +269,33 @@ loadScripts(document, 'script');</script>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>automaticEmptyElements</code> - Whether the XML writer may use self-closing empty elements</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="getMaximumInputSize()">
+<h3>getMaximumInputSize</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">long</span>&nbsp;<span class="element-name">getMaximumInputSize</span>()</div>
+<div class="block">Returns the maximum XML input size.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>The maximum input size in bytes</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="setMaximumInputSize(long)">
+<h3>setMaximumInputSize</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">setMaximumInputSize</span><wbr><span class="parameters">(@ReadableBytes
+ long&nbsp;maximumInputSize)</span></div>
+<div class="block">Sets the maximum XML input size.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>maximumInputSize</code> - The maximum input size in bytes</dd>
 </dl>
 </div>
 </section>
