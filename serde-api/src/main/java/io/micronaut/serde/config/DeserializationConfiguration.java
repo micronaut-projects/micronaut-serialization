@@ -159,6 +159,23 @@ public interface DeserializationConfiguration {
     }
 
     /**
+     * Determines whether {@code @JsonIgnore} on a property is applied to the creator parameter with the same name
+     * the way Jackson Databind applies it.
+     *
+     * <p>By default, an ignored property also ignores the creator parameter with the same name, even if the parameter
+     * is annotated with {@code @JsonProperty}. When enabled, the creator parameter is still bound if the parameter
+     * or any accessor of the property is explicitly annotated with {@code @JsonProperty}; only the ignored accessor
+     * is dropped. Record components are not affected, Jackson Databind also ignores them completely.</p>
+     *
+     * @return {@code true} to apply {@code @JsonIgnore} to creator parameters like Jackson Databind
+     * @since 3.2.0
+     */
+    @Bindable(defaultValue = StringUtils.FALSE)
+    default boolean isJacksonCompatibleIgnore() {
+        return false;
+    }
+
+    /**
      * Determines whether generated deserializers should fall back to the runtime deserializer.
      *
      * @return {@code true} if generated deserializers should be disabled

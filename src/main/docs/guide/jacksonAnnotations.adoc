@@ -156,7 +156,19 @@ Jackson Databind behaves differently: when any accessor of a property is explici
 
 The property metadata is not applied when both the parameter and the property declare an explicit `@JsonProperty` name and the names differ, because they then describe different JSON properties.
 For example, a subclass can rename and ignore an inherited getter with `@JsonProperty("valuesView") @JsonIgnore`, and a creator parameter named after the same bean property but annotated with `@JsonProperty("values")` still binds the `values` JSON property.
-To bind a creator parameter that has the same JSON name as an ignored property, give the parameter a different Java name.
+To bind a creator parameter that has the same JSON name as an ignored property, give the parameter a different Java name, or enable the Jackson Databind behavior:
+
+[configuration]
+----
+micronaut:
+  serde:
+    deserialization:
+      jackson-compatible-ignore: true
+----
+
+With `jackson-compatible-ignore` enabled, `@JsonIgnore` on a field, getter or setter no longer ignores the creator parameter with the same name if the parameter or any accessor of the property is explicitly annotated with `@JsonProperty`.
+A property that is not explicitly included is still ignored completely, and so are record components annotated with `@JsonIgnore`, as in Jackson Databind.
+`@JsonIgnoreProperties` and access restrictions such as `@JsonProperty(access = READ_ONLY)` are not affected by this setting.
 
 === `@JsonMerge`
 

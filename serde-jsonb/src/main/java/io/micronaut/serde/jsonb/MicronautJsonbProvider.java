@@ -842,6 +842,11 @@ public class MicronautJsonbProvider extends JsonbProvider {
         }
 
         @Override
+        public boolean isJacksonCompatibleIgnore() {
+            return delegate.isJacksonCompatibleIgnore();
+        }
+
+        @Override
         public boolean disableGeneratedDeserializer() {
             return forceDisableGeneratedDeserializer || delegate.disableGeneratedDeserializer();
         }

@@ -215,6 +215,8 @@ final class DeserBean<T> {
             }
         }
 
+        // Jackson also ignores record components completely
+        boolean jacksonCompatibleIgnore = deserializationConfiguration.isJacksonCompatibleIgnore() && !introspection.getBeanType().isRecord();
         List<DerProperty<T, ?>> creatorUnwrapped = null;
         AnySetter anySetterValue = null;
         List<DerProperty<T, ?>> unwrappedProperties = null;
@@ -238,7 +240,14 @@ final class DeserBean<T> {
             PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(annotationMetadata, decoderContext, entityPropertyNamingStrategy);
             final String propertyName = resolveName(serdeArgumentConf, constructorArgument, annotationMetadata, propertyNamingStrategy);
 
-            boolean isIgnored = isIgnored(annotationMetadata) || (allowPropertyPredicate != null && !allowPropertyPredicate.test(propertyName));
+            boolean isIgnored = allowPropertyPredicate != null && !allowPropertyPredicate.test(propertyName);
+            if (!isIgnored && isIgnored(annotationMetadata)) {
+                // Jackson only drops the ignored accessor of an explicitly included property and keeps the creator parameter
+                isIgnored = !jacksonCompatibleIgnore
+                    || !SerdePropertyAccess.canDeserialize(annotationMetadata)
+                    || isIgnored(constructorArgument.getAnnotationMetadata())
+                    || !isExplicitlyIncluded(annotationMetadata);
+            }
             if (isIgnored) {
                 ignoredProperties.add(propertyName);
             }
@@ -1889,6 +1898,10 @@ final class DeserBean<T> {
         }
         String propertyName = findExplicitName(propertyMetadata);
         return propertyName != null && !propertyName.equals(argumentName);
+    }
+
+    private static boolean isExplicitlyIncluded(AnnotationMetadata annotationMetadata) {
+        return findExplicitName(annotationMetadata) != null || annotationMetadata.hasAnnotation(JK_PROP);
     }
 
     private static @Nullable String findExplicitName(AnnotationMetadata annotationMetadata) {

@@ -45,6 +45,7 @@ final class DefaultDeserializationConfiguration implements DeserializationConfig
     private final boolean readDateTimestampsAsNanoseconds;
     private final boolean adjustDatesToContextTimeZone;
     private final boolean requireAllCreatorParameters;
+    private final boolean jacksonCompatibleIgnore;
     private final boolean disableGeneratedDeserializer;
     private final CoercionMode coercionMode;
     private final boolean acceptFloatAsInt;
@@ -71,6 +72,7 @@ final class DefaultDeserializationConfiguration implements DeserializationConfig
                                         @Bindable(defaultValue = StringUtils.TRUE) boolean readDateTimestampsAsNanoseconds,
                                         @Bindable(defaultValue = StringUtils.FALSE) boolean adjustDatesToContextTimeZone,
                                         @Bindable(defaultValue = StringUtils.FALSE) boolean requireAllCreatorParameters,
+                                        @Bindable(defaultValue = StringUtils.FALSE) boolean jacksonCompatibleIgnore,
                                         @Bindable(defaultValue = StringUtils.FALSE) boolean disableGeneratedDeserializer,
                                         @Bindable(defaultValue = "LENIENT") CoercionMode coercionMode,
                                         @Nullable Boolean acceptFloatAsInt,
@@ -93,6 +95,7 @@ final class DefaultDeserializationConfiguration implements DeserializationConfig
         this.readDateTimestampsAsNanoseconds = readDateTimestampsAsNanoseconds;
         this.adjustDatesToContextTimeZone = adjustDatesToContextTimeZone;
         this.requireAllCreatorParameters = requireAllCreatorParameters;
+        this.jacksonCompatibleIgnore = jacksonCompatibleIgnore;
         this.disableGeneratedDeserializer = disableGeneratedDeserializer;
         this.coercionMode = coercionMode;
         boolean lenient = coercionMode != CoercionMode.STRICT;
@@ -209,6 +212,11 @@ final class DefaultDeserializationConfiguration implements DeserializationConfig
     @Override
     public boolean isRequireAllCreatorParameters() {
         return requireAllCreatorParameters;
+    }
+
+    @Override
+    public boolean isJacksonCompatibleIgnore() {
+        return jacksonCompatibleIgnore;
     }
 
     @Override
