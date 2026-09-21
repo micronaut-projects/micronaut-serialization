@@ -262,7 +262,9 @@ public abstract sealed class XmlStaxDecoder extends LimitingStream implements De
             while (depth > 0) {
                 int e = cursor.current();
                 if (e == XMLStreamConstants.START_ELEMENT) {
-                    // The first child proves the current element is a nested structure.
+                    // Charge one level per element with an element child, matching childLimits().
+                    // Since depth moves by one per event, structureDepth is depth - 1 after a start
+                    // and depth after an end, so one counter tracks whether this level is charged.
                     if (depth > structureDepth) {
                         increaseDepth();
                         structureDepth = depth;

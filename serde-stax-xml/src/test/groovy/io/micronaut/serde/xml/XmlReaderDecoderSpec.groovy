@@ -194,7 +194,7 @@ class XmlReaderDecoderSpec extends Specification {
         def xml = '<root><value>' + '<nested>' * 10 + 'text' + '</nested>' * 10 + '</value></root>'
         def object = createDepthLimitedDecoder(xml, 2)
             .decodeObject(Argument.of(Map))
-        object.decodeKey() == 'value'
+        assert object.decodeKey() == 'value'
 
         when:
         object.decodeArbitrary()
@@ -208,10 +208,40 @@ class XmlReaderDecoderSpec extends Specification {
         def object = createDepthLimitedDecoder(
             '<root><ignored><nested><nested>text</nested></nested></ignored></root>', 2)
             .decodeObject(Argument.of(Map))
-        object.decodeKey() == 'ignored'
+        assert object.decodeKey() == 'ignored'
 
         when:
         object.skipValue()
+
+        then:
+        thrown(SerdeException)
+    }
+
+    def "arbitrary XML array item cannot bypass the maximum nesting depth"() {
+        given:
+        def array = createDepthLimitedDecoder(
+            '<items><item><nested><nested>text</nested></nested></item></items>', 2)
+            .decodeArray()
+        assert array.hasNextArrayValue()
+
+        when:
+        array.decodeArbitrary()
+
+        then:
+        thrown(SerdeException)
+    }
+
+    def "xsi:nil drain cannot bypass the maximum nesting depth"() {
+        given:
+        def object = createDepthLimitedDecoder('''
+            <root xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                <nil xsi:nil="true"><nested><nested>text</nested></nested></nil>
+            </root>
+        ''', 2).decodeObject(Argument.of(Map))
+        assert object.decodeKey() == 'nil'
+
+        when:
+        object.decodeNull()
 
         then:
         thrown(SerdeException)
