@@ -40,6 +40,7 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -64,6 +65,7 @@ public final class XmlObjectMapper implements ObjectMapper {
     @Nullable
     private final SerdeConfiguration serdeConfiguration;
     private final boolean emptyElementAsNull;
+    private final long maximumInputSize;
     private final XMLInputFactory xmlInputFactory;
     private final XMLOutputFactory xmlOutputFactory;
 
@@ -82,6 +84,9 @@ public final class XmlObjectMapper implements ObjectMapper {
         this.serdeConfiguration = serdeConfiguration;
         this.emptyElementAsNull = xmlConfiguration != null
             && xmlConfiguration.isReadFeatureEnabled(XmlSerdeConfiguration.XmlReadFeature.EMPTY_ELEMENT_AS_NULL);
+        this.maximumInputSize = xmlConfiguration == null
+            ? XmlSerdeConfiguration.DEFAULT_MAXIMUM_INPUT_SIZE
+            : xmlConfiguration.getMaximumInputSize();
         boolean repairingNamespaces = xmlConfiguration == null || xmlConfiguration.isRepairingNamespaces();
         boolean automaticEmptyElements = xmlConfiguration != null && xmlConfiguration.isAutomaticEmptyElements();
         this.xmlInputFactory = XMLInputFactory.newInstance();
@@ -114,7 +119,7 @@ public final class XmlObjectMapper implements ObjectMapper {
     public <T> T readValue(InputStream inputStream, Argument<T> type) throws IOException {
         try (var decoderContext = registry.newDecoderContext(null);
              XmlReaderResource resource = new XmlReaderResource(
-            xmlInputFactory.createXMLStreamReader(inputStream))) {
+            xmlInputFactory.createXMLStreamReader(new LimitedInputStream(inputStream, maximumInputSize)))) {
             Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext,
                 type);
             XmlStaxDecoder decoder = new XmlStaxDecoder.DocumentDecoder(
@@ -338,6 +343,55 @@ public final class XmlObjectMapper implements ObjectMapper {
         @Override
         public void close() throws XMLStreamException {
             reader.close();
+        }
+    }
+
+    private static final class LimitedInputStream extends FilterInputStream {
+        private final long maximumSize;
+        private long count;
+
+        private LimitedInputStream(InputStream inputStream, long maximumSize) {
+            super(inputStream);
+            this.maximumSize = maximumSize;
+        }
+
+        @Override
+        public int read() throws IOException {
+            int value = super.read();
+            if (value != -1) {
+                recordRead(1);
+            }
+            return value;
+        }
+
+        @Override
+        public int read(byte[] bytes, int offset, int length) throws IOException {
+            long remaining = maximumSize - count;
+            int allowed = remaining < length ? (int) remaining + 1 : length;
+            int read = super.read(bytes, offset, allowed);
+            if (read > 0) {
+                recordRead(read);
+            }
+            return read;
+        }
+
+        @Override
+        public long skip(long amount) throws IOException {
+            long remaining = maximumSize - count;
+            long allowed = remaining < amount ? remaining + 1 : amount;
+            long skipped = super.skip(allowed);
+            if (skipped > 0) {
+                recordRead(skipped);
+            }
+            return skipped;
+        }
+
+        private void recordRead(long amount) throws IOException {
+            if (amount > maximumSize - count) {
+                throw new IOException("Maximum XML input size of " + maximumSize + " bytes exceeded. The limit can "
+                    + "be increased using the " + XmlSerdeConfiguration.PREFIX + ".maximum-input-size property.");
+            }
+            count += amount;
         }
     }
 
