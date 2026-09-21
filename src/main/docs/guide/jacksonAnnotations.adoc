@@ -148,6 +148,16 @@ NOTE: If an unsupported annotation or member is used, a compilation error will r
 |
 |===
 
+=== `@JsonIgnore` and creator parameters
+
+A `@JsonCreator` constructor or factory method parameter is matched with the bean property that has the same Java name, and the property's metadata, including `@JsonIgnore` and `@JsonProperty(access = ...)`, applies to the parameter.
+This lets you ignore a creator parameter by annotating the field, getter or setter with `@JsonIgnore`; the parameter then receives `null` (or its default value) even if it is annotated with `@JsonProperty`.
+Jackson Databind behaves differently: when any accessor of a property is explicitly annotated with `@JsonProperty`, it only drops the ignored accessor and still binds the creator parameter.
+
+The property metadata is not applied when both the parameter and the property declare an explicit `@JsonProperty` name and the names differ, because they then describe different JSON properties.
+For example, a subclass can rename and ignore an inherited getter with `@JsonProperty("valuesView") @JsonIgnore`, and a creator parameter named after the same bean property but annotated with `@JsonProperty("values")` still binds the `values` JSON property.
+To bind a creator parameter that has the same JSON name as an ignored property, give the parameter a different Java name.
+
 === `@JsonMerge`
 
 The link:{jacksonAnnotationJavadoc}/JsonMerge.html[@JsonMerge] annotation enables merge behavior when updating an existing mutable object with api:serde.ObjectMapper[].

@@ -85,4 +85,58 @@ class Ignored {
         cleanup:
             context.close()
     }
+
+    void "json ignore on an overridden getter also ignores the creator parameter with the same name"() {
+        given: 'unlike Jackson, an ignored property also ignores the creator parameter with the same Java and JSON name'
+            def context = buildContext('example.Sub', '''
+package example;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+abstract class Base {
+    private String x;
+
+    @JsonProperty("x")
+    public String getX() {
+        return x;
+    }
+
+    @JsonProperty("x")
+    public final void setX(String x) {
+        this.x = x;
+    }
+}
+
+@Serdeable
+final class Sub extends Base {
+    private final String creatorValue;
+
+    @JsonCreator
+    Sub(@JsonProperty("x") String x) {
+        this.creatorValue = x;
+    }
+
+    public String creatorValue() {
+        return creatorValue;
+    }
+
+    @Override
+    @JsonIgnore
+    public String getX() {
+        return super.getX();
+    }
+}
+''')
+
+        when:
+            def des = jsonMapper.readValue('{"x":"value"}', typeUnderTest)
+
+        then:
+            des.creatorValue() == null
+
+        cleanup:
+            context.close()
+    }
 }

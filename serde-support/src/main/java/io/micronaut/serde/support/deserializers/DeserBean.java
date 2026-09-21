@@ -1875,8 +1875,26 @@ final class DeserBean<T> {
         // records store metadata in the bean property
         final AnnotationMetadata propertyMetadata = introspection.getProperty(argument.getName(), argument.getType())
             .map(BeanProperty::getAnnotationMetadata)
+            // A property with the same Java name but a different explicit JSON name is a different JSON property,
+            // its metadata (ignore, access, etc.) must not be applied to the argument
+            .filter(metadata -> !hasDifferentExplicitName(annotationMetadata, metadata))
             .orElse(AnnotationMetadata.EMPTY_METADATA);
         return new AnnotationMetadataHierarchy(propertyMetadata, annotationMetadata);
+    }
+
+    private static boolean hasDifferentExplicitName(AnnotationMetadata argumentMetadata, AnnotationMetadata propertyMetadata) {
+        String argumentName = findExplicitName(argumentMetadata);
+        if (argumentName == null) {
+            return false;
+        }
+        String propertyName = findExplicitName(propertyMetadata);
+        return propertyName != null && !propertyName.equals(argumentName);
+    }
+
+    private static @Nullable String findExplicitName(AnnotationMetadata annotationMetadata) {
+        return annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY)
+            .or(() -> annotationMetadata.stringValue(JK_PROP))
+            .orElse(null);
     }
 
     private static final class BeanMethodAsBeanProperty<B, P> implements UnsafeBeanWriteProperty<B, P> {
