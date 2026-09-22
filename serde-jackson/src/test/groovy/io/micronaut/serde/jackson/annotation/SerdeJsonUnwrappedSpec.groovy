@@ -2,6 +2,8 @@ package io.micronaut.serde.jackson.annotation
 
 import io.micronaut.core.type.Argument
 import io.micronaut.serde.jackson.JsonUnwrappedSpec
+import org.skyscreamer.jsonassert.JSONAssert
+import org.skyscreamer.jsonassert.JSONCompareMode
 
 class SerdeJsonUnwrappedSpec extends JsonUnwrappedSpec {
 
@@ -782,5 +784,183 @@ record CompositeId(
 
         cleanup:
         ctx.close()
+    }
+
+    // Jackson Databind reads every property into an unwrapped creator map and does not read an unwrapped
+    // property map; the unwrapped map receives the properties the bean does not know
+
+    void "test @JsonUnwrapped creator type variable bound to a map or unbound - #typeDescription"() {
+        given:
+        def context = buildContext('unwrapped.EntityResource', """
+package unwrapped;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+public final class EntityResource<T> {
+    private final T content;
+    private String rel;
+
+    @JsonCreator
+    public EntityResource(@JsonUnwrapped T content) {
+        this.content = java.util.Objects.requireNonNull(content, "content");
+    }
+
+    @JsonUnwrapped
+    public T getContent() {
+        return content;
+    }
+
+    public String getRel() {
+        return rel;
+    }
+
+    public void setRel(String rel) {
+        this.rel = rel;
+    }
+}
+""")
+        def type = context.classLoader.loadClass('unwrapped.EntityResource')
+
+        when:
+        def resource = jsonMapper.readValue('{"id":1,"rel":"self","name":"Dune"}', argument(type))
+
+        then:
+        resource.content == [id: 1, name: 'Dune']
+        resource.content instanceof Map
+        resource.rel == 'self'
+
+        when:
+        def empty = jsonMapper.readValue('{"rel":"self"}', argument(type))
+
+        then:
+        empty.content == [:]
+        empty.rel == 'self'
+
+        when:
+        def written = writeJson(jsonMapper, resource)
+
+        then:
+        JSONAssert.assertEquals('{"id":1,"name":"Dune","rel":"self"}', written, JSONCompareMode.NON_EXTENSIBLE)
+
+        cleanup:
+        context.close()
+
+        where:
+        argument << [
+            { Class<?> t -> Argument.of(t, Argument.mapOf(String, Object)) },
+            { Class<?> t -> Argument.of(t, Argument.of(Map, 'T', Argument.of(String, 'K'), Argument.of(Object, 'V'))) },
+            { Class<?> t -> Argument.of(t, Argument.of(Map, 'T')) },
+            { Class<?> t -> Argument.of(t, Argument.of(Object, 'T')) },
+            { Class<?> t -> Argument.of(t) }
+        ]
+        typeDescription << ['Argument.mapOf(String, Object)', 'T bound to Map<String, Object>', 'T bound to raw Map', 'T bound to Object', 'raw']
+    }
+
+    void "test @JsonUnwrapped creator type variable bound to a map with typed values"() {
+        given:
+        def context = buildContext('unwrapped.EntityResource', """
+package unwrapped;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+public final class EntityResource<T> {
+    private final T content;
+    private String rel;
+
+    @JsonCreator
+    public EntityResource(@JsonUnwrapped T content) {
+        this.content = content;
+    }
+
+    @JsonUnwrapped
+    public T getContent() {
+        return content;
+    }
+
+    public String getRel() {
+        return rel;
+    }
+
+    public void setRel(String rel) {
+        this.rel = rel;
+    }
+}
+""")
+        def type = context.classLoader.loadClass('unwrapped.EntityResource')
+
+        when:
+        def resource = jsonMapper.readValue('{"a":"1","rel":"self","b":2}', Argument.of(type, Argument.of(Map, 'T', Argument.of(String, 'K'), Argument.of(Long, 'V'))))
+
+        then:
+        resource.content == [a: 1L, b: 2L]
+        resource.content.values()*.getClass() == [Long, Long]
+        resource.rel == 'self'
+
+        cleanup:
+        context.close()
+    }
+
+    void "test @JsonUnwrapped property type variable bound to a map or unbound - #typeDescription"() {
+        given:
+        def context = buildContext('unwrapped.Holder', """
+package unwrapped;
+
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+public class Holder<T> {
+    private T content;
+    private String rel;
+
+    @JsonUnwrapped
+    public T getContent() {
+        return content;
+    }
+
+    @JsonUnwrapped
+    public void setContent(T content) {
+        this.content = content;
+    }
+
+    public String getRel() {
+        return rel;
+    }
+
+    public void setRel(String rel) {
+        this.rel = rel;
+    }
+}
+""")
+        def type = context.classLoader.loadClass('unwrapped.Holder')
+
+        when:
+        def holder = jsonMapper.readValue('{"id":1,"rel":"self","name":"Dune"}', argument(type))
+
+        then:
+        holder.content == [id: 1, name: 'Dune']
+        holder.rel == 'self'
+
+        when:
+        def written = writeJson(jsonMapper, holder)
+
+        then:
+        JSONAssert.assertEquals('{"id":1,"name":"Dune","rel":"self"}', written, JSONCompareMode.NON_EXTENSIBLE)
+
+        cleanup:
+        context.close()
+
+        where:
+        argument << [
+            { Class<?> t -> Argument.of(t, Argument.of(Map, 'T', Argument.of(String, 'K'), Argument.of(Object, 'V'))) },
+            { Class<?> t -> Argument.of(t) }
+        ]
+        typeDescription << ['T bound to Map<String, Object>', 'raw']
     }
 }
