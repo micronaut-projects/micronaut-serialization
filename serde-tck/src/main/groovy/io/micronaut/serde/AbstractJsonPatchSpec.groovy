@@ -16,9 +16,11 @@
 package io.micronaut.serde
 
 import io.micronaut.core.type.Argument
+import io.micronaut.json.tree.JsonNode
 import io.micronaut.serde.patch.JsonPatch
 import io.micronaut.serde.patch.JsonPatchException
 import io.micronaut.serde.patch.JsonPatchOptions
+import spock.lang.IgnoreIf
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -45,6 +47,86 @@ abstract class AbstractJsonPatchSpec extends Specification {
     Object parseValue(String json) {
         // JSON-P's ordinary byte-array reader cannot auto-detect a one-byte scalar's encoding.
         mapper.readValue('[' + json + ']', Object).get(0)
+    }
+
+    @Unroll
+    @IgnoreIf({ data.testCase.disabled })
+    def 'upstream JSON Patch: #testCase.name, #resultMode, spill=#spill'() {
+        given:
+        def directory = spill ? Files.createTempDirectory('json-patch-conformance-') : null
+        def defaults = JsonPatchOptions.DEFAULT
+        def options = new JsonPatchOptions(spill ? 0 : defaults.memoryLimit(), defaults.storageLimit(),
+            defaults.maxOperations(), defaults.maxPatchCharacters(), directory, resultMode != 'streaming')
+        def output = new ByteArrayOutputStream()
+        Object result = null
+        IOException failure = null
+
+        when:
+        try {
+            def change = mapper.readJsonPatch(input(testCase.patch), options)
+            if (resultMode == 'object') {
+                result = mapper.readPatchedValue(input(testCase.doc), change, Argument.OBJECT_ARGUMENT, options)
+            } else {
+                mapper.writePatchedValue(input(testCase.doc), change, output, options)
+            }
+        } catch (IOException e) {
+            failure = e
+        }
+
+        then:
+        if (testCase.expectsError) {
+            assert failure != null : testCase.error
+            if (resultMode == 'validated') {
+                assert output.size() == 0
+            }
+        } else {
+            assert failure == null
+            if (resultMode != 'object') {
+                result = parseValue(output.toString(StandardCharsets.UTF_8))
+            }
+            if (testCase.hasExpected) {
+                assert result == parseValue(testCase.expected)
+            }
+        }
+
+        cleanup:
+        if (directory != null) {
+            assert empty(directory)
+            Files.delete(directory)
+        }
+
+        where:
+        [testCase, resultMode, spill] << [upstreamCases(), ['streaming', 'validated', 'object'], [false, true]].combinations()
+    }
+
+    private static List<Map> upstreamCases() {
+        List<Map> cases = []
+        def fixtureMapper = ObjectMapper.getDefault()
+        for (String file : ['tests.json', 'spec_tests.json']) {
+            try (def resource = AbstractJsonPatchSpec.getResourceAsStream('/io/micronaut/serde/json-patch-tests/' + file)) {
+                assert resource != null : "Missing conformance fixture: $file"
+                def records = fixtureMapper.readValue(resource, Argument.listOf(JsonNode))
+                records.eachWithIndex { JsonNode record, int index ->
+                    if (record.get('doc') == null && record.get('patch') == null) {
+                        assert record.get('comment') != null
+                        return // Upstream permits comment-only records.
+                    }
+                    assert record.get('doc') != null && record.get('patch') != null
+                    // JsonNode serialization retains explicit nulls in documents and patch operands.
+                    cases.add([
+                        name: "$file[${index + 1}] ${record.get('comment')?.getStringValue() ?: ''}".toString(),
+                        disabled: record.get('disabled')?.getBooleanValue() == true,
+                        doc: fixtureMapper.writeValueAsString(record.get('doc')),
+                        patch: fixtureMapper.writeValueAsString(record.get('patch')),
+                        hasExpected: record.get('expected') != null,
+                        expected: record.get('expected') == null ? null : fixtureMapper.writeValueAsString(record.get('expected')),
+                        expectsError: record.get('error') != null,
+                        error: record.get('error')?.getStringValue()
+                    ])
+                }
+            }
+        }
+        return cases
     }
 
     @Unroll
