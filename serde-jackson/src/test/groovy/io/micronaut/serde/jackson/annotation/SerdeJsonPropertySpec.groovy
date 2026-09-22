@@ -33,6 +33,50 @@ class SerdeJsonPropertySpec extends JsonPropertySpec {
         true
     }
 
+    void "dollar-prefixed field names compile with generated serde"() {
+        given:
+        def context = buildContext('test.V1JSONSchemaProps', '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class V1JSONSchemaProps {
+    @JsonProperty("$ref")
+    private String $ref;
+
+    @JsonProperty("$schema")
+    private String $schema;
+
+    public V1JSONSchemaProps() {
+    }
+
+    public String get$Ref() {
+        return $ref;
+    }
+
+    public void set$Ref(String $ref) {
+        this.$ref = $ref;
+    }
+
+    public String get$Schema() {
+        return $schema;
+    }
+
+    public void set$Schema(String $schema) {
+        this.$schema = $schema;
+    }
+}
+''')
+
+        expect:
+        context.classLoader.loadClass('test.SerdeV1JSONSchemaPropsSerializer') != null
+
+        cleanup:
+        context.close()
+    }
+
     private static String generatedClassName(Class<?> type, String suffix) {
         String packageName = type.package.name
         String localName = type.name
