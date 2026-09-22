@@ -963,4 +963,158 @@ public class Holder<T> {
         ]
         typeDescription << ['T bound to Map<String, Object>', 'raw']
     }
+
+    void "test @JsonUnwrapped record component type variable bound to a map or unbound - #typeDescription"() {
+        given:
+        def context = buildContext('unwrapped.EntityRecord', """
+package unwrapped;
+
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+public record EntityRecord<T>(@JsonUnwrapped T content, String rel) {
+}
+""")
+        def type = context.classLoader.loadClass('unwrapped.EntityRecord')
+
+        when:
+        def resource = jsonMapper.readValue('{"id":1,"rel":"self","name":"Dune"}', argument(type))
+
+        then:
+        resource.content() == [id: 1, name: 'Dune']
+        resource.content() instanceof Map
+        resource.rel() == 'self'
+
+        when:
+        def empty = jsonMapper.readValue('{"rel":"self"}', argument(type))
+
+        then:
+        empty.content() == [:]
+        empty.rel() == 'self'
+
+        when:
+        def written = writeJson(jsonMapper, resource)
+
+        then:
+        JSONAssert.assertEquals('{"id":1,"name":"Dune","rel":"self"}', written, JSONCompareMode.NON_EXTENSIBLE)
+
+        cleanup:
+        context.close()
+
+        where:
+        argument << [
+            { Class<?> t -> Argument.of(t, Argument.mapOf(String, Object)) },
+            { Class<?> t -> Argument.of(t, Argument.of(Map, 'T', Argument.of(String, 'K'), Argument.of(Object, 'V'))) },
+            { Class<?> t -> Argument.of(t, Argument.of(Object, 'T')) },
+            { Class<?> t -> Argument.of(t) }
+        ]
+        typeDescription << ['Argument.mapOf(String, Object)', 'T bound to Map<String, Object>', 'T bound to Object', 'raw']
+    }
+
+    void "test @JsonUnwrapped record component type variable bound to a map with typed values"() {
+        given:
+        def context = buildContext('unwrapped.EntityRecord', """
+package unwrapped;
+
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+public record EntityRecord<T>(@JsonUnwrapped T content, String rel) {
+}
+""")
+        def type = context.classLoader.loadClass('unwrapped.EntityRecord')
+
+        when:
+        def resource = jsonMapper.readValue('{"a":"1","rel":"self","b":2}', Argument.of(type, Argument.of(Map, 'T', Argument.of(String, 'K'), Argument.of(Long, 'V'))))
+
+        then:
+        resource.content() == [a: 1L, b: 2L]
+        resource.content().values()*.getClass() == [Long, Long]
+        resource.rel() == 'self'
+
+        cleanup:
+        context.close()
+    }
+
+    void "test @JsonUnwrapped record component type variable bound to a bean"() {
+        given:
+        def context = buildContext('unwrapped.EntityRecord', """
+package unwrapped;
+
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+public record EntityRecord<T>(@JsonUnwrapped T content, String rel) {
+}
+
+@Serdeable
+record Book(Long id, String title) {
+}
+""")
+        def type = context.classLoader.loadClass('unwrapped.EntityRecord')
+        def bookType = context.classLoader.loadClass('unwrapped.Book')
+
+        when:
+        def resource = jsonMapper.readValue('{"id":1,"rel":"self","title":"Dune"}', Argument.of(type, bookType))
+
+        then:
+        resource.content().getClass() == bookType
+        resource.content().id() == 1L
+        resource.content().title() == 'Dune'
+        resource.rel() == 'self'
+
+        when:
+        def written = writeJson(jsonMapper, resource)
+
+        then:
+        JSONAssert.assertEquals('{"id":1,"title":"Dune","rel":"self"}', written, JSONCompareMode.NON_EXTENSIBLE)
+
+        cleanup:
+        context.close()
+    }
+
+    void "test @JsonUnwrapped record component in a list of records with map content"() {
+        given:
+        def context = buildContext('unwrapped.Page', """
+package unwrapped;
+
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.serde.annotation.Serdeable;
+import java.util.List;
+import java.util.Map;
+
+@Serdeable
+record EntityRecord<T>(@JsonUnwrapped T content, String rel) {
+}
+
+@Serdeable
+public record Page(List<EntityRecord<Map<String, Long>>> items, int total) {
+}
+""")
+        def type = context.classLoader.loadClass('unwrapped.Page')
+
+        when:
+        def page = jsonMapper.readValue('{"items":[{"a":"1","rel":"self"},{"b":2}],"total":2}', Argument.of(type))
+
+        then:
+        page.total() == 2
+        page.items().size() == 2
+        page.items()[0].content() == [a: 1L]
+        page.items()[0].content().values()*.getClass() == [Long]
+        page.items()[0].rel() == 'self'
+        page.items()[1].content() == [b: 2L]
+        page.items()[1].rel() == null
+
+        when:
+        def written = writeJson(jsonMapper, page)
+
+        then:
+        JSONAssert.assertEquals('{"items":[{"a":1,"rel":"self"},{"b":2}],"total":2}', written, JSONCompareMode.NON_EXTENSIBLE)
+
+        cleanup:
+        context.close()
+    }
 }
