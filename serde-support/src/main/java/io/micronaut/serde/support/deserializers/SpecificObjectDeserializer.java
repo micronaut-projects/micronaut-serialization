@@ -722,7 +722,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                     wrappedProperty.set(
                         decoderContext,
                         instance,
-                        unwrappedProperty.beanDeserializer.provideInstance(objectArgument, decoderContext)
+                        unwrappedProperty.beanDeserializer.provideInstance(wrappedProperty.argument, decoderContext, true)
                     );
                 }
             }
@@ -798,7 +798,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                             wrappedProperty.set(
                                 decoderContext,
                                 instance,
-                                unwrappedProperty.beanDeserializer.provideInstance(objectArgument, decoderContext)
+                                unwrappedProperty.beanDeserializer.provideInstance(wrappedProperty.argument, decoderContext, true)
                             );
                         }
                         return true;
@@ -825,7 +825,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                             wrappedProperty.set(
                                 decoderContext,
                                 instance,
-                                up.beanDeserializer.provideInstance(objectArgument, decoderContext)
+                                up.beanDeserializer.provideInstance(wrappedProperty.argument, decoderContext, true)
                             );
                         }
                         return true;
@@ -883,7 +883,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                     wrappedProperty.set(
                         decoderContext,
                         instance,
-                        unwrappedProperty.beanDeserializer.provideInstance(objectArgument, decoderContext)
+                        unwrappedProperty.beanDeserializer.provideInstance(wrappedProperty.argument, decoderContext, true)
                     );
                 }
             }
@@ -1065,7 +1065,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
             if (unwrappedProperties != null) {
                 for (UnwrappedPropertyDeserializer unwrappedProperty : unwrappedProperties) {
                     DeserBean.DerProperty<Object, Object> wrappedProperty = unwrappedProperty.wrappedProperty;
-                    Object value = unwrappedProperty.beanDeserializer.provideInstance(wrappedProperty.argument, decoderContext);
+                    Object value = unwrappedProperty.beanDeserializer.provideInstance(wrappedProperty.argument, decoderContext, true);
                     if (wrappedProperty.views != null && !decoderContext.hasView(wrappedProperty.views)) {
                         continue;
                     }
@@ -1227,7 +1227,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
         }
 
         @Override
-        public @Nullable Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext) throws IOException {
+        public @Nullable Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext, boolean allowNullInstance) throws IOException {
             Object instance;
             try {
                 Object[] values = constructorValuesDeserializer.getValues(decoderContext);
@@ -1237,7 +1237,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                 if (conf.preInstantiateCallback != null) {
                     conf.preInstantiateCallback.preInstantiate(introspection, values);
                 }
-                if (objectArgument.isNullable() && allNull(values) && propertiesConsumer == null && anyValuesDeserializer == null) {
+                if (allowNullInstance && objectArgument.isNullable() && allNull(values) && propertiesConsumer == null && anyValuesDeserializer == null) {
                     return null;
                 }
                 instance = introspection.instantiate(conf.strictNullable, values);
@@ -1337,7 +1337,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
         }
 
         @Override
-        public Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext) throws IOException {
+        public Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext, boolean allowNullInstance) throws IOException {
             if (propertiesConsumer != null) {
                 propertiesConsumer.finalizeProperties(decoderContext, objectArgument, Objects.requireNonNull(instance), !updateMode);
             }
@@ -1501,11 +1501,11 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
         }
 
         @Override
-        public @Nullable Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext) throws IOException {
+        public @Nullable Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext, boolean allowNullInstance) throws IOException {
             if (beanDeserializer == null) {
                 return null;
             }
-            return beanDeserializer.provideInstance(objectArgument, decoderContext);
+            return beanDeserializer.provideInstance(objectArgument, decoderContext, allowNullInstance);
         }
     }
 
@@ -1653,14 +1653,14 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
         }
 
         @Override
-        public @Nullable Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext) throws IOException {
+        public @Nullable Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext, boolean allowNullInstance) throws IOException {
             if (beanDeserializer == null) {
                 if (buffer != null) {
                     throw new SerdeException("Cannot deduct the subtype for bean " + objectArgument.getType().getName());
                 }
                 return null;
             }
-            return beanDeserializer.provideInstance(objectArgument, decoderContext);
+            return beanDeserializer.provideInstance(objectArgument, decoderContext, allowNullInstance);
         }
     }
 
@@ -1727,7 +1727,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
         }
 
         @Override
-        public @Nullable Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext) {
+        public @Nullable Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext, boolean allowNullInstance) {
             return instance;
         }
     }
@@ -1787,7 +1787,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
         }
 
         @Override
-        public Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext) throws IOException {
+        public Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext, boolean allowNullInstance) throws IOException {
             BeanIntrospection.Builder<? super Object> beanBuilder = Objects.requireNonNull(builder);
             if (hasPropertiesToFinalize && !propertiesConsumer.isAllConsumed()) {
                 finalizeMissingProperties(decoderContext, beanBuilder);
@@ -1842,8 +1842,20 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
 
         abstract void init(DecoderContext decoderContext) throws SerdeException;
 
+        /**
+         * Provides the bean instance for a decoded object. An explicit {@code {}} must yield a non-null instance.
+         */
         @Nullable
-        abstract Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext) throws IOException;
+        final Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext) throws IOException {
+            return provideInstance(objectArgument, decoderContext, false);
+        }
+
+        /**
+         * @param allowNullInstance when {@code true}, an all-null nullable bean may collapse to {@code null}
+         *                          (only for {@code @JsonUnwrapped}, never for an explicitly decoded object)
+         */
+        @Nullable
+        abstract Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext, boolean allowNullInstance) throws IOException;
 
     }
 
