@@ -32,7 +32,6 @@ import java.util.Optional;
  * @since 3.2.0
  */
 @BootstrapContextCompatible
-@Internal
 @ConfigurationProperties(SerdeToonConfiguration.PREFIX)
 public final class SerdeToonConfiguration {
 

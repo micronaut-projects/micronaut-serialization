@@ -30,9 +30,11 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Writes a JSON tree as a TOON document.
@@ -42,8 +44,9 @@ import java.util.Objects;
  * keyed-tabular form, before writing.</p>
  *
  * <p>An array or keyed object is tabular-eligible only when every element
- * declares its keys in the same order; the same keys in a different order
- * fall back to list form.</p>
+ * declares the same set of keys (order may vary per element); a differing
+ * key set falls back to list form. The header - and the order cells are
+ * emitted in for every row - is taken from the first element.</p>
  *
  * @see <a href="https://github.com/toon-format/spec">TOON specification</a>
  * @since 3.2.0
@@ -167,7 +170,7 @@ public final class ToonEncoder {
         consumer.accept(prefix + header + ":");
         String rowIndent = indent(depth + 1);
         for (JsonNode element : elements) {
-            consumer.accept(rowIndent + buildRow(fieldOrder, element));
+            consumer.accept(rowIndent + buildRow(fieldOrder, representative, element));
         }
     }
 
@@ -215,7 +218,29 @@ public final class ToonEncoder {
         if (item.isObject()) {
             writeObjectFields(itemConsumer, item, depth + 1);
         } else {
-            writeArrayNode(itemConsumer, null, item, depth + 1);
+            writeArrayAsListItem(itemConsumer, item, depth);
+        }
+    }
+
+    /**
+     * Writes a bare array occupying a list item's position. The header line
+     * is rendered one level deeper than {@code depth} so the wrapping
+     * consumer in {@link #writeListItem} can strip it back down to
+     * {@code depth} and replace it with the item's {@code "- "} marker, but
+     * the array's body must land one level below that marker - i.e. at
+     * {@code depth + 1}, not {@code depth + 2} - so it is written using
+     * {@code depth} itself rather than {@code depth + 1}.
+     */
+    private void writeArrayAsListItem(ThrowingConsumer<String, IOException> consumer, JsonNode array, int depth) throws IOException {
+        String prefix = indent(depth + 1);
+        List<JsonNode> elements = CollectionUtils.iterableToList(array.values());
+        // Tabular form (§9.3) is only valid at the document root or in
+        // object-field position, never as a list item, so an otherwise
+        // tabular-eligible array falls back to list form here.
+        if (allPrimitive(elements)) {
+            writeInlineArray(consumer, prefix, elements);
+        } else {
+            writeListArray(consumer, prefix, elements, depth);
         }
     }
 
@@ -227,24 +252,30 @@ public final class ToonEncoder {
         consumer.accept(indent(depth) + keyPrefix(key) + header + ":");
         String entryIndent = indent(depth + 1);
         for (Map.Entry<String, JsonNode> entry : entries) {
-            consumer.accept(entryIndent + quoteKey(entry.getKey()) + ": " + buildRow(fieldOrder, entry.getValue()));
+            consumer.accept(entryIndent + quoteKey(entry.getKey()) + ": " + buildRow(fieldOrder, representative, entry.getValue()));
         }
     }
 
     /**
-     * An array is tabular-eligible when it has at least two elements, every
-     * element is a non-empty object with the same keys in the same order,
-     * and every column is a uniform-primitive column or itself a uniform,
-     * tabular-eligible column of nested objects. A single element is never
-     * eligible, so an ordinary single-field nested object or single-entry
-     * map does not encode as a one-row tabular block.
+     * An array is tabular-eligible when it is non-empty, every element is a
+     * non-empty object with the same set of keys (order may vary per
+     * element), and every column is a uniform-primitive column or itself a
+     * uniform, tabular-eligible column of nested objects. The header - and
+     * the order cells are emitted in for every row - is taken from the
+     * first element; {@link #requireField} looks fields up by name, so a
+     * later element's own key order doesn't matter. Per §9.3 there is no
+     * minimum element count - a single-element array is still eligible - so
+     * this method is not used for keyed (map-form) tabular eligibility,
+     * which per §9.5 requires at least two entries; see
+     * {@link #isKeyedTabularEligible}.
      */
     private boolean isTabularEligible(List<JsonNode> elements) {
-        if (elements.size() < 2) {
+        if (elements.isEmpty()) {
             return false;
         }
 
         List<String> fieldOrder = List.of();
+        Set<String> fieldSet = Set.of();
         for (JsonNode element : elements) {
             if (!element.isObject() || element.size() == 0) {
                 return false;
@@ -253,7 +284,8 @@ public final class ToonEncoder {
             List<String> keys = keysOf(element);
             if (fieldOrder.isEmpty()) {
                 fieldOrder = keys;
-            } else if (!fieldOrder.equals(keys)) {
+                fieldSet = new HashSet<>(keys);
+            } else if (!fieldSet.equals(new HashSet<>(keys))) {
                 return false;
             }
         }
@@ -286,7 +318,12 @@ public final class ToonEncoder {
     }
 
     private boolean isKeyedTabularEligible(JsonNode object) {
-        return isTabularEligible(CollectionUtils.iterableToList(object.values()));
+        List<JsonNode> values = CollectionUtils.iterableToList(object.values());
+        // §9.5: keyed (map-form) tabular blocks require at least two
+        // entries, unlike plain tabular arrays (§9.3), which have no
+        // minimum - a single entry would be ambiguous with an ordinary
+        // single-field object.
+        return values.size() >= 2 && isTabularEligible(values);
     }
 
     private String buildFieldList(List<String> fieldOrder, JsonNode representativeElement) {
@@ -316,11 +353,19 @@ public final class ToonEncoder {
         sb.append('}');
     }
 
-    private String buildRow(List<String> fieldOrder, JsonNode element) {
+    /**
+     * Builds a tabular row's cells in header order. {@code representative}
+     * is the same element {@link #buildFieldList} derived the header from;
+     * for a nested field group, {@code element}'s own key order may differ
+     * from it (only the key set is required to match), so nested cells are
+     * walked in {@code representative}'s field order rather than
+     * {@code element}'s.
+     */
+    private String buildRow(List<String> fieldOrder, JsonNode representative, JsonNode element) {
         StringBuilder sb = new StringBuilder();
         boolean[] first = {true};
         for (String field : fieldOrder) {
-            appendLeafCells(sb, requireField(element, field), first);
+            appendLeafCells(sb, requireField(representative, field), requireField(element, field), first);
         }
         return sb.toString();
     }
@@ -333,10 +378,10 @@ public final class ToonEncoder {
         return Objects.requireNonNull(node.get(field), () -> "field not present: " + field);
     }
 
-    private void appendLeafCells(StringBuilder sb, JsonNode value, boolean[] first) {
-        if (value.isObject()) {
-            for (Map.Entry<String, JsonNode> entry : value.entries()) {
-                appendLeafCells(sb, entry.getValue(), first);
+    private void appendLeafCells(StringBuilder sb, JsonNode representativeValue, JsonNode value, boolean[] first) {
+        if (representativeValue.isObject()) {
+            for (String field : keysOf(representativeValue)) {
+                appendLeafCells(sb, requireField(representativeValue, field), requireField(value, field), first);
             }
         } else {
             if (!first[0]) {

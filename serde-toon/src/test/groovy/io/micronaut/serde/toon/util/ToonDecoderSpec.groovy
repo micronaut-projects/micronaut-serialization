@@ -79,6 +79,55 @@ class ToonDecoderSpec extends Specification {
         tree.get('age').numberValue == 30L
     }
 
+    @Unroll
+    void 'test decoding accepts an unquoted key that does not match the encoder\'s own unquoted-key grammar: #description'() {
+        // §7.4: decoders MUST accept the literal text before the first
+        // unquoted ':' or '[' as a key, even when it wouldn't match §7.3's
+        // unquoted-key pattern (hyphens, a leading digit, or an internal
+        // space, none of which the encoder would leave unquoted itself).
+        expect:
+        tree.get(key).stringValue == value
+
+        where:
+        description             | text              | key       | value
+        'hyphen in key'         | 'foo-bar: x'       | 'foo-bar' | 'x'
+        'leading digit in key'  | '2key: x'          | '2key'    | 'x'
+        'internal space in key' | 'foo bar: baz'     | 'foo bar' | 'baz'
+
+        tree = parse(text)
+    }
+
+    void 'test decoding accepts a non-conforming key in an array header'() {
+        expect:
+        parse('foo-bar[2]: 1,2').get('foo-bar').values().toList()*.numberValue == [1, 2]
+        parse('k[2]: 5,6').get('k').values().toList()*.numberValue == [5, 6]
+    }
+
+    void 'test decoding accepts a non-conforming key inside a keyed tabular block'() {
+        // Same §7.4 leniency applies to a keyed tabular entry's own key.
+        expect:
+        parse('envs[1:]{region}:\n  2key: us').get('envs').get('2key').get('region').stringValue == 'us'
+    }
+
+    void 'test a keyed tabular entry key containing a bracket is read literally, not as a nested header'() {
+        // Unlike an object field's key, an entry line has no header syntax
+        // of its own to stop for - the key is everything up to the first
+        // unquoted ':', bracket included.
+        expect:
+        parse('m[1:]{v}:\n  k[2]: 5').get('m').get('k[2]').get('v').numberValue == 5L
+    }
+
+    void 'test decoding accepts a non-conforming field name in a tabular header field list'() {
+        // Same §7.4 leniency applies to a field name in a tabular header's
+        // field list - it doesn't need to match the encoder's own
+        // unquoted-key grammar either.
+        given:
+        def tree = parse('items[2]{2key}:\n  1\n  2')
+
+        expect:
+        tree.get('items').values().toList()*.get('2key')*.numberValue == [1, 2]
+    }
+
     void 'test decoding preserves scalar types, not just strings'() {
         given:
         def tree = parse('''n: 42
@@ -105,6 +154,20 @@ q: "123"''')
 
         expect:
         tree.get('value').stringValue == 'line1\nline2\ttabbed\\slash'
+    }
+
+    void 'test decoding unescapes a \\u escape'() {
+        expect:
+        parse('value: "\\u0041"').get('value').stringValue == 'A'
+    }
+
+    void 'test decoding unescapes a surrogate pair from two \\u escapes'() {
+        given:
+        // U+1F600 GRINNING FACE, encoded as its UTF-16 surrogate pair.
+        def tree = parse('value: "\\uD83D\\uDE00"')
+
+        expect:
+        tree.get('value').stringValue.codePointAt(0) == 0x1F600
     }
 
     void 'test decoding a nested object'() {
@@ -313,6 +376,18 @@ forecast[2]{day,temp,condition}:
         parse(text, adapter(2)).get('address').get('city').stringValue == 'Springfield'
     }
 
+    void 'test a document indent size other than 2 is inferred and enforced consistently, not hardcoded'() {
+        // The document's indent step is established from its first nesting
+        // transition, then every later transition anywhere in the document
+        // must match it - not a fixed default of 2.
+        given:
+        def tree = parse('a:\n    b: 1\nc:\n    d:\n        e: 1')
+
+        expect:
+        tree.get('a').get('b').numberValue == 1L
+        tree.get('c').get('d').get('e').numberValue == 1L
+    }
+
     void 'test inconsistent sibling indentation is a strict decode error'() {
         when:
         // "age" is indented one space deeper than "name", its sibling.
@@ -320,6 +395,84 @@ forecast[2]{day,temp,condition}:
 
         then:
         thrown(SerdeException)
+    }
+
+    void 'test a blank line between sibling object fields is harmless and silently skipped'() {
+        // §12/§14.2 only requires strict-mode rejection of a blank line
+        // inside a declared-count array/keyed body (list items, tabular
+        // rows, keyed entry rows) - not between object fields or other
+        // top-level constructs.
+        given:
+        def tree = parse('name: Alice\n\nage: 30')
+
+        expect:
+        tree.get('name').stringValue == 'Alice'
+        tree.get('age').numberValue == 30L
+    }
+
+    void 'test a blank line right after an array body ends is harmless and silently skipped'() {
+        given:
+        def tree = parse('items[2]:\n  - a\n  - b\n\nname: Alice')
+
+        expect:
+        tree.get('items').values().toList()*.stringValue == ['a', 'b']
+        tree.get('name').stringValue == 'Alice'
+    }
+
+    @Unroll
+    void 'test a blank line between an array header and its first row/entry/item is harmless and silently skipped: #description'() {
+        // §12/§14.2 only rejects a blank line *between* two rows/entries/
+        // items - nothing has started yet before the first one.
+        expect:
+        parse(text) != null
+
+        where:
+        description  | text
+        'list item'  | 'items[1]:\n\n  - a'
+        'tabular row' | 'items[1]{a}:\n\n  1'
+        'entry row'   | 'envs[1:]{region}:\n\n  prod: us'
+    }
+
+    void 'test a list item whose first field is itself a tabular array, with a sibling field after it'() {
+        // The first field's own body must validate one indent step in from
+        // the item, not against the item's own indent directly - and the
+        // sibling that follows is still found relative to the item's indent.
+        given:
+        def tree = parse('items[1]:\n  - users[2]{id,name}:\n      1,Ada\n      2,Bob\n    status: active')
+
+        expect:
+        tree.get('items').get(0).get('users').values().toList()*.get('name')*.stringValue == ['Ada', 'Bob']
+        tree.get('items').get(0).get('status').stringValue == 'active'
+    }
+
+    void 'test a list item whose first field is itself a keyed-tabular header, with a sibling field after it'() {
+        given:
+        def tree = parse('items[2]:\n  - config[2:]{x}:\n      a: 1\n      b: 2\n    status: ok\n  - status: down')
+
+        expect:
+        tree.get('items').get(0).get('config').get('a').get('x').numberValue == 1L
+        tree.get('items').get(0).get('config').get('b').get('x').numberValue == 2L
+        tree.get('items').get(0).get('status').stringValue == 'ok'
+        tree.get('items').get(1).get('status').stringValue == 'down'
+    }
+
+    void 'test a list item whose first field is a deeply nested plain object'() {
+        given:
+        def tree = parse('items[2]:\n  - properties:\n      state:\n        type: string\n  - id: 2')
+
+        expect:
+        tree.get('items').get(0).get('properties').get('state').get('type').stringValue == 'string'
+        tree.get('items').get(1).get('id').numberValue == 2L
+    }
+
+    void 'test a list item whose first field is an array of arrays, with a sibling field after it'() {
+        given:
+        def tree = parse('items[1]:\n  - matrix[2]:\n      - [2]: 1,2\n      - [2]: 3,4\n    name: grid')
+
+        expect:
+        tree.get('items').get(0).get('matrix').get(0).values().toList()*.numberValue == [1L, 2L]
+        tree.get('items').get(0).get('matrix').get(1).values().toList()*.numberValue == [3L, 4L]
+        tree.get('items').get(0).get('name').stringValue == 'grid'
     }
 
     void 'test decoding tab and pipe delimited headers (delimiter is read per-header, not configured)'() {
@@ -346,13 +499,25 @@ forecast[2]{day,temp,condition}:
         'unterminated quoted string'                   | 'value: "unterminated'
         'duplicate object field key'                   | 'name: Alice\nname: Bob'
         'duplicate keyed-tabular entry key'            | 'envs[2:]{region}:\n  prod: us\n  prod: eu'
+        'keyed tabular entry row with no cells'        | 'm[1:]{v}:\n  a:'
+        'blank line between list items'                | 'items[2]:\n  - a\n\n  - b'
+        'blank line between tabular rows'               | 'items[2]{a}:\n  1\n\n  2'
+        'blank line between keyed tabular entry rows'   | 'envs[2:]{region}:\n  prod: us\n\n  dev: eu'
+        'blank line between a list item\'s own fields'  | 'items[2]:\n  - a: 1\n\n    b: 2\n  - x'
+        'blank line inside the last list item\'s fields' | 'items[1]:\n  - a: 1\n\n    b: 2'
+        'indentation step not a multiple of the document indent size' | 'a:\n  b: 1\nc:\n    d: 1'
+        'indentation depth jump within a nested chain'  | 'a:\n  b:\n    c: 1\n    d:\n        e: 1'
+        'keyless tabular header as a list item'          | 'items[1]:\n  - [2]{x}:\n    1\n    2'
+        'keyless keyed-tabular header as a list item'    | 'items[1]:\n  - [1:]{v}:\n    a: 1'
+        '\\u escape with a leading plus sign'            | 'value: "\\u+041"'
+        '\\u escape with a leading minus sign'           | 'value: "\\u-041"'
+        'lone high surrogate in a \\u escape'            | 'value: "\\uD800"'
+        'lone low surrogate in a \\u escape'              | 'value: "\\uDC00"'
+        'high surrogate not followed by a low surrogate' | 'value: "\\uD800\\u0041"'
         'indented root content'                        | '  name: Alice'
         'space before colon in unquoted key'           | 'name : Alice'
         'space before array header bracket'            | 'items [2]: 1,2'
         'space before colon in quoted key'             | '"name" : Alice'
-        'invalid character starting unquoted key'      | '123: Alice'
-        'space inside unquoted key'                    | 'foo bar: baz'
-        'invalid unquoted field name in field list'    | 'items[2]{123}:\n  1\n  2'
         'whitespace around unquoted field in list'     | 'items[2]{ id, name}:\n  1, Alice\n  2, Bob'
         'huge declared tabular row count'              | 'items[2000000000]{a}:\n  1'
         'huge declared list item count'                | 'items[2000000000]:\n  - a'

@@ -107,6 +107,74 @@ forecast[2]{day,temp,condition}:
   Tue,72,Cloudy'''
     }
 
+    void 'test tabular eligibility only requires the same key set, not the same key order'() {
+        // §9.3: "all objects share the same key set (order may vary per
+        // object)". The header - and each row's cell order - is taken from
+        // the first element regardless of a later element's own order.
+        given:
+        def tree = JsonNode.createObjectNode([
+                items: JsonNode.createArrayNode([
+                        JsonNode.createObjectNode([a: JsonNode.createNumberNode(1), b: JsonNode.createNumberNode(2)]),
+                        JsonNode.createObjectNode([b: JsonNode.createNumberNode(20), a: JsonNode.createNumberNode(10)])
+                ])
+        ])
+
+        expect:
+        toText(writer(), tree) == '''items[2]{a,b}:
+  1,2
+  10,20'''
+    }
+
+    void 'test keyed tabular eligibility only requires the same key set, not the same key order'() {
+        given:
+        def tree = JsonNode.createObjectNode([
+                envs: JsonNode.createObjectNode([
+                        prod: JsonNode.createObjectNode([region: JsonNode.createStringNode('us'), replicas: JsonNode.createNumberNode(3)]),
+                        dev : JsonNode.createObjectNode([replicas: JsonNode.createNumberNode(1), region: JsonNode.createStringNode('eu')])
+                ])
+        ])
+
+        expect:
+        toText(writer(), tree) == '''envs[2:]{region,replicas}:
+  prod: us,3
+  dev: eu,1'''
+    }
+
+    void 'test a single-element array of records still encodes as tabular form'() {
+        // §9.3 has no minimum element count for tabular arrays - only §9.5
+        // (keyed objects) requires at least two entries.
+        given:
+        def tree = JsonNode.createObjectNode([
+                items: JsonNode.createArrayNode([
+                        JsonNode.createObjectNode([
+                                id  : JsonNode.createNumberNode(1),
+                                name: JsonNode.createStringNode('A')
+                        ])
+                ])
+        ])
+
+        expect:
+        toText(writer(), tree) == '''items[1]{id,name}:
+  1,A'''
+    }
+
+    void 'test a single-entry map does not encode as keyed tabular form'() {
+        // §9.5 keyed (map-form) tabular blocks require at least two
+        // entries, unlike plain tabular arrays.
+        given:
+        def tree = JsonNode.createObjectNode([
+                envs: JsonNode.createObjectNode([
+                        prod: JsonNode.createObjectNode([region: JsonNode.createStringNode('us'), replicas: JsonNode.createNumberNode(3)])
+                ])
+        ])
+
+        expect:
+        toText(writer(), tree) == '''envs:
+  prod:
+    region: us
+    replicas: 3'''
+    }
+
     void 'test a uniform nested-object column folds into the tabular header'() {
         given:
         def tree = JsonNode.createObjectNode([
@@ -118,6 +186,31 @@ forecast[2]{day,temp,condition}:
                         JsonNode.createObjectNode([
                                 day : JsonNode.createStringNode('Tue'),
                                 temp: JsonNode.createObjectNode([min: JsonNode.createNumberNode(65), max: JsonNode.createNumberNode(75)])
+                        ])
+                ])
+        ])
+
+        expect:
+        toText(writer(), tree) == '''readings[2]{day,temp{min,max}}:
+  Mon,60,70
+  Tue,65,75'''
+    }
+
+    void 'test a nested-object column emits its cells in header order even when a later element declares its own keys in a different order'() {
+        // §9.3: the key SET must match across elements, but a later
+        // element's own key order need not - the header (and every row's
+        // cell order, including within a nested field group) is fixed by
+        // the first element.
+        given:
+        def tree = JsonNode.createObjectNode([
+                readings: JsonNode.createArrayNode([
+                        JsonNode.createObjectNode([
+                                day : JsonNode.createStringNode('Mon'),
+                                temp: JsonNode.createObjectNode([min: JsonNode.createNumberNode(60), max: JsonNode.createNumberNode(70)])
+                        ]),
+                        JsonNode.createObjectNode([
+                                day : JsonNode.createStringNode('Tue'),
+                                temp: JsonNode.createObjectNode([max: JsonNode.createNumberNode(75), min: JsonNode.createNumberNode(65)])
                         ])
                 ])
         ])
@@ -171,6 +264,53 @@ forecast[2]{day,temp,condition}:
         toText(writer(), tree) == '''matrix[2]:
   - [2]: 1,2
   - [2]: 3,4'''
+    }
+
+    void 'test encodes root-level array mixing primitive, object, and array of objects in list form'() {
+        given:
+        // A nested, non-uniform array occupying a list item's position must
+        // have its body one level below its own "- [N]:" line, not two.
+        def tree = JsonNode.createArrayNode([
+                JsonNode.createStringNode('summary'),
+                JsonNode.createObjectNode([
+                        id  : JsonNode.createNumberNode(1),
+                        name: JsonNode.createStringNode('Ada')
+                ]),
+                JsonNode.createArrayNode([
+                        JsonNode.createObjectNode([id: JsonNode.createNumberNode(2)]),
+                        JsonNode.createObjectNode([status: JsonNode.createStringNode('draft')])
+                ])
+        ])
+
+        expect:
+        toText(writer(), tree) == '''[3]:
+  - summary
+  - id: 1
+    name: Ada
+  - [2]:
+    - id: 2
+    - status: draft'''
+    }
+
+    void 'test a tabular-eligible array in list-item position falls back to list form'() {
+        given:
+        // Tabular form (§9.3) is only valid at the document root or in
+        // object-field position - never as a list item - even though this
+        // inner array would otherwise be tabular-eligible.
+        def tree = JsonNode.createObjectNode([
+                a: JsonNode.createArrayNode([
+                        JsonNode.createArrayNode([
+                                JsonNode.createObjectNode([x: JsonNode.createNumberNode(1)]),
+                                JsonNode.createObjectNode([x: JsonNode.createNumberNode(2)])
+                        ])
+                ])
+        ])
+
+        expect:
+        toText(writer(), tree) == '''a[1]:
+  - [2]:
+    - x: 1
+    - x: 2'''
     }
 
     void 'test an empty array as a list item encodes as a zero-length header, not "- []"'() {

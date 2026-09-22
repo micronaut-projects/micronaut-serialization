@@ -17,17 +17,25 @@ package io.micronaut.serde.toon;
 
 import io.micronaut.context.annotation.Secondary;
 import io.micronaut.core.type.Argument;
+import io.micronaut.json.JsonMapper;
 import io.micronaut.json.JsonStreamConfig;
 import io.micronaut.json.tree.JsonNode;
+import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.ObjectMapper;
+import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.UpdatingDeserializer;
+import io.micronaut.serde.config.CoercionPolicy;
+import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
+import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
 import io.micronaut.serde.support.util.JsonNodeEncoder;
+import io.micronaut.serde.support.util.JsonViewUtil;
 import io.micronaut.serde.toon.util.ToonDecoder;
 import io.micronaut.serde.toon.util.ToonEncoder;
 import jakarta.inject.Inject;
@@ -41,6 +49,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
+import java.util.Objects;
 
 /**
  * A TOON (Token-Oriented Object Notation)-backed {@link ObjectMapper}.
@@ -71,6 +81,13 @@ public final class ToonMapper implements ObjectMapper {
 
     private final ToonEncoder toonEncoder;
 
+    @Nullable
+    private final Class<?> view;
+
+    private final LimitingStream.RemainingLimits streamLimits;
+
+    private final CoercionPolicy coercionPolicy;
+
     /**
      * Creates a TOON-backed {@link ObjectMapper}.
      *
@@ -78,16 +95,26 @@ public final class ToonMapper implements ObjectMapper {
      * @param serdeConfiguration The serde configuration, when available
      * @param toonDecoder        The decoder that converts TOON input into a JSON tree
      * @param toonEncoder        The encoder that writes JSON trees as TOON output
+     * @param view                The active {@code @JsonView} class, when available
      */
     @Inject
     public ToonMapper(SerdeRegistry registry,
                       @Nullable SerdeConfiguration serdeConfiguration,
                       ToonDecoder toonDecoder,
-                      ToonEncoder toonEncoder) {
-        this.registry = registry;
+                      ToonEncoder toonEncoder,
+                      @Nullable Class<?> view) {
+        this.registry = Objects.requireNonNull(registry, "registry");
         this.serdeConfiguration = serdeConfiguration;
-        this.toonDecoder = toonDecoder;
-        this.toonEncoder = toonEncoder;
+        this.toonDecoder = Objects.requireNonNull(toonDecoder, "toonDecoder");
+        this.toonEncoder = Objects.requireNonNull(toonEncoder, "toonEncoder");
+        this.view = view;
+        this.streamLimits = serdeConfiguration == null ? LimitingStream.DEFAULT_LIMITS : LimitingStream.limitsFromConfiguration(serdeConfiguration);
+        try (Deserializer.DecoderContext context = registry.newDecoderContext(view)) {
+            this.coercionPolicy = CoercionPolicy.fromConfiguration(context.getDeserializationConfiguration().orElse(null));
+        } catch (IOException e) {
+            // the context is only read from here, so completing it cannot fail in practice
+            throw new UncheckedIOException(e);
+        }
     }
 
     /**
@@ -98,6 +125,30 @@ public final class ToonMapper implements ObjectMapper {
     @Override
     public SerdeRegistry getSerdeRegistry() {
         return registry;
+    }
+
+    @Override
+    public JsonMapper cloneWithViewClass(Class<?> viewClass) {
+        return new ToonMapper(registry, serdeConfiguration, toonDecoder, toonEncoder, viewClass);
+    }
+
+    @Override
+    public ObjectMapper cloneWithConfiguration(@Nullable SerdeConfiguration configuration,
+                                               @Nullable SerializationConfiguration serializationConfiguration,
+                                               @Nullable DeserializationConfiguration deserializationConfiguration) {
+        return cloneWithConfiguration(configuration, serializationConfiguration, deserializationConfiguration, null);
+    }
+
+    @Override
+    public ObjectMapper cloneWithConfiguration(@Nullable SerdeConfiguration configuration,
+                                               @Nullable SerializationConfiguration serializationConfiguration,
+                                               @Nullable DeserializationConfiguration deserializationConfiguration,
+                                               @Nullable SerdeIntrospections introspections) {
+        SerdeConfiguration effective = configuration == null ? serdeConfiguration : configuration;
+        SerdeRegistry cloned = introspections == null
+            ? registry.cloneWithConfiguration(effective, serializationConfiguration, deserializationConfiguration)
+            : registry.cloneWithConfiguration(effective, serializationConfiguration, deserializationConfiguration, introspections);
+        return new ToonMapper(cloned, effective, toonDecoder, toonEncoder, view);
     }
 
     /**
@@ -111,10 +162,7 @@ public final class ToonMapper implements ObjectMapper {
      */
     @Override
     public <T> @Nullable T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
-        try (var decoderContext = registry.newDecoderContext(null)) {
-            Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, type);
-            return deserializer.deserializeNullable(JsonNodeDecoder.create(tree, limits()), decoderContext, type);
-        }
+        return readValue(JsonNodeDecoder.create(tree, streamLimits, coercionPolicy), type);
     }
 
     /**
@@ -128,7 +176,7 @@ public final class ToonMapper implements ObjectMapper {
      */
     @Override
     public <T> @Nullable T readValue(InputStream inputStream, Argument<T> type) throws IOException {
-        JsonNode tree = toonDecoder.parse(inputStream, limits());
+        JsonNode tree = toonDecoder.parse(inputStream, streamLimits);
         return readValueFromTree(tree, type);
     }
 
@@ -146,6 +194,13 @@ public final class ToonMapper implements ObjectMapper {
         return readValue(new ByteArrayInputStream(byteArray), type);
     }
 
+    private <T> @Nullable T readValue(Decoder decoder, Argument<T> type) throws IOException {
+        try (Deserializer.DecoderContext context = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view))) {
+            Deserializer<? extends T> deserializer = context.findDeserializer(type).createSpecific(context, type);
+            return deserializer.deserializeNullable(decoder, context, type);
+        }
+    }
+
     /**
      * Transform an object value to a JSON tree.
      *
@@ -159,7 +214,7 @@ public final class ToonMapper implements ObjectMapper {
             return JsonNode.nullNode();
         }
 
-        JsonNodeEncoder encoder = JsonNodeEncoder.create(limits());
+        JsonNodeEncoder encoder = JsonNodeEncoder.create(streamLimits);
         serializeRuntimeTyped(encoder, value);
         return encoder.getCompletedValue();
     }
@@ -179,7 +234,7 @@ public final class ToonMapper implements ObjectMapper {
             return JsonNode.nullNode();
         }
 
-        JsonNodeEncoder encoder = JsonNodeEncoder.create(limits());
+        JsonNodeEncoder encoder = JsonNodeEncoder.create(streamLimits);
         serialize(encoder, value, type);
         return encoder.getCompletedValue();
     }
@@ -242,6 +297,51 @@ public final class ToonMapper implements ObjectMapper {
         }
     }
 
+    @Override
+    public void updateValueFromTree(Object value, JsonNode tree) throws IOException {
+        Objects.requireNonNull(value, "Value to update cannot be null");
+        // for jackson compat we need to support deserializing null, but most deserializers don't support it.
+        if (tree.isNull()) {
+            return;
+        }
+        @SuppressWarnings("unchecked")
+        Argument<Object> type = (Argument<Object>) Argument.of(value.getClass());
+        updateValue(JsonNodeDecoder.create(tree, streamLimits, coercionPolicy), value, type);
+    }
+
+    @Override
+    public <T> T updateValue(T valueToUpdate, Argument<T> type, InputStream inputStream) throws IOException {
+        Objects.requireNonNull(valueToUpdate, "Value to update cannot be null");
+        Objects.requireNonNull(type, "Type cannot be null");
+        Objects.requireNonNull(inputStream, "Input stream cannot be null");
+        JsonNode tree = toonDecoder.parse(inputStream, streamLimits);
+        // for jackson compat we need to support deserializing null, but most deserializers don't support it.
+        if (!tree.isNull()) {
+            updateValue(JsonNodeDecoder.create(tree, streamLimits, coercionPolicy), valueToUpdate, type);
+        }
+        return valueToUpdate;
+    }
+
+    @Override
+    public <T> T updateValue(T valueToUpdate, Argument<T> type, byte[] byteArray) throws IOException {
+        Objects.requireNonNull(byteArray, "Byte array cannot be null");
+        return updateValue(valueToUpdate, type, new ByteArrayInputStream(byteArray));
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private <T> void updateValue(Decoder decoder, T value, Argument<T> type) throws IOException {
+        try (Deserializer.DecoderContext context = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view))) {
+            Deserializer deserializer = context.findDeserializer(type).createSpecific(context, type);
+            if (!(deserializer instanceof UpdatingDeserializer)) {
+                deserializer = context.findDeserializer(Argument.OBJECT_ARGUMENT).createSpecific(context, (Argument) type);
+            }
+            if (!(deserializer instanceof UpdatingDeserializer updatingDeserializer)) {
+                throw new UnsupportedOperationException("Updating existing value of type [" + type + "] is not supported");
+            }
+            updatingDeserializer.deserializeInto(decoder, context, type, value);
+        }
+    }
+
     /**
      * Returns the stream configuration used by this mapper.
      *
@@ -253,7 +353,7 @@ public final class ToonMapper implements ObjectMapper {
     }
 
     private <T> void serialize(Encoder encoder, T object, Argument<T> type) throws IOException {
-        try (var context = registry.newEncoderContext(null)) {
+        try (var context = registry.newEncoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view))) {
             Serializer<? super T> serializer = context.findSerializer(type).createSpecific(context, type);
             serializer.serialize(encoder, context, type, object);
         }
@@ -262,9 +362,5 @@ public final class ToonMapper implements ObjectMapper {
     @SuppressWarnings("unchecked")
     private <T> void serializeRuntimeTyped(Encoder encoder, T object) throws IOException {
         serialize(encoder, object, (Argument<T>) Argument.of(object.getClass()));
-    }
-
-    private LimitingStream.RemainingLimits limits() {
-        return serdeConfiguration == null ? LimitingStream.DEFAULT_LIMITS : LimitingStream.limitsFromConfiguration(serdeConfiguration);
     }
 }
