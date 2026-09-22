@@ -20,6 +20,7 @@ import io.micronaut.core.io.service.SoftServiceLoader;
 import io.micronaut.core.util.StringIntMap;
 import org.jspecify.annotations.Nullable;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -122,13 +123,13 @@ public final class KeysSupport {
     private static Object[][] createContributedKeys(List<String> keys,
                                                     @Nullable List<KeyDescriptor> descriptors,
                                                     boolean caseInsensitive) {
-        List<ProviderEntry> providers = LazyKeysProviders.snapshot();
+        List<KeysProvider> providers = LazyKeysProviders.SERVICE_PROVIDERS;
         if (providers.isEmpty()) {
             return EMPTY_CONTRIBUTIONS;
         }
         Object[][] contributions = new Object[providers.size()][];
         for (int i = 0; i < providers.size(); i++) {
-            contributions[i] = createContribution(providers.get(i).provider(), keys, descriptors, caseInsensitive);
+            contributions[i] = createContribution(providers.get(i), keys, descriptors, caseInsensitive);
         }
         return contributions;
     }
@@ -184,26 +185,31 @@ public final class KeysSupport {
         private Object[] get(int keysIndex) {
             Object[][] contributions = contributedKeys;
             if (keysIndex < contributions.length) {
+                Object[] contribution = contributions[keysIndex];
+                if (contribution != null) {
+                    return contribution;
+                }
+            }
+            return createLateContribution(keysIndex);
+        }
+
+        private synchronized Object[] createLateContribution(int keysIndex) {
+            Object[][] contributions = contributedKeys;
+            if (keysIndex < contributions.length && contributions[keysIndex] != null) {
                 return contributions[keysIndex];
             }
-            synchronized (this) {
-                contributions = contributedKeys;
-                if (keysIndex < contributions.length) {
-                    return contributions[keysIndex];
-                }
-                List<ProviderEntry> providers = LazyKeysProviders.snapshot();
-                Object[][] expanded = Arrays.copyOf(contributions, providers.size());
-                for (int i = contributions.length; i < expanded.length; i++) {
-                    expanded[i] = createContribution(
-                        providers.get(i).provider(),
-                        keys,
-                        descriptors,
-                        caseInsensitive
-                    );
-                }
-                contributedKeys = expanded;
-                return expanded[keysIndex];
-            }
+            // Late providers are resolved lazily and only for the requested index, so providers whose
+            // class loader has been discarded are never invoked again.
+            Object[] contribution = createContribution(
+                LazyKeysProviders.lateProvider(keysIndex),
+                keys,
+                descriptors,
+                caseInsensitive
+            );
+            Object[][] expanded = Arrays.copyOf(contributions, Math.max(contributions.length, keysIndex + 1));
+            expanded[keysIndex] = contribution;
+            contributedKeys = expanded;
+            return contribution;
         }
 
         private String keyAt(int keyIndex) {
@@ -215,42 +221,71 @@ public final class KeysSupport {
         }
     }
 
-    private record ProviderEntry(Class<?> keysType, KeysProvider provider) {
+    /**
+     * A provider registered after service loading. Both references are weak so that registering a
+     * provider from a child class loader does not keep that class loader reachable.
+     *
+     * @param keysType The contribution type
+     * @param provider The provider
+     */
+    private record LateProvider(WeakReference<Class<?>> keysType, WeakReference<KeysProvider> provider) {
     }
 
     private static final class LazyKeysProviders {
-        private static final List<ProviderEntry> PROVIDERS;
+        private static final List<KeysProvider> SERVICE_PROVIDERS;
+        /**
+         * Keeps late provider instances alive for as long as their own class is loaded. Guarded by {@link #LATE_PROVIDERS}.
+         */
+        private static final ClassValue<List<KeysProvider>> RETAINED_PROVIDERS = new ClassValue<>() {
+            @Override
+            protected List<KeysProvider> computeValue(Class<?> type) {
+                return new ArrayList<>(1);
+            }
+        };
+        private static final List<LateProvider> LATE_PROVIDERS = new ArrayList<>();
 
         static {
             List<KeysProvider> providers = new ArrayList<>(2);
             SoftServiceLoader.load(KeysProvider.class, KeysSupport.class.getClassLoader())
                 .disableFork()
                 .collectAll(providers);
-            PROVIDERS = new ArrayList<>(providers.size());
             for (KeysProvider provider : providers) {
-                PROVIDERS.add(new ProviderEntry(
-                    Objects.requireNonNull(provider.keysType(), "keysType"),
-                    provider
-                ));
+                Objects.requireNonNull(provider.keysType(), "keysType");
             }
+            SERVICE_PROVIDERS = List.copyOf(providers);
         }
 
         private static int indexOf(Class<?> keysType, KeysProvider provider) {
-            synchronized (PROVIDERS) {
-                for (int i = 0; i < PROVIDERS.size(); i++) {
-                    if (PROVIDERS.get(i).keysType().equals(keysType)) {
-                        return i;
+            for (int i = 0; i < SERVICE_PROVIDERS.size(); i++) {
+                if (SERVICE_PROVIDERS.get(i).keysType().equals(keysType)) {
+                    return i;
+                }
+            }
+            synchronized (LATE_PROVIDERS) {
+                for (int i = 0; i < LATE_PROVIDERS.size(); i++) {
+                    if (LATE_PROVIDERS.get(i).keysType().get() == keysType) {
+                        return SERVICE_PROVIDERS.size() + i;
                     }
                 }
-                PROVIDERS.add(new ProviderEntry(keysType, provider));
-                return PROVIDERS.size() - 1;
+                // Slots of unloaded providers are never reused: existing keys may still hold their contributions.
+                RETAINED_PROVIDERS.get(provider.getClass()).add(provider);
+                LATE_PROVIDERS.add(new LateProvider(new WeakReference<>(keysType), new WeakReference<>(provider)));
+                return SERVICE_PROVIDERS.size() + LATE_PROVIDERS.size() - 1;
             }
         }
 
-        private static List<ProviderEntry> snapshot() {
-            synchronized (PROVIDERS) {
-                return List.copyOf(PROVIDERS);
+        private static KeysProvider lateProvider(int keysIndex) {
+            int lateIndex = keysIndex - SERVICE_PROVIDERS.size();
+            KeysProvider provider = null;
+            synchronized (LATE_PROVIDERS) {
+                if (lateIndex >= 0 && lateIndex < LATE_PROVIDERS.size()) {
+                    provider = LATE_PROVIDERS.get(lateIndex).provider().get();
+                }
             }
+            if (provider == null) {
+                throw new IllegalStateException("No keys provider registered for index: " + keysIndex);
+            }
+            return provider;
         }
     }
 }
