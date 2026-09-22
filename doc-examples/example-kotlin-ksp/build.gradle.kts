@@ -11,6 +11,8 @@ micronaut {
 
 dependencies {
     ksp(projects.micronautSerdeProcessor)
+    // Generates the serializers and deserializers as Kotlin sources
+    ksp(libs.micronaut.sourcegen.generator.kotlin)
 
     implementation(projects.micronautSerdeJackson)
     implementation(mn.micronaut.http.client)

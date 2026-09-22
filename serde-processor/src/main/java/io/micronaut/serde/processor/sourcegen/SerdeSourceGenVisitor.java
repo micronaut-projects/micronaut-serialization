@@ -79,6 +79,14 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Object, O
 
     @Override
     public void start(VisitorContext visitorContext) {
+        // The generated serdes are modeled on Java source and are not valid Kotlin: the Kotlin source
+        // declares raw types, such as the Argument constructor parameter, which KSP cannot resolve. Kotlin
+        // types use the runtime serdes, even when another processor puts a Kotlin Sourcegen backend on the
+        // KSP classpath.
+        if (visitorContext.getLanguage() == VisitorContext.Language.KOTLIN) {
+            sourceGenerator = null;
+            return;
+        }
         sourceGenerator = SourceGenerators.findByLanguage(visitorContext.getLanguage()).orElse(null);
     }
 
