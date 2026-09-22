@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.processor.sourcegen;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.beans.visitor.IntrospectedTypeElementVisitor;
 import io.micronaut.inject.visitor.TypeElementVisitor;
@@ -44,7 +45,9 @@ import org.jspecify.annotations.Nullable;
 
 import javax.annotation.processing.Generated;
 import javax.lang.model.element.Modifier;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -95,77 +98,87 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Object, O
             && !element.hasAnnotation("jakarta.xml.bind.annotation.XmlAccessorType")) {
             return;
         }
-        SimpleSerdeShapeDecision decision = analyzer.analyze(element);
-        if (decision.serializerEligible()) {
-            generateSerializerClass(element, decision, context);
-        }
-        if (decision.deserializerEligible()) {
-            generateDeserializerClass(element, decision, context);
+        for (ClassDef classDef : generate(element, context.getLanguage())) {
+            write(context, element, classDef);
         }
     }
 
-    private void generateSerializerClass(ClassElement element, SimpleSerdeShapeDecision decision, VisitorContext context) {
+    /**
+     * Builds the definitions of the serializer and deserializer generated for the given type.
+     *
+     * @param element The serdeable type
+     * @param language The language of the generated source
+     * @return The generated class definitions, empty when both directions use the runtime serdes
+     */
+    @Internal
+    public List<ClassDef> generate(ClassElement element, VisitorContext.Language language) {
+        SimpleSerdeShapeDecision decision = analyzer.analyze(element);
+        List<ClassDef> classDefs = new ArrayList<>(2);
+        if (decision.serializerEligible()) {
+            classDefs.add(serializerClass(element, decision));
+        }
+        if (decision.deserializerEligible()) {
+            classDefs.add(deserializerClass(element, decision, language));
+        }
+        return classDefs;
+    }
+
+    private ClassDef serializerClass(ClassElement element, SimpleSerdeShapeDecision decision) {
         String generatedSerializerClassName = SerdeSourceGenClassNaming.generatedSerializerClassName(element);
         if (isConstructorBound(decision)) {
             RecordSerdeShape recordSerdeShape = recordSerdeShapeResolver.resolve(element).orElse(null);
             if (recordSerdeShape != null) {
-                write(context, element, generatedSerializerClassName, new RecordSerializerSourceGen().generate(element, recordSerdeShape));
-                return;
+                return new RecordSerializerSourceGen().generate(element, recordSerdeShape);
             }
         }
         if (decision.shapeKind() == SimpleSerdeShapeDecision.ShapeKind.DEFAULT_CONSTRUCTOR_BEAN) {
             BeanSerdeShape beanSerdeShape = beanSerdeShapeResolver.resolve(element).orElse(null);
             if (beanSerdeShape != null) {
-                write(context, element, generatedSerializerClassName, new BeanSerializerSourceGen().generate(element, beanSerdeShape));
-                return;
+                return new BeanSerializerSourceGen().generate(element, beanSerdeShape);
             }
         }
         if (decision.shapeKind() == SimpleSerdeShapeDecision.ShapeKind.ENUM) {
             EnumSerdeShape enumSerdeShape = enumSerdeShapeResolver.resolve(element).orElse(null);
             if (enumSerdeShape != null) {
-                write(context, element, generatedSerializerClassName, new EnumSerializerSourceGen().generate(element, enumSerdeShape));
-                return;
+                return new EnumSerializerSourceGen().generate(element, enumSerdeShape);
             }
         }
-        write(context, element, generatedSerializerClassName, ClassDef.builder(generatedSerializerClassName)
+        return ClassDef.builder(generatedSerializerClassName)
             .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
             .addAnnotation(AnnotationDef.builder(Generated.class)
                 .addMember("value", "Micronaut")
                 .build())
             .addSuperinterface(TypeDef.parameterized(Serializer.class, TypeDef.of(element)))
-            .build());
+            .build();
     }
 
-    private void generateDeserializerClass(ClassElement element, SimpleSerdeShapeDecision decision, VisitorContext context) {
+    private ClassDef deserializerClass(ClassElement element, SimpleSerdeShapeDecision decision, VisitorContext.Language language) {
         String generatedDeserializerClassName = SerdeSourceGenClassNaming.generatedDeserializerClassName(element);
         if (isConstructorBound(decision)) {
             RecordSerdeShape recordSerdeShape = recordSerdeShapeResolver.resolve(element).orElse(null);
             if (recordSerdeShape != null) {
-                write(context, element, generatedDeserializerClassName, new RecordDeserializerSourceGen().generate(element, recordSerdeShape));
-                return;
+                return new RecordDeserializerSourceGen(language).generate(element, recordSerdeShape);
             }
         }
         if (decision.shapeKind() == SimpleSerdeShapeDecision.ShapeKind.DEFAULT_CONSTRUCTOR_BEAN) {
             BeanSerdeShape beanSerdeShape = beanSerdeShapeResolver.resolve(element).orElse(null);
             if (beanSerdeShape != null) {
-                write(context, element, generatedDeserializerClassName, new BeanDeserializerSourceGen().generate(element, beanSerdeShape));
-                return;
+                return new BeanDeserializerSourceGen(language).generate(element, beanSerdeShape);
             }
         }
         if (decision.shapeKind() == SimpleSerdeShapeDecision.ShapeKind.ENUM) {
             EnumSerdeShape enumSerdeShape = enumSerdeShapeResolver.resolve(element).orElse(null);
             if (enumSerdeShape != null) {
-                write(context, element, generatedDeserializerClassName, new EnumDeserializerSourceGen().generate(element, enumSerdeShape));
-                return;
+                return new EnumDeserializerSourceGen().generate(element, enumSerdeShape);
             }
         }
-        write(context, element, generatedDeserializerClassName, ClassDef.builder(generatedDeserializerClassName)
+        return ClassDef.builder(generatedDeserializerClassName)
             .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
             .addAnnotation(AnnotationDef.builder(Generated.class)
                 .addMember("value", "Micronaut")
                 .build())
             .addSuperinterface(TypeDef.parameterized(Deserializer.class, TypeDef.of(element)))
-            .build());
+            .build();
     }
 
     private static boolean isConstructorBound(SimpleSerdeShapeDecision decision) {
@@ -173,11 +186,12 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Object, O
             || decision.shapeKind() == SimpleSerdeShapeDecision.ShapeKind.CONSTRUCTOR_BEAN;
     }
 
-    private void write(VisitorContext context, ClassElement element, String generatedClassName, ClassDef classDef) {
+    private void write(VisitorContext context, ClassElement element, ClassDef classDef) {
         SourceGenerator generator = sourceGenerator;
         if (generator == null) {
             return;
         }
+        String generatedClassName = classDef.getName();
         if (writtenGeneratedClassNames.contains(generatedClassName)) {
             return;
         }
