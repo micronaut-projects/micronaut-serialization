@@ -20,8 +20,9 @@ import io.micronaut.core.io.service.SoftServiceLoader;
 import io.micronaut.core.util.StringIntMap;
 import org.jspecify.annotations.Nullable;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -59,7 +60,7 @@ public final class KeysSupport {
      */
     public static Keys create(List<String> keys, boolean caseInsensitive) {
         List<String> keyList = List.copyOf(Objects.requireNonNull(keys, "keys"));
-        return new DefaultKeys(keyList, caseInsensitive, createContributedKeys(keyList, null, caseInsensitive));
+        return new DefaultKeys(keyList, null, caseInsensitive, createContributedKeys(keyList, null, caseInsensitive));
     }
 
     /**
@@ -84,25 +85,24 @@ public final class KeysSupport {
     public static Keys createWithMetadata(List<KeyDescriptor> keys, boolean caseInsensitive) {
         List<KeyDescriptor> descriptors = List.copyOf(Objects.requireNonNull(keys, "keys"));
         List<String> keyList = descriptors.stream().map(KeyDescriptor::name).toList();
-        return new DefaultKeys(keyList, caseInsensitive, createContributedKeys(keyList, descriptors, caseInsensitive));
+        return new DefaultKeys(
+            keyList,
+            descriptors,
+            caseInsensitive,
+            createContributedKeys(keyList, descriptors, caseInsensitive)
+        );
     }
 
     /**
-     * Find the contributed key data index for the given provider.
+     * Find or register the contributed key data index for the given provider.
      *
      * @param provider The keys provider
-     * @return The contributed data index, or {@code -1} if no provider contributes this type
+     * @return The contributed data index
      */
     public static int indexOf(KeysProvider provider) {
         Objects.requireNonNull(provider, "provider");
         Class<?> keysType = Objects.requireNonNull(provider.keysType(), "keysType");
-        List<KeysProvider> providers = LazyKeysProviders.PROVIDERS;
-        for (int i = 0; i < providers.size(); i++) {
-            if (providers.get(i).keysType().equals(keysType)) {
-                return i;
-            }
-        }
-        return -1;
+        return LazyKeysProviders.indexOf(keysType, provider);
     }
 
     /**
@@ -123,31 +123,43 @@ public final class KeysSupport {
     private static Object[][] createContributedKeys(List<String> keys,
                                                     @Nullable List<KeyDescriptor> descriptors,
                                                     boolean caseInsensitive) {
-        List<KeysProvider> providers = LazyKeysProviders.PROVIDERS;
+        List<KeysProvider> providers = LazyKeysProviders.SERVICE_PROVIDERS;
         if (providers.isEmpty()) {
             return EMPTY_CONTRIBUTIONS;
         }
         Object[][] contributions = new Object[providers.size()][];
         for (int i = 0; i < providers.size(); i++) {
-            KeysProvider provider = providers.get(i);
-            contributions[i] = Objects.requireNonNull(
-                descriptors == null
-                    ? provider.create(keys, caseInsensitive)
-                    : provider.createWithMetadata(descriptors, caseInsensitive),
-                "keys contribution"
-            );
+            contributions[i] = createContribution(providers.get(i), keys, descriptors, caseInsensitive);
         }
         return contributions;
     }
 
+    private static Object[] createContribution(KeysProvider provider,
+                                               List<String> keys,
+                                               @Nullable List<KeyDescriptor> descriptors,
+                                               boolean caseInsensitive) {
+        return Objects.requireNonNull(
+            descriptors == null
+                ? provider.create(keys, caseInsensitive)
+                : provider.createWithMetadata(descriptors, caseInsensitive),
+            "keys contribution"
+        );
+    }
+
     private static final class DefaultKeys implements Keys {
         private final List<String> keys;
+        @Nullable
+        private final List<KeyDescriptor> descriptors;
         private final boolean caseInsensitive;
         private final StringIntMap keyToIndex;
-        private final Object[][] contributedKeys;
+        private volatile Object[][] contributedKeys;
 
-        private DefaultKeys(List<String> keys, boolean caseInsensitive, Object[][] contributedKeys) {
+        private DefaultKeys(List<String> keys,
+                            @Nullable List<KeyDescriptor> descriptors,
+                            boolean caseInsensitive,
+                            Object[][] contributedKeys) {
             this.keys = keys;
+            this.descriptors = descriptors;
             this.caseInsensitive = caseInsensitive;
             this.keyToIndex = new StringIntMap(keys.size());
             for (int i = 0; i < keys.size(); i++) {
@@ -171,7 +183,33 @@ public final class KeysSupport {
         }
 
         private Object[] get(int keysIndex) {
-            return contributedKeys[keysIndex];
+            Object[][] contributions = contributedKeys;
+            if (keysIndex < contributions.length) {
+                Object[] contribution = contributions[keysIndex];
+                if (contribution != null) {
+                    return contribution;
+                }
+            }
+            return createLateContribution(keysIndex);
+        }
+
+        private synchronized Object[] createLateContribution(int keysIndex) {
+            Object[][] contributions = contributedKeys;
+            if (keysIndex < contributions.length && contributions[keysIndex] != null) {
+                return contributions[keysIndex];
+            }
+            // Late providers are resolved lazily and only for the requested index, so providers whose
+            // class loader has been discarded are never invoked again.
+            Object[] contribution = createContribution(
+                LazyKeysProviders.lateProvider(keysIndex),
+                keys,
+                descriptors,
+                caseInsensitive
+            );
+            Object[][] expanded = Arrays.copyOf(contributions, Math.max(contributions.length, keysIndex + 1));
+            expanded[keysIndex] = contribution;
+            contributedKeys = expanded;
+            return contribution;
         }
 
         private String keyAt(int keyIndex) {
@@ -183,15 +221,71 @@ public final class KeysSupport {
         }
     }
 
+    /**
+     * A provider registered after service loading. Both references are weak so that registering a
+     * provider from a child class loader does not keep that class loader reachable.
+     *
+     * @param keysType The contribution type
+     * @param provider The provider
+     */
+    private record LateProvider(WeakReference<Class<?>> keysType, WeakReference<KeysProvider> provider) {
+    }
+
     private static final class LazyKeysProviders {
-        private static final List<KeysProvider> PROVIDERS;
+        private static final List<KeysProvider> SERVICE_PROVIDERS;
+        /**
+         * Keeps late provider instances alive for as long as their own class is loaded. Guarded by {@link #LATE_PROVIDERS}.
+         */
+        private static final ClassValue<List<KeysProvider>> RETAINED_PROVIDERS = new ClassValue<>() {
+            @Override
+            protected List<KeysProvider> computeValue(Class<?> type) {
+                return new ArrayList<>(1);
+            }
+        };
+        private static final List<LateProvider> LATE_PROVIDERS = new ArrayList<>();
 
         static {
             List<KeysProvider> providers = new ArrayList<>(2);
             SoftServiceLoader.load(KeysProvider.class, KeysSupport.class.getClassLoader())
                 .disableFork()
                 .collectAll(providers);
-            PROVIDERS = Collections.unmodifiableList(providers);
+            for (KeysProvider provider : providers) {
+                Objects.requireNonNull(provider.keysType(), "keysType");
+            }
+            SERVICE_PROVIDERS = List.copyOf(providers);
+        }
+
+        private static int indexOf(Class<?> keysType, KeysProvider provider) {
+            for (int i = 0; i < SERVICE_PROVIDERS.size(); i++) {
+                if (SERVICE_PROVIDERS.get(i).keysType().equals(keysType)) {
+                    return i;
+                }
+            }
+            synchronized (LATE_PROVIDERS) {
+                for (int i = 0; i < LATE_PROVIDERS.size(); i++) {
+                    if (LATE_PROVIDERS.get(i).keysType().get() == keysType) {
+                        return SERVICE_PROVIDERS.size() + i;
+                    }
+                }
+                // Slots of unloaded providers are never reused: existing keys may still hold their contributions.
+                RETAINED_PROVIDERS.get(provider.getClass()).add(provider);
+                LATE_PROVIDERS.add(new LateProvider(new WeakReference<>(keysType), new WeakReference<>(provider)));
+                return SERVICE_PROVIDERS.size() + LATE_PROVIDERS.size() - 1;
+            }
+        }
+
+        private static KeysProvider lateProvider(int keysIndex) {
+            int lateIndex = keysIndex - SERVICE_PROVIDERS.size();
+            KeysProvider provider = null;
+            synchronized (LATE_PROVIDERS) {
+                if (lateIndex >= 0 && lateIndex < LATE_PROVIDERS.size()) {
+                    provider = LATE_PROVIDERS.get(lateIndex).provider().get();
+                }
+            }
+            if (provider == null) {
+                throw new IllegalStateException("No keys provider registered for index: " + keysIndex);
+            }
+            return provider;
         }
     }
 }

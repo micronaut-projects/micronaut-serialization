@@ -22,14 +22,14 @@ nullaway = "0.14.1"
 error_prone_core = "2.50.0"
 woodstox = "7.2.2"
 
-micronaut-platform = "5.0.2"
-micronaut = "5.2.1"
-micronaut-discovery = "5.0.0"
-micronaut-oracle-cloud = "6.0.0"
-micronaut-reactor = "4.0.0"
-micronaut-validation = "5.0.0"
-micronaut-gradle-plugin = "5.0.0"
-micronaut-sourcegen = "2.0.0"
+micronaut-platform = "5.1.5"
+micronaut = "5.2.2"
+micronaut-discovery = "5.1.0"
+micronaut-oracle-cloud = "6.1.3"
+micronaut-reactor = "4.2.0"
+micronaut-validation = "5.1.0"
+micronaut-gradle-plugin = "5.0.2"
+micronaut-sourcegen = "2.2.0"
 # Only used by the YAML TCK parity suite. Ahead of the platform Jackson line because the YAML
 # schema selection the parity suite needs (YAMLSchema.CORE) arrived in 3.2.0.
 jackson-dataformat-yaml = "3.2.0"
@@ -39,7 +39,7 @@ protobuf-java = "4.36.0"
 jtoon = "2.0.4"
 
 # Dependencies used only by Jakarta TCK verification tasks.
-jakarta-enterprise-cdi-api = "4.0.1"
+jakarta-enterprise-cdi-api = "4.1.0"
 jakarta-json-tck = "2.1.1"
 jakarta-json-bind-tck = "3.0.3"
 jakarta-tck-sigtest = "2.6"
@@ -53,6 +53,8 @@ micronaut-oracle-cloud = { module = 'io.micronaut.oraclecloud:micronaut-oraclecl
 micronaut-reactor = { module = "io.micronaut.reactor:micronaut-reactor-bom", version.ref = "micronaut-reactor" }
 micronaut-validation = { module = "io.micronaut.validation:micronaut-validation-bom", version.ref = "micronaut-validation" }
 micronaut-discovery = { module = "io.micronaut.discovery:micronaut-discovery-client", version.ref = "micronaut-discovery" }
+micronaut-sourcegen-annotations = { module = "io.micronaut.sourcegen:micronaut-sourcegen-annotations", version.ref = "micronaut-sourcegen" }
+micronaut-sourcegen-generator-kotlin = { module = "io.micronaut.sourcegen:micronaut-sourcegen-generator-kotlin", version.ref = "micronaut-sourcegen" }
 micronaut-sourcegen-generator-java = { module = "io.micronaut.sourcegen:micronaut-sourcegen-generator-java", version.ref = "micronaut-sourcegen" }
 micronaut-sourcegen-generator = { module = "io.micronaut.sourcegen:micronaut-sourcegen-generator", version.ref = "micronaut-sourcegen" }
 micronaut-sourcegen-model = { module = "io.micronaut.sourcegen:micronaut-sourcegen-model", version.ref = "micronaut-sourcegen" }

@@ -26,7 +26,7 @@ import java.util.Optional;
  * @since 1.0.0
  */
 public class InvalidFormatException extends SerdeException {
-    private final @Nullable Object originalValue;
+    private final transient @Nullable Object originalValue;
 
     public InvalidFormatException(
             String message,

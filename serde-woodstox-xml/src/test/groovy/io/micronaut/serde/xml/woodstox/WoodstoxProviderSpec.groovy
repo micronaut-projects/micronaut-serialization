@@ -2,6 +2,7 @@ package io.micronaut.serde.xml.woodstox
 
 import io.micronaut.context.ApplicationContext
 import io.micronaut.serde.annotation.SerdeableGenerated
+import io.micronaut.serde.exceptions.SerdeException
 import io.micronaut.serde.xml.XmlObjectMapper
 import spock.lang.Specification
 
@@ -27,6 +28,23 @@ class WoodstoxProviderSpec extends Specification {
 
         then:
         xml == '<EmptyBean/>'
+
+        cleanup:
+        context.close()
+    }
+
+    def "Woodstox cannot read past the configured maximum input size"() {
+        given:
+        def context = ApplicationContext.run([
+            'micronaut.serde.format.xml.maximum-input-size': '1KB'
+        ])
+        def xml = '<String>' + 'x' * 1024 + '</String>'
+
+        when:
+        context.getBean(XmlObjectMapper).readValue(xml, String)
+
+        then:
+        thrown(SerdeException)
 
         cleanup:
         context.close()

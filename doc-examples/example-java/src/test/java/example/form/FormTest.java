@@ -54,6 +54,7 @@ class FormTest {
         @Post("/pojo")
         @Status(HttpStatus.OK)
         void tokenPojo(@Body ClientCredentialsForm form) {
+            // only verifies request binding
         }
 
         @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
@@ -62,6 +63,7 @@ class FormTest {
         void tokenMethodParam(@NonNull String grant_type,
                               @Nullable String client_id,
                               @Nullable String client_secret) {
+            // only verifies request binding
         }
     }
 

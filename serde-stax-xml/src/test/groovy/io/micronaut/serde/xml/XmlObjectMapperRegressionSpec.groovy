@@ -1,5 +1,6 @@
 package io.micronaut.serde.xml
 
+import io.micronaut.context.ApplicationContext
 import io.micronaut.core.type.Argument
 import io.micronaut.json.tree.JsonNode
 import io.micronaut.serde.Deserializer
@@ -63,6 +64,29 @@ class XmlObjectMapperRegressionSpec extends Specification {
 
         then:
         thrown(SerdeException)
+    }
+
+    def "XML input cannot exceed the configured maximum size"() {
+        given:
+        def context = ApplicationContext.run([
+            'micronaut.serde.format.xml.maximum-input-size': '1KB'
+        ])
+        def mapper = context.getBean(XmlObjectMapper)
+        def prefix = '<String>'
+        def suffix = '</String>'
+        def content = 'x' * (1024 - prefix.length() - suffix.length())
+
+        expect:
+        mapper.readValue(prefix + content + suffix, String) == content
+
+        when:
+        mapper.readValue(prefix + content + 'x' + suffix, String)
+
+        then:
+        thrown(SerdeException)
+
+        cleanup:
+        context.close()
     }
 
     def "custom root serializers can write scalar XML values"() {

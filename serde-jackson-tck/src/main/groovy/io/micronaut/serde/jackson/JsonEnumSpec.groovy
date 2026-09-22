@@ -20,6 +20,112 @@ import spock.lang.Issue
 
 abstract class JsonEnumSpec extends JsonCompileSpec {
 
+    /**
+     * Whether the implementation should accept case-insensitive enum values, applied in {@link #configureContext}.
+     */
+    protected boolean caseInsensitiveEnums = true
+
+    void "enum aliases resolve without changing serialized names"() {
+        given:
+        def context = buildContext('example.Choice', '''
+package example;
+
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+enum Choice {
+    @JsonProperty("first")
+    @JsonAlias({"legacy", "old", "SECOND"})
+    FIRST,
+    @JsonAlias({"first", "alternate"})
+    SECOND
+}
+''')
+
+        expect:
+        def value = jsonMapper.readValue('"' + input + '"', typeUnderTest)
+        value.name() == expected
+        writeJson(jsonMapper, value) == '"' + serialized + '"'
+
+        cleanup:
+        context.close()
+
+        where:
+        input       | expected | serialized
+        'legacy'    | 'FIRST'  | 'first'
+        'old'       | 'FIRST'  | 'first'
+        'LEGACY'    | 'FIRST'  | 'first' // implementations enable case-insensitive enums
+        'first'     | 'FIRST'  | 'first'
+        'SECOND'    | 'SECOND' | 'SECOND'
+        'alternate' | 'SECOND' | 'SECOND'
+    }
+
+    void "enum aliases are case-sensitive unless case-insensitive enums are enabled"() {
+        given:
+        caseInsensitiveEnums = false
+        def context = buildContext('example.Choice', '''
+package example;
+
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+enum Choice {
+    @JsonProperty("first")
+    @JsonAlias("legacy")
+    FIRST,
+    SECOND
+}
+''')
+
+        expect:
+        jsonMapper.readValue('"legacy"', typeUnderTest).name() == 'FIRST'
+
+        when:
+        jsonMapper.readValue('"LEGACY"', typeUnderTest)
+
+        then:
+        thrown(Exception)
+
+        cleanup:
+        context.close()
+    }
+
+    void "duplicate JsonValue enum #access uses first declared constant"() {
+        given:
+        def context = buildContext('example.Choice', """
+package example;
+
+import com.fasterxml.jackson.annotation.JsonValue;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = {Introspected.AccessKind.FIELD, Introspected.AccessKind.METHOD})
+enum Choice {
+    FIRST, SECOND;
+
+    $member
+}
+""")
+
+        expect:
+        jsonMapper.readValue('"shared"', typeUnderTest).name() == 'FIRST'
+        writeJson(jsonMapper, getEnum(context, 'example.Choice.FIRST')) == '"shared"'
+        writeJson(jsonMapper, getEnum(context, 'example.Choice.SECOND')) == '"shared"'
+
+        cleanup:
+        context.close()
+
+        where:
+        access   | member
+        'method' | '@JsonValue public String value() { return "shared"; }'
+        'field'  | '@JsonValue public final String value = "shared";'
+    }
+
     void "enum variations"() {
         given:
             def context = buildContext('example.Test', '''

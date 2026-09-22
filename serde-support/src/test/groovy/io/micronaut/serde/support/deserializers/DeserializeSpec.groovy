@@ -72,15 +72,15 @@ class DeserializeSpec extends Specification {
         def deserializer = new SpecificObjectDeserializer(false, valueBean, null)
 
         when:
-        deserializer.deserializeNullable(
+        def result = deserializer.deserializeNullable(
                 JsonNodeDecoder.create(JsonNode.createObjectNode([:]), LimitingStream.DEFAULT_LIMITS),
                 decoderContext,
                 valueArgument)
 
         then:
         valueArgument.nullable
-        def error = thrown(SerdeException)
-        error.message == 'Null value encountered during deserialization of type: NullableConstructorValue value'
+        result != null
+        result.value() == null
 
         cleanup:
         ctx.close()

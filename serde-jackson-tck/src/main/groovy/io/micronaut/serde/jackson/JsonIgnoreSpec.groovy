@@ -912,4 +912,154 @@ class DeserializableRecord {
 
     }
 
+    void "creator parameter with an explicit name binds even if a renamed and ignored inherited property has the same Java name"() {
+        given:
+            def context = buildContext('example.Sub', '''
+package example;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+abstract class Base {
+    private String x;
+
+    @JsonProperty("x")
+    public String getX() {
+        return x;
+    }
+
+    @JsonProperty("x")
+    public final void setX(String x) {
+        this.x = x;
+    }
+}
+
+@Serdeable
+final class Sub extends Base {
+    private final String creatorValue;
+
+    @JsonCreator
+    Sub(@JsonProperty("x") String x) {
+        this.creatorValue = x;
+    }
+
+    public String creatorValue() {
+        return creatorValue;
+    }
+
+    @Override
+    @JsonProperty("xRenamed")
+    @JsonIgnore
+    public String getX() {
+        return super.getX();
+    }
+}
+''')
+
+        when:
+            def des = jsonMapper.readValue('{"x":"value"}', typeUnderTest)
+
+        then:
+            des.creatorValue() == "value"
+
+        cleanup:
+            context.close()
+    }
+
+    void "json ignore on an overridden getter doesn't ignore the explicitly named creator parameter"() {
+        given:
+            def context = buildContext('example.Sub', '''
+package example;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+abstract class Base {
+    private String x;
+
+    @JsonProperty("x")
+    public String getX() {
+        return x;
+    }
+
+    @JsonProperty("x")
+    public final void setX(String x) {
+        this.x = x;
+    }
+}
+
+@Serdeable
+final class Sub extends Base {
+    private final String creatorValue;
+
+    @JsonCreator
+    Sub(@JsonProperty("x") String x) {
+        this.creatorValue = x;
+    }
+
+    public String creatorValue() {
+        return creatorValue;
+    }
+
+    @Override
+    @JsonIgnore
+    public String getX() {
+        return super.getX();
+    }
+}
+''')
+
+        when:
+            def des = jsonMapper.readValue('{"x":"value"}', typeUnderTest)
+
+        then:
+            des.creatorValue() == "value"
+
+        cleanup:
+            context.close()
+    }
+
+    void "json ignore on a field doesn't ignore the explicitly named creator parameter"() {
+        given:
+            def context = buildContext('example.Test', '''
+package example;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Test {
+    @JsonIgnore
+    private final String foo;
+    private final String bar;
+
+    @JsonCreator
+    Test(@JsonProperty("foo") String foo, @JsonProperty("bar") String bar) {
+        this.foo = foo;
+        this.bar = bar;
+    }
+
+    public String getFoo() {
+        return foo;
+    }
+
+    public String getBar() {
+        return bar;
+    }
+}
+''')
+
+        when:
+            def des = jsonMapper.readValue('{"foo":"1","bar":"2"}', typeUnderTest)
+
+        then:
+            des.foo == "1"
+            des.bar == "2"
+
+        cleanup:
+            context.close()
+    }
+
 }

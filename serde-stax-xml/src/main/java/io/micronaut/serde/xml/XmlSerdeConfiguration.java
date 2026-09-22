@@ -17,6 +17,7 @@ package io.micronaut.serde.xml;
 
 import io.micronaut.context.annotation.ConfigurationProperties;
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.core.convert.format.ReadableBytes;
 import io.micronaut.serde.config.SerdeConfiguration;
 import org.jspecify.annotations.Nullable;
 
@@ -33,9 +34,11 @@ import java.util.Map;
 @ConfigurationProperties(XmlSerdeConfiguration.PREFIX)
 public final class XmlSerdeConfiguration {
     static final String PREFIX = SerdeConfiguration.PREFIX + ".format.xml";
+    static final long DEFAULT_MAXIMUM_INPUT_SIZE = 10 * 1024 * 1024L;
 
     private boolean repairingNamespaces = true;
     private boolean automaticEmptyElements;
+    private long maximumInputSize = DEFAULT_MAXIMUM_INPUT_SIZE;
     private Map<XmlReadFeature, Boolean> xmlReadFeatures = Collections.emptyMap();
 
     /**
@@ -72,6 +75,27 @@ public final class XmlSerdeConfiguration {
      */
     public void setAutomaticEmptyElements(boolean automaticEmptyElements) {
         this.automaticEmptyElements = automaticEmptyElements;
+    }
+
+    /**
+     * Returns the maximum XML input size.
+     *
+     * @return The maximum input size in bytes
+     */
+    public long getMaximumInputSize() {
+        return maximumInputSize;
+    }
+
+    /**
+     * Sets the maximum XML input size.
+     *
+     * @param maximumInputSize The maximum input size in bytes
+     */
+    public void setMaximumInputSize(@ReadableBytes long maximumInputSize) {
+        if (maximumInputSize < 1) {
+            throw new IllegalArgumentException("maximum-input-size must be positive");
+        }
+        this.maximumInputSize = maximumInputSize;
     }
 
     /**

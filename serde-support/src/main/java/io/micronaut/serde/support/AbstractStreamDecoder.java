@@ -513,10 +513,10 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
             return new BigDecimal(bigInteger);
         }
         if (number instanceof Double aDouble) {
-            return new BigDecimal(aDouble);
+            return BigDecimal.valueOf(aDouble);
         }
         if (number instanceof Float aFloat) {
-            return new BigDecimal(aFloat);
+            return new BigDecimal(aFloat.toString());
         }
         return new BigDecimal(number.longValue());
     }

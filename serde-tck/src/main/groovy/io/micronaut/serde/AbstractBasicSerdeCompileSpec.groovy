@@ -303,6 +303,83 @@ class Test {
     }
 
     @Unroll
+    void "test nested array type #type"() {
+        given:
+        def context = buildContext("""
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Test {
+    private $type value;
+    public void setValue($type value) {
+        this.value = value;
+    }
+    public $type getValue() {
+        return value;
+    }
+}
+""")
+        def bean = newInstance(context, 'test.Test', [:])
+        bean.value = data
+
+        when:
+        def bytes = jsonMapper.writeValueAsBytes(bean)
+        def read = jsonMapper.readValue(bytes, argumentOf(context, 'test.Test'))
+
+        then:
+        read.value == data
+
+        cleanup:
+        context.close()
+
+        where:
+        type          | data
+        'byte[][]'    | [[1, 2] as byte[], [3] as byte[]] as byte[][]
+        'String[][]'  | [["a", "b"] as String[], ["c"] as String[]] as String[][]
+        'int[][]'     | [[1, 2] as int[], [3] as int[]] as int[][]
+        'long[][]'    | [[1L, 2L] as long[], [3L] as long[]] as long[][]
+        'double[][]'  | [[1.5d] as double[], [2.5d] as double[]] as double[][]
+        'boolean[][]' | [[true, false] as boolean[], [true] as boolean[]] as boolean[][]
+        'Integer[][]' | [[1, 2] as Integer[], [3] as Integer[]] as Integer[][]
+        'byte[][][]'  | [[[1, 2] as byte[]] as byte[][], [[3] as byte[]] as byte[][]] as byte[][][]
+    }
+
+    @Unroll
+    void "test nested array record type #type"() {
+        given:
+        def context = buildContext("""
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+record Test($type value) {
+}
+""")
+        def bean = newInstance(context, 'test.Test', [data] as Object[])
+
+        when:
+        def bytes = jsonMapper.writeValueAsBytes(bean)
+        def read = jsonMapper.readValue(bytes, argumentOf(context, 'test.Test'))
+
+        then:
+        read.value == data
+
+        cleanup:
+        context.close()
+
+        where:
+        type          | data
+        'byte[][]'    | [[1, 2] as byte[], [3] as byte[]] as byte[][]
+        'String[][]'  | [["a", "b"] as String[], ["c"] as String[]] as String[][]
+        'int[][]'     | [[1, 2] as int[], [3] as int[]] as int[][]
+        'Integer[][]' | [[1, 2] as Integer[], [3] as Integer[]] as Integer[][]
+        'byte[][][]'  | [[[1, 2] as byte[]] as byte[][], [[3] as byte[]] as byte[][]] as byte[][][]
+    }
+
+    @Unroll
     void "test basic array type #type with arrays and null values"() {
         given:
         def context = buildContext("""
@@ -383,9 +460,17 @@ class Test {
         "Iterable<Boolean>"            | [value: [true]]                    | '{"value":[true]}'
         "Set<String>"                  | [value: ["Test"] as Set]           | '{"value":["Test"]}'
         "Set<Boolean>"                 | [value: [true] as Set]             | '{"value":[true]}'
+        "Set<Integer>"                 | [value: [10] as Set]               | '{"value":[10]}'
+        "SortedSet<String>"            | [value: new TreeSet<>(["Test"])]   | '{"value":["Test"]}'
+        "NavigableSet<String>"         | [value: new TreeSet<>(["Test"])]   | '{"value":["Test"]}'
+        "LinkedHashSet<String>"        | [value: ["Test"] as Set]           | '{"value":["Test"]}'
+        "HashSet<String>"              | [value: ["Test"] as Set]           | '{"value":["Test"]}'
+        "TreeSet<String>"              | [value: ["Test"] as Set]           | '{"value":["Test"]}'
         "Collection<String>"           | [value: ["Test"]]                  | '{"value":["Test"]}'
         "Collection<Boolean>"          | [value: [true]]                    | '{"value":[true]}'
         "Map<String, Boolean>"         | [value: [foo: true]]               | '{"value":{"foo":true}}'
+        "Map<String, Set<String>>"     | [value: [foo: ["Test"] as Set]]    | '{"value":{"foo":["Test"]}}'
+        "List<Set<String>>"            | [value: [["Test"] as Set]]         | '{"value":[["Test"]]}'
         "EnumSet<HttpStatus>"          | [value: EnumSet.of(HttpStatus.OK)] | '{"value":["OK"]}'
     }
 

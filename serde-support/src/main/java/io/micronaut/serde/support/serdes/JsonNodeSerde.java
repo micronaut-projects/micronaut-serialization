@@ -36,9 +36,6 @@ final class JsonNodeSerde implements SerdeRegistrar<JsonNode> {
     }
 
     private void serialize0(Encoder encoder, JsonNode value) throws IOException {
-        if (value == null) {
-            value = JsonNode.nullNode();
-        }
         if (value.isNull()) {
             encoder.encodeNull();
         } else if (value.isBoolean()) {
