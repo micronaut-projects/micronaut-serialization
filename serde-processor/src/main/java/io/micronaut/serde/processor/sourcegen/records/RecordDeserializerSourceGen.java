@@ -20,6 +20,7 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.context.annotation.Parameter;
 import io.micronaut.context.annotation.Prototype;
 import io.micronaut.inject.ast.ClassElement;
+import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.KeyDescriptor;
@@ -27,6 +28,7 @@ import io.micronaut.serde.Keys;
 import io.micronaut.serde.KeysAwareDecoder;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
+import io.micronaut.serde.processor.sourcegen.SerdeSourceGenSwitches;
 import io.micronaut.serde.util.GeneratedSerdeExceptionUtil;
 import io.micronaut.serde.util.GeneratedSerdeFallbackUtil;
 import io.micronaut.sourcegen.model.AnnotationDef;
@@ -204,6 +206,15 @@ public final class RecordDeserializerSourceGen {
         Exception.class,
         Argument.class
     );
+
+    private final SerdeSourceGenSwitches switches;
+
+    /**
+     * @param language The language of the generated source
+     */
+    public RecordDeserializerSourceGen(VisitorContext.Language language) {
+        this.switches = new SerdeSourceGenSwitches(language);
+    }
 
     private static ExpressionDef dispatchResult(String name) {
         return DISPATCH_RESULT_TYPE.getStaticField(name, DISPATCH_RESULT_TYPE);
@@ -653,7 +664,7 @@ public final class RecordDeserializerSourceGen {
                 dynamicPropertyArgument(deserializerClassTypeDef.getStaticField(dispatchInfo.aliasKeys().keyFieldNames().get(i), STRING_TYPE))
             ));
         }
-        return keyIndexExpression.asStatementSwitch(INT_TYPE, cases);
+        return switches.statementSwitch(keyIndexExpression, INT_TYPE, "keyIndex", cases);
     }
 
     @SuppressWarnings("java:S107")
@@ -839,7 +850,7 @@ public final class RecordDeserializerSourceGen {
         cases.put(dispatchResultConstant(DUPLICATE_DISPATCH_RESULT), duplicateStatement);
         cases.put(dispatchResultConstant(NULL_DISPATCH_RESULT), nullStatement);
         cases.put(dispatchResultConstant(HANDLED_DISPATCH_RESULT), StatementDef.multi());
-        return dispatchResultVariable.asStatementSwitch(DISPATCH_RESULT_TYPE, cases);
+        return switches.statementSwitch(dispatchResultVariable, DISPATCH_RESULT_TYPE, "dispatchResult", cases);
     }
 
     private ExpressionDef.ConditionExpressionDef isComponentSeen(RecordDispatchInfo dispatchInfo, int componentIndex) {

@@ -13,7 +13,10 @@ dependencies {
     testAnnotationProcessor(mn.micronaut.inject.java)
 
     testCompileOnly(mn.micronaut.inject.groovy)
+    // Loaded by the Groovy compilation of the tests, which runs the processor visitors
+    testCompileOnly(libs.micronaut.sourcegen.annotations)
 
+    testImplementation(mn.micronaut.inject.groovy.test)
     testImplementation(mn.micronaut.inject.java.test)
     testImplementation(mnTest.micronaut.test.spock)
 }

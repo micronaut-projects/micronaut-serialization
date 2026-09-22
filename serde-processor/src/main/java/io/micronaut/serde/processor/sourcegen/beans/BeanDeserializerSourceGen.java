@@ -23,6 +23,7 @@ import io.micronaut.context.annotation.Secondary;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.FieldElement;
 import io.micronaut.inject.ast.MethodElement;
+import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.KeyDescriptor;
@@ -30,6 +31,7 @@ import io.micronaut.serde.Keys;
 import io.micronaut.serde.KeysAwareDecoder;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
+import io.micronaut.serde.processor.sourcegen.SerdeSourceGenSwitches;
 import io.micronaut.serde.util.GeneratedSerdeExceptionUtil;
 import io.micronaut.serde.util.GeneratedSerdeFallbackUtil;
 import io.micronaut.sourcegen.model.AnnotationDef;
@@ -183,6 +185,15 @@ public final class BeanDeserializerSourceGen {
         Argument.class,
         Argument.class
     );
+
+    private final SerdeSourceGenSwitches switches;
+
+    /**
+     * @param language The language of the generated source
+     */
+    public BeanDeserializerSourceGen(VisitorContext.Language language) {
+        this.switches = new SerdeSourceGenSwitches(language);
+    }
 
     private static String required(Map<String, String> names, String key) {
         return Objects.requireNonNull(names.get(key));
@@ -775,7 +786,7 @@ public final class BeanDeserializerSourceGen {
                 primitiveNullMode
             ));
         }
-        return keyIndexExpression.asStatementSwitch(INT_TYPE, cases);
+        return switches.statementSwitch(keyIndexExpression, INT_TYPE, "keyIndex", cases);
     }
 
     @SuppressWarnings("java:S107")
@@ -1004,7 +1015,7 @@ public final class BeanDeserializerSourceGen {
         cases.put(dispatchResultConstant(DUPLICATE_DISPATCH_RESULT), duplicateStatement);
         cases.put(dispatchResultConstant(NULL_DISPATCH_RESULT), nullStatement);
         cases.put(dispatchResultConstant(HANDLED_DISPATCH_RESULT), StatementDef.multi());
-        return dispatchResultVariable.asStatementSwitch(DISPATCH_RESULT_TYPE, cases);
+        return switches.statementSwitch(dispatchResultVariable, DISPATCH_RESULT_TYPE, "dispatchResult", cases);
     }
 
     private ExpressionDef.ConditionExpressionDef isPropertySeen(BeanDispatchInfo dispatchInfo, int propertyIndex) {
