@@ -722,7 +722,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                     wrappedProperty.set(
                         decoderContext,
                         instance,
-                        unwrappedProperty.beanDeserializer.provideInstance(objectArgument, decoderContext, true)
+                        unwrappedProperty.beanDeserializer.provideInstance(wrappedProperty.argument, decoderContext, true)
                     );
                 }
             }
@@ -798,7 +798,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                             wrappedProperty.set(
                                 decoderContext,
                                 instance,
-                                unwrappedProperty.beanDeserializer.provideInstance(objectArgument, decoderContext, true)
+                                unwrappedProperty.beanDeserializer.provideInstance(wrappedProperty.argument, decoderContext, true)
                             );
                         }
                         return true;
@@ -825,7 +825,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                             wrappedProperty.set(
                                 decoderContext,
                                 instance,
-                                up.beanDeserializer.provideInstance(objectArgument, decoderContext, true)
+                                up.beanDeserializer.provideInstance(wrappedProperty.argument, decoderContext, true)
                             );
                         }
                         return true;
@@ -883,7 +883,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                     wrappedProperty.set(
                         decoderContext,
                         instance,
-                        unwrappedProperty.beanDeserializer.provideInstance(objectArgument, decoderContext, true)
+                        unwrappedProperty.beanDeserializer.provideInstance(wrappedProperty.argument, decoderContext, true)
                     );
                 }
             }
