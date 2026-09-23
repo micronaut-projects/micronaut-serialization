@@ -504,11 +504,21 @@ public final class BeanSerializerSourceGen {
             return directFieldAccess(VALUE_PARAMETER, readField);
         }
         MethodElement readMethod = Objects.requireNonNull(property.readMethod());
+        if (readMethod.getName().indexOf('$') >= 0) {
+            return value.invoke(
+                escapeSourcegenFormat(readMethod.getName()),
+                TypeDef.of(readMethod.getReturnType())
+            );
+        }
         return value.invoke(readMethod);
     }
 
     private ExpressionDef directFieldAccess(String instanceName, FieldElement field) {
-        return new VariableDef.Local(instanceName + "." + field.getName(), TypeDef.of(field.getType()));
+        return new VariableDef.Local(instanceName + "." + escapeSourcegenFormat(field.getName()), TypeDef.of(field.getType()));
+    }
+
+    private String escapeSourcegenFormat(String name) {
+        return name.replace("$", "$$");
     }
 
     private String indexedName(String prefix, int index) {

@@ -1393,11 +1393,22 @@ public final class BeanDeserializerSourceGen {
             return directFieldAccess(BEAN_LOCAL, writeField).assign(value);
         }
         MethodElement writeMethod = Objects.requireNonNull(property.writeMethod());
+        if (writeMethod.getName().indexOf('$') >= 0) {
+            return beanVariable.invoke(
+                escapeSourcegenFormat(writeMethod.getName()),
+                TypeDef.of(writeMethod.getReturnType()),
+                value
+            );
+        }
         return beanVariable.invoke(writeMethod, value);
     }
 
     private VariableDef.Local directFieldAccess(String instanceName, FieldElement field) {
-        return new VariableDef.Local(instanceName + "." + field.getName(), TypeDef.of(field.getType()));
+        return new VariableDef.Local(instanceName + "." + escapeSourcegenFormat(field.getName()), TypeDef.of(field.getType()));
+    }
+
+    private String escapeSourcegenFormat(String name) {
+        return name.replace("$", "$$");
     }
 
     private boolean requiresFailOnNullForPrimitives(BeanSerdeShape beanSerdeShape) {
