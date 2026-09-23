@@ -27,6 +27,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Lazy property serdes used by generated serdes for properties whose type can refer back to the
@@ -70,7 +71,7 @@ public final class GeneratedSerdeLazyUtil {
     private static final class LazySerializer<T> implements Serializer<T> {
         private final Serializer.EncoderContext context;
         private final Argument<T> type;
-        private volatile @Nullable Serializer<T> delegate;
+        private final AtomicReference<@Nullable Serializer<T>> delegate = new AtomicReference<>();
 
         @SuppressWarnings("unchecked")
         private LazySerializer(Serializer.EncoderContext context, Argument<?> type) {
@@ -80,12 +81,13 @@ public final class GeneratedSerdeLazyUtil {
 
         @SuppressWarnings({"unchecked", "rawtypes"})
         private Serializer<T> delegate() throws SerdeException {
-            Serializer<T> serializer = delegate;
-            if (serializer == null) {
-                serializer = (Serializer<T>) context.findSerializer(type).createSpecific(context, (Argument) type);
-                delegate = serializer;
+            Serializer<T> serializer = delegate.get();
+            if (serializer != null) {
+                return serializer;
             }
-            return serializer;
+            serializer = (Serializer<T>) context.findSerializer(type).createSpecific(context, (Argument) type);
+            Serializer<T> witness = delegate.compareAndExchange(null, serializer);
+            return witness != null ? witness : serializer;
         }
 
         private Serializer<T> uncheckedDelegate() {
@@ -120,7 +122,7 @@ public final class GeneratedSerdeLazyUtil {
     private static final class LazyDeserializer<T> implements Deserializer<T> {
         private final Deserializer.DecoderContext context;
         private final Argument<T> type;
-        private volatile @Nullable Deserializer<T> delegate;
+        private final AtomicReference<@Nullable Deserializer<T>> delegate = new AtomicReference<>();
 
         @SuppressWarnings("unchecked")
         private LazyDeserializer(Deserializer.DecoderContext context, Argument<?> type) {
@@ -130,12 +132,13 @@ public final class GeneratedSerdeLazyUtil {
 
         @SuppressWarnings({"unchecked", "rawtypes"})
         private Deserializer<T> delegate() throws SerdeException {
-            Deserializer<T> deserializer = delegate;
-            if (deserializer == null) {
-                deserializer = (Deserializer<T>) context.findDeserializer(type).createSpecific(context, (Argument) type);
-                delegate = deserializer;
+            Deserializer<T> deserializer = delegate.get();
+            if (deserializer != null) {
+                return deserializer;
             }
-            return deserializer;
+            deserializer = (Deserializer<T>) context.findDeserializer(type).createSpecific(context, (Argument) type);
+            Deserializer<T> witness = delegate.compareAndExchange(null, deserializer);
+            return witness != null ? witness : deserializer;
         }
 
         @Override
