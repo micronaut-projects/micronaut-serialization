@@ -9,7 +9,7 @@ class SerdeJsonEnumSpec extends JsonEnumSpec {
     protected void configureContext(ApplicationContextBuilder contextBuilder) {
         super.configureContext(contextBuilder.properties(
                 Map.of(
-                        "micronaut.serde.deserialization.accept-case-insensitive-enums", "true"
+                        "micronaut.serde.deserialization.accept-case-insensitive-enums", String.valueOf(caseInsensitiveEnums)
                 )
         ))
     }
@@ -429,6 +429,30 @@ enum MyEnum {
         then:
             result.enumMap instanceof EnumMap
             result.enumMap == new EnumMap([(getEnum(context, 'test.MyEnum.VALUE1')): "abc", (getEnum(context, 'test.MyEnum.VALUE3')): 123])
+
+        cleanup:
+            context.close()
+    }
+
+    void "case-insensitive enum lookup prefers explicit names over aliases"() {
+        given:
+            def context = buildContext('example.Choice', '''
+package example;
+
+import com.fasterxml.jackson.annotation.JsonAlias;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+enum Choice {
+    @JsonAlias("green")
+    FIRST,
+    GREEN
+}
+''')
+
+        expect:
+            jsonMapper.readValue('"green"', typeUnderTest).name() == 'FIRST'
+            jsonMapper.readValue('"Green"', typeUnderTest).name() == 'GREEN'
 
         cleanup:
             context.close()

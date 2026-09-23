@@ -611,7 +611,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
             } else {
                 unwrappedProperties = new UnwrappedPropertyDeserializer[db.unwrappedProperties.length];
                 for (int i = 0; i < db.unwrappedProperties.length; i++) {
-                    unwrappedProperties[i] = new UnwrappedPropertyDeserializer(db, db.unwrappedProperties[i], conf);
+                    unwrappedProperties[i] = UnwrappedPropertyDeserializer.create(db, db.unwrappedProperties[i], conf);
                 }
             }
         }
@@ -619,7 +619,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
         void init(DecoderContext decoderContext) throws SerdeException {
             if (unwrappedProperties != null) {
                 for (UnwrappedPropertyDeserializer unwrappedProperty : unwrappedProperties) {
-                    unwrappedProperty.beanDeserializer.init(decoderContext);
+                    unwrappedProperty.init(decoderContext);
                 }
             }
         }
@@ -722,7 +722,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                     wrappedProperty.set(
                         decoderContext,
                         instance,
-                        unwrappedProperty.beanDeserializer.provideInstance(objectArgument, decoderContext)
+                        unwrappedProperty.provideInstance(decoderContext)
                     );
                 }
             }
@@ -764,7 +764,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
             } else {
                 unwrappedProperties = new UnwrappedPropertyDeserializer[db.unwrappedProperties.length];
                 for (int i = 0; i < db.unwrappedProperties.length; i++) {
-                    unwrappedProperties[i] = new UnwrappedPropertyDeserializer(db, db.unwrappedProperties[i], conf);
+                    unwrappedProperties[i] = UnwrappedPropertyDeserializer.create(db, db.unwrappedProperties[i], conf);
                 }
             }
         }
@@ -772,7 +772,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
         void init(DecoderContext decoderContext) throws SerdeException {
             if (unwrappedProperties != null) {
                 for (UnwrappedPropertyDeserializer unwrappedProperty : unwrappedProperties) {
-                    unwrappedProperty.beanDeserializer.init(decoderContext);
+                    unwrappedProperty.init(decoderContext);
                 }
             }
         }
@@ -798,7 +798,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                             wrappedProperty.set(
                                 decoderContext,
                                 instance,
-                                unwrappedProperty.beanDeserializer.provideInstance(objectArgument, decoderContext)
+                                unwrappedProperty.provideInstance(decoderContext)
                             );
                         }
                         return true;
@@ -825,7 +825,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                             wrappedProperty.set(
                                 decoderContext,
                                 instance,
-                                up.beanDeserializer.provideInstance(objectArgument, decoderContext)
+                                up.provideInstance(decoderContext)
                             );
                         }
                         return true;
@@ -883,7 +883,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                     wrappedProperty.set(
                         decoderContext,
                         instance,
-                        unwrappedProperty.beanDeserializer.provideInstance(objectArgument, decoderContext)
+                        unwrappedProperty.provideInstance(decoderContext)
                     );
                 }
             }
@@ -945,7 +945,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
             } else {
                 unwrappedProperties = new UnwrappedPropertyDeserializer[db.creatorUnwrapped.length];
                 for (int i = 0; i < db.creatorUnwrapped.length; i++) {
-                    unwrappedProperties[i] = new UnwrappedPropertyDeserializer(db, db.creatorUnwrapped[i], conf);
+                    unwrappedProperties[i] = UnwrappedPropertyDeserializer.create(db, db.creatorUnwrapped[i], conf);
                 }
             }
             if (db.anySetter == null || !db.anySetter.constructorArgument) {
@@ -958,7 +958,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
         void init(DecoderContext decoderContext) throws SerdeException {
             if (unwrappedProperties != null) {
                 for (UnwrappedPropertyDeserializer unwrappedProperty : unwrappedProperties) {
-                    unwrappedProperty.beanDeserializer.init(decoderContext);
+                    unwrappedProperty.init(decoderContext);
                 }
             }
         }
@@ -1065,7 +1065,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
             if (unwrappedProperties != null) {
                 for (UnwrappedPropertyDeserializer unwrappedProperty : unwrappedProperties) {
                     DeserBean.DerProperty<Object, Object> wrappedProperty = unwrappedProperty.wrappedProperty;
-                    Object value = unwrappedProperty.beanDeserializer.provideInstance(wrappedProperty.argument, decoderContext);
+                    Object value = unwrappedProperty.provideInstance(decoderContext);
                     if (wrappedProperty.views != null && !decoderContext.hasView(wrappedProperty.views)) {
                         continue;
                     }
@@ -1110,21 +1110,65 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
     }
 
     /**
+     * Deserializes the unwrapped properties into the wrapped value.
+     *
+     * @author Denis Stepanov
+     */
+    private abstract static sealed class UnwrappedPropertyDeserializer {
+
+        final DeserBean.DerProperty<Object, Object> wrappedProperty;
+
+        private UnwrappedPropertyDeserializer(DeserBean.DerProperty<Object, Object> wrappedProperty) {
+            this.wrappedProperty = wrappedProperty;
+        }
+
+        static UnwrappedPropertyDeserializer create(DeserBean<?> parentDeserBean,
+                                                    DeserBean.DerProperty<Object, Object> unwrappedProperty,
+                                                    Conf conf) {
+            DeserBean<?> unwrappedBean = unwrappedProperty.unwrapped;
+            if (unwrappedBean == null) {
+                return new UnwrappedMapDeserializer(parentDeserBean, unwrappedProperty);
+            }
+            return new UnwrappedBeanDeserializer(parentDeserBean, unwrappedBean, unwrappedProperty, conf);
+        }
+
+        abstract void init(DecoderContext decoderContext) throws SerdeException;
+
+        abstract boolean tryConsume(int keyIndex, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException;
+
+        abstract boolean tryConsumeUnknown(String propertyName, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException;
+
+        abstract boolean isAllConsumed();
+
+        /**
+         * Provides the unwrapped value.
+         *
+         * @param decoderContext The decoder context
+         * @return The value of the wrapped property
+         */
+        @Nullable
+        abstract Object provideInstance(DecoderContext decoderContext) throws IOException;
+
+        final boolean isHiddenByView(DecoderContext decoderContext) {
+            return wrappedProperty.views != null && !decoderContext.hasView(wrappedProperty.views);
+        }
+    }
+
+    /**
      * Deserializes the unwrapped properties into the wrapped bean.
      *
      * @author Denis Stepanov
      */
-    private static final class UnwrappedPropertyDeserializer {
+    private static final class UnwrappedBeanDeserializer extends UnwrappedPropertyDeserializer {
 
-        private final DeserBean.DerProperty<Object, Object> wrappedProperty;
         private final BeanDeserializer beanDeserializer;
         private final int[] keyIndexes;
 
-        private UnwrappedPropertyDeserializer(DeserBean<?> parentDeserBean,
-                                              DeserBean.DerProperty<Object, Object> unwrappedProperty,
-                                              Conf conf) {
-            this.wrappedProperty = unwrappedProperty;
-            DeserBean<?> unwrappedBean = Objects.requireNonNull(unwrappedProperty.unwrapped);
+        private UnwrappedBeanDeserializer(DeserBean<?> parentDeserBean,
+                                          DeserBean<?> unwrappedBean,
+                                          DeserBean.DerProperty<Object, Object> unwrappedProperty,
+                                          Conf conf) {
+            super(unwrappedProperty);
             this.beanDeserializer = newBeanDeserializer(null, (DeserBean<? super Object>) unwrappedBean, conf, true, false);
             this.keyIndexes = new int[parentDeserBean.propertyKeyCount()];
             for (int i = 0; i < keyIndexes.length; i++) {
@@ -1136,8 +1180,14 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
             }
         }
 
+        @Override
+        void init(DecoderContext decoderContext) throws SerdeException {
+            beanDeserializer.init(decoderContext);
+        }
+
+        @Override
         boolean tryConsume(int keyIndex, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException {
-            if (wrappedProperty.views != null && !decoderContext.hasView(wrappedProperty.views)) {
+            if (isHiddenByView(decoderContext)) {
                 return false;
             }
             int unwrappedKeyIndex = unwrappedKeyIndex(keyIndex);
@@ -1147,19 +1197,88 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
             return beanDeserializer.tryConsume(unwrappedKeyIndex, decoder, decoderContext, objectArgument);
         }
 
+        @Override
         boolean tryConsumeUnknown(String propertyName, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException {
-            if (wrappedProperty.views != null && !decoderContext.hasView(wrappedProperty.views)) {
+            if (isHiddenByView(decoderContext)) {
                 return false;
             }
             return beanDeserializer.tryConsumeUnknown(propertyName, decoder, decoderContext, objectArgument);
         }
 
+        @Override
         boolean isAllConsumed() {
             return beanDeserializer.isAllConsumed();
         }
 
+        @Override
+        @Nullable Object provideInstance(DecoderContext decoderContext) throws IOException {
+            // An unwrapped nullable bean without any of its properties collapses to null
+            return beanDeserializer.provideInstance(wrappedProperty.argument, decoderContext, true);
+        }
+
         private int unwrappedKeyIndex(int keyIndex) {
             return keyIndex < keyIndexes.length ? keyIndexes[keyIndex] : Keys.UNKNOWN_KEY;
+        }
+    }
+
+    /**
+     * Deserializes the properties the bean does not know into the wrapped map, as Jackson does for an
+     * unwrapped map or an unwrapped type variable that is unbound or bound to a map.
+     */
+    private static final class UnwrappedMapDeserializer extends UnwrappedPropertyDeserializer {
+
+        private final DeserBean<?> parentDeserBean;
+        private final Map<String, @Nullable Object> values = new LinkedHashMap<>();
+
+        private UnwrappedMapDeserializer(DeserBean<?> parentDeserBean, DeserBean.DerProperty<Object, Object> unwrappedProperty) {
+            super(unwrappedProperty);
+            this.parentDeserBean = parentDeserBean;
+        }
+
+        @Override
+        void init(DecoderContext decoderContext) {
+            // The value deserializer is resolved when the bean is initialized
+        }
+
+        @Override
+        boolean tryConsume(int keyIndex, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) {
+            // A key with an index belongs to the bean or to another unwrapped bean
+            return false;
+        }
+
+        @Override
+        boolean tryConsumeUnknown(String propertyName, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException {
+            if (isHiddenByView(decoderContext)) {
+                return false;
+            }
+            Object value;
+            if (decoder.decodeNull()) {
+                value = null;
+            } else {
+                Deserializer<Object> valueDeserializer = wrappedProperty.unwrappedValueDeserializer;
+                Argument<Object> valueType = valueDeserializer == null ? Argument.OBJECT_ARGUMENT : Objects.requireNonNull(wrappedProperty.unwrappedValueType);
+                try {
+                    value = valueDeserializer == null
+                        ? decoder.decodeArbitrary()
+                        : valueDeserializer.deserializeNullable(decoder, decoderContext, valueType);
+                } catch (SerdeException e) {
+                    e.getPath().add(ReferencePath.ofProperty(parentDeserBean.introspection.getBeanType(), valueType.withName(propertyName)));
+                    throw e;
+                }
+            }
+            values.put(propertyName, value);
+            return true;
+        }
+
+        @Override
+        boolean isAllConsumed() {
+            // Any property that follows can still be unknown
+            return false;
+        }
+
+        @Override
+        Object provideInstance(DecoderContext decoderContext) {
+            return values;
         }
     }
 
@@ -1227,7 +1346,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
         }
 
         @Override
-        public @Nullable Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext) throws IOException {
+        public @Nullable Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext, boolean allowNullInstance) throws IOException {
             Object instance;
             try {
                 Object[] values = constructorValuesDeserializer.getValues(decoderContext);
@@ -1237,7 +1356,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                 if (conf.preInstantiateCallback != null) {
                     conf.preInstantiateCallback.preInstantiate(introspection, values);
                 }
-                if (objectArgument.isNullable() && allNull(values) && propertiesConsumer == null && anyValuesDeserializer == null) {
+                if (allowNullInstance && objectArgument.isNullable() && allNull(values) && propertiesConsumer == null && anyValuesDeserializer == null) {
                     return null;
                 }
                 instance = introspection.instantiate(conf.strictNullable, values);
@@ -1337,7 +1456,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
         }
 
         @Override
-        public Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext) throws IOException {
+        public Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext, boolean allowNullInstance) throws IOException {
             if (propertiesConsumer != null) {
                 propertiesConsumer.finalizeProperties(decoderContext, objectArgument, Objects.requireNonNull(instance), !updateMode);
             }
@@ -1501,11 +1620,11 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
         }
 
         @Override
-        public @Nullable Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext) throws IOException {
+        public @Nullable Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext, boolean allowNullInstance) throws IOException {
             if (beanDeserializer == null) {
                 return null;
             }
-            return beanDeserializer.provideInstance(objectArgument, decoderContext);
+            return beanDeserializer.provideInstance(objectArgument, decoderContext, allowNullInstance);
         }
     }
 
@@ -1649,17 +1768,18 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
 
         @Override
         void init(DecoderContext decoderContext) {
+            // no-op
         }
 
         @Override
-        public @Nullable Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext) throws IOException {
+        public @Nullable Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext, boolean allowNullInstance) throws IOException {
             if (beanDeserializer == null) {
                 if (buffer != null) {
                     throw new SerdeException("Cannot deduct the subtype for bean " + objectArgument.getType().getName());
                 }
                 return null;
             }
-            return beanDeserializer.provideInstance(objectArgument, decoderContext);
+            return beanDeserializer.provideInstance(objectArgument, decoderContext, allowNullInstance);
         }
     }
 
@@ -1726,7 +1846,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
         }
 
         @Override
-        public @Nullable Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext) {
+        public @Nullable Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext, boolean allowNullInstance) {
             return instance;
         }
     }
@@ -1786,7 +1906,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
         }
 
         @Override
-        public Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext) throws IOException {
+        public Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext, boolean allowNullInstance) throws IOException {
             BeanIntrospection.Builder<? super Object> beanBuilder = Objects.requireNonNull(builder);
             if (hasPropertiesToFinalize && !propertiesConsumer.isAllConsumed()) {
                 finalizeMissingProperties(decoderContext, beanBuilder);
@@ -1841,8 +1961,20 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
 
         abstract void init(DecoderContext decoderContext) throws SerdeException;
 
+        /**
+         * Provides the bean instance for a decoded object. An explicit {@code {}} must yield a non-null instance.
+         */
         @Nullable
-        abstract Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext) throws IOException;
+        final Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext) throws IOException {
+            return provideInstance(objectArgument, decoderContext, false);
+        }
+
+        /**
+         * @param allowNullInstance when {@code true}, an all-null nullable bean may collapse to {@code null}
+         *                          (only for {@code @JsonUnwrapped}, never for an explicitly decoded object)
+         */
+        @Nullable
+        abstract Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext, boolean allowNullInstance) throws IOException;
 
     }
 

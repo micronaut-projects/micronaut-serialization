@@ -55,6 +55,7 @@ import tools.jackson.core.ObjectWriteContext;
 import tools.jackson.core.PrettyPrinter;
 import tools.jackson.core.StreamReadFeature;
 import tools.jackson.core.StreamWriteFeature;
+import tools.jackson.core.TokenStreamFactory;
 import tools.jackson.core.exc.StreamReadException;
 import tools.jackson.core.exc.StreamWriteException;
 import tools.jackson.core.json.JsonFactory;
@@ -87,6 +88,9 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
      * maximum block size.
      */
     private static final int MAX_OUTPUT_SIZE_HINT = 1 << 17;
+
+    private static final String VALUE_TO_UPDATE_NULL_MSG = "Value to update cannot be null";
+    private static final String TYPE_NULL_MSG = "Type cannot be null";
 
     /**
      * Adaptive first-block size for {@link #writeValueAsBytes}. Plain int with benign
@@ -215,7 +219,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
     private static JsonFactory buildJsonFactory(SerdeJacksonConfiguration jacksonConfiguration) {
         JsonFactoryBuilder builder = JsonFactory.builder()
             .recyclerPool(JsonRecyclerPools.threadLocalPool());
-        for (Map.Entry<JsonFactory.Feature, Boolean> e : jacksonConfiguration.getJsonFactoryFeatures().entrySet()) {
+        for (Map.Entry<TokenStreamFactory.Feature, Boolean> e : jacksonConfiguration.getJsonFactoryFeatures().entrySet()) {
             builder = builder.configure(e.getKey(), e.getValue());
         }
         for (Map.Entry<JsonReadFeature, Boolean> e : jacksonConfiguration.getJsonReadFeatures().entrySet()) {
@@ -435,14 +439,14 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
     @Override
     @SuppressWarnings("unchecked")
     public <T> T updateValue(T valueToUpdate, @Nullable Object overrides) throws IOException {
-        Objects.requireNonNull(valueToUpdate, "Value to update cannot be null");
+        Objects.requireNonNull(valueToUpdate, VALUE_TO_UPDATE_NULL_MSG);
         return updateValue(valueToUpdate, (Argument<T>) Argument.of(valueToUpdate.getClass()), overrides);
     }
 
     @Override
     public <T> T updateValue(T valueToUpdate, Argument<T> type, @Nullable Object overrides) throws IOException {
-        Objects.requireNonNull(valueToUpdate, "Value to update cannot be null");
-        Objects.requireNonNull(type, "Type cannot be null");
+        Objects.requireNonNull(valueToUpdate, VALUE_TO_UPDATE_NULL_MSG);
+        Objects.requireNonNull(type, TYPE_NULL_MSG);
         if (overrides == null) {
             return valueToUpdate;
         }
@@ -467,8 +471,8 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
 
     @Override
     public <T> T updateValue(T valueToUpdate, Argument<T> type, InputStream inputStream) throws IOException {
-        Objects.requireNonNull(valueToUpdate, "Value to update cannot be null");
-        Objects.requireNonNull(type, "Type cannot be null");
+        Objects.requireNonNull(valueToUpdate, VALUE_TO_UPDATE_NULL_MSG);
+        Objects.requireNonNull(type, TYPE_NULL_MSG);
         Objects.requireNonNull(inputStream, "Input stream cannot be null");
         try (JsonParser parser = jsonFactory.createParser(inputStream)) {
             return updateValue(parser, valueToUpdate, type);
@@ -479,8 +483,8 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
 
     @Override
     public <T> T updateValue(T valueToUpdate, Argument<T> type, byte[] byteArray) throws IOException {
-        Objects.requireNonNull(valueToUpdate, "Value to update cannot be null");
-        Objects.requireNonNull(type, "Type cannot be null");
+        Objects.requireNonNull(valueToUpdate, VALUE_TO_UPDATE_NULL_MSG);
+        Objects.requireNonNull(type, TYPE_NULL_MSG);
         Objects.requireNonNull(byteArray, "Byte array cannot be null");
         try (JsonParser parser = jsonFactory.createParser(byteArray)) {
             return updateValue(parser, valueToUpdate, type);
@@ -491,8 +495,8 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
 
     @Override
     public <T> T updateValue(T valueToUpdate, Argument<T> type, ByteBuffer<?> byteBuffer) throws IOException {
-        Objects.requireNonNull(valueToUpdate, "Value to update cannot be null");
-        Objects.requireNonNull(type, "Type cannot be null");
+        Objects.requireNonNull(valueToUpdate, VALUE_TO_UPDATE_NULL_MSG);
+        Objects.requireNonNull(type, TYPE_NULL_MSG);
         Objects.requireNonNull(byteBuffer, "Byte buffer cannot be null");
         try (JsonParser parser = JacksonCoreParserFactory.createJsonParser(jsonFactory, byteBuffer)) {
             return updateValue(parser, valueToUpdate, type);

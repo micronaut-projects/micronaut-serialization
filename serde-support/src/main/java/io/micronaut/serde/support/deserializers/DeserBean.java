@@ -67,6 +67,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -255,7 +256,7 @@ final class DeserBean<T> {
             Argument<Object> constructorWithPropertyArgument = constructorArgument.withAnnotationMetadata(annotationMetadata);
             final boolean isUnwrapped = annotationMetadata.hasAnnotation(SerdeConfig.SerUnwrapped.class);
             DeserBean<Object> unwrapped = null;
-            if (isUnwrapped && !constructorArgument.getType().equals(Object.class)) {
+            if (isUnwrapped && !isUnwrappedMap(constructorArgument)) {
                 unwrapped = deserBeanRegistry.getDeserializableBean(
                     serdeArgumentConf == null ? constructorWithPropertyArgument : serdeArgumentConf.extendArgumentWithPrefixSuffix(constructorWithPropertyArgument),
                     typeArguments,
@@ -387,7 +388,7 @@ final class DeserBean<T> {
                         }
 
                         DeserBean<Object> unwrapped = null;
-                        if (isUnwrapped) {
+                        if (isUnwrapped && !isUnwrappedMap(propertyArgument)) {
                             unwrapped = deserBeanRegistry.getDeserializableBean(
                                 serdeArgumentConf == null ? propertyArgument : serdeArgumentConf.extendArgumentWithPrefixSuffix(propertyArgument),
                                 typeArguments,
@@ -682,8 +683,37 @@ final class DeserBean<T> {
         if (unwrappedProperties != null) {
             for (DerProperty<T, Object> unwrappedProperty : unwrappedProperties) {
                 initProperty(unwrappedProperty, decoderContext);
+                initUnwrappedMap(unwrappedProperty, decoderContext);
             }
         }
+        if (creatorUnwrapped != null) {
+            for (DerProperty<T, Object> unwrappedProperty : creatorUnwrapped) {
+                initUnwrappedMap(unwrappedProperty, decoderContext);
+            }
+        }
+    }
+
+    /**
+     * An unwrapped property whose type a {@link LinkedHashMap} is assignable to, which includes a type variable
+     * that is unbound or bound to {@link Map}, collects the properties the bean does not know into a map, as
+     * Jackson does, instead of reading them into an unwrapped bean.
+     *
+     * @param argument The unwrapped argument
+     * @return Whether the unwrapped argument is read as a map
+     */
+    private static boolean isUnwrappedMap(Argument<?> argument) {
+        return argument.getType().isAssignableFrom(LinkedHashMap.class);
+    }
+
+    private void initUnwrappedMap(DerProperty<T, Object> property, Deserializer.DecoderContext decoderContext) throws SerdeException {
+        if (property.unwrapped != null) {
+            return;
+        }
+        Argument<Object> valueType = Map.class.isAssignableFrom(property.argument.getType())
+            ? (Argument<Object>) property.argument.getTypeVariable("V").orElse(Argument.OBJECT_ARGUMENT)
+            : Argument.OBJECT_ARGUMENT;
+        property.unwrappedValueType = valueType;
+        property.unwrappedValueDeserializer = valueType.equalsType(Argument.OBJECT_ARGUMENT) ? null : findDeserializer(decoderContext, valueType);
     }
 
     private boolean isSimpleBean() {
@@ -956,7 +986,11 @@ final class DeserBean<T> {
                                          boolean acceptCaseInsensitiveProperties) {
         if (unwrappedProperties != null) {
             for (DerProperty<?, Object> unwrappedProperty : unwrappedProperties) {
-                DeserBean<?> unwrapped = Objects.requireNonNull(unwrappedProperty.unwrapped);
+                DeserBean<?> unwrapped = unwrappedProperty.unwrapped;
+                if (unwrapped == null) {
+                    // An unwrapped map has no keys, it receives the unknown properties
+                    continue;
+                }
                 for (String propertyKeyName : unwrapped.propertyKeyNames) {
                     PropertiesBag.addKey(keys, propertyKeyName, acceptCaseInsensitiveProperties);
                 }
@@ -1177,6 +1211,17 @@ final class DeserBean<T> {
         public Deserializer<P> deserializer;
         @Nullable
         public Deserializer<P> mergeDeserializer;
+        /**
+         * The type of the values of an unwrapped map. Null when the property is not an unwrapped map or the
+         * DeserBean is not initialized.
+         */
+        @Nullable
+        public Argument<Object> unwrappedValueType;
+        /**
+         * The deserializer of the values of an unwrapped map, null when the values are decoded as arbitrary values.
+         */
+        @Nullable
+        public Deserializer<Object> unwrappedValueDeserializer;
         private byte decoderValueKind = DecoderValueKind.NONE_CODE;
         /**
          * Precomputed simple-path modes so {@link #deserializeAndSetSimplePropertyValue} can

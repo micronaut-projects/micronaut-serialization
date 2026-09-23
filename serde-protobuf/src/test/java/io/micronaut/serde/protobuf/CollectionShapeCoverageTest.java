@@ -203,14 +203,25 @@ class CollectionShapeCoverageTest {
     }
 
     @Test
-    void nestedByteArraysAreNotSupportedBySerdeItself() {
-        var value = new ShapeModels.ByteMatrix(new byte[][]{{1, 2}, {3}});
+    void aByteArrayMatrixIsARepeatedBytesField() throws Exception {
+        var value = new ShapeModels.ByteMatrix(BLOBS.toArray(byte[][]::new));
 
-        // not a protobuf limitation: the generated serializer picks the byte[] serializer for the
-        // outer array, and writeValueToTree fails the same way without reaching an encoder
-        Exception e = assertThrows(Exception.class,
-            () -> mapper.writeValueAsBytes(Argument.of(ShapeModels.ByteMatrix.class), value));
-        assertTrue(rootMessage(e).contains("cannot be cast to class [B"), rootMessage(e));
+        byte[] payload = mapper.writeValueAsBytes(Argument.of(ShapeModels.ByteMatrix.class), value);
+
+        assertArrayEquals(blobsOnlyReference(), payload);
+        ShapeModels.ByteMatrix back = mapper.readValue(payload, Argument.of(ShapeModels.ByteMatrix.class));
+        assertEquals(BLOBS.size(), back.blobs().length);
+        for (int i = 0; i < BLOBS.size(); i++) {
+            assertArrayEquals(BLOBS.get(i), back.blobs()[i]);
+        }
+    }
+
+    private static byte[] blobsOnlyReference() {
+        Descriptors.Descriptor shapes = ProtoReference.SHAPES;
+        return DynamicMessage.newBuilder(shapes)
+            .setField(shapes.findFieldByNumber(5), BLOBS.stream().map(ByteString::copyFrom).toList())
+            .build()
+            .toByteArray();
     }
 
     private static <T> List<T> orEmpty(List<T> value) {

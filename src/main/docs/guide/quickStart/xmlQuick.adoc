@@ -159,11 +159,14 @@ micronaut:
   serde:
     format:
       xml:
+        maximum-input-size: 10MB
         repairing-namespaces: true
         automatic-empty-elements: false
         xml-read-features:
           EMPTY_ELEMENT_AS_NULL: true
 ----
+
+`maximum-input-size` defaults to `10MB` and stops XML parsing after that many input bytes. Increase it only when trusted payloads legitimately exceed the default; transport-level request limits should remain enabled as the first line of defense.
 
 `repairing-namespaces` defaults to `true` and lets the XML writer declare namespace prefixes when a property or root element has a namespace. Set it to `false` only when the XML stream writer is expected to receive already-valid namespace bindings.
 
