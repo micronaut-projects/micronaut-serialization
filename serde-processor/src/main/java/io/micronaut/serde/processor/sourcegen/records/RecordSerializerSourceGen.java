@@ -248,13 +248,16 @@ public final class RecordSerializerSourceGen {
                 String componentName = serializerFieldEntry.getKey();
                 String serializerFieldName = serializerFieldEntry.getValue();
                 ExpressionDef argumentExpression = serializerClassTypeDef.getStaticField(required(argumentFieldNames, componentName), ARGUMENT_TYPE);
-                ExpressionDef serializerExpression = isSelfReferentialComponent(element, recordSerdeShape, componentName)
-                    ? ClassTypeDef.of(GeneratedSerdeFallbackUtil.class)
-                        .invokeStatic(WITH_RUNTIME_FALLBACK_SERIALIZER_METHOD, aThis, context, argumentExpression)
-                    : isIndirectlyRecursiveComponent(recursion, recordSerdeShape, componentName)
-                    ? ClassTypeDef.of(GeneratedSerdeLazyUtil.class).invokeStatic(LAZY_SERIALIZER_METHOD, context, argumentExpression)
-                    : context.invoke(FIND_SERIALIZER_METHOD, argumentExpression)
+                ExpressionDef serializerExpression;
+                if (isSelfReferentialComponent(element, recordSerdeShape, componentName)) {
+                    serializerExpression = ClassTypeDef.of(GeneratedSerdeFallbackUtil.class)
+                        .invokeStatic(WITH_RUNTIME_FALLBACK_SERIALIZER_METHOD, aThis, context, argumentExpression);
+                } else if (isIndirectlyRecursiveComponent(recursion, recordSerdeShape, componentName)) {
+                    serializerExpression = ClassTypeDef.of(GeneratedSerdeLazyUtil.class).invokeStatic(LAZY_SERIALIZER_METHOD, context, argumentExpression);
+                } else {
+                    serializerExpression = context.invoke(FIND_SERIALIZER_METHOD, argumentExpression)
                         .invoke(CREATE_SPECIFIC_SERIALIZER_METHOD, context, argumentExpression);
+                }
                 statements.add(aThis.field(serializerFieldName, SERIALIZER_TYPE).put(
                     serializerExpression
                 ));

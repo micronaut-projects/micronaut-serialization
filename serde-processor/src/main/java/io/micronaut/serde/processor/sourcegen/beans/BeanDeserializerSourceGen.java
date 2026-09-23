@@ -400,13 +400,16 @@ public final class BeanDeserializerSourceGen {
                 String propertyName = deserializerFieldEntry.getKey();
                 String deserializerFieldName = deserializerFieldEntry.getValue();
                 ExpressionDef argumentExpression = deserializerClassTypeDef.getStaticField(required(argumentFieldNames, propertyName), ARGUMENT_TYPE);
-                ExpressionDef deserializerExpression = isSelfReferentialProperty(element, beanSerdeShape, propertyName)
-                    ? ClassTypeDef.of(GeneratedSerdeFallbackUtil.class)
-                        .invokeStatic(WITH_RUNTIME_FALLBACK_DESERIALIZER_METHOD, aThis, context, argumentExpression)
-                    : isIndirectlyRecursiveProperty(recursion, beanSerdeShape, propertyName)
-                    ? ClassTypeDef.of(GeneratedSerdeLazyUtil.class).invokeStatic(LAZY_DESERIALIZER_METHOD, context, argumentExpression)
-                    : context.invoke(FIND_DESERIALIZER_METHOD, argumentExpression)
+                ExpressionDef deserializerExpression;
+                if (isSelfReferentialProperty(element, beanSerdeShape, propertyName)) {
+                    deserializerExpression = ClassTypeDef.of(GeneratedSerdeFallbackUtil.class)
+                        .invokeStatic(WITH_RUNTIME_FALLBACK_DESERIALIZER_METHOD, aThis, context, argumentExpression);
+                } else if (isIndirectlyRecursiveProperty(recursion, beanSerdeShape, propertyName)) {
+                    deserializerExpression = ClassTypeDef.of(GeneratedSerdeLazyUtil.class).invokeStatic(LAZY_DESERIALIZER_METHOD, context, argumentExpression);
+                } else {
+                    deserializerExpression = context.invoke(FIND_DESERIALIZER_METHOD, argumentExpression)
                         .invoke(CREATE_SPECIFIC_DESERIALIZER_METHOD, context, argumentExpression);
+                }
                 statements.add(aThis.field(deserializerFieldName, DESERIALIZER_TYPE).put(deserializerExpression));
             }
             return StatementDef.multi(statements);

@@ -386,13 +386,16 @@ public final class RecordDeserializerSourceGen {
                 String componentName = deserializerFieldEntry.getKey();
                 String deserializerFieldName = deserializerFieldEntry.getValue();
                 ExpressionDef argumentExpression = deserializerClassTypeDef.getStaticField(required(argumentFieldNames, componentName), ARGUMENT_TYPE);
-                ExpressionDef deserializerExpression = isSelfReferentialComponent(element, recordSerdeShape, componentName)
-                    ? ClassTypeDef.of(GeneratedSerdeFallbackUtil.class)
-                        .invokeStatic(WITH_RUNTIME_FALLBACK_DESERIALIZER_METHOD, aThis, context, argumentExpression)
-                    : isIndirectlyRecursiveComponent(recursion, recordSerdeShape, componentName)
-                    ? ClassTypeDef.of(GeneratedSerdeLazyUtil.class).invokeStatic(LAZY_DESERIALIZER_METHOD, context, argumentExpression)
-                    : context.invoke(FIND_DESERIALIZER_METHOD, argumentExpression)
+                ExpressionDef deserializerExpression;
+                if (isSelfReferentialComponent(element, recordSerdeShape, componentName)) {
+                    deserializerExpression = ClassTypeDef.of(GeneratedSerdeFallbackUtil.class)
+                        .invokeStatic(WITH_RUNTIME_FALLBACK_DESERIALIZER_METHOD, aThis, context, argumentExpression);
+                } else if (isIndirectlyRecursiveComponent(recursion, recordSerdeShape, componentName)) {
+                    deserializerExpression = ClassTypeDef.of(GeneratedSerdeLazyUtil.class).invokeStatic(LAZY_DESERIALIZER_METHOD, context, argumentExpression);
+                } else {
+                    deserializerExpression = context.invoke(FIND_DESERIALIZER_METHOD, argumentExpression)
                         .invoke(CREATE_SPECIFIC_DESERIALIZER_METHOD, context, argumentExpression);
+                }
                 statements.add(aThis.field(deserializerFieldName, DESERIALIZER_TYPE).put(
                     deserializerExpression
                 ));

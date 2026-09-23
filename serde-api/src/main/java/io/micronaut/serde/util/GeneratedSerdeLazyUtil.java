@@ -51,9 +51,10 @@ public final class GeneratedSerdeLazyUtil {
      *
      * @param context The encoder context
      * @param type    The property type
+     * @param <T>     The property type
      * @return The lazy serializer
      */
-    public static Serializer<?> lazySerializer(Serializer.EncoderContext context, Argument<?> type) {
+    public static <T> Serializer<T> lazySerializer(Serializer.EncoderContext context, Argument<T> type) {
         return new LazySerializer<>(context, type);
     }
 
@@ -62,35 +63,34 @@ public final class GeneratedSerdeLazyUtil {
      *
      * @param context The decoder context
      * @param type    The property type
+     * @param <T>     The property type
      * @return The lazy deserializer
      */
-    public static Deserializer<?> lazyDeserializer(Deserializer.DecoderContext context, Argument<?> type) {
+    public static <T> Deserializer<T> lazyDeserializer(Deserializer.DecoderContext context, Argument<T> type) {
         return new LazyDeserializer<>(context, type);
     }
 
     private static final class LazySerializer<T> implements Serializer<T> {
         private final Serializer.EncoderContext context;
         private final Argument<T> type;
-        private final AtomicReference<@Nullable Serializer<T>> delegate = new AtomicReference<>();
+        private final AtomicReference<@Nullable Serializer<? super T>> delegate = new AtomicReference<>();
 
-        @SuppressWarnings("unchecked")
-        private LazySerializer(Serializer.EncoderContext context, Argument<?> type) {
+        private LazySerializer(Serializer.EncoderContext context, Argument<T> type) {
             this.context = context;
-            this.type = (Argument<T>) type;
+            this.type = type;
         }
 
-        @SuppressWarnings({"unchecked", "rawtypes"})
-        private Serializer<T> delegate() throws SerdeException {
-            Serializer<T> serializer = delegate.get();
+        private Serializer<? super T> delegate() throws SerdeException {
+            Serializer<? super T> serializer = delegate.get();
             if (serializer != null) {
                 return serializer;
             }
-            serializer = (Serializer<T>) context.findSerializer(type).createSpecific(context, (Argument) type);
-            Serializer<T> witness = delegate.compareAndExchange(null, serializer);
+            serializer = context.findSerializer(type).createSpecific(context, type);
+            Serializer<? super T> witness = delegate.compareAndExchange(null, serializer);
             return witness != null ? witness : serializer;
         }
 
-        private Serializer<T> uncheckedDelegate() {
+        private Serializer<? super T> uncheckedDelegate() {
             try {
                 return delegate();
             } catch (SerdeException e) {
@@ -122,22 +122,20 @@ public final class GeneratedSerdeLazyUtil {
     private static final class LazyDeserializer<T> implements Deserializer<T> {
         private final Deserializer.DecoderContext context;
         private final Argument<T> type;
-        private final AtomicReference<@Nullable Deserializer<T>> delegate = new AtomicReference<>();
+        private final AtomicReference<@Nullable Deserializer<? extends T>> delegate = new AtomicReference<>();
 
-        @SuppressWarnings("unchecked")
-        private LazyDeserializer(Deserializer.DecoderContext context, Argument<?> type) {
+        private LazyDeserializer(Deserializer.DecoderContext context, Argument<T> type) {
             this.context = context;
-            this.type = (Argument<T>) type;
+            this.type = type;
         }
 
-        @SuppressWarnings({"unchecked", "rawtypes"})
-        private Deserializer<T> delegate() throws SerdeException {
-            Deserializer<T> deserializer = delegate.get();
+        private Deserializer<? extends T> delegate() throws SerdeException {
+            Deserializer<? extends T> deserializer = delegate.get();
             if (deserializer != null) {
                 return deserializer;
             }
-            deserializer = (Deserializer<T>) context.findDeserializer(type).createSpecific(context, (Argument) type);
-            Deserializer<T> witness = delegate.compareAndExchange(null, deserializer);
+            deserializer = context.findDeserializer(type).createSpecific(context, type);
+            Deserializer<? extends T> witness = delegate.compareAndExchange(null, deserializer);
             return witness != null ? witness : deserializer;
         }
 
