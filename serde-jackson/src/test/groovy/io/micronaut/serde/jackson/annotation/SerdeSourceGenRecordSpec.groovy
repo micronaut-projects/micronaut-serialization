@@ -359,7 +359,7 @@ enum LifecycleState { ACTIVE, DELETED }
         Class<?> detailType = context.classLoader.loadClass('test.ResourceDetail')
         Class<?> detailsType = context.classLoader.loadClass('test.ResourceDetails')
         Class<?> stateType = context.classLoader.loadClass('test.LifecycleState')
-        def type = Argument.of(detailType, Argument.of(String), Argument.of(stateType), Argument.of(String))
+        def type = Argument.of(detailType, Argument.of(String, 'I'), Argument.of(stateType, 'S'), Argument.of(String, 'D'))
         def registry = context.getBean(SerdeRegistry)
 
         expect:
@@ -370,8 +370,8 @@ enum LifecycleState { ACTIVE, DELETED }
 
         when:
         def state = stateType.enumConstants[0]
-        def details = detailsType.getDeclaredConstructor(Object, Enum).newInstance('id-1', state)
-        def record = detailType.getDeclaredConstructor(detailsType, Object).newInstance(details, 'info')
+        def details = detailsType.getDeclaredConstructor(Object, Enum).tap { accessible = true }.newInstance('id-1', state)
+        def record = detailType.getDeclaredConstructor(detailsType, Object).tap { accessible = true }.newInstance(details, 'info')
         String json = jsonMapper.writeValueAsString(record)
         def deserialized = jsonMapper.readValue(json, type)
 
