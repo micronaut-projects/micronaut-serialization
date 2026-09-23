@@ -383,6 +383,41 @@ enum LifecycleState { ACTIVE, DELETED }
         context.close()
     }
 
+    void 'test record sourcegen handles components recursing through collections maps and arrays'() {
+        given:
+        def context = buildContext('test.TreeNode', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import java.util.List;
+import java.util.Map;
+
+@Serdeable
+public record TreeNode(String name, List<TreeNode> children, Map<String, TreeNode> named, TreeNode[] array) {}
+''')
+        Class<?> nodeType = context.classLoader.loadClass('test.TreeNode')
+        def registry = context.getBean(SerdeRegistry)
+        def type = Argument.of(nodeType)
+        String json = '{"name":"root","children":[{"name":"a"}],"named":{"n":{"name":"b"}},"array":[{"name":"c"}]}'
+
+        expect:
+        assertGeneratedSerializer(registry, type)
+        assertGeneratedDeserializer(registry, type)
+
+        when:
+        def decoded = jsonMapper.readValue(json, type)
+
+        then:
+        decoded.name() == 'root'
+        decoded.children()*.name() == ['a']
+        decoded.named().n.name() == 'b'
+        decoded.array()*.name() == ['c']
+        jsonMapper.writeValueAsString(decoded) == json
+
+        cleanup:
+        context.close()
+    }
+
     private static void assertGeneratedSerializer(SerdeRegistry registry, Argument argument) {
         Serializer serializer = registry.findSerializer(argument).createSpecific(registry.newEncoderContext(Object), argument)
         assert serializer.class.name == generatedClassName(argument.type, 'Serializer')

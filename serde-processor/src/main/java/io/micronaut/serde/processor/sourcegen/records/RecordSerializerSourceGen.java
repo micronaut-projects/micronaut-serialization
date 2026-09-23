@@ -30,11 +30,13 @@ import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.processor.sourcegen.SerdeInclusionSourceGen;
-import io.micronaut.serde.processor.sourcegen.SerdeSourceGenPropertyOrder;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenNames;
+import io.micronaut.serde.processor.sourcegen.SerdeSourceGenPropertyOrder;
+import io.micronaut.serde.processor.sourcegen.SerdeSourceGenRecursion;
 import io.micronaut.serde.util.GeneratedSerdeExceptionUtil;
 import io.micronaut.serde.util.GeneratedSerdeFallbackUtil;
+import io.micronaut.serde.util.GeneratedSerdeLazyUtil;
 import io.micronaut.sourcegen.model.AnnotationDef;
 import io.micronaut.sourcegen.model.ClassDef;
 import io.micronaut.sourcegen.model.ClassTypeDef;
@@ -83,6 +85,12 @@ public final class RecordSerializerSourceGen {
         Serializer.EncoderContext.class,
         Argument.class,
         Object.class
+    );
+    private static final Method LAZY_SERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
+        GeneratedSerdeLazyUtil.class,
+        "lazySerializer",
+        Serializer.EncoderContext.class,
+        Argument.class
     );
     private static final Method FIND_SERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(Serializer.EncoderContext.class, "findSerializer", Argument.class);
     private static final Method CREATE_SPECIFIC_SERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
@@ -235,6 +243,7 @@ public final class RecordSerializerSourceGen {
             if (inclusionAware) {
                 statements.addAll(SerdeInclusionSourceGen.resolveStatements(aThis, context));
             }
+            SerdeSourceGenRecursion recursion = new SerdeSourceGenRecursion(element);
             for (Map.Entry<String, String> serializerFieldEntry : serializerFieldNames.entrySet()) {
                 String componentName = serializerFieldEntry.getKey();
                 String serializerFieldName = serializerFieldEntry.getValue();
@@ -242,6 +251,8 @@ public final class RecordSerializerSourceGen {
                 ExpressionDef serializerExpression = isSelfReferentialComponent(element, recordSerdeShape, componentName)
                     ? ClassTypeDef.of(GeneratedSerdeFallbackUtil.class)
                         .invokeStatic(WITH_RUNTIME_FALLBACK_SERIALIZER_METHOD, aThis, context, argumentExpression)
+                    : isIndirectlyRecursiveComponent(recursion, recordSerdeShape, componentName)
+                    ? ClassTypeDef.of(GeneratedSerdeLazyUtil.class).invokeStatic(LAZY_SERIALIZER_METHOD, context, argumentExpression)
                     : context.invoke(FIND_SERIALIZER_METHOD, argumentExpression)
                         .invoke(CREATE_SPECIFIC_SERIALIZER_METHOD, context, argumentExpression);
                 statements.add(aThis.field(serializerFieldName, SERIALIZER_TYPE).put(
@@ -567,7 +578,18 @@ public final class RecordSerializerSourceGen {
                                                RecordSerdeShape recordSerdeShape,
                                                String componentName) {
         for (RecordSerdeShape.RecordComponent component : recordSerdeShape.components()) {
-            if (component.name().equals(componentName) && component.type().getName().equals(element.getName())) {
+            if (component.name().equals(componentName) && SerdeSourceGenRecursion.isDirectlyRecursive(element, component.type())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isIndirectlyRecursiveComponent(SerdeSourceGenRecursion recursion,
+                                                   RecordSerdeShape recordSerdeShape,
+                                                   String componentName) {
+        for (RecordSerdeShape.RecordComponent component : recordSerdeShape.components()) {
+            if (component.name().equals(componentName) && recursion.isIndirectlyRecursive(component.type())) {
                 return true;
             }
         }

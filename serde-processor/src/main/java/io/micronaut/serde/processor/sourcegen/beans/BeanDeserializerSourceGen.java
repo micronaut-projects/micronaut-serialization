@@ -32,9 +32,11 @@ import io.micronaut.serde.KeysAwareDecoder;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenNames;
+import io.micronaut.serde.processor.sourcegen.SerdeSourceGenRecursion;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenSwitches;
 import io.micronaut.serde.util.GeneratedSerdeExceptionUtil;
 import io.micronaut.serde.util.GeneratedSerdeFallbackUtil;
+import io.micronaut.serde.util.GeneratedSerdeLazyUtil;
 import io.micronaut.sourcegen.model.AnnotationDef;
 import io.micronaut.sourcegen.model.ClassDef;
 import io.micronaut.sourcegen.model.ClassTypeDef;
@@ -86,6 +88,12 @@ public final class BeanDeserializerSourceGen {
     private static final String UNKNOWN_DISPATCH_RESULT = "UNKNOWN";
     private static final String DUPLICATE_DISPATCH_RESULT = "DUPLICATE";
     private static final String NULL_DISPATCH_RESULT = "NULL";
+    private static final Method LAZY_DESERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
+        GeneratedSerdeLazyUtil.class,
+        "lazyDeserializer",
+        Deserializer.DecoderContext.class,
+        Argument.class
+    );
     private static final Method FIND_DESERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(Deserializer.DecoderContext.class, "findDeserializer", Argument.class);
     private static final Method CREATE_SPECIFIC_DESERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
         Deserializer.class,
@@ -387,6 +395,7 @@ public final class BeanDeserializerSourceGen {
                     ? ExpressionDef.constant(beanSerdeShape.ignoreUnknown().booleanValue())
                     : ClassTypeDef.of(GeneratedSerdeExceptionUtil.class).invokeStatic(IGNORE_UNKNOWN_METHOD, context)
             ));
+            SerdeSourceGenRecursion recursion = new SerdeSourceGenRecursion(element);
             for (Map.Entry<String, String> deserializerFieldEntry : deserializerFieldNames.entrySet()) {
                 String propertyName = deserializerFieldEntry.getKey();
                 String deserializerFieldName = deserializerFieldEntry.getValue();
@@ -394,6 +403,8 @@ public final class BeanDeserializerSourceGen {
                 ExpressionDef deserializerExpression = isSelfReferentialProperty(element, beanSerdeShape, propertyName)
                     ? ClassTypeDef.of(GeneratedSerdeFallbackUtil.class)
                         .invokeStatic(WITH_RUNTIME_FALLBACK_DESERIALIZER_METHOD, aThis, context, argumentExpression)
+                    : isIndirectlyRecursiveProperty(recursion, beanSerdeShape, propertyName)
+                    ? ClassTypeDef.of(GeneratedSerdeLazyUtil.class).invokeStatic(LAZY_DESERIALIZER_METHOD, context, argumentExpression)
                     : context.invoke(FIND_DESERIALIZER_METHOD, argumentExpression)
                         .invoke(CREATE_SPECIFIC_DESERIALIZER_METHOD, context, argumentExpression);
                 statements.add(aThis.field(deserializerFieldName, DESERIALIZER_TYPE).put(deserializerExpression));
@@ -1507,7 +1518,18 @@ public final class BeanDeserializerSourceGen {
                                              BeanSerdeShape beanSerdeShape,
                                              String propertyName) {
         for (BeanSerdeShape.BeanProperty property : beanSerdeShape.deserializationProperties()) {
-            if (property.name().equals(propertyName) && property.deserializationType().getName().equals(element.getName())) {
+            if (property.name().equals(propertyName) && SerdeSourceGenRecursion.isDirectlyRecursive(element, property.deserializationType())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isIndirectlyRecursiveProperty(SerdeSourceGenRecursion recursion,
+                                                  BeanSerdeShape beanSerdeShape,
+                                                  String propertyName) {
+        for (BeanSerdeShape.BeanProperty property : beanSerdeShape.deserializationProperties()) {
+            if (property.name().equals(propertyName) && recursion.isIndirectlyRecursive(property.deserializationType())) {
                 return true;
             }
         }

@@ -224,6 +224,66 @@ public final class DispatchBeanTypes {
         context.close()
     }
 
+    void 'test bean sourcegen handles properties recursing through collections and other types'() {
+        given:
+        def context = buildContext('test.SchemaProps', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import java.util.List;
+import java.util.Map;
+
+@Serdeable
+class SchemaProps {
+    private String name;
+    private List<SchemaProps> allOf;
+    private Map<String, SchemaProps> properties;
+    private SchemaHolder holder;
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public List<SchemaProps> getAllOf() { return allOf; }
+    public void setAllOf(List<SchemaProps> allOf) { this.allOf = allOf; }
+    public Map<String, SchemaProps> getProperties() { return properties; }
+    public void setProperties(Map<String, SchemaProps> properties) { this.properties = properties; }
+    public SchemaHolder getHolder() { return holder; }
+    public void setHolder(SchemaHolder holder) { this.holder = holder; }
+}
+
+@Serdeable
+class SchemaHolder {
+    private SchemaProps schema;
+
+    public SchemaProps getSchema() { return schema; }
+    public void setSchema(SchemaProps schema) { this.schema = schema; }
+}
+''')
+        Class<?> schemaType = context.classLoader.loadClass('test.SchemaProps')
+        Class<?> holderType = context.classLoader.loadClass('test.SchemaHolder')
+        def registry = context.getBean(SerdeRegistry)
+        def type = Argument.of(schemaType)
+        String json = '{"name":"root","allOf":[{"name":"a"}],"properties":{"p":{"name":"b"}},"holder":{"schema":{"name":"c"}}}'
+
+        expect:
+        assertGeneratedSerializer(registry, type)
+        assertGeneratedDeserializer(registry, type)
+        assertGeneratedSerializer(registry, Argument.of(holderType))
+        assertGeneratedDeserializer(registry, Argument.of(holderType))
+
+        when:
+        def decoded = jsonMapper.readValue(json, type)
+
+        then:
+        decoded.name == 'root'
+        decoded.allOf*.name == ['a']
+        decoded.properties.p.name == 'b'
+        decoded.holder.schema.name == 'c'
+        jsonMapper.writeValueAsString(decoded) == json
+
+        cleanup:
+        context.close()
+    }
+
     private static void assertGeneratedSerializer(SerdeRegistry registry, Argument argument) {
         Serializer serializer = registry.findSerializer(argument).createSpecific(registry.newEncoderContext(Object), argument)
         assert serializer.class.name == generatedClassName(argument.type, 'Serializer')

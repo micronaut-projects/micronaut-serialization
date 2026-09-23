@@ -34,8 +34,10 @@ import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.processor.sourcegen.SerdeInclusionSourceGen;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenNames;
+import io.micronaut.serde.processor.sourcegen.SerdeSourceGenRecursion;
 import io.micronaut.serde.util.GeneratedSerdeExceptionUtil;
 import io.micronaut.serde.util.GeneratedSerdeFallbackUtil;
+import io.micronaut.serde.util.GeneratedSerdeLazyUtil;
 import io.micronaut.sourcegen.model.AnnotationDef;
 import io.micronaut.sourcegen.model.ClassDef;
 import io.micronaut.sourcegen.model.ClassTypeDef;
@@ -84,6 +86,12 @@ public final class BeanSerializerSourceGen {
         Serializer.EncoderContext.class,
         Argument.class,
         Object.class
+    );
+    private static final Method LAZY_SERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
+        GeneratedSerdeLazyUtil.class,
+        "lazySerializer",
+        Serializer.EncoderContext.class,
+        Argument.class
     );
     private static final Method FIND_SERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(Serializer.EncoderContext.class, "findSerializer", Argument.class);
     private static final Method CREATE_SPECIFIC_SERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
@@ -249,6 +257,7 @@ public final class BeanSerializerSourceGen {
             if (inclusionAware) {
                 statements.addAll(SerdeInclusionSourceGen.resolveStatements(aThis, context));
             }
+            SerdeSourceGenRecursion recursion = new SerdeSourceGenRecursion(element);
             for (Map.Entry<String, String> serializerFieldEntry : serializerFieldNames.entrySet()) {
                 String propertyName = serializerFieldEntry.getKey();
                 String serializerFieldName = serializerFieldEntry.getValue();
@@ -256,6 +265,8 @@ public final class BeanSerializerSourceGen {
                 ExpressionDef serializerExpression = isSelfReferentialProperty(element, beanSerdeShape, propertyName)
                     ? ClassTypeDef.of(GeneratedSerdeFallbackUtil.class)
                         .invokeStatic(WITH_RUNTIME_FALLBACK_SERIALIZER_METHOD, aThis, context, argumentExpression)
+                    : isIndirectlyRecursiveProperty(recursion, beanSerdeShape, propertyName)
+                    ? ClassTypeDef.of(GeneratedSerdeLazyUtil.class).invokeStatic(LAZY_SERIALIZER_METHOD, context, argumentExpression)
                     : context.invoke(FIND_SERIALIZER_METHOD, argumentExpression)
                         .invoke(CREATE_SPECIFIC_SERIALIZER_METHOD, context, argumentExpression);
                 statements.add(aThis.field(serializerFieldName, SERIALIZER_TYPE).put(serializerExpression));
@@ -581,7 +592,18 @@ public final class BeanSerializerSourceGen {
                                              BeanSerdeShape beanSerdeShape,
                                              String propertyName) {
         for (BeanSerdeShape.BeanProperty property : beanSerdeShape.serializationProperties()) {
-            if (property.name().equals(propertyName) && property.serializationType().getName().equals(element.getName())) {
+            if (property.name().equals(propertyName) && SerdeSourceGenRecursion.isDirectlyRecursive(element, property.serializationType())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isIndirectlyRecursiveProperty(SerdeSourceGenRecursion recursion,
+                                                  BeanSerdeShape beanSerdeShape,
+                                                  String propertyName) {
+        for (BeanSerdeShape.BeanProperty property : beanSerdeShape.serializationProperties()) {
+            if (property.name().equals(propertyName) && recursion.isIndirectlyRecursive(property.serializationType())) {
                 return true;
             }
         }
