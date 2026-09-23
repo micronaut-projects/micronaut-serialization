@@ -37,7 +37,7 @@ import java.nio.charset.StandardCharsets;
  * recursive-descent parsing.</p>
  *
  * @see <a href="https://github.com/toon-format/spec">TOON specification</a>
- * @since 3.2.0
+ * @since 3.2.1
  */
 @Internal
 @Singleton

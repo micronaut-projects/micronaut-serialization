@@ -44,33 +44,39 @@ import java.util.regex.Pattern;
  * a shallower line ends the body, a deeper one is inconsistent
  * indentation.</p>
  *
- * <p>Operates in the specification's strict mode: it reads exactly the
- * count a header declares, and a declared-count or field-list-width mismatch
- * is a {@link SerdeException}. Per §12/§14.2, a blank line is rejected
- * <em>between</em> two rows/entries/items of a declared-count body, and
- * between two of a list item's own continuation fields - but is harmless and
- * silently skipped between the header and the first row/entry/item (nothing
- * has started yet), between an ordinary object's sibling fields, or between
- * top-level constructs. Per §7.4, an object field's key is read as the
- * literal text up to the first unquoted {@code :} or {@code [}; a
- * keyed-tabular entry's own key has no header syntax of its own to stop
- * for, so it is read up to the first unquoted {@code :} only. Both are
- * accepted regardless of whether they match {@link ToonEncoder}'s own,
- * stricter unquoted-key grammar for deciding when to quote a key on the way
- * out - though whitespace directly adjacent to that delimiter is still
- * rejected rather than silently trimmed.</p>
+ * <p>Follows the specification's strict mode (§14), with the two
+ * exceptions described below, both more lenient than strict mode requires:
+ * it reads exactly the count a header declares, and a declared-count or
+ * field-list-width mismatch is a {@link SerdeException}. Per §7.4, an
+ * object field's key is read as the literal text up to the first unquoted
+ * {@code :} or {@code [}; a keyed-tabular entry's own key has no header
+ * syntax of its own to stop for, so it is read up to the first unquoted
+ * {@code :} only. Both are accepted regardless of whether they match
+ * {@link ToonEncoder}'s own, stricter unquoted-key grammar for deciding
+ * when to quote a key on the way out - though whitespace directly adjacent
+ * to that delimiter is still rejected rather than silently trimmed.</p>
  *
- * <p>Indentation is narrower than full §12 strictness in one respect: the
- * document's indent step is established, not validated, from its very
- * first nesting transition (see {@link #validateNestedIndent}), so an
- * isolated single transition (nothing else in the document to compare it
- * against) can never itself be flagged as non-multiple or as a depth jump,
- * however many spaces it uses - only a later transition that disagrees
- * with the step the first one established is a {@link SerdeException}. A
- * reference decoder that validates every transition against a fixed
- * default step would reject some such documents this one accepts; this is
- * a deliberate trade-off to keep indentation inferred rather than
- * configured (see the 4-space-indented-document test), not an oversight.</p>
+ * <p><b>Exception 1 - blank lines.</b> §12 requires an error for a blank
+ * line anywhere in a header's span, including lines nested deeper inside
+ * its items. This parser rejects a blank line only <em>between</em> two
+ * rows/entries/items of a declared-count body, and between two of a list
+ * item's own continuation fields. A blank line nested deeper inside an
+ * item (for example between two fields of an object that is itself a
+ * field of a list item) is skipped, as the jtoon reference decoder also
+ * does. Blank lines between the header and the first row/entry/item,
+ * between an ordinary object's sibling fields, or between top-level
+ * constructs are skipped, as §12 requires.</p>
+ *
+ * <p><b>Exception 2 - indentation.</b> §12 requires every line's leading
+ * spaces to be an exact multiple of a fixed indent size (default 2). This
+ * parser instead establishes the indent step from the document's very
+ * first nesting transition (see {@link #validateNestedIndent}) and then
+ * requires every later transition to match it. So an isolated single
+ * transition can never itself be flagged as non-multiple or as a depth
+ * jump, however many spaces it uses: {@code a:\n   b: 1} (3 spaces) is
+ * accepted, where a strict decoder with indent size 2 would reject it.
+ * This is a deliberate trade-off to keep indentation inferred rather than
+ * configured (see the 4-space-indented-document test).</p>
  *
  * <p>Guards against a maliciously deep document the same way every other
  * decoder in this codebase does: it extends {@link LimitingStream} and
@@ -80,7 +86,7 @@ import java.util.regex.Pattern;
  * nested-field-group recursion in a tabular header's field list.</p>
  *
  * @see <a href="https://github.com/toon-format/spec">TOON specification</a>
- * @since 3.2.0
+ * @since 3.2.1
  */
 final class ToonDocumentParser extends LimitingStream {
 

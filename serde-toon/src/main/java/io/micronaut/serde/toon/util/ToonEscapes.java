@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
  * {@link ToonDecoder} (decode).
  *
  * @see <a href="https://github.com/toon-format/spec">TOON specification</a>
- * @since 3.2.0
+ * @since 3.2.1
  */
 @Internal
 public final class ToonEscapes {

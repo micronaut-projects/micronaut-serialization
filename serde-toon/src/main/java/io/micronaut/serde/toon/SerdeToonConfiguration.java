@@ -29,7 +29,7 @@ import java.util.Optional;
 /**
  * TOON-specific configuration.
  *
- * @since 3.2.0
+ * @since 3.2.1
  */
 @BootstrapContextCompatible
 @ConfigurationProperties(SerdeToonConfiguration.PREFIX)
@@ -85,7 +85,7 @@ public final class SerdeToonConfiguration {
      * The delimiter used to separate values within a TOON document, as defined
      * by the specification.
      *
-     * @since 3.2.0
+     * @since 3.2.1
      */
     public enum Delimiter {
         /**

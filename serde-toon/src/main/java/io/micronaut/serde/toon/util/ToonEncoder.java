@@ -49,7 +49,7 @@ import java.util.Set;
  * emitted in for every row - is taken from the first element.</p>
  *
  * @see <a href="https://github.com/toon-format/spec">TOON specification</a>
- * @since 3.2.0
+ * @since 3.2.1
  */
 @Internal
 @Singleton

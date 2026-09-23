@@ -25,9 +25,11 @@ import groovy.json.JsonSlurper
  *
  * <h2>What's excluded from decode fixtures, and why</h2>
  *
- * <p><b>Non-strict-mode-only leniencies.</b> This decoder always operates
- * in strict mode (see {@code ToonDocumentParser}'s own Javadoc) - there is
- * no configuration to relax it. A fixture with {@code options.strict:
+ * <p><b>Non-strict-mode-only leniencies.</b> This decoder always applies
+ * strict-mode rules, apart from the two leniencies (blank lines nested
+ * inside an item, and inferred indentation) documented in {@code
+ * ToonDocumentParser}'s own Javadoc - there is no configuration to switch
+ * to non-strict mode. A fixture with {@code options.strict:
  * false} describes behavior specific to a mode this decoder doesn't have,
  * so it's excluded - unless the fixture itself expects an error, in which
  * case strict mode (a superset of restrictions over non-strict) must also
