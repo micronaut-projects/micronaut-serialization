@@ -33,7 +33,7 @@ class BookTest:
         assert book.title == "The Stand"
         assert list(book.authors) == ["Stephen King"]
 
-    @Disabled("TODO(python): a nil <subtitle/> element is read as None instead of the @XmlElement defaultValue on a Python class, see DISABLED_TESTS.md")
+    @Disabled("TODO(python): still with core 5.2.4 a nil <subtitle/> element is read as None instead of the @XmlElement(defaultValue) of the Python attribute, see DISABLED_TESTS.md")
     @Test
     def test_write_read_jaxb_book(self):
         input = JaxbBook()

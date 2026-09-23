@@ -1,14 +1,15 @@
 from abc import ABC, abstractmethod
-from typing import Annotated
 
 from com.fasterxml.jackson.annotation import JsonProperty
 
 
 class ProductMixin(ABC):
+    @JsonProperty("p_name")
     @abstractmethod
-    def getName(self) -> Annotated[str, JsonProperty("p_name")]:
+    def getName(self) -> str:
         pass
 
+    @JsonProperty("p_quantity")
     @abstractmethod
-    def getQuantity(self) -> Annotated[int, JsonProperty("p_quantity")]:
+    def getQuantity(self) -> int:
         pass

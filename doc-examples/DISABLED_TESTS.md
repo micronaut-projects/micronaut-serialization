@@ -26,6 +26,9 @@ The Python examples are compiled by every build and their tests run with
   (`ObjectMapper.updateValue`) is written as a plain class with attribute type hints and defaults.
 - Python `int` is a Java `int`; use `java.lang.Long` as the attribute type for 64-bit values.
 - Builder methods called by generated Java code (`@Introspected(builder=...)`) need `@Executable` to be bridged.
+- A Java **method**-level annotation is written as a decorator on the Python method (`@JsonProperty("p_name")` above
+  `def getName`), not as a return-type `Annotated[...]` (that annotates the return type). Attribute/parameter-level
+  annotations keep the `Annotated[...]` form.
 - A Python test class is a `@MicronautTest` with injected beans. A test that documents manual context
   creation may start nested `ApplicationContext.run(...)` contexts (`YamlQuickStartTest`); they reuse the
   GraalPy runtime of the enclosing test context.
@@ -36,9 +39,22 @@ The Python examples are compiled by every build and their tests run with
 
 | Test | Reason |
 | --- | --- |
-| `example-python` `example.LocationTest` | `Location`, `Feature` and the Python `FeatureConverter` (`TypeConverter` bean) compile and run, but `__str__` of the Python `Feature` class is not bridged to `toString()` of its generated Java class, so the map key is written as `example.Feature@<hash>` instead of `Tree` (the converter then reads that string back as the feature name). |
-| `example-python` `example.ProductTest` | `@SerdeImport(value=Product, mixin=ProductMixin)` generates the `Product` introspection, but the `@JsonProperty` renames of the Python `ProductMixin` methods are not applied: the output is `{"name":"Apple","quantity":10}` instead of `{"p_name":"Apple","p_quantity":10}`. |
-| `example-stax-xml-python` `example.BookTest.test_write_read_jaxb_book` | Writing the JAXB-annotated Python `JaxbBook` now produces the expected XML, but reading the nil `<subtitle xsi:nil="true"/>` element back yields `None` instead of the `@XmlElement(defaultValue="Untitled")` default the Java class gets (`isbn`, `title` and `authors` are read correctly). |
+| `example-stax-xml-python` `example.BookTest.test_write_read_jaxb_book` | Writing the JAXB-annotated Python `JaxbBook` produces the expected XML, but reading the nil `<subtitle xsi:nil="true"/>` element back still yields `None` instead of the `@XmlElement(defaultValue="Untitled")` default the Java class gets (`isbn`, `title` and `authors` are read correctly). Unchanged with micronaut-core 5.2.4. |
+
+## Verified with micronaut-core 5.2.4
+
+- `example.LocationTest`: `__str__` of a Python class is bridged to `toString()` of its generated Java class, so the
+  `dict[Feature, Point]` key is written as `Tree` and the `TypeConverter` bean reads it back. Test re-enabled.
+- `example.ProductTest`: a `@SerdeImport` mixin applies its `@JsonProperty` renames when the annotation is written as a
+  **method decorator** (`@JsonProperty("p_name")` above `def getName`) like the Java `@JsonProperty String getName()`,
+  not as a return-type `Annotated[str, JsonProperty("p_name")]` (which annotates the return type, not the method).
+  `ProductMixin` was corrected accordingly and the test re-enabled.
+
+## Build Workarounds
+
+| Target | Reason |
+| --- | --- |
+| `io.micronaut.build.internal.serde-python-examples` forces `io.micronaut.sourcegen:*` to **2.1.0** | With micronaut-sourcegen 2.2.0/2.2.1 on the Python compile classpath, the `$PythonFunctionalInterfaces$<hash>` class that core 5.2.4 generates for the Python functional-interface registry is written as `List.of(new Object[]{...})` as soon as a module has more than ten Python-visible functional interfaces (`List.of` has explicit overloads only up to ten arguments). That does not compile: `incompatible types: inference variable E has incompatible bounds / equality constraints: PythonFunctionalInterfaceProvider.Entry / lower bounds: java.lang.Object` (hit by `example-jsonb-python` with 14 entries and the test sources of `example-python` with 16). 2.1.0 is the version micronaut-core itself requests and writes the plain varargs call. Remove the force once micronaut-sourcegen fixes the `List.of` fallback. |
 
 ## Commented Unsupported Snippet Ports
 

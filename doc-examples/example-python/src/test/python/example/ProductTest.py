@@ -3,12 +3,11 @@ from typing import Annotated
 from jakarta.inject import Inject
 from micronaut.serde import ObjectMapper
 from micronaut.test.extensions.junit5.annotation import MicronautTest
-from org.junit.jupiter.api import Disabled, Test
+from org.junit.jupiter.api import Test
 
 from example.Product import Product
 
 
-@Disabled("TODO(python): the @SerdeImport mixin is not applied to a Python mixin, see DISABLED_TESTS.md")
 @MicronautTest
 class ProductTest:
     object_mapper: Annotated[ObjectMapper, Inject]
