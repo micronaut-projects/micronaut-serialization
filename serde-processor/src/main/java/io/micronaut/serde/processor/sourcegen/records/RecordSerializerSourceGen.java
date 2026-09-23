@@ -20,6 +20,7 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.context.annotation.Parameter;
 import io.micronaut.context.annotation.Prototype;
 import io.micronaut.inject.ast.ClassElement;
+import io.micronaut.inject.ast.MethodElement;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.KeyDescriptor;
 import io.micronaut.serde.Keys;
@@ -31,6 +32,7 @@ import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.processor.sourcegen.SerdeInclusionSourceGen;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenPropertyOrder;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
+import io.micronaut.serde.processor.sourcegen.SerdeSourceGenNames;
 import io.micronaut.serde.util.GeneratedSerdeExceptionUtil;
 import io.micronaut.serde.util.GeneratedSerdeFallbackUtil;
 import io.micronaut.sourcegen.model.AnnotationDef;
@@ -403,7 +405,7 @@ public final class RecordSerializerSourceGen {
         ExpressionDef argumentExpression = serializerClassTypeDef.getStaticField(required(argumentFieldNames, component.name()), ARGUMENT_TYPE);
         ClassElement componentType = component.type();
         Method scalarMethod = scalarEncoderMethod(componentType);
-        ExpressionDef propertyValue = value.getPropertyValue(component.propertyElement());
+        ExpressionDef propertyValue = readComponentValue(value, component);
         StatementDef encodeKey = encodeKeyStatement(serializerClassTypeDef, keyEncoder, index);
         String valueLocalName = RecordSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, index);
         boolean primitive = componentType.isPrimitive() && !componentType.isArray();
@@ -530,6 +532,18 @@ public final class RecordSerializerSourceGen {
 
     private static String required(Map<String, String> names, String key) {
         return Objects.requireNonNull(names.get(key));
+    }
+
+    private ExpressionDef readComponentValue(VariableDef.MethodParameter value,
+                                            RecordSerdeShape.RecordComponent component) {
+        MethodElement readMethod = component.propertyElement().getReadMethod().orElse(null);
+        if (readMethod != null && SerdeSourceGenNames.requiresSourceWriterEscape(readMethod.getName())) {
+            return value.invoke(
+                SerdeSourceGenNames.escapeSourceWriterFormat(readMethod.getName()),
+                TypeDef.of(readMethod.getReturnType())
+            );
+        }
+        return value.getPropertyValue(component.propertyElement());
     }
 
     private @Nullable Method scalarEncoderMethod(ClassElement type) {

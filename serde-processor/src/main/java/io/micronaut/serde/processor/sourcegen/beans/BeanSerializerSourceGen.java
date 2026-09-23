@@ -33,6 +33,7 @@ import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.processor.sourcegen.SerdeInclusionSourceGen;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
+import io.micronaut.serde.processor.sourcegen.SerdeSourceGenNames;
 import io.micronaut.serde.util.GeneratedSerdeExceptionUtil;
 import io.micronaut.serde.util.GeneratedSerdeFallbackUtil;
 import io.micronaut.sourcegen.model.AnnotationDef;
@@ -504,9 +505,9 @@ public final class BeanSerializerSourceGen {
             return directFieldAccess(VALUE_PARAMETER, readField);
         }
         MethodElement readMethod = Objects.requireNonNull(property.readMethod());
-        if (readMethod.getName().indexOf('$') >= 0) {
+        if (SerdeSourceGenNames.requiresSourceWriterEscape(readMethod.getName())) {
             return value.invoke(
-                escapeSourcegenFormat(readMethod.getName()),
+                SerdeSourceGenNames.escapeSourceWriterFormat(readMethod.getName()),
                 TypeDef.of(readMethod.getReturnType())
             );
         }
@@ -514,11 +515,10 @@ public final class BeanSerializerSourceGen {
     }
 
     private ExpressionDef directFieldAccess(String instanceName, FieldElement field) {
-        return new VariableDef.Local(instanceName + "." + escapeSourcegenFormat(field.getName()), TypeDef.of(field.getType()));
-    }
-
-    private String escapeSourcegenFormat(String name) {
-        return name.replace("$", "$$");
+        return new VariableDef.Local(
+            instanceName + "." + SerdeSourceGenNames.escapeSourceWriterFormat(field.getName()),
+            TypeDef.of(field.getType())
+        );
     }
 
     private String indexedName(String prefix, int index) {

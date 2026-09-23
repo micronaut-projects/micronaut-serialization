@@ -31,6 +31,7 @@ import io.micronaut.serde.Keys;
 import io.micronaut.serde.KeysAwareDecoder;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
+import io.micronaut.serde.processor.sourcegen.SerdeSourceGenNames;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenSwitches;
 import io.micronaut.serde.util.GeneratedSerdeExceptionUtil;
 import io.micronaut.serde.util.GeneratedSerdeFallbackUtil;
@@ -1393,9 +1394,9 @@ public final class BeanDeserializerSourceGen {
             return directFieldAccess(BEAN_LOCAL, writeField).assign(value);
         }
         MethodElement writeMethod = Objects.requireNonNull(property.writeMethod());
-        if (writeMethod.getName().indexOf('$') >= 0) {
+        if (SerdeSourceGenNames.requiresSourceWriterEscape(writeMethod.getName())) {
             return beanVariable.invoke(
-                escapeSourcegenFormat(writeMethod.getName()),
+                SerdeSourceGenNames.escapeSourceWriterFormat(writeMethod.getName()),
                 TypeDef.of(writeMethod.getReturnType()),
                 value
             );
@@ -1404,11 +1405,10 @@ public final class BeanDeserializerSourceGen {
     }
 
     private VariableDef.Local directFieldAccess(String instanceName, FieldElement field) {
-        return new VariableDef.Local(instanceName + "." + escapeSourcegenFormat(field.getName()), TypeDef.of(field.getType()));
-    }
-
-    private String escapeSourcegenFormat(String name) {
-        return name.replace("$", "$$");
+        return new VariableDef.Local(
+            instanceName + "." + SerdeSourceGenNames.escapeSourceWriterFormat(field.getName()),
+            TypeDef.of(field.getType())
+        );
     }
 
     private boolean requiresFailOnNullForPrimitives(BeanSerdeShape beanSerdeShape) {
