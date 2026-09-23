@@ -3085,6 +3085,11 @@ empty bean.</div>
 <dd>
 <div class="block">The errors catching <a href="io/micronaut/serde/Serializer.html" title="interface in io.micronaut.serde"><code>Serializer</code></a>.</div>
 </dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/SerdeSourceGenNames.html#escapeSourceWriterFormat(java.lang.String)" class="member-name-link">escapeSourceWriterFormat(String)</a> - Static method in class io.micronaut.serde.processor.sourcegen.<a href="io/micronaut/serde/processor/sourcegen/SerdeSourceGenNames.html" title="class in io.micronaut.serde.processor.sourcegen">SerdeSourceGenNames</a></dt>
+<dd>
+<div class="block">Escapes a declared name for the Java and Groovy source writers, which take the name as a JavaPoet
+format string rather than as an argument of one.</div>
+</dd>
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.SerSubtyped.DiscriminatorType.html#EXISTING_PROPERTY" class="member-name-link">EXISTING_PROPERTY</a> - Enum constant in enum class io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.SerSubtyped.DiscriminatorType.html" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerSubtyped.DiscriminatorType</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/protobuf/ProtoProperty.html#explicitPresence()" class="member-name-link">explicitPresence()</a> - Method in record class io.micronaut.serde.protobuf.<a href="io/micronaut/serde/protobuf/ProtoProperty.html" title="class in io.micronaut.serde.protobuf">ProtoProperty</a></dt>
@@ -7917,6 +7922,10 @@ and the writer.</div>
 <dd>
 <div class="block">Creates an exception for a required property that is explicitly null in the input.</div>
 </dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/SerdeSourceGenNames.html#requiresSourceWriterEscape(java.lang.String)" class="member-name-link">requiresSourceWriterEscape(String)</a> - Static method in class io.micronaut.serde.processor.sourcegen.<a href="io/micronaut/serde/processor/sourcegen/SerdeSourceGenNames.html" title="class in io.micronaut.serde.processor.sourcegen">SerdeSourceGenNames</a></dt>
+<dd>
+<div class="block">Whether a declared name needs <a href="io/micronaut/serde/processor/sourcegen/SerdeSourceGenNames.html#escapeSourceWriterFormat(java.lang.String)"><code>SerdeSourceGenNames.escapeSourceWriterFormat(String)</code></a>.</div>
+</dd>
 <dt><a href="io/micronaut/serde/protobuf/wire/ProtoOutput.html#reset()" class="member-name-link">reset()</a> - Method in class io.micronaut.serde.protobuf.wire.<a href="io/micronaut/serde/protobuf/wire/ProtoOutput.html" title="class in io.micronaut.serde.protobuf.wire">ProtoOutput</a></dt>
 <dd>
 <div class="block">Discard the written bytes but keep the allocated array, so the instance can be reused.</div>
@@ -8307,6 +8316,10 @@ for the serialization project.</div>
 <dt><a href="io/micronaut/serde/processor/sourcegen/SerdeSourceGenClassNaming.html" class="type-name-link" title="class in io.micronaut.serde.processor.sourcegen">SerdeSourceGenClassNaming</a> - Class in <a href="io/micronaut/serde/processor/sourcegen/package-summary.html">io.micronaut.serde.processor.sourcegen</a></dt>
 <dd>
 <div class="block">Centralized naming rules for generated serializer and deserializer classes.</div>
+</dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/SerdeSourceGenNames.html" class="type-name-link" title="class in io.micronaut.serde.processor.sourcegen">SerdeSourceGenNames</a> - Class in <a href="io/micronaut/serde/processor/sourcegen/package-summary.html">io.micronaut.serde.processor.sourcegen</a></dt>
+<dd>
+<div class="block">Names of the user declarations that generated serde source refers to.</div>
 </dd>
 <dt><a href="io/micronaut/serde/processor/sourcegen/SerdeSourceGenPropertyOrder.html" class="type-name-link" title="class in io.micronaut.serde.processor.sourcegen">SerdeSourceGenPropertyOrder</a> - Class in <a href="io/micronaut/serde/processor/sourcegen/package-summary.html">io.micronaut.serde.processor.sourcegen</a></dt>
 <dd>
