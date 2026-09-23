@@ -335,6 +335,54 @@ public record EnumSetRecord(@NonNull EnumSet<EnumSetRecord.Color> colors) {
         context.close()
     }
 
+    void 'test generic record with recursively bounded enum type parameter compiles and round trips'() {
+        given:
+        def context = buildContext('test.ResourceDetail', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+record ResourceDetail<I, S extends Enum<S>, D>(
+    ResourceDetails<I, S> resourceDetails,
+    D details
+) {}
+
+@Serdeable
+record ResourceDetails<I, S extends Enum<S>>(
+    I id,
+    S lifecycleState
+) {}
+
+enum LifecycleState { ACTIVE, DELETED }
+''')
+        Class<?> detailType = context.classLoader.loadClass('test.ResourceDetail')
+        Class<?> detailsType = context.classLoader.loadClass('test.ResourceDetails')
+        Class<?> stateType = context.classLoader.loadClass('test.LifecycleState')
+        def type = Argument.of(detailType, Argument.of(String), Argument.of(stateType), Argument.of(String))
+        def registry = context.getBean(SerdeRegistry)
+
+        expect:
+        !context.classLoader.getResource('test/SerdeResourceDetailSerializer.class')
+        !context.classLoader.getResource('test/SerdeResourceDetailDeserializer.class')
+        registry.findSerializer(type).createSpecific(registry.newEncoderContext(Object), type).class.name != generatedClassName(detailType, 'Serializer')
+        registry.findDeserializer(type).createSpecific(registry.newDecoderContext(Object), type).class.name != generatedClassName(detailType, 'Deserializer')
+
+        when:
+        def state = stateType.enumConstants[0]
+        def details = detailsType.getDeclaredConstructor(Object, Enum).newInstance('id-1', state)
+        def record = detailType.getDeclaredConstructor(detailsType, Object).newInstance(details, 'info')
+        String json = jsonMapper.writeValueAsString(record)
+        def deserialized = jsonMapper.readValue(json, type)
+
+        then:
+        json == '{"resourceDetails":{"id":"id-1","lifecycleState":"ACTIVE"},"details":"info"}'
+        deserialized == record
+
+        cleanup:
+        context.close()
+    }
+
     private static void assertGeneratedSerializer(SerdeRegistry registry, Argument argument) {
         Serializer serializer = registry.findSerializer(argument).createSpecific(registry.newEncoderContext(Object), argument)
         assert serializer.class.name == generatedClassName(argument.type, 'Serializer')
