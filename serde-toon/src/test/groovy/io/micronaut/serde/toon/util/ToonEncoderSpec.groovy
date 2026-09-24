@@ -108,9 +108,9 @@ forecast[2]{day,temp,condition}:
     }
 
     void 'test tabular eligibility only requires the same key set, not the same key order'() {
-        // §9.3: "all objects share the same key set (order may vary per
-        // object)". The header - and each row's cell order - is taken from
-        // the first element regardless of a later element's own order.
+        // All objects share the same key set, order may vary per object.
+        // The header - and each row's cell order - is taken from the
+        // first element regardless of a later element's own order.
         given:
         def tree = JsonNode.createObjectNode([
                 items: JsonNode.createArrayNode([
@@ -141,8 +141,8 @@ forecast[2]{day,temp,condition}:
     }
 
     void 'test a single-element array of records still encodes as tabular form'() {
-        // §9.3 has no minimum element count for tabular arrays - only §9.5
-        // (keyed objects) requires at least two entries.
+        // Tabular arrays have no minimum element count - only keyed
+        // (map-form) tabular objects require at least two entries.
         given:
         def tree = JsonNode.createObjectNode([
                 items: JsonNode.createArrayNode([
@@ -159,8 +159,8 @@ forecast[2]{day,temp,condition}:
     }
 
     void 'test a single-entry map does not encode as keyed tabular form'() {
-        // §9.5 keyed (map-form) tabular blocks require at least two
-        // entries, unlike plain tabular arrays.
+        // Keyed (map-form) tabular blocks require at least two entries,
+        // unlike plain tabular arrays.
         given:
         def tree = JsonNode.createObjectNode([
                 envs: JsonNode.createObjectNode([
@@ -197,10 +197,10 @@ forecast[2]{day,temp,condition}:
     }
 
     void 'test a nested-object column emits its cells in header order even when a later element declares its own keys in a different order'() {
-        // §9.3: the key SET must match across elements, but a later
-        // element's own key order need not - the header (and every row's
-        // cell order, including within a nested field group) is fixed by
-        // the first element.
+        // The key set must match across elements, but a later element's
+        // own key order need not - the header (and every row's cell
+        // order, including within a nested field group) is fixed by the
+        // first element.
         given:
         def tree = JsonNode.createObjectNode([
                 readings: JsonNode.createArrayNode([
@@ -294,7 +294,7 @@ forecast[2]{day,temp,condition}:
 
     void 'test a tabular-eligible array in list-item position falls back to list form'() {
         given:
-        // Tabular form (§9.3) is only valid at the document root or in
+        // Tabular form is only valid at the document root or in
         // object-field position - never as a list item - even though this
         // inner array would otherwise be tabular-eligible.
         def tree = JsonNode.createObjectNode([

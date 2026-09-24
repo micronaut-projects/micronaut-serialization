@@ -81,8 +81,8 @@ class ToonDecoderSpec extends Specification {
 
     @Unroll
     void 'test decoding accepts an unquoted key that does not match the encoder\'s own unquoted-key grammar: #description'() {
-        // §7.4: decoders MUST accept the literal text before the first
-        // unquoted ':' or '[' as a key, even when it wouldn't match §7.3's
+        // Decoders accept the literal text before the first unquoted ':'
+        // or '[' as a key, even when it wouldn't match the encoder's own
         // unquoted-key pattern (hyphens, a leading digit, or an internal
         // space, none of which the encoder would leave unquoted itself).
         expect:
@@ -104,7 +104,7 @@ class ToonDecoderSpec extends Specification {
     }
 
     void 'test decoding accepts a non-conforming key inside a keyed tabular block'() {
-        // Same §7.4 leniency applies to a keyed tabular entry's own key.
+        // Same leniency applies to a keyed tabular entry's own key.
         expect:
         parse('envs[1:]{region}:\n  2key: us').get('envs').get('2key').get('region').stringValue == 'us'
     }
@@ -127,7 +127,7 @@ class ToonDecoderSpec extends Specification {
     }
 
     void 'test decoding accepts a non-conforming field name in a tabular header field list'() {
-        // Same §7.4 leniency applies to a field name in a tabular header's
+        // Same leniency applies to a field name in a tabular header's
         // field list - it doesn't need to match the encoder's own
         // unquoted-key grammar either.
         given:
@@ -407,10 +407,9 @@ forecast[2]{day,temp,condition}:
     }
 
     void 'test a blank line between sibling object fields is harmless and silently skipped'() {
-        // §12/§14.2 only requires strict-mode rejection of a blank line
-        // inside a declared-count array/keyed body (list items, tabular
-        // rows, keyed entry rows) - not between object fields or other
-        // top-level constructs.
+        // A blank line is only a strict-mode error inside a declared-count
+        // array/keyed body (list items, tabular rows, keyed entry rows) -
+        // not between object fields or other top-level constructs.
         given:
         def tree = parse('name: Alice\n\nage: 30')
 
@@ -430,8 +429,8 @@ forecast[2]{day,temp,condition}:
 
     @Unroll
     void 'test a blank line between an array header and its first row/entry/item is harmless and silently skipped: #description'() {
-        // §12/§14.2 only rejects a blank line *between* two rows/entries/
-        // items - nothing has started yet before the first one.
+        // A blank line is only rejected *between* two rows/entries/items -
+        // nothing has started yet before the first one.
         expect:
         parse(text) != null
 

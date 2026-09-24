@@ -196,10 +196,10 @@ public final class ToonEscapes {
 
                     char value = parseUnicodeEscape(inner, i + 2, quoted);
                     if (Character.isHighSurrogate(value)) {
-                        // §7.1: a high surrogate MUST be immediately followed
-                        // by a \\u escape decoding to its low-surrogate pair -
-                        // an unpaired surrogate is rejected, not passed
-                        // through as a malformed code point.
+                        // A high surrogate must be immediately followed by a
+                        // \\u escape decoding to its low-surrogate pair; an
+                        // unpaired surrogate is rejected, not passed through
+                        // as a malformed code point.
                         if (i + 12 > inner.length() || inner.charAt(i + 6) != '\\' || inner.charAt(i + 7) != 'u') {
                             throw new SerdeException("Lone high surrogate in \\u escape sequence: " + quoted);
                         }

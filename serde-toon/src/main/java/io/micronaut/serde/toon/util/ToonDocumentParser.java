@@ -42,24 +42,24 @@ import java.util.regex.Pattern;
  * document's indent step is inferred from its first nesting transition and
  * enforced on every later one (see {@link #validateNestedIndent}).</p>
  *
- * <p>Follows the specification's strict mode (§14): a header's declared
- * count and field-list width must match exactly, or the parser throws a
+ * <p>Follows the specification's strict mode: a header's declared count and
+ * field-list width must match exactly, or the parser throws a
  * {@link SerdeException}. Two leniencies beyond strict mode:</p>
  *
  * <ul>
- *   <li>Per §7.4, a key is read as the literal text up to the first
- *   unquoted {@code :} (or, for an object field, {@code :} or {@code [}),
- *   regardless of whether it matches {@link ToonEncoder}'s stricter
- *   unquoted-key grammar. Whitespace directly adjacent to that delimiter
- *   is still rejected, not trimmed.</li>
- *   <li>Per §12, a blank line is an error only <em>between</em> two
- *   rows/entries/items of a declared-count body, or between two of a list
- *   item's own continuation fields. A blank line nested deeper inside an
- *   item, between an ordinary object's sibling fields, or between
- *   top-level constructs is skipped.</li>
- *   <li>Per §12, indentation is not required to be a multiple of a fixed
- *   default of 2 spaces; the document's own indent step, inferred from its
- *   first nesting transition, is enforced instead.</li>
+ *   <li>A key is read as the literal text up to the first unquoted
+ *   {@code :} (or, for an object field, {@code :} or {@code [}), regardless
+ *   of whether it matches {@link ToonEncoder}'s stricter unquoted-key
+ *   grammar. Whitespace directly adjacent to that delimiter is still
+ *   rejected, not trimmed.</li>
+ *   <li>A blank line is an error only <em>between</em> two rows/entries/items
+ *   of a declared-count body, or between two of a list item's own
+ *   continuation fields. A blank line nested deeper inside an item, between
+ *   an ordinary object's sibling fields, or between top-level constructs is
+ *   skipped.</li>
+ *   <li>Indentation is not required to be a multiple of a fixed default of 2
+ *   spaces; the document's own indent step, inferred from its first nesting
+ *   transition, is enforced instead.</li>
  * </ul>
  *
  * <p>Guards against a maliciously deep document by extending
@@ -81,8 +81,8 @@ final class ToonDocumentParser extends LimitingStream {
 
     /**
      * The document's indent step, in spaces - the difference in leading
-     * spaces between a block and its nested body. Established (per §12)
-     * from the very first such nesting transition encountered anywhere in
+     * spaces between a block and its nested body. Established from the very
+     * first such nesting transition encountered anywhere in
      * the document, then required of every later transition; {@code -1}
      * means not yet established.
      */
@@ -180,9 +180,9 @@ final class ToonDocumentParser extends LimitingStream {
      * requiring every further sibling to match it exactly.
      *
      * @param insideListItemBody Whether these fields are a list item's own
-     *                           continuation fields; per §12/§14.2 a blank
-     *                           line between them is a strict-mode error,
-     *                           unlike between an ordinary object's fields
+     *                           continuation fields, where a blank line
+     *                           between them is a strict-mode error, unlike
+     *                           between an ordinary object's fields
      */
     private void continueObjectFields(int parentIndent, Map<String, JsonNode> values, boolean insideListItemBody) throws SerdeException {
         if (cursor >= lines.size() || lines.get(cursor).indent() <= parentIndent) {
@@ -328,10 +328,10 @@ final class ToonDocumentParser extends LimitingStream {
             String valuesText = keyResult.remainder().substring(1);
             if (valuesText.isEmpty()) {
                 // splitByDelimiter("") returns a single empty token, which
-                // would silently match leafCount == 1 rather than the
-                // missing-cells error §14.1 requires here. Not trimmed: a
-                // lone tab is a significant empty-cell marker under the
-                // tab delimiter, per stripTrailingWhitespace.
+                // would silently match leafCount == 1 instead of being
+                // treated as a missing-cells error. Not trimmed: a lone tab
+                // is a significant empty-cell marker under the tab
+                // delimiter, per stripTrailingWhitespace.
                 throw new SerdeException("Expected " + leafCount + " cell(s) in keyed entry row but found none at line " + entryLine.lineNumber() + ": " + entryLine.content());
             }
 
@@ -396,8 +396,8 @@ final class ToonDocumentParser extends LimitingStream {
         // in parseArrayOrKeyedBody.
         if (rest.startsWith("[")) {
             HeaderTail header = parseHeaderTail(rest, itemLine.lineNumber());
-            // §6: a keyless header with a field list (tabular "- [N]{f}:"
-            // or keyed-tabular "- [N:]{f}:") is only valid at the document
+            // A keyless header with a field list (tabular "- [N]{f}:" or
+            // keyed-tabular "- [N:]{f}:") is only valid at the document
             // root, not as a list item.
             if (header.fields() != null) {
                 throw new SerdeException("A keyless header with a field list is only valid at the document root, not as a list item, at line " + itemLine.lineNumber() + ": " + content);
@@ -439,10 +439,10 @@ final class ToonDocumentParser extends LimitingStream {
 
         Line currentLine = lines.get(cursor);
         if (childIndent != null) {
-            // §12/§14.2: a blank line between rows/entries/items in a
-            // declared-count body is a strict-mode error, unlike between
-            // the header and the first one, between sibling object fields,
-            // or between top-level constructs, which are skipped elsewhere.
+            // A blank line between rows/entries/items in a declared-count
+            // body is a strict-mode error, unlike between the header and
+            // the first one, between sibling object fields, or between
+            // top-level constructs, which are skipped elsewhere.
             if (currentLine.precededByBlankLine()) {
                 throw new SerdeException("Blank line inside " + what + " block at line " + currentLine.lineNumber());
             }
@@ -518,9 +518,9 @@ final class ToonDocumentParser extends LimitingStream {
             }
         }
 
-        // §7.4: an unquoted key is the literal text before the first
-        // unquoted ':' (or, for an object field, ':' or '['), regardless of
-        // whether it matches §7.3's unquoted-key pattern (that pattern
+        // An unquoted key is the literal text before the first unquoted
+        // ':' (or, for an object field, ':' or '['), regardless of whether
+        // it matches the encoder's own unquoted-key grammar (that grammar
         // governs encoder quoting, not decoder acceptance). Whitespace
         // directly adjacent to the delimiter is still rejected, not trimmed.
         int i = 0;
@@ -712,10 +712,10 @@ final class ToonDocumentParser extends LimitingStream {
                 }
 
                 name = s.substring(nameStart, i);
-                // §7.4: a field name is accepted literally regardless of
-                // whether it matches the encoder's unquoted-key grammar
-                // (same leniency as readKey). Whitespace directly adjacent
-                // to the delimiter/brace is still rejected, not trimmed.
+                // A field name is accepted literally regardless of whether
+                // it matches the encoder's unquoted-key grammar (same
+                // leniency as readKey). Whitespace directly adjacent to
+                // the delimiter/brace is still rejected, not trimmed.
                 if (!name.equals(name.strip())) {
                     throw new SerdeException("Malformed field list (whitespace around unquoted field name '" + name + "') at line " + lineNumber + ": " + s);
                 }

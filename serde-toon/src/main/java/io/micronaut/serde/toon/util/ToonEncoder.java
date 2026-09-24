@@ -232,7 +232,7 @@ public final class ToonEncoder {
     private void writeArrayAsListItem(ThrowingConsumer<String, IOException> consumer, JsonNode array, int depth) throws IOException {
         String prefix = indent(depth + 1);
         List<JsonNode> elements = CollectionUtils.iterableToList(array.values());
-        // §9.3: tabular form is not valid as a list item.
+        // Tabular form is not valid as a list item.
         if (allPrimitive(elements)) {
             writeInlineArray(consumer, prefix, elements);
         } else {
@@ -260,8 +260,8 @@ public final class ToonEncoder {
      * uniform, tabular-eligible column of nested objects. The header, and
      * the cell order for every row, is taken from the first element.
      *
-     * <p>Per §9.3 there is no minimum element count. Keyed (map-form)
-     * tabular eligibility has its own minimum of two entries per §9.5; see
+     * <p>There is no minimum element count. Keyed (map-form) tabular
+     * eligibility has its own minimum of two entries; see
      * {@link #isKeyedTabularEligible}.</p>
      */
     private boolean isTabularEligible(List<JsonNode> elements) {
@@ -314,9 +314,9 @@ public final class ToonEncoder {
 
     private boolean isKeyedTabularEligible(JsonNode object) {
         List<JsonNode> values = CollectionUtils.iterableToList(object.values());
-        // §9.5: keyed (map-form) tabular blocks require at least two
-        // entries, unlike plain tabular arrays (§9.3); a single entry is
-        // ambiguous with an ordinary single-field object.
+        // Keyed (map-form) tabular blocks require at least two entries,
+        // unlike plain tabular arrays; a single entry is ambiguous with an
+        // ordinary single-field object.
         return values.size() >= 2 && isTabularEligible(values);
     }
 
