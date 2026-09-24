@@ -418,6 +418,47 @@ public record TreeNode(String name, List<TreeNode> children, Map<String, TreeNod
         context.close()
     }
 
+    void 'test record sourcegen handles nested records referring back to the enclosing record'() {
+        given:
+        def context = buildContext('test.Outer', '''
+package test;
+
+import io.micronaut.core.annotation.Nullable;
+import io.micronaut.serde.annotation.Serdeable;
+import java.util.List;
+
+@Serdeable
+public record Outer(String name, @Nullable Inner inner) {
+
+    @Serdeable
+    public record Inner(@Nullable Outer outer, @Nullable List<Outer> items) {}
+}
+''')
+        Class<?> outerType = context.classLoader.loadClass('test.Outer')
+        Class<?> innerType = context.classLoader.loadClass('test.Outer$Inner')
+        def registry = context.getBean(SerdeRegistry)
+        def type = Argument.of(outerType)
+        String json = '{"name":"root","inner":{"outer":{"name":"a"},"items":[{"name":"b"}]}}'
+
+        expect:
+        assertGeneratedSerializer(registry, type)
+        assertGeneratedDeserializer(registry, type)
+        assertGeneratedSerializer(registry, Argument.of(innerType))
+        assertGeneratedDeserializer(registry, Argument.of(innerType))
+
+        when:
+        def decoded = jsonMapper.readValue(json, type)
+
+        then:
+        decoded.name() == 'root'
+        decoded.inner().outer().name() == 'a'
+        decoded.inner().items()*.name() == ['b']
+        jsonMapper.writeValueAsString(decoded) == json
+
+        cleanup:
+        context.close()
+    }
+
     private static void assertGeneratedSerializer(SerdeRegistry registry, Argument argument) {
         Serializer serializer = registry.findSerializer(argument).createSpecific(registry.newEncoderContext(Object), argument)
         assert serializer.class.name == generatedClassName(argument.type, 'Serializer')

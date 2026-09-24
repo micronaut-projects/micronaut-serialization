@@ -284,6 +284,91 @@ class SchemaHolder {
         context.close()
     }
 
+    void 'test bean sourcegen handles nested and deeply nested references to the owning type'() {
+        given:
+        def context = buildContext('test.Outer', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+@Serdeable
+public class Outer {
+    private String name;
+    private Inner inner;
+    private List<List<Outer>> deep;
+    private Map<String, List<Outer>> grouped;
+    private Optional<Outer> optional = Optional.empty();
+    private First first;
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public Inner getInner() { return inner; }
+    public void setInner(Inner inner) { this.inner = inner; }
+    public List<List<Outer>> getDeep() { return deep; }
+    public void setDeep(List<List<Outer>> deep) { this.deep = deep; }
+    public Map<String, List<Outer>> getGrouped() { return grouped; }
+    public void setGrouped(Map<String, List<Outer>> grouped) { this.grouped = grouped; }
+    public Optional<Outer> getOptional() { return optional; }
+    public void setOptional(Optional<Outer> optional) { this.optional = optional; }
+    public First getFirst() { return first; }
+    public void setFirst(First first) { this.first = first; }
+
+    @Serdeable
+    public static class Inner {
+        private List<Outer> items;
+
+        public List<Outer> getItems() { return items; }
+        public void setItems(List<Outer> items) { this.items = items; }
+    }
+}
+
+@Serdeable
+class First {
+    private Second second;
+
+    public Second getSecond() { return second; }
+    public void setSecond(Second second) { this.second = second; }
+}
+
+@Serdeable
+class Second {
+    private Outer outer;
+
+    public Outer getOuter() { return outer; }
+    public void setOuter(Outer outer) { this.outer = outer; }
+}
+''')
+        Class<?> outerType = context.classLoader.loadClass('test.Outer')
+        Class<?> innerType = context.classLoader.loadClass('test.Outer$Inner')
+        def registry = context.getBean(SerdeRegistry)
+        def type = Argument.of(outerType)
+        String json = '{"name":"root","inner":{"items":[{"name":"a"}]},"deep":[[{"name":"b"}]],"grouped":{"g":[{"name":"c"}]},"optional":{"name":"d"},"first":{"second":{"outer":{"name":"e"}}}}'
+
+        expect:
+        assertGeneratedSerializer(registry, type)
+        assertGeneratedDeserializer(registry, type)
+        assertGeneratedSerializer(registry, Argument.of(innerType))
+        assertGeneratedDeserializer(registry, Argument.of(innerType))
+
+        when:
+        def decoded = jsonMapper.readValue(json, type)
+
+        then:
+        decoded.name == 'root'
+        decoded.inner.items*.name == ['a']
+        decoded.deep*.name == [['b']]
+        decoded.grouped.g*.name == ['c']
+        decoded.optional.get().name == 'd'
+        decoded.first.second.outer.name == 'e'
+        jsonMapper.writeValueAsString(decoded) == json
+
+        cleanup:
+        context.close()
+    }
+
     private static void assertGeneratedSerializer(SerdeRegistry registry, Argument argument) {
         Serializer serializer = registry.findSerializer(argument).createSpecific(registry.newEncoderContext(Object), argument)
         assert serializer.class.name == generatedClassName(argument.type, 'Serializer')
