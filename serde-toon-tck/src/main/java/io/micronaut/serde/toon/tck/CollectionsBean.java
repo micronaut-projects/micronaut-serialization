@@ -26,7 +26,7 @@ import java.util.Map;
  *
  * @param values The string values
  * @param counts The counts by name
- * @param beans The nested beans
+ * @param beans  The nested beans
  */
 @Serdeable
 public record CollectionsBean(@Nullable List<String> values,

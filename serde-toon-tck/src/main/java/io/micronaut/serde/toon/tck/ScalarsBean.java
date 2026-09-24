@@ -21,9 +21,9 @@ import io.micronaut.serde.annotation.Serdeable;
 /**
  * A bean holding common scalar types, used to exercise TOON scalar decoding and quoting.
  *
- * @param text The string value
- * @param flag The boolean value
- * @param number The integer value
+ * @param text    The string value
+ * @param flag    The boolean value
+ * @param number  The integer value
  * @param decimal The double value
  * @param nothing The null value
  */

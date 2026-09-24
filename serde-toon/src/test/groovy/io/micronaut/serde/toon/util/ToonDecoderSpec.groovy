@@ -89,10 +89,10 @@ class ToonDecoderSpec extends Specification {
         tree.get(key).stringValue == value
 
         where:
-        description             | text              | key       | value
-        'hyphen in key'         | 'foo-bar: x'       | 'foo-bar' | 'x'
-        'leading digit in key'  | '2key: x'          | '2key'    | 'x'
-        'internal space in key' | 'foo bar: baz'     | 'foo bar' | 'baz'
+        description             | text           | key       | value
+        'hyphen in key'         | 'foo-bar: x'   | 'foo-bar' | 'x'
+        'leading digit in key'  | '2key: x'      | '2key'    | 'x'
+        'internal space in key' | 'foo bar: baz' | 'foo bar' | 'baz'
 
         tree = parse(text)
     }
@@ -435,8 +435,8 @@ forecast[2]{day,temp,condition}:
         parse(text) != null
 
         where:
-        description  | text
-        'list item'  | 'items[1]:\n\n  - a'
+        description   | text
+        'list item'   | 'items[1]:\n\n  - a'
         'tabular row' | 'items[1]{a}:\n\n  1'
         'entry row'   | 'envs[1:]{region}:\n\n  prod: us'
     }
@@ -498,37 +498,37 @@ forecast[2]{day,temp,condition}:
         thrown(SerdeException)
 
         where:
-        description                                    | text
-        'inline array declares more values than given' | 'tags[3]: a,b'
-        'tabular header declares more rows than given' | 'items[2]{a}:\n  1'
-        'tabular row has the wrong number of cells'    | 'items[2]{a,b}:\n  1,2\n  3'
-        'duplicate field name in a field list'         | 'items[2]{a,a}:\n  1,2\n  3,4'
-        'malformed header missing a closing bracket'   | 'tags[3: a,b,c'
-        'unterminated quoted string'                   | 'value: "unterminated'
-        'duplicate object field key'                   | 'name: Alice\nname: Bob'
-        'duplicate keyed-tabular entry key'            | 'envs[2:]{region}:\n  prod: us\n  prod: eu'
-        'keyed tabular entry row with no cells'        | 'm[1:]{v}:\n  a:'
-        'blank line between list items'                | 'items[2]:\n  - a\n\n  - b'
-        'blank line between tabular rows'               | 'items[2]{a}:\n  1\n\n  2'
-        'blank line between keyed tabular entry rows'   | 'envs[2:]{region}:\n  prod: us\n\n  dev: eu'
-        'blank line between a list item\'s own fields'  | 'items[2]:\n  - a: 1\n\n    b: 2\n  - x'
-        'blank line inside the last list item\'s fields' | 'items[1]:\n  - a: 1\n\n    b: 2'
+        description                                                   | text
+        'inline array declares more values than given'                | 'tags[3]: a,b'
+        'tabular header declares more rows than given'                | 'items[2]{a}:\n  1'
+        'tabular row has the wrong number of cells'                   | 'items[2]{a,b}:\n  1,2\n  3'
+        'duplicate field name in a field list'                        | 'items[2]{a,a}:\n  1,2\n  3,4'
+        'malformed header missing a closing bracket'                  | 'tags[3: a,b,c'
+        'unterminated quoted string'                                  | 'value: "unterminated'
+        'duplicate object field key'                                  | 'name: Alice\nname: Bob'
+        'duplicate keyed-tabular entry key'                           | 'envs[2:]{region}:\n  prod: us\n  prod: eu'
+        'keyed tabular entry row with no cells'                       | 'm[1:]{v}:\n  a:'
+        'blank line between list items'                               | 'items[2]:\n  - a\n\n  - b'
+        'blank line between tabular rows'                             | 'items[2]{a}:\n  1\n\n  2'
+        'blank line between keyed tabular entry rows'                 | 'envs[2:]{region}:\n  prod: us\n\n  dev: eu'
+        'blank line between a list item\'s own fields'                | 'items[2]:\n  - a: 1\n\n    b: 2\n  - x'
+        'blank line inside the last list item\'s fields'              | 'items[1]:\n  - a: 1\n\n    b: 2'
         'indentation step not a multiple of the document indent size' | 'a:\n  b: 1\nc:\n    d: 1'
-        'indentation depth jump within a nested chain'  | 'a:\n  b:\n    c: 1\n    d:\n        e: 1'
-        'keyless tabular header as a list item'          | 'items[1]:\n  - [2]{x}:\n    1\n    2'
-        'keyless keyed-tabular header as a list item'    | 'items[1]:\n  - [1:]{v}:\n    a: 1'
-        '\\u escape with a leading plus sign'            | 'value: "\\u+041"'
-        '\\u escape with a leading minus sign'           | 'value: "\\u-041"'
-        'lone high surrogate in a \\u escape'            | 'value: "\\uD800"'
-        'lone low surrogate in a \\u escape'              | 'value: "\\uDC00"'
-        'high surrogate not followed by a low surrogate' | 'value: "\\uD800\\u0041"'
-        'indented root content'                        | '  name: Alice'
-        'space before colon in unquoted key'           | 'name : Alice'
-        'space before array header bracket'            | 'items [2]: 1,2'
-        'space before colon in quoted key'             | '"name" : Alice'
-        'whitespace around unquoted field in list'     | 'items[2]{ id, name}:\n  1, Alice\n  2, Bob'
-        'huge declared tabular row count'              | 'items[2000000000]{a}:\n  1'
-        'huge declared list item count'                | 'items[2000000000]:\n  - a'
+        'indentation depth jump within a nested chain'                | 'a:\n  b:\n    c: 1\n    d:\n        e: 1'
+        'keyless tabular header as a list item'                       | 'items[1]:\n  - [2]{x}:\n    1\n    2'
+        'keyless keyed-tabular header as a list item'                 | 'items[1]:\n  - [1:]{v}:\n    a: 1'
+        '\\u escape with a leading plus sign'                         | 'value: "\\u+041"'
+        '\\u escape with a leading minus sign'                        | 'value: "\\u-041"'
+        'lone high surrogate in a \\u escape'                         | 'value: "\\uD800"'
+        'lone low surrogate in a \\u escape'                          | 'value: "\\uDC00"'
+        'high surrogate not followed by a low surrogate'              | 'value: "\\uD800\\u0041"'
+        'indented root content'                                       | '  name: Alice'
+        'space before colon in unquoted key'                          | 'name : Alice'
+        'space before array header bracket'                           | 'items [2]: 1,2'
+        'space before colon in quoted key'                            | '"name" : Alice'
+        'whitespace around unquoted field in list'                    | 'items[2]{ id, name}:\n  1, Alice\n  2, Bob'
+        'huge declared tabular row count'                             | 'items[2000000000]{a}:\n  1'
+        'huge declared list item count'                               | 'items[2000000000]:\n  - a'
     }
 
     private static LimitingStream.RemainingLimits limitsOf(int maximumNestingDepth) {

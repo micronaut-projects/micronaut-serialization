@@ -95,7 +95,7 @@ public final class ToonMapper implements ObjectMapper {
      * @param serdeConfiguration The serde configuration, when available
      * @param toonDecoder        The decoder that converts TOON input into a JSON tree
      * @param toonEncoder        The encoder that writes JSON trees as TOON output
-     * @param view                The active {@code @JsonView} class, when available
+     * @param view               The active {@code @JsonView} class, when available
      */
     @Inject
     public ToonMapper(SerdeRegistry registry,

@@ -856,12 +856,12 @@ final class ToonDocumentParser extends LimitingStream {
      * space count) and its content with leading indentation and trailing
      * whitespace already stripped.
      *
-     * @param lineNumber           The 1-based source line number
-     * @param indent               The number of leading space characters
-     * @param content              The line content, with indentation and trailing whitespace stripped
-     * @param precededByBlankLine  Whether a blank line was skipped immediately
-     *                             before this line; used by {@link #nextLineIndent}
-     *                             to reject a blank line inside a declared-count body
+     * @param lineNumber          The 1-based source line number
+     * @param indent              The number of leading space characters
+     * @param content             The line content, with indentation and trailing whitespace stripped
+     * @param precededByBlankLine Whether a blank line was skipped immediately
+     *                            before this line; used by {@link #nextLineIndent}
+     *                            to reject a blank line inside a declared-count body
      */
     private record Line(int lineNumber, int indent, String content, boolean precededByBlankLine) {
     }

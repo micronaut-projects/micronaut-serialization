@@ -58,18 +58,18 @@ import groovy.json.JsonSlurper
 final class ToonSpecFixtures {
 
     private static final List<String> DECODE_FILES = [
-        'arrays-nested', 'arrays-primitive', 'arrays-tabular', 'blank-lines', 'comments',
-        'delimiters', 'indentation-errors', 'numbers', 'objects-keyed', 'objects',
-        'primitives', 'root-form', 'validation-errors', 'whitespace',
+            'arrays-nested', 'arrays-primitive', 'arrays-tabular', 'blank-lines', 'comments',
+            'delimiters', 'indentation-errors', 'numbers', 'objects-keyed', 'objects',
+            'primitives', 'root-form', 'validation-errors', 'whitespace',
     ]
 
     private static final List<String> ENCODE_FILES = [
-        'arrays-nested', 'arrays-objects', 'arrays-primitive', 'arrays-tabular', 'delimiters',
-        'objects-keyed', 'objects', 'primitives', 'whitespace',
+            'arrays-nested', 'arrays-objects', 'arrays-primitive', 'arrays-tabular', 'delimiters',
+            'objects-keyed', 'objects', 'primitives', 'whitespace',
     ]
 
     private static final Set<String> KNOWN_INDENT_DIVERGENCES = [
-        'indentation-errors.json :: throws on depth jump of more than one level',
+            'indentation-errors.json :: throws on depth jump of more than one level',
     ] as Set<String>
 
     // groovy-json's own integer-literal parser (NumberValue/CharScanner,
@@ -82,7 +82,7 @@ final class ToonSpecFixtures {
     // one fixture wide enough to trigger it is excluded here rather than
     // fought with a different JSON library for a single vendored value.
     private static final Set<String> KNOWN_LOADER_NUMBER_OVERFLOWS = [
-        'primitives.json :: encodes large number',
+            'primitives.json :: encodes large number',
     ] as Set<String>
 
     private ToonSpecFixtures() {
@@ -125,14 +125,14 @@ final class ToonSpecFixtures {
         Map data = (Map) new JsonSlurper().parse(stream)
         ((List) data.tests).collect { Map t ->
             new ToonSpecFixture(
-                file: "${file}.json",
-                category: category,
-                name: (String) t.name,
-                input: plainify(t.input),
-                expected: plainify(t.expected),
-                shouldError: t.shouldError == true,
-                options: (Map<String, Object>) plainify(t.options) ?: [:],
-                note: (String) t.note
+                    file: "${file}.json",
+                    category: category,
+                    name: (String) t.name,
+                    input: plainify(t.input),
+                    expected: plainify(t.expected),
+                    shouldError: t.shouldError == true,
+                    options: (Map<String, Object>) plainify(t.options) ?: [:],
+                    note: (String) t.note
             )
         }
     }
