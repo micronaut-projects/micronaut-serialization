@@ -53,6 +53,38 @@ class RecursiveView {
             context.close()
     }
 
+    void 'test recursive serdeable bean with collection property'() {
+        given:
+            def context = buildContext('test.V1JSONSchemaProps', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import java.util.List;
+
+@Serdeable
+class V1JSONSchemaProps {
+    private List<V1JSONSchemaProps> allOf;
+
+    public List<V1JSONSchemaProps> getAllOf() {
+        return allOf;
+    }
+
+    public void setAllOf(List<V1JSONSchemaProps> allOf) {
+        this.allOf = allOf;
+    }
+}
+""", true, ['micronaut.serde.serialization.inclusion': 'ALWAYS'])
+            def schemaType = argumentOf(context, 'test.V1JSONSchemaProps')
+            def root = newInstance(context, 'test.V1JSONSchemaProps', [allOf: []])
+
+        expect:
+            writeJson(jsonMapper, root) == '{"allOf":[]}'
+            jsonMapper.readValue('{"allOf":[]}', schemaType).allOf.empty
+
+        cleanup:
+            context.close()
+    }
+
     void 'test recursive serdeable record'() {
         given:
             def context = buildContext('test.RecursiveRecordView', """

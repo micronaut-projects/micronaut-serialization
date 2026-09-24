@@ -548,6 +548,11 @@ public final class SimpleSerdeShapeAnalyzer {
         if (element.isEnum()) {
             return SimpleSerdeShapeDecision.ShapeKind.ENUM;
         }
+        // The record and bean generators only model non-generic types: a generic type, such as one
+        // declaring a recursively bounded type parameter, uses the runtime serdes
+        if (!element.getTypeArguments().isEmpty()) {
+            return SimpleSerdeShapeDecision.ShapeKind.UNSUPPORTED;
+        }
         if (element.isRecord()) {
             return SimpleSerdeShapeDecision.ShapeKind.RECORD;
         }

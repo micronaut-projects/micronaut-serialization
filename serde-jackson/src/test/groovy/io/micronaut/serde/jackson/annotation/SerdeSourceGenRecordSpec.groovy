@@ -335,6 +335,130 @@ public record EnumSetRecord(@NonNull EnumSet<EnumSetRecord.Color> colors) {
         context.close()
     }
 
+    void 'test generic record with recursively bounded enum type parameter compiles and round trips'() {
+        given:
+        def context = buildContext('test.ResourceDetail', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+record ResourceDetail<I, S extends Enum<S>, D>(
+    ResourceDetails<I, S> resourceDetails,
+    D details
+) {}
+
+@Serdeable
+record ResourceDetails<I, S extends Enum<S>>(
+    I id,
+    S lifecycleState
+) {}
+
+enum LifecycleState { ACTIVE, DELETED }
+''')
+        Class<?> detailType = context.classLoader.loadClass('test.ResourceDetail')
+        Class<?> detailsType = context.classLoader.loadClass('test.ResourceDetails')
+        Class<?> stateType = context.classLoader.loadClass('test.LifecycleState')
+        def type = Argument.of(detailType, Argument.of(String, 'I'), Argument.of(stateType, 'S'), Argument.of(String, 'D'))
+        def registry = context.getBean(SerdeRegistry)
+
+        expect:
+        !context.classLoader.getResource('test/SerdeResourceDetailSerializer.class')
+        !context.classLoader.getResource('test/SerdeResourceDetailDeserializer.class')
+        registry.findSerializer(type).createSpecific(registry.newEncoderContext(Object), type).class.name != generatedClassName(detailType, 'Serializer')
+        registry.findDeserializer(type).createSpecific(registry.newDecoderContext(Object), type).class.name != generatedClassName(detailType, 'Deserializer')
+
+        when:
+        def state = stateType.enumConstants[0]
+        def details = detailsType.getDeclaredConstructor(Object, Enum).tap { accessible = true }.newInstance('id-1', state)
+        def record = detailType.getDeclaredConstructor(detailsType, Object).tap { accessible = true }.newInstance(details, 'info')
+        String json = jsonMapper.writeValueAsString(record)
+        def deserialized = jsonMapper.readValue(json, type)
+
+        then:
+        json == '{"resourceDetails":{"id":"id-1","lifecycleState":"ACTIVE"},"details":"info"}'
+        deserialized == record
+
+        cleanup:
+        context.close()
+    }
+
+    void 'test record sourcegen handles components recursing through collections maps and arrays'() {
+        given:
+        def context = buildContext('test.TreeNode', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import java.util.List;
+import java.util.Map;
+
+@Serdeable
+public record TreeNode(String name, List<TreeNode> children, Map<String, TreeNode> named, TreeNode[] array) {}
+''')
+        Class<?> nodeType = context.classLoader.loadClass('test.TreeNode')
+        def registry = context.getBean(SerdeRegistry)
+        def type = Argument.of(nodeType)
+        String json = '{"name":"root","children":[{"name":"a"}],"named":{"n":{"name":"b"}},"array":[{"name":"c"}]}'
+
+        expect:
+        assertGeneratedSerializer(registry, type)
+        assertGeneratedDeserializer(registry, type)
+
+        when:
+        def decoded = jsonMapper.readValue(json, type)
+
+        then:
+        decoded.name() == 'root'
+        decoded.children()*.name() == ['a']
+        decoded.named().n.name() == 'b'
+        decoded.array()*.name() == ['c']
+        jsonMapper.writeValueAsString(decoded) == json
+
+        cleanup:
+        context.close()
+    }
+
+    void 'test record sourcegen handles nested records referring back to the enclosing record'() {
+        given:
+        def context = buildContext('test.Outer', '''
+package test;
+
+import io.micronaut.core.annotation.Nullable;
+import io.micronaut.serde.annotation.Serdeable;
+import java.util.List;
+
+@Serdeable
+public record Outer(String name, @Nullable Inner inner) {
+
+    @Serdeable
+    public record Inner(@Nullable Outer outer, @Nullable List<Outer> items) {}
+}
+''')
+        Class<?> outerType = context.classLoader.loadClass('test.Outer')
+        Class<?> innerType = context.classLoader.loadClass('test.Outer$Inner')
+        def registry = context.getBean(SerdeRegistry)
+        def type = Argument.of(outerType)
+        String json = '{"name":"root","inner":{"outer":{"name":"a"},"items":[{"name":"b"}]}}'
+
+        expect:
+        assertGeneratedSerializer(registry, type)
+        assertGeneratedDeserializer(registry, type)
+        assertGeneratedSerializer(registry, Argument.of(innerType))
+        assertGeneratedDeserializer(registry, Argument.of(innerType))
+
+        when:
+        def decoded = jsonMapper.readValue(json, type)
+
+        then:
+        decoded.name() == 'root'
+        decoded.inner().outer().name() == 'a'
+        decoded.inner().items()*.name() == ['b']
+        jsonMapper.writeValueAsString(decoded) == json
+
+        cleanup:
+        context.close()
+    }
+
     private static void assertGeneratedSerializer(SerdeRegistry registry, Argument argument) {
         Serializer serializer = registry.findSerializer(argument).createSpecific(registry.newEncoderContext(Object), argument)
         assert serializer.class.name == generatedClassName(argument.type, 'Serializer')
