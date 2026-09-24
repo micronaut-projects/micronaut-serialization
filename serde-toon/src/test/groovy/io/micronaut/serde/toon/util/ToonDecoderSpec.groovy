@@ -117,6 +117,15 @@ class ToonDecoderSpec extends Specification {
         parse('m[1:]{v}:\n  k[2]: 5').get('m').get('k[2]').get('v').numberValue == 5L
     }
 
+    void 'test a tab-delimited keyed tabular entry with two empty cells decodes, rather than being mistaken for no cells at all'() {
+        // valuesText is a single tab here: a significant empty-cell marker
+        // under the tab delimiter, not incidental trailing whitespace.
+        expect:
+        def entry = parse('m[1:\t]{a\tb}:\n  x:\t').get('m').get('x')
+        entry.get('a').stringValue == ''
+        entry.get('b').stringValue == ''
+    }
+
     void 'test decoding accepts a non-conforming field name in a tabular header field list'() {
         // Same §7.4 leniency applies to a field name in a tabular header's
         // field list - it doesn't need to match the encoder's own

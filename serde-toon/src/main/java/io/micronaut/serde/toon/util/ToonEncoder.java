@@ -168,9 +168,10 @@ public final class ToonEncoder {
         List<String> fieldOrder = keysOf(representative);
         String header = bracketSegment(elements.size(), false) + buildFieldList(fieldOrder, representative);
         consumer.accept(prefix + header + ":");
+        List<Column> columns = buildColumns(fieldOrder, representative);
         String rowIndent = indent(depth + 1);
         for (JsonNode element : elements) {
-            consumer.accept(rowIndent + buildRow(fieldOrder, representative, element));
+            consumer.accept(rowIndent + buildRow(columns, element));
         }
     }
 
@@ -223,20 +224,15 @@ public final class ToonEncoder {
     }
 
     /**
-     * Writes a bare array occupying a list item's position. The header line
-     * is rendered one level deeper than {@code depth} so the wrapping
-     * consumer in {@link #writeListItem} can strip it back down to
-     * {@code depth} and replace it with the item's {@code "- "} marker, but
-     * the array's body must land one level below that marker - i.e. at
-     * {@code depth + 1}, not {@code depth + 2} - so it is written using
-     * {@code depth} itself rather than {@code depth + 1}.
+     * Writes a bare array occupying a list item's position, one level
+     * deeper than {@code depth} so {@link #writeListItem}'s wrapping
+     * consumer can replace that leading indent with the item's
+     * {@code "- "} marker.
      */
     private void writeArrayAsListItem(ThrowingConsumer<String, IOException> consumer, JsonNode array, int depth) throws IOException {
         String prefix = indent(depth + 1);
         List<JsonNode> elements = CollectionUtils.iterableToList(array.values());
-        // Tabular form (§9.3) is only valid at the document root or in
-        // object-field position, never as a list item, so an otherwise
-        // tabular-eligible array falls back to list form here.
+        // §9.3: tabular form is not valid as a list item.
         if (allPrimitive(elements)) {
             writeInlineArray(consumer, prefix, elements);
         } else {
@@ -250,9 +246,10 @@ public final class ToonEncoder {
         List<String> fieldOrder = keysOf(representative);
         String header = bracketSegment(entries.size(), true) + buildFieldList(fieldOrder, representative);
         consumer.accept(indent(depth) + keyPrefix(key) + header + ":");
+        List<Column> columns = buildColumns(fieldOrder, representative);
         String entryIndent = indent(depth + 1);
         for (Map.Entry<String, JsonNode> entry : entries) {
-            consumer.accept(entryIndent + quoteKey(entry.getKey()) + ": " + buildRow(fieldOrder, representative, entry.getValue()));
+            consumer.accept(entryIndent + quoteKey(entry.getKey()) + ": " + buildRow(columns, entry.getValue()));
         }
     }
 
@@ -260,14 +257,12 @@ public final class ToonEncoder {
      * An array is tabular-eligible when it is non-empty, every element is a
      * non-empty object with the same set of keys (order may vary per
      * element), and every column is a uniform-primitive column or itself a
-     * uniform, tabular-eligible column of nested objects. The header - and
-     * the order cells are emitted in for every row - is taken from the
-     * first element; {@link #requireField} looks fields up by name, so a
-     * later element's own key order doesn't matter. Per §9.3 there is no
-     * minimum element count - a single-element array is still eligible - so
-     * this method is not used for keyed (map-form) tabular eligibility,
-     * which per §9.5 requires at least two entries; see
-     * {@link #isKeyedTabularEligible}.
+     * uniform, tabular-eligible column of nested objects. The header, and
+     * the cell order for every row, is taken from the first element.
+     *
+     * <p>Per §9.3 there is no minimum element count. Keyed (map-form)
+     * tabular eligibility has its own minimum of two entries per §9.5; see
+     * {@link #isKeyedTabularEligible}.</p>
      */
     private boolean isTabularEligible(List<JsonNode> elements) {
         if (elements.isEmpty()) {
@@ -285,7 +280,7 @@ public final class ToonEncoder {
             if (fieldOrder.isEmpty()) {
                 fieldOrder = keys;
                 fieldSet = new HashSet<>(keys);
-            } else if (!fieldSet.equals(new HashSet<>(keys))) {
+            } else if (fieldSet.size() != keys.size() || !fieldSet.containsAll(keys)) {
                 return false;
             }
         }
@@ -320,9 +315,8 @@ public final class ToonEncoder {
     private boolean isKeyedTabularEligible(JsonNode object) {
         List<JsonNode> values = CollectionUtils.iterableToList(object.values());
         // §9.5: keyed (map-form) tabular blocks require at least two
-        // entries, unlike plain tabular arrays (§9.3), which have no
-        // minimum - a single entry would be ambiguous with an ordinary
-        // single-field object.
+        // entries, unlike plain tabular arrays (§9.3); a single entry is
+        // ambiguous with an ordinary single-field object.
         return values.size() >= 2 && isTabularEligible(values);
     }
 
@@ -354,18 +348,36 @@ public final class ToonEncoder {
     }
 
     /**
-     * Builds a tabular row's cells in header order. {@code representative}
-     * is the same element {@link #buildFieldList} derived the header from;
-     * for a nested field group, {@code element}'s own key order may differ
-     * from it (only the key set is required to match), so nested cells are
-     * walked in {@code representative}'s field order rather than
+     * A tabular column's name and, for a nested-object column, its own
+     * columns - computed once per array from the representative element so
+     * {@link #buildRow} doesn't re-derive field order from that element on
+     * every row.
+     */
+    private record Column(String name, @Nullable List<Column> nested) {
+    }
+
+    private List<Column> buildColumns(List<String> fieldOrder, JsonNode representativeElement) {
+        List<Column> columns = new ArrayList<>(fieldOrder.size());
+        for (String field : fieldOrder) {
+            JsonNode representativeValue = requireField(representativeElement, field);
+            List<Column> nested = representativeValue.isObject() ? buildColumns(keysOf(representativeValue), representativeValue) : null;
+            columns.add(new Column(field, nested));
+        }
+        return columns;
+    }
+
+    /**
+     * Builds a tabular row's cells in header order. For a nested field
+     * group, {@code element}'s own key order may differ from
+     * {@code columns} (only the key set is required to match), so nested
+     * cells are walked in {@code columns}' order rather than
      * {@code element}'s.
      */
-    private String buildRow(List<String> fieldOrder, JsonNode representative, JsonNode element) {
+    private String buildRow(List<Column> columns, JsonNode element) {
         StringBuilder sb = new StringBuilder();
         boolean[] first = {true};
-        for (String field : fieldOrder) {
-            appendLeafCells(sb, requireField(representative, field), requireField(element, field), first);
+        for (Column column : columns) {
+            appendLeafCells(sb, column, requireField(element, column.name()), first);
         }
         return sb.toString();
     }
@@ -378,10 +390,10 @@ public final class ToonEncoder {
         return Objects.requireNonNull(node.get(field), () -> "field not present: " + field);
     }
 
-    private void appendLeafCells(StringBuilder sb, JsonNode representativeValue, JsonNode value, boolean[] first) {
-        if (representativeValue.isObject()) {
-            for (String field : keysOf(representativeValue)) {
-                appendLeafCells(sb, requireField(representativeValue, field), requireField(value, field), first);
+    private void appendLeafCells(StringBuilder sb, Column column, JsonNode value, boolean[] first) {
+        if (column.nested() != null) {
+            for (Column nestedColumn : column.nested()) {
+                appendLeafCells(sb, nestedColumn, requireField(value, nestedColumn.name()), first);
             }
         } else {
             if (!first[0]) {
