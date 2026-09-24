@@ -8,11 +8,11 @@ NOTE: The TOON mapper is tree-based: it reads the whole document into a `JsonNod
 
 The TOON mapper is exposed as a named api:serde.ObjectMapper[] bean. Inject it with the `toon` qualifier, or by its concrete type api:serde.toon.ToonMapper[], when you want to read or write TOON data:
 
-snippet::example.ToonReportService[project-base="doc-examples/example", source="main"]
+snippet::example.ToonReportService[project-base="doc-examples/example-toon", source="main"]
 
 With the correct dependencies in place, define a serializable type:
 
-snippet::example.ToonLibrary[project-base="doc-examples/example", source="main"]
+snippet::example.ToonLibrary[project-base="doc-examples/example-toon", source="main"]
 
 Once you have a type annotated with ann:serde.annotation.Serdeable[], the mapper serializes objects into compact, human-readable TOON format:
 
@@ -28,7 +28,7 @@ books[2]:
 
 The following executable example writes and reads this model:
 
-snippet::example.ToonQuickStartTest[project-base="doc-examples/example"]
+snippet::example.ToonQuickStartTest[project-base="doc-examples/example-toon"]
 
 == Tabular Representation
 

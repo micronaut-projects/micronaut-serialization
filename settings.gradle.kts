@@ -52,6 +52,7 @@ include("doc-examples:example-kotlin")
 include("doc-examples:example-kotlin-ksp")
 include("doc-examples:example-standalone-java-jackson")
 include("doc-examples:example-stax-xml-java")
+include("doc-examples:example-toon-java")
 include("doc-examples:example-woodstox-xml-java")
 
 include("benchmarks")
