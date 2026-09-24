@@ -98,6 +98,7 @@ jsonassert = { module = 'org.skyscreamer:jsonassert', version.ref = 'jsonassert'
 xmlunit-core = { module = "org.xmlunit:xmlunit-core", version.ref = "xmlunit" }
 protobuf-java = { module = 'com.google.protobuf:protobuf-java', version.ref = 'protobuf-java' }
 jtoon = { module = "dev.toonformat:jtoon", version.ref = "jtoon" }
+groovy-json = { module = "org.apache.groovy:groovy-json" }
 
 #PLUGINS
 gradle-micronaut = { module = "io.micronaut.gradle:micronaut-gradle-plugin", version.ref = "micronaut-gradle-plugin" }
