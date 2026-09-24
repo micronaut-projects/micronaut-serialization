@@ -20,7 +20,7 @@ import io.micronaut.serde.annotation.Serdeable;
 /**
  * A bean used in tabular array serialization and deserialization tests.
  *
- * @param id The id
+ * @param id   The id
  * @param name The name
  * @param role The role
  */

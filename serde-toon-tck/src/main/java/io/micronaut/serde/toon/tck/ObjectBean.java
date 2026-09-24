@@ -20,7 +20,7 @@ import io.micronaut.serde.annotation.Serdeable;
 /**
  * A bean holding another bean, used to exercise nested structures.
  *
- * @param name The name
+ * @param name  The name
  * @param inner The nested bean
  */
 @Serdeable

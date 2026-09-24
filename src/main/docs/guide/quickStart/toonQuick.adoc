@@ -4,22 +4,15 @@ Add the following artifact to the `dependencies` block:
 
 dependency:micronaut-serde-toon[groupId="io.micronaut.serde",scope="implementation"]
 
+NOTE: The TOON mapper is tree-based: it reads the whole document into a `JsonNode` before deserializing, unlike the streaming YAML and JSON mappers.
+
 The TOON mapper is exposed as a named api:serde.ObjectMapper[] bean. Inject it with the `toon` qualifier, or by its concrete type api:serde.toon.ToonMapper[], when you want to read or write TOON data:
 
-[source,java]
-----
-import io.micronaut.serde.ObjectMapper;
-import io.micronaut.serde.toon.ToonMapper;
-import jakarta.inject.Named;
+snippet::example.ToonReportService[project-base="doc-examples/example-toon", source="main"]
 
-class ReportService {
-    private final ObjectMapper toonMapper;
+With the correct dependencies in place, define a serializable type:
 
-    ReportService(@Named(ToonMapper.NAME) ObjectMapper toonMapper) {
-        this.toonMapper = toonMapper;
-    }
-}
-----
+snippet::example.ToonLibrary[project-base="doc-examples/example-toon", source="main"]
 
 Once you have a type annotated with ann:serde.annotation.Serdeable[], the mapper serializes objects into compact, human-readable TOON format:
 
@@ -32,6 +25,10 @@ books[2]:
   - title: VALIS
     authors[1]: Philip K. Dick
 ----
+
+The following executable example writes and reads this model:
+
+snippet::example.ToonQuickStartTest[project-base="doc-examples/example-toon"]
 
 == Tabular Representation
 

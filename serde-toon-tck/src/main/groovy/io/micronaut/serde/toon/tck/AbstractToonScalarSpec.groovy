@@ -124,18 +124,18 @@ nothing: null
         writeToon([a: value]).trim() == 'a: "' + escapedExpected + '"'
 
         where:
-        value             || escapedExpected
-        "true"            || "true"
-        "false"           || "false"
-        "null"            || "null"
-        "0123"            || "0123"
-        "-42"             || "-42"
-        "hello, world"    || "hello, world"
-        "foo: bar"        || "foo: bar"
-        "line1\nline2"    || "line1\\nline2"
-        " leading"        || " leading"
-        "trailing "       || "trailing "
-        ""                || ""
+        value          || escapedExpected
+        "true"         || "true"
+        "false"        || "false"
+        "null"         || "null"
+        "0123"         || "0123"
+        "-42"          || "-42"
+        "hello, world" || "hello, world"
+        "foo: bar"     || "foo: bar"
+        "line1\nline2" || "line1\\nline2"
+        " leading"     || " leading"
+        "trailing "    || "trailing "
+        ""             || ""
     }
 
     void "safe unquoted identifiers are written without quotes"() {

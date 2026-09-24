@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
  * {@link ToonDecoder} (decode).
  *
  * @see <a href="https://github.com/toon-format/spec">TOON specification</a>
- * @since 3.2.0
+ * @since 3.2.1
  */
 @Internal
 public final class ToonEscapes {
@@ -194,14 +194,29 @@ public final class ToonEscapes {
                         throw new SerdeException("Invalid \\u escape sequence: " + quoted);
                     }
 
-                    String hex = inner.substring(i + 2, i + 6);
-                    try {
-                        sb.append((char) Integer.parseInt(hex, 16));
-                    } catch (NumberFormatException e) {
-                        throw new SerdeException("Invalid \\u escape sequence: " + quoted);
-                    }
+                    char value = parseUnicodeEscape(inner, i + 2, quoted);
+                    if (Character.isHighSurrogate(value)) {
+                        // A high surrogate must be immediately followed by a
+                        // \\u escape decoding to its low-surrogate pair; an
+                        // unpaired surrogate is rejected, not passed through
+                        // as a malformed code point.
+                        if (i + 12 > inner.length() || inner.charAt(i + 6) != '\\' || inner.charAt(i + 7) != 'u') {
+                            throw new SerdeException("Lone high surrogate in \\u escape sequence: " + quoted);
+                        }
 
-                    i += 6;
+                        char low = parseUnicodeEscape(inner, i + 8, quoted);
+                        if (!Character.isLowSurrogate(low)) {
+                            throw new SerdeException("Lone high surrogate in \\u escape sequence: " + quoted);
+                        }
+
+                        sb.append(value).append(low);
+                        i += 12;
+                    } else if (Character.isLowSurrogate(value)) {
+                        throw new SerdeException("Lone low surrogate in \\u escape sequence: " + quoted);
+                    } else {
+                        sb.append(value);
+                        i += 6;
+                    }
                 }
 
                 default ->
@@ -210,6 +225,27 @@ public final class ToonEscapes {
         }
 
         return sb.toString();
+    }
+
+    /**
+     * Parses the four characters at {@code start} as a {@code \\u} escape's
+     * hex digits, requiring each to be an actual hex digit - unlike
+     * {@link Integer#parseInt(String, int)}, which also accepts a leading
+     * sign, so a token like {@code +041} or {@code -041} would otherwise
+     * silently decode instead of being rejected as malformed.
+     */
+    private static char parseUnicodeEscape(String inner, int start, String quoted) throws SerdeException {
+        for (int j = start; j < start + 4; j++) {
+            if (!isHexDigit(inner.charAt(j))) {
+                throw new SerdeException("Invalid \\u escape sequence: " + quoted);
+            }
+        }
+
+        return (char) Integer.parseInt(inner, start, start + 4, 16);
+    }
+
+    private static boolean isHexDigit(char c) {
+        return isAsciiDigit(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
     }
 
     /**

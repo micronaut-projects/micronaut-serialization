@@ -16,7 +16,7 @@
 /**
  * Shared TOON serialization test fixtures and specifications.
  *
- * @since 3.2.0
+ * @since 3.2.1
  */
 @NullMarked
 package io.micronaut.serde.toon.tck;

@@ -15,6 +15,7 @@ dependencies {
     api(mnTest.junit.jupiter.api)
     api(libs.jetbrains.annotations)
     api(libs.jtoon)
+    api(libs.groovy.json)
 
     compileOnly(mn.micronaut.inject.groovy)
 }

@@ -38,28 +38,38 @@ import java.util.regex.Pattern;
  *
  * <p>Delimiter and indentation are read from the document, not configured.
  * Each array/object header declares its own delimiter in its bracket
- * segment (comma unless a tab or pipe symbol follows the length).
- * Indentation depth is inferred by peeking a nested body's first line to
- * establish its indent, then requiring every sibling to match it exactly;
- * a shallower line ends the body, a deeper one is inconsistent
- * indentation.</p>
+ * segment (comma unless a tab or pipe symbol follows the length). The
+ * document's indent step is inferred from its first nesting transition and
+ * enforced on every later one (see {@link #validateNestedIndent}).</p>
  *
- * <p>Operates in the specification's strict mode: it reads exactly the
- * count a header declares, and a declared-count, field-list-width, or
- * indentation mismatch is a {@link SerdeException}. An unquoted key is
- * read only up to its own text, matching what {@link ToonEncoder} emits;
- * a non-conforming unquoted key containing a raw {@code [} or {@code :}
- * is not specially handled.</p>
+ * <p>Follows the specification's strict mode: a header's declared count and
+ * field-list width must match exactly, or the parser throws a
+ * {@link SerdeException}. Two leniencies beyond strict mode:</p>
  *
- * <p>Guards against a maliciously deep document the same way every other
- * decoder in this codebase does: it extends {@link LimitingStream} and
- * checks the remaining nesting-depth budget at each point that descends one
- * level deeper into the resulting {@link JsonNode} tree - both the
- * indentation-driven recursion (nested objects, arrays) and the single-line
+ * <ul>
+ *   <li>A key is read as the literal text up to the first unquoted
+ *   {@code :} (or, for an object field, {@code :} or {@code [}), regardless
+ *   of whether it matches {@link ToonEncoder}'s stricter unquoted-key
+ *   grammar. Whitespace directly adjacent to that delimiter is still
+ *   rejected, not trimmed.</li>
+ *   <li>A blank line is an error only <em>between</em> two rows/entries/items
+ *   of a declared-count body, or between two of a list item's own
+ *   continuation fields. A blank line nested deeper inside an item, between
+ *   an ordinary object's sibling fields, or between top-level constructs is
+ *   skipped.</li>
+ *   <li>Indentation is not required to be a multiple of a fixed default of 2
+ *   spaces; the document's own indent step, inferred from its first nesting
+ *   transition, is enforced instead.</li>
+ * </ul>
+ *
+ * <p>Guards against a maliciously deep document by extending
+ * {@link LimitingStream} and charging the nesting-depth budget at each
+ * point that descends one level deeper into the resulting {@link JsonNode}
+ * tree - both the indentation-driven recursion and the single-line
  * nested-field-group recursion in a tabular header's field list.</p>
  *
  * @see <a href="https://github.com/toon-format/spec">TOON specification</a>
- * @since 3.2.0
+ * @since 3.2.1
  */
 final class ToonDocumentParser extends LimitingStream {
 
@@ -68,6 +78,15 @@ final class ToonDocumentParser extends LimitingStream {
 
     private final List<Line> lines;
     private int cursor;
+
+    /**
+     * The document's indent step, in spaces - the difference in leading
+     * spaces between a block and its nested body. Established from the very
+     * first such nesting transition encountered anywhere in
+     * the document, then required of every later transition; {@code -1}
+     * means not yet established.
+     */
+    private int indentSize = -1;
 
     /**
      * Creates a parser over the given TOON document text, splitting and
@@ -85,10 +104,12 @@ final class ToonDocumentParser extends LimitingStream {
 
         List<Line> parsedLines = new ArrayList<>();
         int lineNumber = 0;
+        boolean pendingBlankLine = false;
         for (String rawLine : LINE_SPLIT.split(text, -1)) {
             lineNumber++;
             String line = ToonEscapes.stripTrailingWhitespace(rawLine);
             if (line.isBlank()) {
+                pendingBlankLine = true;
                 continue;
             }
 
@@ -102,7 +123,8 @@ final class ToonDocumentParser extends LimitingStream {
                 continue;
             }
 
-            parsedLines.add(new Line(lineNumber, leadingSpaces, line.substring(leadingSpaces)));
+            parsedLines.add(new Line(lineNumber, leadingSpaces, line.substring(leadingSpaces), pendingBlankLine));
+            pendingBlankLine = false;
         }
 
         this.lines = parsedLines;
@@ -148,7 +170,7 @@ final class ToonDocumentParser extends LimitingStream {
 
     private JsonNode parseObjectFields(int parentIndent) throws SerdeException {
         Map<String, JsonNode> values = new LinkedHashMap<>();
-        continueObjectFields(parentIndent, values);
+        continueObjectFields(parentIndent, values, false);
         return JsonNode.createObjectNode(values);
     }
 
@@ -156,18 +178,28 @@ final class ToonDocumentParser extends LimitingStream {
      * Consumes every sibling field line more indented than {@code
      * parentIndent}, establishing that indent from the first such line and
      * requiring every further sibling to match it exactly.
+     *
+     * @param insideListItemBody Whether these fields are a list item's own
+     *                           continuation fields, where a blank line
+     *                           between them is a strict-mode error, unlike
+     *                           between an ordinary object's fields
      */
-    private void continueObjectFields(int parentIndent, Map<String, JsonNode> values) throws SerdeException {
+    private void continueObjectFields(int parentIndent, Map<String, JsonNode> values, boolean insideListItemBody) throws SerdeException {
         if (cursor >= lines.size() || lines.get(cursor).indent() <= parentIndent) {
             return;
         }
 
         increaseDepth();
         try {
-            int fieldsIndent = lines.get(cursor).indent();
+            Line firstField = lines.get(cursor);
+            int fieldsIndent = firstField.indent();
+            validateNestedIndent(parentIndent, firstField);
             while (cursor < lines.size() && lines.get(cursor).indent() >= fieldsIndent) {
                 Line current = lines.get(cursor);
                 requireConsistentIndent(current, fieldsIndent, "sibling field");
+                if (insideListItemBody && current.precededByBlankLine()) {
+                    throw new SerdeException("Blank line inside list item block at line " + current.lineNumber());
+                }
                 cursor++;
                 parseOneField(current, fieldsIndent, values);
             }
@@ -288,14 +320,24 @@ final class ToonDocumentParser extends LimitingStream {
             Line entryLine = lines.get(cursor);
             cursor++;
 
-            KeyResult keyResult = readKey(entryLine.content(), entryLine.lineNumber());
+            KeyResult keyResult = readEntryKey(entryLine.content(), entryLine.lineNumber());
             if (keyResult.remainder().isEmpty() || keyResult.remainder().charAt(0) != ':') {
                 throw new SerdeException("Malformed keyed tabular entry at line " + entryLine.lineNumber() + " (expected 'key: values'): " + entryLine.content());
             }
 
+            String valuesText = keyResult.remainder().substring(1);
+            if (valuesText.isEmpty()) {
+                // splitByDelimiter("") returns a single empty token, which
+                // would silently match leafCount == 1 instead of being
+                // treated as a missing-cells error. Not trimmed: a lone tab
+                // is a significant empty-cell marker under the tab
+                // delimiter, per stripTrailingWhitespace.
+                throw new SerdeException("Expected " + leafCount + " cell(s) in keyed entry row but found none at line " + entryLine.lineNumber() + ": " + entryLine.content());
+            }
+
             List<String> cells;
             try {
-                cells = ToonEscapes.splitByDelimiter(keyResult.remainder().substring(1), header.delimiter());
+                cells = ToonEscapes.splitByDelimiter(valuesText, header.delimiter());
             } catch (SerdeException e) {
                 throw annotateWithLine(e, entryLine.lineNumber());
             }
@@ -354,16 +396,27 @@ final class ToonDocumentParser extends LimitingStream {
         // in parseArrayOrKeyedBody.
         if (rest.startsWith("[")) {
             HeaderTail header = parseHeaderTail(rest, itemLine.lineNumber());
+            // A keyless header with a field list (tabular "- [N]{f}:" or
+            // keyed-tabular "- [N:]{f}:") is only valid at the document
+            // root, not as a list item.
+            if (header.fields() != null) {
+                throw new SerdeException("A keyless header with a field list is only valid at the document root, not as a list item, at line " + itemLine.lineNumber() + ": " + content);
+            }
             return parseArrayOrKeyedBody(header, itemIndent, itemLine.lineNumber());
         }
 
-        // Otherwise `rest` is the item object's first field, rendered as
-        // if it were a normal field line at the item's own indent.
+        // Otherwise `rest` is the item object's first field, rendered as if
+        // it were a normal field line one indent step in from the item's own
+        // indent - matching where it sits after the "- " marker - so any
+        // body nested under it validates against that depth. Sibling fields
+        // still resolve their own depth from the first sibling line, via
+        // continueObjectFields.
         increaseDepth();
         try {
             Map<String, JsonNode> values = new LinkedHashMap<>();
-            parseOneField(new Line(itemLine.lineNumber(), itemLine.indent(), rest), itemIndent, values);
-            continueObjectFields(itemIndent, values);
+            int fieldIndent = itemIndent + indentSize;
+            parseOneField(new Line(itemLine.lineNumber(), itemLine.indent(), rest, false), fieldIndent, values);
+            continueObjectFields(itemIndent, values, true);
             return JsonNode.createObjectNode(values);
         } finally {
             decreaseDepth();
@@ -386,7 +439,16 @@ final class ToonDocumentParser extends LimitingStream {
 
         Line currentLine = lines.get(cursor);
         if (childIndent != null) {
+            // A blank line between rows/entries/items in a declared-count
+            // body is a strict-mode error, unlike between the header and
+            // the first one, between sibling object fields, or between
+            // top-level constructs, which are skipped elsewhere.
+            if (currentLine.precededByBlankLine()) {
+                throw new SerdeException("Blank line inside " + what + " block at line " + currentLine.lineNumber());
+            }
             requireConsistentIndent(currentLine, childIndent, what);
+        } else {
+            validateNestedIndent(parentIndent, currentLine);
         }
 
         return currentLine.indent();
@@ -403,7 +465,45 @@ final class ToonDocumentParser extends LimitingStream {
         }
     }
 
+    /**
+     * Establishes the document's indent step from the first nesting
+     * transition, then validates every later transition against it. Not
+     * called for the root level's own fields, which sit at indent 0 with no
+     * step to measure (see {@link #continueObjectFields},
+     * {@link #nextLineIndent}).
+     */
+    private void validateNestedIndent(int parentIndent, Line line) throws SerdeException {
+        if (parentIndent < 0) {
+            return;
+        }
+
+        int step = line.indent() - parentIndent;
+        if (indentSize == -1) {
+            indentSize = step;
+            return;
+        }
+
+        if (step != indentSize) {
+            throw new SerdeException("Non-multiple indentation at line " + line.lineNumber() + ": " + line.indent()
+                + " leading space(s) with document indent size " + indentSize + " (expected " + (parentIndent + indentSize) + ")");
+        }
+    }
+
     private static KeyResult readKey(String content, int lineNumber) throws SerdeException {
+        return readKey(content, lineNumber, true);
+    }
+
+    /**
+     * Reads a keyed-tabular entry's own key. Unlike an object field's key,
+     * this never stops at an unquoted {@code '['}: an entry line has no
+     * header syntax of its own, so a bracket in the key text (e.g. {@code
+     * k[2]: 5}) is just part of the literal key, not a nested header.
+     */
+    private static KeyResult readEntryKey(String content, int lineNumber) throws SerdeException {
+        return readKey(content, lineNumber, false);
+    }
+
+    private static KeyResult readKey(String content, int lineNumber, boolean stopAtBracket) throws SerdeException {
         if (content.isEmpty()) {
             throw new SerdeException("Malformed TOON line (missing key) at line " + lineNumber + ": " + content);
         }
@@ -418,16 +518,22 @@ final class ToonDocumentParser extends LimitingStream {
             }
         }
 
-        if (!ToonEscapes.isKeyStart(content.charAt(0))) {
-            throw new SerdeException("Malformed TOON line (invalid or missing key) at line " + lineNumber + ": " + content);
-        }
-
-        int i = 1;
-        while (i < content.length() && ToonEscapes.isKeyPart(content.charAt(i))) {
+        // An unquoted key is the literal text before the first unquoted
+        // ':' (or, for an object field, ':' or '['), regardless of whether
+        // it matches the encoder's own unquoted-key grammar (that grammar
+        // governs encoder quoting, not decoder acceptance). Whitespace
+        // directly adjacent to the delimiter is still rejected, not trimmed.
+        int i = 0;
+        while (i < content.length() && content.charAt(i) != ':' && (!stopAtBracket || content.charAt(i) != '[')) {
             i++;
         }
 
-        return new KeyResult(content.substring(0, i), content.substring(i));
+        String key = content.substring(0, i);
+        if (key.isEmpty() || !key.equals(key.strip())) {
+            throw new SerdeException("Malformed TOON line (invalid or missing key) at line " + lineNumber + ": " + content);
+        }
+
+        return new KeyResult(key, content.substring(i));
     }
 
     private HeaderTail parseHeaderTail(String remainder, int lineNumber) throws SerdeException {
@@ -606,8 +712,12 @@ final class ToonDocumentParser extends LimitingStream {
                 }
 
                 name = s.substring(nameStart, i);
-                if (!ToonEscapes.isValidUnquotedKey(name)) {
-                    throw new SerdeException("Malformed field list (invalid unquoted field name '" + name + "') at line " + lineNumber + ": " + s);
+                // A field name is accepted literally regardless of whether
+                // it matches the encoder's unquoted-key grammar (same
+                // leniency as readKey). Whitespace directly adjacent to
+                // the delimiter/brace is still rejected, not trimmed.
+                if (!name.equals(name.strip())) {
+                    throw new SerdeException("Malformed field list (whitespace around unquoted field name '" + name + "') at line " + lineNumber + ": " + s);
                 }
             }
 
@@ -746,11 +856,14 @@ final class ToonDocumentParser extends LimitingStream {
      * space count) and its content with leading indentation and trailing
      * whitespace already stripped.
      *
-     * @param lineNumber The 1-based source line number
-     * @param indent     The number of leading space characters
-     * @param content    The line content, with indentation and trailing whitespace stripped
+     * @param lineNumber          The 1-based source line number
+     * @param indent              The number of leading space characters
+     * @param content             The line content, with indentation and trailing whitespace stripped
+     * @param precededByBlankLine Whether a blank line was skipped immediately
+     *                            before this line; used by {@link #nextLineIndent}
+     *                            to reject a blank line inside a declared-count body
      */
-    private record Line(int lineNumber, int indent, String content) {
+    private record Line(int lineNumber, int indent, String content, boolean precededByBlankLine) {
     }
 
     /**

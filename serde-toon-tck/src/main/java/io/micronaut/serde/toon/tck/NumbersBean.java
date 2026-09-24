@@ -24,10 +24,10 @@ import java.math.BigInteger;
 /**
  * A bean holding every numeric type, used to exercise TOON numeric handling.
  *
- * @param i The int value
- * @param l The long value
- * @param d The double value
- * @param f The float value
+ * @param i          The int value
+ * @param l          The long value
+ * @param d          The double value
+ * @param f          The float value
  * @param bigInteger The big integer value
  * @param bigDecimal The big decimal value
  */
