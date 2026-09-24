@@ -347,15 +347,6 @@ public final class ToonEncoder {
         sb.append('}');
     }
 
-    /**
-     * A tabular column's name and, for a nested-object column, its own
-     * columns - computed once per array from the representative element so
-     * {@link #buildRow} doesn't re-derive field order from that element on
-     * every row.
-     */
-    private record Column(String name, @Nullable List<Column> nested) {
-    }
-
     private List<Column> buildColumns(List<String> fieldOrder, JsonNode representativeElement) {
         List<Column> columns = new ArrayList<>(fieldOrder.size());
         for (String field : fieldOrder) {
@@ -463,5 +454,17 @@ public final class ToonEncoder {
             keys.add(entry.getKey());
         }
         return keys;
+    }
+
+    /**
+     * A tabular column's name and, for a nested-object column, its own
+     * columns - computed once per array from the representative element so
+     * {@link #buildRow} doesn't re-derive field order from that element on
+     * every row.
+     *
+     * @param name   The field name
+     * @param nested The nested column's own columns, or {@code null} for a leaf column
+     */
+    private record Column(String name, @Nullable List<Column> nested) {
     }
 }
