@@ -9,6 +9,7 @@ quickStart:
   bsonQuick: BSON Annotations and BSON
   cborQuick: CBOR
   yamlQuick: YAML
+  toonQuick: TOON
   tomlQuick: TOML
   propertiesQuick: Java Properties
   xmlQuick: XML
