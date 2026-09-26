@@ -20,6 +20,7 @@ import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.PropertyElement;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -99,7 +100,17 @@ public final class SerdeSourceGenRecursion {
         if (type.isEnum() || isPlatformType(name) || notRecursive.contains(name) || !visited.add(name)) {
             return false;
         }
-        for (PropertyElement property : type.getBeanProperties()) {
+        List<PropertyElement> properties;
+        try {
+            properties = type.getBeanProperties();
+        } catch (RuntimeException e) {
+            // The properties of a type that isn't itself introspected, such as a precompiled
+            // Jackson model with non-public @JsonSetter methods, may not be resolvable with the
+            // default introspection rules. Its serde is resolved at runtime, so assume it can
+            // reach the owner and resolve the property serde lazily.
+            return true;
+        }
+        for (PropertyElement property : properties) {
             if (reaches(property.getType(), visited)) {
                 return true;
             }
