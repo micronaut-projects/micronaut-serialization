@@ -5,11 +5,11 @@ When a value in the document does not have the shape of the property it is read 
 {"id": "1234", "name": 42, "count": 9.75}
 ----
 
-[source,java]
-----
-@Serdeable
-record Item(int id, String name, int count) {} // id = 1234, name = "42", count = 9
-----
+snippet::example.Item[project-base="doc-examples/example", source="main"]
+
+The document above reads into `id = 1234`, `name = "42"` and `count = 9`:
+
+snippet::example.CoercionTest[project-base="doc-examples/example"]
 
 This is the historical behaviour and remains the default, so that existing applications are unaffected. Applications that would rather reject input of the wrong shape, for example a public API that should answer `400` instead of silently truncating a value, can restrict which coercions are allowed.
 
