@@ -20,7 +20,7 @@ class TelemetryTest:
 
         payload = self.protobuf_mapper.writeValueAsBytes(telemetry)
 
-        assert self.protobuf_mapper.readValue(payload, Telemetry).asPolyglotValue() == telemetry
+        assert self.protobuf_mapper.readValue(payload, Telemetry) == telemetry
         # the same bytes as declaring 1, 2 and 3 by hand
         assert list(self.protobuf_mapper.writeValueAsBytes(
             LegacyReading("weather-station-7", 1787000000000, -4250))) == list(payload)

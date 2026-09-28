@@ -14,6 +14,9 @@ snippet::example.Book[project-base="doc-examples/example-bson", source="main"]
 <2> You can use `@BsonProperty` from BSON annotations
 <3> You can use `@BsonCreator` from BSON annotations
 
+[.lang-python]
+NOTE: The third callout has no Python counterpart: the `@dataclass` generates the creator, so there is nothing to annotate with `@BsonCreator`.
+
 Once you have a type that can be serialized and deserialized you can use the api:serde.ObjectMapper[] interface to do so:
 
 snippet::example.BookTest[project-base="doc-examples/example"]

@@ -23,8 +23,7 @@ class YamlQuickStartTest:
 
             assert yaml == "name: City Library\nbooks:\n- The Stand\n- VALIS\n"
             read = yaml_mapper.readValue(yaml, YamlLibrary)
-            assert read.name == library.name
-            assert list(read.books) == library.books
+            assert read == library
         finally:
             context.close()
 

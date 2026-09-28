@@ -33,7 +33,7 @@ class SensorReadingTest:
 
         payload = self.codec.encode(value)
 
-        assert self.codec.decode(payload).asPolyglotValue() == value
+        assert self.codec.decode(payload) == value
     # end::roundTrip[]
 
     # tag::size[]

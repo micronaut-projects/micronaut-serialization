@@ -39,9 +39,9 @@ The Python examples are compiled by every build and their tests run with
 
 | Test | Reason |
 | --- | --- |
-| `example-stax-xml-python` `example.BookTest.test_write_read_jaxb_book` | Writing the JAXB-annotated Python `JaxbBook` produces the expected XML, but reading the nil `<subtitle xsi:nil="true"/>` element back still yields `None` instead of the `@XmlElement(defaultValue="Untitled")` default the Java class gets (`isbn`, `title` and `authors` are read correctly). Unchanged with micronaut-core 5.2.4. |
+| `example-stax-xml-python` `example.BookTest.test_write_read_jaxb_book` | Writing the JAXB-annotated Python `JaxbBook` produces the expected XML, but reading the nil `<subtitle xsi:nil="true"/>` element back still yields `None` instead of the `@XmlElement(defaultValue="Untitled")` default the Java class gets (`isbn`, `title` and `authors` are read correctly). Unchanged with micronaut-core 5.2.9 (`subtitle read back as None`). |
 
-## Verified with micronaut-core 5.2.4
+## Verified with micronaut-core 5.2.9
 
 - `example.LocationTest`: `__str__` of a Python class is bridged to `toString()` of its generated Java class, so the
   `dict[Feature, Point]` key is written as `Tree` and the `TypeConverter` bean reads it back. Test re-enabled.
@@ -49,12 +49,6 @@ The Python examples are compiled by every build and their tests run with
   **method decorator** (`@JsonProperty("p_name")` above `def getName`) like the Java `@JsonProperty String getName()`,
   not as a return-type `Annotated[str, JsonProperty("p_name")]` (which annotates the return type, not the method).
   `ProductMixin` was corrected accordingly and the test re-enabled.
-
-## Build Workarounds
-
-| Target | Reason |
-| --- | --- |
-| `io.micronaut.build.internal.serde-python-examples` forces `io.micronaut.sourcegen:*` to **2.1.0** | With micronaut-sourcegen 2.2.0/2.2.1 on the Python compile classpath, the `$PythonFunctionalInterfaces$<hash>` class that core 5.2.4 generates for the Python functional-interface registry is written as `List.of(new Object[]{...})` as soon as a module has more than ten Python-visible functional interfaces (`List.of` has explicit overloads only up to ten arguments). That does not compile: `incompatible types: inference variable E has incompatible bounds / equality constraints: PythonFunctionalInterfaceProvider.Entry / lower bounds: java.lang.Object` (hit by `example-jsonb-python` with 14 entries and the test sources of `example-python` with 16). 2.1.0 is the version micronaut-core itself requests and writes the plain varargs call. Remove the force once micronaut-sourcegen fixes the `List.of` fallback. |
 
 ## Commented Unsupported Snippet Ports
 
@@ -68,6 +62,6 @@ None. Every Java or Python class used by the snippets is imported.
 
 | Target | Difference |
 | --- | --- |
-| `example-python` `example.YamlQuickStartTest` | `test_write_and_read_yaml` compares the `name` and `books` attributes of the read `YamlLibrary` instead of `assertEquals(library, ...)`: the object returned by `readValue` (the generated Java class of the dataclass) does not compare equal to a `YamlLibrary` constructed in Python (`read == library` is `False`, `repr(read)` is `<polyglot.ForeignObject ...>` and `read.asPolyglotValue()` is a foreign object rather than the Python dataclass instance). The feature tests use one `ApplicationContext.run(properties)` per feature combination like the Java test. |
+| `example-python` `example.YamlQuickStartTest` | The feature tests use one `ApplicationContext.run(properties)` per feature combination like the Java test. |
 | `example-python` `example.BookTest` | The generic `Box<I>` record test is not ported. |
 | `example-jsonb-python` `example.JsonbExtensionTest` | Split into `JsonbExtensionTest` and `JsonbProgrammaticConfigTest`, one `@MicronautTest` per `spec.name`, instead of two manual `ApplicationContext.run` contexts. |
