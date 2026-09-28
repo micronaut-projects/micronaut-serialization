@@ -124,6 +124,9 @@ final class DeserBean<T> {
     @Nullable
     private final IgnoredPropertyKeys ignoredPropertyKeys;
 
+    // Annotation-derived features, resolved once to avoid per-call annotation lookups
+    private final Set<DeserializationConfiguration.Feature> beanFeaturesWith;
+    private final Set<DeserializationConfiguration.Feature> beanFeaturesWithout;
     private volatile boolean initialized;
     private volatile boolean initializing;
 
@@ -147,7 +150,10 @@ final class DeserBean<T> {
         throws SerdeException {
 
         this.typeArguments = typeArguments;
-        decoderContext = SerdeFeatures.withFeatures(decoderContext, introspection.getAnnotationMetadata());
+        AnnotationMetadata beanAnnotationMetadata = introspection.getAnnotationMetadata();
+        this.beanFeaturesWith = SerdeFeatures.deserializationFeaturesWith(beanAnnotationMetadata);
+        this.beanFeaturesWithout = SerdeFeatures.deserializationFeaturesWithout(beanAnnotationMetadata);
+        decoderContext = decoderContext.withFeatures(beanFeaturesWith, beanFeaturesWithout);
 
         @Nullable PropertyNamingStrategy defaultPropertyNamingStrategy = decoderContext.getSerdeConfiguration().map(SerdeConfiguration::getPropertyNamingStrategy).orElse(null);
         this.conversionService = decoderContext.getConversionService();
@@ -517,13 +523,13 @@ final class DeserBean<T> {
     }
 
     void initialize(ReentrantLock lock, Deserializer.DecoderContext decoderContext) throws SerdeException {
-        decoderContext = SerdeFeatures.withFeatures(decoderContext, introspection.getAnnotationMetadata());
         // Double check locking
         if (!initialized) {
             lock.lock();
             try {
                 if (!initialized && !initializing) {
                     initializing = true;
+                    decoderContext = decoderContext.withFeatures(beanFeaturesWith, beanFeaturesWithout);
                     try {
                         initializeInternal(decoderContext);
                         initialized = true;

@@ -121,6 +121,9 @@ final class SerBean<T> {
     @Nullable
     public final SubtypeInfo subtypeInfo;
 
+    // Annotation-derived features, resolved once to avoid per-call annotation lookups
+    private final Set<SerializationConfiguration.Feature> beanFeaturesWith;
+    private final Set<SerializationConfiguration.Feature> beanFeaturesWithout;
     private volatile boolean initialized;
     private volatile boolean initializing;
 
@@ -137,7 +140,10 @@ final class SerBean<T> {
             @Nullable BeanContext beanContext) throws SerdeException {
         // !!! Avoid accessing annotations from the argument, the annotations are not included in the cache key
         this.introspection = introspections.getSerializableIntrospection(type);
-        encoderContext = SerdeFeatures.withFeatures(encoderContext, introspection.getAnnotationMetadata());
+        AnnotationMetadata beanAnnotationMetadata = introspection.getAnnotationMetadata();
+        this.beanFeaturesWith = SerdeFeatures.serializationFeaturesWith(beanAnnotationMetadata);
+        this.beanFeaturesWithout = SerdeFeatures.serializationFeaturesWithout(beanAnnotationMetadata);
+        encoderContext = encoderContext.withFeatures(beanFeaturesWith, beanFeaturesWithout);
         this.configuration = encoderContext.getSerializationConfiguration().orElse(serializationConfiguration);
         this.propertyFilter = getPropertyFilterIfPresent(beanContext, type.getSimpleName());
         @Nullable SubtypeInfo resolvedSubtypeInfo = serdeArgumentConf == null ? null : serdeArgumentConf.getSubtypeInfo();
@@ -770,13 +776,13 @@ final class SerBean<T> {
     }
 
     public void initialize(ReentrantLock lock, Serializer.EncoderContext encoderContext) throws SerdeException {
-        encoderContext = SerdeFeatures.withFeatures(encoderContext, introspection.getAnnotationMetadata());
         // Double check locking
         if (!initialized) {
             lock.lock();
             try {
                 if (!initialized && !initializing) {
                     initializing = true;
+                    encoderContext = encoderContext.withFeatures(beanFeaturesWith, beanFeaturesWithout);
             for (Initializer initializer : Objects.requireNonNull(initializers)) {
                 initializer.initialize(encoderContext);
             }
