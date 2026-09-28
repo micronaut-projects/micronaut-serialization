@@ -509,6 +509,75 @@ class AnySetterBean {
         context.close()
     }
 
+    void 'test inherited any-getter and any-setter are directional fallback reasons'() {
+        given:
+        def context = buildContext('test.InheritedAnyGetterBean', '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.core.annotation.Introspected;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+abstract class AnyGetterBase {
+    @JsonAnyGetter
+    public Map<String, Object> additional() {
+        return new LinkedHashMap<>();
+    }
+}
+
+@Serdeable
+@Introspected
+class InheritedAnyGetterBean extends AnyGetterBase {
+    private String value;
+
+    public InheritedAnyGetterBean() {
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+}
+
+abstract class AnySetterBase {
+    @JsonAnySetter
+    public void putAdditional(String name, Object value) {
+    }
+}
+
+@Serdeable
+@Introspected
+class InheritedAnySetterBean extends AnySetterBase {
+    private String value;
+
+    public InheritedAnySetterBean() {
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+}
+''')
+
+        expect:
+        assertRegistrySelection(context, 'test.InheritedAnyGetterBean', false, true)
+        assertRegistrySelection(context, 'test.InheritedAnySetterBean', true, false)
+
+        cleanup:
+        context.close()
+    }
+
     void 'test unwrapped subtyped and delegating creator fallback reasons are emitted'() {
         given:
         def context = buildContext('test.UnwrappedBean', '''
