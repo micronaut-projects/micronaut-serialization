@@ -361,6 +361,15 @@
 &lt;/annotationProcessorPaths&gt;</code></pre>
 </div>
 </div>
+<div class="listingblock multi-language-sample">
+<div class="title"></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="pyronaut">[tool.pyronaut.dependencies]
+build = [
+    <span class="hljs-string">"io.micronaut.serde:micronaut-serde-processor"</span>,
+]</code></pre>
+</div>
+</div>
 </p>
 </div>
 <div class="admonitionblock note">
@@ -370,7 +379,7 @@
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-For Kotlin, add the <code>micronaut-serde-processor</code> dependency in <a href="https://docs.micronaut.io/4.4.3/guide/#kaptOrKsp">kapt or ksp scope</a>, and for Groovy add <code>micronaut-serde-processor</code> in compileOnly scope.
+For Kotlin, add the <code>micronaut-serde-processor</code> dependency in <a href="https://docs.micronaut.io/4.4.3/guide/#kaptOrKsp">kapt or ksp scope</a>, for Groovy add <code>micronaut-serde-processor</code> in compileOnly scope, and for Python add it to the <code>build</code> dependencies of <code>pyproject.toml</code> as shown above.
 </td>
 </tr>
 </table>
@@ -409,6 +418,15 @@ For Kotlin, add the <code>micronaut-serde-processor</code> dependency in <a href
 &lt;/dependency&gt;</code></pre>
 </div>
 </div>
+<div class="listingblock multi-language-sample">
+<div class="title"></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="pyronaut">[tool.pyronaut.dependencies]
+runtime = [
+    <span class="hljs-string">"io.micronaut.serde:micronaut-serde-jackson"</span>,
+]</code></pre>
+</div>
+</div>
 </p>
 </div>
 <div class="paragraph">
@@ -442,6 +460,22 @@ public class Book {
         return quantity;
     }
 }</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from dataclasses import dataclass
+from typing import Annotated
+
+from com.fasterxml.jackson.annotation import JsonProperty
+from micronaut.serde.annotation import Serdeable
+
+
+@Serdeable  # <b class="conum">(1)</b>
+@dataclass
+class Book:
+    title: str
+    quantity: Annotated[int, JsonProperty("qty")]  # <b class="conum">(2)</b></code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
@@ -493,6 +527,18 @@ class Book {
 <tr>
 <td><i class="conum" data-value="3"></i><b>3</b></td>
 <td>You can use <code>@JsonCreator</code> from Jackson annotations</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note lang-python">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The third callout has no Python counterpart: the <code>@dataclass</code> generates the creator, so there is nothing to annotate with <code>@JsonCreator</code>.
+</td>
 </tr>
 </table>
 </div>
@@ -599,6 +645,62 @@ public class BookTest {
     }
 
 }</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from typing import Annotated
+
+from jakarta.inject import Inject
+from java.lang import String
+from micronaut.core.type import Argument
+from micronaut.serde import ObjectMapper
+from micronaut.test.extensions.junit5.annotation import MicronautTest
+from org.junit.jupiter.api import Test
+
+from example.Book import Book
+
+
+@MicronautTest
+class BookTest:
+    object_mapper: Annotated[ObjectMapper, Inject]
+
+    @Test
+    def test_write_read_book(self):
+        result = self.object_mapper.writeValueAsString(Book("The Stand", 50))
+
+        book = self.object_mapper.readValue(result, Book)
+        assert book is not None
+        assert book.title == "The Stand"
+        assert book.quantity == 50
+
+    @Test
+    def test_list_of_books(self):
+        result = self.object_mapper.writeValueAsString([
+            Book("The Stand", 50),
+            Book("Godfather", 10),
+            Book("VALIS", 100),
+        ])
+
+        books = self.object_mapper.readValue(result, Argument.listOf(Book))
+        assert len(books) == 3
+        first_book = books[0]
+        assert first_book.title == "The Stand"
+        assert first_book.quantity == 50
+
+    @Test
+    def test_map_of_books(self):
+        result = self.object_mapper.writeValueAsString({
+            "myBook": Book("The Stand", 50),
+            "hisBook": Book("Godfather", 10),
+            "herBook": Book("VALIS", 100),
+        })
+
+        books = self.object_mapper.readValue(result, Argument.mapOf(String, Book))
+        assert len(books) == 3
+        her_book = books["herBook"]
+        assert her_book.title == "VALIS"
+        assert her_book.quantity == 100</code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
@@ -817,6 +919,15 @@ class BookTest extends Specification {
 &lt;/dependency&gt;</code></pre>
 </div>
 </div>
+<div class="listingblock multi-language-sample">
+<div class="title"></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="pyronaut">[tool.pyronaut.dependencies]
+runtime = [
+    <span class="hljs-string">"io.micronaut.serde:micronaut-serde-jsonp"</span>,
+]</code></pre>
+</div>
+</div>
 </p>
 </div>
 <div class="paragraph">
@@ -837,6 +948,15 @@ class BookTest extends Specification {
 &lt;/dependency&gt;</code></pre>
 </div>
 </div>
+<div class="listingblock multi-language-sample">
+<div class="title"></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="pyronaut">[tool.pyronaut.dependencies]
+runtime = [
+    <span class="hljs-string">"io.micronaut.serde:micronaut-serde-jsonp-impl"</span>,
+]</code></pre>
+</div>
+</div>
 </p>
 </div>
 <div class="paragraph">
@@ -855,6 +975,15 @@ class BookTest extends Specification {
     &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
     &lt;artifactId&gt;micronaut-serde-jsonb&lt;/artifactId&gt;
 &lt;/dependency&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="title"></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="pyronaut">[tool.pyronaut.dependencies]
+runtime = [
+    <span class="hljs-string">"io.micronaut.serde:micronaut-serde-jsonb"</span>,
+]</code></pre>
 </div>
 </div>
 </p>
@@ -917,6 +1046,59 @@ public class Book {
 }</code></pre>
 </div>
 </div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from dataclasses import dataclass
+from typing import Annotated
+
+from jakarta.json.bind.annotation import JsonbProperty
+from micronaut.serde.annotation import Serdeable
+
+
+@Serdeable  # <b class="conum">(1)</b>
+@dataclass
+class Book:
+    title: str
+    quantity: Annotated[int, JsonbProperty("qty")]  # <b class="conum">(2)</b></code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import io.micronaut.serde.annotation.Serdeable
+import jakarta.json.bind.annotation.JsonbCreator
+import jakarta.json.bind.annotation.JsonbProperty
+
+@Serdeable // <b class="conum">(1)</b>
+class Book @JsonbCreator constructor( // <b class="conum">(3)</b>
+    val title: String,
+    @field:JsonbProperty("qty") val quantity: Int // <b class="conum">(2)</b>
+)</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
+
+import io.micronaut.serde.annotation.Serdeable
+import jakarta.json.bind.annotation.JsonbCreator
+import jakarta.json.bind.annotation.JsonbProperty
+
+@Serdeable // <b class="conum">(1)</b>
+class Book {
+    final String title
+    @JsonbProperty("qty") // <b class="conum">(2)</b>
+    final int quantity
+
+    @JsonbCreator // <b class="conum">(3)</b>
+    Book(String title, int quantity) {
+        this.title = title
+        this.quantity = quantity
+    }
+}</code></pre>
+</div>
+</div>
 <div class="colist arabic">
 <table>
 <tr>
@@ -930,6 +1112,18 @@ public class Book {
 <tr>
 <td><i class="conum" data-value="3"></i><b>3</b></td>
 <td>You can use <code>@JsonbCreator</code> from JSON-B annotations</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note lang-python">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The third callout has no Python counterpart: the <code>@dataclass</code> generates the creator, so there is nothing to annotate with <code>@JsonbCreator</code>.
+</td>
 </tr>
 </table>
 </div>
@@ -1024,6 +1218,62 @@ public class BookTest {
     }
 
 }</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from typing import Annotated
+
+from jakarta.inject import Inject
+from java.lang import String
+from micronaut.core.type import Argument
+from micronaut.serde import ObjectMapper
+from micronaut.test.extensions.junit5.annotation import MicronautTest
+from org.junit.jupiter.api import Test
+
+from example.Book import Book
+
+
+@MicronautTest
+class BookTest:
+    object_mapper: Annotated[ObjectMapper, Inject]
+
+    @Test
+    def test_write_read_book(self):
+        result = self.object_mapper.writeValueAsString(Book("The Stand", 50))
+
+        book = self.object_mapper.readValue(result, Book)
+        assert book is not None
+        assert book.title == "The Stand"
+        assert book.quantity == 50
+
+    @Test
+    def test_list_of_books(self):
+        result = self.object_mapper.writeValueAsString([
+            Book("The Stand", 50),
+            Book("Godfather", 10),
+            Book("VALIS", 100),
+        ])
+
+        books = self.object_mapper.readValue(result, Argument.listOf(Book))
+        assert len(books) == 3
+        first_book = books[0]
+        assert first_book.title == "The Stand"
+        assert first_book.quantity == 50
+
+    @Test
+    def test_map_of_books(self):
+        result = self.object_mapper.writeValueAsString({
+            "myBook": Book("The Stand", 50),
+            "hisBook": Book("Godfather", 10),
+            "herBook": Book("VALIS", 100),
+        })
+
+        books = self.object_mapper.readValue(result, Argument.mapOf(String, Book))
+        assert len(books) == 3
+        her_book = books["herBook"]
+        assert her_book.title == "VALIS"
+        assert her_book.quantity == 100</code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
@@ -1226,6 +1476,15 @@ class BookTest extends Specification {
 &lt;/dependency&gt;</code></pre>
 </div>
 </div>
+<div class="listingblock multi-language-sample">
+<div class="title"></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="pyronaut">[tool.pyronaut.dependencies]
+runtime = [
+    <span class="hljs-string">"io.micronaut.serde:micronaut-serde-bson"</span>,
+]</code></pre>
+</div>
+</div>
 </p>
 </div>
 <div class="admonitionblock warning">
@@ -1273,6 +1532,59 @@ public class Book {
 }</code></pre>
 </div>
 </div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from dataclasses import dataclass
+from typing import Annotated
+
+from micronaut.serde.annotation import Serdeable
+from org.bson.codecs.pojo.annotations import BsonProperty
+
+
+@Serdeable  # <b class="conum">(1)</b>
+@dataclass
+class Book:
+    title: str
+    quantity: Annotated[int, BsonProperty("qty")]  # <b class="conum">(2)</b></code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import io.micronaut.serde.annotation.Serdeable
+import org.bson.codecs.pojo.annotations.BsonCreator
+import org.bson.codecs.pojo.annotations.BsonProperty
+
+@Serdeable // <b class="conum">(1)</b>
+class Book @BsonCreator constructor( // <b class="conum">(3)</b>
+    val title: String,
+    @field:BsonProperty("qty") val quantity: Int // <b class="conum">(2)</b>
+)</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
+
+import io.micronaut.serde.annotation.Serdeable
+import org.bson.codecs.pojo.annotations.BsonCreator
+import org.bson.codecs.pojo.annotations.BsonProperty
+
+@Serdeable // <b class="conum">(1)</b>
+class Book {
+    final String title
+    @BsonProperty("qty") // <b class="conum">(2)</b>
+    final int quantity
+
+    @BsonCreator // <b class="conum">(3)</b>
+    Book(String title, int quantity) {
+        this.title = title
+        this.quantity = quantity
+    }
+}</code></pre>
+</div>
+</div>
 <div class="colist arabic">
 <table>
 <tr>
@@ -1286,6 +1598,18 @@ public class Book {
 <tr>
 <td><i class="conum" data-value="3"></i><b>3</b></td>
 <td>You can use <code>@BsonCreator</code> from BSON annotations</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note lang-python">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The third callout has no Python counterpart: the <code>@dataclass</code> generates the creator, so there is nothing to annotate with <code>@BsonCreator</code>.
+</td>
 </tr>
 </table>
 </div>
@@ -1380,6 +1704,62 @@ public class BookTest {
     }
 
 }</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from typing import Annotated
+
+from jakarta.inject import Inject
+from java.lang import String
+from micronaut.core.type import Argument
+from micronaut.serde import ObjectMapper
+from micronaut.test.extensions.junit5.annotation import MicronautTest
+from org.junit.jupiter.api import Test
+
+from example.Book import Book
+
+
+@MicronautTest
+class BookTest:
+    object_mapper: Annotated[ObjectMapper, Inject]
+
+    @Test
+    def test_write_read_book(self):
+        result = self.object_mapper.writeValueAsString(Book("The Stand", 50))
+
+        book = self.object_mapper.readValue(result, Book)
+        assert book is not None
+        assert book.title == "The Stand"
+        assert book.quantity == 50
+
+    @Test
+    def test_list_of_books(self):
+        result = self.object_mapper.writeValueAsString([
+            Book("The Stand", 50),
+            Book("Godfather", 10),
+            Book("VALIS", 100),
+        ])
+
+        books = self.object_mapper.readValue(result, Argument.listOf(Book))
+        assert len(books) == 3
+        first_book = books[0]
+        assert first_book.title == "The Stand"
+        assert first_book.quantity == 50
+
+    @Test
+    def test_map_of_books(self):
+        result = self.object_mapper.writeValueAsString({
+            "myBook": Book("The Stand", 50),
+            "hisBook": Book("Godfather", 10),
+            "herBook": Book("VALIS", 100),
+        })
+
+        books = self.object_mapper.readValue(result, Argument.mapOf(String, Book))
+        assert len(books) == 3
+        her_book = books["herBook"]
+        assert her_book.title == "VALIS"
+        assert her_book.quantity == 100</code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
@@ -1579,6 +1959,15 @@ class BookTest extends Specification {
 &lt;/dependency&gt;</code></pre>
 </div>
 </div>
+<div class="listingblock multi-language-sample">
+<div class="title"></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="pyronaut">[tool.pyronaut.dependencies]
+runtime = [
+    <span class="hljs-string">"io.micronaut.serde:micronaut-serde-jackson-cbor"</span>,
+]</code></pre>
+</div>
+</div>
 </p>
 </div>
 <div class="admonitionblock note">
@@ -1634,6 +2023,51 @@ public class Book {
 }</code></pre>
 </div>
 </div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from dataclasses import dataclass
+
+from micronaut.serde.annotation import Serdeable
+
+
+@Serdeable  # <b class="conum">(1)</b>
+@dataclass
+class Book:
+    title: str
+    quantity: int</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import io.micronaut.serde.annotation.Serdeable
+
+@Serdeable // <b class="conum">(1)</b>
+class Book(
+    val title: String,
+    val quantity: Int
+)</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
+
+import io.micronaut.serde.annotation.Serdeable
+
+@Serdeable // <b class="conum">(1)</b>
+class Book {
+    final String title
+    final int quantity
+
+    Book(String title, int quantity) {
+        this.title = title
+        this.quantity = quantity
+    }
+}</code></pre>
+</div>
+</div>
 <div class="colist arabic">
 <table>
 <tr>
@@ -1674,6 +2108,100 @@ public class BookTest {
         assertNotNull(book);
         assertEquals("The Stand", book.getTitle());
         assertEquals(50, book.getQuantity());
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from typing import Annotated
+
+from jakarta.inject import Inject
+from micronaut.serde.cbor import CborObjectMapper
+from micronaut.test.extensions.junit5.annotation import MicronautTest
+from org.junit.jupiter.api import Test
+
+from example.Book import Book
+
+
+@MicronautTest
+class BookTest:
+    cbor_object_mapper: Annotated[CborObjectMapper, Inject]
+
+    @Test
+    def test_write_read_book(self):
+        data = self.cbor_object_mapper.writeValueAsBytes(Book("The Stand", 50))
+        assert data is not None
+        assert len(data) &gt; 0
+        # CBOR map major type, not JSON text
+        assert (data[0] &amp; 0xE0) == 0xA0
+
+        book = self.cbor_object_mapper.readValue(data, Book)
+        assert book is not None
+        assert book.title == "The Stand"
+        assert book.quantity == 50</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import io.micronaut.serde.cbor.CborObjectMapper
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
+
+@MicronautTest
+class BookTest {
+
+    @Test
+    fun testWriteReadBook(cborObjectMapper: CborObjectMapper) {
+        val bytes = cborObjectMapper.writeValueAsBytes(Book("The Stand", 50))
+        assertNotNull(bytes)
+        assertTrue(bytes.isNotEmpty())
+        // CBOR map major type, not JSON text
+        assertTrue((bytes[0].toInt() and 0xE0) == 0xA0)
+
+        val book = cborObjectMapper.readValue(bytes, Book::class.java)
+        assertNotNull(book)
+        assertEquals("The Stand", book!!.title)
+        assertEquals(50, book.quantity)
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
+
+import io.micronaut.serde.cbor.CborObjectMapper
+import io.micronaut.test.extensions.spock.annotation.MicronautTest
+import jakarta.inject.Inject
+import spock.lang.Specification
+
+@MicronautTest
+class BookTest extends Specification {
+    @Inject CborObjectMapper cborObjectMapper
+
+    void "test read/write book"() {
+        when:
+        byte[] bytes = cborObjectMapper.writeValueAsBytes(new Book("The Stand", 50))
+
+        then:
+        bytes != null
+        bytes.length &gt; 0
+        // CBOR map major type, not JSON text
+        (bytes[0] &amp; 0xE0) == 0xA0
+
+        when:
+        Book book = cborObjectMapper.readValue(bytes, Book)
+
+        then:
+        book != null
+        book.title == "The Stand"
+        book.quantity == 50
     }
 }</code></pre>
 </div>
@@ -1779,11 +2307,76 @@ public class BookTest {
 <div class="paragraph">
 <p>The module registers a message body handler for <code>application/cbor</code>. Controllers and clients can use:</p>
 </div>
-<div class="listingblock">
+<div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Post(uri = "/books", processes = CborMediaTypes.APPLICATION_CBOR)
-Book save(@Body Book book) {
-    return book;
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
+
+import io.micronaut.http.annotation.Body;
+import io.micronaut.http.annotation.Controller;
+import io.micronaut.http.annotation.Post;
+import io.micronaut.serde.cbor.CborMediaTypes;
+
+@Controller("/books")
+public class BookController {
+
+    @Post(processes = CborMediaTypes.APPLICATION_CBOR)
+    public Book save(@Body Book book) {
+        return book;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from typing import Annotated
+
+from micronaut.http.annotation import Body, Controller, Post
+from micronaut.serde.cbor import CborMediaTypes
+
+from example.Book import Book
+
+
+@Controller("/books")
+class BookController:
+
+    @Post(processes=CborMediaTypes.APPLICATION_CBOR)
+    def save(self, book: Annotated[Book, Body]) -&gt; Book:
+        return book</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import io.micronaut.http.annotation.Body
+import io.micronaut.http.annotation.Controller
+import io.micronaut.http.annotation.Post
+import io.micronaut.serde.cbor.CborMediaTypes
+
+@Controller("/books")
+class BookController {
+
+    @Post(processes = [CborMediaTypes.APPLICATION_CBOR])
+    fun save(@Body book: Book): Book = book
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
+
+import io.micronaut.http.annotation.Body
+import io.micronaut.http.annotation.Controller
+import io.micronaut.http.annotation.Post
+import io.micronaut.serde.cbor.CborMediaTypes
+
+@Controller("/books")
+class BookController {
+
+    @Post(processes = CborMediaTypes.APPLICATION_CBOR)
+    Book save(@Body Book book) {
+        return book
+    }
 }</code></pre>
 </div>
 </div>
@@ -1958,6 +2551,15 @@ These control token encoding details (for example minimal integer width). They d
 &lt;/dependency&gt;</code></pre>
 </div>
 </div>
+<div class="listingblock multi-language-sample">
+<div class="title"></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="pyronaut">[tool.pyronaut.dependencies]
+runtime = [
+    <span class="hljs-string">"io.micronaut.serde:micronaut-serde-yaml"</span>,
+]</code></pre>
+</div>
+</div>
 </p>
 </div>
 <div class="admonitionblock note">
@@ -1998,6 +2600,64 @@ final class YamlReportService {
 }</code></pre>
 </div>
 </div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from typing import Annotated
+
+from jakarta.inject import Named, Singleton
+from micronaut.serde import ObjectMapper
+from micronaut.serde.yaml import YamlObjectMapper
+
+
+@Singleton
+class YamlReportService:
+    def __init__(self, yaml_mapper: Annotated[ObjectMapper, Named(YamlObjectMapper.YAML)]):
+        self._yaml_mapper = yaml_mapper
+
+    def yaml_mapper(self) -&gt; ObjectMapper:
+        return self._yaml_mapper</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.serde.yaml.YamlObjectMapper
+import jakarta.inject.Named
+import jakarta.inject.Singleton
+
+@Singleton
+class YamlReportService(
+    @Named(YamlObjectMapper.YAML) private val yamlMapper: ObjectMapper
+) {
+    fun yamlMapper(): ObjectMapper = yamlMapper
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
+
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.serde.yaml.YamlObjectMapper
+import jakarta.inject.Named
+import jakarta.inject.Singleton
+
+@Singleton
+final class YamlReportService {
+    private final ObjectMapper yamlMapper
+
+    YamlReportService(@Named(YamlObjectMapper.YAML) ObjectMapper yamlMapper) {
+        this.yamlMapper = yamlMapper
+    }
+
+    ObjectMapper yamlMapper() {
+        return yamlMapper
+    }
+}</code></pre>
+</div>
+</div>
 <div class="paragraph">
 <p>With the correct dependencies in place, define a serializable type:</p>
 </div>
@@ -2011,6 +2671,52 @@ import java.util.List;
 
 @Serdeable
 public record YamlLibrary(String name, List&lt;String&gt; books) {
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from dataclasses import dataclass
+
+from micronaut.serde.annotation import Serdeable
+
+
+@Serdeable
+@dataclass
+class YamlLibrary:
+    name: str
+    books: list[str]</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import io.micronaut.serde.annotation.Serdeable
+
+@Serdeable
+data class YamlLibrary(val name: String, val books: List&lt;String&gt;)</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
+
+import groovy.transform.EqualsAndHashCode
+import groovy.transform.ToString
+import io.micronaut.serde.annotation.Serdeable
+
+@Serdeable
+@EqualsAndHashCode
+@ToString
+class YamlLibrary {
+    final String name
+    final List&lt;String&gt; books
+
+    YamlLibrary(String name, List&lt;String&gt; books) {
+        this.name = name
+        this.books = books
+    }
 }</code></pre>
 </div>
 </div>
@@ -2144,6 +2850,355 @@ class YamlQuickStartTest {
     private static &lt;T&gt; T read(Map&lt;String, Object&gt; properties, String yaml, Argument&lt;T&gt; type) throws IOException {
         try (ApplicationContext context = ApplicationContext.run(properties)) {
             return context.getBean(YamlObjectMapper.class).readValue(yaml, type);
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from java.lang import Double, Object, String
+from java.util import List, Map
+from micronaut.context import ApplicationContext
+from micronaut.core.type import Argument
+from micronaut.serde.yaml import YamlObjectMapper
+from micronaut.test.extensions.junit5.annotation import MicronautTest
+from org.junit.jupiter.api import Test
+
+from example.YamlLibrary import YamlLibrary
+
+
+@MicronautTest
+class YamlQuickStartTest:
+
+    @Test
+    def test_write_and_read_yaml(self):
+        context = ApplicationContext.run()
+        try:
+            yaml_mapper = context.getBean(YamlObjectMapper)
+            library = YamlLibrary("City Library", ["The Stand", "VALIS"])
+
+            yaml = yaml_mapper.writeValueAsString(library)
+
+            assert yaml == "name: City Library\nbooks:\n- The Stand\n- VALIS\n"
+            read = yaml_mapper.readValue(yaml, YamlLibrary)
+            assert read == library
+        finally:
+            context.close()
+
+    @Test
+    def test_read_features(self):
+        assert self.read({}, "key: yes\n", Argument.mapOf(String, Object)).get("key") == "yes"
+        assert self.read(
+            {"micronaut.serde.format.yaml.read-features.boolean-as-strings": False},
+            "key: yes\n",
+            Argument.mapOf(String, Object)
+        ).get("key") is True
+
+        assert self.read({}, "key:\n", Argument.mapOf(String, Object)).get("key") is None
+        assert self.read(
+            {"micronaut.serde.format.yaml.read-features.empty-string-as-null": False},
+            "key:\n",
+            Argument.mapOf(String, Object)
+        ).get("key") == ""
+
+    @Test
+    def test_scalar_write_features(self):
+        assert self.write(
+            {"micronaut.serde.format.yaml.write-features.minimize-quotes": False},
+            Map.of("text", "hello world")
+        ) == "text: \"hello world\"\n"
+        assert self.write({
+            "micronaut.serde.format.yaml.write-features.minimize-quotes": False,
+            "micronaut.serde.format.yaml.write-features.literal-block-style": True
+        }, Map.of("text", "Hello\nWorld")) == "text: |-\n  Hello\n  World\n"
+
+        long_text = ("1234567890 " * 9).strip()
+        assert self.write({
+            "micronaut.serde.format.yaml.write-features.minimize-quotes": False,
+            "micronaut.serde.format.yaml.write-features.split-lines": False
+        }, List.of(long_text)) == "- \"" + long_text + "\"\n"
+
+        assert self.write(
+            {"micronaut.serde.format.yaml.write-features.use-yaml-nonfinite-notation": False},
+            Map.of("value", Double.NaN)
+        ) == "value: NaN\n"
+
+    @Test
+    def test_layout_write_features(self):
+        assert self.write(
+            {"micronaut.serde.format.yaml.write-features.write-style": "FLOW"},
+            Map.of("values", List.of("A", "B"))
+        ) == "{values: [A, B]}\n"
+        assert self.write(
+            {"micronaut.serde.format.yaml.write-features.indent": 4},
+            Map.of("outer", Map.of("key", "value"))
+        ) == "outer:\n    key: value\n"
+        assert self.write({
+            "micronaut.serde.format.yaml.write-features.explicit-start": True,
+            "micronaut.serde.format.yaml.write-features.explicit-end": True
+        }, Map.of("key", "value")) == "---\nkey: value\n...\n"
+        assert self.write(
+            {"micronaut.serde.format.yaml.write-features.canonical-output": True},
+            Map.of("key", "value")
+        ) == "---\n{\n  ? \"key\"\n  : \"value\",\n}\n"
+        assert self.write(
+            {"micronaut.serde.format.yaml.write-features.indent-arrays": True},
+            Map.of("values", List.of("A", "B"))
+        ) == "values:\n - A\n - B\n"
+        assert self.write(
+            {"micronaut.serde.format.yaml.write-features.indent-arrays-with-indicator": True},
+            Map.of("values", List.of("A", "B"))
+        ) == "values:\n  - A\n  - B\n"
+
+        long_key = "a" * 129
+        assert self.write(
+            {"micronaut.serde.format.yaml.write-features.allow-long-keys": True},
+            Map.of(long_key, "value")
+        ) == long_key + ": value\n"
+
+    @staticmethod
+    def write(properties: dict, value) -&gt; str:
+        context = ApplicationContext.run(properties)
+        try:
+            return context.getBean(YamlObjectMapper).writeValueAsString(value)
+        finally:
+            context.close()
+
+    @staticmethod
+    def read(properties: dict, yaml: str, type: Argument):
+        context = ApplicationContext.run(properties)
+        try:
+            return context.getBean(YamlObjectMapper).readValue(yaml, type)
+        finally:
+            context.close()</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import io.micronaut.context.ApplicationContext
+import io.micronaut.core.type.Argument
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.serde.yaml.YamlObjectMapper
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Test
+
+class YamlQuickStartTest {
+
+    @Test
+    fun testWriteAndReadYaml() {
+        ApplicationContext.run().use { context -&gt;
+            val yamlMapper: ObjectMapper = context.getBean(YamlObjectMapper::class.java)
+            val library = YamlLibrary("City Library", listOf("The Stand", "VALIS"))
+
+            val yaml = yamlMapper.writeValueAsString(library)
+
+            assertEquals("name: City Library\nbooks:\n- The Stand\n- VALIS\n", yaml)
+            assertEquals(library, yamlMapper.readValue(yaml, YamlLibrary::class.java))
+        }
+    }
+
+    @Test
+    fun testReadFeatures() {
+        assertEquals("yes", read(mapOf(), "key: yes\n", Argument.mapOf(String::class.java, Any::class.java))["key"])
+        assertEquals(true, read(
+            mapOf("micronaut.serde.format.yaml.read-features.boolean-as-strings" to false),
+            "key: yes\n",
+            Argument.mapOf(String::class.java, Any::class.java)
+        )["key"])
+
+        assertNull(read(mapOf(), "key:\n", Argument.mapOf(String::class.java, Any::class.java))["key"])
+        assertEquals("", read(
+            mapOf("micronaut.serde.format.yaml.read-features.empty-string-as-null" to false),
+            "key:\n",
+            Argument.mapOf(String::class.java, Any::class.java)
+        )["key"])
+    }
+
+    @Test
+    fun testScalarWriteFeatures() {
+        assertEquals("text: \"hello world\"\n", write(
+            mapOf("micronaut.serde.format.yaml.write-features.minimize-quotes" to false),
+            mapOf("text" to "hello world")
+        ))
+        assertEquals("text: |-\n  Hello\n  World\n", write(mapOf(
+            "micronaut.serde.format.yaml.write-features.minimize-quotes" to false,
+            "micronaut.serde.format.yaml.write-features.literal-block-style" to true
+        ), mapOf("text" to "Hello\nWorld")))
+
+        val longText = "1234567890 ".repeat(9).trim()
+        assertEquals("- \"$longText\"\n", write(mapOf(
+            "micronaut.serde.format.yaml.write-features.minimize-quotes" to false,
+            "micronaut.serde.format.yaml.write-features.split-lines" to false
+        ), listOf(longText)))
+
+        assertEquals("value: NaN\n", write(
+            mapOf("micronaut.serde.format.yaml.write-features.use-yaml-nonfinite-notation" to false),
+            mapOf("value" to Double.NaN)
+        ))
+    }
+
+    @Test
+    fun testLayoutWriteFeatures() {
+        assertEquals("{values: [A, B]}\n", write(
+            mapOf("micronaut.serde.format.yaml.write-features.write-style" to "FLOW"),
+            mapOf("values" to listOf("A", "B"))
+        ))
+        assertEquals("outer:\n    key: value\n", write(
+            mapOf("micronaut.serde.format.yaml.write-features.indent" to 4),
+            mapOf("outer" to mapOf("key" to "value"))
+        ))
+        assertEquals("---\nkey: value\n...\n", write(mapOf(
+            "micronaut.serde.format.yaml.write-features.explicit-start" to true,
+            "micronaut.serde.format.yaml.write-features.explicit-end" to true
+        ), mapOf("key" to "value")))
+        assertEquals("---\n{\n  ? \"key\"\n  : \"value\",\n}\n", write(
+            mapOf("micronaut.serde.format.yaml.write-features.canonical-output" to true),
+            mapOf("key" to "value")
+        ))
+        assertEquals("values:\n - A\n - B\n", write(
+            mapOf("micronaut.serde.format.yaml.write-features.indent-arrays" to true),
+            mapOf("values" to listOf("A", "B"))
+        ))
+        assertEquals("values:\n  - A\n  - B\n", write(
+            mapOf("micronaut.serde.format.yaml.write-features.indent-arrays-with-indicator" to true),
+            mapOf("values" to listOf("A", "B"))
+        ))
+
+        val longKey = "a".repeat(129)
+        assertEquals("$longKey: value\n", write(
+            mapOf("micronaut.serde.format.yaml.write-features.allow-long-keys" to true),
+            mapOf(longKey to "value")
+        ))
+    }
+
+    private fun write(properties: Map&lt;String, Any&gt;, value: Any): String =
+        ApplicationContext.run(properties).use { context -&gt;
+            context.getBean(YamlObjectMapper::class.java).writeValueAsString(value)
+        }
+
+    private fun &lt;T : Any&gt; read(properties: Map&lt;String, Any&gt;, yaml: String, type: Argument&lt;T&gt;): T =
+        ApplicationContext.run(properties).use { context -&gt;
+            context.getBean(YamlObjectMapper::class.java).readValue(yaml, type)!!
+        }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
+
+import io.micronaut.context.ApplicationContext
+import io.micronaut.core.type.Argument
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.serde.yaml.YamlObjectMapper
+import spock.lang.Specification
+
+class YamlQuickStartTest extends Specification {
+
+    void "test write and read yaml"() {
+        given:
+        ApplicationContext context = ApplicationContext.run()
+        ObjectMapper yamlMapper = context.getBean(YamlObjectMapper)
+        YamlLibrary library = new YamlLibrary("City Library", List.of("The Stand", "VALIS"))
+
+        when:
+        String yaml = yamlMapper.writeValueAsString(library)
+
+        then:
+        yaml == "name: City Library\nbooks:\n- The Stand\n- VALIS\n"
+        yamlMapper.readValue(yaml, YamlLibrary) == library
+
+        cleanup:
+        context.close()
+    }
+
+    void "test read features"() {
+        expect:
+        read([:], "key: yes\n", Argument.mapOf(String, Object)).get("key") == "yes"
+        read(
+            ["micronaut.serde.format.yaml.read-features.boolean-as-strings": false],
+            "key: yes\n",
+            Argument.mapOf(String, Object)
+        ).get("key") == true
+
+        read([:], "key:\n", Argument.mapOf(String, Object)).get("key") == null
+        read(
+            ["micronaut.serde.format.yaml.read-features.empty-string-as-null": false],
+            "key:\n",
+            Argument.mapOf(String, Object)
+        ).get("key") == ""
+    }
+
+    void "test scalar write features"() {
+        expect:
+        write(
+            ["micronaut.serde.format.yaml.write-features.minimize-quotes": false],
+            [text: "hello world"]
+        ) == "text: \"hello world\"\n"
+        write([
+            "micronaut.serde.format.yaml.write-features.minimize-quotes": false,
+            "micronaut.serde.format.yaml.write-features.literal-block-style": true
+        ], [text: "Hello\nWorld"]) == "text: |-\n  Hello\n  World\n"
+
+        String longText = "1234567890 ".repeat(9).trim()
+        write([
+            "micronaut.serde.format.yaml.write-features.minimize-quotes": false,
+            "micronaut.serde.format.yaml.write-features.split-lines": false
+        ], List.of(longText)) == "- \"" + longText + "\"\n"
+
+        write(
+            ["micronaut.serde.format.yaml.write-features.use-yaml-nonfinite-notation": false],
+            [value: Double.NaN]
+        ) == "value: NaN\n"
+    }
+
+    void "test layout write features"() {
+        expect:
+        write(
+            ["micronaut.serde.format.yaml.write-features.write-style": "FLOW"],
+            [values: List.of("A", "B")]
+        ) == "{values: [A, B]}\n"
+        write(
+            ["micronaut.serde.format.yaml.write-features.indent": 4],
+            [outer: [key: "value"]]
+        ) == "outer:\n    key: value\n"
+        write([
+            "micronaut.serde.format.yaml.write-features.explicit-start": true,
+            "micronaut.serde.format.yaml.write-features.explicit-end": true
+        ], [key: "value"]) == "---\nkey: value\n...\n"
+        write(
+            ["micronaut.serde.format.yaml.write-features.canonical-output": true],
+            [key: "value"]
+        ) == "---\n{\n  ? \"key\"\n  : \"value\",\n}\n"
+        write(
+            ["micronaut.serde.format.yaml.write-features.indent-arrays": true],
+            [values: List.of("A", "B")]
+        ) == "values:\n - A\n - B\n"
+        write(
+            ["micronaut.serde.format.yaml.write-features.indent-arrays-with-indicator": true],
+            [values: List.of("A", "B")]
+        ) == "values:\n  - A\n  - B\n"
+
+        String longKey = "a".repeat(129)
+        write(
+            ["micronaut.serde.format.yaml.write-features.allow-long-keys": true],
+            [(longKey): "value"]
+        ) == longKey + ": value\n"
+    }
+
+    private static String write(Map&lt;String, Object&gt; properties, Object value) throws IOException {
+        try (ApplicationContext context = ApplicationContext.run(properties)) {
+            return context.getBean(YamlObjectMapper).writeValueAsString(value)
+        }
+    }
+
+    private static &lt;T&gt; T read(Map&lt;String, Object&gt; properties, String yaml, Argument&lt;T&gt; type) throws IOException {
+        try (ApplicationContext context = ApplicationContext.run(properties)) {
+            return context.getBean(YamlObjectMapper).readValue(yaml, type)
         }
     }
 }</code></pre>
@@ -2555,11 +3610,76 @@ key: value
 <div class="paragraph">
 <p>The module registers a message body handler for <code>application/yaml</code> (RFC 9512) and the legacy <code>application/x-yaml</code> media type, so controllers and clients can consume and produce YAML bodies:</p>
 </div>
-<div class="listingblock">
+<div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Post(uri = "/books", processes = YamlMediaTypes.APPLICATION_YAML)
-Book save(@Body Book book) {
-    return book;
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
+
+import io.micronaut.http.annotation.Body;
+import io.micronaut.http.annotation.Controller;
+import io.micronaut.http.annotation.Post;
+import io.micronaut.serde.yaml.YamlMediaTypes;
+
+@Controller
+public class YamlBookController {
+
+    @Post(uri = "/books", processes = YamlMediaTypes.APPLICATION_YAML)
+    public Book save(@Body Book book) {
+        return book;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from typing import Annotated
+
+from micronaut.http.annotation import Body, Controller, Post
+from micronaut.serde.yaml import YamlMediaTypes
+
+from example.Book import Book
+
+
+@Controller
+class YamlBookController:
+
+    @Post(uri="/books", processes=YamlMediaTypes.APPLICATION_YAML)
+    def save(self, book: Annotated[Book, Body]) -&gt; Book:
+        return book</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import io.micronaut.http.annotation.Body
+import io.micronaut.http.annotation.Controller
+import io.micronaut.http.annotation.Post
+import io.micronaut.serde.yaml.YamlMediaTypes
+
+@Controller
+class YamlBookController {
+
+    @Post(uri = "/books", processes = [YamlMediaTypes.APPLICATION_YAML])
+    fun save(@Body book: Book): Book = book
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
+
+import io.micronaut.http.annotation.Body
+import io.micronaut.http.annotation.Controller
+import io.micronaut.http.annotation.Post
+import io.micronaut.serde.yaml.YamlMediaTypes
+
+@Controller
+class YamlBookController {
+
+    @Post(uri = "/books", processes = YamlMediaTypes.APPLICATION_YAML)
+    Book save(@Body Book book) {
+        return book
+    }
 }</code></pre>
 </div>
 </div>
@@ -2636,22 +3756,97 @@ Book save(@Body Book book) {
 &lt;/dependency&gt;</code></pre>
 </div>
 </div>
+<div class="listingblock multi-language-sample">
+<div class="title"></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="pyronaut">[tool.pyronaut.dependencies]
+runtime = [
+    <span class="hljs-string">"io.micronaut.serde:micronaut-serde-properties"</span>,
+]</code></pre>
+</div>
+</div>
 </p>
 </div>
 <div class="paragraph">
 <p>The <code>*.properties</code> mapper is exposed as a named <a href="../api/io/micronaut/serde/ObjectMapper.html">ObjectMapper</a> bean. Inject it with the <code>properties</code> qualifier when you want to read or write <code>*.properties</code> data:</p>
 </div>
-<div class="listingblock">
+<div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import io.micronaut.serde.ObjectMapper;
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
+
+import io.micronaut.serde.ObjectMapper;
 import io.micronaut.serde.properties.PropertiesMapper;
 import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 
-class BookService {
+@Singleton
+public class PropertiesBookService {
     private final ObjectMapper propertiesMapper;
 
-    BookService(@Named(PropertiesMapper.NAME) ObjectMapper propertiesMapper) {
+    public PropertiesBookService(@Named(PropertiesMapper.NAME) ObjectMapper propertiesMapper) {
         this.propertiesMapper = propertiesMapper;
+    }
+
+    public ObjectMapper propertiesMapper() {
+        return propertiesMapper;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from typing import Annotated
+
+from jakarta.inject import Named, Singleton
+from micronaut.serde import ObjectMapper
+from micronaut.serde.properties import PropertiesMapper
+
+
+@Singleton
+class PropertiesBookService:
+    def __init__(self, properties_mapper: Annotated[ObjectMapper, Named(PropertiesMapper.NAME)]):
+        self._properties_mapper = properties_mapper
+
+    def properties_mapper(self) -&gt; ObjectMapper:
+        return self._properties_mapper</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.serde.properties.PropertiesMapper
+import jakarta.inject.Named
+import jakarta.inject.Singleton
+
+@Singleton
+class PropertiesBookService(
+    @Named(PropertiesMapper.NAME) private val propertiesMapper: ObjectMapper
+) {
+    fun propertiesMapper(): ObjectMapper = propertiesMapper
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
+
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.serde.properties.PropertiesMapper
+import jakarta.inject.Named
+import jakarta.inject.Singleton
+
+@Singleton
+class PropertiesBookService {
+    private final ObjectMapper propertiesMapper
+
+    PropertiesBookService(@Named(PropertiesMapper.NAME) ObjectMapper propertiesMapper) {
+        this.propertiesMapper = propertiesMapper
+    }
+
+    ObjectMapper propertiesMapper() {
+        return propertiesMapper
     }
 }</code></pre>
 </div>
@@ -2790,6 +3985,15 @@ Java <code>*.properties</code> documents require keys. Root objects can be writt
 &lt;/dependency&gt;</code></pre>
 </div>
 </div>
+<div class="listingblock multi-language-sample">
+<div class="title"></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="pyronaut">[tool.pyronaut.dependencies]
+runtime = [
+    <span class="hljs-string">"io.micronaut.serde:micronaut-serde-stax-xml"</span>,
+]</code></pre>
+</div>
+</div>
 </p>
 </div>
 <div class="paragraph">
@@ -2808,6 +4012,15 @@ Java <code>*.properties</code> documents require keys. Root objects can be writt
     &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
     &lt;artifactId&gt;micronaut-serde-woodstox-xml&lt;/artifactId&gt;
 &lt;/dependency&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="title"></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="pyronaut">[tool.pyronaut.dependencies]
+runtime = [
+    <span class="hljs-string">"io.micronaut.serde:micronaut-serde-woodstox-xml"</span>,
+]</code></pre>
 </div>
 </div>
 </p>
@@ -2834,6 +4047,15 @@ Java <code>*.properties</code> documents require keys. Root objects can be writt
     &lt;artifactId&gt;jakarta.xml.bind-api&lt;/artifactId&gt;
     &lt;scope&gt;provided&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="title"></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="pyronaut">[tool.pyronaut.dependencies]
+build = [
+    <span class="hljs-string">"jakarta.xml.bind:jakarta.xml.bind-api"</span>,
+]</code></pre>
 </div>
 </div>
 </p>
@@ -2945,6 +4167,18 @@ Java <code>*.properties</code> documents require keys. Root objects can be writt
 <div class="paragraph">
 <p>Names, transient properties, ordering, enum lexical values, and <code>type</code> overrides use shared serde metadata and can therefore affect other format implementations. JAXB defaults and nil policies are XML-only. Explicit Micronaut or Jackson configuration wins when it conflicts with JAXB metadata. Unsupported JAXB features include package <code>@XmlSchema</code>, adapters, <code>JAXBElement</code>, schema generation, and <code>JAXBContext</code>; unsupported annotation members include all <code>required</code> flags, <code>@XmlType.name</code>, <code>@XmlType.namespace</code>, <code>@XmlType.factoryClass</code>, <code>@XmlType.factoryMethod</code>, and <code>@XmlEnum.value</code>.</p>
 </div>
+<div class="admonitionblock note lang-python">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The Jakarta XML Binding annotations are supported for Java, Kotlin and Groovy types. There is no Python example for them: a <code>@XmlElement(defaultValue = "&#8230;&#8203;")</code> property written as a nil element reads back as <code>None</code> rather than the declared default, so use the Jackson XML annotations shown below from Python.
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
 <p>With the correct dependencies in place you can define an XML-serializable type:</p>
 </div>
@@ -2991,6 +4225,86 @@ public class Book {
 
     public List&lt;String&gt; getAuthors() {
         return authors;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from dataclasses import dataclass
+from typing import Annotated
+
+from com.fasterxml.jackson.annotation import JsonRootName
+from micronaut.serde.annotation import Serdeable
+from tools.jackson.dataformat.xml.annotation import JacksonXmlElementWrapper, JacksonXmlProperty
+
+
+@Serdeable  # <b class="conum">(1)</b>
+@JsonRootName("book")  # <b class="conum">(2)</b>
+@dataclass
+class Book:
+    isbn: Annotated[str, JacksonXmlProperty(isAttribute=True, localName="isbn")]  # <b class="conum">(3)</b>
+    title: Annotated[str, JacksonXmlProperty(localName="title")]  # <b class="conum">(4)</b>
+    authors: Annotated[
+        list[str],
+        JacksonXmlElementWrapper(localName="authors"),  # <b class="conum">(5)</b>
+        JacksonXmlProperty(localName="author"),  # <b class="conum">(6)</b>
+    ]</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonRootName
+import io.micronaut.serde.annotation.Serdeable
+import tools.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
+import tools.jackson.dataformat.xml.annotation.JacksonXmlProperty
+
+@Serdeable // <b class="conum">(1)</b>
+@JsonRootName("book") // <b class="conum">(2)</b>
+class Book @JsonCreator constructor(
+    @JacksonXmlProperty(isAttribute = true, localName = "isbn") // <b class="conum">(3)</b>
+    @JsonProperty("isbn") val isbn: String,
+    @JacksonXmlProperty(localName = "title") // <b class="conum">(4)</b>
+    @JsonProperty("title") val title: String,
+    @JacksonXmlElementWrapper(localName = "authors") // <b class="conum">(5)</b>
+    @JacksonXmlProperty(localName = "author") // <b class="conum">(6)</b>
+    @JsonProperty("authors") val authors: List&lt;String&gt;
+)</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
+
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonRootName
+import io.micronaut.serde.annotation.Serdeable
+import tools.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
+import tools.jackson.dataformat.xml.annotation.JacksonXmlProperty
+
+@Serdeable // <b class="conum">(1)</b>
+@JsonRootName("book") // <b class="conum">(2)</b>
+class Book {
+    @JacksonXmlProperty(isAttribute = true, localName = "isbn") // <b class="conum">(3)</b>
+    final String isbn
+    @JacksonXmlProperty(localName = "title") // <b class="conum">(4)</b>
+    final String title
+    @JacksonXmlElementWrapper(localName = "authors") // <b class="conum">(5)</b>
+    @JacksonXmlProperty(localName = "author") // <b class="conum">(6)</b>
+    final List&lt;String&gt; authors
+
+    @JsonCreator
+    Book(@JsonProperty("isbn") String isbn,
+         @JsonProperty("title") String title,
+         @JsonProperty("authors") List&lt;String&gt; authors) {
+        this.isbn = isbn
+        this.title = title
+        this.authors = authors
     }
 }</code></pre>
 </div>
@@ -3149,6 +4463,170 @@ public class BookTest {
         assertEquals(input.title, book.title);
         assertEquals("Untitled", book.subtitle);
         assertEquals(input.authors, book.authors);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from typing import Annotated
+
+from jakarta.inject import Inject, Named
+from micronaut.serde import ObjectMapper
+from micronaut.serde.xml import XmlObjectMapper
+from micronaut.test.extensions.junit5.annotation import MicronautTest
+from org.junit.jupiter.api import Test
+
+from example.Book import Book
+
+
+@MicronautTest
+class BookTest:
+    xml_mapper: Annotated[ObjectMapper, Inject, Named(XmlObjectMapper.XML_MAPPER_NAME)]
+
+    @Test
+    def test_write_read_book(self):
+        result = self.xml_mapper.writeValueAsString(Book(
+            "978-0307743688",
+            "The Stand",
+            ["Stephen King"],
+        ))
+
+        assert result == (
+            '&lt;book isbn="978-0307743688"&gt;&lt;title&gt;The Stand&lt;/title&gt;'
+            '&lt;authors&gt;&lt;author&gt;Stephen King&lt;/author&gt;&lt;/authors&gt;&lt;/book&gt;'
+        )
+
+        book = self.xml_mapper.readValue(result, Book)
+        assert book is not None
+        assert book.isbn == "978-0307743688"
+        assert book.title == "The Stand"
+        assert list(book.authors) == ["Stephen King"]</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.serde.xml.XmlObjectMapper
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import jakarta.inject.Inject
+import jakarta.inject.Named
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Test
+
+@MicronautTest
+class BookTest {
+
+    @Inject
+    @field:Named(XmlObjectMapper.XML_MAPPER_NAME)
+    lateinit var xmlMapper: ObjectMapper
+
+    @Test
+    fun testWriteReadBook() {
+        val result = xmlMapper.writeValueAsString(Book(
+            "978-0307743688",
+            "The Stand",
+            listOf("Stephen King")
+        ))
+
+        assertEquals(
+            "&lt;book isbn=\"978-0307743688\"&gt;&lt;title&gt;The Stand&lt;/title&gt;&lt;authors&gt;&lt;author&gt;Stephen King&lt;/author&gt;&lt;/authors&gt;&lt;/book&gt;",
+            result
+        )
+
+        val book = xmlMapper.readValue(result, Book::class.java)
+        assertNotNull(book)
+        assertEquals("978-0307743688", book!!.isbn)
+        assertEquals("The Stand", book.title)
+        assertEquals(listOf("Stephen King"), book.authors)
+    }
+
+    @Test
+    fun testWriteReadJaxbBook() {
+        val input = JaxbBook()
+        input.isbn = "978-0307743688"
+        input.title = "The Stand"
+        input.authors = listOf("Stephen King")
+
+        val result = xmlMapper.writeValueAsString(input)
+
+        assertEquals(
+            "&lt;book isbn=\"978-0307743688\"&gt;&lt;title&gt;The Stand&lt;/title&gt;&lt;subtitle xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:nil=\"true\"&gt;&lt;/subtitle&gt;&lt;author&gt;Stephen King&lt;/author&gt;&lt;/book&gt;",
+            result
+        )
+
+        val book = xmlMapper.readValue(result, JaxbBook::class.java)!!
+        assertEquals(input.isbn, book.isbn)
+        assertEquals(input.title, book.title)
+        assertEquals("Untitled", book.subtitle)
+        assertEquals(input.authors, book.authors)
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
+
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.serde.xml.XmlObjectMapper
+import io.micronaut.test.extensions.spock.annotation.MicronautTest
+import jakarta.inject.Inject
+import jakarta.inject.Named
+import spock.lang.Specification
+
+@MicronautTest
+class BookTest extends Specification {
+
+    @Inject
+    @Named(XmlObjectMapper.XML_MAPPER_NAME)
+    ObjectMapper xmlMapper
+
+    void "test read/write book"() {
+        when:
+        String result = xmlMapper.writeValueAsString(new Book(
+            "978-0307743688",
+            "The Stand",
+            List.of("Stephen King")
+        ))
+
+        then:
+        result == '&lt;book isbn="978-0307743688"&gt;&lt;title&gt;The Stand&lt;/title&gt;&lt;authors&gt;&lt;author&gt;Stephen King&lt;/author&gt;&lt;/authors&gt;&lt;/book&gt;'
+
+        when:
+        Book book = xmlMapper.readValue(result, Book)
+
+        then:
+        book != null
+        book.isbn == "978-0307743688"
+        book.title == "The Stand"
+        book.authors == List.of("Stephen King")
+    }
+
+    void "test read/write jaxb book"() {
+        given:
+        JaxbBook input = new JaxbBook()
+        input.isbn = "978-0307743688"
+        input.title = "The Stand"
+        input.authors = List.of("Stephen King")
+
+        when:
+        String result = xmlMapper.writeValueAsString(input)
+
+        then:
+        result == '&lt;book isbn="978-0307743688"&gt;&lt;title&gt;The Stand&lt;/title&gt;&lt;subtitle xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"&gt;&lt;/subtitle&gt;&lt;author&gt;Stephen King&lt;/author&gt;&lt;/book&gt;'
+
+        when:
+        JaxbBook book = xmlMapper.readValue(result, JaxbBook)
+
+        then:
+        book.isbn == input.isbn
+        book.title == input.title
+        book.subtitle == "Untitled"
+        book.authors == input.authors
     }
 }</code></pre>
 </div>
@@ -3598,6 +5076,86 @@ public class ReleaseConfiguration {
 }</code></pre>
 </div>
 </div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from typing import Annotated
+
+from com.fasterxml.jackson.annotation import JsonMerge
+from micronaut.serde.annotation import Serdeable
+
+
+@Serdeable
+class DeploymentWindow:
+    day: str
+    timeZone: str
+
+    def __init__(self):
+        self.day = ""
+        self.timeZone = ""
+
+
+@Serdeable
+class ReleaseConfiguration:
+    service: str
+    owner: str
+    deploymentWindow: Annotated[DeploymentWindow, JsonMerge]
+    labels: Annotated[dict[str, str], JsonMerge]
+
+    def __init__(self):
+        self.service = ""
+        self.owner = ""
+        self.deploymentWindow = DeploymentWindow()
+        self.labels = {}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import com.fasterxml.jackson.annotation.JsonMerge
+import io.micronaut.serde.annotation.Serdeable
+
+@Serdeable
+class ReleaseConfiguration {
+    var service: String = ""
+    var owner: String = ""
+    @JsonMerge
+    var deploymentWindow: DeploymentWindow = DeploymentWindow()
+    @JsonMerge
+    var labels: MutableMap&lt;String, String&gt; = LinkedHashMap()
+
+    @Serdeable
+    class DeploymentWindow {
+        var day: String = ""
+        var timeZone: String = ""
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
+
+import com.fasterxml.jackson.annotation.JsonMerge
+import io.micronaut.serde.annotation.Serdeable
+
+@Serdeable
+class ReleaseConfiguration {
+    String service = ""
+    String owner = ""
+    @JsonMerge
+    DeploymentWindow deploymentWindow = new DeploymentWindow()
+    @JsonMerge
+    Map&lt;String, String&gt; labels = new LinkedHashMap&lt;&gt;()
+
+    @Serdeable
+    static class DeploymentWindow {
+        String day = ""
+        String timeZone = ""
+    }
+}</code></pre>
+</div>
+</div>
 <div class="paragraph">
 <p>The update JSON can then include only the values that should change:</p>
 </div>
@@ -3678,6 +5236,224 @@ public class JsonMergeExampleTest {
 }</code></pre>
 </div>
 </div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from typing import Annotated
+
+from jakarta.inject import Inject
+from micronaut.core.type import Argument
+from micronaut.serde import ObjectMapper
+from micronaut.test.extensions.junit5.annotation import MicronautTest
+from org.junit.jupiter.api import Test
+
+from example.ReleaseConfiguration import DeploymentWindow, ReleaseConfiguration
+
+
+@MicronautTest
+class JsonMergeExampleTest:
+    object_mapper: Annotated[ObjectMapper, Inject]
+
+    @Test
+    def test_merge_nested_release_configuration(self):
+        release = ReleaseConfiguration()
+        release.service = "checkout"
+        release.owner = "platform"
+
+        window = DeploymentWindow()
+        window.day = "Friday"
+        window.timeZone = "UTC"
+        release.deploymentWindow = window
+
+        release = self.object_mapper.updateValue(
+            release,
+            Argument.of(ReleaseConfiguration),
+            {
+                "owner": "growth",
+                "deploymentWindow": {
+                    "day": "Tuesday"
+                },
+            },
+        )
+
+        assert release.owner == "growth"
+        assert release.deploymentWindow.day == "Tuesday"
+        assert release.deploymentWindow.timeZone == "UTC"
+
+    @Test
+    def test_merge_release_labels(self):
+        release = ReleaseConfiguration()
+        release.labels = {
+            "environment": "production",
+            "region": "us-east",
+        }
+
+        release = self.object_mapper.updateValue(
+            release,
+            Argument.of(ReleaseConfiguration),
+            {
+                "labels": {
+                    "version": "2026.06",
+                    "region": "eu-west",
+                },
+            },
+        )
+
+        assert release.labels["environment"] == "production"
+        assert release.labels["region"] == "eu-west"
+        assert release.labels["version"] == "2026.06"</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import io.micronaut.core.type.Argument
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertSame
+import org.junit.jupiter.api.Test
+import java.nio.charset.StandardCharsets
+
+@MicronautTest
+class JsonMergeExampleTest {
+
+    @Test
+    fun testMergeNestedReleaseConfiguration(objectMapper: ObjectMapper) {
+        val release = ReleaseConfiguration()
+        release.service = "checkout"
+        release.owner = "platform"
+
+        val window = ReleaseConfiguration.DeploymentWindow()
+        window.day = "Friday"
+        window.timeZone = "UTC"
+        release.deploymentWindow = window
+
+        objectMapper.updateValue(
+            release,
+            Argument.of(ReleaseConfiguration::class.java),
+            """
+            {
+              "owner": "growth",
+              "deploymentWindow": {
+                "day": "Tuesday"
+              }
+            }
+            """.trimIndent().toByteArray(StandardCharsets.UTF_8)
+        )
+
+        assertEquals("growth", release.owner)
+        assertSame(window, release.deploymentWindow)
+        assertEquals("Tuesday", release.deploymentWindow.day)
+        assertEquals("UTC", release.deploymentWindow.timeZone)
+    }
+
+    @Test
+    fun testMergeReleaseLabels(objectMapper: ObjectMapper) {
+        val release = ReleaseConfiguration()
+        release.labels = linkedMapOf(
+            "environment" to "production",
+            "region" to "us-east"
+        )
+
+        objectMapper.updateValue(
+            release,
+            Argument.of(ReleaseConfiguration::class.java),
+            """
+            {
+              "labels": {
+                "version": "2026.06",
+                "region": "eu-west"
+              }
+            }
+            """.trimIndent().toByteArray(StandardCharsets.UTF_8)
+        )
+
+        assertEquals("production", release.labels["environment"])
+        assertEquals("eu-west", release.labels["region"])
+        assertEquals("2026.06", release.labels["version"])
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
+
+import io.micronaut.core.type.Argument
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.test.extensions.spock.annotation.MicronautTest
+import jakarta.inject.Inject
+import spock.lang.Specification
+
+import java.nio.charset.StandardCharsets
+
+@MicronautTest
+class JsonMergeExampleTest extends Specification {
+    @Inject ObjectMapper objectMapper
+
+    void "test merge nested release configuration"() {
+        given:
+        ReleaseConfiguration release = new ReleaseConfiguration()
+        release.service = "checkout"
+        release.owner = "platform"
+
+        ReleaseConfiguration.DeploymentWindow window = new ReleaseConfiguration.DeploymentWindow()
+        window.day = "Friday"
+        window.timeZone = "UTC"
+        release.deploymentWindow = window
+
+        when:
+        objectMapper.updateValue(
+            release,
+            Argument.of(ReleaseConfiguration),
+            '''
+            {
+              "owner": "growth",
+              "deploymentWindow": {
+                "day": "Tuesday"
+              }
+            }
+            '''.getBytes(StandardCharsets.UTF_8)
+        )
+
+        then:
+        release.owner == "growth"
+        release.deploymentWindow.is(window)
+        release.deploymentWindow.day == "Tuesday"
+        release.deploymentWindow.timeZone == "UTC"
+    }
+
+    void "test merge release labels"() {
+        given:
+        ReleaseConfiguration release = new ReleaseConfiguration()
+        release.labels = new LinkedHashMap&lt;&gt;(Map.of(
+            "environment", "production",
+            "region", "us-east"
+        ))
+
+        when:
+        objectMapper.updateValue(
+            release,
+            Argument.of(ReleaseConfiguration),
+            '''
+            {
+              "labels": {
+                "version": "2026.06",
+                "region": "eu-west"
+              }
+            }
+            '''.getBytes(StandardCharsets.UTF_8)
+        )
+
+        then:
+        release.labels.get("environment") == "production"
+        release.labels.get("region") == "eu-west"
+        release.labels.get("version") == "2026.06"
+    }
+}</code></pre>
+</div>
+</div>
 <div class="paragraph">
 <p>In the nested object case, the update changes the deployment day but keeps the existing time zone.
 If the <code>deploymentWindow</code> property is not annotated with <code>@JsonMerge</code>, the incoming object replaces the current one and the absent time zone value is lost.
@@ -3720,26 +5496,34 @@ Micronaut Serialization does not provide a public Jackson-style <code>readerForU
 </tbody>
 </table>
 <div class="paragraph">
-<p>Note that when using these annotations it is recommended that you make <code>jackson-databind</code> a <code>compileOnly</code> dependency since it is not needed at runtime. For example for Gradle:</p>
-</div>
-<div class="listingblock">
-<div class="title"><code>jackson-databind</code> as <code>compileOnly</code> scope</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">compileOnly("com.fasterxml.jackson.core:jackson-databind")</code></pre>
-</div>
+<p>Note that when using these annotations it is recommended that you make <code>jackson-databind</code> a <code>compileOnly</code> (Maven <code>provided</code>) dependency since it is not needed at runtime:</p>
 </div>
 <div class="paragraph">
-<p>or Maven:</p>
-</div>
-<div class="listingblock">
-<div class="title"><code>jackson-databind</code> as <code>provided</code> scope</div>
+<p>        <div class="listingblock multi-language-sample">
+<div class="title"></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
-  &lt;groupId&gt;com.fasterxml.jackson.core&lt;/groupId&gt;
-  &lt;artifactId&gt;jackson-databind&lt;/artifactId&gt;
-  &lt;scope&gt;provided&lt;/scope&gt;
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">compileOnly(<span class="hljs-string">"com.fasterxml.jackson.core:jackson-databind")</span></code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="maven">&lt;dependency&gt;
+    &lt;groupId&gt;com.fasterxml.jackson.core&lt;/groupId&gt;
+    &lt;artifactId&gt;jackson-databind&lt;/artifactId&gt;
+    &lt;scope&gt;provided&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="title"></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="pyronaut">[tool.pyronaut.dependencies]
+build = [
+    <span class="hljs-string">"com.fasterxml.jackson.core:jackson-databind"</span>,
+]</code></pre>
+</div>
+</div>
+</p>
 </div>
 </div>
 <div class="sect2">
@@ -3792,6 +5576,22 @@ public class Person {
         return preferredName;
     }
 }</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from dataclasses import dataclass
+
+from com.fasterxml.jackson.annotation import JsonFilter
+from micronaut.serde.annotation import Serdeable
+
+
+@Serdeable
+@JsonFilter("person-filter")  # <b class="conum">(1)</b>
+@dataclass
+class Person:
+    name: str
+    preferredName: str | None = None</code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
@@ -3864,6 +5664,34 @@ public class PersonFilter implements PropertyFilter {
         return true;
     }
 }</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from jakarta.inject import Named, Singleton
+from micronaut.serde import PropertyFilter, Serializer
+from micronaut.serde.Serializer import EncoderContext
+
+from example.Person import Person
+
+
+@Singleton
+@Named("person-filter")  # <b class="conum">(1)</b>
+class PersonFilter(PropertyFilter):
+    def shouldInclude(
+        self,
+        encoder_context: EncoderContext,
+        property_serializer: Serializer,
+        bean: object,
+        property_name: str,
+        property_value: object,
+    ) -&gt; bool:
+        if isinstance(bean, Person):  # <b class="conum">(2)</b>
+            if property_name == "name":
+                return bean.preferredName is None
+            elif property_name == "preferredName":
+                return bean.preferredName is not None
+        return True</code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
@@ -3970,6 +5798,33 @@ public class PersonFilterTest {
         assertEquals("{\"preferredName\":\"Ad\"}", result);
     }
 }</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from typing import Annotated
+
+from jakarta.inject import Inject
+from micronaut.serde import ObjectMapper
+from micronaut.test.extensions.junit5.annotation import MicronautTest
+from org.junit.jupiter.api import Test
+
+from example.Person import Person
+
+
+@MicronautTest
+class PersonFilterTest:
+    object_mapper: Annotated[ObjectMapper, Inject]
+
+    @Test
+    def test_write_person_without_preferred_name(self):
+        result = self.object_mapper.writeValueAsString(Person("Adam", None))
+        assert result == '{"name":"Adam"}'
+
+    @Test
+    def test_write_person_with_preferred_name(self):
+        result = self.object_mapper.writeValueAsString(Person("Adam", "Ad"))
+        assert result == '{"preferredName":"Ad"}'</code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
@@ -4253,6 +6108,15 @@ The Jackson Core defaults are already tuned for performance on modern JVMs. In p
 &lt;/dependency&gt;</code></pre>
 </div>
 </div>
+<div class="listingblock multi-language-sample">
+<div class="title"></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="pyronaut">[tool.pyronaut.dependencies]
+runtime = [
+    <span class="hljs-string">"io.micronaut.serde:micronaut-serde-jsonb"</span>,
+]</code></pre>
+</div>
+</div>
 </p>
 </div>
 <div class="paragraph">
@@ -4297,6 +6161,59 @@ public class Book {
 
     public int getQuantity() {
         return quantity;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from dataclasses import dataclass
+from typing import Annotated
+
+from jakarta.json.bind.annotation import JsonbProperty
+from micronaut.serde.annotation import Serdeable
+
+
+@Serdeable  # <b class="conum">(1)</b>
+@dataclass
+class Book:
+    title: str
+    quantity: Annotated[int, JsonbProperty("qty")]  # <b class="conum">(2)</b></code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import io.micronaut.serde.annotation.Serdeable
+import jakarta.json.bind.annotation.JsonbCreator
+import jakarta.json.bind.annotation.JsonbProperty
+
+@Serdeable // <b class="conum">(1)</b>
+class Book @JsonbCreator constructor( // <b class="conum">(3)</b>
+    val title: String,
+    @field:JsonbProperty("qty") val quantity: Int // <b class="conum">(2)</b>
+)</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
+
+import io.micronaut.serde.annotation.Serdeable
+import jakarta.json.bind.annotation.JsonbCreator
+import jakarta.json.bind.annotation.JsonbProperty
+
+@Serdeable // <b class="conum">(1)</b>
+class Book {
+    final String title
+    @JsonbProperty("qty") // <b class="conum">(2)</b>
+    final int quantity
+
+    @JsonbCreator // <b class="conum">(3)</b>
+    Book(String title, int quantity) {
+        this.title = title
+        this.quantity = quantity
     }
 }</code></pre>
 </div>
@@ -4442,6 +6359,68 @@ public final class ColorSerializer implements JsonbSerializer&lt;Color&gt; {
 }</code></pre>
 </div>
 </div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from jakarta.annotation import Priority
+from jakarta.inject import Singleton
+from jakarta.json.bind.serializer import JsonbSerializer, SerializationContext
+from jakarta.json.stream import JsonGenerator
+from micronaut.context.annotation import Requires
+
+from example.Color import Color
+
+
+@Singleton
+@Requires(property="spec.name", value="jsonb-extension-beans")
+@Priority(10)
+class ColorSerializer(JsonbSerializer[Color]):
+    def serialize(self, obj: Color, generator: JsonGenerator, ctx: SerializationContext) -&gt; None:
+        generator.write("#" + obj.value)</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import io.micronaut.context.annotation.Requires
+import jakarta.annotation.Priority
+import jakarta.inject.Singleton
+import jakarta.json.bind.serializer.JsonbSerializer
+import jakarta.json.bind.serializer.SerializationContext
+import jakarta.json.stream.JsonGenerator
+
+@Singleton
+@Requires(property = "spec.name", value = "jsonb-extension-beans")
+@Priority(10)
+class ColorSerializer : JsonbSerializer&lt;Color&gt; {
+    override fun serialize(obj: Color, generator: JsonGenerator, ctx: SerializationContext) {
+        generator.write("#" + obj.value)
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
+
+import io.micronaut.context.annotation.Requires
+import jakarta.annotation.Priority
+import jakarta.inject.Singleton
+import jakarta.json.bind.serializer.JsonbSerializer
+import jakarta.json.bind.serializer.SerializationContext
+import jakarta.json.stream.JsonGenerator
+
+@Singleton
+@Requires(property = "spec.name", value = "jsonb-extension-beans")
+@Priority(10)
+final class ColorSerializer implements JsonbSerializer&lt;Color&gt; {
+    @Override
+    void serialize(Color obj, JsonGenerator generator, SerializationContext ctx) {
+        generator.write("#" + obj.value)
+    }
+}</code></pre>
+</div>
+</div>
 <div class="paragraph">
 <p>A lower-priority serializer for the same type can also exist:</p>
 </div>
@@ -4463,6 +6442,68 @@ public final class LowerPriorityColorSerializer implements JsonbSerializer&lt;Co
     @Override
     public void serialize(Color obj, JsonGenerator generator, SerializationContext ctx) {
         generator.write("fallback-" + obj.getValue());
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from jakarta.annotation import Priority
+from jakarta.inject import Singleton
+from jakarta.json.bind.serializer import JsonbSerializer, SerializationContext
+from jakarta.json.stream import JsonGenerator
+from micronaut.context.annotation import Requires
+
+from example.Color import Color
+
+
+@Singleton
+@Requires(property="spec.name", value="jsonb-extension-beans")
+@Priority(20)
+class LowerPriorityColorSerializer(JsonbSerializer[Color]):
+    def serialize(self, obj: Color, generator: JsonGenerator, ctx: SerializationContext) -&gt; None:
+        generator.write("fallback-" + obj.value)</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import io.micronaut.context.annotation.Requires
+import jakarta.annotation.Priority
+import jakarta.inject.Singleton
+import jakarta.json.bind.serializer.JsonbSerializer
+import jakarta.json.bind.serializer.SerializationContext
+import jakarta.json.stream.JsonGenerator
+
+@Singleton
+@Requires(property = "spec.name", value = "jsonb-extension-beans")
+@Priority(20)
+class LowerPriorityColorSerializer : JsonbSerializer&lt;Color&gt; {
+    override fun serialize(obj: Color, generator: JsonGenerator, ctx: SerializationContext) {
+        generator.write("fallback-" + obj.value)
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
+
+import io.micronaut.context.annotation.Requires
+import jakarta.annotation.Priority
+import jakarta.inject.Singleton
+import jakarta.json.bind.serializer.JsonbSerializer
+import jakarta.json.bind.serializer.SerializationContext
+import jakarta.json.stream.JsonGenerator
+
+@Singleton
+@Requires(property = "spec.name", value = "jsonb-extension-beans")
+@Priority(20)
+final class LowerPriorityColorSerializer implements JsonbSerializer&lt;Color&gt; {
+    @Override
+    void serialize(Color obj, JsonGenerator generator, SerializationContext ctx) {
+        generator.write("fallback-" + obj.value)
     }
 }</code></pre>
 </div>
@@ -4504,6 +6545,85 @@ public final class ColorDeserializer implements JsonbDeserializer&lt;Color&gt; {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from jakarta.annotation import Priority
+from jakarta.inject import Singleton
+from jakarta.json.bind.serializer import DeserializationContext, JsonbDeserializer
+from jakarta.json.stream import JsonParser
+from java.lang.reflect import Type
+from micronaut.context.annotation import Requires
+
+from example.Color import Color
+
+
+@Singleton
+@Requires(property="spec.name", value="jsonb-extension-beans")
+@Priority(10)
+class ColorDeserializer(JsonbDeserializer[Color]):
+    def deserialize(self, parser: JsonParser, ctx: DeserializationContext, rt_type: Type) -&gt; Color:
+        while parser.hasNext():
+            if parser.next() == JsonParser.Event.VALUE_STRING:
+                return Color(parser.getString()[1:])
+        raise ValueError("Expected a JSON string")</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import io.micronaut.context.annotation.Requires
+import jakarta.annotation.Priority
+import jakarta.inject.Singleton
+import jakarta.json.bind.serializer.DeserializationContext
+import jakarta.json.bind.serializer.JsonbDeserializer
+import jakarta.json.stream.JsonParser
+import java.lang.reflect.Type
+
+@Singleton
+@Requires(property = "spec.name", value = "jsonb-extension-beans")
+@Priority(10)
+class ColorDeserializer : JsonbDeserializer&lt;Color&gt; {
+    override fun deserialize(parser: JsonParser, ctx: DeserializationContext, rtType: Type): Color {
+        while (parser.hasNext()) {
+            if (parser.next() == JsonParser.Event.VALUE_STRING) {
+                return Color(parser.string.substring(1))
+            }
+        }
+        throw IllegalStateException("Expected a JSON string")
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
+
+import io.micronaut.context.annotation.Requires
+import jakarta.annotation.Priority
+import jakarta.inject.Singleton
+import jakarta.json.bind.serializer.DeserializationContext
+import jakarta.json.bind.serializer.JsonbDeserializer
+import jakarta.json.stream.JsonParser
+
+import java.lang.reflect.Type
+
+@Singleton
+@Requires(property = "spec.name", value = "jsonb-extension-beans")
+@Priority(10)
+final class ColorDeserializer implements JsonbDeserializer&lt;Color&gt; {
+    @Override
+    Color deserialize(JsonParser parser, DeserializationContext ctx, Type rtType) {
+        while (parser.hasNext()) {
+            if (parser.next() == JsonParser.Event.VALUE_STRING) {
+                return new Color(parser.getString().substring(1))
+            }
+        }
+        throw new IllegalStateException("Expected a JSON string")
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
 
 import io.micronaut.context.annotation.Requires;
@@ -4523,6 +6643,71 @@ public final class MilesAdapter implements JsonbAdapter&lt;Miles, String&gt; {
     @Override
     public Miles adaptFromJson(String obj) {
         return new Miles(Integer.parseInt(obj.replace(" mi", "")));
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from jakarta.annotation import Priority
+from jakarta.inject import Singleton
+from jakarta.json.bind.adapter import JsonbAdapter
+from micronaut.context.annotation import Requires
+
+from example.Miles import Miles
+
+
+@Singleton
+@Requires(property="spec.name", value="jsonb-extension-beans")
+@Priority(10)
+class MilesAdapter(JsonbAdapter[Miles, str]):
+    def adaptToJson(self, obj: Miles) -&gt; str:
+        return f"{obj.value} mi"
+
+    def adaptFromJson(self, obj: str) -&gt; Miles:
+        return Miles(int(obj.replace(" mi", "")))</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import io.micronaut.context.annotation.Requires
+import jakarta.annotation.Priority
+import jakarta.inject.Singleton
+import jakarta.json.bind.adapter.JsonbAdapter
+
+@Singleton
+@Requires(property = "spec.name", value = "jsonb-extension-beans")
+@Priority(10)
+class MilesAdapter : JsonbAdapter&lt;Miles, String&gt; {
+    override fun adaptToJson(obj: Miles): String = "${obj.value} mi"
+
+    override fun adaptFromJson(obj: String): Miles = Miles(obj.replace(" mi", "").toInt())
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
+
+import io.micronaut.context.annotation.Requires
+import jakarta.annotation.Priority
+import jakarta.inject.Singleton
+import jakarta.json.bind.adapter.JsonbAdapter
+
+@Singleton
+@Requires(property = "spec.name", value = "jsonb-extension-beans")
+@Priority(10)
+final class MilesAdapter implements JsonbAdapter&lt;Miles, String&gt; {
+    @Override
+    String adaptToJson(Miles obj) {
+        return obj.value + " mi"
+    }
+
+    @Override
+    Miles adaptFromJson(String obj) {
+        return new Miles(Integer.parseInt(obj.replace(" mi", "")))
     }
 }</code></pre>
 </div>
@@ -4564,6 +6749,68 @@ public final class ProgrammaticJsonbConfigFactory {
 }</code></pre>
 </div>
 </div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from jakarta.inject import Singleton
+from jakarta.json.bind import JsonbConfig
+from micronaut.context.annotation import Factory, Requires
+
+from example.ProgrammaticCodeDeserializer import ProgrammaticCodeDeserializer
+from example.ProgrammaticCodeSerializer import ProgrammaticCodeSerializer
+
+
+@Factory
+@Requires(property="spec.name", value="jsonb-programmatic-config")
+class ProgrammaticJsonbConfigFactory:
+    @Singleton
+    def jsonb_config(self) -&gt; JsonbConfig:
+        return (
+            JsonbConfig()
+            .withSerializers(ProgrammaticCodeSerializer())
+            .withDeserializers(ProgrammaticCodeDeserializer())
+        )</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import io.micronaut.context.annotation.Factory
+import io.micronaut.context.annotation.Requires
+import jakarta.inject.Singleton
+import jakarta.json.bind.JsonbConfig
+
+@Factory
+@Requires(property = "spec.name", value = "jsonb-programmatic-config")
+class ProgrammaticJsonbConfigFactory {
+    @Singleton
+    fun jsonbConfig(): JsonbConfig = JsonbConfig()
+        .withSerializers(ProgrammaticCodeSerializer())
+        .withDeserializers(ProgrammaticCodeDeserializer())
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
+
+import io.micronaut.context.annotation.Factory
+import io.micronaut.context.annotation.Requires
+import jakarta.inject.Singleton
+import jakarta.json.bind.JsonbConfig
+
+@Factory
+@Requires(property = "spec.name", value = "jsonb-programmatic-config")
+final class ProgrammaticJsonbConfigFactory {
+    @Singleton
+    JsonbConfig jsonbConfig() {
+        return new JsonbConfig()
+            .withSerializers(new ProgrammaticCodeSerializer())
+            .withDeserializers(new ProgrammaticCodeDeserializer())
+    }
+}</code></pre>
+</div>
+</div>
 <div class="paragraph">
 <p>The configured serializers, deserializers, and adapters are applied in the order passed to <code>JsonbConfig</code>. If more than one callback matches a type, the first matching configured callback wins.</p>
 </div>
@@ -4591,6 +6838,50 @@ public final class ProgrammaticCodeSerializer implements JsonbSerializer&lt;Prog
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from jakarta.json.bind.serializer import JsonbSerializer, SerializationContext
+from jakarta.json.stream import JsonGenerator
+
+from example.ProgrammaticCode import ProgrammaticCode
+
+
+class ProgrammaticCodeSerializer(JsonbSerializer[ProgrammaticCode]):
+    def serialize(self, obj: ProgrammaticCode, generator: JsonGenerator, ctx: SerializationContext) -&gt; None:
+        generator.write("code:" + obj.value)</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import jakarta.json.bind.serializer.JsonbSerializer
+import jakarta.json.bind.serializer.SerializationContext
+import jakarta.json.stream.JsonGenerator
+
+class ProgrammaticCodeSerializer : JsonbSerializer&lt;ProgrammaticCode&gt; {
+    override fun serialize(obj: ProgrammaticCode, generator: JsonGenerator, ctx: SerializationContext) {
+        generator.write("code:" + obj.value)
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
+
+import jakarta.json.bind.serializer.JsonbSerializer
+import jakarta.json.bind.serializer.SerializationContext
+import jakarta.json.stream.JsonGenerator
+
+final class ProgrammaticCodeSerializer implements JsonbSerializer&lt;ProgrammaticCode&gt; {
+    @Override
+    void serialize(ProgrammaticCode obj, JsonGenerator generator, SerializationContext ctx) {
+        generator.write("code:" + obj.value)
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
 
 import jakarta.json.bind.serializer.DeserializationContext;
@@ -4608,6 +6899,67 @@ public final class ProgrammaticCodeDeserializer implements JsonbDeserializer&lt;
             }
         }
         throw new IllegalStateException("Expected a JSON string");
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from jakarta.json.bind.serializer import DeserializationContext, JsonbDeserializer
+from jakarta.json.stream import JsonParser
+from java.lang.reflect import Type
+
+from example.ProgrammaticCode import ProgrammaticCode
+
+
+class ProgrammaticCodeDeserializer(JsonbDeserializer[ProgrammaticCode]):
+    def deserialize(self, parser: JsonParser, ctx: DeserializationContext, rt_type: Type) -&gt; ProgrammaticCode:
+        while parser.hasNext():
+            if parser.next() == JsonParser.Event.VALUE_STRING:
+                return ProgrammaticCode(parser.getString()[5:])
+        raise ValueError("Expected a JSON string")</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import jakarta.json.bind.serializer.DeserializationContext
+import jakarta.json.bind.serializer.JsonbDeserializer
+import jakarta.json.stream.JsonParser
+import java.lang.reflect.Type
+
+class ProgrammaticCodeDeserializer : JsonbDeserializer&lt;ProgrammaticCode&gt; {
+    override fun deserialize(parser: JsonParser, ctx: DeserializationContext, rtType: Type): ProgrammaticCode {
+        while (parser.hasNext()) {
+            if (parser.next() == JsonParser.Event.VALUE_STRING) {
+                return ProgrammaticCode(parser.string.substring(5))
+            }
+        }
+        throw IllegalStateException("Expected a JSON string")
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
+
+import jakarta.json.bind.serializer.DeserializationContext
+import jakarta.json.bind.serializer.JsonbDeserializer
+import jakarta.json.stream.JsonParser
+
+import java.lang.reflect.Type
+
+final class ProgrammaticCodeDeserializer implements JsonbDeserializer&lt;ProgrammaticCode&gt; {
+    @Override
+    ProgrammaticCode deserialize(JsonParser parser, DeserializationContext ctx, Type rtType) {
+        while (parser.hasNext()) {
+            if (parser.next() == JsonParser.Event.VALUE_STRING) {
+                return new ProgrammaticCode(parser.getString().substring(5))
+            }
+        }
+        throw new IllegalStateException("Expected a JSON string")
     }
 }</code></pre>
 </div>
@@ -4668,6 +7020,15 @@ Protocol Buffers support is an experimental prototype. The API, the annotations,
 &lt;/dependency&gt;</code></pre>
 </div>
 </div>
+<div class="listingblock multi-language-sample">
+<div class="title"></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="pyronaut">[tool.pyronaut.dependencies]
+runtime = [
+    <span class="hljs-string">"io.micronaut.serde:micronaut-serde-protobuf"</span>,
+]</code></pre>
+</div>
+</div>
 </p>
 </div>
 <div class="sect1">
@@ -4693,6 +7054,61 @@ public record SensorReading(
 }</code></pre>
 </div>
 </div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">@Serdeable
+@dataclass(frozen=True)
+class SensorReading:
+    deviceId: Annotated[str, ProtoField(1)]
+    recordedAt: Annotated[Long, ProtoField(2)]
+    temperatureMilliCelsius: Annotated[int, ProtoField(value=3, type=ProtoType.SINT32)]   # <b class="conum">(1)</b>
+    signalStrengths: Annotated[list[int] | None, ProtoField(4)]                            # <b class="conum">(2)</b>
+    location: Annotated[Coordinates | None, ProtoField(5)]                                 # <b class="conum">(3)</b>
+    batteryLow: Annotated[bool, ProtoField(6)]</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">@Serdeable
+data class SensorReading(
+    @field:ProtoField(1) val deviceId: String,
+    @field:ProtoField(2) val recordedAt: Long,
+    @field:ProtoField(value = 3, type = ProtoType.SINT32) val temperatureMilliCelsius: Int,   // <b class="conum">(1)</b>
+    @field:ProtoField(4) val signalStrengths: List&lt;Int&gt;?,                                     // <b class="conum">(2)</b>
+    @field:ProtoField(5) val location: Coordinates?,                                          // <b class="conum">(3)</b>
+    @field:ProtoField(6) val batteryLow: Boolean
+)</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">@Serdeable
+@EqualsAndHashCode
+@ToString
+class SensorReading {
+    @ProtoField(1) final String deviceId
+    @ProtoField(2) final long recordedAt
+    @ProtoField(value = 3, type = ProtoType.SINT32) final int temperatureMilliCelsius   // <b class="conum">(1)</b>
+    @ProtoField(4) final List&lt;Integer&gt; signalStrengths                                  // <b class="conum">(2)</b>
+    @ProtoField(5) @Nullable final Coordinates location                                 // <b class="conum">(3)</b>
+    @ProtoField(6) final boolean batteryLow
+
+    SensorReading(String deviceId,
+                  long recordedAt,
+                  int temperatureMilliCelsius,
+                  List&lt;Integer&gt; signalStrengths,
+                  @Nullable Coordinates location,
+                  boolean batteryLow) {
+        this.deviceId = deviceId
+        this.recordedAt = recordedAt
+        this.temperatureMilliCelsius = temperatureMilliCelsius
+        this.signalStrengths = signalStrengths
+        this.location = location
+        this.batteryLow = batteryLow
+    }
+}</code></pre>
+</div>
+</div>
 <div class="colist arabic">
 <table>
 <tr>
@@ -4709,6 +7125,18 @@ public record SensorReading(
 </tr>
 </table>
 </div>
+<div class="admonitionblock note lang-python">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+A Python <code>int</code> maps to a Java <code>int</code>, so a 64-bit property is declared with <code>java.lang.Long</code> (<code>recordedAt: Annotated[Long, ProtoField(2)]</code>) to match the Java sample&#8217;s <code>long</code>.
+</td>
+</tr>
+</table>
+</div>
 <div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Serdeable
@@ -4716,6 +7144,40 @@ public record Coordinates(
     @ProtoField(value = 1, type = ProtoType.SFIXED32) int latitudeMicros,   // <b class="conum">(1)</b>
     @ProtoField(value = 2, type = ProtoType.SFIXED32) int longitudeMicros
 ) {
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">@Serdeable
+@dataclass(frozen=True)
+class Coordinates:
+    latitudeMicros: Annotated[int, ProtoField(value=1, type=ProtoType.SFIXED32)]   # <b class="conum">(1)</b>
+    longitudeMicros: Annotated[int, ProtoField(value=2, type=ProtoType.SFIXED32)]</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">@Serdeable
+data class Coordinates(
+    @field:ProtoField(value = 1, type = ProtoType.SFIXED32) val latitudeMicros: Int,   // <b class="conum">(1)</b>
+    @field:ProtoField(value = 2, type = ProtoType.SFIXED32) val longitudeMicros: Int
+)</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">@Serdeable
+@EqualsAndHashCode
+@ToString
+class Coordinates {
+    @ProtoField(value = 1, type = ProtoType.SFIXED32) final int latitudeMicros   // <b class="conum">(1)</b>
+    @ProtoField(value = 2, type = ProtoType.SFIXED32) final int longitudeMicros
+
+    Coordinates(int latitudeMicros, int longitudeMicros) {
+        this.latitudeMicros = latitudeMicros
+        this.longitudeMicros = longitudeMicros
+    }
 }</code></pre>
 </div>
 </div>
@@ -4781,6 +7243,57 @@ public class ReadingCodec {
 }</code></pre>
 </div>
 </div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">@Singleton
+class ReadingCodec:
+
+    def __init__(self, protobuf_mapper: ProtobufMapper):   # <b class="conum">(1)</b>
+        self.protobuf_mapper = protobuf_mapper
+
+    def encode(self, reading: SensorReading) -&gt; bytes:
+        return self.protobuf_mapper.writeValueAsBytes(reading)
+
+    def decode(self, payload: bytes) -&gt; SensorReading:
+        return self.protobuf_mapper.readValue(payload, SensorReading)</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">@Singleton
+class ReadingCodec(
+    private val protobufMapper: ProtobufMapper   // <b class="conum">(1)</b>
+) {
+
+    fun encode(reading: SensorReading): ByteArray =
+        protobufMapper.writeValueAsBytes(reading)
+
+    fun decode(payload: ByteArray): SensorReading =
+        protobufMapper.readValue(payload, SensorReading::class.java)!!
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">@Singleton
+class ReadingCodec {
+
+    private final ProtobufMapper protobufMapper   // <b class="conum">(1)</b>
+
+    ReadingCodec(ProtobufMapper protobufMapper) {
+        this.protobufMapper = protobufMapper
+    }
+
+    byte[] encode(SensorReading reading) throws IOException {
+        return protobufMapper.writeValueAsBytes(reading)
+    }
+
+    SensorReading decode(byte[] payload) throws IOException {
+        return protobufMapper.readValue(payload, SensorReading)
+    }
+}</code></pre>
+</div>
+</div>
 <div class="colist arabic">
 <table>
 <tr>
@@ -4801,6 +7314,43 @@ public class ReadingCodec {
     }</code></pre>
 </div>
 </div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">    @Test
+    def reads_back_what_it_wrote(self):
+        value = reading()
+
+        payload = self.codec.encode(value)
+
+        assert self.codec.decode(payload) == value</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">    @Test
+    fun readsBackWhatItWrote() {
+        val reading = reading()
+
+        val payload = codec.encode(reading)
+
+        assertEquals(reading, codec.decode(payload))
+    }</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">    void "reads back what it wrote"() {
+        given:
+        SensorReading reading = reading()
+
+        when:
+        byte[] payload = codec.encode(reading)
+
+        then:
+        codec.decode(payload) == reading
+    }</code></pre>
+</div>
+</div>
 <div class="paragraph">
 <p>The reason to reach for it is size. The same reading is markedly smaller than its JSON equivalent, and the gap widens with numeric and repeated data:</p>
 </div>
@@ -4816,6 +7366,51 @@ public class ReadingCodec {
         assertEquals(73, protobufBytes);                    // <b class="conum">(1)</b>
         assertTrue(protobufBytes * 2 &lt; jsonBytes,           // <b class="conum">(2)</b>
             () -&gt; "protobuf " + protobufBytes + " bytes vs JSON " + jsonBytes + " bytes");
+    }</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">    @Test
+    def is_substantially_smaller_than_json(self):
+        value = reading()
+
+        protobuf_bytes = len(self.codec.encode(value))
+        json_bytes = len(self.json_mapper.writeValueAsBytes(value))
+
+        assert protobuf_bytes == 73                                                        # <b class="conum">(1)</b>
+        assert protobuf_bytes * 2 &lt; json_bytes, f"protobuf {protobuf_bytes} bytes vs JSON {json_bytes} bytes"  # <b class="conum">(2)</b></code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">    @Test
+    fun isSubstantiallySmallerThanJson() {
+        val reading = reading()
+
+        val protobufBytes = codec.encode(reading).size
+        val jsonBytes = jsonMapper.writeValueAsBytes(reading).size
+
+        assertEquals(73, protobufBytes)                     // <b class="conum">(1)</b>
+        assertTrue(protobufBytes * 2 &lt; jsonBytes) {         // <b class="conum">(2)</b>
+            "protobuf $protobufBytes bytes vs JSON $jsonBytes bytes"
+        }
+    }</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">    void "is substantially smaller than JSON"() {
+        given:
+        SensorReading reading = reading()
+
+        when:
+        int protobufBytes = codec.encode(reading).length
+        int jsonBytes = jsonMapper.writeValueAsBytes(reading).length
+
+        then:
+        protobufBytes == 73                                 // <b class="conum">(1)</b>
+        protobufBytes * 2 &lt; jsonBytes                       // <b class="conum">(2)</b>
     }</code></pre>
 </div>
 </div>
@@ -4847,6 +7442,44 @@ public record Telemetry(
     long recordedAt,
     @ProtoField(type = ProtoType.SINT32) int temperatureMilliCelsius
 ) {
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">@Serdeable
+@dataclass(frozen=True)
+class Telemetry:
+    deviceId: str                                                                  # <b class="conum">(1)</b>
+    recordedAt: Long
+    temperatureMilliCelsius: Annotated[int, ProtoField(type=ProtoType.SINT32)]</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">@Serdeable
+data class Telemetry(
+    val deviceId: String,                                                    // <b class="conum">(1)</b>
+    val recordedAt: Long,
+    @field:ProtoField(type = ProtoType.SINT32) val temperatureMilliCelsius: Int
+)</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">@Serdeable
+@EqualsAndHashCode
+@ToString
+class Telemetry {
+    final String deviceId                                                    // <b class="conum">(1)</b>
+    final long recordedAt
+    @ProtoField(type = ProtoType.SINT32) final int temperatureMilliCelsius
+
+    Telemetry(String deviceId, long recordedAt, int temperatureMilliCelsius) {
+        this.deviceId = deviceId
+        this.recordedAt = recordedAt
+        this.temperatureMilliCelsius = temperatureMilliCelsius
+    }
 }</code></pre>
 </div>
 </div>
@@ -4894,6 +7527,50 @@ Derived numbering is convenient and it is also fragile. Inserting, removing or r
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">@Serdeable
+@dataclass(frozen=True)
+class AsInt32:
+    milliCelsius: Annotated[int, ProtoField(1)]
+
+
+@Serdeable
+@dataclass(frozen=True)
+class AsSint32:
+    milliCelsius: Annotated[int, ProtoField(value=1, type=ProtoType.SINT32)]</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">    @Serdeable
+    data class AsInt32(@field:ProtoField(1) val milliCelsius: Int)
+
+    @Serdeable
+    data class AsSint32(@field:ProtoField(value = 1, type = ProtoType.SINT32) val milliCelsius: Int)</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">    @Serdeable
+    static class AsInt32 {
+        @ProtoField(1) final int milliCelsius
+
+        AsInt32(int milliCelsius) {
+            this.milliCelsius = milliCelsius
+        }
+    }
+
+    @Serdeable
+    static class AsSint32 {
+        @ProtoField(value = 1, type = ProtoType.SINT32) final int milliCelsius
+
+        AsSint32(int milliCelsius) {
+            this.milliCelsius = milliCelsius
+        }
+    }</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">    @Test
     void sint32IsFarCheaperForNegativeValues() throws Exception {
         int belowFreezing = -4250;
@@ -4903,6 +7580,49 @@ Derived numbering is convenient and it is also fragile. Inserting, removing or r
 
         assertEquals(11, int32Bytes);   // <b class="conum">(1)</b>
         assertEquals(3, sint32Bytes);   // <b class="conum">(2)</b>
+    }</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">    @Test
+    def sint32_is_far_cheaper_for_negative_values(self):
+        below_freezing = -4250
+
+        int32_bytes = len(self.protobuf_mapper.writeValueAsBytes(AsInt32(below_freezing)))
+        sint32_bytes = len(self.protobuf_mapper.writeValueAsBytes(AsSint32(below_freezing)))
+
+        assert int32_bytes == 11   # <b class="conum">(1)</b>
+        assert sint32_bytes == 3   # <b class="conum">(2)</b></code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">    @Test
+    fun sint32IsFarCheaperForNegativeValues() {
+        val belowFreezing = -4250
+
+        val int32Bytes = protobufMapper.writeValueAsBytes(Temperature.AsInt32(belowFreezing)).size
+        val sint32Bytes = protobufMapper.writeValueAsBytes(Temperature.AsSint32(belowFreezing)).size
+
+        assertEquals(11, int32Bytes)   // <b class="conum">(1)</b>
+        assertEquals(3, sint32Bytes)   // <b class="conum">(2)</b>
+    }</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">    void "sint32 is far cheaper for negative values"() {
+        given:
+        int belowFreezing = -4250
+
+        when:
+        int int32Bytes = protobufMapper.writeValueAsBytes(new Temperature.AsInt32(belowFreezing)).length
+        int sint32Bytes = protobufMapper.writeValueAsBytes(new Temperature.AsSint32(belowFreezing)).length
+
+        then:
+        int32Bytes == 11    // <b class="conum">(1)</b>
+        sint32Bytes == 3    // <b class="conum">(2)</b>
     }</code></pre>
 </div>
 </div>
@@ -4943,6 +7663,49 @@ Derived numbering is convenient and it is also fragile. Inserting, removing or r
     }</code></pre>
 </div>
 </div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">    @Test
+    def an_old_reader_ignores_fields_it_does_not_know(self):
+        current = reading()
+
+        payload = self.protobuf_mapper.writeValueAsBytes(current)
+        as_old_reader = self.protobuf_mapper.readValue(payload, LegacyReading)   # <b class="conum">(1)</b>
+
+        assert as_old_reader.deviceId == "weather-station-7"
+        assert as_old_reader.temperatureMilliCelsius == -4250</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">    @Test
+    fun anOldReaderIgnoresFieldsItDoesNotKnow() {
+        val current = SensorReadingTest.reading()
+
+        val payload = protobufMapper.writeValueAsBytes(current)
+        val asOldReader = protobufMapper.readValue(payload, LegacyReading::class.java)!!   // <b class="conum">(1)</b>
+
+        assertEquals("weather-station-7", asOldReader.deviceId)
+        assertEquals(-4250, asOldReader.temperatureMilliCelsius)
+    }</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">    void "an old reader ignores fields it does not know"() {
+        given:
+        SensorReading current = SensorReadingTest.reading()
+
+        when:
+        byte[] payload = protobufMapper.writeValueAsBytes(current)
+        LegacyReading asOldReader = protobufMapper.readValue(payload, LegacyReading)   // <b class="conum">(1)</b>
+
+        then:
+        asOldReader.deviceId == "weather-station-7"
+        asOldReader.temperatureMilliCelsius == -4250
+    }</code></pre>
+</div>
+</div>
 <div class="colist arabic">
 <table>
 <tr>
@@ -4967,6 +7730,55 @@ Derived numbering is convenient and it is also fragile. Inserting, removing or r
         assertNull(asNewReader.location());
         assertNull(asNewReader.signalStrengths());
         assertFalse(asNewReader.batteryLow());
+    }</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">    @Test
+    def a_new_reader_tolerates_fields_that_are_not_there_yet(self):
+        old = LegacyReading("weather-station-7", 1787000000000, -4250)
+
+        payload = self.protobuf_mapper.writeValueAsBytes(old)
+        as_new_reader = self.protobuf_mapper.readValue(payload, SensorReading)   # <b class="conum">(1)</b>
+
+        assert as_new_reader.temperatureMilliCelsius == -4250
+        assert as_new_reader.location is None
+        assert as_new_reader.signalStrengths is None
+        assert as_new_reader.batteryLow is False</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">    @Test
+    fun aNewReaderToleratesFieldsThatAreNotThereYet() {
+        val old = LegacyReading("weather-station-7", 1787000000000L, -4250)
+
+        val payload = protobufMapper.writeValueAsBytes(old)
+        val asNewReader = protobufMapper.readValue(payload, SensorReading::class.java)!!   // <b class="conum">(1)</b>
+
+        assertEquals(-4250, asNewReader.temperatureMilliCelsius)
+        assertNull(asNewReader.location)
+        assertNull(asNewReader.signalStrengths)
+        assertFalse(asNewReader.batteryLow)
+    }</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">    void "a new reader tolerates fields that are not there yet"() {
+        given:
+        LegacyReading old = new LegacyReading("weather-station-7", 1787000000000L, -4250)
+
+        when:
+        byte[] payload = protobufMapper.writeValueAsBytes(old)
+        SensorReading asNewReader = protobufMapper.readValue(payload, SensorReading)   // <b class="conum">(1)</b>
+
+        then:
+        asNewReader.temperatureMilliCelsius == -4250
+        asNewReader.location == null
+        asNewReader.signalStrengths == null
+        !asNewReader.batteryLow
     }</code></pre>
 </div>
 </div>
@@ -5055,10 +7867,162 @@ Derived numbering is convenient and it is also fragile. Inserting, removing or r
 <pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{"id": "1234", "name": 42, "count": 9.75}</code></pre>
 </div>
 </div>
-<div class="listingblock">
+<div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Serdeable
-record Item(int id, String name, int count) {} // id = 1234, name = "42", count = 9</code></pre>
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+public record Item(int id, String name, int count) {
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from dataclasses import dataclass
+
+from micronaut.serde.annotation import Serdeable
+
+
+@Serdeable
+@dataclass(frozen=True)
+class Item:
+    id: int
+    name: str
+    count: int</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import io.micronaut.serde.annotation.Serdeable
+
+@Serdeable
+data class Item(val id: Int, val name: String, val count: Int)</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
+
+import io.micronaut.serde.annotation.Serdeable
+
+@Serdeable
+class Item {
+    final int id
+    final String name
+    final int count
+
+    Item(int id, String name, int count) {
+        this.id = id
+        this.name = name
+        this.count = count
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The document above reads into <code>id = 1234</code>, <code>name = "42"</code> and <code>count = 9</code>:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
+
+import io.micronaut.serde.ObjectMapper;
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+@MicronautTest
+class CoercionTest {
+
+    @Test
+    void testCoercion(ObjectMapper objectMapper) throws IOException {
+        Item item = objectMapper.readValue("{\"id\": \"1234\", \"name\": 42, \"count\": 9.75}", Item.class);
+
+        assertEquals(1234, item.id());
+        assertEquals("42", item.name());
+        assertEquals(9, item.count());
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from typing import Annotated
+
+from jakarta.inject import Inject
+from micronaut.serde import ObjectMapper
+from micronaut.test.extensions.junit5.annotation import MicronautTest
+from org.junit.jupiter.api import Test
+
+from example.Item import Item
+
+
+@MicronautTest
+class CoercionTest:
+    object_mapper: Annotated[ObjectMapper, Inject]
+
+    @Test
+    def test_coercion(self):
+        item = self.object_mapper.readValue('{"id": "1234", "name": 42, "count": 9.75}', Item)
+
+        assert item.id == 1234
+        assert item.name == "42"
+        assert item.count == 9</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
+
+@MicronautTest
+class CoercionTest {
+
+    @Test
+    fun testCoercion(objectMapper: ObjectMapper) {
+        val item = objectMapper.readValue("{\"id\": \"1234\", \"name\": 42, \"count\": 9.75}", Item::class.java)!!
+
+        assertEquals(1234, item.id)
+        assertEquals("42", item.name)
+        assertEquals(9, item.count)
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
+
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.test.extensions.spock.annotation.MicronautTest
+import jakarta.inject.Inject
+import spock.lang.Specification
+
+@MicronautTest
+class CoercionTest extends Specification {
+    @Inject ObjectMapper objectMapper
+
+    void "test coercion"() {
+        when:
+        Item item = objectMapper.readValue('{"id": "1234", "name": 42, "count": 9.75}', Item)
+
+        then:
+        item.id == 1234
+        item.name == "42"
+        item.count == 9
+    }
+}</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -5395,6 +8359,151 @@ public class ReleaseRequest {
 }</code></pre>
 </div>
 </div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from dataclasses import dataclass
+from typing import Annotated
+
+from com.fasterxml.jackson.annotation import JsonProperty
+from micronaut.context.annotation import Executable
+from micronaut.core.annotation import Introspected
+from micronaut.serde.annotation import Serdeable
+
+
+class ReleaseRequestBuilder:
+    # @Executable exposes the builder methods to the generated Java code that drives the builder
+    def __init__(self):
+        self._service = None
+        self._owner = None
+        self._notes = None
+
+    @Executable
+    def service(self, service: str) -&gt; "ReleaseRequestBuilder":
+        self._service = service
+        return self
+
+    @Executable
+    def owner(self, owner: str) -&gt; "ReleaseRequestBuilder":
+        self._owner = owner
+        return self
+
+    @Executable
+    def notes(self, notes: str) -&gt; "ReleaseRequestBuilder":
+        self._notes = notes
+        return self
+
+    @Executable
+    def build(self) -&gt; "ReleaseRequest":
+        return ReleaseRequest(self._service, self._owner, self._notes)
+
+
+@Serdeable
+@Introspected(builder=Introspected.IntrospectionBuilder(builderClass=ReleaseRequestBuilder))
+@dataclass(frozen=True)
+class ReleaseRequest:
+    service: Annotated[str, JsonProperty(required=True)]  # <b class="conum">(1)</b>
+    owner: Annotated[str, JsonProperty(defaultValue="platform")]  # <b class="conum">(2)</b>
+    notes: str | None = None  # <b class="conum">(3)</b></code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import com.fasterxml.jackson.annotation.JsonProperty
+import io.micronaut.core.annotation.Introspected
+import io.micronaut.serde.annotation.Serdeable
+
+@Serdeable
+@Introspected(builder = Introspected.IntrospectionBuilder(builderClass = ReleaseRequest.Builder::class))
+class ReleaseRequest private constructor(
+    @field:JsonProperty(required = true) // <b class="conum">(1)</b>
+    val service: String,
+
+    @field:JsonProperty(defaultValue = "platform") // <b class="conum">(2)</b>
+    val owner: String,
+
+    val notes: String? // <b class="conum">(3)</b>
+) {
+
+    class Builder {
+        private var service: String? = null
+        private var owner: String? = null
+        private var notes: String? = null
+
+        fun service(service: String?): Builder {
+            this.service = service
+            return this
+        }
+
+        fun owner(owner: String?): Builder {
+            this.owner = owner
+            return this
+        }
+
+        fun notes(notes: String?): Builder {
+            this.notes = notes
+            return this
+        }
+
+        fun build(): ReleaseRequest = ReleaseRequest(service!!, owner!!, notes)
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
+
+import com.fasterxml.jackson.annotation.JsonProperty
+import io.micronaut.core.annotation.Introspected
+import io.micronaut.serde.annotation.Serdeable
+
+@Serdeable
+@Introspected(builder = @Introspected.IntrospectionBuilder(builderClass = ReleaseRequest.Builder))
+class ReleaseRequest {
+
+    @JsonProperty(required = true) // <b class="conum">(1)</b>
+    final String service
+
+    @JsonProperty(defaultValue = "platform") // <b class="conum">(2)</b>
+    final String owner
+
+    final String notes // <b class="conum">(3)</b>
+
+    private ReleaseRequest(String service, String owner, String notes) {
+        this.service = service
+        this.owner = owner
+        this.notes = notes
+    }
+
+    static final class Builder {
+        private String service
+        private String owner
+        private String notes
+
+        Builder service(String service) {
+            this.service = service
+            return this
+        }
+
+        Builder owner(String owner) {
+            this.owner = owner
+            return this
+        }
+
+        Builder notes(String notes) {
+            this.notes = notes
+            return this
+        }
+
+        ReleaseRequest build() {
+            return new ReleaseRequest(service, owner, notes)
+        }
+    }
+}</code></pre>
+</div>
+</div>
 <div class="colist arabic">
 <table>
 <tr>
@@ -5458,6 +8567,129 @@ class StrictBuilderExampleTest {
 }</code></pre>
 </div>
 </div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from typing import Annotated
+
+from jakarta.inject import Inject
+from micronaut.core.type import Argument
+from micronaut.serde import ObjectMapper
+from micronaut.serde.exceptions import SerdeException
+from micronaut.test.extensions.junit5.annotation import MicronautTest
+from org.junit.jupiter.api import Test
+
+from example.ReleaseRequest import ReleaseRequest
+
+
+@MicronautTest
+class StrictBuilderExampleTest:
+    object_mapper: Annotated[ObjectMapper, Inject]
+
+    @Test
+    def test_default_value_is_applied_for_a_missing_property(self):
+        request = self.object_mapper.readValue(
+            '{"service":"checkout"}',
+            Argument.of(ReleaseRequest),
+        )
+
+        assert request.service == "checkout"
+        assert request.owner == "platform"
+        assert request.notes is None
+
+    @Test
+    def test_missing_required_property_is_rejected(self):
+        try:
+            self.object_mapper.readValue('{"owner":"growth"}', Argument.of(ReleaseRequest))
+            assert False, "expected a SerdeException"
+        except SerdeException as e:
+            assert "Required property" in e.getMessage()</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import io.micronaut.core.type.Argument
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.serde.exceptions.SerdeException
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
+
+@MicronautTest
+class StrictBuilderExampleTest {
+
+    @Test
+    fun testDefaultValueIsAppliedForAMissingProperty(objectMapper: ObjectMapper) {
+        val request = objectMapper.readValue(
+            "{\"service\":\"checkout\"}",
+            Argument.of(ReleaseRequest::class.java)
+        )!!
+
+        assertEquals("checkout", request.service)
+        assertEquals("platform", request.owner)
+        assertNull(request.notes)
+    }
+
+    @Test
+    fun testMissingRequiredPropertyIsRejected(objectMapper: ObjectMapper) {
+        val e = assertThrows(SerdeException::class.java) {
+            objectMapper.readValue(
+                "{\"owner\":\"growth\"}",
+                Argument.of(ReleaseRequest::class.java)
+            )
+        }
+
+        assertTrue(e.message!!.contains("Required property"))
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
+
+import io.micronaut.core.type.Argument
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.serde.exceptions.SerdeException
+import io.micronaut.test.extensions.spock.annotation.MicronautTest
+import jakarta.inject.Inject
+import spock.lang.Specification
+
+@MicronautTest
+class StrictBuilderExampleTest extends Specification {
+    @Inject ObjectMapper objectMapper
+
+    void "test default value is applied for a missing property"() {
+        when:
+        ReleaseRequest request = objectMapper.readValue(
+            '{"service":"checkout"}',
+            Argument.of(ReleaseRequest)
+        )
+
+        then:
+        request.service == "checkout"
+        request.owner == "platform"
+        request.notes == null
+    }
+
+    void "test missing required property is rejected"() {
+        when:
+        objectMapper.readValue(
+            '{"owner":"growth"}',
+            Argument.of(ReleaseRequest)
+        )
+
+        then:
+        SerdeException e = thrown()
+        e.message.contains("Required property")
+    }
+}</code></pre>
+</div>
+</div>
 <div class="admonitionblock note">
 <table>
 <tr>
@@ -5507,6 +8739,21 @@ public final class Point {
         return new Point(x, y);
     }
 }</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">class Point:
+    def __init__(self, x: int, y: int):
+        self._x = x
+        self._y = y
+
+    def coords(self) -&gt; list[int]:
+        return [self._x, self._y]
+
+    @staticmethod
+    def value_of(x: int, y: int) -&gt; "Point":
+        return Point(x, y)</code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
@@ -5595,6 +8842,36 @@ public class PointSerde implements Serde&lt;Point&gt; { // <b class="conum">(2)<
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from jakarta.inject import Singleton
+from micronaut.core.type import Argument
+from micronaut.serde import Decoder, Encoder, Serde
+from micronaut.serde.Deserializer import DecoderContext
+from micronaut.serde.Serializer import EncoderContext
+
+from example.Point import Point
+
+
+@Singleton  # <b class="conum">(1)</b>
+class PointSerde(Serde[Point]):  # <b class="conum">(2)</b>
+    def deserialize(self, decoder: Decoder, context: DecoderContext, type: Argument) -&gt; Point:
+        array = decoder.decodeArray()  # <b class="conum">(3)</b>
+        x = array.decodeInt()
+        y = array.decodeInt()
+        array.finishStructure()
+        return Point.value_of(x, y)  # <b class="conum">(4)</b>
+
+    def serialize(self, encoder: Encoder, context: EncoderContext, type: Argument, value: Point) -&gt; None:
+        if value is None:
+            raise ValueError("Point cannot be null")  # <b class="conum">(5)</b>
+        coords = value.coords()
+        array = encoder.encodeArray(type)  # <b class="conum">(6)</b>
+        array.encodeInt(coords[0])
+        array.encodeInt(coords[1])
+        array.finishStructure()</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
 <pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
 
 import io.micronaut.core.type.Argument
@@ -5650,8 +8927,8 @@ class PointSerde implements Serde&lt;Point&gt; { // <b class="conum">(2)</b>
         Decoder array = decoder.decodeArray() // <b class="conum">(3)</b>
         int x = array.decodeInt()
         int y = array.decodeInt()
-        array.finishStructure() // <b class="conum">(4)</b>
-        return Point.valueOf(x, y) // <b class="conum">(5)</b>
+        array.finishStructure()
+        return Point.valueOf(x, y) // <b class="conum">(4)</b>
     }
 
     @Override
@@ -5660,12 +8937,12 @@ class PointSerde implements Serde&lt;Point&gt; { // <b class="conum">(2)</b>
             EncoderContext context,
             Argument&lt;? extends Point&gt; type,
             Point value) throws IOException {
-        Objects.requireNonNull(value, "Point cannot be null") // <b class="conum">(6)</b>
+        Objects.requireNonNull(value, "Point cannot be null") // <b class="conum">(5)</b>
         int[] coords = value.coords()
-        Encoder array = encoder.encodeArray(type) // <b class="conum">(7)</b>
+        Encoder array = encoder.encodeArray(type) // <b class="conum">(6)</b>
         array.encodeInt(coords[0])
         array.encodeInt(coords[1])
-        array.finishStructure() // <b class="conum">(8)</b>
+        array.finishStructure()
     }
 }</code></pre>
 </div>
@@ -5730,6 +9007,32 @@ public class PointTest {
         assertEquals(100, coords[1]);
     }
 }</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from typing import Annotated
+
+from jakarta.inject import Inject
+from micronaut.serde import ObjectMapper
+from micronaut.test.extensions.junit5.annotation import MicronautTest
+from org.junit.jupiter.api import Test
+
+from example.Point import Point
+
+
+@MicronautTest
+class PointTest:
+    object_mapper: Annotated[ObjectMapper, Inject]
+
+    @Test
+    def test_write_read_point(self):
+        result = self.object_mapper.writeValueAsString(Point.value_of(50, 100))
+        point = self.object_mapper.readValue(result, Point)
+        assert point is not None
+        coords = point.coords()
+        assert coords[0] == 50
+        assert coords[1] == 100</code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
@@ -5877,6 +9180,38 @@ public class ReversePointSerde implements Serde&lt;Point&gt; {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from jakarta.inject import Singleton
+from micronaut.context.annotation import Secondary
+from micronaut.core.type import Argument
+from micronaut.serde import Decoder, Encoder, Serde
+from micronaut.serde.Deserializer import DecoderContext
+from micronaut.serde.Serializer import EncoderContext
+
+from example.Point import Point
+
+
+@Singleton
+@Secondary  # <b class="conum">(1)</b>
+class ReversePointSerde(Serde[Point]):
+    def deserialize(self, decoder: Decoder, context: DecoderContext, type: Argument) -&gt; Point:
+        array = decoder.decodeArray()
+        y = array.decodeInt()  # <b class="conum">(2)</b>
+        x = array.decodeInt()
+        array.finishStructure()
+        return Point.value_of(x, y)
+
+    def serialize(self, encoder: Encoder, context: EncoderContext, type: Argument, value: Point) -&gt; None:
+        if value is None:
+            raise ValueError("Point cannot be null")
+        coords = value.coords()
+        array = encoder.encodeArray(type)
+        array.encodeInt(coords[1])  # <b class="conum">(3)</b>
+        array.encodeInt(coords[0])
+        array.finishStructure()</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
 <pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
 
 import io.micronaut.context.annotation.Secondary
@@ -6013,6 +9348,29 @@ public class Place {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from dataclasses import dataclass
+from typing import Annotated
+
+from micronaut.serde.annotation import Serdeable
+
+from example.Point import Point
+from example.ReversePointSerde import ReversePointSerde
+
+
+@Serdeable
+@dataclass
+class Place:
+    point: Annotated[
+        Point,
+        Serdeable.Serializable(using=ReversePointSerde),  # <b class="conum">(1)</b>
+        Serdeable.Deserializable(using=ReversePointSerde),  # <b class="conum">(2)</b>
+    ]
+    pointCustomSer: Annotated[Point, Serdeable.Serializable(using=ReversePointSerde)]
+    pointCustomDes: Annotated[Point, Serdeable.Deserializable(using=ReversePointSerde)]</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
 <pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
 
 import io.micronaut.serde.annotation.Serdeable
@@ -6113,6 +9471,17 @@ public class Product {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from dataclasses import dataclass
+
+
+@dataclass
+class Product:
+    name: str
+    quantity: int</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
 <pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
 
 class Product(val name: String, val quantity: Int)</code></pre>
@@ -6160,6 +9529,25 @@ public interface ProductMixin {
     @JsonProperty("p_quantity")
     int getQuantity();
 }</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from abc import ABC, abstractmethod
+
+from com.fasterxml.jackson.annotation import JsonProperty
+
+
+class ProductMixin(ABC):
+    @JsonProperty("p_name")
+    @abstractmethod
+    def getName(self) -&gt; str:
+        pass
+
+    @JsonProperty("p_quantity")
+    @abstractmethod
+    def getQuantity(self) -&gt; int:
+        pass</code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
@@ -6216,6 +9604,19 @@ public class Application {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from micronaut.serde.annotation import SerdeImport
+
+from example.Product import Product
+from example.ProductMixin import ProductMixin
+
+
+@SerdeImport(value=Product, mixin=ProductMixin)  # <b class="conum">(1)</b>
+class Application:
+    pass</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
 <pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
 
 import io.micronaut.runtime.Micronaut.*
@@ -6232,6 +9633,25 @@ fun main(args: Array&lt;String&gt;) {
     value = Product::class,
     mixin = ProductMixin::class) // <b class="conum">(1)</b>
 class Serdes {}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
+
+import io.micronaut.runtime.Micronaut
+import io.micronaut.serde.annotation.SerdeImport
+
+@SerdeImport(
+    value = Product,
+    mixin = ProductMixin
+) // <b class="conum">(1)</b>
+class Application {
+
+    static void main(String[] args) {
+        Micronaut.run(Application, args)
+    }
+}</code></pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -6277,6 +9697,22 @@ public class Location {
         return features;
     }
 }</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from dataclasses import dataclass
+
+from micronaut.serde.annotation import Serdeable
+
+from example.Feature import Feature
+from example.Point import Point
+
+
+@Serdeable
+@dataclass
+class Location:
+    features: dict[Feature, Point]</code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
@@ -6344,6 +9780,30 @@ public class Feature {
         }
     }
 }</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from jakarta.inject import Singleton
+from java.util import Optional
+from micronaut.core.convert import ConversionContext, TypeConverter
+
+
+class Feature:
+    def __init__(self, name: str):
+        self._name = name
+
+    def name(self) -&gt; str:
+        return self._name
+
+    def __str__(self) -&gt; str:  # <b class="conum">(1)</b>
+        return self._name
+
+
+@Singleton
+class FeatureConverter(TypeConverter[str, Feature]):  # <b class="conum">(2)</b>
+    def convert(self, object: str, target_type: type[Feature], context: ConversionContext):
+        return Optional.of(Feature(object))</code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
