@@ -94,6 +94,46 @@ class Test {
         writeJson(jsonMapper, beanUnderTest) == '{"foo":"bar","123":"456"}'
     }
 
+    void "@JsonAnyGetter inherited from a superclass"() {
+        given:
+        def context = buildContext('example.Test', '''
+package example;
+
+import java.util.*;
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import io.micronaut.serde.annotation.Serdeable;
+
+abstract class Base {
+    @JsonAnyGetter
+    public Map<String, String> entries() {
+        Map<String, String> map = new LinkedHashMap<>();
+        map.put("foo", "bar");
+        map.put("123", "456");
+        return map;
+    }
+}
+
+@Serdeable
+class Test extends Base {
+    private String name;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+''', [name: 'Fred'])
+
+        expect:
+        JSONAssert.assertEquals('{"name":"Fred","foo":"bar","123":"456"}', writeJson(jsonMapper, beanUnderTest), JSONCompareMode.STRICT)
+
+        cleanup:
+        context.close()
+    }
+
     void "@JsonAnySetter"() {
         given:
         def context = buildContext('example.Test', '''
@@ -117,6 +157,53 @@ class Test {
 
         expect:
         jsonMapper.readValue('{"foo":"bar","123":"456"}', typeUnderTest).anySetter == ['foo': 'bar', '123': '456']
+
+        cleanup:
+        context.close()
+    }
+
+    void "@JsonAnySetter inherited from a superclass"() {
+        given:
+        def context = buildContext('example.Test', '''
+package example;
+
+import java.util.*;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import io.micronaut.serde.annotation.Serdeable;
+
+abstract class Base {
+    private final Map<String, String> entries = new LinkedHashMap<>();
+
+    @JsonAnySetter
+    public void put(String key, String value) {
+        entries.put(key, value);
+    }
+
+    public Map<String, String> entries() {
+        return entries;
+    }
+}
+
+@Serdeable
+class Test extends Base {
+    private String name;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+''')
+
+        when:
+        def bean = jsonMapper.readValue('{"name":"Fred","foo":"bar","123":"456"}', typeUnderTest)
+
+        then:
+        bean.name == 'Fred'
+        bean.entries() == ['foo': 'bar', '123': '456']
 
         cleanup:
         context.close()

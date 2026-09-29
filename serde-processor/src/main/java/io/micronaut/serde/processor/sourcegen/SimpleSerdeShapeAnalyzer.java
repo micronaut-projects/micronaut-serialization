@@ -367,6 +367,11 @@ public final class SimpleSerdeShapeAnalyzer {
             && analysis.failBoth(FallbackReason.COMPLEX_ENUM);
     }
 
+    /**
+     * Whether the type, as the introspection sees it, uses an annotation. Inherited fields and methods
+     * count: the introspection the runtime serdes work from includes them, so a member such as an any
+     * setter declared in a supertype has to rule out the generated serde just as a declared one does.
+     */
     private boolean hasAnnotation(ClassElement element, Class<? extends Annotation> annotation) {
         if (element.getPrimaryConstructor().map(c -> hasAnnotation(c, annotation)).orElse(false)) {
             return true;
@@ -374,11 +379,11 @@ public final class SimpleSerdeShapeAnalyzer {
         if (beanProperties(element).stream().anyMatch(p -> p.hasAnnotation(annotation) || p.hasDeclaredAnnotation(annotation))) {
             return true;
         }
-        if (!element.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyInstance().onlyDeclared()
+        if (!element.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyInstance()
             .annotated(a -> a.hasAnnotation(annotation) || a.hasDeclaredAnnotation(annotation))).isEmpty()) {
             return true;
         }
-        return !element.getEnclosedElements(ElementQuery.ALL_METHODS.onlyInstance().onlyDeclared()
+        return !element.getEnclosedElements(ElementQuery.ALL_METHODS.onlyInstance()
             .annotated(a -> a.hasAnnotation(annotation) || a.hasDeclaredAnnotation(annotation))).isEmpty();
     }
 
@@ -389,11 +394,11 @@ public final class SimpleSerdeShapeAnalyzer {
         if (beanProperties(element).stream().anyMatch(p -> p.hasAnnotation(annotationName) || p.hasDeclaredAnnotation(annotationName))) {
             return true;
         }
-        if (!element.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyInstance().onlyDeclared()
+        if (!element.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyInstance()
             .annotated(a -> a.hasAnnotation(annotationName) || a.hasDeclaredAnnotation(annotationName))).isEmpty()) {
             return true;
         }
-        return !element.getEnclosedElements(ElementQuery.ALL_METHODS.onlyInstance().onlyDeclared()
+        return !element.getEnclosedElements(ElementQuery.ALL_METHODS.onlyInstance()
             .annotated(a -> a.hasAnnotation(annotationName) || a.hasDeclaredAnnotation(annotationName))).isEmpty();
     }
 
@@ -547,6 +552,11 @@ public final class SimpleSerdeShapeAnalyzer {
     private SimpleSerdeShapeDecision.ShapeKind resolveShapeKind(ClassElement element) {
         if (element.isEnum()) {
             return SimpleSerdeShapeDecision.ShapeKind.ENUM;
+        }
+        // The record and bean generators only model non-generic types: a generic type, such as one
+        // declaring a recursively bounded type parameter, uses the runtime serdes
+        if (!element.getTypeArguments().isEmpty()) {
+            return SimpleSerdeShapeDecision.ShapeKind.UNSUPPORTED;
         }
         if (element.isRecord()) {
             return SimpleSerdeShapeDecision.ShapeKind.RECORD;

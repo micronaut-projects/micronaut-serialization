@@ -20,6 +20,7 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.context.annotation.Parameter;
 import io.micronaut.context.annotation.Prototype;
 import io.micronaut.inject.ast.ClassElement;
+import io.micronaut.inject.ast.MethodElement;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.KeyDescriptor;
 import io.micronaut.serde.Keys;
@@ -29,10 +30,13 @@ import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.processor.sourcegen.SerdeInclusionSourceGen;
-import io.micronaut.serde.processor.sourcegen.SerdeSourceGenPropertyOrder;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
+import io.micronaut.serde.processor.sourcegen.SerdeSourceGenNames;
+import io.micronaut.serde.processor.sourcegen.SerdeSourceGenPropertyOrder;
+import io.micronaut.serde.processor.sourcegen.SerdeSourceGenRecursion;
 import io.micronaut.serde.util.GeneratedSerdeExceptionUtil;
 import io.micronaut.serde.util.GeneratedSerdeFallbackUtil;
+import io.micronaut.serde.util.GeneratedSerdeLazyUtil;
 import io.micronaut.sourcegen.model.AnnotationDef;
 import io.micronaut.sourcegen.model.ClassDef;
 import io.micronaut.sourcegen.model.ClassTypeDef;
@@ -81,6 +85,12 @@ public final class RecordSerializerSourceGen {
         Serializer.EncoderContext.class,
         Argument.class,
         Object.class
+    );
+    private static final Method LAZY_SERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
+        GeneratedSerdeLazyUtil.class,
+        "lazySerializer",
+        Serializer.EncoderContext.class,
+        Argument.class
     );
     private static final Method FIND_SERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(Serializer.EncoderContext.class, "findSerializer", Argument.class);
     private static final Method CREATE_SPECIFIC_SERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
@@ -233,15 +243,21 @@ public final class RecordSerializerSourceGen {
             if (inclusionAware) {
                 statements.addAll(SerdeInclusionSourceGen.resolveStatements(aThis, context));
             }
+            SerdeSourceGenRecursion recursion = new SerdeSourceGenRecursion(element);
             for (Map.Entry<String, String> serializerFieldEntry : serializerFieldNames.entrySet()) {
                 String componentName = serializerFieldEntry.getKey();
                 String serializerFieldName = serializerFieldEntry.getValue();
                 ExpressionDef argumentExpression = serializerClassTypeDef.getStaticField(required(argumentFieldNames, componentName), ARGUMENT_TYPE);
-                ExpressionDef serializerExpression = isSelfReferentialComponent(element, recordSerdeShape, componentName)
-                    ? ClassTypeDef.of(GeneratedSerdeFallbackUtil.class)
-                        .invokeStatic(WITH_RUNTIME_FALLBACK_SERIALIZER_METHOD, aThis, context, argumentExpression)
-                    : context.invoke(FIND_SERIALIZER_METHOD, argumentExpression)
+                ExpressionDef serializerExpression;
+                if (isSelfReferentialComponent(element, recordSerdeShape, componentName)) {
+                    serializerExpression = ClassTypeDef.of(GeneratedSerdeFallbackUtil.class)
+                        .invokeStatic(WITH_RUNTIME_FALLBACK_SERIALIZER_METHOD, aThis, context, argumentExpression);
+                } else if (isIndirectlyRecursiveComponent(recursion, recordSerdeShape, componentName)) {
+                    serializerExpression = ClassTypeDef.of(GeneratedSerdeLazyUtil.class).invokeStatic(LAZY_SERIALIZER_METHOD, context, argumentExpression);
+                } else {
+                    serializerExpression = context.invoke(FIND_SERIALIZER_METHOD, argumentExpression)
                         .invoke(CREATE_SPECIFIC_SERIALIZER_METHOD, context, argumentExpression);
+                }
                 statements.add(aThis.field(serializerFieldName, SERIALIZER_TYPE).put(
                     serializerExpression
                 ));
@@ -403,7 +419,7 @@ public final class RecordSerializerSourceGen {
         ExpressionDef argumentExpression = serializerClassTypeDef.getStaticField(required(argumentFieldNames, component.name()), ARGUMENT_TYPE);
         ClassElement componentType = component.type();
         Method scalarMethod = scalarEncoderMethod(componentType);
-        ExpressionDef propertyValue = value.getPropertyValue(component.propertyElement());
+        ExpressionDef propertyValue = readComponentValue(value, component);
         StatementDef encodeKey = encodeKeyStatement(serializerClassTypeDef, keyEncoder, index);
         String valueLocalName = RecordSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, index);
         boolean primitive = componentType.isPrimitive() && !componentType.isArray();
@@ -532,6 +548,18 @@ public final class RecordSerializerSourceGen {
         return Objects.requireNonNull(names.get(key));
     }
 
+    private ExpressionDef readComponentValue(VariableDef.MethodParameter value,
+                                            RecordSerdeShape.RecordComponent component) {
+        MethodElement readMethod = component.propertyElement().getReadMethod().orElse(null);
+        if (readMethod != null && SerdeSourceGenNames.requiresSourceWriterEscape(readMethod.getName())) {
+            return value.invoke(
+                SerdeSourceGenNames.escapeSourceWriterFormat(readMethod.getName()),
+                TypeDef.of(readMethod.getReturnType())
+            );
+        }
+        return value.getPropertyValue(component.propertyElement());
+    }
+
     private @Nullable Method scalarEncoderMethod(ClassElement type) {
         return switch (type.getName()) {
             case "boolean", "java.lang.Boolean" -> type.isArray() ? null : ENCODE_BOOLEAN_METHOD;
@@ -553,7 +581,18 @@ public final class RecordSerializerSourceGen {
                                                RecordSerdeShape recordSerdeShape,
                                                String componentName) {
         for (RecordSerdeShape.RecordComponent component : recordSerdeShape.components()) {
-            if (component.name().equals(componentName) && component.type().getName().equals(element.getName())) {
+            if (component.name().equals(componentName) && SerdeSourceGenRecursion.isDirectlyRecursive(element, component.type())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isIndirectlyRecursiveComponent(SerdeSourceGenRecursion recursion,
+                                                   RecordSerdeShape recordSerdeShape,
+                                                   String componentName) {
+        for (RecordSerdeShape.RecordComponent component : recordSerdeShape.components()) {
+            if (component.name().equals(componentName) && recursion.isIndirectlyRecursive(component.type())) {
                 return true;
             }
         }

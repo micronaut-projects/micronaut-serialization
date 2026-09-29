@@ -33,6 +33,138 @@ class SerdeJsonPropertySpec extends JsonPropertySpec {
         true
     }
 
+    void "dollar-prefixed accessors"() {
+        given:
+        def context = buildContext('test.V1JSONSchemaProps', '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class V1JSONSchemaProps {
+    @JsonProperty("$ref")
+    private String $ref;
+
+    @JsonProperty("$schema")
+    private String $schema;
+
+    public V1JSONSchemaProps() {
+    }
+
+    public String get$Ref() {
+        return $ref;
+    }
+
+    public void set$Ref(String $ref) {
+        this.$ref = $ref;
+    }
+
+    public String get$Schema() {
+        return $schema;
+    }
+
+    public void set$Schema(String $schema) {
+        this.$schema = $schema;
+    }
+}
+''')
+        def bean = newInstance(context, 'test.V1JSONSchemaProps', [:])
+        bean.set$Ref('#/components/schemas/Pet')
+        bean.set$Schema('https://json-schema.org/draft/2020-12/schema')
+
+        when:
+        def json = writeJson(jsonMapper, bean)
+
+        then:
+        json == '{"$ref":"#/components/schemas/Pet","$schema":"https://json-schema.org/draft/2020-12/schema"}'
+
+        when:
+        def read = jsonMapper.readValue(json, argumentOf(context, 'test.V1JSONSchemaProps'))
+
+        then:
+        read.get$Ref() == '#/components/schemas/Pet'
+        read.get$Schema() == 'https://json-schema.org/draft/2020-12/schema'
+
+        and:
+        assertSpecificSerdeSelection(context, 'test.V1JSONSchemaProps', true, true)
+
+        cleanup:
+        context.close()
+    }
+
+    void "dollar-prefixed fields read and written directly"() {
+        given:
+        def context = buildContext('test.DollarFields', '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class DollarFields {
+    @JsonProperty("$ref")
+    public String $ref;
+
+    public DollarFields() {
+    }
+}
+''')
+        def bean = newInstance(context, 'test.DollarFields', [:])
+        bean.$ref = '#/components/schemas/Pet'
+
+        when:
+        def json = writeJson(jsonMapper, bean)
+
+        then:
+        json == '{"$ref":"#/components/schemas/Pet"}'
+
+        when:
+        def read = jsonMapper.readValue(json, argumentOf(context, 'test.DollarFields'))
+
+        then:
+        read.$ref == '#/components/schemas/Pet'
+
+        and:
+        assertSpecificSerdeSelection(context, 'test.DollarFields', true, true)
+
+        cleanup:
+        context.close()
+    }
+
+    void "dollar-prefixed record components"() {
+        given:
+        def context = buildContext('test.DollarRecord', '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+record DollarRecord(@JsonProperty("$ref") String $ref) {
+}
+''')
+        def bean = newInstance(context, 'test.DollarRecord', ['#/components/schemas/Pet'] as Object[])
+
+        when:
+        def json = writeJson(jsonMapper, bean)
+
+        then:
+        json == '{"$ref":"#/components/schemas/Pet"}'
+
+        when:
+        def read = jsonMapper.readValue(json, argumentOf(context, 'test.DollarRecord'))
+
+        then:
+        read.$ref() == '#/components/schemas/Pet'
+
+        and:
+        assertSpecificSerdeSelection(context, 'test.DollarRecord', true, true)
+
+        cleanup:
+        context.close()
+    }
+
     private static String generatedClassName(Class<?> type, String suffix) {
         String packageName = type.package.name
         String localName = type.name
