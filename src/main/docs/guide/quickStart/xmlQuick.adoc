@@ -95,6 +95,9 @@ dependency:jakarta.xml.bind:jakarta.xml.bind-api[scope="compileOnly"]
 
 Names, transient properties, ordering, enum lexical values, and `type` overrides use shared serde metadata and can therefore affect other format implementations. JAXB defaults and nil policies are XML-only. Explicit Micronaut or Jackson configuration wins when it conflicts with JAXB metadata. Unsupported JAXB features include package `@XmlSchema`, adapters, `JAXBElement`, schema generation, and `JAXBContext`; unsupported annotation members include all `required` flags, `@XmlType.name`, `@XmlType.namespace`, `@XmlType.factoryClass`, `@XmlType.factoryMethod`, and `@XmlEnum.value`.
 
+[.lang-python]
+NOTE: The Jakarta XML Binding annotations are supported for Java, Kotlin and Groovy types. There is no Python example for them: a `@XmlElement(defaultValue = "...")` property written as a nil element reads back as `None` rather than the declared default, so use the Jackson XML annotations shown below from Python.
+
 With the correct dependencies in place you can define an XML-serializable type:
 
 snippet::example.Book[project-base="doc-examples/example-stax-xml", source="main"]
