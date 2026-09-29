@@ -16,6 +16,9 @@ snippet::example.SensorReading[project-base="doc-examples/example-protobuf", sou
 <2> A `List` becomes a `repeated` field, packed into a single run for scalars.
 <3> A nullable property is simply absent from the payload when it is null, which is exactly how protobuf represents an unset field.
 
+[.lang-python]
+NOTE: A Python `int` maps to a Java `int`, so a 64-bit property is declared with `java.lang.Long` (`recordedAt: Annotated[Long, ProtoField(2)]`) to match the Java sample's `long`.
+
 snippet::example.Coordinates[project-base="doc-examples/example-protobuf", source="main", tags="clazz"]
 
 <1> Coordinates in microdegrees are always large numbers, so the fixed four-byte form is never worse than a varint and is cheaper to decode.

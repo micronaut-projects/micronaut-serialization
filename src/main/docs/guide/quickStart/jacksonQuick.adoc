@@ -12,6 +12,9 @@ snippet::example.Book[project-base="doc-examples/example", source="main"]
 <2> You can use `@JsonProperty` from Jackson annotations
 <3> You can use `@JsonCreator` from Jackson annotations
 
+[.lang-python]
+NOTE: The third callout has no Python counterpart: the `@dataclass` generates the creator, so there is nothing to annotate with `@JsonCreator`.
+
 TIP: If you don't want to add a Micronaut Serialization annotation then you can also add a type-level Jackson annotation like `@JsonClassDescription`, `@JsonRootName` or `@JsonTypeName`
 
 Once you have a type that can be serialized and deserialized you can use the api:serde.ObjectMapper[] interface to do so:

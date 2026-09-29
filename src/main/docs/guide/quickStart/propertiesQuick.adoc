@@ -6,20 +6,7 @@ dependency:micronaut-serde-properties[groupId="io.micronaut.serde",scope="implem
 
 The `+*.properties+` mapper is exposed as a named api:serde.ObjectMapper[] bean. Inject it with the `properties` qualifier when you want to read or write `+*.properties+` data:
 
-[source,java]
-----
-import io.micronaut.serde.ObjectMapper;
-import io.micronaut.serde.properties.PropertiesMapper;
-import jakarta.inject.Named;
-
-class BookService {
-    private final ObjectMapper propertiesMapper;
-
-    BookService(@Named(PropertiesMapper.NAME) ObjectMapper propertiesMapper) {
-        this.propertiesMapper = propertiesMapper;
-    }
-}
-----
+snippet::example.PropertiesBookService[project-base="doc-examples/example", source="main"]
 
 Once you have a type that can be serialized and deserialized, the mapper flattens object paths into property keys:
 

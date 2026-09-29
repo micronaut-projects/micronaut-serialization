@@ -48,13 +48,7 @@ micronaut:
 
 The module registers a message body handler for `application/cbor`. Controllers and clients can use:
 
-[source,java]
-----
-@Post(uri = "/books", processes = CborMediaTypes.APPLICATION_CBOR)
-Book save(@Body Book book) {
-    return book;
-}
-----
+snippet::example.BookController[project-base="doc-examples/example-jackson-cbor", source="main"]
 
 The constant api:serde.cbor.CborMediaTypes[]#APPLICATION_CBOR is provided for convenience. When Micronaut Core adds `MediaType.APPLICATION_CBOR`, that constant will remain a stable alias for the same media type string (`application/cbor`).
 
