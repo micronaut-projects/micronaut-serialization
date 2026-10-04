@@ -14,6 +14,7 @@ dependencies {
     annotationProcessor(mn.micronaut.graal)
     annotationProcessor(projects.micronautSerdeProcessor)
 
+    compileOnly(mn.micronaut.http)
     compileOnly(mn.micronaut.management)
     compileOnly(libs.jetbrains.annotations)
     compileOnly(mn.jackson.databind)
