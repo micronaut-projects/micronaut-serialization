@@ -29,6 +29,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Runs an application through the development runtime and edits its serializable types: the
@@ -61,6 +62,7 @@ class SerdeReloadTest {
                 }
                 """);
             harness.start();
+            assertReloaderPresent(harness.context());
 
             assertEquals("Book[title=Dune, genre=SCIFI]", read(harness.context(), "{\"title\":\"Dune\",\"genre\":\"SCIFI\"}"));
             assertEquals("{\"title\":\"Dune\",\"genre\":\"SCIFI\"}", roundTrip(harness.context(), "{\"title\":\"Dune\",\"genre\":\"SCIFI\"}"));
@@ -76,6 +78,7 @@ class SerdeReloadTest {
                 }
                 """);
             harness.reload();
+            assertReloaderPresent(harness.context());
 
             String json = "{\"title\":\"Dune\",\"genre\":\"FANTASY\",\"pages\":412}";
             assertEquals("Book[title=Dune, genre=FANTASY, pages=412]", read(harness.context(), json));
@@ -84,9 +87,15 @@ class SerdeReloadTest {
             ReloadTck.assertFollowsReload(harness, context -> deserializer(context, "example.Genre"));
             ReloadTck.assertFollowsReload(harness, context -> serializer(context, "example.Book"));
 
-            // the enum lookups of the generated deserializers are kept on the enum class, not in a static map
+            // nothing of serialization keeps the first generation reachable: the enum lookups of the generated
+            // deserializers are kept on the enum class, and the development-only reloader holds the context only
             ReloadTck.assertRetiredGenerationsCollected(harness);
         }
+    }
+
+    private static void assertReloaderPresent(ApplicationContext context) {
+        // the bean that rebuilds the registry exists in development mode only
+        assertTrue(context.containsBean(type(context, "io.micronaut.serde.support.DevelopmentSerdeReloader")));
     }
 
     private static String read(ApplicationContext context, String json) throws IOException {

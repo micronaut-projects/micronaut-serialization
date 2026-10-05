@@ -72,6 +72,7 @@ include("benchmarks")
 
 include("test-suite-tck-jackson-databind")
 include("test-suite-tck-serde")
+include("test-suite-dev-reload")
 include("test-suite-http-server-tck-netty")
 include("test-suite-properties-jackson-databind")
 include("test-suite-yaml-serde")
