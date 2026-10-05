@@ -95,6 +95,18 @@ class SpecificBeanSerdeCacheSpec extends Specification {
         objectMapper.writeValueAsString(new SourceGenGeneratedShape('b', 2)) == '{"name":"b","count":2}'
     }
 
+    void "a generated serde passes the context of each document to a nested contextual serde"() {
+        expect: 'the holder is handled by the generated serdes'
+        context.getBeanDefinitions(Deserializer).any { it.beanType.simpleName == 'SerdeSecretHolderDeserializer' }
+        context.getBeanDefinitions(Serializer).any { it.beanType.simpleName == 'SerdeSecretHolderSerializer' }
+
+        and: 'every document reaches the nested serde with its own context'
+        (1..3).every {
+            objectMapper.readValue('{"secret":"s"}', SecretHolder) == new SecretHolder(new Secret('s'))
+                && objectMapper.writeValueAsString(new SecretHolder(new Secret('t'))) == '{"secret":"t"}'
+        }
+    }
+
     private Object deserialize(Argument<?> type, String value, FormatConfiguration format) {
         Decoder decoder = Stub {
             decodeString() >> value
