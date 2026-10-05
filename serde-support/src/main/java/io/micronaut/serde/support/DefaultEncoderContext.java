@@ -39,7 +39,7 @@ import java.util.Optional;
  */
 @Internal
 class DefaultEncoderContext extends AbstractPropertyReferenceManager implements Serializer.EncoderContext {
-    private final DefaultSerdeRegistry registry;
+    final DefaultSerdeRegistry registry;
     // Beans written in full in the current document, allocated only when a document uses object identity
     @Nullable
     private IdentityHashMap<Object, Object> writtenBeans;

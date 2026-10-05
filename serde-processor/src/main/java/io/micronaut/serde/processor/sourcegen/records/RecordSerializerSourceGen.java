@@ -21,6 +21,7 @@ import io.micronaut.context.annotation.Parameter;
 import io.micronaut.context.annotation.Prototype;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.MethodElement;
+import io.micronaut.serde.annotation.CacheableSpecificSerde;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.KeyDescriptor;
 import io.micronaut.serde.Keys;
@@ -197,6 +198,7 @@ public final class RecordSerializerSourceGen {
         ClassDef.ClassDefBuilder classDefBuilder = ClassDef.builder(SerdeSourceGenClassNaming.generatedSerializerClassName(element))
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
             .addAnnotation(Prototype.class)
+            .addAnnotation(CacheableSpecificSerde.class)
             .addAnnotation(AnnotationDef.builder(Generated.class)
                 .addMember(GENERATED_VALUE_MEMBER, "Micronaut")
                 .build())

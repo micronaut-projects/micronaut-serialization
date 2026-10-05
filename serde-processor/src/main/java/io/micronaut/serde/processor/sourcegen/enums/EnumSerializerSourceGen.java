@@ -19,6 +19,7 @@ import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.type.Argument;
 import io.micronaut.context.annotation.Prototype;
 import io.micronaut.inject.ast.ClassElement;
+import io.micronaut.serde.annotation.CacheableSpecificSerde;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.FormattedSerializer;
@@ -74,6 +75,7 @@ public final class EnumSerializerSourceGen {
         return ClassDef.builder(SerdeSourceGenClassNaming.generatedSerializerClassName(element))
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
             .addAnnotation(Prototype.class)
+            .addAnnotation(CacheableSpecificSerde.class)
             .addAnnotation(AnnotationDef.builder(Generated.class)
                 .addMember(GENERATED_VALUE_MEMBER, "Micronaut")
             .build())

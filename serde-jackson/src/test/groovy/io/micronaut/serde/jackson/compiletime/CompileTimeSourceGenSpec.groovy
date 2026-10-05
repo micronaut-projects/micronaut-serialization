@@ -1123,7 +1123,8 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
         Serializer serializer2 = registry.findSerializer(argument).createSpecific(encoderContext, argument)
         assert serializer1.class.name == generatedClassName(argument.type, 'Serializer')
         assert serializer2.class.name == generatedClassName(argument.type, 'Serializer')
-        assert !serializer1.is(serializer2)
+        // Generated serdes are prototype beans, created once per type by the registry
+        assert serializer1.is(serializer2)
     }
 
     private static void assertGeneratedPrototypeDeserializer(SerdeRegistry registry, Argument argument) {
@@ -1132,7 +1133,8 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
         Deserializer deserializer2 = registry.findDeserializer(argument).createSpecific(decoderContext, argument)
         assert deserializer1.class.name == generatedClassName(argument.type, 'Deserializer')
         assert deserializer2.class.name == generatedClassName(argument.type, 'Deserializer')
-        assert !deserializer1.is(deserializer2)
+        // Generated serdes are prototype beans, created once per type by the registry
+        assert deserializer1.is(deserializer2)
     }
 
     private static void assertPropertyArgumentFallsBackToObjectSerde(SerdeRegistry registry, String propertyName) {
