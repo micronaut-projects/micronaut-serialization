@@ -18,7 +18,6 @@ import io.micronaut.serde.Serializer
 import io.micronaut.serde.support.watch.MapperHolder
 import io.micronaut.serde.support.watch.WatchedValue
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import java.util.function.Supplier
 
@@ -26,12 +25,11 @@ class SerdeRegistryWatchSpec extends Specification {
 
     private static final Argument<Point> POINT = Argument.of(Point)
 
-    @Unroll
-    void "in development mode a serializer registered at runtime is used by a freshly resolved mapper (dependency graph: #track)"() {
+    void "in development mode a serializer registered at runtime is used by a freshly resolved mapper"() {
         given:
         ApplicationContext context = ApplicationContext.builder()
             .properties('micronaut.dev.enabled': true)
-            .trackBeanDependencies(track)
+            .trackBeanDependencies(true)
             .start()
         SerdeRegistry registry = context.getBean(SerdeRegistry)
         ObjectMapper mapper = context.getBean(ObjectMapper)
@@ -58,9 +56,30 @@ class SerdeRegistryWatchSpec extends Specification {
 
         cleanup:
         context.close()
+    }
 
-        where:
-        track << [true, false]
+    void "in development mode a context that does not track bean dependencies keeps the registry and the mapper, rather than replace them under the beans that received them"() {
+        given:
+        ApplicationContext context = ApplicationContext.builder()
+            .properties('micronaut.dev.enabled': true)
+            .trackBeanDependencies(false)
+            .start()
+        SerdeRegistry registry = context.getBean(SerdeRegistry)
+        ObjectMapper mapper = context.getBean(ObjectMapper)
+
+        expect:
+        context.containsBean(DevelopmentSerdeReloader)
+
+        when:
+        register(context)
+
+        then: 'nothing is recreated: the change is read after a restart'
+        context.getBean(SerdeRegistry).is(registry)
+        context.getBean(ObjectMapper).is(mapper)
+        !(registry.findSerializer(POINT) instanceof PointSerde)
+
+        cleanup:
+        context.close()
     }
 
     void "a bean that received the mapper is recreated on top of the new one through the dependency graph"() {
