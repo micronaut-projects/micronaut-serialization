@@ -11,6 +11,19 @@ plugins {
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+        // the snapshot of Micronaut Core with JsonMapper.createStreamWriter, until Core 5.3 is released
+        maven {
+            url = uri("https://central.sonatype.com/repository/maven-snapshots/")
+            mavenContent {
+                snapshotsOnly()
+            }
+        }
+    }
+}
+
 rootProject.name = "serde-parent"
 
 include("serde-bom")

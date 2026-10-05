@@ -1,5 +1,12 @@
 repositories {
     mavenCentral()
+    // the snapshot of Micronaut Core with JsonMapper.createStreamWriter, until Core 5.3 is released
+    maven {
+        url = 'https://central.sonatype.com/repository/maven-snapshots/'
+        mavenContent {
+            snapshotsOnly()
+        }
+    }
 }
 
 configurations.configureEach {
