@@ -46,7 +46,7 @@ import java.util.Optional;
  */
 @Internal
 class DefaultDecoderContext extends AbstractPropertyReferenceManager implements Deserializer.DecoderContext {
-    private final DefaultSerdeRegistry registry;
+    final DefaultSerdeRegistry registry;
     // Document-scoped identifier state, allocated only when a document uses identifiers and released on close
     @Nullable
     private Map<String, Object> documentIds;

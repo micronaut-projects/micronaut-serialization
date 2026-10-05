@@ -40,6 +40,7 @@ import io.micronaut.serde.Serde;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.annotation.CacheableSpecificSerde;
 import io.micronaut.serde.annotation.SpecificSerdeFactory;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
@@ -303,6 +304,9 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             } else {
                 deser = beanContext.getBean(deserBeanDefinition);
             }
+            if (deserBeanDefinition.hasDeclaredAnnotation(CacheableSpecificSerde.class)) {
+                deser = SpecificSerdeCache.deserializer(this, deser);
+            }
             deserializerMap.put(key, deser);
             return (Deserializer<? extends T>) deser;
         }
@@ -353,6 +357,9 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                 ser = new SpecificBeanSerializer(beanContext, serializerBeanDefinition.getBeanType());
             } else {
                 ser = beanContext.getBean(serializerBeanDefinition);
+            }
+            if (serializerBeanDefinition.hasDeclaredAnnotation(CacheableSpecificSerde.class)) {
+                ser = SpecificSerdeCache.serializer(this, ser);
             }
             serializerMap.put(key, new SerializerWrapper(ser));
             return (Serializer<? super T>) ser;

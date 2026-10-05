@@ -52,3 +52,17 @@ snippet::example.Place[project-base="doc-examples/example", source="main"]
 <1> `@Serializable(using=..)` indicates to use the `ReversePointSerde` to serialize the coordinates
 <2> `@Serializable(using=..)` indicates to use the `ReversePointSerde` to deserialize the coordinates
 
+
+=== Caching Specific Serializers and Deserializers
+
+Mappers call `createSpecific` on the selected serializer or deserializer for every document they read or write. A serde that builds a new specific serde there, for example because it resolves the serdes of its properties, does that work again for each document.
+
+Annotate such a bean with ann:serde.annotation.CacheableSpecificSerde[] to let the registry create its specific serde once per type, annotation metadata and format, and reuse it for later documents. This works both for a singleton serde and for a serde created with the `EncoderContext` or `DecoderContext` and the `Argument` as constructor arguments.
+
+The annotation is a promise that the specific serde can be shared between documents:
+
+* It depends only on the configuration of the registry, the type and the format, not on the context instance it was created with.
+* It keeps no per-document state and does not keep a reference to the context it was created with.
+* Every nested serde it uses can also be shared. A nested serde created with the context and the type, which expects each call to pass the context it was created with, cannot be shared.
+
+Specific serdes created for a mapper with a view, or for another context implementation, are not cached.
