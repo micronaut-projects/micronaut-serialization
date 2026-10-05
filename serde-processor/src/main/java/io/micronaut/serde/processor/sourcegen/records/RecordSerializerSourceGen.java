@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.processor.sourcegen.records;
 
+import io.micronaut.context.annotation.Prototype;
 import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.type.Argument;
 import io.micronaut.context.annotation.Parameter;
@@ -218,6 +219,9 @@ public final class RecordSerializerSourceGen {
                 serializerFieldNames,
                 inclusionAware
             ));
+        } else {
+            // A serializer without properties takes no constructor arguments: it is a bean itself, there is no factory to create it
+            classDefBuilder.addAnnotation(Prototype.class);
         }
 
         return classDefBuilder.build();

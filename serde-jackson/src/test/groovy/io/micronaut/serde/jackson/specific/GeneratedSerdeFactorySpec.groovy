@@ -40,6 +40,21 @@ class GeneratedSerdeFactorySpec extends Specification {
         objectMapper.writeValueAsString(new SourceGenGeneratedShape('b', 2)) == '{"name":"b","count":2}'
     }
 
+    void "a generated serializer without constructor arguments stays a bean: #type.simpleName"() {
+        given:
+        def argument = Argument.of(type)
+        def serializerName = 'Serde' + type.simpleName + 'Serializer'
+
+        expect: 'the serializer is selected, not the runtime serializer'
+        context.getBeanDefinitions(Serializer).any { it.beanType.simpleName == serializerName }
+        !context.getBeanDefinitions(Serializer).any { it.beanType.simpleName == serializerName + 'Factory' }
+        registry.findSerializer(argument).createSpecific(registry.newEncoderContext(null), argument).class.simpleName == serializerName
+        objectMapper.writeValueAsString(type.getDeclaredConstructor().newInstance()) == '{}'
+
+        where:
+        type << [EmptyRecordShape]
+    }
+
     void "a generated serde passes the context of each document to a nested contextual serde"() {
         expect: 'the holder is handled by the generated serdes'
         context.getBeanDefinitions(Deserializer).any { it.beanType.simpleName == 'SerdeSecretHolderDeserializerFactory' }

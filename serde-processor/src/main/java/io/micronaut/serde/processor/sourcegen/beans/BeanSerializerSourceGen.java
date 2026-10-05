@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.processor.sourcegen.beans;
 
+import io.micronaut.context.annotation.Prototype;
 import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.type.Argument;
 import io.micronaut.context.annotation.Parameter;
@@ -219,6 +220,9 @@ public final class BeanSerializerSourceGen {
                 serializerFieldNames,
                 inclusionAware
             ));
+        } else {
+            // A serializer without properties takes no constructor arguments: it is a bean itself, there is no factory to create it
+            classDefBuilder.addAnnotation(Prototype.class);
         }
 
         // Generated serdes keep the runtime null semantics, which NullAway can reject in a null-marked package
