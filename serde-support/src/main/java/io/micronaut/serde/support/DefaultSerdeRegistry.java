@@ -17,8 +17,12 @@ package io.micronaut.serde.support;
 
 import io.micronaut.context.BeanContext;
 import io.micronaut.context.BeanResolutionContext;
+import io.micronaut.context.DefaultBeanResolutionContext;
+import io.micronaut.context.Qualifier;
 import io.micronaut.context.annotation.BootstrapContextCompatible;
+import io.micronaut.context.annotation.DependsOn;
 import io.micronaut.context.annotation.Secondary;
+import io.micronaut.context.event.BeanCreatedEventListener;
 import io.micronaut.context.exceptions.ConfigurationException;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
@@ -30,7 +34,9 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.BeanDefinition;
 import io.micronaut.inject.ParametrizedInstantiatableBeanDefinition;
+import io.micronaut.inject.ValidatedBeanDefinition;
 import io.micronaut.inject.annotation.MutableAnnotationMetadata;
+import io.micronaut.inject.qualifiers.AnyQualifier;
 import io.micronaut.inject.qualifiers.MatchArgumentQualifier;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.FormatConfiguration;
@@ -298,7 +304,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             if (deserBeanDefinition instanceof InternalSerdeBeanDefinition<?> internalSerdeBeanDefinition) {
                 deser = (Deserializer<?>) internalSerdeBeanDefinition.value;
             } else if (createSpecificDeserializerConstructor(deserBeanDefinition)) {
-                deser = new SpecificBeanDeserializer(beanContext, deserBeanDefinition.getBeanType());
+                deser = new SpecificBeanDeserializer(specificBeanFactory(deserBeanDefinition));
             } else {
                 deser = beanContext.getBean(deserBeanDefinition);
             }
@@ -349,7 +355,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             if (serializerBeanDefinition instanceof InternalSerdeBeanDefinition<?> internalSerdeBeanDefinition) {
                 ser = (Serializer<?>) internalSerdeBeanDefinition.value;
             } else if (createSpecificSerializerConstructor(serializerBeanDefinition)) {
-                ser = new SpecificBeanSerializer(beanContext, serializerBeanDefinition.getBeanType());
+                ser = new SpecificBeanSerializer(specificBeanFactory(serializerBeanDefinition));
             } else {
                 ser = beanContext.getBean(serializerBeanDefinition);
             }
@@ -412,6 +418,31 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
     private boolean createSpecificDeserializerConstructor(BeanDefinition<Deserializer> deserBeanDefinition) {
         return hasRuntimeConstructorArguments(deserBeanDefinition, Deserializer.DecoderContext.class);
+    }
+
+    /**
+     * The factory of a serde bean created with the context and the type, from the definition the registry has already
+     * selected.
+     */
+    private <T> SpecificBeanFactory<T> specificBeanFactory(BeanDefinition<T> beanDefinition) {
+        ParametrizedInstantiatableBeanDefinition<T> parametrizedBeanDefinition = (ParametrizedInstantiatableBeanDefinition<T>) beanDefinition;
+        Argument<Object>[] arguments = parametrizedBeanDefinition.getRequiredArguments();
+        // The bean context also resolves the beans a definition depends on, the interceptors of a proxy and the
+        // created bean listeners: such a bean keeps being created by it
+        boolean createdByDefinition = !beanDefinition.isProxy()
+            && !beanDefinition.hasAnnotation(DependsOn.class)
+            && !hasBeanCreatedEventListener(beanDefinition.getBeanType());
+        return new SpecificBeanFactory<>(beanContext, parametrizedBeanDefinition, arguments[0].getName(), arguments[1].getName(), createdByDefinition);
+    }
+
+    private boolean hasBeanCreatedEventListener(Class<?> beanType) {
+        for (BeanDefinition<BeanCreatedEventListener> listener : beanContext.getBeanDefinitions(BeanCreatedEventListener.class)) {
+            List<Argument<?>> typeArguments = listener.getTypeArguments(BeanCreatedEventListener.class);
+            if (typeArguments.isEmpty() || typeArguments.get(0).getType().isAssignableFrom(beanType)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static boolean hasRuntimeConstructorArguments(BeanDefinition<?> beanDefinition, Class<?> contextType) {
@@ -532,15 +563,53 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         return deserializationConfiguration;
     }
 
-    private record SpecificBeanSerializer(BeanContext beanContext,
-                                          Class<? extends Serializer> beanType)
+    /**
+     * Creates the beans of a serde definition that takes the context and the type as constructor arguments, the way
+     * {@link BeanContext#createBean(Class, Object...)} creates a bean once it has found its definition. The registry
+     * has already selected the definition, so it is not looked up again for every specific serde.
+     *
+     * <p>This uses the internal instantiation API of the bean context. Once Micronaut provides
+     * {@code BeanContext#createBean(BeanDefinition, Object...)}, the factory can call it instead.</p>
+     *
+     * @param beanContext         The bean context
+     * @param beanDefinition      The serde definition
+     * @param contextName         The name of the context argument
+     * @param typeName            The name of the type argument
+     * @param createdByDefinition Whether the bean is created from the definition, otherwise by the bean context
+     * @param <T>                 The serde type
+     */
+    private record SpecificBeanFactory<T>(BeanContext beanContext,
+                                          ParametrizedInstantiatableBeanDefinition<T> beanDefinition,
+                                          String contextName,
+                                          String typeName,
+                                          boolean createdByDefinition) {
+
+        T create(Object context, Argument<?> type) {
+            if (!createdByDefinition) {
+                return beanContext.createBean(beanDefinition.getBeanType(), context, type);
+            }
+            try (BeanResolutionContext resolutionContext = new DefaultBeanResolutionContext(beanContext, beanDefinition)) {
+                Qualifier<T> declaredQualifier = beanDefinition.getDeclaredQualifier();
+                if (declaredQualifier != null && !AnyQualifier.INSTANCE.equals(declaredQualifier)) {
+                    resolutionContext.setCurrentQualifier(declaredQualifier);
+                }
+                T bean = beanDefinition.instantiate(resolutionContext, beanContext, Map.of(contextName, context, typeName, type));
+                if (beanDefinition instanceof ValidatedBeanDefinition<T> validatedBeanDefinition) {
+                    bean = validatedBeanDefinition.validate(resolutionContext, bean);
+                }
+                return bean;
+            }
+        }
+    }
+
+    private record SpecificBeanSerializer(SpecificBeanFactory<Serializer> factory)
         implements CustomizableSerializer<Object>, FormattedSerializer<Object> {
 
         @Override
         @SuppressWarnings({"unchecked", "rawtypes"})
         public Serializer<Object> createSpecific(Serializer.EncoderContext context,
                                                  Argument<? extends Object> type) throws SerdeException {
-            Serializer serializer = beanContext.createBean(beanType, context, type);
+            Serializer serializer = factory.create(context, type);
             return serializer.createSpecific(context, type);
         }
 
@@ -549,7 +618,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         public Serializer<Object> createSpecific(Serializer.EncoderContext context,
                                                  Argument<? extends Object> type,
                                                  FormatConfiguration format) throws SerdeException {
-            Serializer serializer = beanContext.createBean(beanType, context, type);
+            Serializer serializer = factory.create(context, type);
             if (serializer instanceof FormattedSerializer formattedSerializer) {
                 return formattedSerializer.createSpecific(context, type, format);
             }
@@ -557,15 +626,14 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
     }
 
-    private record SpecificBeanDeserializer(BeanContext beanContext,
-                                            Class<? extends Deserializer> beanType)
+    private record SpecificBeanDeserializer(SpecificBeanFactory<Deserializer> factory)
         implements CustomizableDeserializer<Object>, FormattedDeserializer<Object> {
 
         @Override
         @SuppressWarnings({"unchecked", "rawtypes"})
         public Deserializer<Object> createSpecific(Deserializer.DecoderContext context,
                                                    Argument<? super Object> type) throws SerdeException {
-            Deserializer deserializer = beanContext.createBean(beanType, context, type);
+            Deserializer deserializer = factory.create(context, type);
             return deserializer.createSpecific(context, type);
         }
 
@@ -574,7 +642,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         public Deserializer<Object> createSpecific(Deserializer.DecoderContext context,
                                                    Argument<? super Object> type,
                                                    FormatConfiguration format) throws SerdeException {
-            Deserializer deserializer = beanContext.createBean(beanType, context, type);
+            Deserializer deserializer = factory.create(context, type);
             if (deserializer instanceof FormattedDeserializer formattedDeserializer) {
                 return formattedDeserializer.createSpecific(context, type, format);
             }
