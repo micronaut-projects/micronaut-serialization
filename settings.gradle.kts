@@ -89,3 +89,34 @@ configure<io.micronaut.build.MicronautBuildSettingsExtension> {
     importMicronautCatalog("micronaut-oracle-cloud")
     importMicronautCatalog("micronaut-validation")
 }
+
+// Micronaut core 5.3.0-SNAPSHOT, which carries the development-mode API, comes from Maven local, where a
+// core checkout publishes it with publishToMavenLocal (pass -Dmaven.repo.local to use a private repository),
+// or from the Central snapshots repository. Only io.micronaut snapshots are resolved from them. Projects
+// declare their own repositories, which replace the settings ones, so they are added to each project too.
+// Remove once the build moves to a core release.
+fun micronautSnapshotRepositories(repositories: RepositoryHandler) {
+    repositories.mavenLocal {
+        content {
+            includeVersionByRegex("io\\.micronaut", ".*", ".*-SNAPSHOT")
+        }
+    }
+    repositories.maven {
+        url = uri("https://central.sonatype.com/repository/maven-snapshots/")
+        mavenContent {
+            snapshotsOnly()
+        }
+        content {
+            includeGroupByRegex("io\\.micronaut(\\..*)?")
+        }
+    }
+}
+dependencyResolutionManagement {
+    micronautSnapshotRepositories(repositories)
+    repositories {
+        mavenCentral()
+    }
+}
+gradle.beforeProject {
+    micronautSnapshotRepositories(repositories)
+}
