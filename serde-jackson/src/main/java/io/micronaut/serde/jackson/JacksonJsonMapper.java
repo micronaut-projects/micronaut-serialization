@@ -26,6 +26,7 @@ import io.micronaut.jackson.core.tree.JsonNodeTreeCodec;
 import io.micronaut.jackson.core.tree.TreeGenerator;
 import io.micronaut.json.JsonMapper;
 import io.micronaut.json.JsonStreamConfig;
+import io.micronaut.json.JsonStreamWriter;
 import io.micronaut.json.JsonSyntaxException;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
@@ -53,11 +54,13 @@ import tools.jackson.core.JsonToken;
 import tools.jackson.core.ObjectReadContext;
 import tools.jackson.core.ObjectWriteContext;
 import tools.jackson.core.PrettyPrinter;
+import tools.jackson.core.SerializableString;
 import tools.jackson.core.StreamReadFeature;
 import tools.jackson.core.StreamWriteFeature;
 import tools.jackson.core.TokenStreamFactory;
 import tools.jackson.core.exc.StreamReadException;
 import tools.jackson.core.exc.StreamWriteException;
+import tools.jackson.core.io.SerializedString;
 import tools.jackson.core.json.JsonFactory;
 import tools.jackson.core.json.JsonFactoryBuilder;
 import tools.jackson.core.json.JsonReadFeature;
@@ -66,6 +69,7 @@ import tools.jackson.core.util.BufferRecycler;
 import tools.jackson.core.util.ByteArrayBuilder;
 import tools.jackson.core.util.DefaultPrettyPrinter;
 import tools.jackson.core.util.JsonRecyclerPools;
+import tools.jackson.core.util.Separators;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -91,6 +95,11 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
 
     private static final String VALUE_TO_UPDATE_NULL_MSG = "Value to update cannot be null";
     private static final String TYPE_NULL_MSG = "Type cannot be null";
+
+    /**
+     * Written between the root values of a stream writer: nothing, the caller frames them.
+     */
+    private static final SerializableString NO_ROOT_SEPARATOR = new SerializedString("");
 
     /**
      * Adaptive first-block size for {@link #writeValueAsBytes}. Plain int with benign
@@ -355,6 +364,17 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
     }
 
     @Override
+    public <T> JsonStreamWriter<T> createStreamWriter(OutputStream outputStream, Argument<T> type) throws IOException {
+        Objects.requireNonNull(outputStream, "Output stream cannot be null");
+        Objects.requireNonNull(type, TYPE_NULL_MSG);
+        // the generator, with its output buffer, is created once for all values. A generator
+        // puts a space between root values by default; the caller frames the values, so nothing
+        // goes between them
+        JsonGenerator generator = jsonFactory.createGenerator(new StreamWriteContext(jacksonConfiguration.isPrettyPrint()), outputStream);
+        return new GeneratorStreamWriter<>(generator, outputStream, type);
+    }
+
+    @Override
     public byte[] writeValueAsBytes(@Nullable Object object) throws IOException {
         BufferRecycler bufferRecycler = jsonFactory._getBufferRecycler();
         byte[] firstBlock = bufferRecycler.allocByteBuffer(BufferRecycler.BYTE_WRITE_CONCAT_BUFFER, outputSizeHint);
@@ -560,6 +580,76 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
                 writeValue0(g, value);
             } catch (IOException e) {
                 throw new StreamWriteException(g, e);
+            }
+        }
+    }
+
+    /**
+     * The write context of a stream writer: nothing between the root values, and the pretty
+     * printer of {@link PrettyPrintWriteContext} when pretty printing is enabled.
+     */
+    private final class StreamWriteContext extends ObjectWriteContext.Base {
+        private final boolean prettyPrint;
+
+        StreamWriteContext(boolean prettyPrint) {
+            this.prettyPrint = prettyPrint;
+        }
+
+        @Override
+        public SerializableString getRootValueSeparator(SerializableString defaultSeparator) {
+            return NO_ROOT_SEPARATOR;
+        }
+
+        @Override
+        public @Nullable PrettyPrinter getPrettyPrinter() {
+            // a pretty printer writes its own root separator instead of the one of the context
+            return prettyPrint ? new DefaultPrettyPrinter(Separators.createDefaultInstance().withRootSeparator("")) : null;
+        }
+
+        @Override
+        public void writeValue(JsonGenerator g, Object value) {
+            if (!prettyPrint) {
+                // as the context of a compact generator from createGenerator
+                super.writeValue(g, value);
+                return;
+            }
+            try {
+                writeValue0(g, value);
+            } catch (IOException e) {
+                throw new StreamWriteException(g, e);
+            }
+        }
+    }
+
+    private final class GeneratorStreamWriter<T> implements JsonStreamWriter<T> {
+        private final JsonGenerator generator;
+        private final OutputStream outputStream;
+        private final Argument<T> type;
+
+        GeneratorStreamWriter(JsonGenerator generator, OutputStream outputStream, Argument<T> type) {
+            this.generator = generator;
+            this.outputStream = outputStream;
+            this.type = type;
+        }
+
+        @Override
+        public void write(@Nullable T value) throws IOException {
+            if (value == null) {
+                generator.writeNull();
+            } else {
+                // each value is serialized in an encoder context of its own, as writeValue does
+                JacksonJsonMapper.this.writeValue(generator, value, type);
+            }
+            // the generator buffers its output: the whole value must reach the stream
+            generator.flush();
+        }
+
+        @Override
+        public void close() throws IOException {
+            try {
+                generator.close();
+            } finally {
+                outputStream.close();
             }
         }
     }
