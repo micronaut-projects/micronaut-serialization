@@ -3,8 +3,8 @@ plugins {
 }
 
 micronautBuild {
-    // No published artifact to baseline against until this module ships in 3.2.3.
-    binaryCompatibility.enabledAfter("3.2.3")
+    // No published artifact to baseline against until this module ships in 3.3.0.
+    binaryCompatibility.enabledAfter("3.3.0")
 }
 
 dependencies {
