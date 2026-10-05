@@ -1,0 +1,31 @@
+plugins {
+    id("groovy")
+    id("io.micronaut.build.internal.serde-examples")
+}
+
+micronaut {
+    runtime("netty")
+    testRuntime("spock")
+}
+
+dependencies {
+    compileOnly(projects.micronautSerdeProcessor)
+    compileOnly(mn.micronaut.inject.groovy)
+
+    implementation(projects.micronautSerdeStaxXml)
+    compileOnly(mn.jackson.dataformat.xml)
+    compileOnly(libs.managed.jakarta.xml.bindApi)
+    implementation(mn.micronaut.http.client)
+
+    runtimeOnly(mnLogging.logback.classic)
+
+    testCompileOnly(mn.micronaut.inject.groovy)
+    testImplementation(mnTest.micronaut.test.spock)
+}
+
+//TODO remove once Micronaut Test ships Spock version compatible with Groovy 5
+configurations.all {
+    resolutionStrategy {
+        force "org.spockframework:spock-core:2.4-groovy-5.0"
+    }
+}

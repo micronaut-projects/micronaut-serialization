@@ -12,6 +12,10 @@ dependencies {
     compileOnly(mn.micronaut.inject.groovy)
 
     implementation(projects.micronautSerdeJackson)
+    implementation(projects.micronautSerdeYaml)
+    implementation(projects.micronautSerdeProperties)
+    // the Groovy compiler loads PropertiesMapper to read PropertiesMapper.NAME, which needs its JSON-P field types on the compile classpath
+    compileOnly(projects.micronautSerdeJsonp)
     implementation(mn.micronaut.http.client)
 
     runtimeOnly(mnLogging.logback.classic)

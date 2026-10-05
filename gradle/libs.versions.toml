@@ -1,14 +1,14 @@
 [versions]
-managed-bson = "5.7.0"
+managed-bson = "5.13.0"
 # Keep aligned with tools.jackson.core from the Micronaut platform (jackson-bom).
 # Bump when the platform Jackson line moves; do not jump major without testing.
-managed-jackson-dataformat-cbor = "3.2.2"
+managed-jackson-dataformat-cbor = "3.2.3"
 managed-jakarta-json-api = "2.1.3"
 managed-jakarta-json-bindApi = "3.0.3"
 managed-jakarta-xml-bindApi = "4.0.5"
 jaxb-runtime = "4.0.9"
 managed-eclipse-parsson = "1.1.9"
-managed-snakeyaml-engine = "3.0.1"
+managed-snakeyaml-engine = "3.2"
 
 aws-lambda-events = "3.16.1"
 aws-lambda-serialization = "1.4.1"
@@ -18,31 +18,31 @@ jetbrains-annotations = "26.1.0"
 jmh = "1.37"
 lombok = "1.18.48"
 errorprone-gradle-plugin = "5.1.1"
-nullaway = "0.14.1"
+nullaway = "0.14.2"
 error_prone_core = "2.50.0"
-woodstox = "7.2.2"
+woodstox = "7.3.0"
 
-micronaut-platform = "5.1.5"
-micronaut = "5.2.2"
+micronaut-platform = "5.2.1"
+micronaut = "5.2.13"
 micronaut-discovery = "5.1.0"
 micronaut-oracle-cloud = "6.1.3"
-micronaut-reactor = "4.2.0"
-micronaut-validation = "5.1.0"
+micronaut-reactor = "4.3.0"
+micronaut-validation = "5.2.1"
 micronaut-gradle-plugin = "5.0.2"
-micronaut-sourcegen = "2.2.0"
+micronaut-sourcegen = "2.2.3"
 # Only used by the YAML TCK parity suite. Ahead of the platform Jackson line because the YAML
 # schema selection the parity suite needs (YAMLSchema.CORE) arrived in 3.2.0.
-jackson-dataformat-yaml = "3.2.0"
+jackson-dataformat-yaml = "3.2.3"
 jsonassert = "1.5.3"
-xmlunit = "2.12.0"
-protobuf-java = "4.36.0"
+xmlunit = "2.14.0"
+protobuf-java = "4.36.2"
 jtoon = "2.0.4"
 
 # Dependencies used only by Jakarta TCK verification tasks.
 jakarta-enterprise-cdi-api = "4.1.0"
 jakarta-json-tck = "2.1.1"
 jakarta-json-bind-tck = "3.0.3"
-jakarta-tck-sigtest = "2.6"
+jakarta-tck-sigtest = "2.7"
 weld-se = "5.1.7.Final"
 
 [libraries]

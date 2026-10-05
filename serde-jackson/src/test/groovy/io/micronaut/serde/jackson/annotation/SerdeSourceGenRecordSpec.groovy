@@ -459,6 +459,30 @@ public record Outer(String name, @Nullable Inner inner) {
         context.close()
     }
 
+    void 'test record sourcegen compiles with a precompiled Jackson model using non-public JsonSetter methods'() {
+        given:
+        def context = buildContext('test.Response', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.jackson.nonpublicsetter.LegacyJacksonContainer;
+import java.util.List;
+
+@Serdeable
+record Response(List<LegacyJacksonContainer> values) {}
+''')
+        Class<?> responseType = context.classLoader.loadClass('test.Response')
+        def registry = context.getBean(SerdeRegistry)
+        def type = Argument.of(responseType)
+
+        expect:
+        assertGeneratedSerializer(registry, type)
+        assertGeneratedDeserializer(registry, type)
+
+        cleanup:
+        context.close()
+    }
+
     private static void assertGeneratedSerializer(SerdeRegistry registry, Argument argument) {
         Serializer serializer = registry.findSerializer(argument).createSpecific(registry.newEncoderContext(Object), argument)
         assert serializer.class.name == generatedClassName(argument.type, 'Serializer')
