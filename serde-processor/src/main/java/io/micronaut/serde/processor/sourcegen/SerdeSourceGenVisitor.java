@@ -121,72 +121,95 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Object, O
     @Internal
     public List<ClassDef> generate(ClassElement element, VisitorContext.Language language) {
         SimpleSerdeShapeDecision decision = analyzer.analyze(element);
-        List<ClassDef> classDefs = new ArrayList<>(2);
+        List<ClassDef> classDefs = new ArrayList<>(4);
         if (decision.serializerEligible()) {
-            classDefs.add(serializerClass(element, decision));
+            addSerializer(classDefs, element, decision);
         }
         if (decision.deserializerEligible()) {
-            classDefs.add(deserializerClass(element, decision, language));
+            addDeserializer(classDefs, element, decision, language);
         }
         return classDefs;
     }
 
-    private ClassDef serializerClass(ClassElement element, SimpleSerdeShapeDecision decision) {
+    /**
+     * Adds the generated serializer, and the factory that creates it when it takes the context and the type.
+     */
+    private void addSerializer(List<ClassDef> classDefs, ClassElement element, SimpleSerdeShapeDecision decision) {
         String generatedSerializerClassName = SerdeSourceGenClassNaming.generatedSerializerClassName(element);
         if (isConstructorBound(decision)) {
             RecordSerdeShape recordSerdeShape = recordSerdeShapeResolver.resolve(element).orElse(null);
             if (recordSerdeShape != null) {
-                return new RecordSerializerSourceGen().generate(element, recordSerdeShape);
+                addWithFactory(classDefs, new RecordSerializerSourceGen().generate(element, recordSerdeShape), false, true);
+                return;
             }
         }
         if (decision.shapeKind() == SimpleSerdeShapeDecision.ShapeKind.DEFAULT_CONSTRUCTOR_BEAN) {
             BeanSerdeShape beanSerdeShape = beanSerdeShapeResolver.resolve(element).orElse(null);
             if (beanSerdeShape != null) {
-                return new BeanSerializerSourceGen().generate(element, beanSerdeShape);
+                addWithFactory(classDefs, new BeanSerializerSourceGen().generate(element, beanSerdeShape),
+                    BeanSerializerSourceGen.isSecondary(beanSerdeShape), true);
+                return;
             }
         }
         if (decision.shapeKind() == SimpleSerdeShapeDecision.ShapeKind.ENUM) {
             EnumSerdeShape enumSerdeShape = enumSerdeShapeResolver.resolve(element).orElse(null);
             if (enumSerdeShape != null) {
-                return new EnumSerializerSourceGen().generate(element, enumSerdeShape);
+                addWithFactory(classDefs, new EnumSerializerSourceGen().generate(element, enumSerdeShape), false, true);
+                return;
             }
         }
-        return ClassDef.builder(generatedSerializerClassName)
+        classDefs.add(ClassDef.builder(generatedSerializerClassName)
             .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
             .addAnnotation(AnnotationDef.builder(Generated.class)
                 .addMember("value", "Micronaut")
                 .build())
             .addSuperinterface(TypeDef.parameterized(Serializer.class, TypeDef.of(element)))
-            .build();
+            .build());
     }
 
-    private ClassDef deserializerClass(ClassElement element, SimpleSerdeShapeDecision decision, VisitorContext.Language language) {
+    /**
+     * Adds the generated deserializer, and the factory that creates it when it takes the context and the type.
+     */
+    private void addDeserializer(List<ClassDef> classDefs, ClassElement element, SimpleSerdeShapeDecision decision, VisitorContext.Language language) {
         String generatedDeserializerClassName = SerdeSourceGenClassNaming.generatedDeserializerClassName(element);
         if (isConstructorBound(decision)) {
             RecordSerdeShape recordSerdeShape = recordSerdeShapeResolver.resolve(element).orElse(null);
             if (recordSerdeShape != null) {
-                return new RecordDeserializerSourceGen(language).generate(element, recordSerdeShape);
+                addWithFactory(classDefs, new RecordDeserializerSourceGen(language).generate(element, recordSerdeShape), false, false);
+                return;
             }
         }
         if (decision.shapeKind() == SimpleSerdeShapeDecision.ShapeKind.DEFAULT_CONSTRUCTOR_BEAN) {
             BeanSerdeShape beanSerdeShape = beanSerdeShapeResolver.resolve(element).orElse(null);
             if (beanSerdeShape != null) {
-                return new BeanDeserializerSourceGen(language).generate(element, beanSerdeShape);
+                addWithFactory(classDefs, new BeanDeserializerSourceGen(language).generate(element, beanSerdeShape),
+                    BeanDeserializerSourceGen.isSecondary(beanSerdeShape), false);
+                return;
             }
         }
         if (decision.shapeKind() == SimpleSerdeShapeDecision.ShapeKind.ENUM) {
             EnumSerdeShape enumSerdeShape = enumSerdeShapeResolver.resolve(element).orElse(null);
             if (enumSerdeShape != null) {
-                return new EnumDeserializerSourceGen().generate(element, enumSerdeShape);
+                addWithFactory(classDefs, new EnumDeserializerSourceGen().generate(element, enumSerdeShape), false, false);
+                return;
             }
         }
-        return ClassDef.builder(generatedDeserializerClassName)
+        classDefs.add(ClassDef.builder(generatedDeserializerClassName)
             .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
             .addAnnotation(AnnotationDef.builder(Generated.class)
                 .addMember("value", "Micronaut")
                 .build())
             .addSuperinterface(TypeDef.parameterized(Deserializer.class, TypeDef.of(element)))
-            .build();
+            .build());
+    }
+
+    private static void addWithFactory(List<ClassDef> classDefs, ClassDef serde, boolean secondary, boolean serializer) {
+        classDefs.add(serde);
+        if (SpecificSerdeFactorySourceGen.isCreatedWithContext(serde)) {
+            classDefs.add(serializer
+                ? SpecificSerdeFactorySourceGen.serializerFactory(serde, secondary)
+                : SpecificSerdeFactorySourceGen.deserializerFactory(serde, secondary));
+        }
     }
 
     private static boolean isConstructorBound(SimpleSerdeShapeDecision decision) {

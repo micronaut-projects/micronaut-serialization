@@ -28,8 +28,8 @@ class GroovySourceGenSpec extends AbstractBeanDefinitionSpec {
         noExceptionThrown()
 
         where:
-        shape              | className     | expectedClasses                                  | source
-        'bean'             | 'test.Author' | ['test.SerdeAuthorSerializer', 'test.SerdeAuthorDeserializer'] | '''
+        shape              | className     | expectedClasses | source
+        'bean'             | 'test.Author' | ['test.SerdeAuthorSerializer', 'test.SerdeAuthorSerializerFactory', 'test.SerdeAuthorDeserializer', 'test.SerdeAuthorDeserializerFactory'] | '''
 package test
 
 import io.micronaut.serde.annotation.Serdeable
@@ -40,7 +40,7 @@ class Author {
     String name
 }
 '''
-        'nullable bean'    | 'test.Book'   | ['test.SerdeBookSerializer', 'test.SerdeBookDeserializer']     | '''
+        'nullable bean'    | 'test.Book'   | ['test.SerdeBookSerializer', 'test.SerdeBookSerializerFactory', 'test.SerdeBookDeserializer', 'test.SerdeBookDeserializerFactory'] | '''
 package test
 
 import io.micronaut.core.annotation.Nullable
@@ -55,7 +55,7 @@ class Book {
     int pages
 }
 '''
-        'constructor bean' | 'test.Book'   | ['test.SerdeBookSerializer', 'test.SerdeBookDeserializer']     | '''
+        'constructor bean' | 'test.Book'   | ['test.SerdeBookSerializer', 'test.SerdeBookSerializerFactory', 'test.SerdeBookDeserializer', 'test.SerdeBookDeserializerFactory'] | '''
 package test
 
 import io.micronaut.core.annotation.Creator
@@ -76,7 +76,7 @@ class Book {
     }
 }
 '''
-        'record'           | 'test.Book'   | ['test.SerdeBookSerializer', 'test.SerdeBookDeserializer']     | '''
+        'record'           | 'test.Book'   | ['test.SerdeBookSerializer', 'test.SerdeBookSerializerFactory', 'test.SerdeBookDeserializer', 'test.SerdeBookDeserializerFactory'] | '''
 package test
 
 import io.micronaut.core.annotation.Nullable
@@ -86,7 +86,7 @@ import io.micronaut.serde.annotation.Serdeable
 record Book(@Nullable Long id, String title, int pages) {
 }
 '''
-        'enum'             | 'test.Genre'  | ['test.SerdeGenreSerializer', 'test.SerdeGenreDeserializer']   | '''
+        'enum'             | 'test.Genre'  | ['test.SerdeGenreSerializer', 'test.SerdeGenreDeserializer', 'test.SerdeGenreDeserializerFactory'] | '''
 package test
 
 import io.micronaut.serde.annotation.Serdeable

@@ -65,12 +65,13 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
         then:
         assertSerializeMethodUsesObjectEncoder(beanSerializerSource)
         assertSerializeMethodUsesObjectEncoder(recordSerializerSource)
-        assertGeneratedPrototypeSerdeSource(beanSerializerSource)
-        assertGeneratedPrototypeSerdeSource(beanDeserializerSource)
-        assertGeneratedPrototypeSerdeSource(recordSerializerSource)
-        assertGeneratedPrototypeSerdeSource(recordDeserializerSource)
-        assertGeneratedPrototypeSerdeSource(enumSerializerSource)
-        assertGeneratedPrototypeSerdeSource(enumDeserializerSource)
+        assertGeneratedSerdeIsNotBean(beanSerializerSource)
+        assertGeneratedSerdeIsNotBean(beanDeserializerSource)
+        assertGeneratedSerdeIsNotBean(recordSerializerSource)
+        assertGeneratedSerdeIsNotBean(recordDeserializerSource)
+        // The enum serializer takes no constructor arguments and stays a bean
+        assert enumSerializerSource.contains('@Prototype')
+        assertGeneratedSerdeIsNotBean(enumDeserializerSource)
         assertSerializerValueNullability(beanSerializerSource, 'SourceGenIndexedShapeBean')
         assertSerializerValueNullability(recordSerializerSource, 'SourceGenIndexedShapeRecord')
         assertSerializerValueNullability(enumSerializerSource, 'SourceGenFeatureEnum')
@@ -870,8 +871,10 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
         assert !serializeIntoMethodSource.contains('value == null')
     }
 
-    private static void assertGeneratedPrototypeSerdeSource(String serdeSource) {
-        assert serdeSource.contains('@Prototype')
+    private static void assertGeneratedSerdeIsNotBean(String serdeSource) {
+        // A generated serde is created by its singleton factory, not by the bean context
+        assert !serdeSource.contains('@Prototype')
+        assert !serdeSource.contains('@Singleton')
     }
 
     private static void assertArgumentWithNameUsesKeyConstant(String serdeSource, String className) {

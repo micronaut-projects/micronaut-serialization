@@ -18,7 +18,6 @@ package io.micronaut.serde.processor.sourcegen.records;
 import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.type.Argument;
 import io.micronaut.context.annotation.Parameter;
-import io.micronaut.context.annotation.Prototype;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.Decoder;
@@ -318,7 +317,6 @@ public final class RecordDeserializerSourceGen {
 
         ClassDef.ClassDefBuilder classDefBuilder = ClassDef.builder(SerdeSourceGenClassNaming.generatedDeserializerClassName(element))
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-            .addAnnotation(Prototype.class)
             .addAnnotation(AnnotationDef.builder(Generated.class)
                 .addMember(GENERATED_VALUE_MEMBER, "Micronaut")
                 .build())

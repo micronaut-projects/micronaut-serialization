@@ -18,8 +18,6 @@ package io.micronaut.serde.processor.sourcegen.beans;
 import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.type.Argument;
 import io.micronaut.context.annotation.Parameter;
-import io.micronaut.context.annotation.Prototype;
-import io.micronaut.context.annotation.Secondary;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.FieldElement;
 import io.micronaut.inject.ast.MethodElement;
@@ -325,7 +323,6 @@ public final class BeanDeserializerSourceGen {
 
         ClassDef.ClassDefBuilder classDefBuilder = ClassDef.builder(SerdeSourceGenClassNaming.generatedDeserializerClassName(element))
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-            .addAnnotation(Prototype.class)
             .addAnnotation(AnnotationDef.builder(Generated.class)
                 .addMember(GENERATED_VALUE_MEMBER, "Micronaut")
                 .build())
@@ -363,9 +360,6 @@ public final class BeanDeserializerSourceGen {
         classDefBuilder.addAnnotation(AnnotationDef.builder(SuppressWarnings.class)
             .addMember(GENERATED_VALUE_MEMBER, suppressWarnings)
             .build());
-        if (fieldAccessProperties) {
-            classDefBuilder.addAnnotation(Secondary.class);
-        }
         return classDefBuilder.build();
     }
 
@@ -1555,6 +1549,22 @@ public final class BeanDeserializerSourceGen {
             .build();
     }
 
+    /**
+     * Whether the generated deserializer is a secondary bean: a deserializer writing fields directly yields to
+     * any other deserializer of the type.
+     *
+     * @param beanSerdeShape The bean shape
+     * @return Whether the deserializer is secondary
+     */
+    public static boolean isSecondary(BeanSerdeShape beanSerdeShape) {
+        for (BeanSerdeShape.BeanProperty property : beanSerdeShape.deserializationProperties()) {
+            if (property.writeField() != null) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private enum PrimitiveNullMode {
         DYNAMIC,
         FAIL_ON_NULL,
@@ -1590,4 +1600,5 @@ public final class BeanDeserializerSourceGen {
      */
     private record AliasKeys(List<String> keyFieldNames, List<Integer> targets) {
     }
+
 }

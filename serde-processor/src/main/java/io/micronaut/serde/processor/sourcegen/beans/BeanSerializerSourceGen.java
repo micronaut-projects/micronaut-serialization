@@ -18,8 +18,6 @@ package io.micronaut.serde.processor.sourcegen.beans;
 import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.type.Argument;
 import io.micronaut.context.annotation.Parameter;
-import io.micronaut.context.annotation.Prototype;
-import io.micronaut.context.annotation.Secondary;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.FieldElement;
 import io.micronaut.inject.ast.MethodElement;
@@ -202,7 +200,6 @@ public final class BeanSerializerSourceGen {
         }
         ClassDef.ClassDefBuilder classDefBuilder = ClassDef.builder(SerdeSourceGenClassNaming.generatedSerializerClassName(element))
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-            .addAnnotation(Prototype.class)
             .addAnnotation(AnnotationDef.builder(Generated.class)
                 .addMember(GENERATED_VALUE_MEMBER, "Micronaut")
                 .build())
@@ -233,9 +230,6 @@ public final class BeanSerializerSourceGen {
         classDefBuilder.addAnnotation(AnnotationDef.builder(SuppressWarnings.class)
             .addMember(GENERATED_VALUE_MEMBER, suppressWarnings)
             .build());
-        if (fieldAccessProperties) {
-            classDefBuilder.addAnnotation(Secondary.class);
-        }
         return classDefBuilder.build();
     }
 
@@ -633,5 +627,21 @@ public final class BeanSerializerSourceGen {
         return ParameterDef.builder(name, type)
             .addAnnotation(Parameter.class)
             .build();
+    }
+
+    /**
+     * Whether the generated serializer is a secondary bean: a serializer reading fields directly yields to
+     * any other serializer of the type.
+     *
+     * @param beanSerdeShape The bean shape
+     * @return Whether the serializer is secondary
+     */
+    public static boolean isSecondary(BeanSerdeShape beanSerdeShape) {
+        for (BeanSerdeShape.BeanProperty property : beanSerdeShape.serializationProperties()) {
+            if (property.readField() != null) {
+                return true;
+            }
+        }
+        return false;
     }
 }

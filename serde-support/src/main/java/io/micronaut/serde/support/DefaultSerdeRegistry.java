@@ -40,6 +40,7 @@ import io.micronaut.serde.Serde;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.annotation.SpecificSerdeFactory;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.SerializationConfiguration;
@@ -281,9 +282,9 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
         Collection<BeanDefinition<Deserializer>> beanDefinitions = MatchArgumentQualifier.covariant(Deserializer.class, type)
             .filter(Deserializer.class, deserializers);
-        beanDefinitions = withoutSpecificSerdesForOtherTypes(beanDefinitions, Deserializer.class, type, this::createSpecificDeserializerConstructor);
+        beanDefinitions = withoutSpecificSerdesForOtherTypes(beanDefinitions, Deserializer.class, type, this::isSpecificDeserializer);
         if (preInstantiateCallbackPresent) {
-            beanDefinitions = beanDefinitions.stream().filter(candidate -> !createSpecificDeserializerConstructor(candidate)).toList();
+            beanDefinitions = beanDefinitions.stream().filter(candidate -> !isSpecificDeserializer(candidate)).toList();
         }
         BeanDefinition<Deserializer> deserBeanDefinition;
         if (beanDefinitions.size() == 1) {
@@ -335,7 +336,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
         Collection<BeanDefinition<Serializer>> beanDefinitions = MatchArgumentQualifier.contravariant(Serializer.class, type)
             .filter(Serializer.class, serializers);
-        beanDefinitions = withoutSpecificSerdesForOtherTypes(beanDefinitions, Serializer.class, type, this::createSpecificSerializerConstructor);
+        beanDefinitions = withoutSpecificSerdesForOtherTypes(beanDefinitions, Serializer.class, type, this::isSpecificSerializer);
         BeanDefinition<Serializer> serializerBeanDefinition;
         if (beanDefinitions.size() == 1) {
             serializerBeanDefinition = beanDefinitions.iterator().next();
@@ -404,6 +405,24 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     private static <S> boolean declaresExactType(BeanDefinition<S> candidate, Class<S> serdeType, Argument<?> type) {
         List<Argument<?>> typeArguments = candidate.getTypeArguments(serdeType);
         return !typeArguments.isEmpty() && typeArguments.get(0).getType().equals(type.getType());
+    }
+
+    /**
+     * Whether the serializer creates a serializer for every specific type: a bean created with the context and the type,
+     * or the singleton that creates a build-time generated serializer.
+     */
+    private boolean isSpecificSerializer(BeanDefinition<Serializer> serializerBeanDefinition) {
+        return createSpecificSerializerConstructor(serializerBeanDefinition)
+            || serializerBeanDefinition.hasDeclaredAnnotation(SpecificSerdeFactory.class);
+    }
+
+    /**
+     * Whether the deserializer creates a deserializer for every specific type: a bean created with the context and the type,
+     * or the singleton that creates a build-time generated deserializer.
+     */
+    private boolean isSpecificDeserializer(BeanDefinition<Deserializer> deserBeanDefinition) {
+        return createSpecificDeserializerConstructor(deserBeanDefinition)
+            || deserBeanDefinition.hasDeclaredAnnotation(SpecificSerdeFactory.class);
     }
 
     private boolean createSpecificSerializerConstructor(BeanDefinition<Serializer> serializerBeanDefinition) {

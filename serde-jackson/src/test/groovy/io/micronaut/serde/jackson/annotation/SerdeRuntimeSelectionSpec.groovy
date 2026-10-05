@@ -34,8 +34,8 @@ public record AutoShape(String name, int count) {}
         def decoded = jsonMapper.readValue(json, type)
 
         then:
-        context.getBeanDefinitions(Serializer).any { it.beanType.name == generatedSerializerClass }
-        context.getBeanDefinitions(Deserializer).any { it.beanType.name == generatedDeserializerClass }
+        context.getBeanDefinitions(Serializer).any { it.beanType.name == generatedSerializerClass + 'Factory' }
+        context.getBeanDefinitions(Deserializer).any { it.beanType.name == generatedDeserializerClass + 'Factory' }
         runtimeSerializer.class.name == generatedSerializerClass
         runtimeDeserializer.class.name == generatedDeserializerClass
         json == '{"name":"auto","count":7}'
@@ -101,7 +101,7 @@ public class AnyGetterShape {
         then:
         runtimeSerializer.class.name != generatedSerializerClass
         runtimeDeserializer.class.name == generatedDeserializerClass
-        context.getBeanDefinitions(Deserializer).any { it.beanType.name == generatedDeserializerClass }
+        context.getBeanDefinitions(Deserializer).any { it.beanType.name == generatedDeserializerClass + 'Factory' }
         json == '{"name":"fallback","extra":3}'
         decoded != null
 
