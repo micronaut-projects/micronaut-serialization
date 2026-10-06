@@ -22,6 +22,7 @@ import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.util.SpecificSerdeTracker;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -47,6 +48,8 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
                                  @Nullable
                                  IntrospectionException introspectionException,
                                  Argument<?> outerType) {
+        // Keeps the context and the serializers of the runtime types it creates later
+        SpecificSerdeTracker.markContextBound(encoderContext);
         this.encoderContext = encoderContext;
         this.outer = outer;
         this.introspectionException = introspectionException;
