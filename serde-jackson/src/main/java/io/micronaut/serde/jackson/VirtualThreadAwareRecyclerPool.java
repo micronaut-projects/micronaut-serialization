@@ -21,6 +21,7 @@ import tools.jackson.core.util.JsonRecyclerPools;
 import tools.jackson.core.util.RecyclerPool;
 
 import java.io.Serial;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * A Jackson {@link BufferRecycler} pool that keeps a recycler per platform thread, and shares recyclers between virtual
@@ -28,7 +29,8 @@ import java.io.Serial;
  *
  * <p>A thread local pool never reuses a recycler on virtual threads, which are usually created for one task each: every
  * parser and generator would allocate new buffers. Virtual threads therefore take recyclers from a concurrent deque pool,
- * and give them back to it when their parser or generator is closed.</p>
+ * and give them back to it when their parser or generator is closed. The concurrent deque pool is created when a virtual
+ * thread first asks for a recycler.</p>
  *
  * @since 3.3.0
  */
@@ -38,21 +40,15 @@ public final class VirtualThreadAwareRecyclerPool implements RecyclerPool<Buffer
     @Serial
     private static final long serialVersionUID = 1L;
 
-    private final RecyclerPool<BufferRecycler> platformThreadPool;
-    private final RecyclerPool<BufferRecycler> virtualThreadPool;
+    private final RecyclerPool<BufferRecycler> platformThreadPool = JsonRecyclerPools.threadLocalPool();
+    private final AtomicReference<RecyclerPool<BufferRecycler>> virtualThreadPool = new AtomicReference<>();
 
     /**
      * Creates a pool that uses {@link JsonRecyclerPools#threadLocalPool()} on platform threads and a new
      * {@link JsonRecyclerPools#newConcurrentDequePool() concurrent deque pool} on virtual threads.
      */
     public VirtualThreadAwareRecyclerPool() {
-        this(JsonRecyclerPools.threadLocalPool(), JsonRecyclerPools.newConcurrentDequePool());
-    }
-
-    VirtualThreadAwareRecyclerPool(RecyclerPool<BufferRecycler> platformThreadPool,
-                                   RecyclerPool<BufferRecycler> virtualThreadPool) {
-        this.platformThreadPool = platformThreadPool;
-        this.virtualThreadPool = virtualThreadPool;
+        // the pool of virtual threads is created when a virtual thread first asks for a recycler
     }
 
     @Override
@@ -73,15 +69,24 @@ public final class VirtualThreadAwareRecyclerPool implements RecyclerPool<Buffer
 
     @Override
     public int pooledCount() {
-        return virtualThreadPool.pooledCount();
+        RecyclerPool<BufferRecycler> pool = virtualThreadPool.get();
+        return pool != null ? pool.pooledCount() : 0;
     }
 
     @Override
     public boolean clear() {
-        return virtualThreadPool.clear();
+        RecyclerPool<BufferRecycler> pool = virtualThreadPool.get();
+        return pool == null || pool.clear();
     }
 
     private RecyclerPool<BufferRecycler> pool() {
-        return Thread.currentThread().isVirtual() ? virtualThreadPool : platformThreadPool;
+        if (!Thread.currentThread().isVirtual()) {
+            return platformThreadPool;
+        }
+        RecyclerPool<BufferRecycler> pool = virtualThreadPool.get();
+        if (pool == null) {
+            pool = virtualThreadPool.updateAndGet(current -> current != null ? current : JsonRecyclerPools.newConcurrentDequePool());
+        }
+        return pool;
     }
 }

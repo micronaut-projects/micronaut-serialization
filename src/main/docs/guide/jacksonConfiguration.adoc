@@ -12,7 +12,11 @@ The following properties are supported:
 
 | `micronaut.serde.jackson.recycler-pool`
 | `RecyclerPoolType`
-| The pool of the buffers that parsers and generators reuse: `VIRTUAL_THREAD_AWARE` (the default) keeps a buffer recycler per platform thread and shares a pool between virtual threads, `THREAD_LOCAL` keeps one per thread, `CONCURRENT_DEQUE` and `BOUNDED` share an unbounded or bounded pool between all threads, and `NONE` disables recycling.
+| The pool of the buffers that parsers and generators reuse. `DEFAULT` keeps a buffer recycler per platform thread and creates a concurrent deque pool for virtual threads, which a thread local pool would never reuse. `THREAD_LOCAL` keeps one per thread, `CONCURRENT_DEQUE` and `BOUNDED` give each JSON mapper its own unbounded or bounded pool, `SHARED_CONCURRENT_DEQUE` and `SHARED_BOUNDED` share one pool between all JSON mappers, and `NONE` disables recycling.
+
+| `micronaut.serde.jackson.recycler-pool-size`
+| `int`
+| The capacity of a `BOUNDED` recycler pool. Defaults to `100`.
 
 | `micronaut.serde.jackson.json-read-features`
 | `Map`

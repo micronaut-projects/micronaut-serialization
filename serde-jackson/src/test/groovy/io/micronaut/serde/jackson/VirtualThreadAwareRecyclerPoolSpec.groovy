@@ -110,24 +110,52 @@ class VirtualThreadAwareRecyclerPoolSpec extends Specification {
 
     void "the recycler pool is configurable"() {
         given:
-        def context = ApplicationContext.run(["micronaut.serde.jackson.recycler-pool": type.name()])
+        def context = ApplicationContext.run(["micronaut.serde.jackson.recycler-pool": type.name(), "micronaut.serde.jackson.recycler-pool-size": 5])
         def configuration = context.getBean(SerdeJacksonConfiguration)
         def jsonMapper = context.getBean(JsonMapper)
 
         expect:
         configuration.recyclerPool == type
-        type.create().getClass() == poolType
+        configuration.recyclerPoolSize == 5
+        configuration.createRecyclerPool().getClass() == poolType
         jsonMapper.readValue(jsonMapper.writeValueAsString([name: "micronaut"]), Map) == [name: "micronaut"]
 
         cleanup:
         context.close()
 
         where:
-        type                                                  | poolType
-        SerdeJacksonConfiguration.RecyclerPoolType.VIRTUAL_THREAD_AWARE | VirtualThreadAwareRecyclerPool
-        SerdeJacksonConfiguration.RecyclerPoolType.THREAD_LOCAL         | JsonRecyclerPools.threadLocalPool().getClass()
-        SerdeJacksonConfiguration.RecyclerPoolType.CONCURRENT_DEQUE     | JsonRecyclerPools.sharedConcurrentDequePool().getClass()
-        SerdeJacksonConfiguration.RecyclerPoolType.BOUNDED              | JsonRecyclerPools.sharedBoundedPool().getClass()
-        SerdeJacksonConfiguration.RecyclerPoolType.NONE                 | JsonRecyclerPools.nonRecyclingPool().getClass()
+        type                                                               | poolType
+        SerdeJacksonConfiguration.RecyclerPoolType.DEFAULT                 | VirtualThreadAwareRecyclerPool
+        SerdeJacksonConfiguration.RecyclerPoolType.THREAD_LOCAL            | JsonRecyclerPools.threadLocalPool().getClass()
+        SerdeJacksonConfiguration.RecyclerPoolType.CONCURRENT_DEQUE        | JsonRecyclerPools.newConcurrentDequePool().getClass()
+        SerdeJacksonConfiguration.RecyclerPoolType.SHARED_CONCURRENT_DEQUE | JsonRecyclerPools.sharedConcurrentDequePool().getClass()
+        SerdeJacksonConfiguration.RecyclerPoolType.BOUNDED                 | JsonRecyclerPools.newBoundedPool(5).getClass()
+        SerdeJacksonConfiguration.RecyclerPoolType.SHARED_BOUNDED          | JsonRecyclerPools.sharedBoundedPool().getClass()
+        SerdeJacksonConfiguration.RecyclerPoolType.NONE                    | JsonRecyclerPools.nonRecyclingPool().getClass()
+    }
+
+    void "the bounded pool has the configured capacity and the shared pools are shared"() {
+        given:
+        def configuration = new SerdeJacksonConfiguration(recyclerPool: SerdeJacksonConfiguration.RecyclerPoolType.BOUNDED, recyclerPoolSize: 5)
+
+        expect:
+        configuration.createRecyclerPool().capacity() == 5
+        !configuration.createRecyclerPool().is(configuration.createRecyclerPool())
+
+        when:
+        configuration.recyclerPool = SerdeJacksonConfiguration.RecyclerPoolType.SHARED_CONCURRENT_DEQUE
+
+        then:
+        configuration.createRecyclerPool().is(configuration.createRecyclerPool())
+    }
+
+    void "the pool of virtual threads is not created until a virtual thread needs it"() {
+        given:
+        def pool = new VirtualThreadAwareRecyclerPool()
+
+        expect:
+        pool.pooledCount() == 0
+        pool.clear()
+        pool.@virtualThreadPool.get() == null
     }
 }
