@@ -45,6 +45,49 @@ class VirtualThreadAwareRecyclerPoolSpec extends Specification {
         pool.pooledCount() == 0
     }
 
+    void "unlinked recyclers released on virtual threads are pooled and can be cleared"() {
+        given:
+        def pool = new VirtualThreadAwareRecyclerPool()
+        def first = new AtomicReference<BufferRecycler>()
+        def second = new AtomicReference<BufferRecycler>()
+
+        when:
+        Thread.ofVirtual().start {
+            BufferRecycler recycler = pool.acquirePooled()
+            first.set(recycler)
+            pool.releasePooled(recycler)
+        }.join()
+
+        then:
+        pool.pooledCount() == 1
+
+        when:
+        Thread.ofVirtual().start { second.set(pool.acquirePooled()) }.join()
+
+        then:
+        second.get().is(first.get())
+
+        when:
+        Thread.ofVirtual().start { pool.releasePooled(second.get()) }.join()
+
+        then:
+        pool.clear()
+        pool.pooledCount() == 0
+    }
+
+    void "unlinked recyclers on platform threads stay with the thread"() {
+        given:
+        def pool = new VirtualThreadAwareRecyclerPool()
+
+        when:
+        BufferRecycler recycler = pool.acquirePooled()
+        pool.releasePooled(recycler)
+
+        then:
+        pool.acquirePooled().is(recycler)
+        pool.pooledCount() == 0
+    }
+
     void "the JSON mapper writes and reads on virtual threads"() {
         given:
         def context = ApplicationContext.run()
