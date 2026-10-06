@@ -33,6 +33,7 @@ import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
 import io.micronaut.serde.support.util.SubtypeInfo;
 import io.micronaut.serde.util.CustomizableDeserializer;
+import io.micronaut.serde.util.SpecificSerdeTracker;
 
 import java.io.IOException;
 import java.util.Map;
@@ -157,6 +158,8 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
         if (!hasUnresolved) {
             deserializerSubtypeInfo = resolved;
         } else {
+            // The unresolved subtypes are resolved later with this context
+            SpecificSerdeTracker.markContextBound(context);
             Deserializer<Object> finalDefaultDeserializer = defaultDeserializer;
             deserializerSubtypeInfo = new DeserializerSubtypeInfo<>() {
                 @Override

@@ -32,6 +32,7 @@ import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
 import io.micronaut.serde.support.util.SubtypeInfo;
 import io.micronaut.serde.util.CustomizableSerializer;
+import io.micronaut.serde.util.SpecificSerdeTracker;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
@@ -83,6 +84,8 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
         boolean isObjectType = type.equalsType(Argument.OBJECT_ARGUMENT);
         if (isObjectType || type instanceof GenericPlaceholder) {
             // dynamic type resolving
+            // The runtime type serializer keeps the context to resolve the serializers of the runtime types later
+            SpecificSerdeTracker.markContextBound(encoderContext);
             Serializer<Object> outer = !isObjectType ? createSpecificInternal(encoderContext, type) : null;
             return outer == null
                 ? new RuntimeTypeSerializer(encoderContext, null, null, type)
@@ -100,6 +103,7 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
             serBean = (SerBean<Object>) getSerializableBean(type, encoderContext);
         } catch (IntrospectionException e) {
             // no introspection, create dynamic serialization case
+            SpecificSerdeTracker.markContextBound(encoderContext);
             return new RuntimeTypeSerializer(encoderContext, e, type);
         }
 
@@ -121,6 +125,7 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
         }
         boolean subtyped = !jsonKeySerialization && serBean.subtyped;
         if (subtyped) {
+            SpecificSerdeTracker.markContextBound(encoderContext);
             serializer = new RuntimeTypeSerializer(encoderContext, serializer, type);
         } else if (!jsonKeySerialization) {
             if (serBean.dynamicWrapperProperty != null) {

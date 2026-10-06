@@ -27,6 +27,7 @@ import io.micronaut.serde.reference.AbstractPropertyReferenceManager;
 import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.reference.SerializationReference;
 import io.micronaut.serde.support.reference.DocumentIdSerializationReference;
+import io.micronaut.serde.util.SpecificSerdeTracker;
 import org.jspecify.annotations.Nullable;
 
 import java.util.IdentityHashMap;
@@ -38,7 +39,7 @@ import java.util.Optional;
  * @since 1.0.0
  */
 @Internal
-class DefaultEncoderContext extends AbstractPropertyReferenceManager implements Serializer.EncoderContext {
+class DefaultEncoderContext extends AbstractPropertyReferenceManager implements Serializer.EncoderContext, SpecificSerdeTracker {
     private final DefaultSerdeRegistry registry;
     // Beans written in full in the current document, allocated only when a document uses object identity
     @Nullable
@@ -46,6 +47,22 @@ class DefaultEncoderContext extends AbstractPropertyReferenceManager implements 
 
     DefaultEncoderContext(DefaultSerdeRegistry registry) {
         this.registry = registry;
+    }
+
+    /**
+     * Whether a specific serde created with this context can be reused with another context of the registry: the
+     * context of a view or with other features creates other specific serdes.
+     *
+     * @param registry The registry
+     * @return Whether the specific serdes are the ones of the registry
+     */
+    final boolean createsSpecificSerdesOf(DefaultSerdeRegistry registry) {
+        return this.registry == registry && getClass() == DefaultEncoderContext.class;
+    }
+
+    @Override
+    public final void markContextBound() {
+        SpecificSerdeCache.markContextBound();
     }
 
     @Override

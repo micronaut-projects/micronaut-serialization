@@ -28,6 +28,7 @@ import io.micronaut.serde.reference.AbstractPropertyReferenceManager;
 import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.support.reference.DocumentIdReference;
 import io.micronaut.serde.support.reference.PendingDocumentIdReference;
+import io.micronaut.serde.util.SpecificSerdeTracker;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -45,7 +46,7 @@ import java.util.Optional;
  * @since 1.0.0
  */
 @Internal
-class DefaultDecoderContext extends AbstractPropertyReferenceManager implements Deserializer.DecoderContext {
+class DefaultDecoderContext extends AbstractPropertyReferenceManager implements Deserializer.DecoderContext, SpecificSerdeTracker {
     private final DefaultSerdeRegistry registry;
     // Document-scoped identifier state, allocated only when a document uses identifiers and released on close
     @Nullable
@@ -55,6 +56,22 @@ class DefaultDecoderContext extends AbstractPropertyReferenceManager implements 
 
     DefaultDecoderContext(DefaultSerdeRegistry registry) {
         this.registry = registry;
+    }
+
+    /**
+     * Whether a specific serde created with this context can be reused with another context of the registry: the
+     * context of a view or with other features creates other specific serdes.
+     *
+     * @param registry The registry
+     * @return Whether the specific serdes are the ones of the registry
+     */
+    final boolean createsSpecificSerdesOf(DefaultSerdeRegistry registry) {
+        return this.registry == registry && getClass() == DefaultDecoderContext.class;
+    }
+
+    @Override
+    public final void markContextBound() {
+        SpecificSerdeCache.markContextBound();
     }
 
     @Override
