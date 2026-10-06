@@ -216,22 +216,9 @@ final class RecordSerdeSourceGenUtils {
     }
 
     static ExpressionDef defaultValueExpression(ClassElement classElement, boolean nonNullCollectionDefault) {
-        switch (classElement.getName()) {
-            case "java.util.Optional":
-                return ClassTypeDef.of(Optional.class).invokeStatic(OPTIONAL_EMPTY_METHOD);
-            case "java.util.OptionalInt":
-                return ClassTypeDef.of(OptionalInt.class).invokeStatic(OPTIONAL_INT_EMPTY_METHOD);
-            case "java.util.OptionalDouble":
-                return ClassTypeDef.of(OptionalDouble.class).invokeStatic(OPTIONAL_DOUBLE_EMPTY_METHOD);
-            case "java.util.OptionalLong":
-                return ClassTypeDef.of(OptionalLong.class).invokeStatic(OPTIONAL_LONG_EMPTY_METHOD);
-            default:
-        }
-        if (nonNullCollectionDefault) {
-            ExpressionDef emptyCollection = emptyCollectionExpression(classElement);
-            if (emptyCollection != null) {
-                return emptyCollection;
-            }
+        ExpressionDef nonNullDefault = nonNullDefaultValueExpression(classElement, nonNullCollectionDefault);
+        if (nonNullDefault != null) {
+            return nonNullDefault;
         }
         if (!classElement.isPrimitive() || classElement.isArray()) {
             return ExpressionDef.nullValue().cast(TypeDef.erasure(classElement));
@@ -246,6 +233,33 @@ final class RecordSerdeSourceGenUtils {
             case "byte", SHORT_TYPE, "int" -> ExpressionDef.constant(0).cast(TypeDef.erasure(classElement));
             default -> ExpressionDef.constant(0).cast(TypeDef.erasure(classElement));
         };
+    }
+
+    /**
+     * Whether an absent non-null component of the given type is initialized with a non-null value by
+     * {@link #defaultValueExpression(ClassElement, boolean)}: an empty optional, or an empty collection or
+     * map of an implementation assignable to the declared type.
+     *
+     * @param classElement The declared type
+     * @return {@code true} if the default of an absent non-null component of this type is not {@code null}
+     */
+    static boolean hasNonNullDefaultValue(ClassElement classElement) {
+        return nonNullDefaultValueExpression(classElement, true) != null;
+    }
+
+    private static @Nullable ExpressionDef nonNullDefaultValueExpression(ClassElement classElement, boolean nonNullCollectionDefault) {
+        switch (classElement.getName()) {
+            case "java.util.Optional":
+                return ClassTypeDef.of(Optional.class).invokeStatic(OPTIONAL_EMPTY_METHOD);
+            case "java.util.OptionalInt":
+                return ClassTypeDef.of(OptionalInt.class).invokeStatic(OPTIONAL_INT_EMPTY_METHOD);
+            case "java.util.OptionalDouble":
+                return ClassTypeDef.of(OptionalDouble.class).invokeStatic(OPTIONAL_DOUBLE_EMPTY_METHOD);
+            case "java.util.OptionalLong":
+                return ClassTypeDef.of(OptionalLong.class).invokeStatic(OPTIONAL_LONG_EMPTY_METHOD);
+            default:
+        }
+        return nonNullCollectionDefault ? emptyCollectionExpression(classElement) : null;
     }
 
     /**
