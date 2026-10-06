@@ -217,7 +217,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
 
     private static JsonFactory buildJsonFactory(SerdeJacksonConfiguration jacksonConfiguration) {
         JsonFactoryBuilder builder = JsonFactory.builder()
-            .recyclerPool(new VirtualThreadAwareRecyclerPool());
+            .recyclerPool(jacksonConfiguration.getRecyclerPool().create());
         for (Map.Entry<TokenStreamFactory.Feature, Boolean> e : jacksonConfiguration.getJsonFactoryFeatures().entrySet()) {
             builder = builder.configure(e.getKey(), e.getValue());
         }

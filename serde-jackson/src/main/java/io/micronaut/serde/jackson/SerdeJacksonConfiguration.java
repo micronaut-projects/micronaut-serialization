@@ -24,6 +24,9 @@ import tools.jackson.core.StreamWriteFeature;
 import tools.jackson.core.TokenStreamFactory;
 import tools.jackson.core.json.JsonReadFeature;
 import tools.jackson.core.json.JsonWriteFeature;
+import tools.jackson.core.util.BufferRecycler;
+import tools.jackson.core.util.JsonRecyclerPools;
+import tools.jackson.core.util.RecyclerPool;
 
 import java.util.Collections;
 import java.util.Map;
@@ -48,6 +51,7 @@ public final class SerdeJacksonConfiguration {
     private Map<StreamReadFeature, Boolean> streamReadFeatures = Collections.emptyMap();
     private Map<StreamWriteFeature, Boolean> streamWriteFeatures = Collections.emptyMap();
     private boolean prettyPrint;
+    private RecyclerPoolType recyclerPool = RecyclerPoolType.VIRTUAL_THREAD_AWARE;
 
     public Map<JsonReadFeature, Boolean> getJsonReadFeatures() {
         return jsonReadFeatures;
@@ -95,5 +99,61 @@ public final class SerdeJacksonConfiguration {
 
     public void setPrettyPrint(boolean prettyPrint) {
         this.prettyPrint = prettyPrint;
+    }
+
+    /**
+     * @return The pool of the buffers that parsers and generators reuse
+     * @since 3.3.0
+     */
+    public RecyclerPoolType getRecyclerPool() {
+        return recyclerPool;
+    }
+
+    /**
+     * The pool of the buffers that parsers and generators reuse. Defaults to {@link RecyclerPoolType#VIRTUAL_THREAD_AWARE}.
+     *
+     * @param recyclerPool The recycler pool
+     * @since 3.3.0
+     */
+    public void setRecyclerPool(RecyclerPoolType recyclerPool) {
+        this.recyclerPool = recyclerPool;
+    }
+
+    /**
+     * The pools of the buffers that Jackson parsers and generators reuse.
+     *
+     * @since 3.3.0
+     */
+    public enum RecyclerPoolType {
+        /**
+         * A buffer recycler per platform thread, and a pool shared by virtual threads.
+         */
+        VIRTUAL_THREAD_AWARE,
+        /**
+         * A buffer recycler per thread, which is not reused on virtual threads.
+         */
+        THREAD_LOCAL,
+        /**
+         * An unbounded pool shared by all threads.
+         */
+        CONCURRENT_DEQUE,
+        /**
+         * A bounded pool shared by all threads.
+         */
+        BOUNDED,
+        /**
+         * No pool: every parser and generator allocates its buffers.
+         */
+        NONE;
+
+        RecyclerPool<BufferRecycler> create() {
+            return switch (this) {
+                case VIRTUAL_THREAD_AWARE -> new VirtualThreadAwareRecyclerPool();
+                case THREAD_LOCAL -> JsonRecyclerPools.threadLocalPool();
+                case CONCURRENT_DEQUE -> JsonRecyclerPools.sharedConcurrentDequePool();
+                case BOUNDED -> JsonRecyclerPools.sharedBoundedPool();
+                case NONE -> JsonRecyclerPools.nonRecyclingPool();
+            };
+        }
     }
 }
