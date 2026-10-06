@@ -528,6 +528,136 @@ class CompileTimeDeserializerBehaviorSpec extends JsonCompileSpec {
         context.close()
     }
 
+    void 'test generated record deserializer with strict nullable defaults absent non null collections as the runtime deserializer does'() {
+        given:
+        def generatedContext = ApplicationContext.run([
+            'micronaut.serde.deserialization.strict-nullable': true
+        ])
+        def runtimeContext = ApplicationContext.run([
+            'micronaut.serde.deserialization.strict-nullable': true,
+            'micronaut.serde.deserialization.disable-generated-deserializer': true
+        ])
+
+        when:
+        SourceGenNullMarkedCollectionsRecord generated = generatedContext.getBean(JsonMapper).readValue(
+            '{"name":"Ada"}',
+            Argument.of(SourceGenNullMarkedCollectionsRecord)
+        )
+        SourceGenNullMarkedCollectionsRecord runtime = runtimeContext.getBean(JsonMapper).readValue(
+            '{"name":"Ada"}',
+            Argument.of(SourceGenNullMarkedCollectionsRecord)
+        )
+
+        then:
+        assertGeneratedDeserializer(generatedContext.getBean(SerdeRegistry), SourceGenNullMarkedCollectionsRecord.class)
+        assertRuntimeDeserializer(runtimeContext.getBean(SerdeRegistry), SourceGenNullMarkedCollectionsRecord.class)
+        generated == runtime
+        generated.name() == 'Ada'
+        generated.list().isEmpty()
+        generated.set().isEmpty()
+        generated.map().isEmpty()
+
+        cleanup:
+        generatedContext.close()
+        runtimeContext.close()
+    }
+
+    void 'test generated record deserializer with strict nullable reads back a record with empty non null collections written with the default inclusion'() {
+        given:
+        def context = ApplicationContext.run([
+            'micronaut.serde.deserialization.strict-nullable': true
+        ])
+        def mapper = context.getBean(JsonMapper)
+        def empty = new SourceGenNullMarkedCollectionsRecord('Ada', [], [] as Set, [:])
+
+        when:
+        String written = mapper.writeValueAsString(empty)
+        SourceGenNullMarkedCollectionsRecord read = mapper.readValue(written, Argument.of(SourceGenNullMarkedCollectionsRecord))
+
+        then: 'the default inclusion leaves out the empty collections, and they read back as empty'
+        written == '{"name":"Ada"}'
+        assertGeneratedDeserializer(context.getBean(SerdeRegistry), SourceGenNullMarkedCollectionsRecord.class)
+        read == empty
+
+        cleanup:
+        context.close()
+    }
+
+    void 'test generated record deserializer with strict nullable defaults an absent non null optional as the runtime deserializer does'() {
+        given:
+        def generatedContext = ApplicationContext.run([
+            'micronaut.serde.deserialization.strict-nullable': true
+        ])
+        def runtimeContext = ApplicationContext.run([
+            'micronaut.serde.deserialization.strict-nullable': true,
+            'micronaut.serde.deserialization.disable-generated-deserializer': true
+        ])
+
+        when:
+        SourceGenNullMarkedOptionalRecord runtime = runtimeContext.getBean(JsonMapper).readValue(
+            '{"name":"Ada"}',
+            Argument.of(SourceGenNullMarkedOptionalRecord)
+        )
+        SourceGenNullMarkedOptionalRecord generated = generatedContext.getBean(JsonMapper).readValue(
+            '{"name":"Ada"}',
+            Argument.of(SourceGenNullMarkedOptionalRecord)
+        )
+
+        then:
+        assertGeneratedDeserializer(generatedContext.getBean(SerdeRegistry), SourceGenNullMarkedOptionalRecord.class)
+        assertRuntimeDeserializer(runtimeContext.getBean(SerdeRegistry), SourceGenNullMarkedOptionalRecord.class)
+        generated == runtime
+        generated.nickname().isEmpty()
+
+        cleanup:
+        generatedContext.close()
+        runtimeContext.close()
+    }
+
+    void 'test generated record deserializer with strict nullable treats an explicit null non null collection as the runtime deserializer does'() {
+        given:
+        def generatedContext = ApplicationContext.run([
+            'micronaut.serde.deserialization.strict-nullable': true
+        ])
+        def runtimeContext = ApplicationContext.run([
+            'micronaut.serde.deserialization.strict-nullable': true,
+            'micronaut.serde.deserialization.disable-generated-deserializer': true
+        ])
+        String json = '{"name":"Ada","list":null}'
+
+        when:
+        Throwable generatedFailure = readFailure(generatedContext.getBean(JsonMapper), SourceGenNullMarkedCollectionsRecord, json)
+        Throwable runtimeFailure = readFailure(runtimeContext.getBean(JsonMapper), SourceGenNullMarkedCollectionsRecord, json)
+
+        then:
+        (generatedFailure == null) == (runtimeFailure == null)
+        generatedFailure != null || generatedContext.getBean(JsonMapper).readValue(json, Argument.of(SourceGenNullMarkedCollectionsRecord)) ==
+            runtimeContext.getBean(JsonMapper).readValue(json, Argument.of(SourceGenNullMarkedCollectionsRecord))
+
+        cleanup:
+        generatedContext.close()
+        runtimeContext.close()
+    }
+
+    void 'test generated record deserializer with strict nullable rejects an absent non null scalar as the runtime deserializer does'() {
+        given:
+        def generatedContext = ApplicationContext.run([
+            'micronaut.serde.deserialization.strict-nullable': true
+        ])
+        def runtimeContext = ApplicationContext.run([
+            'micronaut.serde.deserialization.strict-nullable': true,
+            'micronaut.serde.deserialization.disable-generated-deserializer': true
+        ])
+
+        expect:
+        serdeFailure(readFailure(generatedContext.getBean(JsonMapper), SourceGenNullMarkedCollectionsRecord, '{"list":[]}'))
+        serdeFailure(readFailure(runtimeContext.getBean(JsonMapper), SourceGenNullMarkedCollectionsRecord, '{"list":[]}'))
+
+        cleanup:
+        generatedContext.close()
+        runtimeContext.close()
+    }
+
     void 'test generated dispatch bean deserializer covers primitive null defaults and unknown skip'() {
         given:
         def context = ApplicationContext.run([
@@ -885,6 +1015,12 @@ class CompileTimeDeserializerBehaviorSpec extends JsonCompileSpec {
         Argument argument = Argument.of(type)
         Deserializer deserializer = registry.findDeserializer(argument).createSpecific(registry.newDecoderContext(Object), argument)
         assert deserializer.class.name == generatedClassName(type, 'Deserializer')
+    }
+
+    private static void assertRuntimeDeserializer(SerdeRegistry registry, Class<?> type) {
+        Argument argument = Argument.of(type)
+        Deserializer deserializer = registry.findDeserializer(argument).createSpecific(registry.newDecoderContext(Object), argument)
+        assert deserializer.class.name != generatedClassName(type, 'Deserializer')
     }
 
     private static String generatedClassName(Class<?> type, String suffix) {
