@@ -5951,6 +5951,16 @@ class PersonFilterTest extends Specification {
 <td class="tableblock halign-left valign-top"><p class="tableblock">Write indented, human-readable JSON output. Defaults to <code>false</code>.</p></td>
 </tr>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.jackson.recycler-pool</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>RecyclerPoolType</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The pool of the buffers that parsers and generators reuse. <code>DEFAULT</code> keeps a buffer recycler per platform thread and creates a concurrent deque pool for virtual threads, which a thread local pool would never reuse. <code>THREAD_LOCAL</code> keeps one per thread, <code>CONCURRENT_DEQUE</code> and <code>BOUNDED</code> give each JSON mapper its own unbounded or bounded pool, <code>SHARED_CONCURRENT_DEQUE</code> and <code>SHARED_BOUNDED</code> share one pool between all JSON mappers, and <code>NONE</code> disables recycling.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.jackson.recycler-pool-size</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>int</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The capacity of a <code>BOUNDED</code> recycler pool. Defaults to <code>100</code>.</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.jackson.json-read-features</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Map</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://javadoc.io/doc/tools.jackson.core/jackson-core/latest/tools.jackson.core/tools/jackson/core/json/JsonReadFeature.html">JsonReadFeature</a> overrides for JSON-specific parsing behavior, such as accepting comments or single quotes.</p></td>

@@ -53,6 +53,7 @@ loadScripts(document, 'script');</script>
 <div class="toc-header">Contents&nbsp;<input type="text" class="filter-input" disabled placeholder="Filter contents (type .)" aria-label="Filter table of contents" autocomplete="off" spellcheck="false"><input type="reset" class="reset-filter" disabled tabindex="-1" value="Reset"></div>
 <ol class="toc-list" tabindex="-1">
 <li><a href="#" tabindex="0">Description</a></li>
+<li><a href="#nested-class-summary" tabindex="0">Nested Class Summary</a></li>
 <li><a href="#constructor-summary" tabindex="0">Constructor Summary</a></li>
 <li><a href="#method-summary" tabindex="0">Method Summary</a></li>
 <li><a href="#constructor-detail" tabindex="0">Constructor Details</a>
@@ -74,6 +75,10 @@ loadScripts(document, 'script');</script>
 <li><a href="#setStreamReadFeatures(java.util.Map)" tabindex="0">setStreamReadFeatures(Map)</a></li>
 <li><a href="#isPrettyPrint()" tabindex="0">isPrettyPrint()</a></li>
 <li><a href="#setPrettyPrint(boolean)" tabindex="0">setPrettyPrint(boolean)</a></li>
+<li><a href="#getRecyclerPool()" tabindex="0">getRecyclerPool()</a></li>
+<li><a href="#setRecyclerPool(io.micronaut.serde.jackson.SerdeJacksonConfiguration.RecyclerPoolType)" tabindex="0">setRecyclerPool(SerdeJacksonConfiguration.RecyclerPoolType)</a></li>
+<li><a href="#getRecyclerPoolSize()" tabindex="0">getRecyclerPoolSize()</a></li>
+<li><a href="#setRecyclerPoolSize(int)" tabindex="0">setRecyclerPoolSize(int)</a></li>
 </ol>
 </li>
 </ol>
@@ -104,6 +109,23 @@ loadScripts(document, 'script');</script>
 </section>
 <section class="summary">
 <ul class="summary-list">
+<!-- ======== NESTED CLASS SUMMARY ======== -->
+<li>
+<section class="nested-class-summary" id="nested-class-summary">
+<h2>Nested Class Summary</h2>
+<div class="caption"><span>Nested Classes</span></div>
+<div class="summary-table three-column-summary">
+<div class="table-header col-first">Modifier and Type</div>
+<div class="table-header col-second">Class</div>
+<div class="table-header col-last">Description</div>
+<div class="col-first even-row-color"><code>static enum&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="SerdeJacksonConfiguration.RecyclerPoolType.html" class="type-name-link" title="enum class in io.micronaut.serde.jackson">SerdeJacksonConfiguration.RecyclerPoolType</a></code></div>
+<div class="col-last even-row-color">
+<div class="block">The pools of the buffers that Jackson parsers and generators reuse.</div>
+</div>
+</div>
+</section>
+</li>
 <!-- ======== CONSTRUCTOR SUMMARY ======== -->
 <li>
 <section class="constructor-summary" id="constructor-summary">
@@ -137,6 +159,12 @@ loadScripts(document, 'script');</script>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a><wbr>&lt;tools.jackson.core.json.JsonWriteFeature, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Boolean.html" title="class or interface in java.lang" class="external-link">Boolean</a>&gt;</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getJsonWriteFeatures()" class="member-name-link">getJsonWriteFeatures</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="SerdeJacksonConfiguration.RecyclerPoolType.html" title="enum class in io.micronaut.serde.jackson">SerdeJacksonConfiguration.RecyclerPoolType</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getRecyclerPool()" class="member-name-link">getRecyclerPool</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>int</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getRecyclerPoolSize()" class="member-name-link">getRecyclerPoolSize</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a><wbr>&lt;tools.jackson.core.StreamReadFeature, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Boolean.html" title="class or interface in java.lang" class="external-link">Boolean</a>&gt;</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getStreamReadFeatures()" class="member-name-link">getStreamReadFeatures</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
@@ -158,6 +186,16 @@ loadScripts(document, 'script');</script>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setPrettyPrint(boolean)" class="member-name-link">setPrettyPrint</a><wbr>(boolean&nbsp;prettyPrint)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setRecyclerPool(io.micronaut.serde.jackson.SerdeJacksonConfiguration.RecyclerPoolType)" class="member-name-link">setRecyclerPool</a><wbr>(<a href="SerdeJacksonConfiguration.RecyclerPoolType.html" title="enum class in io.micronaut.serde.jackson">SerdeJacksonConfiguration.RecyclerPoolType</a>&nbsp;recyclerPool)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">The pool of the buffers that parsers and generators reuse.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setRecyclerPoolSize(int)" class="member-name-link">setRecyclerPoolSize</a><wbr>(int&nbsp;recyclerPoolSize)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">The capacity of a <a href="SerdeJacksonConfiguration.RecyclerPoolType.html#BOUNDED"><code>SerdeJacksonConfiguration.RecyclerPoolType.BOUNDED</code></a> pool.</div>
+</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setStreamReadFeatures(java.util.Map)" class="member-name-link">setStreamReadFeatures</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&lt;tools.jackson.core.StreamReadFeature, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Boolean.html" title="class or interface in java.lang" class="external-link">Boolean</a>&gt;&nbsp;streamReadFeatures)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
@@ -290,6 +328,64 @@ loadScripts(document, 'script');</script>
 <h3>setPrettyPrint</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">setPrettyPrint</span><wbr><span class="parameters">(boolean&nbsp;prettyPrint)</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="getRecyclerPool()">
+<h3>getRecyclerPool</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="SerdeJacksonConfiguration.RecyclerPoolType.html" title="enum class in io.micronaut.serde.jackson">SerdeJacksonConfiguration.RecyclerPoolType</a></span>&nbsp;<span class="element-name">getRecyclerPool</span>()</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>The pool of the buffers that parsers and generators reuse</dd>
+<dt>Since:</dt>
+<dd>3.3.0</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="setRecyclerPool(io.micronaut.serde.jackson.SerdeJacksonConfiguration.RecyclerPoolType)">
+<h3>setRecyclerPool</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">setRecyclerPool</span><wbr><span class="parameters">(<a href="SerdeJacksonConfiguration.RecyclerPoolType.html" title="enum class in io.micronaut.serde.jackson">SerdeJacksonConfiguration.RecyclerPoolType</a>&nbsp;recyclerPool)</span></div>
+<div class="block">The pool of the buffers that parsers and generators reuse. Defaults to <a href="SerdeJacksonConfiguration.RecyclerPoolType.html#DEFAULT"><code>SerdeJacksonConfiguration.RecyclerPoolType.DEFAULT</code></a>.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>recyclerPool</code> - The recycler pool</dd>
+<dt>Since:</dt>
+<dd>3.3.0</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="getRecyclerPoolSize()">
+<h3>getRecyclerPoolSize</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">int</span>&nbsp;<span class="element-name">getRecyclerPoolSize</span>()</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>The capacity of a <a href="SerdeJacksonConfiguration.RecyclerPoolType.html#BOUNDED"><code>SerdeJacksonConfiguration.RecyclerPoolType.BOUNDED</code></a> pool</dd>
+<dt>Since:</dt>
+<dd>3.3.0</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="setRecyclerPoolSize(int)">
+<h3>setRecyclerPoolSize</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">setRecyclerPoolSize</span><wbr><span class="parameters">(int&nbsp;recyclerPoolSize)</span></div>
+<div class="block">The capacity of a <a href="SerdeJacksonConfiguration.RecyclerPoolType.html#BOUNDED"><code>SerdeJacksonConfiguration.RecyclerPoolType.BOUNDED</code></a> pool. Defaults to 100.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>recyclerPoolSize</code> - The pool capacity</dd>
+<dt>Since:</dt>
+<dd>3.3.0</dd>
+</dl>
 </div>
 </section>
 </li>

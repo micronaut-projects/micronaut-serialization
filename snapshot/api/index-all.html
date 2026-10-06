@@ -166,6 +166,10 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Apply <a href="io/micronaut/serde/config/DeserializationConfiguration.Feature.html#ACCEPT_SINGLE_VALUE_AS_ARRAY"><code>DeserializationConfiguration.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY</code></a> if enabled.</div>
 </dd>
+<dt><a href="io/micronaut/serde/jackson/VirtualThreadAwareRecyclerPool.html#acquireAndLinkPooled()" class="member-name-link">acquireAndLinkPooled()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/VirtualThreadAwareRecyclerPool.html" title="class in io.micronaut.serde.jackson">VirtualThreadAwareRecyclerPool</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/VirtualThreadAwareRecyclerPool.html#acquirePooled()" class="member-name-link">acquirePooled()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/VirtualThreadAwareRecyclerPool.html" title="class in io.micronaut.serde.jackson">VirtualThreadAwareRecyclerPool</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jsonb/JsonbConfiguration.html#ADDITIONAL_PACKAGES" class="member-name-link">ADDITIONAL_PACKAGES</a> - Static variable in interface io.micronaut.serde.jsonb.<a href="io/micronaut/serde/jsonb/JsonbConfiguration.html" title="interface in io.micronaut.serde.jsonb">JsonbConfiguration</a></dt>
 <dd>
 <div class="block">JSON-B configuration property for additional reduced-context package prefixes.</div>
@@ -539,6 +543,10 @@ independent of value of the property.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/serdes/Serdes.html#BOOLEAN_SERDE" class="member-name-link">BOOLEAN_SERDE</a> - Static variable in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/Serdes.html" title="class in io.micronaut.serde.support.serdes">Serdes</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.RecyclerPoolType.html#BOUNDED" class="member-name-link">BOUNDED</a> - Enum constant in enum class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.RecyclerPoolType.html" title="enum class in io.micronaut.serde.jackson">SerdeJacksonConfiguration.RecyclerPoolType</a></dt>
+<dd>
+<div class="block">A pool bounded by <a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.html#getRecyclerPoolSize()"><code>SerdeJacksonConfiguration.getRecyclerPoolSize()</code></a>.</div>
+</dd>
 <dt><a href="io/micronaut/serde/properties/SerdePropertiesConfiguration.ArrayIndexStyle.html#BRACKETED" class="member-name-link">BRACKETED</a> - Enum constant in enum class io.micronaut.serde.properties.<a href="io/micronaut/serde/properties/SerdePropertiesConfiguration.ArrayIndexStyle.html" title="enum class in io.micronaut.serde.properties">SerdePropertiesConfiguration.ArrayIndexStyle</a></dt>
 <dd>
 <div class="block">Zero-based bracketed array indexes; <code>values[0]</code>.</div>
@@ -846,6 +854,8 @@ CBOR factory together with Micronaut Serialization serializers and deserializers
 <dd>
 <div class="block">Creates an instance of a <code>ClassificationVars</code> record class.</div>
 </dd>
+<dt><a href="io/micronaut/serde/jackson/VirtualThreadAwareRecyclerPool.html#clear()" class="member-name-link">clear()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/VirtualThreadAwareRecyclerPool.html" title="class in io.micronaut.serde.jackson">VirtualThreadAwareRecyclerPool</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/cbor/CborObjectMapper.html#cloneWithConfiguration(io.micronaut.serde.cbor.SerdeCborConfiguration)" class="member-name-link">cloneWithConfiguration(SerdeCborConfiguration)</a> - Method in class io.micronaut.serde.cbor.<a href="io/micronaut/serde/cbor/CborObjectMapper.html" title="class in io.micronaut.serde.cbor">CborObjectMapper</a></dt>
 <dd>
 <div class="block">Create a new mapper with the given CBOR configuration.</div>
@@ -1043,6 +1053,10 @@ type.</div>
 <dt><a href="io/micronaut/serde/processor/sourcegen/records/RecordSerdeShape.html#components()" class="member-name-link">components()</a> - Method in record class io.micronaut.serde.processor.sourcegen.records.<a href="io/micronaut/serde/processor/sourcegen/records/RecordSerdeShape.html" title="class in io.micronaut.serde.processor.sourcegen.records">RecordSerdeShape</a></dt>
 <dd>
 <div class="block">Returns the value of the <a href="./io/micronaut/serde/processor/sourcegen/records/RecordSerdeShape.html#param-components"><code>components</code></a> record component.</div>
+</dd>
+<dt><a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.RecyclerPoolType.html#CONCURRENT_DEQUE" class="member-name-link">CONCURRENT_DEQUE</a> - Enum constant in enum class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.RecyclerPoolType.html" title="enum class in io.micronaut.serde.jackson">SerdeJacksonConfiguration.RecyclerPoolType</a></dt>
+<dd>
+<div class="block">An unbounded pool.</div>
 </dd>
 <dt><a href="io/micronaut/serde/jsonb/MicronautJsonbProvider.Builder.html#config" class="member-name-link">config</a> - Variable in class io.micronaut.serde.jsonb.<a href="io/micronaut/serde/jsonb/MicronautJsonbProvider.Builder.html" title="class in io.micronaut.serde.jsonb">MicronautJsonbProvider.Builder</a></dt>
 <dd>&nbsp;</dd>
@@ -2096,6 +2110,11 @@ from the given package locations.</div>
 </dd>
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.SerSubtyped.DiscriminatorValueKind.html#DEDUCTION" class="member-name-link">DEDUCTION</a> - Enum constant in enum class io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.SerSubtyped.DiscriminatorValueKind.html" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerSubtyped.DiscriminatorValueKind</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.RecyclerPoolType.html#DEFAULT" class="member-name-link">DEFAULT</a> - Enum constant in enum class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.RecyclerPoolType.html" title="enum class in io.micronaut.serde.jackson">SerdeJacksonConfiguration.RecyclerPoolType</a></dt>
+<dd>
+<div class="block">Selects the pool for the current thread: a buffer recycler per platform thread, and a concurrent deque pool for
+virtual threads, which a thread local pool would never reuse.</div>
+</dd>
 <dt><a href="io/micronaut/serde/protobuf/annotation/ProtoType.html#DEFAULT" class="member-name-link">DEFAULT</a> - Enum constant in enum class io.micronaut.serde.protobuf.annotation.<a href="io/micronaut/serde/protobuf/annotation/ProtoType.html" title="enum class in io.micronaut.serde.protobuf.annotation">ProtoType</a></dt>
 <dd>
 <div class="block">Derive the wire representation from the Java type.</div>
@@ -4108,6 +4127,10 @@ as serializable by default without the need to add the <a href="io/micronaut/ser
 <dd>
 <div class="block">Returns the YAML read features.</div>
 </dd>
+<dt><a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.html#getRecyclerPool()" class="member-name-link">getRecyclerPool()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.html" title="class in io.micronaut.serde.jackson">SerdeJacksonConfiguration</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.html#getRecyclerPoolSize()" class="member-name-link">getRecyclerPoolSize()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.html" title="class in io.micronaut.serde.jackson">SerdeJacksonConfiguration</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/reference/PropertyReference.html#getReference()" class="member-name-link">getReference()</a> - Method in class io.micronaut.serde.reference.<a href="io/micronaut/serde/reference/PropertyReference.html" title="class in io.micronaut.serde.reference">PropertyReference</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/reference/PropertyReference.html#getReferenceName()" class="member-name-link">getReferenceName()</a> - Method in class io.micronaut.serde.reference.<a href="io/micronaut/serde/reference/PropertyReference.html" title="class in io.micronaut.serde.reference">PropertyReference</a></dt>
@@ -6869,6 +6892,10 @@ or what is considered empty, are not to be included.</div>
 <div class="block">Value that indicates that only properties with non-null
 values are to be included.</div>
 </dd>
+<dt><a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.RecyclerPoolType.html#NONE" class="member-name-link">NONE</a> - Enum constant in enum class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.RecyclerPoolType.html" title="enum class in io.micronaut.serde.jackson">SerdeJacksonConfiguration.RecyclerPoolType</a></dt>
+<dd>
+<div class="block">No pool: every parser and generator allocates its buffers.</div>
+</dd>
 <dt><a href="io/micronaut/serde/support/util/DecoderValueKind.html#NONE" class="member-name-link">NONE</a> - Enum constant in enum class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/DecoderValueKind.html" title="enum class in io.micronaut.serde.support.util">DecoderValueKind</a></dt>
 <dd>
 <div class="block">No direct decoder scalar method.</div>
@@ -7330,6 +7357,8 @@ when read, a scalar value is an identifier reference that may precede the refere
 <dd>
 <div class="block">POJO-like object shape.</div>
 </dd>
+<dt><a href="io/micronaut/serde/jackson/VirtualThreadAwareRecyclerPool.html#pooledCount()" class="member-name-link">pooledCount()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/VirtualThreadAwareRecyclerPool.html" title="class in io.micronaut.serde.jackson">VirtualThreadAwareRecyclerPool</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/reference/AbstractPropertyReferenceManager.html#popManagedRef()" class="member-name-link">popManagedRef()</a> - Method in class io.micronaut.serde.reference.<a href="io/micronaut/serde/reference/AbstractPropertyReferenceManager.html" title="class in io.micronaut.serde.reference">AbstractPropertyReferenceManager</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/reference/PropertyReferenceManager.html#popManagedRef()" class="member-name-link">popManagedRef()</a> - Method in interface io.micronaut.serde.reference.<a href="io/micronaut/serde/reference/PropertyReferenceManager.html" title="interface in io.micronaut.serde.reference">PropertyReferenceManager</a></dt>
@@ -7898,6 +7927,8 @@ and the writer.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html#registry" class="member-name-link">registry</a> - Variable in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonTextObjectMapper</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/VirtualThreadAwareRecyclerPool.html#releasePooled(tools.jackson.core.util.BufferRecycler)" class="member-name-link">releasePooled(BufferRecycler)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/VirtualThreadAwareRecyclerPool.html" title="class in io.micronaut.serde.jackson">VirtualThreadAwareRecyclerPool</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/jackson/AwsRemapper.html#remap(io.micronaut.core.annotation.AnnotationValue,io.micronaut.inject.visitor.VisitorContext)" class="member-name-link">remap(AnnotationValue, VisitorContext)</a> - Method in class io.micronaut.serde.processor.jackson.<a href="io/micronaut/serde/processor/jackson/AwsRemapper.html" title="class in io.micronaut.serde.processor.jackson">AwsRemapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/protobuf/ProtoProperty.html#repeatedBytesField()" class="member-name-link">repeatedBytesField()</a> - Method in record class io.micronaut.serde.protobuf.<a href="io/micronaut/serde/protobuf/ProtoProperty.html" title="class in io.micronaut.serde.protobuf">ProtoProperty</a></dt>
@@ -8288,6 +8319,10 @@ as configured by <a href="io/micronaut/serde/config/SerdeConfiguration.html#getT
 </dd>
 <dt><a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.html#%3Cinit%3E()" class="member-name-link">SerdeJacksonConfiguration()</a> - Constructor for class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.html" title="class in io.micronaut.serde.jackson">SerdeJacksonConfiguration</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.RecyclerPoolType.html" class="type-name-link" title="enum class in io.micronaut.serde.jackson">SerdeJacksonConfiguration.RecyclerPoolType</a> - Enum Class in <a href="io/micronaut/serde/jackson/package-summary.html">io.micronaut.serde.jackson</a></dt>
+<dd>
+<div class="block">The pools of the buffers that Jackson parsers and generators reuse.</div>
+</dd>
 <dt><a href="io/micronaut/serde/support/bind/SerdeJsonBeanPropertyBinderExceptionHandler.html" class="type-name-link" title="class in io.micronaut.serde.support.bind">SerdeJsonBeanPropertyBinderExceptionHandler</a> - Class in <a href="io/micronaut/serde/support/bind/package-summary.html">io.micronaut.serde.support.bind</a></dt>
 <dd>
 <div class="block">Implementation of <code>JsonBeanPropertyBinderExceptionHandler</code>.</div>
@@ -8642,6 +8677,14 @@ for the serialization project.</div>
 <dd>
 <div class="block">Sets the YAML read features.</div>
 </dd>
+<dt><a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.html#setRecyclerPool(io.micronaut.serde.jackson.SerdeJacksonConfiguration.RecyclerPoolType)" class="member-name-link">setRecyclerPool(SerdeJacksonConfiguration.RecyclerPoolType)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.html" title="class in io.micronaut.serde.jackson">SerdeJacksonConfiguration</a></dt>
+<dd>
+<div class="block">The pool of the buffers that parsers and generators reuse.</div>
+</dd>
+<dt><a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.html#setRecyclerPoolSize(int)" class="member-name-link">setRecyclerPoolSize(int)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.html" title="class in io.micronaut.serde.jackson">SerdeJacksonConfiguration</a></dt>
+<dd>
+<div class="block">The capacity of a <a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.RecyclerPoolType.html#BOUNDED"><code>SerdeJacksonConfiguration.RecyclerPoolType.BOUNDED</code></a> pool.</div>
+</dd>
 <dt><a href="io/micronaut/serde/xml/XmlSerdeConfiguration.html#setRepairingNamespaces(boolean)" class="member-name-link">setRepairingNamespaces(boolean)</a> - Method in class io.micronaut.serde.xml.<a href="io/micronaut/serde/xml/XmlSerdeConfiguration.html" title="class in io.micronaut.serde.xml">XmlSerdeConfiguration</a></dt>
 <dd>
 <div class="block">Sets whether namespace repairing is enabled.</div>
@@ -8781,6 +8824,14 @@ for the serialization project.</div>
 <dt><a href="io/micronaut/serde/processor/sourcegen/SimpleSerdeShapeDecision.html#shapeKind()" class="member-name-link">shapeKind()</a> - Method in record class io.micronaut.serde.processor.sourcegen.<a href="io/micronaut/serde/processor/sourcegen/SimpleSerdeShapeDecision.html" title="class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision</a></dt>
 <dd>
 <div class="block">Returns the value of the <a href="./io/micronaut/serde/processor/sourcegen/SimpleSerdeShapeDecision.html#param-shapeKind"><code>shapeKind</code></a> record component.</div>
+</dd>
+<dt><a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.RecyclerPoolType.html#SHARED_BOUNDED" class="member-name-link">SHARED_BOUNDED</a> - Enum constant in enum class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.RecyclerPoolType.html" title="enum class in io.micronaut.serde.jackson">SerdeJacksonConfiguration.RecyclerPoolType</a></dt>
+<dd>
+<div class="block">A bounded pool shared by all JSON mappers, with the Jackson default capacity.</div>
+</dd>
+<dt><a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.RecyclerPoolType.html#SHARED_CONCURRENT_DEQUE" class="member-name-link">SHARED_CONCURRENT_DEQUE</a> - Enum constant in enum class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.RecyclerPoolType.html" title="enum class in io.micronaut.serde.jackson">SerdeJacksonConfiguration.RecyclerPoolType</a></dt>
+<dd>
+<div class="block">An unbounded pool shared by all JSON mappers.</div>
 </dd>
 <dt><a href="io/micronaut/serde/support/util/DecoderValueKind.html#SHORT" class="member-name-link">SHORT</a> - Enum constant in enum class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/DecoderValueKind.html" title="enum class in io.micronaut.serde.support.util">DecoderValueKind</a></dt>
 <dd>
@@ -9178,6 +9229,10 @@ resolved at build time.</div>
 <dt><a href="io/micronaut/serde/yaml/tck/ScalarsBean.html#text()" class="member-name-link">text()</a> - Method in record class io.micronaut.serde.yaml.tck.<a href="io/micronaut/serde/yaml/tck/ScalarsBean.html" title="class in io.micronaut.serde.yaml.tck">ScalarsBean</a></dt>
 <dd>
 <div class="block">Returns the value of the <a href="./io/micronaut/serde/yaml/tck/ScalarsBean.html#param-text"><code>text</code></a> record component.</div>
+</dd>
+<dt><a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.RecyclerPoolType.html#THREAD_LOCAL" class="member-name-link">THREAD_LOCAL</a> - Enum constant in enum class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.RecyclerPoolType.html" title="enum class in io.micronaut.serde.jackson">SerdeJacksonConfiguration.RecyclerPoolType</a></dt>
+<dd>
+<div class="block">A buffer recycler per thread, which is not reused on virtual threads.</div>
 </dd>
 <dt><a href="io/micronaut/serde/FormatConfiguration.html#timezone()" class="member-name-link">timezone()</a> - Method in record class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a></dt>
 <dd>
@@ -9844,6 +9899,10 @@ among the message's properties".</div>
 <dd>
 <div class="block">Returns the enum constant of this class with the specified name.</div>
 </dd>
+<dt><a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.RecyclerPoolType.html#valueOf(java.lang.String)" class="member-name-link">valueOf(String)</a> - Static method in enum class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.RecyclerPoolType.html" title="enum class in io.micronaut.serde.jackson">SerdeJacksonConfiguration.RecyclerPoolType</a></dt>
+<dd>
+<div class="block">Returns the enum constant of this class with the specified name.</div>
+</dd>
 <dt><a href="io/micronaut/serde/jackson/shape/EnumObjectShapeBean.Status.html#valueOf(java.lang.String)" class="member-name-link">valueOf(String)</a> - Static method in enum class io.micronaut.serde.jackson.shape.<a href="io/micronaut/serde/jackson/shape/EnumObjectShapeBean.Status.html" title="enum class in io.micronaut.serde.jackson.shape">EnumObjectShapeBean.Status</a></dt>
 <dd>
 <div class="block">Returns the enum constant of this class with the specified name.</div>
@@ -9984,6 +10043,11 @@ the order they are declared.</div>
 <div class="block">Returns an array containing the constants of this enum class, in
 the order they are declared.</div>
 </dd>
+<dt><a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.RecyclerPoolType.html#values()" class="member-name-link">values()</a> - Static method in enum class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.RecyclerPoolType.html" title="enum class in io.micronaut.serde.jackson">SerdeJacksonConfiguration.RecyclerPoolType</a></dt>
+<dd>
+<div class="block">Returns an array containing the constants of this enum class, in
+the order they are declared.</div>
+</dd>
 <dt><a href="io/micronaut/serde/jackson/shape/EnumObjectShapeBean.Status.html#values()" class="member-name-link">values()</a> - Static method in enum class io.micronaut.serde.jackson.shape.<a href="io/micronaut/serde/jackson/shape/EnumObjectShapeBean.Status.html" title="enum class in io.micronaut.serde.jackson.shape">EnumObjectShapeBean.Status</a></dt>
 <dd>
 <div class="block">Returns an array containing the constants of this enum class, in
@@ -10070,6 +10134,16 @@ the order they are declared.</div>
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#VIEWS" class="member-name-link">VIEWS</a> - Static variable in annotation interface io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig</a></dt>
 <dd>
 <div class="block">The views an element is part of.</div>
+</dd>
+<dt><a href="io/micronaut/serde/jackson/VirtualThreadAwareRecyclerPool.html" class="type-name-link" title="class in io.micronaut.serde.jackson">VirtualThreadAwareRecyclerPool</a> - Class in <a href="io/micronaut/serde/jackson/package-summary.html">io.micronaut.serde.jackson</a></dt>
+<dd>
+<div class="block">A Jackson <code>BufferRecycler</code> pool that keeps a recycler per platform thread, and shares recyclers between virtual
+threads.</div>
+</dd>
+<dt><a href="io/micronaut/serde/jackson/VirtualThreadAwareRecyclerPool.html#%3Cinit%3E()" class="member-name-link">VirtualThreadAwareRecyclerPool()</a> - Constructor for class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/VirtualThreadAwareRecyclerPool.html" title="class in io.micronaut.serde.jackson">VirtualThreadAwareRecyclerPool</a></dt>
+<dd>
+<div class="block">Creates a pool that uses <code>JsonRecyclerPools.threadLocalPool()</code> on platform threads and a new
+<code>concurrent deque pool</code> on virtual threads.</div>
 </dd>
 <dt><a href="io/micronaut/serde/processor/SerdeAnnotationVisitor.html#visitClass(io.micronaut.inject.ast.ClassElement,io.micronaut.inject.visitor.VisitorContext)" class="member-name-link">visitClass(ClassElement, VisitorContext)</a> - Method in class io.micronaut.serde.processor.<a href="io/micronaut/serde/processor/SerdeAnnotationVisitor.html" title="class in io.micronaut.serde.processor">SerdeAnnotationVisitor</a></dt>
 <dd>&nbsp;</dd>
