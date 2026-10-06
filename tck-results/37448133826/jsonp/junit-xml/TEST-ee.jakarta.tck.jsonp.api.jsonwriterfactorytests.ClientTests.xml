@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests" tests="4" skipped="0" failures="0" errors="0" timestamp="SANITIZED" hostname="SANITIZED" time="0">
+  <properties/>
+  <testcase name="jsonWriterFactoryTest1()" classname="ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests" time="0"/>
+  <testcase name="jsonWriterFactoryTest2()" classname="ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests" time="0"/>
+  <testcase name="jsonWriterFactoryTest3()" classname="ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests" time="0"/>
+  <testcase name="jsonWriterFactoryTest4()" classname="ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests" time="0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest1
+INFO: Create JsonWriterFactory with Map<String, ?> with EMPTY config
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest1
+INFO: Checking factory configuration properties
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpConfigMap
+INFO: *** Beg: Dumping Config Map contents ***
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpConfigMap
+INFO: *** End: Dumping Config Map contents ***
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util doConfigCheck
+INFO: Checking factory configuration property size
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util doConfigCheck
+INFO: Expecting no of properties=0, got=0
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest1
+INFO: --------------------------------------------------
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest1
+INFO: TEST CASE [JsonWriterFactory.createWriter(Writer)]
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest1
+INFO: --------------------------------------------------
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest1
+INFO: Create 1st JsonWriter using JsonWriterFactory
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest1
+INFO: sWriter1={}
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {}
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {}
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest1
+INFO: Create 2nd JsonWriter using JsonWriterFactory
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest1
+INFO: sWriter2={}
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {}
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {}
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest2
+INFO: Create JsonWriterFactory with Map<String, ?> with EMPTY config
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest2
+INFO: Checking factory configuration properties
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpConfigMap
+INFO: *** Beg: Dumping Config Map contents ***
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpConfigMap
+INFO: *** End: Dumping Config Map contents ***
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util doConfigCheck
+INFO: Checking factory configuration property size
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util doConfigCheck
+INFO: Expecting no of properties=0, got=0
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest2
+INFO: -----------------------------------------------------------------
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest2
+INFO: TEST CASE [JsonWriterFactory.createWriter(OutputStream, Charset)]
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest2
+INFO: -----------------------------------------------------------------
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest2
+INFO: Create 1st JsonWriter using JsonWriterFactory with UTF-8 encoding
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest2
+INFO: baos1={}
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {}
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {}
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest2
+INFO: Create 2nd JsonWriter using JsonWriterFactory with UTF-8 encoding
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest2
+INFO: baos2={}
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {}
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {}
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest3
+INFO: Create JsonWriterFactory with Map<String, ?> with EMPTY config
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest3
+INFO: Checking factory configuration properties
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpConfigMap
+INFO: *** Beg: Dumping Config Map contents ***
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpConfigMap
+INFO: *** End: Dumping Config Map contents ***
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util doConfigCheck
+INFO: Checking factory configuration property size
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util doConfigCheck
+INFO: Expecting no of properties=0, got=0
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest3
+INFO: --------------------------------------------------------
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest3
+INFO: TEST CASE [JsonWriterFactory.createWriter(OutputStream)]
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest3
+INFO: --------------------------------------------------------
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest3
+INFO: Create 1st JsonWriter using JsonWriterFactory
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest3
+INFO: baos1={}
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {}
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {}
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest3
+INFO: Create 2nd JsonWriter using JsonWriterFactory
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest3
+INFO: baos2={}
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: JSON text match
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Expected: {}
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEqualsJsonText
+INFO: Actual:   {}
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest4
+INFO: ----------------------------------------------
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest4
+INFO: Test scenario1: no supported provider property
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest4
+INFO: ----------------------------------------------
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest4
+INFO: Create JsonWriterFactory with Map<String, ?> with EMPTY config
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util getEmptyConfig
+INFO: getEmptyConfig
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpConfigMap
+INFO: *** Beg: Dumping Config Map contents ***
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpConfigMap
+INFO: *** End: Dumping Config Map contents ***
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util doConfigCheck
+INFO: Checking factory configuration property size
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util doConfigCheck
+INFO: Expecting no of properties=0, got=0
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest4
+INFO: -------------------------------------------
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest4
+INFO: Test scenario2: supported provider property
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest4
+INFO: -------------------------------------------
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest4
+INFO: Create JsonWriterFactory with Map<String, ?> with FOO config
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util getFooConfig
+INFO: getFooConfig
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util getFooConfig
+INFO: Added property: JSONP_Util.FOO_CONFIG
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpConfigMap
+INFO: *** Beg: Dumping Config Map contents ***
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpConfigMap
+INFO: *** End: Dumping Config Map contents ***
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util doConfigCheck
+INFO: Checking factory configuration property size
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util doConfigCheck
+INFO: Expecting no of properties=0, got=0
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest4
+INFO: -------------------------------------------------------------
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest4
+INFO: Test scenario3: supported and non supported provider property
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest4
+INFO: -------------------------------------------------------------
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.api.jsonwriterfactorytests.ClientTests jsonWriterFactoryTest4
+INFO: Create JsonGeneratorFactory with Map<String, ?> with all config
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util getAllConfig
+INFO: getAllConfig
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util getAllConfig
+INFO: Added property: JsonGenerator.PRETTY_PRINTING
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util getAllConfig
+INFO: Added property: JSONP_Util.FOO_CONFIG
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpConfigMap
+INFO: *** Beg: Dumping Config Map contents ***
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpConfigMap
+INFO: "jakarta.json.stream.JsonGenerator.prettyPrinting":true
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util dumpConfigMap
+INFO: *** End: Dumping Config Map contents ***
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util doConfigCheck
+INFO: Checking factory configuration property size
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util doConfigCheck
+INFO: Expecting no of properties=1, got=1
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util doConfigCheck
+INFO: Checking factory configuration property name and value
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util doConfigCheck
+INFO: Does contain key: jakarta.json.stream.JsonGenerator.prettyPrinting - expected.
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Object match
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Expected: true
+Oct 05, 2026 2:02:11 PM ee.jakarta.tck.jsonp.common.JSONP_Util assertEquals
+INFO: Actual:   true
+]]></system-err>
+</testsuite>
