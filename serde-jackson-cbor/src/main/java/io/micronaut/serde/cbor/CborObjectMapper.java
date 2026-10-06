@@ -54,7 +54,7 @@ import tools.jackson.core.StreamWriteFeature;
 import tools.jackson.core.exc.StreamReadException;
 import tools.jackson.core.util.BufferRecycler;
 import tools.jackson.core.util.ByteArrayBuilder;
-import tools.jackson.core.util.JsonRecyclerPools;
+import io.micronaut.serde.jackson.VirtualThreadAwareRecyclerPool;
 import tools.jackson.dataformat.cbor.CBORFactory;
 import tools.jackson.dataformat.cbor.CBORFactoryBuilder;
 import tools.jackson.dataformat.cbor.CBORReadFeature;
@@ -146,7 +146,7 @@ public final class CborObjectMapper implements ObjectMapper {
 
     private static CBORFactory buildCborFactory(SerdeCborConfiguration cborConfiguration) {
         CBORFactoryBuilder builder = CBORFactory.builder()
-            .recyclerPool(JsonRecyclerPools.threadLocalPool());
+            .recyclerPool(new VirtualThreadAwareRecyclerPool());
         for (Map.Entry<CBORReadFeature, Boolean> e : cborConfiguration.getCborReadFeatures().entrySet()) {
             builder = builder.configure(e.getKey(), e.getValue());
         }

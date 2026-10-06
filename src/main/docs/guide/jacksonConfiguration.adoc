@@ -10,6 +10,14 @@ The following properties are supported:
 | `boolean`
 | Write indented, human-readable JSON output. Defaults to `false`.
 
+| `micronaut.serde.jackson.recycler-pool`
+| `RecyclerPoolType`
+| The pool of the buffers that parsers and generators reuse. `DEFAULT` keeps a buffer recycler per platform thread and creates a concurrent deque pool for virtual threads, which a thread local pool would never reuse. `THREAD_LOCAL` keeps one per thread, `CONCURRENT_DEQUE` and `BOUNDED` give each JSON mapper its own unbounded or bounded pool, `SHARED_CONCURRENT_DEQUE` and `SHARED_BOUNDED` share one pool between all JSON mappers, and `NONE` disables recycling.
+
+| `micronaut.serde.jackson.recycler-pool-size`
+| `int`
+| The capacity of a `BOUNDED` recycler pool. Defaults to `100`.
+
 | `micronaut.serde.jackson.json-read-features`
 | `Map`
 | https://javadoc.io/doc/tools.jackson.core/jackson-core/latest/tools.jackson.core/tools/jackson/core/json/JsonReadFeature.html[JsonReadFeature] overrides for JSON-specific parsing behavior, such as accepting comments or single quotes.
