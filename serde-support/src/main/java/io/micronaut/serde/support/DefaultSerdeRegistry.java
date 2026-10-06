@@ -256,16 +256,12 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     @Override
     public <T, D extends Serializer<? extends T>> D findCustomSerializer(Class<? extends D> serializerClass) throws SerdeException {
         checkBeanContext();
-        // A custom serializer is written by the user
-        SpecificSerdeCache.markContextBound();
         return beanContext().findBean(serializerClass).orElseThrow(() -> new SerdeException("Cannot find serializer: " + serializerClass));
     }
 
     @Override
     public <T, D extends Deserializer<? extends T>> D findCustomDeserializer(Class<? extends D> deserializerClass) throws SerdeException {
         checkBeanContext();
-        // A custom deserializer is written by the user
-        SpecificSerdeCache.markContextBound();
         return beanContext().findBean(deserializerClass).orElseThrow(() -> new SerdeException("Cannot find deserializer: " + deserializerClass));
     }
 
@@ -287,14 +283,6 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
     @Override
     public <T> Deserializer<? extends T> findDeserializer(Argument<? extends T> type) throws SerdeException {
-        Deserializer<? extends T> deserializer = findDeserializer0(type);
-        if (SpecificSerdeCache.isTracking() && !isContextIndependent(deserializer)) {
-            SpecificSerdeCache.markContextBound();
-        }
-        return deserializer;
-    }
-
-    private <T> Deserializer<? extends T> findDeserializer0(Argument<? extends T> type) throws SerdeException {
         Objects.requireNonNull(type, "Type cannot be null");
         final TypeKey key = new TypeKey(type);
         final Deserializer<?> deserializer = deserializerMap.get(key);
@@ -342,6 +330,30 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         return (Deserializer<? extends T>) objectDeserializer;
     }
 
+    /**
+     * Whether a serde found by the registry creates its specific serdes without depending on the context: the
+     * built-in serdes and the generated serdes. A serde written by the user can keep the context, and the runtime
+     * object serdes keep the serdes of the properties in descriptions shared by every document, so neither is created
+     * with a probing context.
+     *
+     * @param serde The serde
+     * @return Whether the specific serdes do not depend on the context
+     */
+    final boolean createsContextIndependentSerdes(Object serde) {
+        return builtInSerdes.contains(serde)
+            || serde == objectArraySerde
+            || serde instanceof SpecificBeanDeserializer deserializer && deserializer.cache != null
+            || serde instanceof SpecificBeanSerializer serializer && serializer.cache != null;
+    }
+
+    /**
+     * @param deserializer The deserializer
+     * @return Whether it is the runtime object deserializer
+     */
+    final boolean isObjectDeserializer(Object deserializer) {
+        return deserializer == objectDeserializer;
+    }
+
     @Override
     public <T> Collection<BeanIntrospection<? extends T>> getDeserializableSubtypes(Class<T> superType) {
         return introspections.findSubtypeDeserializables(superType);
@@ -349,27 +361,6 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
     @Override
     public <T> Serializer<? super T> findSerializer(Argument<? extends T> type) throws SerdeException {
-        Serializer<? super T> serializer = findSerializer0(type);
-        if (SpecificSerdeCache.isTracking() && !isContextIndependent(serializer)) {
-            SpecificSerdeCache.markContextBound();
-        }
-        return serializer;
-    }
-
-    /**
-     * Whether a serde found by the registry creates specific serdes without keeping the context: the runtime object
-     * serdes, the built-in serdes and the generated serdes. A serde written by the user can keep the context.
-     */
-    private boolean isContextIndependent(Object serde) {
-        return serde == objectDeserializer
-            || serde == objectSerializer
-            || serde == objectArraySerde
-            || builtInSerdes.contains(serde)
-            || serde instanceof SpecificBeanDeserializer deserializer && deserializer.cache != null
-            || serde instanceof SpecificBeanSerializer serializer && serializer.cache != null;
-    }
-
-    private <T> Serializer<? super T> findSerializer0(Argument<? extends T> type) throws SerdeException {
         Objects.requireNonNull(type, "Type cannot be null");
         final TypeKey key = new TypeKey(type);
         SerializerWrapper wrapper = serializerMap.get(key);
@@ -684,6 +675,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public Serializer<Object> createSpecific(Serializer.EncoderContext context,
                                                  Argument<? extends Object> type) throws SerdeException {
             SpecificSerdeCache<Serializer<Object>> specificSerializers = cache;
@@ -692,20 +684,29 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                 || !encoderContext.createsSpecificSerdesOf(DefaultSerdeRegistry.this)) {
                 return create(context, type);
             }
-            Serializer<Object> serializer = specificSerializers.get(type);
-            if (serializer != null) {
-                return serializer;
+            Object kept = specificSerializers.get(type);
+            if (kept != null) {
+                if (SpecificSerdeCache.isBound(kept)) {
+                    return create(context, type);
+                }
+                return (Serializer<Object>) kept;
             }
-            boolean enclosingBound = SpecificSerdeCache.beginCreation();
-            boolean bound;
+            DefaultEncoderContext probingContext = DefaultEncoderContext.probing(DefaultSerdeRegistry.this);
+            Serializer<Object> serializer;
             try {
-                serializer = create(context, type);
-            } finally {
-                bound = SpecificSerdeCache.endCreation(enclosingBound);
+                serializer = create(probingContext, type);
+            } catch (RuntimeException | SerdeException ignored) {
+                if (probingContext.isBound()) {
+                    specificSerializers.putBound(type);
+                }
+                // Created with the context of the document, which reports the error of the creation, if any
+                return create(context, type);
             }
-            if (!bound) {
-                specificSerializers.put(type, serializer);
+            if (probingContext.isBound()) {
+                specificSerializers.putBound(type);
+                return create(context, type);
             }
+            specificSerializers.put(type, serializer);
             return serializer;
         }
 
@@ -745,6 +746,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public Deserializer<Object> createSpecific(Deserializer.DecoderContext context,
                                                    Argument<? super Object> type) throws SerdeException {
             SpecificSerdeCache<Deserializer<Object>> specificDeserializers = cache;
@@ -753,20 +755,29 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                 || !decoderContext.createsSpecificSerdesOf(DefaultSerdeRegistry.this)) {
                 return create(context, type);
             }
-            Deserializer<Object> deserializer = specificDeserializers.get(type);
-            if (deserializer != null) {
-                return deserializer;
+            Object kept = specificDeserializers.get(type);
+            if (kept != null) {
+                if (SpecificSerdeCache.isBound(kept)) {
+                    return create(context, type);
+                }
+                return (Deserializer<Object>) kept;
             }
-            boolean enclosingBound = SpecificSerdeCache.beginCreation();
-            boolean bound;
+            DefaultDecoderContext probingContext = DefaultDecoderContext.probing(DefaultSerdeRegistry.this);
+            Deserializer<Object> deserializer;
             try {
-                deserializer = create(context, type);
-            } finally {
-                bound = SpecificSerdeCache.endCreation(enclosingBound);
+                deserializer = create(probingContext, type);
+            } catch (RuntimeException | SerdeException ignored) {
+                if (probingContext.isBound()) {
+                    specificDeserializers.putBound(type);
+                }
+                // Created with the context of the document, which reports the error of the creation, if any
+                return create(context, type);
             }
-            if (!bound) {
-                specificDeserializers.put(type, deserializer);
+            if (probingContext.isBound()) {
+                specificDeserializers.putBound(type);
+                return create(context, type);
             }
+            specificDeserializers.put(type, deserializer);
             return deserializer;
         }
 

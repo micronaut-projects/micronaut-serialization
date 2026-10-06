@@ -3,8 +3,10 @@ package io.micronaut.serde.jackson.specific
 import io.micronaut.context.ApplicationContext
 import io.micronaut.core.type.Argument
 import io.micronaut.inject.annotation.MutableAnnotationMetadata
+import io.micronaut.serde.Deserializer
 import io.micronaut.serde.ObjectMapper
 import io.micronaut.serde.SerdeRegistry
+import io.micronaut.serde.Serializer
 import io.micronaut.serde.jackson.compiletime.SourceGenGeneratedShape
 import spock.lang.Specification
 
@@ -82,6 +84,14 @@ class SpecificSerdeBeanSpec extends Specification {
         firstSerializer.class.simpleName == 'SerdeSecretHolderSerializer'
         !firstSerializer.is(secondSerializer)
 
+        and: 'the specific serde is recorded as bound to the context, so later documents do not probe it again'
+        def kept = registry.findDeserializer(argument).@cache.get(argument)
+        kept != null
+        !(kept instanceof Deserializer)
+        def keptSerializer = registry.findSerializer(argument).@cache.get(argument)
+        keptSerializer != null
+        !(keptSerializer instanceof Serializer)
+
         cleanup:
         context.close()
     }
@@ -109,7 +119,7 @@ class SpecificSerdeBeanSpec extends Specification {
         context.close()
     }
 
-    void "identities do not leak between documents read with a reused specific serde"() {
+    void "a generated serde with a property deserialized by the runtime object deserializer is created for every document"() {
         given:
         ApplicationContext context = ApplicationContext.run()
         ObjectMapper objectMapper = context.getBean(ObjectMapper)
@@ -124,7 +134,8 @@ class SpecificSerdeBeanSpec extends Specification {
 
         then:
         first.class.simpleName == 'SerdeIdentityGroupHolderDeserializer'
-        first.is(second)
+        // The runtime object deserializer keeps the property deserializers in descriptions shared by every document
+        !first.is(second)
         holder.group().manager.is(holder.group().owner)
         holder.group().owner.name == 'Ada'
         again.group().manager.is(again.group().owner)
@@ -141,7 +152,7 @@ class SpecificSerdeBeanSpec extends Specification {
         context.close()
     }
 
-    void "the creations of specific serdes are tracked per thread when a context is shared between threads"() {
+    void "a context shared between threads never reuses a specific serde bound to the context"() {
         given:
         ApplicationContext context = ApplicationContext.run()
         SerdeRegistry registry = context.getBean(SerdeRegistry)

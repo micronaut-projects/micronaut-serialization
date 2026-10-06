@@ -54,8 +54,40 @@ class DefaultDecoderContext extends AbstractPropertyReferenceManager implements 
     @Nullable
     private Map<String, List<PendingDocumentIdReference>> pendingDocumentIds;
 
+    /**
+     * Whether this context is the context of one creation of a specific serde, which records whether the serde
+     * depends on it instead of creating the serdes bound to a context.
+     */
+    private final boolean probing;
+    private boolean bound;
+
     DefaultDecoderContext(DefaultSerdeRegistry registry) {
+        this(registry, false);
+    }
+
+    private DefaultDecoderContext(DefaultSerdeRegistry registry, boolean probing) {
         this.registry = registry;
+        this.probing = probing;
+    }
+
+    /**
+     * Creates the context of one creation of a specific serde, which finds out whether the specific serde depends on
+     * the context it is created with. A serde that the registry does not know to create its specific serdes
+     * independently of the context is not created with it: it binds the creation to the context and a placeholder is
+     * returned instead, so the specific serde created with this context is only kept when it is not bound.
+     *
+     * @param registry The registry
+     * @return The context
+     */
+    static DefaultDecoderContext probing(DefaultSerdeRegistry registry) {
+        return new DefaultDecoderContext(registry, true);
+    }
+
+    /**
+     * @return Whether a specific serde created with this probing context is bound to the context
+     */
+    final boolean isBound() {
+        return bound;
     }
 
     /**
@@ -71,7 +103,9 @@ class DefaultDecoderContext extends AbstractPropertyReferenceManager implements 
 
     @Override
     public final void markContextBound() {
-        SpecificSerdeCache.markContextBound();
+        if (probing) {
+            bound = true;
+        }
     }
 
     @Override
@@ -82,12 +116,27 @@ class DefaultDecoderContext extends AbstractPropertyReferenceManager implements 
     @Override
     public final <T, D extends Deserializer<? extends T>> D findCustomDeserializer(Class<? extends D> deserializerClass)
             throws SerdeException {
+        if (probing) {
+            // A custom serde is written by the user
+            bound = true;
+            throw SpecificSerdeCache.BoundToContextException.INSTANCE;
+        }
         return registry.findCustomDeserializer(deserializerClass);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public final <T> Deserializer<? extends T> findDeserializer(Argument<? extends T> type) throws SerdeException {
-        return registry.findDeserializer(type);
+        Deserializer<? extends T> deserializer = registry.findDeserializer(type);
+        if (probing && !registry.createsContextIndependentSerdes(deserializer)) {
+            if (registry.isObjectDeserializer(deserializer)) {
+                // The object deserializer is also found to create the specific deserializer of another type
+                return (Deserializer<? extends T>) SpecificSerdeCache.probingObjectDeserializer((Deserializer<Object>) deserializer);
+            }
+            bound = true;
+            return SpecificSerdeCache.boundDeserializer();
+        }
+        return deserializer;
     }
 
     @Override

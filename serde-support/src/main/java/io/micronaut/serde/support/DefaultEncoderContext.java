@@ -45,8 +45,40 @@ class DefaultEncoderContext extends AbstractPropertyReferenceManager implements 
     @Nullable
     private IdentityHashMap<Object, Object> writtenBeans;
 
+    /**
+     * Whether this context is the context of one creation of a specific serde, which records whether the serde
+     * depends on it instead of creating the serdes bound to a context.
+     */
+    private final boolean probing;
+    private boolean bound;
+
     DefaultEncoderContext(DefaultSerdeRegistry registry) {
+        this(registry, false);
+    }
+
+    private DefaultEncoderContext(DefaultSerdeRegistry registry, boolean probing) {
         this.registry = registry;
+        this.probing = probing;
+    }
+
+    /**
+     * Creates the context of one creation of a specific serde, which finds out whether the specific serde depends on
+     * the context it is created with. A serde that the registry does not know to create its specific serdes
+     * independently of the context is not created with it: it binds the creation to the context and a placeholder is
+     * returned instead, so the specific serde created with this context is only kept when it is not bound.
+     *
+     * @param registry The registry
+     * @return The context
+     */
+    static DefaultEncoderContext probing(DefaultSerdeRegistry registry) {
+        return new DefaultEncoderContext(registry, true);
+    }
+
+    /**
+     * @return Whether a specific serde created with this probing context is bound to the context
+     */
+    final boolean isBound() {
+        return bound;
     }
 
     /**
@@ -62,7 +94,9 @@ class DefaultEncoderContext extends AbstractPropertyReferenceManager implements 
 
     @Override
     public final void markContextBound() {
-        SpecificSerdeCache.markContextBound();
+        if (probing) {
+            bound = true;
+        }
     }
 
     @Override
@@ -73,12 +107,22 @@ class DefaultEncoderContext extends AbstractPropertyReferenceManager implements 
     @Override
     public final <T, D extends Serializer<? extends T>> D findCustomSerializer(Class<? extends D> serializerClass)
             throws SerdeException {
+        if (probing) {
+            // A custom serde is written by the user
+            bound = true;
+            throw SpecificSerdeCache.BoundToContextException.INSTANCE;
+        }
         return registry.findCustomSerializer(serializerClass);
     }
 
     @Override
     public final <T> Serializer<? super T> findSerializer(Argument<? extends T> forType) throws SerdeException {
-        return registry.findSerializer(forType);
+        Serializer<? super T> serializer = registry.findSerializer(forType);
+        if (probing && !registry.createsContextIndependentSerdes(serializer)) {
+            bound = true;
+            return SpecificSerdeCache.boundSerializer();
+        }
+        return serializer;
     }
 
     @Override
