@@ -1,0 +1,72 @@
+Micronaut Serialization includes support for reading and writing https://github.com/toon-format/spec[TOON] (Token-Oriented Object Notation) documents with the `micronaut-serde-toon` module.
+
+Add the following artifact to the `dependencies` block:
+
+dependency:micronaut-serde-toon[groupId="io.micronaut.serde",scope="implementation"]
+
+NOTE: The TOON mapper is tree-based: it reads the whole document into a `JsonNode` before deserializing, unlike the streaming YAML and JSON mappers.
+
+The TOON mapper is exposed as a named api:serde.ObjectMapper[] bean. Inject it with the `toon` qualifier, or by its concrete type api:serde.toon.ToonMapper[], when you want to read or write TOON data:
+
+snippet::example.ToonReportService[project-base="doc-examples/example-toon", source="main"]
+
+With the correct dependencies in place, define a serializable type:
+
+snippet::example.ToonLibrary[project-base="doc-examples/example-toon", source="main"]
+
+Once you have a type annotated with ann:serde.annotation.Serdeable[], the mapper serializes objects into compact, human-readable TOON format:
+
+[source,text]
+----
+name: City Library
+books[2]:
+  - title: The Stand
+    authors[1]: Stephen King
+  - title: VALIS
+    authors[1]: Philip K. Dick
+----
+
+The following executable example writes and reads this model:
+
+snippet::example.ToonQuickStartTest[project-base="doc-examples/example-toon"]
+
+== Tabular Representation
+
+Uniform collections and maps are serialized using TOON's tabular representations, minimizing token overhead:
+
+[source,text]
+----
+items[2]{id,name,price}:
+  1,Widget,9.99
+  2,Gadget,19.99
+----
+
+Keyed tabular objects are also supported for uniform map structures:
+
+[source,text]
+----
+users[2:]{age,role}:
+  alice: 30,admin
+  bob: 25,user
+----
+
+== Configuration
+
+TOON formatting is configured under `micronaut.serde.format.toon`:
+
+[configuration]
+----
+micronaut:
+  serde:
+    format:
+      toon:
+        delimiter: COMMA
+        indent: 2
+----
+
+`delimiter`:: Selects the delimiter for array and tabular rows. Supported options are `COMMA` (default), `TAB`, and `PIPE`.
+`indent`:: Number of spaces per indentation level. The default is 2.
+
+== Security and Limits
+
+TOON parsing respects `micronaut.serde.maximum-nesting-depth` to guard against stack exhaustion from maliciously deep input structures.
