@@ -1258,10 +1258,16 @@ public final class RecordDeserializerSourceGen {
         );
     }
 
+    /**
+     * Whether an absent component fails the strict nullable check. A component initialized with a
+     * non-null default when it is absent (an empty optional or collection) is not checked, matching the
+     * runtime deserializer, which supplies the same default before checking the constructor arguments.
+     */
     private boolean requiresStrictNullableCheck(RecordSerdeShape.RecordComponent component) {
         return component.nonNull()
             && !component.nullable()
-            && (!component.type().isPrimitive() || component.type().isArray());
+            && (!component.type().isPrimitive() || component.type().isArray())
+            && !RecordSerdeSourceGenUtils.hasNonNullDefaultValue(component.type());
     }
 
     private boolean requiresStrictNullableCheck(RecordSerdeShape recordSerdeShape) {
