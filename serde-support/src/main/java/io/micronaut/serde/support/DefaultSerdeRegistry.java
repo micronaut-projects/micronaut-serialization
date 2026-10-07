@@ -49,6 +49,7 @@ import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.SerializationConfiguration;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.deserializers.ObjectDeserializer;
@@ -61,6 +62,7 @@ import io.micronaut.serde.support.serializers.ObjectSerializer;
 import io.micronaut.serde.support.util.TypeKey;
 import io.micronaut.serde.util.CustomizableDeserializer;
 import io.micronaut.serde.util.CustomizableSerializer;
+import io.micronaut.serde.util.SpecificSerdeTracker;
 import jakarta.inject.Singleton;
 import org.jspecify.annotations.Nullable;
 
@@ -304,7 +306,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             if (deserBeanDefinition instanceof InternalSerdeBeanDefinition<?> internalSerdeBeanDefinition) {
                 deser = (Deserializer<?>) internalSerdeBeanDefinition.value;
             } else if (createSpecificDeserializerConstructor(deserBeanDefinition)) {
-                deser = new SpecificBeanDeserializer(specificBeanFactory(deserBeanDefinition));
+                deser = new SpecificBeanDeserializer(specificBeanFactory(deserBeanDefinition, Deserializer.class, SerdeConfig.SOURCEGEN_DESERIALIZER_CLASS));
             } else {
                 deser = beanContext.getBean(deserBeanDefinition);
             }
@@ -355,7 +357,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             if (serializerBeanDefinition instanceof InternalSerdeBeanDefinition<?> internalSerdeBeanDefinition) {
                 ser = (Serializer<?>) internalSerdeBeanDefinition.value;
             } else if (createSpecificSerializerConstructor(serializerBeanDefinition)) {
-                ser = new SpecificBeanSerializer(specificBeanFactory(serializerBeanDefinition));
+                ser = new SpecificBeanSerializer(specificBeanFactory(serializerBeanDefinition, Serializer.class, SerdeConfig.SOURCEGEN_SERIALIZER_CLASS));
             } else {
                 ser = beanContext.getBean(serializerBeanDefinition);
             }
@@ -424,7 +426,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
      * The factory of a serde bean created with the context and the type, from the definition the registry has already
      * selected.
      */
-    private <T> SpecificBeanFactory<T> specificBeanFactory(BeanDefinition<T> beanDefinition) {
+    private <T> SpecificBeanFactory<T> specificBeanFactory(BeanDefinition<T> beanDefinition, Class<T> serdeType, String generatedClassMember) {
         ParametrizedInstantiatableBeanDefinition<T> parametrizedBeanDefinition = (ParametrizedInstantiatableBeanDefinition<T>) beanDefinition;
         Argument<Object>[] arguments = parametrizedBeanDefinition.getRequiredArguments();
         // The bean context also resolves the beans a definition depends on, the interceptors of a proxy and the
@@ -432,7 +434,25 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         boolean createdByDefinition = !beanDefinition.isProxy()
             && !beanDefinition.hasAnnotation(DependsOn.class)
             && !hasBeanCreatedEventListener(beanDefinition.getBeanType());
-        return new SpecificBeanFactory<>(beanContext, parametrizedBeanDefinition, arguments[0].getName(), arguments[1].getName(), createdByDefinition);
+        // A generated serde does not keep the context it is created with, so its specific serde can be reused for
+        // later documents. Any other bean created with the context is created for the context of each document.
+        boolean reusable = createdByDefinition && isGeneratedSerde(beanDefinition, serdeType, generatedClassMember);
+        return new SpecificBeanFactory<>(beanContext, parametrizedBeanDefinition, arguments[0].getName(), arguments[1].getName(), createdByDefinition, reusable);
+    }
+
+    /**
+     * Whether the definition is the serde that the serde processor generated for the type it declares, which the
+     * processor records in the metadata of the type.
+     */
+    private boolean isGeneratedSerde(BeanDefinition<?> beanDefinition, Class<?> serdeType, String generatedClassMember) {
+        List<Argument<?>> typeArguments = beanDefinition.getTypeArguments(serdeType);
+        if (typeArguments.isEmpty()) {
+            return false;
+        }
+        return introspections.getBeanIntrospector().findIntrospection(typeArguments.get(0).getType())
+            .flatMap(introspection -> introspection.stringValue(SerdeConfig.class, generatedClassMember))
+            .filter(generatedClass -> generatedClass.equals(beanDefinition.getBeanType().getName()))
+            .isPresent();
     }
 
     private boolean hasBeanCreatedEventListener(Class<?> beanType) {
@@ -576,15 +596,21 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
      * @param contextName         The name of the context argument
      * @param typeName            The name of the type argument
      * @param createdByDefinition Whether the bean is created from the definition, otherwise by the bean context
+     * @param reusable            Whether the specific serdes of the bean can be reused for later documents
      * @param <T>                 The serde type
      */
     private record SpecificBeanFactory<T>(BeanContext beanContext,
                                           ParametrizedInstantiatableBeanDefinition<T> beanDefinition,
                                           String contextName,
                                           String typeName,
-                                          boolean createdByDefinition) {
+                                          boolean createdByDefinition,
+                                          boolean reusable) {
 
         T create(Object context, Argument<?> type) {
+            if (!reusable) {
+                // The bean is created for this context: whatever is created with the context is not reused
+                SpecificSerdeTracker.markContextBound(context);
+            }
             if (!createdByDefinition) {
                 return beanContext.createBean(beanDefinition.getBeanType(), context, type);
             }
@@ -602,13 +628,43 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
     }
 
-    private record SpecificBeanSerializer(SpecificBeanFactory<Serializer> factory)
-        implements CustomizableSerializer<Object>, FormattedSerializer<Object> {
+    /**
+     * The serializer of a serde bean created with the context and the type. The specific serializers of a generated
+     * serde are kept for later documents when their creation did not bind them to the context of the document.
+     */
+    private final class SpecificBeanSerializer implements CustomizableSerializer<Object>, FormattedSerializer<Object> {
+
+        private final SpecificBeanFactory<Serializer> factory;
+        @Nullable
+        private final SpecificSerdeCache<Serializer<Object>> cache;
+
+        private SpecificBeanSerializer(SpecificBeanFactory<Serializer> factory) {
+            this.factory = factory;
+            this.cache = factory.reusable() ? new SpecificSerdeCache<>() : null;
+        }
 
         @Override
-        @SuppressWarnings({"unchecked", "rawtypes"})
         public Serializer<Object> createSpecific(Serializer.EncoderContext context,
                                                  Argument<? extends Object> type) throws SerdeException {
+            SpecificSerdeCache<Serializer<Object>> specificSerializers = cache;
+            if (specificSerializers == null
+                || !(context instanceof DefaultEncoderContext encoderContext)
+                || !encoderContext.isPlainContextOf(DefaultSerdeRegistry.this)) {
+                return create(context, type);
+            }
+            Serializer<Object> serializer = specificSerializers.get(type);
+            if (serializer == null) {
+                int boundMarks = encoderContext.boundMarks();
+                serializer = create(context, type);
+                if (encoderContext.boundMarks() == boundMarks) {
+                    specificSerializers.put(type, serializer);
+                }
+            }
+            return serializer;
+        }
+
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        private Serializer<Object> create(Serializer.EncoderContext context, Argument<? extends Object> type) throws SerdeException {
             Serializer serializer = factory.create(context, type);
             return serializer.createSpecific(context, type);
         }
@@ -626,13 +682,44 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
     }
 
-    private record SpecificBeanDeserializer(SpecificBeanFactory<Deserializer> factory)
-        implements CustomizableDeserializer<Object>, FormattedDeserializer<Object> {
+    /**
+     * The deserializer of a serde bean created with the context and the type. The specific deserializers of a
+     * generated serde are kept for later documents when their creation did not bind them to the context of the
+     * document.
+     */
+    private final class SpecificBeanDeserializer implements CustomizableDeserializer<Object>, FormattedDeserializer<Object> {
+
+        private final SpecificBeanFactory<Deserializer> factory;
+        @Nullable
+        private final SpecificSerdeCache<Deserializer<Object>> cache;
+
+        private SpecificBeanDeserializer(SpecificBeanFactory<Deserializer> factory) {
+            this.factory = factory;
+            this.cache = factory.reusable() ? new SpecificSerdeCache<>() : null;
+        }
 
         @Override
-        @SuppressWarnings({"unchecked", "rawtypes"})
         public Deserializer<Object> createSpecific(Deserializer.DecoderContext context,
                                                    Argument<? super Object> type) throws SerdeException {
+            SpecificSerdeCache<Deserializer<Object>> specificDeserializers = cache;
+            if (specificDeserializers == null
+                || !(context instanceof DefaultDecoderContext decoderContext)
+                || !decoderContext.isPlainContextOf(DefaultSerdeRegistry.this)) {
+                return create(context, type);
+            }
+            Deserializer<Object> deserializer = specificDeserializers.get(type);
+            if (deserializer == null) {
+                int boundMarks = decoderContext.boundMarks();
+                deserializer = create(context, type);
+                if (decoderContext.boundMarks() == boundMarks) {
+                    specificDeserializers.put(type, deserializer);
+                }
+            }
+            return deserializer;
+        }
+
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        private Deserializer<Object> create(Deserializer.DecoderContext context, Argument<? super Object> type) throws SerdeException {
             Deserializer deserializer = factory.create(context, type);
             return deserializer.createSpecific(context, type);
         }
