@@ -29,7 +29,7 @@ class SerdeRegistryWatchSpec extends Specification {
         given:
         ApplicationContext context = ApplicationContext.builder()
             .properties('micronaut.dev.enabled': true)
-            .trackBeanDependencies(true)
+            .beanDependencyTrackingEnabled(true)
             .start()
         SerdeRegistry registry = context.getBean(SerdeRegistry)
         ObjectMapper mapper = context.getBean(ObjectMapper)
@@ -62,7 +62,7 @@ class SerdeRegistryWatchSpec extends Specification {
         given:
         ApplicationContext context = ApplicationContext.builder()
             .properties('micronaut.dev.enabled': true)
-            .trackBeanDependencies(false)
+            .beanDependencyTrackingEnabled(false)
             .start()
         SerdeRegistry registry = context.getBean(SerdeRegistry)
         ObjectMapper mapper = context.getBean(ObjectMapper)
@@ -86,7 +86,7 @@ class SerdeRegistryWatchSpec extends Specification {
         given:
         ApplicationContext context = ApplicationContext.builder()
             .properties('micronaut.dev.enabled': true, 'serde.watch.holder': true)
-            .trackBeanDependencies(true)
+            .beanDependencyTrackingEnabled(true)
             .start()
         Argument<WatchedValue> type = Argument.of(WatchedValue)
         MapperHolder holder = context.getBean(MapperHolder)
@@ -115,7 +115,7 @@ class SerdeRegistryWatchSpec extends Specification {
         given:
         ApplicationContext context = ApplicationContext.builder()
             .properties('micronaut.dev.enabled': true)
-            .trackBeanDependencies(true)
+            .beanDependencyTrackingEnabled(true)
             .start()
         SerdeRegistry registry = context.getBean(SerdeRegistry)
 
@@ -172,7 +172,7 @@ class SerdeRegistryWatchSpec extends Specification {
     }
 
     private static ClassChangeEvent classChange(Set<ClassLoader> retired, List<ClassChange> changes, ReloadStrategy strategy) {
-        return new ClassChangeEvent(SerdeRegistryWatchSpec, 1, retired, WatchedValue.classLoader, changes, strategy)
+        return new ClassChangeEvent(SerdeRegistryWatchSpec, retired, WatchedValue.classLoader, changes, strategy)
     }
 
     private static PointSerde register(ApplicationContext context) {
