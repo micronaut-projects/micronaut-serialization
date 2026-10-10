@@ -15,6 +15,8 @@ import io.micronaut.serde.ObjectMapper
 import io.micronaut.serde.Serde
 import io.micronaut.serde.SerdeRegistry
 import io.micronaut.serde.Serializer
+import io.micronaut.serde.support.watch.CloneHolder
+import io.micronaut.serde.support.watch.LazyCloneHolder
 import io.micronaut.serde.support.watch.MapperHolder
 import io.micronaut.serde.support.watch.WatchedValue
 import spock.lang.Specification
@@ -109,6 +111,53 @@ class SerdeRegistryWatchSpec extends Specification {
 
         cleanup:
         context.close()
+    }
+
+    void "a bean holding a mapper cloned with cloneWithConfiguration serializes with the new serdes after a reload, whether it received the mapper or a provider of it"() {
+        given:
+        ApplicationContext context = ApplicationContext.builder()
+            .properties('micronaut.dev.enabled': true, 'serde.watch.clone-holder': true)
+            .beanDependencyTrackingEnabled(true)
+            .start()
+        Argument<WatchedValue> type = Argument.of(WatchedValue)
+        CloneHolder holder = context.getBean(CloneHolder)
+        LazyCloneHolder lazyHolder = context.getBean(LazyCloneHolder)
+
+        expect:
+        json(holder.clone, type) == '{"name":"a"}'
+        json(lazyHolder.clone, type) == '{"name":"a"}'
+
+        when: 'the serializable class is changed in place'
+        context.publishEvent(classChange([] as Set, [new ClassChange(WatchedValue.name, ClassChange.Kind.MODIFIED)], ReloadStrategy.RELOAD))
+        CloneHolder afterChange = context.getBean(CloneHolder)
+        LazyCloneHolder lazyAfterChange = context.getBean(LazyCloneHolder)
+
+        then: 'both holders were recreated, so that their clones are made from the new registry'
+        !afterChange.is(holder)
+        !lazyAfterChange.is(lazyHolder)
+        json(afterChange.clone, type) == '{"name":"a"}'
+        json(lazyAfterChange.clone, type) == '{"name":"a"}'
+
+        when: 'a serializer that takes precedence over the generated one is registered'
+        Serializer<WatchedValue> serializer = { encoder, ctx, t, value -> encoder.encodeString("custom") } as Serializer<WatchedValue>
+        context.registerBeanDefinition(RuntimeBeanDefinition.builder(Serializer, (Supplier<Serializer>) { serializer })
+            .typeArguments(type)
+            .qualifier(PrimaryQualifier.INSTANCE)
+            .build())
+
+        then: 'the clones of the recreated holders use it'
+        json(context.getBean(CloneHolder).clone, type) == '"custom"'
+        json(context.getBean(LazyCloneHolder).clone, type) == '"custom"'
+
+        and: 'a clone the retired holder made keeps the registry it was made from: nothing on its path changed'
+        json(lazyAfterChange.clone, type) == '{"name":"a"}'
+
+        cleanup:
+        context.close()
+    }
+
+    private static String json(ObjectMapper mapper, Argument<WatchedValue> type) {
+        return new String(mapper.writeValueAsBytes(type, new WatchedValue("a")))
     }
 
     void "a class change applied in place that retires a loader rebuilds the registry, and a restart or an unrelated redefinition does not"() {
