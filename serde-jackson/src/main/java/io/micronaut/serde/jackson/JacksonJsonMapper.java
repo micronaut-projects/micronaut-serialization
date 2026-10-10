@@ -19,6 +19,7 @@ import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.Primary;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.io.buffer.ByteBuffer;
+import io.micronaut.core.io.buffer.ReadBuffer;
 import io.micronaut.core.type.Argument;
 import io.micronaut.jackson.core.parser.JacksonCoreParserFactory;
 import io.micronaut.jackson.core.parser.JacksonCoreProcessor;
@@ -68,7 +69,9 @@ import tools.jackson.core.util.DefaultPrettyPrinter;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.io.OutputStream;
+import java.util.Optional;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -317,6 +320,30 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
     public <T> @Nullable T readValue(byte[] byteArray, Argument<T> type) throws IOException {
         try (JsonParser parser = jsonFactory.createParser(byteArray)) {
             return readValue(parser, type);
+        } catch (StreamReadException pe) {
+            throw new JsonSyntaxException(pe);
+        }
+    }
+
+    @Override
+    public <T> @Nullable T readValue(ReadBuffer readBuffer, Argument<T> type) throws IOException {
+        try {
+            Optional<T> direct = readBuffer.useFastHeapBuffer(buffer -> {
+                try (JsonParser parser = jsonFactory.createParser(buffer.array(),
+                    buffer.arrayOffset() + buffer.position(), buffer.remaining())) {
+                    return Optional.ofNullable(readValue(parser, type));
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            });
+            if (direct != null) {
+                return direct.orElse(null);
+            }
+            try (InputStream stream = readBuffer.toInputStream()) {
+                return readValue(stream, type);
+            }
+        } catch (UncheckedIOException e) {
+            throw e.getCause();
         } catch (StreamReadException pe) {
             throw new JsonSyntaxException(pe);
         }
