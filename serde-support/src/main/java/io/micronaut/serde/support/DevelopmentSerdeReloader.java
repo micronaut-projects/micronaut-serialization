@@ -71,23 +71,23 @@ final class DevelopmentSerdeReloader {
         this.beanContext = beanContext;
         if (beanContext instanceof WatchableBeanContext watchable) {
             // the first batch is what the registry was, or will be, built from: only what changes after it matters
-            watchable.watchDefinitions(Serializer.class, null, change -> {
+            watchable.definitions(Serializer.class).watch(change -> {
                 if (!change.initial()) {
                     rebuild("serializer definitions changed");
                 }
             });
-            watchable.watchDefinitions(Deserializer.class, null, change -> {
+            watchable.definitions(Deserializer.class).watch(change -> {
                 if (!change.initial()) {
                     rebuild("deserializer definitions changed");
                 }
             });
             // the registry decides at creation whether generated deserializers stand down for the callback
-            watchable.watchDefinitions(SerdeDeserializationPreInstantiateCallback.class, null, change -> {
+            watchable.definitions(SerdeDeserializationPreInstantiateCallback.class).watch(change -> {
                 if (!change.initial()) {
                     rebuild("deserialization pre-instantiate callback changed");
                 }
             });
-            watchable.watchClassChanges(change -> {
+            watchable.classChanges().watch(change -> {
                 if (affectsSerdes(change)) {
                     rebuild("serializable classes changed");
                 }
