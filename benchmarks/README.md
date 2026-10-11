@@ -93,6 +93,18 @@ the default JMH includes list.
 ./gradlew :micronaut-benchmarks:jmh -Pjmh.includes='.*CborBenchmark.*' -Pjmh.forks=1
 ```
 
+## java-json-benchmark comparison (external harness)
+
+Micronaut Serde (`3.3.0-SNAPSHOT`) was run inside the
+[java-json-benchmark](https://github.com/fabienrenaud/java-json-benchmark) harness against 9 other JSON
+libraries, on the `Users` model at 1 KB, databind API. The harness is not vendored here. The patch that adds
+the Micronaut library, the raw JMH output, the full result tables, and the exact commands and environment are in
+[`java-json-benchmark/`](java-json-benchmark/README.md).
+
+Headline (ops/s, higher is better): Micronaut deserializes at 1,127,372 ops/s, about 1.6× Jackson Databind
+(698,801 ops/s). Serialization is 1,077,938 ops/s, roughly on par with Jackson Databind (1,202,440 ops/s). Fory JSON
+and fastjson2 are fastest in both directions. Single run on a 4-vCPU VM, not comparable with the upstream EC2 numbers.
+
 ## Run
 
 From repository root:

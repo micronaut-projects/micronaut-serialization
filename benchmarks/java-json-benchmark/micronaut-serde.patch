@@ -1,0 +1,227 @@
+diff --git a/build.gradle b/build.gradle
+index 487b049..c554622 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -112,6 +112,13 @@ dependencies {
+     // djomo
+     implementation 'com.bigcloud.djomo:djomo:0.9.4'
+ 
++    // Micronaut Serde (3.3.0-SNAPSHOT built from micronaut-serialization, see mavenLocal)
++    implementation 'io.micronaut:micronaut-inject:5.2.13'
++    implementation 'io.micronaut.serde:micronaut-serde-jackson:3.3.0-SNAPSHOT'
++    implementation 'io.micronaut.serde:micronaut-serde-support:3.3.0-SNAPSHOT'
++    annotationProcessor 'io.micronaut.serde:micronaut-serde-processor:3.3.0-SNAPSHOT'
++    annotationProcessor 'io.micronaut:micronaut-inject-java:5.2.13'
++
+     // Test
+     testImplementation 'junit:junit:4.13.2'
+ 
+diff --git a/src/main/java/com/github/fabienrenaud/jjb/JsonBench.java b/src/main/java/com/github/fabienrenaud/jjb/JsonBench.java
+index 0ac12a7..b3118ce 100644
+--- a/src/main/java/com/github/fabienrenaud/jjb/JsonBench.java
++++ b/src/main/java/com/github/fabienrenaud/jjb/JsonBench.java
+@@ -156,4 +156,8 @@ public abstract class JsonBench {
+     public Object djomo() throws Exception {
+         return null;
+     }
++
++    public Object micronaut() throws Exception {
++        return null;
++    }
+ }
+diff --git a/src/main/java/com/github/fabienrenaud/jjb/databind/Deserialization.java b/src/main/java/com/github/fabienrenaud/jjb/databind/Deserialization.java
+index e4ce68e..8aa0dc7 100644
+--- a/src/main/java/com/github/fabienrenaud/jjb/databind/Deserialization.java
++++ b/src/main/java/com/github/fabienrenaud/jjb/databind/Deserialization.java
+@@ -169,6 +169,12 @@ public class Deserialization extends JsonBench {
+         return JSON_SOURCE().provider().djomo().fromString(JSON_SOURCE().nextString(), JSON_SOURCE().pojoType());
+     }
+ 
++    @Benchmark
++    @Override
++    public Object micronaut() throws Exception {
++        return JSON_SOURCE().provider().micronaut().read(JSON_SOURCE().nextByteArray());
++    }
++
+     @Benchmark
+     @Override
+     public Object jsonio() {
+diff --git a/src/main/java/com/github/fabienrenaud/jjb/databind/Serialization.java b/src/main/java/com/github/fabienrenaud/jjb/databind/Serialization.java
+index 70882e2..baf6a35 100644
+--- a/src/main/java/com/github/fabienrenaud/jjb/databind/Serialization.java
++++ b/src/main/java/com/github/fabienrenaud/jjb/databind/Serialization.java
+@@ -208,6 +208,12 @@ public class Serialization extends JsonBench {
+         return baos;
+     }
+ 
++    @Benchmark
++    @Override
++    public Object micronaut() throws Exception {
++        return JSON_SOURCE().provider().micronaut().write(JSON_SOURCE().nextPojo());
++    }
++
+     @Benchmark
+     @Override
+     public Object jsonio() {
+diff --git a/src/main/java/com/github/fabienrenaud/jjb/model/Users.java b/src/main/java/com/github/fabienrenaud/jjb/model/Users.java
+index 39acdc1..b7edd00 100644
+--- a/src/main/java/com/github/fabienrenaud/jjb/model/Users.java
++++ b/src/main/java/com/github/fabienrenaud/jjb/model/Users.java
+@@ -9,6 +9,7 @@ import io.github.wycst.wast.json.annotations.JsonTypeSetting;
+ import java.util.List;
+ import java.util.Objects;
+ 
++@io.micronaut.serde.annotation.Serdeable
+ @io.avaje.jsonb.Json
+ @JsonObject
+ @CompiledJson
+@@ -52,6 +53,7 @@ public class Users {
+         this.users = users;
+     }
+ 
++    @io.micronaut.serde.annotation.Serdeable
+     @io.avaje.jsonb.Json
+     @JsonObject
+     @CompiledJson
+@@ -329,6 +331,7 @@ public class Users {
+         }
+     }
+ 
++    @io.micronaut.serde.annotation.Serdeable
+     @io.avaje.jsonb.Json
+     @JsonObject
+     @CompiledJson
+diff --git a/src/main/java/com/github/fabienrenaud/jjb/provider/JsonProvider.java b/src/main/java/com/github/fabienrenaud/jjb/provider/JsonProvider.java
+index 3a94bdf..56a0cc2 100644
+--- a/src/main/java/com/github/fabienrenaud/jjb/provider/JsonProvider.java
++++ b/src/main/java/com/github/fabienrenaud/jjb/provider/JsonProvider.java
+@@ -67,4 +67,8 @@ public interface JsonProvider<T> {
+ 
+     WriteOptions jsonioWriteOptions();
+ 
++    default MicronautMapper<T> micronaut() {
++        throw new UnsupportedOperationException("Micronaut Serde is only wired for the users data type");
++    }
++
+ }
+diff --git a/src/main/java/com/github/fabienrenaud/jjb/provider/MicronautMapper.java b/src/main/java/com/github/fabienrenaud/jjb/provider/MicronautMapper.java
+new file mode 100644
+index 0000000..f0df5f3
+--- /dev/null
++++ b/src/main/java/com/github/fabienrenaud/jjb/provider/MicronautMapper.java
+@@ -0,0 +1,29 @@
++package com.github.fabienrenaud.jjb.provider;
++
++import io.micronaut.core.type.Argument;
++import io.micronaut.json.JsonMapper;
++
++import java.io.IOException;
++
++/**
++ * A Micronaut Serde {@link JsonMapper} specialised to one {@link Argument}, so the benchmark loops call it with the
++ * same shape as the other libraries (pojo in, bytes out and back).
++ */
++public final class MicronautMapper<T> {
++
++    private final JsonMapper mapper;
++    private final Argument<T> type;
++
++    public MicronautMapper(JsonMapper mapper, Argument<T> type) {
++        this.mapper = mapper;
++        this.type = type;
++    }
++
++    public byte[] write(T pojo) throws IOException {
++        return mapper.writeValueAsBytes(type, pojo);
++    }
++
++    public T read(byte[] json) throws IOException {
++        return mapper.readValue(json, type);
++    }
++}
+diff --git a/src/main/java/com/github/fabienrenaud/jjb/provider/UsersJsonProvider.java b/src/main/java/com/github/fabienrenaud/jjb/provider/UsersJsonProvider.java
+index 91085b6..54b93d6 100644
+--- a/src/main/java/com/github/fabienrenaud/jjb/provider/UsersJsonProvider.java
++++ b/src/main/java/com/github/fabienrenaud/jjb/provider/UsersJsonProvider.java
+@@ -61,6 +61,16 @@ public class UsersJsonProvider implements JsonProvider<Users> {
+ 
+     private final com.bigcloud.djomo.Json djomo = new com.bigcloud.djomo.Json();
+ 
++    /*
++     * Micronaut Serde (generated serializers for @Serdeable Users; JSON via the Jackson 3 backed mapper)
++     */
++    private final io.micronaut.context.ApplicationContext micronautContext = io.micronaut.context.ApplicationContext.run(java.util.Map.of(
++            "micronaut.serde.serialization.inclusion", "ALWAYS"));
++    private final MicronautMapper<Users> micronaut = new MicronautMapper<>(
++            micronautContext.getBean(io.micronaut.serde.jackson.JacksonJsonMapper.class)
++                    .createSpecific(io.micronaut.core.type.Argument.of(Users.class)),
++            io.micronaut.core.type.Argument.of(Users.class));
++
+     // json-io WriteOptions is immutable+thread-safe once built; cache one instance per provider
+     // to match how every other library here caches its mapper/parser/serializer. Read-side uses
+     // JsonIo.toMaps()/toJava() which manage their own option caches internally.
+@@ -200,6 +210,11 @@ public class UsersJsonProvider implements JsonProvider<Users> {
+         return djomo;
+     }
+ 
++    @Override
++    public MicronautMapper<Users> micronaut() {
++        return micronaut;
++    }
++
+     @Override
+     public WriteOptions jsonioWriteOptions() {
+         return jsonioWriteOptions;
+diff --git a/src/main/java/com/github/fabienrenaud/jjb/support/BenchSupport.java b/src/main/java/com/github/fabienrenaud/jjb/support/BenchSupport.java
+index 58f8d93..3fb9eca 100644
+--- a/src/main/java/com/github/fabienrenaud/jjb/support/BenchSupport.java
++++ b/src/main/java/com/github/fabienrenaud/jjb/support/BenchSupport.java
+@@ -40,7 +40,8 @@ public enum BenchSupport {
+         new Libapi(Library.ANTONS, Api.STREAM),
+         new Libapi(Library.QUICKBUF_JSON, Api.DATABIND),
+         new Libapi(Library.WAST, Api.DATABIND),
+-        new Libapi(Library.DJOMO, Api.DATABIND)
++        new Libapi(Library.DJOMO, Api.DATABIND),
++        new Libapi(Library.MICRONAUT, Api.DATABIND)
+     ),
+     CLIENTS(
+             new Libapi(Library.GSON, Api.DATABIND),
+diff --git a/src/main/java/com/github/fabienrenaud/jjb/support/Library.java b/src/main/java/com/github/fabienrenaud/jjb/support/Library.java
+index bde2ef0..ff74986 100644
+--- a/src/main/java/com/github/fabienrenaud/jjb/support/Library.java
++++ b/src/main/java/com/github/fabienrenaud/jjb/support/Library.java
+@@ -38,7 +38,8 @@ public enum Library {
+     ANTONS,
+     QUICKBUF_JSON,
+     WAST,
+-    DJOMO;
++    DJOMO,
++    MICRONAUT;
+ 
+     public static Set<Library> fromCsv(String str) {
+         if (str == null || str.trim().isEmpty()) {
+diff --git a/src/test/java/com/github/fabienrenaud/jjb/JsonBenchmark.java b/src/test/java/com/github/fabienrenaud/jjb/JsonBenchmark.java
+index 0a59874..6ff36cf 100644
+--- a/src/test/java/com/github/fabienrenaud/jjb/JsonBenchmark.java
++++ b/src/test/java/com/github/fabienrenaud/jjb/JsonBenchmark.java
+@@ -38,6 +38,8 @@ public abstract class JsonBenchmark<T> {
+         } else if (o instanceof com.cedarsoftware.io.JsonObject) {
+             String v = com.cedarsoftware.io.JsonIo.toJson(o, new WriteOptionsBuilder().standardJson().build());
+             testString(v);
++        } else if (o instanceof byte[] bytes) {
++            testString(new String(bytes, java.nio.charset.StandardCharsets.UTF_8));
+         } else if (o instanceof com.grack.nanojson.JsonObject) {
+             String v = com.grack.nanojson.JsonWriter.string(o);
+             testString(v);
+@@ -294,4 +296,11 @@ public abstract class JsonBenchmark<T> {
+         }
+     }
+ 
++    @Test
++    public void micronaut() throws Exception {
++        for (int i = 0; i < ITERATIONS; i++) {
++            test(Library.MICRONAUT, BENCH.micronaut());
++        }
++    }
++
+ }
