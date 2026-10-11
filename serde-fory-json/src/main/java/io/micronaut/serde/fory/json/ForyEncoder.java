@@ -134,9 +134,12 @@ final class ForyEncoder extends LimitingStream implements KeysAwareEncoder {
             flushObjectStart();
         }
         if (foryKeys.packed[index]) {
-            // one or two word stores, comma variant selected by the element count
-            writer.writeRawValue(foryKeys.name0[index], foryKeys.name1[index], foryKeys.comma0[index], foryKeys.comma1[index],
-                foryKeys.nameLength[index], foryKeys.commaLength[index], count);
+            // Load only the selected prefix, rather than both variants at every field.
+            if (count == 0) {
+                writer.writeRawValue(foryKeys.name0[index], foryKeys.name1[index], foryKeys.nameLength[index]);
+            } else {
+                writer.writeRawValue(foryKeys.comma0[index], foryKeys.comma1[index], foryKeys.commaLength[index]);
+            }
         } else {
             writer.writeComma(count);
             writer.writeRawValue(foryKeys.nameBytes[index]);

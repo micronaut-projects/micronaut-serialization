@@ -30,7 +30,7 @@ import java.util.List;
 
 /**
  * Contributes precomputed Fory field-name tokens to {@link Keys}: the escaped UTF-8 bytes of
- * {@code "name":}, {@code ,"name":} and {@code {"name":}, packed into little-endian {@code long} words the same way
+ * {@code "name":}, {@code ,"name":} and <code>{"name":</code>, packed into little-endian {@code long} words the same way
  * Fory's generated codecs embed them as constants.
  *
  * @author Denis Stepanov
@@ -58,10 +58,6 @@ public final class ForyKeysProvider implements KeysProvider {
      * raw bytes. Reader tokens up to 16 bytes are matched with one or two masked word compares.
      */
     static final class ForyKeys {
-        private static final int READ_NONE = 0;
-        private static final int READ_ONE_WORD = 1;
-        private static final int READ_TWO_WORDS = 2;
-
         final boolean[] packed;
         final long[] name0;
         final long[] name1;
@@ -72,7 +68,6 @@ public final class ForyKeysProvider implements KeysProvider {
         final int[] nameLength;
         final int[] commaLength;
         final byte[][] nameBytes;
-        final int[] readKind;
         final long[] readWord;
         final long[] readSuffix;
         final long[] readMask;
@@ -89,7 +84,6 @@ public final class ForyKeysProvider implements KeysProvider {
             nameLength = new int[size];
             commaLength = new int[size];
             nameBytes = new byte[size][];
-            readKind = new int[size];
             readWord = new long[size];
             readSuffix = new long[size];
             readMask = new long[size];
@@ -115,26 +109,14 @@ public final class ForyKeysProvider implements KeysProvider {
                     brace1[i] = word(comma, Long.BYTES);
                 }
                 if (name.length <= Long.BYTES) {
-                    readKind[i] = READ_ONE_WORD;
                     readWord[i] = word(name, 0);
                     readMask[i] = mask(name.length);
                 } else if (name.length <= 2 * Long.BYTES) {
-                    readKind[i] = READ_TWO_WORDS;
                     readWord[i] = word(name, 0);
                     readSuffix[i] = word(name, Long.BYTES);
                     readMask[i] = mask(name.length - Long.BYTES);
-                } else {
-                    readKind[i] = READ_NONE;
                 }
             }
-        }
-
-        boolean canMatch(int index) {
-            return readKind[index] != READ_NONE;
-        }
-
-        boolean isOneWord(int index) {
-            return readKind[index] == READ_ONE_WORD;
         }
 
         private static long word(byte[] bytes, int offset) {

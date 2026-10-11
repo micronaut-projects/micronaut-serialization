@@ -106,16 +106,24 @@ final class ForyDecoder extends AbstractStreamDecoder implements KeysAwareDecode
                 currentForyKeys = foryKeys;
             }
             int expected = expectedKeys[depth];
-            if (expected < foryKeys.nameLength.length && foryKeys.canMatch(expected)) {
-                reader.peekToken();
-                boolean matched = foryKeys.isOneWord(expected)
-                    ? reader.tryReadNextFieldNameToken0(foryKeys.readWord[expected], foryKeys.readMask[expected], foryKeys.nameLength[expected])
-                    : reader.tryReadNextFieldNameToken8(foryKeys.readWord[expected], foryKeys.readSuffix[expected], foryKeys.readMask[expected], foryKeys.nameLength[expected]);
-                if (matched) {
-                    keyPending = false;
-                    expectedKeys[depth] = expected + 1;
-                    classifyValue();
-                    return expected;
+            if (expected < foryKeys.nameLength.length) {
+                int length = foryKeys.nameLength[expected];
+                if (length <= 2 * Long.BYTES) {
+                    // Compact ordered keys need no whitespace scan; retry only if the cursor moved.
+                    int position = reader.position();
+                    boolean matched = matchKey(foryKeys, expected, length);
+                    if (!matched) {
+                        reader.peekToken();
+                        if (reader.position() != position) {
+                            matched = matchKey(foryKeys, expected, length);
+                        }
+                    }
+                    if (matched) {
+                        keyPending = false;
+                        expectedKeys[depth] = expected + 1;
+                        classifyValue();
+                        return expected;
+                    }
                 }
             }
         }
@@ -127,6 +135,12 @@ final class ForyDecoder extends AbstractStreamDecoder implements KeysAwareDecode
         expectedKeys[depth] = index + 1;
         classifyValue();
         return index;
+    }
+
+    private boolean matchKey(ForyKeysProvider.ForyKeys keys, int index, int length) {
+        return length <= Long.BYTES
+            ? reader.tryReadNextFieldNameToken0(keys.readWord[index], keys.readMask[index], length)
+            : reader.tryReadNextFieldNameToken8(keys.readWord[index], keys.readSuffix[index], keys.readMask[index], length);
     }
 
     private void afterValue() {
