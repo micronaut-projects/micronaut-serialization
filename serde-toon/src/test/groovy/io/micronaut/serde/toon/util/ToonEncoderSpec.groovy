@@ -407,16 +407,19 @@ meta:'''
         toText(writer(), tree) == "value: ${expected}"
 
         where:
-        description               | numberNode                                                            | expected
-        'integer'                 | JsonNode.createNumberNode(42)                                         | '42'
-        'negative integer'        | JsonNode.createNumberNode(-7)                                         | '-7'
-        'decimal with fraction'   | JsonNode.createNumberNode(10.5d)                                      | '10.5'
-        'decimal with trailing 0' | JsonNode.createNumberNode(new BigDecimal('10.50'))                    | '10.5'
-        'whole double'            | JsonNode.createNumberNode(10.0d)                                      | '10'
-        'NaN'                     | JsonNode.createNumberNode(Double.NaN)                                 | 'null'
-        'positive infinity'       | JsonNode.createNumberNode(Double.POSITIVE_INFINITY)                   | 'null'
-        'very large number'       | JsonNode.createNumberNode(new BigDecimal('100000000000000000000000')) | '1e+23'
-        'very small number'       | JsonNode.createNumberNode(new BigDecimal('0.0000000001'))             | '1e-10'
+        description                       | numberNode                                                            | expected
+        'integer'                         | JsonNode.createNumberNode(42)                                         | '42'
+        'negative integer'                | JsonNode.createNumberNode(-7)                                         | '-7'
+        'decimal with fraction'           | JsonNode.createNumberNode(10.5d)                                      | '10.5'
+        'decimal with trailing 0'         | JsonNode.createNumberNode(new BigDecimal('10.50'))                    | '10.5'
+        'whole double'                    | JsonNode.createNumberNode(10.0d)                                      | '10'
+        'NaN'                             | JsonNode.createNumberNode(Double.NaN)                                 | 'null'
+        'positive infinity'               | JsonNode.createNumberNode(Double.POSITIVE_INFINITY)                   | 'null'
+        'very large number'               | JsonNode.createNumberNode(new BigDecimal('100000000000000000000000')) | '1e+23'
+        'very small number'               | JsonNode.createNumberNode(new BigDecimal('0.0000000001'))             | '1e-10'
+        'BigInteger Long.MAX'             | JsonNode.createNumberNode(BigInteger.valueOf(Long.MAX_VALUE))         | '9223372036854775807'
+        'BigInteger beyond long'          | JsonNode.createNumberNode(BigInteger.valueOf(Long.MAX_VALUE) + 1)     | '"9223372036854775808"'
+        'negative BigInteger beyond long' | JsonNode.createNumberNode(new BigInteger('-' + '9' * 25))             | '"-' + '9' * 25 + '"'
     }
 
     void 'test tab and pipe delimiters change the header symbol and cell separator'() {

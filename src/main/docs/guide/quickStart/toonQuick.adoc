@@ -52,7 +52,12 @@ users[2:]{age,role}:
 
 == Interoperability
 
-The TCK checks, in both directions, that documents are exchanged with the JToon (`dev.toonformat:jtoon`) 2.0.4 library for: tabular arrays, keyed tabular objects (`[N:]{...}`), nested field groups (`{a{b,c}}`), numbers in scientific notation (below `1e-6` or from `1e21`), and `#` comment lines on input. No compatibility option is needed for these shapes. Other TOON implementations may not support all of them, depending on the specification version they target.
+The TCK checks, in both directions, that documents are exchanged with the JToon (`dev.toonformat:jtoon`) 2.0.4 library for: tabular arrays, keyed tabular objects (`[N:]{...}`), nested field groups (`{a{b,c}}`), numbers in scientific notation (below `1e-6` or from `1e21`), and `#` comment lines on input. No compatibility option is needed for these shapes. The mapper and JToon also agree on every TOON specification encode and decode fixture that applies to the mapper, on string and key quoting for each delimiter, and on decoding of the common document edge cases. They differ in these ways:
+
+* A `BigInteger` outside the `long` range is written as a quoted decimal string, the same as JToon. JToon reads such a value back as a string; the mapper reads an unquoted integer beyond the `long` range as a `BigInteger` or `BigDecimal`, while JToon reads it as a string or a `double`.
+* JToon 2.0.4 accepts length markers (`[#3]`) and whitespace between a field name and its nested field group (`{x {y}}`). The mapper rejects both, as the specification does.
+
+Other TOON implementations may not support all of them, depending on the specification version they target.
 
 == Configuration
 

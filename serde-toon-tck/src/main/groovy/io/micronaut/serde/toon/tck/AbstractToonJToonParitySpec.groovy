@@ -20,6 +20,7 @@ import dev.toonformat.jtoon.Delimiter
 import dev.toonformat.jtoon.EncodeOptions
 import dev.toonformat.jtoon.JToon
 import dev.toonformat.jtoon.KeyFolding
+import dev.toonformat.jtoon.PathExpansion
 import io.micronaut.core.type.Argument
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -37,6 +38,32 @@ abstract class AbstractToonJToonParitySpec extends Specification implements Toon
     private static final Set<String> JTOON_DECODE_DIVERGENCES = [
             'arrays-objects.json :: encodes objects with empty arrays in list form',
             'arrays-objects.json :: places empty arrays on hyphen line when first',
+    ] as Set<String>
+
+    /**
+     * Spec decode fixtures excluded from the mapper's own fixture suite that the mapper nonetheless accepts: the
+     * document indent step is inferred rather than validated against the configured one, so the fixtures expecting
+     * an indentation error are accepted, and two valid indentation inputs decode correctly.
+     */
+    private static final Set<String> MAPPER_ACCEPTS_EXCLUDED = [
+            'indentation-errors.json :: throws on object field with non-multiple indentation (3 spaces with indentSize 2)',
+            'indentation-errors.json :: throws on list item with non-multiple indentation (3 spaces with indentSize 2)',
+            'indentation-errors.json :: throws on non-multiple indentation with custom indentSize 4 (3 spaces)',
+            'indentation-errors.json :: throws on depth jump of more than one level',
+            'indentation-errors.json :: accepts correct indentation with custom indentSize (4 spaces with indentSize 4)',
+            'indentation-errors.json :: accepts non-multiple indentation when strict=false',
+    ] as Set<String>
+
+    /**
+     * Spec decode fixtures with a valid input that jtoon 2.0.4 does not decode to the fixture's expected value.
+     */
+    private static final Set<String> JTOON_DECODE_VALID_DIVERGENCES = [
+    ] as Set<String>
+
+    /**
+     * Spec decode fixtures with an invalid input that jtoon 2.0.4 accepts.
+     */
+    private static final Set<String> JTOON_ACCEPTS_INVALID = [
     ] as Set<String>
 
     void "output written by mapper is readable by jtoon"() {
@@ -244,5 +271,85 @@ abstract class AbstractToonJToonParitySpec extends Specification implements Toon
 
         where:
         fixture << ToonSpecFixtures.encodeCases()
+    }
+
+    @Unroll
+    void "spec decode fixture is read the same by mapper and jtoon: #fixture"() {
+        given:
+        Map<String, Object> options = fixture.options ?: [:]
+        DecodeOptions defaults = DecodeOptions.DEFAULT
+        DecodeOptions jtoonOptions = new DecodeOptions((options.indentSize ?: 2) as int, Delimiter.COMMA, options.strict != false,
+                PathExpansion.OFF, defaults.maxDepth(), defaults.maxArraySize(), defaults.maxStringLength())
+
+        when:
+        def mapper = attempt { readToon(fixture.input as String, Argument.of(Object)) }
+        def jtoon = attempt { JToon.decode(fixture.input as String, jtoonOptions) }
+
+        then:
+        if (fixture.shouldError) {
+            assert mapper.error != null: "mapper accepted invalid input"
+            if (JTOON_ACCEPTS_INVALID.contains(fixture.toString())) {
+                assert jtoon.error == null: "jtoon now rejects this input, remove it from JTOON_ACCEPTS_INVALID"
+            } else {
+                assert jtoon.error != null: "jtoon accepted invalid input"
+            }
+        } else {
+            assert mapper.error == null: "mapper failed: ${mapper.error}"
+            assert ToonSpecFixtures.jsonEquals(mapper.value, fixture.expected)
+            boolean jtoonMatches = jtoon.error == null && ToonSpecFixtures.jsonEquals(jtoon.value, fixture.expected)
+            if (JTOON_DECODE_VALID_DIVERGENCES.contains(fixture.toString())) {
+                assert !jtoonMatches: "jtoon now decodes this input, remove it from JTOON_DECODE_VALID_DIVERGENCES"
+            } else {
+                assert jtoonMatches: "jtoon decoded ${jtoon.error ?: jtoon.value}, mapper decoded ${mapper.value}, expected ${fixture.expected}"
+            }
+        }
+
+        where:
+        fixture << ToonSpecFixtures.decodeCases()
+    }
+
+    @Unroll
+    void "spec decode fixture outside the mapper's decoding modes: #fixture"() {
+        given:
+        Map<String, Object> options = fixture.options ?: [:]
+        DecodeOptions defaults = DecodeOptions.DEFAULT
+        DecodeOptions jtoonOptions = new DecodeOptions((options.indentSize ?: 2) as int, Delimiter.COMMA, options.strict != false,
+                PathExpansion.OFF, defaults.maxDepth(), defaults.maxArraySize(), defaults.maxStringLength())
+
+        when:
+        def mapper = attempt { readToon(fixture.input as String, Argument.of(Object)) }
+        def jtoon = attempt { JToon.decode(fixture.input as String, jtoonOptions) }
+
+        then:
+        // jtoon follows the fixture, including its strict and indentSize options.
+        if (fixture.shouldError) {
+            assert jtoon.error != null: "jtoon accepted invalid input"
+        } else {
+            assert jtoon.error == null: "jtoon failed: ${jtoon.error}"
+            assert ToonSpecFixtures.jsonEquals(jtoon.value, fixture.expected)
+        }
+
+        and:
+        // The mapper has no non-strict mode and infers the indent step, so it rejects most
+        // non-strict-only input and accepts input that the fixture's indent rules reject.
+        if (MAPPER_ACCEPTS_EXCLUDED.contains(fixture.toString())) {
+            assert mapper.error == null: "mapper failed: ${mapper.error}"
+            if (!fixture.shouldError) {
+                assert ToonSpecFixtures.jsonEquals(mapper.value, fixture.expected)
+            }
+        } else {
+            assert mapper.error != null: "mapper now accepts this input, add it to MAPPER_ACCEPTS_EXCLUDED"
+        }
+
+        where:
+        fixture << ToonSpecFixtures.excludedDecodeCases()
+    }
+
+    private static Map<String, Object> attempt(Closure<Object> action) {
+        try {
+            return [value: action.call(), error: null]
+        } catch (Exception e) {
+            return [value: null, error: e]
+        }
     }
 }

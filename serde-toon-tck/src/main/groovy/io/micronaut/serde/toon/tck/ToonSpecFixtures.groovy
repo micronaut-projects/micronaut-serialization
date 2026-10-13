@@ -92,6 +92,15 @@ final class ToonSpecFixtures {
         loadAll('decode', DECODE_FILES).findAll { applicableToDecode(it) }
     }
 
+    /**
+     * The decode fixtures {@link #decodeCases()} leaves out: those that
+     * describe non-strict mode, a configured indent size, or the fixed
+     * indent step this decoder infers instead.
+     */
+    static List<ToonSpecFixture> excludedDecodeCases() {
+        loadAll('decode', DECODE_FILES).findAll { !applicableToDecode(it) }
+    }
+
     static List<ToonSpecFixture> encodeCases() {
         loadAll('encode', ENCODE_FILES).findAll { !KNOWN_LOADER_NUMBER_OVERFLOWS.contains(it.toString()) }
     }
