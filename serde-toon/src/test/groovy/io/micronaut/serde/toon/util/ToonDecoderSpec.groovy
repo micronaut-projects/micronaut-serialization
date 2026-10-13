@@ -428,6 +428,21 @@ forecast[2]{day,temp,condition}:
         parse(text, adapter(2)).get('address').get('city').stringValue == 'Springfield'
     }
 
+    void 'test decoding accepts a document whose indent differs from the configured indent'() {
+        // These inputs are the spec fixtures excluded from the TCK decode
+        // suite (see ToonSpecFixtures): the spec requires rejecting them
+        // against the configured indent, this decoder infers the step.
+        expect:
+        parse(text, adapter(configuredIndent)).get('a') != null
+
+        where:
+        text                                | configuredIndent
+        'a:\n    b: 1'                      | 2   // single 4-space jump, indent 2
+        'a:\n   b: 1'                       | 2   // 3 spaces, not a multiple of 2
+        'a:\n  b: 1'                        | 4   // 2 spaces, indent 4
+        'a:\n   b: 1\n   c:\n      d: 2'    | 4   // consistent 3-space step, indent 4
+    }
+
     void 'test a document indent size other than 2 is inferred and enforced consistently, not hardcoded'() {
         // The document's indent step is established from its first nesting
         // transition, then every later transition anywhere in the document
