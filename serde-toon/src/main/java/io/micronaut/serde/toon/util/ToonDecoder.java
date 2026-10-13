@@ -19,6 +19,7 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.toon.SerdeToonConfiguration;
 import jakarta.inject.Singleton;
 
 import java.io.IOException;
@@ -37,21 +38,26 @@ import java.nio.charset.StandardCharsets;
  * recursive-descent parsing.</p>
  *
  * @see <a href="https://github.com/toon-format/spec">TOON specification</a>
- * @since 3.2.1
+ * @since 3.3.0
  */
 @Internal
 @Singleton
 public final class ToonDecoder {
 
+    private final long maxInputSize;
+
     /**
      * Creates a TOON decoder.
+     *
+     * @param toonConfiguration The TOON format configuration
      */
-    public ToonDecoder() {
+    public ToonDecoder(SerdeToonConfiguration toonConfiguration) {
+        this.maxInputSize = toonConfiguration.getMaxInputSize();
     }
 
     /**
-     * Parses a TOON document from the given stream into a JSON tree, with no
-     * nesting-depth limit beyond the JVM's own stack.
+     * Parses a TOON document from the given stream into a JSON tree, using
+     * {@link LimitingStream#DEFAULT_LIMITS} as the nesting-depth budget.
      *
      * @param stream The TOON input stream
      * @return The parsed JSON tree
@@ -72,8 +78,27 @@ public final class ToonDecoder {
      * @throws IOException If the TOON input cannot be read, is malformed, or nests too deeply
      */
     public JsonNode parse(InputStream stream, LimitingStream.RemainingLimits remainingLimits) throws IOException {
-        String text = decodeUtf8Strict(stream.readAllBytes());
+        String text = decodeUtf8Strict(readInput(stream));
         return new ToonDocumentParser(text, remainingLimits).parseDocument();
+    }
+
+    /**
+     * Reads the whole stream, failing once it exceeds the configured maximum
+     * input size. At most one byte beyond the limit is read.
+     */
+    private byte[] readInput(InputStream stream) throws IOException {
+        if (maxInputSize == SerdeToonConfiguration.UNLIMITED) {
+            return stream.readAllBytes();
+        }
+
+        // Reading a long limit in a single call is capped by the array size.
+        int readLimit = (int) Math.min(maxInputSize + 1, Integer.MAX_VALUE - 8);
+        byte[] bytes = stream.readNBytes(readLimit);
+        if (bytes.length > maxInputSize) {
+            throw new SerdeException("TOON input exceeds the maximum input size of " + maxInputSize + " bytes");
+        }
+
+        return bytes;
     }
 
     /**

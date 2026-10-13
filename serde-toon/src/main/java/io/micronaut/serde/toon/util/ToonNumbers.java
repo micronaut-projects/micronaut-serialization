@@ -28,7 +28,7 @@ import java.math.BigInteger;
  * {@code 1e-6 <= |n| < 1e21} magnitude window.
  *
  * @see <a href="https://github.com/toon-format/spec">TOON specification</a>
- * @since 3.2.1
+ * @since 3.3.0
  */
 @Internal
 public final class ToonNumbers {

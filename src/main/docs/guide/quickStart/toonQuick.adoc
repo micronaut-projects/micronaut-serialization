@@ -65,8 +65,20 @@ micronaut:
 ----
 
 `delimiter`:: Selects the delimiter for array and tabular rows. Supported options are `COMMA` (default), `TAB`, and `PIPE`.
-`indent`:: Number of spaces per indentation level. The default is 2.
+`indent`:: Number of spaces per indentation level when writing. The default is 2.
+`max-input-size`:: Maximum number of bytes of TOON input read when decoding. Larger input is rejected with a api:serde.exceptions.SerdeException[]. By default there is no limit.
+
+== Decoding Leniency
+
+Decoding is more lenient than the TOON specification's strict mode in two ways:
+
+* Indentation is not checked against the configured `indent`, which only affects encoding. The decoder infers the indent step from the first nesting transition in the document and requires every later transition to use the same step. A document indented with 4 spaces throughout is accepted when `indent` is 2.
+* Blank lines are rejected only between two rows, entries or items of a declared-count array body, or between a list item's continuation fields. Blank lines elsewhere are skipped.
+
+Declared array lengths and field-list widths are still checked exactly.
 
 == Security and Limits
 
 TOON parsing respects `micronaut.serde.maximum-nesting-depth` to guard against stack exhaustion from maliciously deep input structures.
+
+The decoder reads the whole input into memory and builds a complete `JsonNode` tree before deserializing, and the encoder builds a tree before writing. Memory use therefore grows with document size. Set `micronaut.serde.format.toon.max-input-size` to reject input above a given number of bytes; this is recommended when decoding untrusted input such as LLM output or request bodies.

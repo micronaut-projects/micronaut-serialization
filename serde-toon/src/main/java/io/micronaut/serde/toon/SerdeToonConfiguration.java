@@ -15,30 +15,29 @@
  */
 package io.micronaut.serde.toon;
 
-import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.ConfigurationProperties;
-import io.micronaut.core.annotation.Internal;
-import io.micronaut.core.convert.ConversionContext;
-import io.micronaut.core.convert.TypeConverter;
 import io.micronaut.serde.config.SerdeConfiguration;
-import jakarta.inject.Singleton;
 
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * TOON-specific configuration.
  *
- * @since 3.2.1
+ * @since 3.3.0
  */
-@BootstrapContextCompatible
 @ConfigurationProperties(SerdeToonConfiguration.PREFIX)
 public final class SerdeToonConfiguration {
+
+    /**
+     * The {@link #getMaxInputSize() maximum input size} value meaning no limit.
+     */
+    public static final long UNLIMITED = -1;
 
     static final String PREFIX = SerdeConfiguration.PREFIX + ".format.toon";
 
     private Delimiter delimiter = Delimiter.COMMA;
     private int indent = 2;
+    private long maxInputSize = UNLIMITED;
 
     /**
      * Returns the configured delimiter used to separate inline array values,
@@ -82,10 +81,35 @@ public final class SerdeToonConfiguration {
     }
 
     /**
+     * Returns the maximum number of bytes of TOON input that is read when
+     * decoding.
+     *
+     * @return The maximum input size in bytes, or {@link #UNLIMITED} (the default)
+     */
+    public long getMaxInputSize() {
+        return maxInputSize;
+    }
+
+    /**
+     * Sets the maximum number of bytes of TOON input that is read when
+     * decoding. Input larger than this is rejected with a
+     * {@link io.micronaut.serde.exceptions.SerdeException}.
+     *
+     * @param maxInputSize The maximum input size in bytes, or {@link #UNLIMITED}
+     */
+    public void setMaxInputSize(long maxInputSize) {
+        if (maxInputSize != UNLIMITED && maxInputSize < 1) {
+            throw new IllegalArgumentException("maxInputSize must be at least 1 or " + UNLIMITED + " (unlimited)");
+        }
+
+        this.maxInputSize = maxInputSize;
+    }
+
+    /**
      * The delimiter used to separate values within a TOON document, as defined
      * by the specification.
      *
-     * @since 3.2.1
+     * @since 3.3.0
      */
     public enum Delimiter {
         /**
@@ -116,36 +140,6 @@ public final class SerdeToonConfiguration {
          */
         public char getCharacter() {
             return character;
-        }
-    }
-
-    /**
-     * Converts a string representation of a delimiter (either enum name or character) to {@link Delimiter}.
-     */
-    @Singleton
-    @Internal
-    public static final class CharSequenceToDelimiterConverter implements TypeConverter<CharSequence, Delimiter> {
-        @Override
-        public Optional<Delimiter> convert(CharSequence object, Class<Delimiter> targetType, ConversionContext context) {
-            if (object == null || object.isEmpty()) {
-                return Optional.empty();
-            }
-            String s = object.toString();
-            if (s.length() == 1) {
-                char c = s.charAt(0);
-                for (Delimiter d : Delimiter.values()) {
-                    if (d.getCharacter() == c) {
-                        return Optional.of(d);
-                    }
-                }
-            }
-            String trimmed = s.trim();
-            for (Delimiter d : Delimiter.values()) {
-                if (d.name().equalsIgnoreCase(trimmed)) {
-                    return Optional.of(d);
-                }
-            }
-            return Optional.empty();
         }
     }
 }

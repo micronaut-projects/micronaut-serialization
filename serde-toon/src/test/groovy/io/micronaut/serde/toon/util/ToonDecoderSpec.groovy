@@ -38,7 +38,7 @@ class ToonDecoderSpec extends Specification {
     private static ToonDecoder adapter(int indent = 2) {
         def config = new SerdeToonConfiguration()
         config.indent = indent
-        new ToonDecoder()
+        new ToonDecoder(new SerdeToonConfiguration())
     }
 
     private static ToonEncoder writer(SerdeToonConfiguration.Delimiter delimiter = SerdeToonConfiguration.Delimiter.COMMA, int indent = 2) {
@@ -68,6 +68,49 @@ class ToonDecoderSpec extends Specification {
         String reEncoded = encode(writer, decoded)
         assert reEncoded == text
         return text
+    }
+
+    void 'test decoding ignores the configured indent and uses the document indent'() {
+        given:
+        def config = new SerdeToonConfiguration()
+        config.indent = 2
+
+        when:
+        def tree = parse('a:\n    b: 1\n    c:\n        d: 2', new ToonDecoder(config))
+
+        then:
+        tree.get('a').get('b').getIntValue() == 1
+        tree.get('a').get('c').get('d').getIntValue() == 2
+    }
+
+    void 'test input within the maximum input size is accepted'() {
+        given:
+        def config = new SerdeToonConfiguration()
+        config.maxInputSize = 'a: 1'.length()
+
+        expect:
+        parse('a: 1', new ToonDecoder(config)).get('a').getIntValue() == 1
+    }
+
+    void 'test input above the maximum input size is rejected'() {
+        given:
+        def config = new SerdeToonConfiguration()
+        config.maxInputSize = 'a: 1'.length()
+
+        when:
+        parse('a: 12', new ToonDecoder(config))
+
+        then:
+        def e = thrown(SerdeException)
+        e.message.contains('maximum input size')
+    }
+
+    void 'test the maximum input size must be positive or unlimited'() {
+        when:
+        new SerdeToonConfiguration().maxInputSize = 0
+
+        then:
+        thrown(IllegalArgumentException)
     }
 
     void 'test decoding a flat object with primitive fields'() {
@@ -538,7 +581,7 @@ forecast[2]{day,temp,condition}:
     }
 
     private static JsonNode parseWithLimit(String text, int maximumNestingDepth) {
-        new ToonDecoder().parse(new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8)), limitsOf(maximumNestingDepth))
+        new ToonDecoder(new SerdeToonConfiguration()).parse(new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8)), limitsOf(maximumNestingDepth))
     }
 
     void 'test the nesting-depth guard rejects a chain of single-item nested lists at a small configured limit'() {
@@ -577,7 +620,7 @@ forecast[2]{day,temp,condition}:
         byte[] invalidUtf8 = [0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x20, 0xC3, 0x28] as byte[]
 
         when:
-        new ToonDecoder().parse(new ByteArrayInputStream(invalidUtf8))
+        new ToonDecoder(new SerdeToonConfiguration()).parse(new ByteArrayInputStream(invalidUtf8))
 
         then:
         thrown(SerdeException)
@@ -704,7 +747,6 @@ forecast[2]{day,temp,condition}:
     @Unroll
     void 'test ToonEscapes.isCommentLine: "#input"'() {
         expect:
-        ToonEscapes.isCommentLine(input) == expected
         ToonEscapes.isCommentLine(input, leadingSpaces) == expected
 
         where:

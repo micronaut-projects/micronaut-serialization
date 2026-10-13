@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
  * {@link ToonDecoder} (decode).
  *
  * @see <a href="https://github.com/toon-format/spec">TOON specification</a>
- * @since 3.2.1
+ * @since 3.3.0
  */
 @Internal
 public final class ToonEscapes {
@@ -69,6 +69,12 @@ public final class ToonEscapes {
         return needsQuoting(value, delimiter) ? quote(value) : value;
     }
 
+    /**
+     * Returns whether the given character is an ASCII digit.
+     *
+     * @param c The character to check
+     * @return {@code true} if the character is in {@code '0'..'9'}
+     */
     public static boolean isAsciiDigit(char c) {
         return c >= '0' && c <= '9';
     }
@@ -363,18 +369,6 @@ public final class ToonEscapes {
      */
     public static boolean isCommentLine(String line, int leadingSpaces) {
         return leadingSpaces < line.length() && line.charAt(leadingSpaces) == '#';
-    }
-
-    /**
-     * Returns whether the given line is a full-line comment, i.e. its first
-     * non-space character is {@code #}.
-     *
-     * @param line The line to check
-     * @return {@code true} if the line is a full-line comment
-     * @throws SerdeException If a tab character is used for indentation
-     */
-    public static boolean isCommentLine(String line) throws SerdeException {
-        return isCommentLine(line, countLeadingSpaces(line));
     }
 
     /**
