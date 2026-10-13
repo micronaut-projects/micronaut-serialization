@@ -57,9 +57,10 @@ import java.util.regex.Pattern;
  *   continuation fields. A blank line nested deeper inside an item, between
  *   an ordinary object's sibling fields, or between top-level constructs is
  *   skipped.</li>
- *   <li>Indentation is not required to be a multiple of a fixed default of 2
- *   spaces; the document's own indent step, inferred from its first nesting
- *   transition, is enforced instead.</li>
+ *   <li>Indentation is not validated against the configured
+ *   {@code indent}, which only affects encoding. The document's own indent
+ *   step, inferred from its first nesting transition, is enforced instead,
+ *   so a document indented with 4 spaces throughout is accepted.</li>
  * </ul>
  *
  * <p>Guards against a maliciously deep document by extending
@@ -69,7 +70,7 @@ import java.util.regex.Pattern;
  * nested-field-group recursion in a tabular header's field list.</p>
  *
  * @see <a href="https://github.com/toon-format/spec">TOON specification</a>
- * @since 3.2.1
+ * @since 3.3.0
  */
 final class ToonDocumentParser extends LimitingStream {
 
@@ -414,6 +415,9 @@ final class ToonDocumentParser extends LimitingStream {
         increaseDepth();
         try {
             Map<String, JsonNode> values = new LinkedHashMap<>();
+            // Requires indentSize to have been established by an earlier
+            // indentation step (see validateNestedIndent).
+            assert indentSize > 0 : "indent size not yet established";
             int fieldIndent = itemIndent + indentSize;
             parseOneField(new Line(itemLine.lineNumber(), itemLine.indent(), rest, false), fieldIndent, values);
             continueObjectFields(itemIndent, values, true);
