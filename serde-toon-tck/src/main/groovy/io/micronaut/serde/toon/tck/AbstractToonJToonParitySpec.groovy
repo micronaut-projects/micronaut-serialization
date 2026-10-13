@@ -15,14 +15,29 @@
  */
 package io.micronaut.serde.toon.tck
 
+import dev.toonformat.jtoon.DecodeOptions
+import dev.toonformat.jtoon.Delimiter
+import dev.toonformat.jtoon.EncodeOptions
 import dev.toonformat.jtoon.JToon
+import dev.toonformat.jtoon.KeyFolding
 import io.micronaut.core.type.Argument
 import spock.lang.Specification
+import spock.lang.Unroll
 
 /**
  * Validates spec compatibility and round-trip parity against the reference {@code dev.toonformat:jtoon} (toon-java) implementation.
  */
 abstract class AbstractToonJToonParitySpec extends Specification implements ToonSpec {
+
+    /**
+     * Spec encode fixtures whose expected output jtoon 2.0.4 does not read back to the fixture's input.
+     * jtoon decodes {@code data: []} in a list item as the string {@code "[]"} rather than an empty array,
+     * although its own encoder emits that form.
+     */
+    private static final Set<String> JTOON_DECODE_DIVERGENCES = [
+            'arrays-objects.json :: encodes objects with empty arrays in list form',
+            'arrays-objects.json :: places empty arrays on hyphen line when first',
+    ] as Set<String>
 
     void "output written by mapper is readable by jtoon"() {
         given:
@@ -188,5 +203,46 @@ abstract class AbstractToonJToonParitySpec extends Specification implements Toon
         then:
         mapperDecoded == new RecordBean("Ref Parity", 42)
         jtoonDecoded == [title: "Ref Parity", pages: 42]
+    }
+
+    @Unroll
+    void "spec encode fixture written by mapper is read by jtoon: #fixture"() {
+        given:
+        Map<String, Object> options = fixture.options ?: [:]
+        Map<String, Object> properties = [:]
+        if (options.delimiter) {
+            properties['micronaut.serde.format.toon.delimiter'] = options.delimiter
+        }
+        if (options.indentSize) {
+            properties['micronaut.serde.format.toon.indent'] = options.indentSize
+        }
+
+        when:
+        String toon = properties ? writeToonWithProperties(properties, fixture.input) : writeToon(fixture.input)
+        Object decoded = JToon.decode(toon, DecodeOptions.withIndent((options.indentSize ?: 2) as int))
+
+        then:
+        ToonSpecFixtures.jsonEquals(decoded, fixture.input)
+
+        where:
+        fixture << ToonSpecFixtures.encodeCases().findAll { !JTOON_DECODE_DIVERGENCES.contains(it.toString()) }
+    }
+
+    @Unroll
+    void "spec encode fixture written by jtoon is read by mapper: #fixture"() {
+        given:
+        Map<String, Object> options = fixture.options ?: [:]
+        Delimiter delimiter = options.delimiter ? Delimiter.values().find { it.value == (options.delimiter as String).charAt(0) } : Delimiter.COMMA
+        EncodeOptions encodeOptions = new EncodeOptions((options.indentSize ?: 2) as int, delimiter, false, KeyFolding.OFF, Integer.MAX_VALUE)
+
+        when:
+        String toon = JToon.encode(fixture.input, encodeOptions)
+        Object decoded = readToon(toon, Argument.of(Object))
+
+        then:
+        ToonSpecFixtures.jsonEquals(decoded, fixture.input)
+
+        where:
+        fixture << ToonSpecFixtures.encodeCases()
     }
 }

@@ -52,7 +52,7 @@ abstract class AbstractToonSpecFixtureSpec extends Specification implements Toon
             assert caught != null: "expected an error decoding: ${fixture.input}"
         } else {
             assert caught == null: "unexpected error decoding: ${fixture.input} (${caught})"
-            assert jsonEquals(result, fixture.expected): "decoded ${result} but expected ${fixture.expected}"
+            assert ToonSpecFixtures.jsonEquals(result, fixture.expected): "decoded ${result} but expected ${fixture.expected}"
         }
 
         where:
@@ -83,48 +83,5 @@ abstract class AbstractToonSpecFixtureSpec extends Specification implements Toon
             properties['micronaut.serde.format.toon.indent'] = options.indentSize
         }
         properties
-    }
-
-    /**
-     * Structural JSON equality, tolerant of the actual side's map/list
-     * implementation and of a scalar number's exact Java type (an
-     * implementation may reasonably decode {@code 42} as a {@code Long}
-     * where the fixture's own JSON parsing produced an {@code Integer}).
-     */
-    private static boolean jsonEquals(Object actual, Object expected) {
-        if (expected == null) {
-            return actual == null
-        }
-        if (expected instanceof Map) {
-            if (!(actual instanceof Map)) {
-                return false
-            }
-            Map<?, ?> e = (Map) expected
-            Map<?, ?> a = (Map) actual
-            if (a.keySet() != e.keySet()) {
-                return false
-            }
-            // Map.get(k), not the a[k] bracket form: for a key like
-            // "properties" that collides with a reflective Groovy property
-            // name, bracket access on certain Map instances resolves
-            // through property-getter lookup instead of a real entry
-            // lookup and silently returns the wrong value.
-            return e.every { k, v -> jsonEquals(a.get(k), v) }
-        }
-        if (expected instanceof List) {
-            if (!(actual instanceof List)) {
-                return false
-            }
-            List<?> e = (List) expected
-            List<?> a = (List) actual
-            if (a.size() != e.size()) {
-                return false
-            }
-            return (0..<e.size()).every { i -> jsonEquals(a[i], e[i]) }
-        }
-        if (expected instanceof Number) {
-            return actual instanceof Number && new BigDecimal(expected.toString()) == new BigDecimal(actual.toString())
-        }
-        actual == expected
     }
 }
