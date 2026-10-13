@@ -421,13 +421,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         if (!anySpecific || !anyReplacement) {
             return candidates;
         }
-        List<BeanDefinition<S>> filtered = new ArrayList<>(candidates.size());
-        for (BeanDefinition<S> candidate : candidates) {
-            if (!specific.test(candidate)) {
-                filtered.add(candidate);
-            }
-        }
-        return filtered;
+        return candidates.stream().filter(specific.negate()).toList();
     }
 
     private static <S> boolean isSpecificForOtherType(BeanDefinition<S> candidate,
