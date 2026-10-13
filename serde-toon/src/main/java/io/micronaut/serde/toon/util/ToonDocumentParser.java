@@ -50,8 +50,8 @@ import java.util.regex.Pattern;
  *   <li>A key is read as the literal text up to the first unquoted
  *   {@code :} (or, for an object field, {@code :} or {@code [}), regardless
  *   of whether it matches {@link ToonEncoder}'s stricter unquoted-key
- *   grammar. Whitespace directly adjacent to that delimiter is still
- *   rejected, not trimmed.</li>
+ *   grammar. Spaces directly before an unquoted {@code :} are
+ *   trimmed; whitespace before a {@code [} is a header syntax error.</li>
  *   <li>A blank line is an error only <em>between</em> two rows/entries/items
  *   of a declared-count body, or between two of a list item's own
  *   continuation fields. A blank line nested deeper inside an item, between
@@ -516,6 +516,10 @@ final class ToonDocumentParser extends LimitingStream {
             try {
                 int end = ToonEscapes.findClosingQuote(content, 0);
                 String key = ToonEscapes.unquote(content.substring(0, end + 1));
+                int afterQuote = ToonEscapes.skipSpaces(content, end + 1);
+                if (afterQuote < content.length() && content.charAt(afterQuote) == ':') {
+                    return new KeyResult(key, content.substring(afterQuote));
+                }
                 return new KeyResult(key, content.substring(end + 1));
             } catch (SerdeException e) {
                 throw annotateWithLine(e, lineNumber);
@@ -526,13 +530,17 @@ final class ToonDocumentParser extends LimitingStream {
         // ':' (or, for an object field, ':' or '['), regardless of whether
         // it matches the encoder's own unquoted-key grammar (that grammar
         // governs encoder quoting, not decoder acceptance). Whitespace
-        // directly adjacent to the delimiter is still rejected, not trimmed.
+        // directly before an unquoted ':' is trimmed; before a '[' it is a
+        // header syntax error.
         int i = 0;
         while (i < content.length() && content.charAt(i) != ':' && (!stopAtBracket || content.charAt(i) != '[')) {
             i++;
         }
 
         String key = content.substring(0, i);
+        if (i < content.length() && content.charAt(i) == ':') {
+            key = ToonEscapes.trimSpaces(key);
+        }
         if (key.isEmpty() || !key.equals(key.strip())) {
             throw new SerdeException("Malformed TOON line (invalid or missing key) at line " + lineNumber + ": " + content);
         }
@@ -696,6 +704,11 @@ final class ToonDocumentParser extends LimitingStream {
                 throw new SerdeException("Unterminated field list at line " + lineNumber + ": " + s);
             }
 
+            i = ToonEscapes.skipSpaces(s, i);
+            if (i >= s.length()) {
+                throw new SerdeException("Unterminated field list at line " + lineNumber + ": " + s);
+            }
+
             String name;
             if (s.charAt(i) == '"') {
                 try {
@@ -718,11 +731,18 @@ final class ToonDocumentParser extends LimitingStream {
                 name = s.substring(nameStart, i);
                 // A field name is accepted literally regardless of whether
                 // it matches the encoder's unquoted-key grammar (same
-                // leniency as readKey). Whitespace directly adjacent to
-                // the delimiter/brace is still rejected, not trimmed.
-                if (!name.equals(name.strip())) {
-                    throw new SerdeException("Malformed field list (whitespace around unquoted field name '" + name + "') at line " + lineNumber + ": " + s);
+                // leniency as readKey). Spaces around it are
+                // trimmed, except before a nested group's '{'.
+                String trimmed = ToonEscapes.trimSpaces(name);
+                if (trimmed.isEmpty()) {
+                    throw new SerdeException("Malformed field list (empty field name) at line " + lineNumber + ": " + s);
                 }
+                char last = name.charAt(name.length() - 1);
+                if (i < s.length() && s.charAt(i) == '{' && last == ' ') {
+                    throw new SerdeException("Malformed field list (whitespace before nested field group '" + name + "') at line " + lineNumber + ": " + s);
+                }
+
+                name = trimmed;
             }
 
             List<FieldSpec> nested = null;
@@ -738,6 +758,7 @@ final class ToonDocumentParser extends LimitingStream {
 
             specs.add(new FieldSpec(name, nested));
 
+            i = ToonEscapes.skipSpaces(s, i);
             if (i >= s.length()) {
                 throw new SerdeException("Unterminated field list at line " + lineNumber + ": " + s);
             }

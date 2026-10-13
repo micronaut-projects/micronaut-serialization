@@ -25,7 +25,9 @@ import java.math.BigInteger;
  * specification: no leading zeros, no trailing fractional zeros, {@code -0}
  * normalized to {@code 0}, {@code NaN}/infinite values encoded as
  * {@code null}, and scientific notation only outside the
- * {@code 1e-6 <= |n| < 1e21} magnitude window.
+ * {@code 1e-6 <= |n| < 1e21} magnitude window. A {@link BigInteger} outside
+ * the {@code long} range is written as a quoted plain decimal string, so
+ * that no precision is lost.
  *
  * @see <a href="https://github.com/toon-format/spec">TOON specification</a>
  * @since 3.3.0
@@ -44,7 +46,8 @@ public final class ToonNumbers {
      *
      * @param number The number to format
      * @return The canonical decimal (or, outside the plain-form magnitude
-     * window, scientific notation) representation, or {@code "null"} for a
+     * window, scientific notation) representation, a quoted decimal string
+     * for a {@code BigInteger} outside the {@code long} range, or {@code "null"} for a
      * {@code NaN} or infinite floating point value
      */
     public static String format(Number number) {
@@ -69,6 +72,9 @@ public final class ToonNumbers {
             }
 
             case BigInteger bi -> {
+                if (bi.bitLength() > Long.SIZE - 1) {
+                    return '"' + bi.toString() + '"';
+                }
                 return canonicalDecimal(new BigDecimal(bi));
             }
 

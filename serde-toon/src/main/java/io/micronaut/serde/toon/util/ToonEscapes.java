@@ -388,6 +388,9 @@ public final class ToonEscapes {
         int i;
         if (content.startsWith("\"")) {
             i = findClosingQuote(content, 0) + 1;
+            while (i < content.length() && content.charAt(i) == ' ') {
+                i++;
+            }
         } else {
             i = 0;
             while (i < content.length() && content.charAt(i) != ':' && content.charAt(i) != '[') {
@@ -396,6 +399,40 @@ public final class ToonEscapes {
         }
 
         return i >= content.length() || (content.charAt(i) != ':' && content.charAt(i) != '[');
+    }
+
+    /**
+     * Returns the index of the first character at or after {@code from} that is not a space. Tabs are not skipped:
+     * a tab can be the active delimiter.
+     *
+     * @param value The text to scan
+     * @param from  The index to start at
+     * @return The index of the first non-space character, or {@code value.length()} if there is none
+     */
+    public static int skipSpaces(String value, int from) {
+        int i = from;
+        while (i < value.length() && value.charAt(i) == ' ') {
+            i++;
+        }
+        return i;
+    }
+
+    /**
+     * Trims leading and trailing spaces, and no other character.
+     *
+     * @param value The text to trim
+     * @return The text without leading or trailing spaces
+     */
+    public static String trimSpaces(String value) {
+        int start = 0;
+        int end = value.length();
+        while (start < end && value.charAt(start) == ' ') {
+            start++;
+        }
+        while (end > start && value.charAt(end - 1) == ' ') {
+            end--;
+        }
+        return value.substring(start, end);
     }
 
     private static boolean needsQuoting(String value, char delimiter) {

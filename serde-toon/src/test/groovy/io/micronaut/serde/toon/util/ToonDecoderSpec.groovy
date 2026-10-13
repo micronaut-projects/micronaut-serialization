@@ -566,12 +566,39 @@ forecast[2]{day,temp,condition}:
         'lone low surrogate in a \\u escape'                          | 'value: "\\uDC00"'
         'high surrogate not followed by a low surrogate'              | 'value: "\\uD800\\u0041"'
         'indented root content'                                       | '  name: Alice'
-        'space before colon in unquoted key'                          | 'name : Alice'
         'space before array header bracket'                           | 'items [2]: 1,2'
-        'space before colon in quoted key'                            | '"name" : Alice'
-        'whitespace around unquoted field in list'                    | 'items[2]{ id, name}:\n  1, Alice\n  2, Bob'
+        'space before a nested field group'                           | 'items[1]{a {b}}:\n  1'
         'huge declared tabular row count'                             | 'items[2000000000]{a}:\n  1'
         'huge declared list item count'                               | 'items[2000000000]:\n  - a'
+    }
+
+    @Unroll
+    void 'test decoding trims spaces around a key: #description'() {
+        when:
+        def tree = parse(text)
+
+        then:
+        tree.get('a').getStringValue() == 'x'
+
+        where:
+        description                      | text
+        'space before colon'             | 'a : x'
+        'space before colon, quoted key' | '"a" : x'
+        'space before colon, nested key' | 'b: 1\na : x'
+    }
+
+    void 'test decoding trims spaces around a nested key'() {
+        expect:
+        parse('a:\n  b : 1').get('a').get('b').getIntValue() == 1
+    }
+
+    void 'test decoding trims spaces around field names and cells'() {
+        when:
+        def tree = parse('items[2]{ id , "name" }:\n  1, Alice\n  2, Bob')
+
+        then:
+        tree.get('items').get(0).get('name').getStringValue() == 'Alice'
+        tree.get('items').get(1).get('id').getIntValue() == 2
     }
 
     private static LimitingStream.RemainingLimits limitsOf(int maximumNestingDepth) {
@@ -742,6 +769,35 @@ forecast[2]{day,temp,condition}:
 
         then:
         thrown(SerdeException)
+    }
+
+    @Unroll
+    void 'test ToonEscapes.trimSpaces: "#input"'() {
+        expect:
+        ToonEscapes.trimSpaces(input) == expected
+
+        where:
+        input        | expected
+        ''           | ''
+        '   '        | ''
+        ' a b '      | 'a b'
+        'a'          | 'a'
+        '\ta\t'      | '\ta\t'
+        ' \t a \t '  | '\t a \t'
+    }
+
+    @Unroll
+    void 'test ToonEscapes.skipSpaces: "#input" from #from'() {
+        expect:
+        ToonEscapes.skipSpaces(input, from) == expected
+
+        where:
+        input     | from | expected
+        '   a'    | 0    | 3
+        '   a'    | 3    | 3
+        '  '      | 0    | 2
+        ''        | 0    | 0
+        ' \ta'    | 0    | 1
     }
 
     @Unroll
