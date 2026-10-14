@@ -10,6 +10,7 @@ microstream-storage-restclient = "08.01.02-MS-GA"
 oracle-jdbc-driver = "23.26.3.0.0"
 jetbrains-annotations = "26.1.0"
 jmh = "1.37"
+fory = "1.7.6"
 lombok = "1.18.46"
 errorprone-gradle-plugin = "5.1.0"
 nullaway = "0.13.8"
@@ -68,6 +69,7 @@ junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api" }
 junit-platform-engine = { module = "org.junit.platform:junit-platform-suite-engine" }
 
+fory-json = { module = "org.apache.fory:fory-json", version.ref = "fory" }
 jmh-core = { module = "org.openjdk.jmh:jmh-core", version.ref = "jmh" }
 jmh-generator-annprocess = { module = "org.openjdk.jmh:jmh-generator-annprocess", version.ref = "jmh" }
 jackson-module-blackbird = { module = "tools.jackson.module:jackson-module-blackbird" }

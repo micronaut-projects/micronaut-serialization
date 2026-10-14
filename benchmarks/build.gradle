@@ -23,6 +23,7 @@ dependencies {
     implementation(projects.micronautSerdeSupport)
     implementation(mn.micronaut.jackson.databind)
     implementation(libs.jackson.module.blackbird)
+    implementation(projects.micronautSerdeForyJson)
 
     jmh(libs.jmh.core)
     runtimeOnly(mnLogging.logback.classic)
@@ -30,7 +31,7 @@ dependencies {
 
 jmh {
     includes = [
-        ".*(StartupBenchmark|SourceGenRoutingBenchmark|UserBeanSerdeBenchmark|PropertyAccessShapeBenchmark|PropertyAccessOrderBenchmark|PropertyValueKindBenchmark|PropertyValueKindSerializationCeilingBenchmark|PropertyValueKindSerializationLifecycleBenchmark|BeanIntrospectionAccessBenchmark|SpecificObjectDeserializerComplexShapeBenchmark).*"
+        ".*(StartupBenchmark|SourceGenRoutingBenchmark|UserBeanSerdeBenchmark|PropertyAccessShapeBenchmark|PropertyAccessOrderBenchmark|PropertyValueKindBenchmark|PropertyValueKindSerializationCeilingBenchmark|PropertyValueKindSerializationLifecycleBenchmark|BeanIntrospectionAccessBenchmark|SpecificObjectDeserializerComplexShapeBenchmark|ForyUserBeanBenchmark).*"
     ]
     fork = 10
     iterations = 1
