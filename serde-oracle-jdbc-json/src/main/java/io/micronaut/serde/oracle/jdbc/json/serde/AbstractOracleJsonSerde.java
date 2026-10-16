@@ -39,32 +39,24 @@ public abstract class AbstractOracleJsonSerde<T> implements Serde<T> {
 
     @Override
     public final T deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super T> type) throws IOException {
-        Decoder unwrappedDecoder = WrappedDecoder.unwrap(decoder);
-        if (unwrappedDecoder instanceof OracleJdbcJsonParserDecoder oracleJdbcJsonParserDecoder) {
-            return doDeserializeNonNull(oracleJdbcJsonParserDecoder, decoderContext, type);
-        } else if (unwrappedDecoder instanceof OracleOsonDecoder osonDecoder) {
-            return doDeserializeNonNull(osonDecoder, decoderContext, type);
-        } else {
-            return getDefault().deserialize(decoder, decoderContext, type);
-        }
+        return switch (WrappedDecoder.unwrap(decoder)) {
+            case OracleJdbcJsonParserDecoder parserDecoder -> doDeserializeNonNull(parserDecoder, decoderContext, type);
+            case OracleOsonDecoder osonDecoder -> doDeserializeNonNull(osonDecoder, decoderContext, type);
+            default -> getDefault().deserialize(decoder, decoderContext, type);
+        };
     }
 
     @Override
     public final @Nullable T deserializeNullable(Decoder decoder, DecoderContext decoderContext, Argument<? super T> type) throws IOException {
         Decoder unwrappedDecoder = WrappedDecoder.unwrap(decoder);
-        if (unwrappedDecoder instanceof OracleJdbcJsonParserDecoder oracleJdbcJsonParserDecoder) {
-            if (decoder.decodeNull()) {
-                return null;
-            }
-            return doDeserializeNonNull(oracleJdbcJsonParserDecoder, decoderContext, type);
-        } else if (unwrappedDecoder instanceof OracleOsonDecoder osonDecoder) {
-            if (decoder.decodeNull()) {
-                return null;
-            }
-            return doDeserializeNonNull(osonDecoder, decoderContext, type);
-        } else {
+        boolean oracleDecoder = unwrappedDecoder instanceof OracleJdbcJsonParserDecoder || unwrappedDecoder instanceof OracleOsonDecoder;
+        if (!oracleDecoder) {
             return getDefault().deserializeNullable(decoder, decoderContext, type);
         }
+        if (decoder.decodeNull()) {
+            return null;
+        }
+        return deserialize(decoder, decoderContext, type);
     }
 
     @Override

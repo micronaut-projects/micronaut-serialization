@@ -77,7 +77,7 @@ public final class OracleOsonFieldNameCache {
             if (c >= 0x80) {
                 return name.equals(new String(data, offset, length, StandardCharsets.UTF_8));
             }
-            if (i >= length || data[offset + i] != c) {
+            if (data[offset + i] != c) {
                 return false;
             }
         }

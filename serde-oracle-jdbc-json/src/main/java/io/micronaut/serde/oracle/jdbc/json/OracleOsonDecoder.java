@@ -186,91 +186,80 @@ public final class OracleOsonDecoder extends AbstractStreamDecoder {
     // ---- header -------------------------------------------------------------------------------------------
 
     private void readHeader(int offset, int length) throws IOException {
-        if (length < 6 || u8(offset) != HEADER_MAGIC_0 || u8(offset + 1) != HEADER_MAGIC_1 || u8(offset + 2) != HEADER_MAGIC_2) {
-            throw new SerdeException("Not an OSON document");
-        }
-        int pos = offset + 3;
-        int version = u8(pos++);
-        if (version != VERSION_MAX_FNAME_255 && version != VERSION_MAX_FNAME_65535) {
-            throw new SerdeException("Unsupported OSON version " + version);
-        }
+        int version = readVersion(offset, length);
+        int pos = offset + 4;
         int primaryFlags = u16(pos);
         pos += 2;
         relativeOffsets = (primaryFlags & FLAG_REL_OFFSET_MODE) != 0;
+        int treeSizeWidth = (primaryFlags & FLAG_TREE_SEG_UINT32) != 0 ? 4 : 2;
         if ((primaryFlags & FLAG_IS_SCALAR) != 0) {
-            pos += (primaryFlags & FLAG_TREE_SEG_UINT32) != 0 ? 4 : 2;
-            treeSegPos = pos;
-            token = readNode(pos);
+            treeSegPos = pos + treeSizeWidth;
+            token = readNode(treeSegPos);
             return;
         }
-        int numShort;
-        if ((primaryFlags & FLAG_NUM_FNAMES_UINT32) != 0) {
-            numShort = i32(pos);
-            pos += 4;
-            fieldIdLength = 4;
-        } else if ((primaryFlags & FLAG_NUM_FNAMES_UINT16) != 0) {
-            numShort = u16(pos);
-            pos += 2;
-            fieldIdLength = 2;
-        } else {
-            numShort = u8(pos);
-            pos += 1;
-            fieldIdLength = 1;
-        }
-        int shortOffsetsSize;
-        int shortSegSize;
-        if ((primaryFlags & FLAG_FNAMES_SEG_UINT32) != 0) {
-            shortOffsetsSize = 4;
-            shortSegSize = i32(pos);
-            pos += 4;
-        } else {
-            shortOffsetsSize = 2;
-            shortSegSize = u16(pos);
-            pos += 2;
-        }
+        fieldIdLength = width(primaryFlags, FLAG_NUM_FNAMES_UINT32, FLAG_NUM_FNAMES_UINT16);
+        int numShort = unsigned(pos, fieldIdLength);
+        pos += fieldIdLength;
+        int shortOffsetsSize = (primaryFlags & FLAG_FNAMES_SEG_UINT32) != 0 ? 4 : 2;
+        int shortSegSize = unsigned(pos, shortOffsetsSize);
+        pos += shortOffsetsSize;
         int numLong = 0;
         int longOffsetsSize = 0;
         int longSegSize = 0;
         if (version == VERSION_MAX_FNAME_65535) {
             int secondaryFlags = u16(pos);
-            pos += 2;
             longOffsetsSize = (secondaryFlags & FLAG_SEC_FNAMES_SEG_UINT16) != 0 ? 2 : 4;
-            numLong = i32(pos);
-            pos += 4;
-            longSegSize = i32(pos);
-            pos += 4;
+            numLong = i32(pos + 2);
+            longSegSize = i32(pos + 6);
+            pos += 10;
         }
-        pos += (primaryFlags & FLAG_TREE_SEG_UINT32) != 0 ? 4 : 2; // tree segment size
-        pos += 2; // number of tiny nodes
+        pos += treeSizeWidth + 2; // tree segment size, number of tiny nodes
         if (numShort + numLong > 0) {
             fieldNames = new String[numShort + numLong];
         }
-        if (numShort > 0) {
-            pos += numShort; // hash ids
-            int offsetsPos = pos;
-            pos += numShort * shortOffsetsSize;
-            int segPos = pos;
-            for (int i = 0; i < numShort; i++) {
-                int nameOffset = shortOffsetsSize == 2 ? u16(offsetsPos + i * 2) : i32(offsetsPos + i * 4);
-                int nameLength = u8(segPos + nameOffset);
-                fieldNames[i] = fieldNameCache.resolve(data, segPos + nameOffset + 1, nameLength);
-            }
-            pos += shortSegSize;
-        }
-        if (numLong > 0) {
-            pos += numLong * 2; // hash ids
-            int offsetsPos = pos;
-            pos += numLong * longOffsetsSize;
-            int segPos = pos;
-            for (int i = 0; i < numLong; i++) {
-                int nameOffset = longOffsetsSize == 2 ? u16(offsetsPos + i * 2) : i32(offsetsPos + i * 4);
-                int nameLength = u16(segPos + nameOffset);
-                fieldNames[numShort + i] = fieldNameCache.resolve(data, segPos + nameOffset + 2, nameLength);
-            }
-            pos += longSegSize;
-        }
+        // short names: 1 byte hash ids and length prefixes; long names: 2 byte hash ids and length prefixes
+        pos = readFieldNames(pos, 0, numShort, 1, shortOffsetsSize, shortSegSize);
+        pos = readFieldNames(pos, numShort, numLong, 2, longOffsetsSize, longSegSize);
         treeSegPos = pos;
         token = readNode(pos);
+    }
+
+    private int readVersion(int offset, int length) throws IOException {
+        if (length < 6 || u8(offset) != HEADER_MAGIC_0 || u8(offset + 1) != HEADER_MAGIC_1 || u8(offset + 2) != HEADER_MAGIC_2) {
+            throw new SerdeException("Not an OSON document");
+        }
+        int version = u8(offset + 3);
+        if (version != VERSION_MAX_FNAME_255 && version != VERSION_MAX_FNAME_65535) {
+            throw new SerdeException("Unsupported OSON version " + version);
+        }
+        return version;
+    }
+
+    /**
+     * Reads one field name dictionary: hash ids, then the offset of each name, then the names, each prefixed by
+     * its length.
+     *
+     * @return the position after the dictionary
+     */
+    private int readFieldNames(int pos, int firstIndex, int count, int prefixSize, int offsetsSize, int segSize) {
+        if (count == 0) {
+            return pos;
+        }
+        int offsetsPos = pos + count * prefixSize; // skip the hash ids
+        int segPos = offsetsPos + count * offsetsSize;
+        for (int i = 0; i < count; i++) {
+            int namePos = segPos + unsigned(offsetsPos + i * offsetsSize, offsetsSize);
+            int nameLength = unsigned(namePos, prefixSize);
+            fieldNames[firstIndex + i] = fieldNameCache.resolve(data, namePos + prefixSize, nameLength);
+        }
+        return segPos + segSize;
+    }
+
+    private static int width(int flags, int uint32Flag, int uint16Flag) {
+        if ((flags & uint32Flag) != 0) {
+            return 4;
+        }
+        return (flags & uint16Flag) != 0 ? 2 : 1;
     }
 
     // ---- byte access ---------------------------------------------------------------------------------------
@@ -285,6 +274,14 @@ public final class OracleOsonDecoder extends AbstractStreamDecoder {
 
     private int i32(int pos) {
         return (data[pos] & 0xFF) << 24 | (data[pos + 1] & 0xFF) << 16 | (data[pos + 2] & 0xFF) << 8 | (data[pos + 3] & 0xFF);
+    }
+
+    private int unsigned(int pos, int width) {
+        return switch (width) {
+            case 1 -> u8(pos);
+            case 2 -> u16(pos);
+            default -> i32(pos);
+        };
     }
 
     private long i64(int pos) {
@@ -404,42 +401,17 @@ public final class OracleOsonDecoder extends AbstractStreamDecoder {
         int offsetsPos;
         if (childrenBits == CHILDREN_SHARED) {
             // field ids shared with another object: the offset of that object follows, then this one's offsets
-            int sharedOffset = offsetSize == 4 ? i32(p) : u16(p);
-            p += offsetSize;
-            offsetsPos = p;
-            int sharedPos = treeSegPos + sharedOffset;
-            int sharedType = u8(sharedPos);
-            int sp = sharedPos + 1;
-            int sharedBits = sharedType & CHILDREN_BITS;
-            if (sharedBits == 0) {
-                count = u8(sp);
-                sp += 1;
-            } else if (sharedBits == CHILDREN_UINT16) {
-                count = u16(sp);
-                sp += 2;
-            } else {
-                count = i32(sp);
-                sp += 4;
-            }
-            fieldIdsPos = sp;
+            int sharedPos = treeSegPos + unsigned(p, offsetSize);
+            offsetsPos = p + offsetSize;
+            int countWidth = countWidth(u8(sharedPos) & CHILDREN_BITS);
+            count = unsigned(sharedPos + 1, countWidth);
+            fieldIdsPos = sharedPos + 1 + countWidth;
         } else {
-            if (childrenBits == 0) {
-                count = u8(p);
-                p += 1;
-            } else if (childrenBits == CHILDREN_UINT16) {
-                count = u16(p);
-                p += 2;
-            } else {
-                count = i32(p);
-                p += 4;
-            }
-            if (object) {
-                fieldIdsPos = p;
-                offsetsPos = p + fieldIdLength * count;
-            } else {
-                fieldIdsPos = 0;
-                offsetsPos = p;
-            }
+            int countWidth = countWidth(childrenBits);
+            count = unsigned(p, countWidth);
+            p += countWidth;
+            fieldIdsPos = object ? p : 0;
+            offsetsPos = object ? p + fieldIdLength * count : p;
         }
         int d = ++depth;
         if (d == frameCount.length) {
@@ -466,8 +438,17 @@ public final class OracleOsonDecoder extends AbstractStreamDecoder {
         frameContainerOffset = Arrays.copyOf(frameContainerOffset, n);
     }
 
+    private static int countWidth(int childrenBits) {
+        return switch (childrenBits) {
+            case 0 -> 1;
+            case CHILDREN_UINT16 -> 2;
+            default -> 4;
+        };
+    }
+
     private int childPos(int d, int index) {
-        int offset = frameOffsetSize[d] == 4 ? i32(frameOffsetsPos[d] + index * 4) : u16(frameOffsetsPos[d] + index * 2);
+        int offsetSize = frameOffsetSize[d];
+        int offset = unsigned(frameOffsetsPos[d] + index * offsetSize, offsetSize);
         if (relativeOffsets) {
             offset += frameContainerOffset[d];
         }
@@ -521,12 +502,7 @@ public final class OracleOsonDecoder extends AbstractStreamDecoder {
     protected String getCurrentKey() {
         int d = depth;
         int pos = frameFieldIdsPos[d] + frameIndex[d] * fieldIdLength;
-        int fieldId = switch (fieldIdLength) {
-            case 1 -> u8(pos);
-            case 2 -> u16(pos);
-            default -> i32(pos);
-        };
-        return fieldNames[fieldId - 1];
+        return fieldNames[unsigned(pos, fieldIdLength) - 1];
     }
 
     @Override
