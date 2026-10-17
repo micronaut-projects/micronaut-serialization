@@ -1,12 +1,12 @@
 # Jakarta JSON-B TCK Evidence
 
-- Commit: e61973b3c2a502b7245624cea3e739ce11a6a3a1
+- Commit: a02ae64803343cb591ab31325223775fa61532a6
 - Project version: 3.3.0-SNAPSHOT
 - JSON-P API baseline: 2.1.3
 - JSON-B API baseline: 3.0.3
 - JSON-P TCK: 2.1.1
 - JSON-B TCK: 3.0.3
-- Workflow: https://github.com/micronaut-projects/micronaut-serialization/actions/runs/38134035299
+- Workflow: https://github.com/micronaut-projects/micronaut-serialization/actions/runs/39024748054
 - Sanitized JUnit XML: junit-xml/
 - Tests: 295
 - Failures: 0
