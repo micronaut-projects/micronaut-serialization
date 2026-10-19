@@ -282,6 +282,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         Collection<BeanDefinition<Deserializer>> beanDefinitions = MatchArgumentQualifier.covariant(Deserializer.class, type)
             .filter(Deserializer.class, deserializers);
         beanDefinitions = withoutSpecificSerdesForOtherTypes(beanDefinitions, Deserializer.class, type, this::createSpecificDeserializerConstructor);
+        beanDefinitions = withoutSpecificSerdesReplacedForType(beanDefinitions, Deserializer.class, type, this::createSpecificDeserializerConstructor);
         if (preInstantiateCallbackPresent) {
             beanDefinitions = beanDefinitions.stream().filter(candidate -> !createSpecificDeserializerConstructor(candidate)).toList();
         }
@@ -336,6 +337,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         Collection<BeanDefinition<Serializer>> beanDefinitions = MatchArgumentQualifier.contravariant(Serializer.class, type)
             .filter(Serializer.class, serializers);
         beanDefinitions = withoutSpecificSerdesForOtherTypes(beanDefinitions, Serializer.class, type, this::createSpecificSerializerConstructor);
+        beanDefinitions = withoutSpecificSerdesReplacedForType(beanDefinitions, Serializer.class, type, this::createSpecificSerializerConstructor);
         BeanDefinition<Serializer> serializerBeanDefinition;
         if (beanDefinitions.size() == 1) {
             serializerBeanDefinition = beanDefinitions.iterator().next();
@@ -392,6 +394,34 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             }
         }
         return filtered;
+    }
+
+    /**
+     * A serde bean declared for exactly the looked up type, such as a hand-written serializer or
+     * deserializer, replaces the serde created per type from the context and the argument, such as a
+     * generated serde, for that type. The generated serde stands in for the runtime object serde, which
+     * a declared serde bean always took precedence over.
+     */
+    private static <S> Collection<BeanDefinition<S>> withoutSpecificSerdesReplacedForType(Collection<BeanDefinition<S>> candidates,
+                                                                                          Class<S> serdeType,
+                                                                                          Argument<?> type,
+                                                                                          Predicate<BeanDefinition<S>> specific) {
+        if (candidates.size() < 2) {
+            return candidates;
+        }
+        boolean anySpecific = false;
+        boolean anyReplacement = false;
+        for (BeanDefinition<S> candidate : candidates) {
+            if (specific.test(candidate)) {
+                anySpecific = true;
+            } else if (declaresExactType(candidate, serdeType, type)) {
+                anyReplacement = true;
+            }
+        }
+        if (!anySpecific || !anyReplacement) {
+            return candidates;
+        }
+        return candidates.stream().filter(specific.negate()).toList();
     }
 
     private static <S> boolean isSpecificForOtherType(BeanDefinition<S> candidate,
