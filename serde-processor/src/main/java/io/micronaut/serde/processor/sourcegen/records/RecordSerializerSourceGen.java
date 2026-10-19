@@ -21,6 +21,7 @@ import io.micronaut.context.annotation.Parameter;
 import io.micronaut.context.annotation.Prototype;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.MethodElement;
+import io.micronaut.inject.ast.PropertyElement;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.KeyDescriptor;
 import io.micronaut.serde.Keys;
@@ -134,12 +135,13 @@ public final class RecordSerializerSourceGen {
     );
 
     public ClassDef generate(ClassElement element, RecordSerdeShape recordSerdeShape) {
-        // A component whose inclusion is NEVER is not written by the runtime serializer either
+        // A component whose inclusion is NEVER is not written by the runtime serializer either. The getter
+        // methods are written after the components, and a property order places both alike.
         recordSerdeShape = new RecordSerdeShape(
             recordSerdeShape.canonicalConstructor(),
             SerdeSourceGenPropertyOrder.order(
                 element,
-                recordSerdeShape.components().stream()
+                Stream.concat(recordSerdeShape.components().stream(), recordSerdeShape.getterMethods().stream())
                     .filter(component -> component.include() != SerdeConfig.SerInclude.NEVER)
                     .toList(),
                 RecordSerdeShape.RecordComponent::serializedName,
@@ -158,8 +160,8 @@ public final class RecordSerializerSourceGen {
         for (RecordSerdeShape.RecordComponent component : recordSerdeShape.components()) {
             String keyFieldName = indexedName("KEY", index);
             String argumentFieldName = indexedName("ARGUMENT", index);
-            keyFieldNames.put(component.name(), keyFieldName);
-            argumentFieldNames.put(component.name(), argumentFieldName);
+            keyFieldNames.put(component.serializedName(), keyFieldName);
+            argumentFieldNames.put(component.serializedName(), argumentFieldName);
 
             fields.add(FieldDef.builder(keyFieldName, STRING_TYPE)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
@@ -174,7 +176,7 @@ public final class RecordSerializerSourceGen {
                 .build());
             if (scalarEncoderMethod(component.type()) == null) {
                 String serializerFieldName = RecordSerdeSourceGenUtils.localName("serializer", index);
-                serializerFieldNames.put(component.name(), serializerFieldName);
+                serializerFieldNames.put(component.serializedName(), serializerFieldName);
                 fields.add(FieldDef.builder(serializerFieldName, SERIALIZER_TYPE)
                     .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
                     .build());
@@ -416,7 +418,7 @@ public final class RecordSerializerSourceGen {
                                             int index,
                                             Map<String, String> argumentFieldNames,
                                             Map<String, String> serializerFieldNames) {
-        ExpressionDef argumentExpression = serializerClassTypeDef.getStaticField(required(argumentFieldNames, component.name()), ARGUMENT_TYPE);
+        ExpressionDef argumentExpression = serializerClassTypeDef.getStaticField(required(argumentFieldNames, component.serializedName()), ARGUMENT_TYPE);
         ClassElement componentType = component.type();
         Method scalarMethod = scalarEncoderMethod(componentType);
         ExpressionDef propertyValue = readComponentValue(value, component);
@@ -454,7 +456,7 @@ public final class RecordSerializerSourceGen {
                 )
             ), type, argumentExpression);
         }
-        String serializerFieldName = required(serializerFieldNames, component.name());
+        String serializerFieldName = required(serializerFieldNames, component.serializedName());
         ExpressionDef serializer = aThis.field(serializerFieldName, SERIALIZER_TYPE);
 
         StatementDef.DefineAndAssign propertyValueDef = propertyValue.newLocal(valueLocalName);
@@ -550,14 +552,25 @@ public final class RecordSerializerSourceGen {
 
     private ExpressionDef readComponentValue(VariableDef.MethodParameter value,
                                             RecordSerdeShape.RecordComponent component) {
-        MethodElement readMethod = component.propertyElement().getReadMethod().orElse(null);
+        PropertyElement propertyElement = component.propertyElement();
+        if (propertyElement == null) {
+            return invokeReadMethod(value, Objects.requireNonNull(component.getterMethod()));
+        }
+        MethodElement readMethod = propertyElement.getReadMethod().orElse(null);
         if (readMethod != null && SerdeSourceGenNames.requiresSourceWriterEscape(readMethod.getName())) {
+            return invokeReadMethod(value, readMethod);
+        }
+        return value.getPropertyValue(propertyElement);
+    }
+
+    private ExpressionDef invokeReadMethod(VariableDef.MethodParameter value, MethodElement readMethod) {
+        if (SerdeSourceGenNames.requiresSourceWriterEscape(readMethod.getName())) {
             return value.invoke(
                 SerdeSourceGenNames.escapeSourceWriterFormat(readMethod.getName()),
                 TypeDef.of(readMethod.getReturnType())
             );
         }
-        return value.getPropertyValue(component.propertyElement());
+        return value.invoke(readMethod);
     }
 
     private @Nullable Method scalarEncoderMethod(ClassElement type) {
@@ -581,7 +594,7 @@ public final class RecordSerializerSourceGen {
                                                RecordSerdeShape recordSerdeShape,
                                                String componentName) {
         for (RecordSerdeShape.RecordComponent component : recordSerdeShape.components()) {
-            if (component.name().equals(componentName) && SerdeSourceGenRecursion.isDirectlyRecursive(element, component.type())) {
+            if (component.serializedName().equals(componentName) && SerdeSourceGenRecursion.isDirectlyRecursive(element, component.type())) {
                 return true;
             }
         }
@@ -592,7 +605,7 @@ public final class RecordSerializerSourceGen {
                                                    RecordSerdeShape recordSerdeShape,
                                                    String componentName) {
         for (RecordSerdeShape.RecordComponent component : recordSerdeShape.components()) {
-            if (component.name().equals(componentName) && recursion.isIndirectlyRecursive(component.type())) {
+            if (component.serializedName().equals(componentName) && recursion.isIndirectlyRecursive(component.type())) {
                 return true;
             }
         }
