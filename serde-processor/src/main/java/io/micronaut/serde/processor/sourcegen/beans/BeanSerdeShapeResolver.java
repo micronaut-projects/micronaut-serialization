@@ -66,9 +66,9 @@ public final class BeanSerdeShapeResolver {
             }
         }
         List<String> serializedNames = serializationProperties.stream().map(named -> named.property().name()).toList();
-        for (SerdeSourceGenGetterMethods.GetterMethod getterMethod : SerdeSourceGenGetterMethods.resolve(element, beanProperties, serializedNames)) {
-            serializationProperties.add(new NamedProperty(getterMethod.originalName(), getterProperty(getterMethod)));
-        }
+        SerdeSourceGenGetterMethods.resolve(element, beanProperties, serializedNames).stream()
+            .map(getterMethod -> new NamedProperty(getterMethod.originalName(), getterProperty(getterMethod)))
+            .forEach(serializationProperties::add);
         List<BeanSerdeShape.BeanProperty> orderedSerializationProperties = SerdeSourceGenPropertyOrder.order(
             element,
             serializationProperties,

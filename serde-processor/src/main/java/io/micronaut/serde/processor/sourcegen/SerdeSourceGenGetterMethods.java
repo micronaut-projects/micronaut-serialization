@@ -73,13 +73,9 @@ public final class SerdeSourceGenGetterMethods {
         beanMethods.addAll(element.getEnclosedElements(ElementQuery.ALL_METHODS
             .onlyInstance()
             .annotated(annotationMetadata -> annotationMetadata.hasStereotype(Executable.class))));
-        List<MethodElement> getterMethods = new ArrayList<>(beanMethods.size());
-        for (MethodElement method : beanMethods) {
-            if (method.hasAnnotation(SerdeConfig.SerGetter.class)) {
-                getterMethods.add(method);
-            }
-        }
-        return getterMethods;
+        return beanMethods.stream()
+            .filter(method -> method.hasAnnotation(SerdeConfig.SerGetter.class))
+            .toList();
     }
 
     /**
@@ -102,27 +98,28 @@ public final class SerdeSourceGenGetterMethods {
         List<GetterMethod> getterMethods = new ArrayList<>(methods.size());
         for (MethodElement method : methods) {
             AnnotationMetadata annotationMetadata = method.getAnnotationMetadata();
-            if (!isSerialized(annotationMetadata)) {
-                continue;
-            }
             String originalName = NameUtils.getPropertyNameForGetter(method.getName());
             String serializedName = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY)
                 .or(() -> annotationMetadata.stringValue(JACKSON_PROPERTY))
                 .orElse(originalName);
-            if (!writtenNames.add(serializedName)) {
-                continue;
+            // A method excluded from serialization does not claim its name
+            if (isSerialized(annotationMetadata) && writtenNames.add(serializedName)) {
+                getterMethods.add(getterMethod(element, method, originalName, serializedName));
             }
-            Map<String, String> keyMetadata = resolveKeyMetadata(annotationMetadata);
-            getterMethods.add(new GetterMethod(
-                originalName,
-                serializedName,
-                method,
-                method.getGenericReturnType(),
-                keyMetadata,
-                SerdeInclusionSourceGen.resolveMethodInclude(element, method, keyMetadata)
-            ));
         }
         return getterMethods;
+    }
+
+    private static GetterMethod getterMethod(ClassElement element, MethodElement method, String originalName, String serializedName) {
+        Map<String, String> keyMetadata = resolveKeyMetadata(method.getAnnotationMetadata());
+        return new GetterMethod(
+            originalName,
+            serializedName,
+            method,
+            method.getGenericReturnType(),
+            keyMetadata,
+            SerdeInclusionSourceGen.resolveMethodInclude(element, method, keyMetadata)
+        );
     }
 
     /**
