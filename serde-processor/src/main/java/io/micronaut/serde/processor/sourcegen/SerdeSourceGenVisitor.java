@@ -22,6 +22,7 @@ import io.micronaut.inject.visitor.TypeElementVisitor;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.annotation.GeneratedSerde;
 import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.serde.annotation.SerdeableGenerated;
 import io.micronaut.serde.processor.sourcegen.beans.BeanDeserializerSourceGen;
@@ -153,6 +154,7 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Object, O
         }
         return ClassDef.builder(generatedSerializerClassName)
             .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+            .addAnnotation(GeneratedSerde.class)
             .addAnnotation(AnnotationDef.builder(Generated.class)
                 .addMember("value", "Micronaut")
                 .build())
@@ -182,6 +184,7 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Object, O
         }
         return ClassDef.builder(generatedDeserializerClassName)
             .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+            .addAnnotation(GeneratedSerde.class)
             .addAnnotation(AnnotationDef.builder(Generated.class)
                 .addMember("value", "Micronaut")
                 .build())
