@@ -1,0 +1,135 @@
+Micronaut Serialization reads and writes https://en.wikipedia.org/wiki/Comma-separated_values[CSV] through a small SPI module and one of two backends. The backend determines how Java objects are mapped: the Apache Commons CSV backend uses Micronaut Serialization's build-time serializers and deserializers, while the Jackson CSV backend maps objects with Jackson Databind.
+
+=== Apache Commons CSV
+
+The Apache Commons CSV backend is the default choice. Apache Commons CSV parses and writes records only; every record is converted to and from a `JsonNode` tree and mapped by the Micronaut api:serde.ObjectMapper[] bean:
+
+dependency:micronaut-serde-apache-commons-csv[groupId="io.micronaut.serde",scope="implementation"]
+
+NOTE: Object mapping is performed by the Micronaut `ObjectMapper`, so `@Serdeable` and the other Micronaut Serialization annotations behave as they do for JSON. Include a JSON mapper implementation, such as `micronaut-serde-jackson`, alongside the CSV backend.
+
+=== Jackson CSV
+
+The Jackson CSV backend maps objects with Jackson Databind. It uses `tools.jackson.dataformat.csv.CsvMapper` for parsing, generation, and object mapping, and applies ann:serde.csv.annotation.CsvFormat[] to the generated `CsvSchema` through Micronaut's compile-time introspection:
+
+dependency:micronaut-serde-jackson-csv[groupId="io.micronaut.serde",scope="implementation"]
+
+NOTE: This backend honors Jackson annotations rather than Micronaut Serialization's build-time serializers. `@CsvProperty` is considered only when the type also declares `@CsvFormat`; otherwise Jackson's property names and order are used. The `skipEmptyLines` and `trim` attributes are not supported by this backend.
+
+TIP: Add only one backend to an application. Both modules depend on `micronaut-serde-csv`, which provides the api:serde.csv.mapper.CsvMapper[] bean contract, the ann:serde.csv.annotation.CsvFormat[] and ann:serde.csv.annotation.CsvProperty[] annotations, and the HTTP message body handler.
+
+With a backend in place you can define an object to be serialized:
+
+snippet::example.Person[project-base="doc-examples/example-csv", source="main"]
+
+<1> ann:serde.annotation.Serdeable[] enables Micronaut Serialization's build-time serializers and deserializers, which the Apache Commons CSV backend uses for object mapping
+<2> ann:serde.csv.annotation.CsvFormat[] configures the CSV layout; here a header row is written and expected when reading
+
+Inject api:serde.csv.mapper.CsvMapper[] to read and write CSV. By default, column names come from the introspected property names and follow the declaration order:
+
+snippet::example.PersonTest[project-base="doc-examples/example-csv"]
+
+Encoding methods such as `writeToString` and `writeValue` return or write a trailing line separator. Reading a single value with `readAll(...).iterator().next()` is equivalent to `read(String, Class)`, which returns `null` for empty input.
+
+=== Controlling the format
+
+ann:serde.csv.annotation.CsvFormat[] controls the delimiter, quote, escape, line separator, null value, empty-line handling, trimming, and record shape:
+
+[source,java]
+----
+@Serdeable
+@CsvFormat(
+    delimiter = ';',
+    header = CsvFormat.Header.PRESENT,
+    columns = {"name", "age"},
+    shape = CsvFormat.Shape.MULTI
+)
+public record Person(String name, int age) {
+}
+----
+
+|===
+| Attribute | Default | Description
+
+| `header`
+| `INFER`
+| Whether a header row is present when reading and written when writing. `INFER` expects a header when reading and does not write one.
+
+| `columns`
+| `{}`
+| Explicit column names and order. When set, header handling is derived from `header` and property declaration order is ignored.
+
+| `delimiter`
+| `,`
+| Column delimiter.
+
+| `quote`
+| `"`
+| Quote character used to protect delimiters in values.
+
+| `escape`
+| `"`
+| Escape character. The default enables doubled-quote escaping.
+
+| `lineSeparator`
+| `\n`
+| Line separator used when writing.
+
+| `nullValue`
+| empty string
+| Value representing a `null` column.
+
+| `skipEmptyLines`
+| `true`
+| Whether empty lines are ignored when reading.
+
+| `trim`
+| `false`
+| Whether surrounding whitespace is trimmed from column values.
+
+| `shape`
+| `INFER`
+| How many CSV records map to the target value. Use `SINGLE` to reject extra records, `FIRST` to ignore them, or `MULTI` to read every record into a collection.
+|===
+
+NOTE: `skipEmptyLines` and `trim` are implemented by the Apache Commons CSV backend only. The `shape` attribute is enforced by the HTTP message body handler when it binds a single value; the `CsvMapper` API reads the first record unless you request an `Iterable`.
+
+Use ann:serde.csv.annotation.CsvProperty[] to rename a column, force its position, or exclude a property:
+
+[source,java]
+----
+@CsvProperty(name = "full_name", order = 0)
+String name;
+
+@CsvProperty(ignore = true)
+String internalId;
+----
+
+=== HTTP
+
+`micronaut-serde-csv` registers a message body handler for `text/csv`. Controllers and declarative clients can therefore bind CSV request and response bodies through the same `@Serdeable` types:
+
+[source,java]
+----
+@Controller("/people")
+public class PersonController {
+
+    @Produces(MediaType.TEXT_CSV)
+    @Get
+    public List<Person> list() {
+        return List.of(new Person("Alice", 30));
+    }
+
+    @Consumes(MediaType.TEXT_CSV)
+    @Post
+    public void save(@Body Person person) {
+        // ...
+    }
+}
+----
+
+Ordering rules are enforced when reading into a single value: if more than one record is decoded, a api:serde.csv.error.CsvShapeException[] is raised unless the shape is `FIRST` or the target is an `Iterable`.
+
+=== Native image
+
+CSV format metadata (`@CsvFormat`, `@CsvProperty`, and column order) is read from the compile-time generated `BeanIntrospection`, so column discovery uses no reflection. With the Apache Commons CSV backend, object mapping is also reflection-free. The Jackson CSV backend maps objects with Jackson Databind; follow Jackson Databind's native-image guidance for your domain types.
