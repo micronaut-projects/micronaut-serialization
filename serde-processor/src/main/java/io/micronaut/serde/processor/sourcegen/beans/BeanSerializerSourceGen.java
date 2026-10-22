@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.processor.sourcegen.beans;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.type.Argument;
 import io.micronaut.context.annotation.Parameter;
@@ -203,6 +204,8 @@ public final class BeanSerializerSourceGen {
         ClassDef.ClassDefBuilder classDefBuilder = ClassDef.builder(SerdeSourceGenClassNaming.generatedSerializerClassName(element))
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
             .addAnnotation(Prototype.class)
+            // Generated serdes are not API: their constructors follow the generator, not the type
+            .addAnnotation(Internal.class)
             .addAnnotation(AnnotationDef.builder(Generated.class)
                 .addMember(GENERATED_VALUE_MEMBER, "Micronaut")
                 .build())

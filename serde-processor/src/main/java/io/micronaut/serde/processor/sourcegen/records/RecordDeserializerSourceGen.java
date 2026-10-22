@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.processor.sourcegen.records;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.type.Argument;
 import io.micronaut.context.annotation.Parameter;
@@ -319,6 +320,8 @@ public final class RecordDeserializerSourceGen {
         ClassDef.ClassDefBuilder classDefBuilder = ClassDef.builder(SerdeSourceGenClassNaming.generatedDeserializerClassName(element))
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
             .addAnnotation(Prototype.class)
+            // Generated serdes are not API: their constructors follow the generator, not the type
+            .addAnnotation(Internal.class)
             .addAnnotation(AnnotationDef.builder(Generated.class)
                 .addMember(GENERATED_VALUE_MEMBER, "Micronaut")
                 .build())
@@ -1258,10 +1261,16 @@ public final class RecordDeserializerSourceGen {
         );
     }
 
+    /**
+     * Whether an absent component fails the strict nullable check. A component initialized with a
+     * non-null default when it is absent (an empty optional or collection) is not checked, matching the
+     * runtime deserializer, which supplies the same default before checking the constructor arguments.
+     */
     private boolean requiresStrictNullableCheck(RecordSerdeShape.RecordComponent component) {
         return component.nonNull()
             && !component.nullable()
-            && (!component.type().isPrimitive() || component.type().isArray());
+            && (!component.type().isPrimitive() || component.type().isArray())
+            && !RecordSerdeSourceGenUtils.hasNonNullDefaultValue(component.type());
     }
 
     private boolean requiresStrictNullableCheck(RecordSerdeShape recordSerdeShape) {

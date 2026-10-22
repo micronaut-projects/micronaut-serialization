@@ -10,6 +10,7 @@ quickStart:
   cborQuick: CBOR
   csvQuick: CSV
   yamlQuick: YAML
+  toonQuick: TOON
   tomlQuick: TOML
   propertiesQuick: Java Properties
   xmlQuick: XML

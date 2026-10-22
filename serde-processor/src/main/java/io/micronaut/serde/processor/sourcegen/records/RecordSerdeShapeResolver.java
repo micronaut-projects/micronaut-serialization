@@ -23,6 +23,7 @@ import io.micronaut.inject.ast.ParameterElement;
 import io.micronaut.inject.ast.PropertyElement;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.processor.sourcegen.SerdeInclusionSourceGen;
+import io.micronaut.serde.processor.sourcegen.SerdeSourceGenGetterMethods;
 import io.micronaut.serde.processor.sourcegen.beans.BeanSerdeShapeResolver;
 
 import java.util.ArrayList;
@@ -48,7 +49,8 @@ public final class RecordSerdeShapeResolver {
         if (canonicalConstructor == null) {
             return Optional.empty();
         }
-        Map<String, PropertyElement> propertiesByName = BeanSerdeShapeResolver.introspectedProperties(element).stream()
+        List<PropertyElement> properties = BeanSerdeShapeResolver.introspectedProperties(element);
+        Map<String, PropertyElement> propertiesByName = properties.stream()
             .collect(Collectors.toMap(PropertyElement::getName, Function.identity()));
         List<RecordSerdeShape.RecordComponent> components = new ArrayList<>();
         for (ParameterElement parameter : canonicalConstructor.getParameters()) {
@@ -75,7 +77,31 @@ public final class RecordSerdeShapeResolver {
                 propertyElement
             ));
         }
-        return Optional.of(new RecordSerdeShape(canonicalConstructor, List.copyOf(components)));
+        List<String> serializedNames = components.stream().map(RecordSerdeShape.RecordComponent::serializedName).toList();
+        List<RecordSerdeShape.RecordComponent> getterMethods = SerdeSourceGenGetterMethods.resolve(element, properties, serializedNames).stream()
+            .map(RecordSerdeShapeResolver::getterComponent)
+            .toList();
+        return Optional.of(new RecordSerdeShape(canonicalConstructor, List.copyOf(components), getterMethods));
+    }
+
+    /**
+     * A getter method is written like a component whose value the method returns.
+     */
+    private static RecordSerdeShape.RecordComponent getterComponent(SerdeSourceGenGetterMethods.GetterMethod getterMethod) {
+        MethodElement method = getterMethod.method();
+        return new RecordSerdeShape.RecordComponent(
+            getterMethod.originalName(),
+            getterMethod.serializedName(),
+            getterMethod.type(),
+            getterMethod.keyMetadata(),
+            getterMethod.include(),
+            false,
+            List.of(),
+            method.isNonNull(),
+            method.isNullable(),
+            null,
+            method
+        );
     }
 
     /**
