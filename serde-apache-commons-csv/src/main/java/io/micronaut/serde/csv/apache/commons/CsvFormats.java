@@ -17,9 +17,15 @@ package io.micronaut.serde.csv.apache.commons;
 
 import io.micronaut.core.annotation.Internal;
 
+import io.micronaut.serde.csv.error.CsvException;
 import io.micronaut.serde.csv.introspection.CsvFormatConfig;
 import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.QuoteMode;
+import org.jspecify.annotations.Nullable;
+
+import java.io.IOException;
+import java.io.StringWriter;
 
 /**
  * Pre-configured {@link CSVFormat} instances used by the CSV serde.
@@ -49,15 +55,29 @@ public final class CsvFormats {
         .setNullString("")
         .get();
 
-    /**
-     * Inline format using a pipe delimiter and minimal quoting, intended for wrapping single values.
-     */
-    public static final CSVFormat INLINE = CsvFormats.NO_HEADER
-        .builder()
-        .setDelimiter('|')
-        .get();
-
     private CsvFormats() {
+    }
+
+    /**
+     * Encodes a single record without a header.
+     *
+     * @param config The resolved CSV format
+     * @param values The record values
+     * @return The encoded record without the trailing line separator
+     * @throws CsvException If the record cannot be encoded
+     */
+    public static String encodeLine(CsvFormatConfig config, Iterable<? extends @Nullable String> values) throws CsvException {
+        StringWriter writer = new StringWriter();
+        try (CSVPrinter printer = new CSVPrinter(writer, format(config, false))) {
+            printer.printRecord(values);
+        } catch (IOException e) {
+            throw new CsvException("Failed to encode CSV line: " + e.getMessage(), e);
+        }
+        String encoded = writer.toString();
+        String lineSeparator = config.lineSeparator();
+        return encoded.endsWith(lineSeparator)
+            ? encoded.substring(0, encoded.length() - lineSeparator.length())
+            : encoded;
     }
 
     /**

@@ -10,11 +10,11 @@ NOTE: Object mapping is performed by the Micronaut `ObjectMapper`, so `@Serdeabl
 
 === Jackson CSV
 
-The Jackson CSV backend maps objects with Jackson Databind. It uses `tools.jackson.dataformat.csv.CsvMapper` for parsing, generation, and object mapping, and applies ann:serde.csv.annotation.CsvFormat[] to the generated `CsvSchema` through Micronaut's compile-time introspection:
+The Jackson CSV backend maps objects with Jackson Databind. It uses `tools.jackson.dataformat.csv.CsvMapper` for record parsing and generation, then maps the resulting records with Databind. ann:serde.csv.annotation.CsvFormat[] is applied to the generated `CsvSchema` through Micronaut's compile-time introspection:
 
 dependency:micronaut-serde-jackson-csv[groupId="io.micronaut.serde",scope="implementation"]
 
-NOTE: This backend honors Jackson annotations rather than Micronaut Serialization's build-time serializers. `@CsvProperty` is considered only when the type also declares `@CsvFormat`; otherwise Jackson's property names and order are used. The `skipEmptyLines` and `trim` attributes are not supported by this backend.
+NOTE: This backend honors Jackson annotations rather than Micronaut Serialization's build-time serializers. Column names, order, empty-line handling, trimming, and null values follow `@CsvFormat` and `@CsvProperty`, the same as the Apache Commons CSV backend.
 
 TIP: Add only one backend to an application. Both modules depend on `micronaut-serde-csv`, which provides the api:serde.csv.mapper.CsvMapper[] bean contract, the ann:serde.csv.annotation.CsvFormat[] and ann:serde.csv.annotation.CsvProperty[] annotations, and the HTTP message body handler.
 
@@ -22,7 +22,7 @@ With a backend in place you can define an object to be serialized:
 
 snippet::example.Person[project-base="doc-examples/example-csv", source="main"]
 
-<1> ann:serde.annotation.Serdeable[] enables Micronaut Serialization's build-time serializers and deserializers, which the Apache Commons CSV backend uses for object mapping
+<1> ann:serde.annotation.Serdeable[] enables Micronaut Serialization's build-time serializers and deserializers. The Apache Commons CSV backend uses them for object mapping; the Jackson CSV backend uses Jackson Databind.
 <2> ann:serde.csv.annotation.CsvFormat[] configures the CSV layout; here a header row is written and expected when reading
 
 Inject api:serde.csv.mapper.CsvMapper[] to read and write CSV. By default, column names come from the introspected property names and follow the declaration order:
@@ -30,6 +30,8 @@ Inject api:serde.csv.mapper.CsvMapper[] to read and write CSV. By default, colum
 snippet::example.PersonTest[project-base="doc-examples/example-csv"]
 
 Encoding methods such as `writeToString` and `writeValue` return or write a trailing line separator. Reading a single value with `readAll(...).iterator().next()` is equivalent to `read(String, Class)`, which returns `null` for empty input.
+
+Reading is lazy: records are decoded while the returned `Iterable` is iterated instead of being collected up front. String-backed iterables can be iterated independently, including from multiple threads. Iterables backed by an `InputStream` are single-use because the stream cannot be replayed; consume them once, on one thread.
 
 === Controlling the format
 
@@ -92,7 +94,7 @@ public record Person(String name, int age) {
 | How many CSV records map to the target value. Use `SINGLE` to reject extra records, `FIRST` to ignore them, or `MULTI` to read every record into a collection.
 |===
 
-NOTE: `skipEmptyLines` and `trim` are implemented by the Apache Commons CSV backend only. The `shape` attribute is enforced by the HTTP message body handler when it binds a single value; the `CsvMapper` API reads the first record unless you request an `Iterable`.
+NOTE: The `shape` attribute is enforced by the HTTP message body handler when it binds a single value; the `CsvMapper` API reads the first record unless you request an `Iterable`.
 
 Use ann:serde.csv.annotation.CsvProperty[] to rename a column, force its position, or exclude a property:
 
@@ -104,6 +106,26 @@ String name;
 @CsvProperty(ignore = true)
 String internalId;
 ----
+
+NOTE: Both backends honor `@CsvProperty`, including when the type does not declare `@CsvFormat`; in that case the backend defaults are used for the format attributes and the column name, order, and ignore flags come from `@CsvProperty`.
+
+=== Inline nested beans
+
+Applying ann:serde.csv.annotation.CsvFormat[] to a property encodes the nested bean as a single CSV column. Attributes set on the property override the nested type's format; attributes that are not set are inherited from the nested type:
+
+[source,java]
+----
+@Serdeable
+record Person(String name, int age) {
+}
+
+@Serdeable
+@CsvFormat(header = CsvFormat.Header.PRESENT)
+record Employee(String id, @CsvFormat(delimiter = '|') Person person) {
+}
+----
+
+The example writes a `person` column containing `Alice|30`. The inline value never has its own header row; the outer record still uses the property name as the column name. Both backends read the same representation back into the nested bean.
 
 === HTTP
 

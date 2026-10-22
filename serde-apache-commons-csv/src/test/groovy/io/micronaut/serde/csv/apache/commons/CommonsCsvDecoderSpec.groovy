@@ -1,7 +1,6 @@
 package io.micronaut.serde.csv.apache.commons
 
 import io.micronaut.serde.csv.apache.commons.decoder.DefaultCsvDecoder
-import io.micronaut.serde.csv.apache.commons.decoder.InlineCsvDecoder
 import io.micronaut.serde.csv.apache.commons.decoder.NoHeaderCsvDecoder
 import io.micronaut.serde.csv.error.CsvException
 import io.micronaut.serde.csv.introspection.CsvFormatConfig
@@ -17,9 +16,6 @@ class CommonsCsvDecoderSpec extends Specification {
 
     @Inject
     NoHeaderCsvDecoder noHeaderDecoder
-
-    @Inject
-    InlineCsvDecoder inlineDecoder
 
     private static final CsvFormatConfig DEFAULT_CONFIG = CsvFormatConfig.DEFAULT
 
@@ -78,29 +74,5 @@ class CommonsCsvDecoderSpec extends Specification {
         records.count { true } == 2
         records[0] == ["Alice", null]
         records[1] == [null, "Bob"]
-    }
-
-    void "test decode inline csv with inline decoder"() throws CsvException {
-        when:
-        def records = inlineDecoder.decode("Alice|30|Bob|25", DEFAULT_CONFIG)
-
-        then:
-        records.count { true } == 4
-        records[0] == ["Alice"]
-        records[1] == ["30"]
-        records[2] == ["Bob"]
-        records[3] == ["25"]
-    }
-
-    void "test decode inline csv with quoted values"() throws CsvException {
-        when:
-        def records = inlineDecoder.decode('"Alice, Jr."|30|Bob|25', DEFAULT_CONFIG)
-
-        then:
-        records.count { true } == 4
-        records[0] == ["Alice", " Jr."]
-        records[1] == ["30"]
-        records[2] == ["Bob"]
-        records[3] == ["25"]
     }
 }

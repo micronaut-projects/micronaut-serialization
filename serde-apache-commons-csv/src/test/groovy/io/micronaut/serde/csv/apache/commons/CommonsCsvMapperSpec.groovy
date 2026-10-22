@@ -103,10 +103,10 @@ class CommonsCsvMapperSpec extends Specification {
     void "test read from input stream with default mapper"() throws CsvException {
         when:
         def input = new ByteArrayInputStream("name,age\nAlice,30\nBob,25".bytes)
-        def people = mapper.read(input, "UTF-8", Person)
+        def people = mapper.read(input, "UTF-8", Person).toList()
 
         then:
-        people.count { true } == 2
+        people.size() == 2
         people[0].name() == "Alice"
         people[0].age() == 30
     }

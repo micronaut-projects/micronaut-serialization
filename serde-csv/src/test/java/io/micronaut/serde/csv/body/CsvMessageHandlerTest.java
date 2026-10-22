@@ -39,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class CsvMessageHandlerTest {
 
+    @SuppressWarnings("unchecked")
     private CsvMapper createCsvMapper(Iterable<String> readResult) {
         return new CsvMapper() {
             @Override
@@ -106,8 +107,8 @@ class CsvMessageHandlerTest {
     @Test
     void testReadWithIterableType() {
         CsvMessageHandler<List<String>> codec = new CsvMessageHandler<>(createCsvMapper(List.of("Alice", "Bob")));
-        ByteArrayInputStream input = new ByteArrayInputStream("name,age\nAlice,30".getBytes());
-        Argument<List<String>> type = (Argument<List<String>>) (Argument<?>) Argument.of(List.class, String.class);
+        ByteArrayInputStream input = new ByteArrayInputStream("name,age\nAlice,30".getBytes(StandardCharsets.UTF_8));
+        Argument<List<String>> type = Argument.listOf(String.class);
         List<String> result = codec.read(type, new MediaType("text/csv"), null, input);
         assertEquals(2, result.size());
         assertEquals("Alice", result.get(0));
@@ -117,7 +118,7 @@ class CsvMessageHandlerTest {
     @Test
     void testReadWithNonIterableType() {
         CsvMessageHandler<String> codec = new CsvMessageHandler<>(createCsvMapper(List.of("Alice")));
-        ByteArrayInputStream input = new ByteArrayInputStream("name,age\nAlice,30".getBytes());
+        ByteArrayInputStream input = new ByteArrayInputStream("name,age\nAlice,30".getBytes(StandardCharsets.UTF_8));
         Argument<String> type = Argument.of(String.class);
         String result = codec.read(type, new MediaType("text/csv"), null, input);
         assertEquals("Alice", result);
@@ -126,7 +127,7 @@ class CsvMessageHandlerTest {
     @Test
     void testReadWithNonIterableTypeThrowsOnMultipleRecords() {
         CsvMessageHandler<String> codec = new CsvMessageHandler<>(createCsvMapper(List.of("Alice", "Bob")));
-        ByteArrayInputStream input = new ByteArrayInputStream("name,age\nAlice,30\nBob,25".getBytes());
+        ByteArrayInputStream input = new ByteArrayInputStream("name,age\nAlice,30\nBob,25".getBytes(StandardCharsets.UTF_8));
         Argument<String> type = Argument.of(String.class);
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
             () -> codec.read(type, new MediaType("text/csv"), null, input));
@@ -137,7 +138,7 @@ class CsvMessageHandlerTest {
     @Test
     void testReadWithNonIterableTypeThrowsOnEmptyRecords() {
         CsvMessageHandler<String> codec = new CsvMessageHandler<>(createCsvMapper(List.of()));
-        ByteArrayInputStream input = new ByteArrayInputStream("".getBytes());
+        ByteArrayInputStream input = new ByteArrayInputStream("".getBytes(StandardCharsets.UTF_8));
         Argument<String> type = Argument.of(String.class);
         assertThrows(IllegalArgumentException.class, () -> codec.read(type, new MediaType("text/csv"), null, input));
     }
@@ -146,7 +147,7 @@ class CsvMessageHandlerTest {
     void testWriteTo() {
         CsvMessageHandler<List<String>> codec = new CsvMessageHandler<>(createCsvMapper(List.of()));
         ByteArrayOutputStream output = new ByteArrayOutputStream();
-        Argument<List<String>> type = (Argument<List<String>>) (Argument<?>) Argument.of(List.class, String.class);
+        Argument<List<String>> type = Argument.listOf(String.class);
         List<String> data = List.of("Alice", "Bob");
         codec.writeTo(type, new MediaType("text/csv"), data, null, output);
         String result = output.toString(StandardCharsets.UTF_8);

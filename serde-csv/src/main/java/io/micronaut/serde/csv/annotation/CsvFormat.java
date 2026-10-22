@@ -23,25 +23,40 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Declares the top-level CSV format used to read and write a bean type.
+ * Declares the CSV format used to read and write a bean type or a bean property.
+ *
+ * <p>On a type, the annotation configures the top-level CSV record. On a property, getter,
+ * setter, or record component, the annotated value is written as a single inline CSV value
+ * using this format, and is parsed back into the property type when reading. This is useful
+ * for nested beans that should occupy one column rather than separate top-level columns.</p>
  *
  * <p>The annotation is read at runtime from the compile-time generated
  * {@link io.micronaut.core.beans.BeanIntrospection} metadata, so it works for both the
  * Apache Commons CSV and the Jackson CSV backends and is native-image friendly. When the
  * annotation is absent the backend defaults are used.</p>
  *
- * <pre>{@code
+ * <pre>
  * &#64;Serdeable
  * &#64;CsvFormat(delimiter = ';', header = CsvFormat.Header.PRESENT)
  * record Person(String name, int age) {}
- * }</pre>
+ *
+ * &#64;Serdeable
+ * record Employee(String id, &#64;CsvFormat(delimiter = '|') Person person) {}
+ * // Writes the person property as one column, for example "Alice|30"
+ * </pre>
  *
  * @see CsvProperty
  * @since 3.2.5
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
+@Target({
+    ElementType.TYPE,
+    ElementType.FIELD,
+    ElementType.METHOD,
+    ElementType.PARAMETER,
+    ElementType.RECORD_COMPONENT
+})
 @Inherited
 public @interface CsvFormat {
 

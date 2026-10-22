@@ -29,8 +29,11 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -47,6 +50,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class CsvIntrospection {
 
     private static final Map<Class<?>, CsvFormatConfig> CACHE = new ConcurrentHashMap<>();
+    private static final ThreadLocal<Set<Class<?>>> RESOLVING = ThreadLocal.withInitial(HashSet::new);
 
     private CsvIntrospection() {
     }
@@ -59,7 +63,24 @@ public final class CsvIntrospection {
      * @return The resolved format
      */
     public static CsvFormatConfig formatFor(Class<?> type) {
-        return CACHE.computeIfAbsent(type, CsvIntrospection::resolve);
+        CsvFormatConfig cached = CACHE.get(type);
+        if (cached != null) {
+            return cached;
+        }
+        Set<Class<?>> resolving = RESOLVING.get();
+        if (!resolving.add(type)) {
+            return CsvFormatConfig.DEFAULT;
+        }
+        try {
+            CsvFormatConfig resolved = resolve(type);
+            CsvFormatConfig existing = CACHE.putIfAbsent(type, resolved);
+            return existing == null ? resolved : existing;
+        } finally {
+            resolving.remove(type);
+            if (resolving.isEmpty()) {
+                RESOLVING.remove();
+            }
+        }
     }
 
     /**
@@ -72,6 +93,16 @@ public final class CsvIntrospection {
         return formatFor(type).columns();
     }
 
+    /**
+     * Resolves the bean property names aligned with {@link #columnsFor(Class)}.
+     *
+     * @param type The bean type
+     * @return The ordered property names, or an empty list when unknown
+     */
+    public static List<String> propertyNamesFor(Class<?> type) {
+        return formatFor(type).propertyNames();
+    }
+
     private static CsvFormatConfig resolve(Class<?> type) {
         BeanIntrospection<?> introspection = findIntrospection(type);
         if (introspection == null) {
@@ -80,16 +111,20 @@ public final class CsvIntrospection {
         AnnotationMetadata metadata = introspection.getAnnotationMetadata();
         AnnotationValue<CsvFormat> format = metadata.findAnnotation(CsvFormat.class).orElse(null);
         String[] configuredColumns = format == null ? new String[0] : format.stringValues("columns");
-        List<String> columns = resolveColumns(introspection, metadata, configuredColumns);
+        ResolvedColumns resolved = resolveColumns(introspection, metadata, configuredColumns);
         boolean explicitColumns = configuredColumns.length > 0;
+        Map<String, CsvFormatConfig.CsvPropertyFormat> propertyFormats = resolvePropertyFormats(introspection);
         if (format == null) {
-            return CsvFormatConfig.DEFAULT.withColumns(explicitColumns, columns);
+            return CsvFormatConfig.DEFAULT
+                .withColumns(explicitColumns, resolved.columns(), resolved.propertyNames())
+                .withPropertyFormats(propertyFormats);
         }
         return new CsvFormatConfig(
             true,
             format.enumValue("header", CsvFormat.Header.class).orElse(CsvFormat.Header.INFER),
             explicitColumns,
-            columns,
+            resolved.columns(),
+            resolved.propertyNames(),
             format.charValue("delimiter").orElse(CsvFormatConfig.DEFAULT.delimiter()),
             format.charValue("quote").orElse(CsvFormatConfig.DEFAULT.quote()),
             format.charValue("escape").orElse(CsvFormatConfig.DEFAULT.escape()),
@@ -97,19 +132,77 @@ public final class CsvIntrospection {
             format.stringValue("nullValue").orElse(CsvFormatConfig.DEFAULT.nullValue()),
             format.booleanValue("skipEmptyLines").orElse(CsvFormatConfig.DEFAULT.skipEmptyLines()),
             format.booleanValue("trim").orElse(CsvFormatConfig.DEFAULT.trim()),
-            format.enumValue("shape", CsvFormat.Shape.class).orElse(CsvFormat.Shape.INFER)
+            format.enumValue("shape", CsvFormat.Shape.class).orElse(CsvFormat.Shape.INFER),
+            propertyFormats
         );
     }
 
-    private static List<String> resolveColumns(BeanIntrospection<?> introspection,
-                                               AnnotationMetadata metadata,
-                                               String[] configuredColumns) {
+    private static Map<String, CsvFormatConfig.CsvPropertyFormat> resolvePropertyFormats(BeanIntrospection<?> introspection) {
+        Map<String, CsvFormatConfig.CsvPropertyFormat> formats = new LinkedHashMap<>();
+        for (BeanProperty<?, ?> property : introspection.getBeanProperties()) {
+            AnnotationValue<CsvFormat> format = property.getAnnotationMetadata()
+                .findAnnotation(CsvFormat.class)
+                .orElse(null);
+            if (format == null) {
+                continue;
+            }
+            Class<?> propertyType = property.getType();
+            CsvFormatConfig nested = formatFor(propertyType);
+            formats.put(property.getName(), new CsvFormatConfig.CsvPropertyFormat(
+                propertyType,
+                resolveInlineFormat(format, nested)
+            ));
+        }
+        for (BeanProperty<?, ?> property : introspection.getBeanProperties()) {
+            CsvFormatConfig.CsvPropertyFormat format = formats.get(property.getName());
+            if (format == null) {
+                continue;
+            }
+            AnnotationMetadata propertyMetadata = property.getAnnotationMetadata();
+            propertyMetadata.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY)
+                .filter(name -> !name.isEmpty())
+                .ifPresent(name -> formats.putIfAbsent(name, format));
+            propertyMetadata.findAnnotation(CsvProperty.class)
+                .flatMap(csvProperty -> csvProperty.stringValue("name"))
+                .filter(name -> !name.isEmpty())
+                .ifPresent(name -> formats.putIfAbsent(name, format));
+        }
+        return formats;
+    }
+
+    private static CsvFormatConfig resolveInlineFormat(AnnotationValue<CsvFormat> format, CsvFormatConfig nested) {
+        String[] configuredColumns = format.stringValues("columns");
+        List<String> columns = configuredColumns.length > 0 ? List.of(configuredColumns) : nested.columns();
+        List<String> propertyNames = configuredColumns.length > 0 ? columns : nested.propertyNames();
+        return new CsvFormatConfig(
+            true,
+            CsvFormat.Header.ABSENT,
+            false,
+            columns,
+            propertyNames,
+            format.contains("delimiter") ? format.charValue("delimiter").orElse(nested.delimiter()) : nested.delimiter(),
+            format.contains("quote") ? format.charValue("quote").orElse(nested.quote()) : nested.quote(),
+            format.contains("escape") ? format.charValue("escape").orElse(nested.escape()) : nested.escape(),
+            format.contains("lineSeparator") ? format.stringValue("lineSeparator").orElse(nested.lineSeparator()) : nested.lineSeparator(),
+            format.contains("nullValue") ? format.stringValue("nullValue").orElse(nested.nullValue()) : nested.nullValue(),
+            format.contains("skipEmptyLines") ? format.booleanValue("skipEmptyLines").orElse(nested.skipEmptyLines()) : nested.skipEmptyLines(),
+            format.contains("trim") ? format.booleanValue("trim").orElse(nested.trim()) : nested.trim(),
+            format.contains("shape") ? format.enumValue("shape", CsvFormat.Shape.class).orElse(nested.shape()) : nested.shape(),
+            nested.propertyFormats()
+        );
+    }
+
+    private static ResolvedColumns resolveColumns(BeanIntrospection<?> introspection,
+                                                  AnnotationMetadata metadata,
+                                                  String[] configuredColumns) {
         if (configuredColumns.length > 0) {
-            return List.of(configuredColumns);
+            List<String> columns = List.of(configuredColumns);
+            return new ResolvedColumns(columns, columns);
         }
         String[] unifiedOrder = metadata.stringValues(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER);
         if (unifiedOrder.length > 0) {
-            return List.of(unifiedOrder);
+            List<String> columns = List.of(unifiedOrder);
+            return new ResolvedColumns(columns, columns);
         }
         List<Column> columns = new ArrayList<>();
         int index = 0;
@@ -121,20 +214,26 @@ public final class CsvIntrospection {
                 index++;
                 continue;
             }
-            String name = property.getName();
+            String propertyName = property.getAnnotationMetadata()
+                .stringValue(SerdeConfig.class, SerdeConfig.PROPERTY)
+                .filter(value -> !value.isEmpty())
+                .orElse(property.getName());
+            String name = propertyName;
             int order = -1;
             if (csvProperty != null) {
                 name = csvProperty.stringValue("name").filter(value -> !value.isEmpty()).orElse(name);
                 order = csvProperty.intValue("order").orElse(-1);
             }
-            columns.add(new Column(name, order, index++));
+            columns.add(new Column(name, propertyName, order, index++));
         }
         sort(columns);
         List<String> names = new ArrayList<>(columns.size());
+        List<String> propertyNames = new ArrayList<>(columns.size());
         for (Column column : columns) {
             names.add(column.name());
+            propertyNames.add(column.propertyName());
         }
-        return List.copyOf(names);
+        return new ResolvedColumns(List.copyOf(names), List.copyOf(propertyNames));
     }
 
     private static void sort(List<Column> columns) {
@@ -156,6 +255,9 @@ public final class CsvIntrospection {
         return BeanIntrospector.SHARED.findIntrospection(type).orElse(null);
     }
 
-    private record Column(String name, int order, int index) {
+    private record Column(String name, String propertyName, int order, int index) {
+    }
+
+    private record ResolvedColumns(List<String> columns, List<String> propertyNames) {
     }
 }

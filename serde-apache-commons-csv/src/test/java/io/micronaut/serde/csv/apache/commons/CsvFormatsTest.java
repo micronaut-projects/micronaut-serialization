@@ -29,13 +29,6 @@ class CsvFormatsTest {
     }
 
     @Test
-    void testInlineFormatUsesPipeDelimiter() {
-        var format = CsvFormats.INLINE;
-        assertEquals("|", format.getDelimiterString());
-        assertEquals("", format.getNullString());
-    }
-
-    @Test
     void testNoHeaderFormatHasNoHeader() {
         var format = CsvFormats.NO_HEADER;
         assertEquals("", format.getNullString());

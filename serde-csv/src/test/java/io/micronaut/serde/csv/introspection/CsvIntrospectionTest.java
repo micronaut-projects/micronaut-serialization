@@ -17,6 +17,7 @@ package io.micronaut.serde.csv.introspection;
 
 import io.micronaut.serde.csv.CsvExplicitColumns;
 import io.micronaut.serde.csv.CsvFormatted;
+import io.micronaut.serde.csv.CsvNestedProperty;
 import io.micronaut.serde.csv.CsvOrdered;
 import io.micronaut.serde.csv.Person;
 import io.micronaut.serde.csv.annotation.CsvFormat;
@@ -26,6 +27,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CsvIntrospectionTest {
@@ -54,7 +56,20 @@ class CsvIntrospectionTest {
 
     @Test
     void resolvesPropertyOrderNameAndIgnore() {
-        assertEquals(List.of("a_renamed", "b", "c"), CsvIntrospection.columnsFor(CsvOrdered.class));
+        CsvFormatConfig config = CsvIntrospection.formatFor(CsvOrdered.class);
+        assertEquals(List.of("a_renamed", "b", "c"), config.columns());
+        assertEquals(List.of("a", "b", "c"), config.propertyNames());
+    }
+
+    @Test
+    void resolvesPropertyInlineFormat() {
+        CsvFormatConfig config = CsvIntrospection.formatFor(CsvNestedProperty.class);
+        CsvFormatConfig.CsvPropertyFormat format = config.propertyFormat("person");
+
+        assertNotNull(format);
+        assertEquals('|', format.config().delimiter());
+        assertFalse(format.config().hasHeader());
+        assertEquals(List.of("name", "age"), format.config().columns());
     }
 
     @Test

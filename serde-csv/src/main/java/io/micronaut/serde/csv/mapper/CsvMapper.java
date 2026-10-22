@@ -33,7 +33,9 @@ import java.util.List;
 public interface CsvMapper extends CsvReader, CsvWriter {
 
     /**
-     * Reads a CSV input stream into typed values using a charset name.
+     * Reads a CSV input stream into typed values using a charset name. Values are parsed lazily.
+     * The returned iterable is single-use because input streams cannot be replayed; consume it
+     * once, on one thread.
      *
      * @param input   The input stream
      * @param charset The charset name

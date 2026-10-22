@@ -31,7 +31,8 @@ import java.util.Iterator;
 public interface CsvDecoder<T> {
 
     /**
-     * Decodes a CSV string into values.
+     * Decodes a CSV string into values. Values are decoded lazily, and each iterator decodes the
+     * string independently.
      *
      * @param value The CSV string
      * @param config The CSV format configuration
@@ -41,7 +42,8 @@ public interface CsvDecoder<T> {
     Iterable<T> decode(String value, CsvFormatConfig config) throws CsvException;
 
     /**
-     * Decodes a CSV input stream into values.
+     * Decodes a CSV input stream into values. Values are decoded lazily. The returned iterable
+     * is single-use because input streams cannot be replayed.
      *
      * @param input   The input stream
      * @param charset The charset

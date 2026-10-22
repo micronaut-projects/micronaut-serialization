@@ -1,7 +1,6 @@
 package io.micronaut.serde.csv.apache.commons
 
 import io.micronaut.serde.csv.apache.commons.encoder.DefaultCsvEncoder
-import io.micronaut.serde.csv.apache.commons.encoder.InlineCsvEncoder
 import io.micronaut.serde.csv.apache.commons.encoder.NoHeaderCsvEncoder
 import io.micronaut.serde.csv.error.CsvException
 import io.micronaut.serde.csv.introspection.CsvFormatConfig
@@ -17,9 +16,6 @@ class CommonsCsvEncoderSpec extends Specification {
 
     @Inject
     NoHeaderCsvEncoder noHeaderEncoder
-
-    @Inject
-    InlineCsvEncoder inlineEncoder
 
     private static final CsvFormatConfig DEFAULT_CONFIG = CsvFormatConfig.DEFAULT
 
@@ -77,37 +73,5 @@ class CommonsCsvEncoderSpec extends Specification {
 
         then:
         result.trim() == "Alice,30"
-    }
-
-    void "test encode inline csv with inline encoder"() throws CsvException {
-        when:
-        def values = [
-            ["Alice", "30"],
-            ["Bob", "25"]
-        ]
-        def result = inlineEncoder.encodeToString(values, DEFAULT_CONFIG)
-
-        then:
-        result == "Alice,30|Bob,25"
-    }
-
-    void "test encode inline csv with values containing delimiters"() throws CsvException {
-        when:
-        def values = [
-            ["Alice, Jr.", "30"],
-            ["Bob", "25"]
-        ]
-        def result = inlineEncoder.encodeToString(values, DEFAULT_CONFIG)
-
-        then:
-        result == '"""Alice, Jr."",30"|Bob,25'
-    }
-
-    void "test encode inline single value"() throws CsvException {
-        when:
-        def result = inlineEncoder.encodeToString([["Alice", "30"]], DEFAULT_CONFIG)
-
-        then:
-        result == "Alice,30"
     }
 }

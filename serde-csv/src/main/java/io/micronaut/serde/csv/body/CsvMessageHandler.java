@@ -69,6 +69,7 @@ public final class CsvMessageHandler<T> implements MessageBodyHandler<T> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public T read(Argument<T> type, @Nullable MediaType mediaType, @Nullable Headers httpHeaders, InputStream inputStream) {
         Charset charset = mediaType != null
             ? mediaType.getCharset().orElse(StandardCharsets.UTF_8)

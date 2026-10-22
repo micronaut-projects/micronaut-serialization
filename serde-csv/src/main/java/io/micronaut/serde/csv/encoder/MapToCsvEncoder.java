@@ -64,6 +64,8 @@ public interface MapToCsvEncoder extends CsvEncoder {
     String encodeToString(Iterable<?> values, Collection<String> header, CsvFormatConfig config) throws CsvException;
 
     /**
+     * Encodes a single record as a CSV string with an explicit header.
+     *
      * @param value   The record
      * @param columns The explicit header columns
      * @return The encoded CSV string
@@ -72,6 +74,8 @@ public interface MapToCsvEncoder extends CsvEncoder {
     String encodeToString(Map<String, @Nullable String> value, Collection<String> columns) throws CsvException;
 
     /**
+     * Encodes records as a CSV string with an explicit header.
+     *
      * @param values  The records
      * @param columns The explicit header columns
      * @return The encoded CSV string

@@ -15,14 +15,6 @@ class CsvFormatsSpec extends Specification {
         format.getSkipHeaderRecord()
     }
 
-    void "test inline format uses pipe delimiter"() {
-        expect:
-        def format = CsvFormats.INLINE
-        format.getDelimiter() == '|'
-        format.getQuoteMode() == QuoteMode.MINIMAL
-        format.getNullString() == ""
-    }
-
     void "test no header format has no header"() {
         expect:
         def format = CsvFormats.NO_HEADER

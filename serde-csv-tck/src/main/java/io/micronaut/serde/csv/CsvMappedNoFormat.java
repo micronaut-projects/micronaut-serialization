@@ -13,10 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/**
- * CSV serdes package.
- */
-@NullMarked
-package io.micronaut.serde.csv.apache.commons.serde;
+package io.micronaut.serde.csv;
 
-import org.jspecify.annotations.NullMarked;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.csv.annotation.CsvProperty;
+
+/**
+ * Test fixture exercising {@link CsvProperty} column name, order and ignore without an
+ * explicit {@link io.micronaut.serde.csv.annotation.CsvFormat} annotation.
+ */
+@Serdeable
+public record CsvMappedNoFormat(
+    @CsvProperty(order = 2) String c,
+    @CsvProperty(order = 0, name = "a_renamed") String a,
+    @CsvProperty(ignore = true) String ignored,
+    @CsvProperty(order = 1) String b
+) {
+}

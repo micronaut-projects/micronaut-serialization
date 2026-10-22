@@ -40,7 +40,8 @@ public interface CsvReader {
     <T> T read(List<String> value, Class<T> type) throws CsvException;
 
     /**
-     * Reads multiple CSV lines into typed values.
+     * Reads multiple CSV lines into typed values. Rows are consumed lazily while the returned
+     * iterable is iterated.
      *
      * @param values The CSV lines
      * @param type   The element type
@@ -51,7 +52,8 @@ public interface CsvReader {
     <T> Iterable<T> read(Iterable<List<String>> values, Class<T> type) throws CsvException;
 
     /**
-     * Reads a CSV string into typed values.
+     * Reads a CSV string into typed values. Values are parsed lazily, and the returned iterable
+     * may be iterated multiple times; each iterator parses the input independently.
      *
      * @param value The CSV string
      * @param type  The element type
@@ -62,7 +64,9 @@ public interface CsvReader {
     <T> Iterable<T> readAll(String value, Class<T> type) throws CsvException;
 
     /**
-     * Reads a CSV input stream into typed values.
+     * Reads a CSV input stream into typed values. Values are parsed lazily. The returned
+     * iterable is single-use because input streams cannot be replayed; consume it once, on one
+     * thread.
      *
      * @param input   The input stream
      * @param charset The charset

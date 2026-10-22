@@ -30,6 +30,9 @@ import java.util.Map;
 public interface CsvToMapDecoder extends CsvDecoder<Map<String, String>> {
 
     /**
+     * Decodes a CSV string using explicit header columns. Records are decoded lazily, and each
+     * iterator decodes the string independently.
+     *
      * @param value  The CSV string
      * @param header The explicit header columns
      * @return The decoded records

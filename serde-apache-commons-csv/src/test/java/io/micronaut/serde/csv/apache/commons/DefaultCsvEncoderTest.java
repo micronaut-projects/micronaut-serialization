@@ -16,7 +16,6 @@
 package io.micronaut.serde.csv.apache.commons;
 
 import io.micronaut.serde.csv.apache.commons.encoder.DefaultCsvEncoder;
-import io.micronaut.serde.csv.apache.commons.encoder.InlineCsvEncoder;
 import io.micronaut.serde.csv.apache.commons.encoder.NoHeaderCsvEncoder;
 import io.micronaut.serde.csv.error.CsvException;
 import io.micronaut.serde.csv.introspection.CsvFormatConfig;
@@ -65,16 +64,5 @@ class DefaultCsvEncoderTest {
         String result = encoder.encodeToString(values, DEFAULT_CONFIG);
         assertTrue(result.contains("Alice,30"));
         assertTrue(result.contains("Bob,25"));
-    }
-
-    @Test
-    void testEncodeInlineCsvWithInlineEncoder() throws CsvException {
-        InlineCsvEncoder encoder = new InlineCsvEncoder(new NoHeaderCsvEncoder());
-        var values = List.of(
-            List.of("Alice", "30"),
-            List.of("Bob", "25")
-        );
-        String result = encoder.encodeToString(values, DEFAULT_CONFIG);
-        assertEquals("Alice,30|Bob,25", result);
     }
 }

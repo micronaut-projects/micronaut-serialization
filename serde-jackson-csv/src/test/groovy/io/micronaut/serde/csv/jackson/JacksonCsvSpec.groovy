@@ -54,10 +54,10 @@ class JacksonCsvSpec extends Specification {
     void "test read records from input stream"() {
         when:
         def input = new ByteArrayInputStream("name,age\nAlice,30\nBob,25".bytes)
-        def people = csvMapper.read(input, "UTF-8", Person)
+        def people = csvMapper.read(input, "UTF-8", Person).toList()
 
         then:
-        people.count { true } == 2
+        people.size() == 2
         people[0].name() == "Alice"
         people[0].age() == 30
     }

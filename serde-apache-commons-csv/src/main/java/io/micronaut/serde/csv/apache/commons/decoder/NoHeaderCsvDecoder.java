@@ -28,7 +28,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -45,20 +44,12 @@ public final class NoHeaderCsvDecoder extends AbstractCsvDecoder implements CsvT
 
     @Override
     public Iterable<List<String>> decode(String value, CsvFormatConfig config) throws CsvException {
-        List<List<String>> result = new ArrayList<>();
-        for (org.apache.commons.csv.CSVRecord record : decode(FORMAT, new StringReader(value))) {
-            result.add(new ArrayList<>(record.toList()));
-        }
-        return result;
+        return decode(FORMAT, () -> new StringReader(value), record -> record.toList());
     }
 
     @Override
     public Iterable<List<String>> decode(InputStream input, Charset charset, CsvFormatConfig config) throws CsvException {
-        List<List<String>> result = new ArrayList<>();
-        for (org.apache.commons.csv.CSVRecord record : decode(FORMAT, new InputStreamReader(input, charset))) {
-            result.add(new ArrayList<>(record.toList()));
-        }
-        return result;
+        return decode(FORMAT, () -> new InputStreamReader(input, charset), record -> record.toList());
     }
 
     @Override
