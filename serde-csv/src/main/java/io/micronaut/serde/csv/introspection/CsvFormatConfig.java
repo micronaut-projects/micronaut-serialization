@@ -15,6 +15,8 @@
  */
 package io.micronaut.serde.csv.introspection;
 
+import io.micronaut.core.annotation.AnnotationValue;
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.serde.csv.annotation.CsvFormat;
 import org.jspecify.annotations.Nullable;
 
@@ -88,74 +90,41 @@ public record CsvFormatConfig(
     }
 
     /**
-     * Creates a config without property-level inline formats.
+     * Creates a CSV format configuration from a {@link CsvFormat} annotation value and a nested format.
      *
-     * @param configured      Whether the type carried an explicit {@link CsvFormat} annotation
-     * @param header          The header mode
-     * @param explicitColumns Whether the columns were explicitly configured
-     * @param columns         The ordered CSV column names
-     * @param propertyNames   The serialized bean property names aligned with {@code columns}
-     * @param delimiter       The column delimiter
-     * @param quote           The quote character
-     * @param escape          The escape character
-     * @param lineSeparator   The line separator
-     * @param nullValue       The value representing {@code null}
-     * @param skipEmptyLines  Whether empty lines are skipped while reading
-     * @param trim            Whether column values are trimmed
-     * @param shape           The record shape constraint
+     * @param format The CSV format annotation value
+     * @param nested The nested format configuration
+     * @return The resolved format configuration
      */
-    @SuppressWarnings("checkstyle:ParameterNumber")
-    public CsvFormatConfig(
-        boolean configured,
-        CsvFormat.Header header,
-        boolean explicitColumns,
-        List<String> columns,
-        List<String> propertyNames,
-        char delimiter,
-        char quote,
-        char escape,
-        String lineSeparator,
-        String nullValue,
-        boolean skipEmptyLines,
-        boolean trim,
-        CsvFormat.Shape shape
-    ) {
-        this(configured, header, explicitColumns, columns, propertyNames, delimiter, quote, escape,
-            lineSeparator, nullValue, skipEmptyLines, trim, shape, Map.of());
+    public static CsvFormatConfig of(AnnotationValue<CsvFormat> format, CsvFormatConfig nested) {
+        String[] configuredColumns = format.stringValues("columns");
+        List<String> columns = configuredColumns.length > 0 ? List.of(configuredColumns) : nested.columns();
+        List<String> propertyNames = configuredColumns.length > 0 ? columns : nested.propertyNames();
+        return new CsvFormatConfig(
+            true,
+            format.enumValue("header", CsvFormat.Header.class).orElse(CsvFormat.Header.ABSENT),
+            configuredColumns.length > 0,
+            columns,
+            propertyNames,
+            format.contains("delimiter") ? format.charValue("delimiter").orElse(nested.delimiter()) : nested.delimiter(),
+            format.contains("quote") ? format.charValue("quote").orElse(nested.quote()) : nested.quote(),
+            format.contains("escape") ? format.charValue("escape").orElse(nested.escape()) : nested.escape(),
+            format.contains("lineSeparator") ? format.stringValue("lineSeparator").orElse(nested.lineSeparator()) : nested.lineSeparator(),
+            format.contains("nullValue") ? format.stringValue("nullValue").orElse(nested.nullValue()) : nested.nullValue(),
+            format.contains("skipEmptyLines") ? format.booleanValue("skipEmptyLines").orElse(nested.skipEmptyLines()) : nested.skipEmptyLines(),
+            format.contains("trim") ? format.booleanValue("trim").orElse(nested.trim()) : nested.trim(),
+            format.contains("shape") ? format.enumValue("shape", CsvFormat.Shape.class).orElse(nested.shape()) : nested.shape(),
+            nested.propertyFormats()
+        );
     }
 
     /**
-     * Creates a config without a separate property-name mapping.
+     * Returns an empty format configuration.
      *
-     * @param configured      Whether the type carried an explicit {@link CsvFormat} annotation
-     * @param header          The header mode
-     * @param explicitColumns Whether the columns were explicitly configured
-     * @param columns         The ordered CSV column names
-     * @param delimiter       The column delimiter
-     * @param quote           The quote character
-     * @param escape          The escape character
-     * @param lineSeparator   The line separator
-     * @param nullValue       The value representing {@code null}
-     * @param skipEmptyLines  Whether empty lines are skipped while reading
-     * @param trim            Whether column values are trimmed
-     * @param shape           The record shape constraint
+     * @return The default format configuration
      */
-    public CsvFormatConfig(
-        boolean configured,
-        CsvFormat.Header header,
-        boolean explicitColumns,
-        List<String> columns,
-        char delimiter,
-        char quote,
-        char escape,
-        String lineSeparator,
-        String nullValue,
-        boolean skipEmptyLines,
-        boolean trim,
-        CsvFormat.Shape shape
-    ) {
-        this(configured, header, explicitColumns, columns, columns, delimiter, quote, escape,
-            lineSeparator, nullValue, skipEmptyLines, trim, shape, Map.of());
+    public static CsvFormatConfig empty() {
+        return DEFAULT;
     }
 
     /**
@@ -255,6 +224,7 @@ public record CsvFormatConfig(
      * @param type   The property type
      * @param config The inline CSV format
      */
+    @Internal
     public record CsvPropertyFormat(Class<?> type, CsvFormatConfig config) {
     }
 }

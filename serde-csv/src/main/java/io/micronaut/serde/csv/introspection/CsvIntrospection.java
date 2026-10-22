@@ -119,22 +119,9 @@ public final class CsvIntrospection {
                 .withColumns(explicitColumns, resolved.columns(), resolved.propertyNames())
                 .withPropertyFormats(propertyFormats);
         }
-        return new CsvFormatConfig(
-            true,
-            format.enumValue("header", CsvFormat.Header.class).orElse(CsvFormat.Header.INFER),
-            explicitColumns,
-            resolved.columns(),
-            resolved.propertyNames(),
-            format.charValue("delimiter").orElse(CsvFormatConfig.DEFAULT.delimiter()),
-            format.charValue("quote").orElse(CsvFormatConfig.DEFAULT.quote()),
-            format.charValue("escape").orElse(CsvFormatConfig.DEFAULT.escape()),
-            format.stringValue("lineSeparator").orElse(CsvFormatConfig.DEFAULT.lineSeparator()),
-            format.stringValue("nullValue").orElse(CsvFormatConfig.DEFAULT.nullValue()),
-            format.booleanValue("skipEmptyLines").orElse(CsvFormatConfig.DEFAULT.skipEmptyLines()),
-            format.booleanValue("trim").orElse(CsvFormatConfig.DEFAULT.trim()),
-            format.enumValue("shape", CsvFormat.Shape.class).orElse(CsvFormat.Shape.INFER),
-            propertyFormats
-        );
+        return CsvFormatConfig.of(format, CsvFormatConfig.DEFAULT
+            .withColumns(explicitColumns, resolved.columns(), resolved.propertyNames())
+            .withPropertyFormats(propertyFormats));
     }
 
     private static Map<String, CsvFormatConfig.CsvPropertyFormat> resolvePropertyFormats(BeanIntrospection<?> introspection) {
@@ -171,25 +158,7 @@ public final class CsvIntrospection {
     }
 
     private static CsvFormatConfig resolveInlineFormat(AnnotationValue<CsvFormat> format, CsvFormatConfig nested) {
-        String[] configuredColumns = format.stringValues("columns");
-        List<String> columns = configuredColumns.length > 0 ? List.of(configuredColumns) : nested.columns();
-        List<String> propertyNames = configuredColumns.length > 0 ? columns : nested.propertyNames();
-        return new CsvFormatConfig(
-            true,
-            CsvFormat.Header.ABSENT,
-            false,
-            columns,
-            propertyNames,
-            format.contains("delimiter") ? format.charValue("delimiter").orElse(nested.delimiter()) : nested.delimiter(),
-            format.contains("quote") ? format.charValue("quote").orElse(nested.quote()) : nested.quote(),
-            format.contains("escape") ? format.charValue("escape").orElse(nested.escape()) : nested.escape(),
-            format.contains("lineSeparator") ? format.stringValue("lineSeparator").orElse(nested.lineSeparator()) : nested.lineSeparator(),
-            format.contains("nullValue") ? format.stringValue("nullValue").orElse(nested.nullValue()) : nested.nullValue(),
-            format.contains("skipEmptyLines") ? format.booleanValue("skipEmptyLines").orElse(nested.skipEmptyLines()) : nested.skipEmptyLines(),
-            format.contains("trim") ? format.booleanValue("trim").orElse(nested.trim()) : nested.trim(),
-            format.contains("shape") ? format.enumValue("shape", CsvFormat.Shape.class).orElse(nested.shape()) : nested.shape(),
-            nested.propertyFormats()
-        );
+        return CsvFormatConfig.of(format, nested);
     }
 
     private static ResolvedColumns resolveColumns(BeanIntrospection<?> introspection,

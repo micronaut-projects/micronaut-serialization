@@ -192,6 +192,7 @@ public final class CsvRecordMappings {
     /**
      * Decodes an inline CSV property value into a nested property map.
      */
+    @Internal
     @FunctionalInterface
     public interface InlinePropertyDecoder {
 
@@ -209,6 +210,7 @@ public final class CsvRecordMappings {
     /**
      * Encodes an inline CSV property value from a nested value.
      */
+    @Internal
     @FunctionalInterface
     public interface InlinePropertyEncoder {
 

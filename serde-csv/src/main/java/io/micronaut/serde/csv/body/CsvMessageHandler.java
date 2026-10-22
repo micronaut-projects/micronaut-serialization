@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.csv.body;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.type.Headers;
 import io.micronaut.core.type.MutableHeaders;
@@ -133,6 +134,7 @@ public final class CsvMessageHandler<T> implements MessageBodyHandler<T> {
      *
      * @since 3.2.5
      */
+    @Internal
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.TYPE)
@@ -146,6 +148,7 @@ public final class CsvMessageHandler<T> implements MessageBodyHandler<T> {
      *
      * @since 3.2.5
      */
+    @Internal
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.TYPE)
