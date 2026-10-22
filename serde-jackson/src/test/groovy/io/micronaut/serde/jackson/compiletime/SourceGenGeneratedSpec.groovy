@@ -32,7 +32,7 @@ class SourceGenGeneratedSpec extends Specification {
 
         then:
         // CLASS retention must survive javac even though reflection cannot see it.
-        annotations['Lio/micronaut/serde/annotation/GeneratedSerde;'] == false
+        annotations['Lio/micronaut/sourcegen/annotations/GeneratedSource;'] == false
         // Core's marker would exclude the implementation from bean processing.
         !annotations.containsKey('Lio/micronaut/core/annotation/Generated;')
         !annotations.containsKey('Ljavax/annotation/processing/Generated;')

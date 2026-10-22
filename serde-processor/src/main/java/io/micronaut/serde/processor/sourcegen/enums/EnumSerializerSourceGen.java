@@ -25,7 +25,6 @@ import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.FormattedSerializer;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
-import io.micronaut.serde.annotation.GeneratedSerde;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
 import io.micronaut.serde.util.GeneratedSerdeFallbackUtil;
@@ -78,7 +77,6 @@ public final class EnumSerializerSourceGen {
             .addAnnotation(Prototype.class)
             // Generated serdes are not API: their constructors follow the generator, not the type
             .addAnnotation(Internal.class)
-            .addAnnotation(GeneratedSerde.class)
             .addAnnotation(AnnotationDef.builder(Generated.class)
                 .addMember(GENERATED_VALUE_MEMBER, "Micronaut")
             .build())

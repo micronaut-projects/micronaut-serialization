@@ -30,7 +30,6 @@ import io.micronaut.serde.Keys;
 import io.micronaut.serde.KeysAwareEncoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
-import io.micronaut.serde.annotation.GeneratedSerde;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.processor.sourcegen.SerdeInclusionSourceGen;
@@ -207,7 +206,6 @@ public final class BeanSerializerSourceGen {
             .addAnnotation(Prototype.class)
             // Generated serdes are not API: their constructors follow the generator, not the type
             .addAnnotation(Internal.class)
-            .addAnnotation(GeneratedSerde.class)
             .addAnnotation(AnnotationDef.builder(Generated.class)
                 .addMember(GENERATED_VALUE_MEMBER, "Micronaut")
                 .build())
