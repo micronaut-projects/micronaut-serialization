@@ -21,8 +21,11 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Serde;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonGeneratorEncoder;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder;
+import io.micronaut.serde.oracle.jdbc.json.OracleOsonDecoder;
 import jakarta.inject.Singleton;
 import oracle.jdbc.driver.json.tree.OracleJsonBinaryImpl;
+
+import java.io.IOException;
 
 
 /**
@@ -43,6 +46,11 @@ public class OracleJsonBinarySerde extends AbstractOracleJsonSerde<byte[]> {
     @Override
     protected byte[] doDeserializeNonNull(OracleJdbcJsonParserDecoder decoder, DecoderContext decoderContext,
                                                     Argument<? super byte[]> type) {
+        return decoder.decodeBinary();
+    }
+
+    @Override
+    protected byte[] doDeserializeNonNull(OracleOsonDecoder decoder, DecoderContext decoderContext, Argument<? super byte[]> type) throws IOException {
         return decoder.decodeBinary();
     }
 
