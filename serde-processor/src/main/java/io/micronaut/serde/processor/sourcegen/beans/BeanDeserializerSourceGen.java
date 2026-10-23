@@ -360,8 +360,6 @@ public final class BeanDeserializerSourceGen {
         // Generated serdes keep the runtime null semantics, which NullAway can reject in a null-marked package
         List<Object> suppressWarnings = new ArrayList<>();
         suppressWarnings.add(NULLAWAY_WARNING);
-        suppressWarnings.add("rawtypes");
-        suppressWarnings.add("unchecked");
         if (fieldAccessProperties) {
             suppressWarnings.add("UnnecessaryParentheses");
         }

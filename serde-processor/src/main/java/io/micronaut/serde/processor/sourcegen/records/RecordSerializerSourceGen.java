@@ -207,7 +207,7 @@ public final class RecordSerializerSourceGen {
                 .build())
             // Generated serdes keep the runtime null semantics, which NullAway can reject in a null-marked package
             .addAnnotation(AnnotationDef.builder(SuppressWarnings.class)
-                .addMember(GENERATED_VALUE_MEMBER, List.of(NULLAWAY_WARNING, "rawtypes", "unchecked"))
+                .addMember(GENERATED_VALUE_MEMBER, NULLAWAY_WARNING)
                 .build())
             .addSuperinterface(TypeDef.parameterized(Serializer.class, recordTypeDef))
             .addSuperinterface(TypeDef.parameterized(ObjectSerializer.class, recordTypeDef))

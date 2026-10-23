@@ -328,7 +328,7 @@ public final class RecordDeserializerSourceGen {
             // Like the runtime deserializer, an absent component is passed to the constructor as null
             // unless strict nullability is enabled, which NullAway rejects in a null-marked package
             .addAnnotation(AnnotationDef.builder(SuppressWarnings.class)
-                .addMember(GENERATED_VALUE_MEMBER, List.of(NULLAWAY_WARNING, "rawtypes", "unchecked"))
+                .addMember(GENERATED_VALUE_MEMBER, NULLAWAY_WARNING)
                 .build())
             .addSuperinterface(TypeDef.parameterized(Deserializer.class, recordTypeDef))
             .addFields(fields)

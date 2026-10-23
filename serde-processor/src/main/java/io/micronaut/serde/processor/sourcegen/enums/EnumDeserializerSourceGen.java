@@ -119,7 +119,7 @@ public final class EnumDeserializerSourceGen {
                 .build())
             // Like the runtime deserializer, an unknown value can be read as null, which NullAway rejects in a null-marked package
             .addAnnotation(AnnotationDef.builder(SuppressWarnings.class)
-                .addMember(GENERATED_VALUE_MEMBER, List.of(NULLAWAY_WARNING, "rawtypes", "unchecked"))
+                .addMember(GENERATED_VALUE_MEMBER, NULLAWAY_WARNING)
                 .build())
             .addSuperinterface(TypeDef.parameterized(FormattedDeserializer.class, enumTypeDef))
             .addField(FieldDef.builder(ARGUMENT_STRING_FIELD, ARGUMENT_TYPE)
