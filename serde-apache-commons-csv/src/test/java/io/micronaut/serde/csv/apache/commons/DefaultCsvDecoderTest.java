@@ -16,7 +16,6 @@
 package io.micronaut.serde.csv.apache.commons;
 
 import io.micronaut.serde.csv.apache.commons.decoder.DefaultCsvDecoder;
-import io.micronaut.serde.csv.apache.commons.decoder.NoHeaderCsvDecoder;
 import io.micronaut.serde.csv.error.CsvException;
 import io.micronaut.serde.csv.introspection.CsvFormatConfig;
 import org.junit.jupiter.api.Test;
@@ -49,13 +48,6 @@ class DefaultCsvDecoderTest {
         DefaultCsvDecoder decoder = new DefaultCsvDecoder();
         var records = decoder.decode("", DEFAULT_CONFIG);
         assertEquals(0, count(records));
-    }
-
-    @Test
-    void testDecodeHeaderlessCsvWithNoHeaderDecoder() throws CsvException {
-        NoHeaderCsvDecoder decoder = new NoHeaderCsvDecoder();
-        var records = decoder.decode("Alice,30\nBob,25", DEFAULT_CONFIG);
-        assertEquals(2, count(records));
     }
 
     private static long count(Iterable<?> records) {

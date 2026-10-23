@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.csv.serde;
 
+import io.micronaut.context.annotation.Secondary;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
@@ -23,7 +24,6 @@ import io.micronaut.serde.Serde;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.csv.error.CsvException;
 import io.micronaut.serde.csv.mapper.CsvObjectMapper;
-import io.micronaut.context.annotation.Secondary;
 import jakarta.inject.Singleton;
 
 import java.io.IOException;
@@ -65,7 +65,9 @@ public final class CsvSerde implements Serde<Iterable<?>> {
                                     Deserializer.DecoderContext context,
                                     Argument<? super Iterable<?>> type) throws IOException {
         try {
-            Class<?> elementType = type.getTypeParameters()[0].getType();
+            Class<?> elementType = type.getTypeParameters().length == 0
+                ? Object.class
+                : type.getTypeParameters()[0].getType();
             return csvMapper.readAll(decoder.decodeString(), elementType);
         } catch (CsvException e) {
             throw new IOException(e);

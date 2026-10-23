@@ -50,11 +50,11 @@ public interface CsvMapper extends CsvReader, CsvWriter {
      * Encodes a value as a single CSV line.
      *
      * @param value The value to encode
-     * @return The encoded line
+     * @return The encoded line; individual cells may be {@code null}
      * @throws CsvException If the value cannot be encoded
      */
     @Override
-    List<String> writeAsLine(@Nullable Object value) throws CsvException;
+    List<@Nullable String> writeAsLine(@Nullable Object value) throws CsvException;
 
     /**
      * Encodes an iterable as a CSV string.

@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +52,7 @@ public abstract class AbstractCsvMapper implements CsvMapper, CsvObjectMapper {
      */
     protected final Map<String, Object> decodeInline(String value, CsvPropertyFormat format) throws CsvException {
         CsvFormatConfig config = format.config();
-        Iterator<Map<String, String>> iterator = decodeRecords(value, config).iterator();
+        Iterator<Map<String, @Nullable String>> iterator = decodeRecords(value, config).iterator();
         if (!iterator.hasNext()) {
             return Map.of();
         }
@@ -97,7 +98,7 @@ public abstract class AbstractCsvMapper implements CsvMapper, CsvObjectMapper {
      * @return The decoded records
      * @throws CsvException If the records cannot be decoded
      */
-    protected abstract Iterable<Map<String, String>> decodeRecords(String value, CsvFormatConfig config) throws CsvException;
+    protected abstract Iterable<Map<String, @Nullable String>> decodeRecords(String value, CsvFormatConfig config) throws CsvException;
 
     /**
      * Converts a bean value to a property map for column mapping.
@@ -128,13 +129,13 @@ public abstract class AbstractCsvMapper implements CsvMapper, CsvObjectMapper {
      * @return The iterable of typed beans
      */
     protected final <T> Iterable<T> readRecords(
-        Iterable<Map<String, String>> records,
+        Iterable<Map<String, @Nullable String>> records,
         Class<T> type,
         CsvFormatConfig config,
-        ThrowingFunction<Map<String, String>, T> recordMapper
+        ThrowingFunction<Map<String, @Nullable String>, T> recordMapper
     ) {
         return () -> new Iterator<>() {
-            private final Iterator<Map<String, String>> iterator = records.iterator();
+            private final Iterator<Map<String, @Nullable String>> iterator = records.iterator();
 
             @Override
             public boolean hasNext() {
@@ -150,6 +151,79 @@ public abstract class AbstractCsvMapper implements CsvMapper, CsvObjectMapper {
                 }
             }
         };
+    }
+
+    /**
+     * Reads a CSV input stream into typed values using a charset name.
+     *
+     * @param input   The input stream
+     * @param charset The charset name
+     * @param type    The element type
+     * @param <T>     The element type
+     * @return The decoded values
+     * @throws CsvException If the value cannot be decoded
+     */
+    @Override
+    public <T> Iterable<T> read(InputStream input, String charset, Class<T> type) throws CsvException {
+        return read(input, Charset.forName(charset), type);
+    }
+
+    /**
+     * Reads multiple CSV lines into typed values.
+     *
+     * @param values The CSV lines
+     * @param type   The element type
+     * @param <T>    The element type
+     * @return The decoded values
+     * @throws CsvException If the values cannot be decoded
+     */
+    @Override
+    public <T> Iterable<T> read(Iterable<List<String>> values, Class<T> type) throws CsvException {
+        return mapRecords(values, value -> read(value, type));
+    }
+
+    /**
+     * Converts a raw CSV record to a typed value.
+     *
+     * @param record The raw CSV record
+     * @param type   The target type
+     * @param config The resolved CSV format
+     * @param <T>    The target type
+     * @return The typed value
+     * @throws CsvException If the record cannot be converted
+     */
+    protected final <T> T readRecord(Map<String, @Nullable String> record,
+                                     Class<T> type,
+                                     CsvFormatConfig config) throws CsvException {
+        return readPropertyMap(CsvRecordMappings.toPropertyMap(config, record), type, config);
+    }
+
+    /**
+     * Converts a property map to a typed value.
+     *
+     * @param properties The values keyed by bean property name
+     * @param type       The target type
+     * @param config     The resolved CSV format
+     * @param <T>        The target type
+     * @return The typed value
+     * @throws CsvException If the properties cannot be converted
+     */
+    protected final <T> T readPropertyMap(Map<String, @Nullable String> properties,
+                                          Class<T> type,
+                                          CsvFormatConfig config) throws CsvException {
+        if (Map.class.isAssignableFrom(type)) {
+            return type.cast(properties);
+        }
+        try {
+            Map<String, Object> expanded = CsvRecordMappings.expandInlineProperties(
+                config,
+                properties,
+                this::decodeInline
+            );
+            return Objects.requireNonNull(fromPropertyMap(expanded, type));
+        } catch (Exception e) {
+            throw toCsvException(e, type);
+        }
     }
 
     /**
@@ -273,11 +347,11 @@ public abstract class AbstractCsvMapper implements CsvMapper, CsvObjectMapper {
      * Default implementation for writing a single value as a CSV line.
      *
      * @param value The value to encode
-     * @return The encoded CSV line as a list of cell values
+     * @return The encoded CSV line as a list of cell values; individual cells may be {@code null}
      * @throws CsvException If the value cannot be encoded
      */
     @Override
-    public List<String> writeAsLine(@Nullable Object value) throws CsvException {
+    public List<@Nullable String> writeAsLine(@Nullable Object value) throws CsvException {
         if (value == null) {
             return List.of();
         }
@@ -286,7 +360,7 @@ public abstract class AbstractCsvMapper implements CsvMapper, CsvObjectMapper {
         }
         CsvFormatConfig config = CsvIntrospection.formatFor(value.getClass());
         try {
-            return new java.util.ArrayList<>(toColumnMap(value, config).values());
+            return new ArrayList<>(toColumnMap(value, config).values());
         } catch (Exception e) {
             throw toCsvException(e, value.getClass());
         }

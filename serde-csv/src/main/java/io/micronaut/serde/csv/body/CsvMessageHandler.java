@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.csv.body;
 
+import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.type.Headers;
@@ -29,7 +30,6 @@ import io.micronaut.serde.csv.error.CsvShapeException;
 import io.micronaut.serde.csv.introspection.CsvFormatConfig;
 import io.micronaut.serde.csv.introspection.CsvIntrospection;
 import io.micronaut.serde.csv.mapper.CsvMapper;
-import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.serde.csv.mapper.CsvObjectMapper;
 import jakarta.inject.Singleton;
 import org.jspecify.annotations.Nullable;
@@ -78,9 +78,6 @@ public final class CsvMessageHandler<T> implements MessageBodyHandler<T> {
         Class<?> rawType = type.getType();
         boolean iterable = Iterable.class.isAssignableFrom(rawType);
         Class<?> elementType = iterable ? type.getWrappedType().getType() : rawType;
-        if (elementType == Object.class) {
-            elementType = rawType;
-        }
         try {
             Iterable<T> values = decode(inputStream, charset, elementType);
             if (iterable) {
@@ -112,7 +109,7 @@ public final class CsvMessageHandler<T> implements MessageBodyHandler<T> {
                         T object,
                         @Nullable MutableHeaders outgoingHeaders,
                         @Nullable OutputStream outputStream) {
-        if (outputStream == null) {
+        if (outputStream == null || object == null) {
             return;
         }
         Charset charset = mediaType != null

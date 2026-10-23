@@ -17,10 +17,8 @@ package io.micronaut.serde.csv.jackson;
 
 import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.Secondary;
-import io.micronaut.core.type.Argument;
-import io.micronaut.json.JsonStreamConfig;
-import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.csv.error.CsvException;
+import io.micronaut.serde.csv.error.CsvMappingException;
 import io.micronaut.serde.csv.introspection.CsvFormatConfig;
 import io.micronaut.serde.csv.introspection.CsvIntrospection;
 import io.micronaut.serde.csv.mapper.CsvMapper;
@@ -34,7 +32,6 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -96,79 +93,26 @@ public final class JacksonCsvMapper extends JacksonCsvMapperBase {
     }
 
     @Override
-    public <T> Iterable<T> readAll(String value, Class<T> type) throws CsvException {
+    public <T> Iterable<T> readAll(String value, Class<T> type) {
         CsvFormatConfig config = CsvIntrospection.formatFor(type);
-        return readRecords(decodeRecords(value, config), type, config, record -> {
-            if (Map.class.isAssignableFrom(type)) {
-                return type.cast(CsvRecordMappings.toPropertyMap(config, record));
-            }
-            Map<String, @Nullable String> properties = CsvRecordMappings.toPropertyMap(config, record);
-            Map<String, Object> expanded = CsvRecordMappings.expandInlineProperties(
-                config,
-                properties,
-                this::decodeInline
-            );
-            return Objects.requireNonNull(csvMapper.convertValue(expanded, type));
-        });
+        return readRecords(decodeRecords(value, config), type, config, record -> readRecord(record, type, config));
     }
 
     @Override
     public <T> T read(List<String> value, Class<T> type) throws CsvException {
         CsvFormatConfig config = CsvIntrospection.formatFor(type);
-        Map<String, @Nullable String> properties = CsvRecordMappings.rowToPropertyMap(config, value);
-        try {
-            Map<String, Object> expanded = CsvRecordMappings.expandInlineProperties(
-                config,
-                properties,
-                this::decodeInline
-            );
-            return Objects.requireNonNull(csvMapper.convertValue(expanded, type));
-        } catch (Exception e) {
-            throw toCsvException(e, type);
-        }
+        return readPropertyMap(CsvRecordMappings.rowToPropertyMap(config, value), type, config);
     }
 
     @Override
-    public <T> Iterable<T> read(Iterable<List<String>> values, Class<T> type) throws CsvException {
-        return () -> new Iterator<>() {
-            private final Iterator<List<String>> iterator = values.iterator();
-
-            @Override
-            public boolean hasNext() {
-                return iterator.hasNext();
-            }
-
-            @Override
-            public T next() {
-                try {
-                    return read(iterator.next(), type);
-                } catch (CsvException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-    }
-
-    @Override
-    public <T> Iterable<T> read(InputStream input, String charset, Class<T> type) throws CsvException {
-        return read(input, Charset.forName(charset), type);
-    }
-
-    @Override
-    public <T> Iterable<T> read(InputStream input, Charset charset, Class<T> type) throws CsvException {
+    public <T> Iterable<T> read(InputStream input, Charset charset, Class<T> type) {
         CsvFormatConfig config = CsvIntrospection.formatFor(type);
-        return readRecords(decodeRecords(new InputStreamReader(input, charset), config), type, config, record -> {
-            if (Map.class.isAssignableFrom(type)) {
-                return type.cast(CsvRecordMappings.toPropertyMap(config, record));
-            }
-            Map<String, @Nullable String> properties = CsvRecordMappings.toPropertyMap(config, record);
-            Map<String, Object> expanded = CsvRecordMappings.expandInlineProperties(
-                config,
-                properties,
-                this::decodeInline
-            );
-            return Objects.requireNonNull(csvMapper.convertValue(expanded, type));
-        });
+        return readRecords(
+            decodeRecords(new InputStreamReader(input, charset), config),
+            type,
+            config,
+            record -> readRecord(record, type, config)
+        );
     }
 
     @Override
@@ -178,6 +122,9 @@ public final class JacksonCsvMapper extends JacksonCsvMapperBase {
             return "";
         }
         Object first = iterator.next();
+        if (first == null) {
+            throw new CsvMappingException("Cannot write a null CSV record.", Object.class);
+        }
         Class<?> type = first.getClass();
         CsvFormatConfig config = CsvIntrospection.formatFor(type);
         try {
@@ -204,6 +151,9 @@ public final class JacksonCsvMapper extends JacksonCsvMapperBase {
             return "";
         }
         Object first = iterator.next();
+        if (first == null) {
+            throw new CsvMappingException("Cannot write a null CSV record.", Object.class);
+        }
         Class<?> type = first.getClass();
         CsvFormatConfig config = CsvIntrospection.formatFor(type);
         try {
@@ -252,67 +202,26 @@ public final class JacksonCsvMapper extends JacksonCsvMapperBase {
         };
     }
 
-    private Map<String, @Nullable String> toColumnMap(Object value, CsvFormatConfig config) throws CsvException {
-        Map<String, ?> properties;
-        if (value instanceof Map<?, ?> map) {
-            Map<String, Object> raw = new LinkedHashMap<>(map.size());
-            map.forEach((key, entryValue) -> raw.put(String.valueOf(key), entryValue));
-            properties = raw;
-        } else {
-            properties = toPropertyMap(value);
-        }
-        Map<String, Object> collapsed = CsvRecordMappings.collapseInlineProperties(
+    private Map<String, @Nullable String> toColumnMap(@Nullable Object value, CsvFormatConfig config) throws CsvException {
+        return CsvRecordMappings.toColumnMap(config, collapsedProperties(value, config));
+    }
+
+    private Map<String, @Nullable String> toHeaderMap(@Nullable Object value,
+                                                      CsvFormatConfig config,
+                                                      Collection<String> header) throws CsvException {
+        return CsvRecordMappings.toColumnMap(config, collapsedProperties(value, config), header);
+    }
+
+    private Map<String, Object> collapsedProperties(@Nullable Object value, CsvFormatConfig config) throws CsvException {
+        CsvRecordMappings.requireRecord(value);
+        Object record = Objects.requireNonNull(value);
+        Map<String, ?> properties = record instanceof Map<?, ?> map
+            ? CsvRecordMappings.toStringKeyedMap(map)
+            : toPropertyMap(record);
+        return CsvRecordMappings.collapseInlineProperties(
             config,
             properties,
             this::encodeInline
         );
-        return CsvRecordMappings.toColumnMap(config, collapsed);
-    }
-
-    private Map<String, @Nullable String> toHeaderMap(Object value, CsvFormatConfig config, Collection<String> header) throws CsvException {
-        Map<String, ?> properties;
-        if (value instanceof Map<?, ?> map) {
-            Map<String, Object> raw = new LinkedHashMap<>(map.size());
-            map.forEach((key, entryValue) -> raw.put(String.valueOf(key), entryValue));
-            properties = raw;
-        } else {
-            properties = toPropertyMap(value);
-        }
-        Map<String, Object> collapsed = CsvRecordMappings.collapseInlineProperties(
-            config,
-            properties,
-            this::encodeInline
-        );
-        Map<String, @Nullable String> result = new LinkedHashMap<>(header.size());
-        for (String column : header) {
-            String property = propertyForColumn(config, column);
-            Object entryValue = collapsed.containsKey(property) ? collapsed.get(property) : collapsed.get(column);
-            result.put(column, entryValue == null ? null : entryValue.toString());
-        }
-        return result;
-    }
-
-    @Override
-    public JsonNode writeValueToTree(@Nullable Object value) throws CsvException {
-        throw new UnsupportedOperationException("writeValueToTree is not supported for CSV mapper");
-    }
-
-    @Override
-    public <T> JsonNode writeValueToTree(Argument<T> type, @Nullable T value) throws CsvException {
-        throw new UnsupportedOperationException("writeValueToTree is not supported for CSV mapper");
-    }
-
-    @Override
-    public <T> @Nullable T readValueFromTree(JsonNode tree, Argument<T> type) throws CsvException {
-        throw new UnsupportedOperationException("readValueFromTree is not supported for CSV mapper");
-    }
-
-    /**
-     * Returns the stream configuration for JSON streaming.
-     *
-     * @return the stream configuration
-     */
-    public JsonStreamConfig getStreamConfig() {
-        return JsonStreamConfig.DEFAULT;
     }
 }

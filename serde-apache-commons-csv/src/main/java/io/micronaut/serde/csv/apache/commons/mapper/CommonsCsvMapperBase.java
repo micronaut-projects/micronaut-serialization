@@ -19,6 +19,8 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.ObjectMapper;
 import io.micronaut.serde.csv.apache.commons.CsvFormats;
+import io.micronaut.serde.csv.apache.commons.CsvRecords;
+import io.micronaut.serde.csv.apache.commons.decoder.AbstractCsvDecoder;
 import io.micronaut.serde.csv.error.CsvException;
 import io.micronaut.serde.csv.introspection.CsvFormatConfig;
 import io.micronaut.serde.csv.mapper.AbstractCsvMapper;
@@ -31,8 +33,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.nio.charset.Charset;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -72,7 +73,7 @@ abstract class CommonsCsvMapperBase extends AbstractCsvMapper {
     }
 
     @Override
-    protected Iterable<Map<String, String>> decodeRecords(String value, CsvFormatConfig config) throws CsvException {
+    protected Iterable<Map<String, @Nullable String>> decodeRecords(String value, CsvFormatConfig config) throws CsvException {
         CSVFormat format = createReadFormat(config);
         List<String> columns = config.hasHeader() ? List.of() : config.columns();
         return decodeAsRecord(format, columns, value);
@@ -86,7 +87,7 @@ abstract class CommonsCsvMapperBase extends AbstractCsvMapper {
      * @return The decoded records
      * @throws CsvException If the records cannot be decoded
      */
-    protected Iterable<Map<String, String>> decodeRecords(Reader reader, CsvFormatConfig config) throws CsvException {
+    protected Iterable<Map<String, @Nullable String>> decodeRecords(Reader reader, CsvFormatConfig config) throws CsvException {
         CSVFormat format = createReadFormat(config);
         List<String> columns = config.hasHeader() ? List.of() : config.columns();
         return decodeAsRecord(format, columns, reader);
@@ -100,8 +101,8 @@ abstract class CommonsCsvMapperBase extends AbstractCsvMapper {
      * @param value   The CSV string value
      * @return The decoded records
      */
-    protected Iterable<Map<String, String>> decodeAsRecord(CSVFormat format, List<String> columns, String value) {
-        return decode(format, () -> new StringReader(value), record -> toMap(record, columns));
+    protected Iterable<Map<String, @Nullable String>> decodeAsRecord(CSVFormat format, List<String> columns, String value) {
+        return AbstractCsvDecoder.decodeRecords(format, () -> new StringReader(value), record -> CsvRecords.toMap(record, columns));
     }
 
     /**
@@ -112,8 +113,8 @@ abstract class CommonsCsvMapperBase extends AbstractCsvMapper {
      * @param reader  The reader
      * @return The decoded records
      */
-    protected Iterable<Map<String, String>> decodeAsRecord(CSVFormat format, List<String> columns, Reader reader) {
-        return decode(format, reader, record -> toMap(record, columns));
+    protected Iterable<Map<String, @Nullable String>> decodeAsRecord(CSVFormat format, List<String> columns, Reader reader) {
+        return AbstractCsvDecoder.decodeRecords(format, () -> reader, record -> CsvRecords.toMap(record, columns));
     }
 
     /**
@@ -125,79 +126,42 @@ abstract class CommonsCsvMapperBase extends AbstractCsvMapper {
      * @param charset  The charset
      * @return The decoded records
      */
-    protected Iterable<Map<String, String>> decodeAsRecord(CSVFormat format,
-                                                           List<String> columns,
-                                                           InputStream input,
-                                                           Charset charset) {
-        return decode(format, () -> new InputStreamReader(input, charset), record -> toMap(record, columns));
-    }
-
-    /**
-     * Creates a decoding iterable from a reader.
-     *
-     * @param format  The CSV format
-     * @param reader  The reader
-     * @param mapper  The record mapper
-     * @param <T>     The result type
-     * @return The iterable
-     */
-    protected <T> Iterable<T> decode(CSVFormat format,
-                                     Reader reader,
-                                     java.util.function.Function<org.apache.commons.csv.CSVRecord, T> mapper) {
-        return () -> new RecordIterator<>(format, reader, mapper);
-    }
-
-    /**
-     * Creates a decoding iterable from a reader supplier.
-     *
-     * @param format       The CSV format
-     * @param readerSupplier The reader supplier
-     * @param mapper       The record mapper
-     * @param <T>          The result type
-     * @return The iterable
-     */
-    protected <T> Iterable<T> decode(CSVFormat format,
-                                     java.util.function.Supplier<Reader> readerSupplier,
-                                     java.util.function.Function<org.apache.commons.csv.CSVRecord, T> mapper) {
-        return () -> new RecordIterator<>(format, readerSupplier.get(), mapper);
-    }
-
-    /**
-     * Converts a CSV record to a map.
-     *
-     * @param record  The CSV record
-     * @param columns The column names
-     * @return The map
-     */
-    protected static Map<String, String> toMap(org.apache.commons.csv.CSVRecord record, List<String> columns) {
-        Map<String, String> map;
-        if (columns.isEmpty()) {
-            map = record.toMap();
-        } else {
-            List<String> values = record.toList();
-            map = new LinkedHashMap<>();
-            for (int i = 0; i < columns.size(); i++) {
-                map.put(columns.get(i), i < values.size() ? values.get(i) : null);
-            }
-        }
-        if (map.isEmpty()) {
-            throw new IllegalStateException(
-                "CSV data map is empty. It may be caused when no header passed at first line."
-            );
-        }
-        return map;
+    protected Iterable<Map<String, @Nullable String>> decodeAsRecord(CSVFormat format,
+                                                                     List<String> columns,
+                                                                     InputStream input,
+                                                                     Charset charset) {
+        return AbstractCsvDecoder.decodeRecords(
+            format,
+            () -> new InputStreamReader(input, charset),
+            record -> CsvRecords.toMap(record, columns)
+        );
     }
 
     @Override
     protected Map<String, ?> toPropertyMap(Object value) {
         try {
-            JsonNode tree = writeValueToTree(value);
+            JsonNode tree = toJsonTree(value);
             if (tree.isObject()) {
                 return asMap(tree.getValue());
             }
             return Map.of();
         } catch (CsvException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Converts a value to a JSON tree.
+     *
+     * @param value The value to convert
+     * @return The JSON tree
+     * @throws CsvException If the value cannot be converted
+     */
+    protected JsonNode toJsonTree(@Nullable Object value) throws CsvException {
+        try {
+            return objectMapper.writeValueToTree(value);
+        } catch (IOException e) {
+            throw new CsvException("Failed to write value to tree", e);
         }
     }
 
@@ -229,65 +193,17 @@ abstract class CommonsCsvMapperBase extends AbstractCsvMapper {
     /**
      * Creates the write-time format for a config with an explicit header.
      */
-    protected abstract CSVFormat createWriteFormat(CsvFormatConfig config, java.util.Collection<String> header);
+    protected abstract CSVFormat createWriteFormat(CsvFormatConfig config, Collection<String> header);
 
     protected final CSVFormat writeFormat(CsvFormatConfig config) {
         return createWriteFormat(config);
     }
 
-    protected final CSVFormat writeFormat(CsvFormatConfig config, java.util.Collection<String> header) {
+    protected final CSVFormat writeFormat(CsvFormatConfig config, Collection<String> header) {
         return createWriteFormat(config, header);
     }
 
     protected final CSVFormat readFormat(CsvFormatConfig config) {
         return createReadFormat(config);
-    }
-
-    private static final class RecordIterator<T> implements Iterator<T> {
-        private final java.util.function.Function<org.apache.commons.csv.CSVRecord, T> mapper;
-        private final org.apache.commons.csv.CSVParser parser;
-        private final Iterator<org.apache.commons.csv.CSVRecord> records;
-        private boolean closed;
-
-        private RecordIterator(CSVFormat format, Reader reader, java.util.function.Function<org.apache.commons.csv.CSVRecord, T> mapper) {
-            this.mapper = mapper;
-            try {
-                this.parser = format.parse(reader);
-            } catch (IOException e) {
-                throw new java.io.UncheckedIOException("Failed to parse CSV", e);
-            }
-            this.records = parser.iterator();
-        }
-
-        @Override
-        public boolean hasNext() {
-            if (closed) {
-                return false;
-            }
-            boolean hasNext = records.hasNext();
-            if (!hasNext) {
-                close();
-            }
-            return hasNext;
-        }
-
-        @Override
-        public T next() {
-            if (!hasNext()) {
-                throw new java.util.NoSuchElementException();
-            }
-            return mapper.apply(records.next());
-        }
-
-        private void close() {
-            if (!closed) {
-                closed = true;
-                try {
-                    parser.close();
-                } catch (IOException e) {
-                    throw new java.io.UncheckedIOException("Failed to close CSV parser", e);
-                }
-            }
-        }
     }
 }

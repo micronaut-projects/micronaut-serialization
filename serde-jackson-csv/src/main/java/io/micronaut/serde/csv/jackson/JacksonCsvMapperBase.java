@@ -64,7 +64,7 @@ abstract class JacksonCsvMapperBase extends AbstractCsvMapper {
     }
 
     @Override
-    protected Iterable<Map<String, String>> decodeRecords(String value, CsvFormatConfig config) throws CsvException {
+    protected Iterable<Map<String, @Nullable String>> decodeRecords(String value, CsvFormatConfig config) {
         return () -> new RecordIterator(mapReader(config).readValues(value));
     }
 
@@ -74,9 +74,8 @@ abstract class JacksonCsvMapperBase extends AbstractCsvMapper {
      * @param reader The reader
      * @param config The CSV format configuration
      * @return The decoded records
-     * @throws CsvException If the records cannot be decoded
      */
-    protected Iterable<Map<String, String>> decodeRecords(Reader reader, CsvFormatConfig config) throws CsvException {
+    protected Iterable<Map<String, @Nullable String>> decodeRecords(Reader reader, CsvFormatConfig config) {
         return () -> new RecordIterator(mapReader(config).readValues(reader));
     }
 
@@ -177,18 +176,6 @@ abstract class JacksonCsvMapperBase extends AbstractCsvMapper {
     }
 
     /**
-     * Gets the property name for a column.
-     *
-     * @param config The CSV format configuration
-     * @param column The column name
-     * @return The property name
-     */
-    protected String propertyForColumn(CsvFormatConfig config, String column) {
-        int index = config.columns().indexOf(column);
-        return index >= 0 && index < config.propertyNames().size() ? config.propertyNames().get(index) : column;
-    }
-
-    /**
      * Creates the read-time schema for a type.
      */
     protected abstract CsvSchema createReadSchema(CsvFormatConfig config);
@@ -224,11 +211,11 @@ abstract class JacksonCsvMapperBase extends AbstractCsvMapper {
         return createWriteSchema(config, firstRecord);
     }
 
-    private static final class RecordIterator implements Iterator<Map<String, String>> {
-        private final tools.jackson.databind.MappingIterator<Map<String, String>> iterator;
+    private static final class RecordIterator implements Iterator<Map<String, @Nullable String>> {
+        private final tools.jackson.databind.MappingIterator<Map<String, @Nullable String>> iterator;
         private boolean closed;
 
-        private RecordIterator(tools.jackson.databind.MappingIterator<Map<String, String>> iterator) {
+        private RecordIterator(tools.jackson.databind.MappingIterator<Map<String, @Nullable String>> iterator) {
             this.iterator = iterator;
         }
 
@@ -245,7 +232,7 @@ abstract class JacksonCsvMapperBase extends AbstractCsvMapper {
         }
 
         @Override
-        public Map<String, String> next() {
+        public Map<String, @Nullable String> next() {
             if (!hasNext()) {
                 throw new java.util.NoSuchElementException();
             }

@@ -1,11 +1,9 @@
 package io.micronaut.serde.csv.jackson
 
-import io.micronaut.serde.csv.jackson.JacksonCsvMapper
+
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 import spock.lang.Specification
-
-import java.io.ByteArrayInputStream
 
 @MicronautTest
 class JacksonCsvSpec extends Specification {

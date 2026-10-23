@@ -34,11 +34,11 @@ public interface MapToCsvEncoder extends CsvEncoder {
      *
      * @param value   The record
      * @param config  The CSV format configuration
-     * @return The encoded CSV line as a list of cell values
+     * @return The encoded CSV line as a list of cell values; individual cells may be {@code null}
      * @throws CsvException If the value cannot be encoded
      */
     @Override
-    List<String> encodeLine(@Nullable Object value, CsvFormatConfig config) throws CsvException;
+    List<@Nullable String> encodeLine(@Nullable Object value, CsvFormatConfig config) throws CsvException;
 
     /**
      * Encodes records as a CSV string.

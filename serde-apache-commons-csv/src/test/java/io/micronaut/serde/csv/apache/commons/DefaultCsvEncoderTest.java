@@ -16,7 +16,6 @@
 package io.micronaut.serde.csv.apache.commons;
 
 import io.micronaut.serde.csv.apache.commons.encoder.DefaultCsvEncoder;
-import io.micronaut.serde.csv.apache.commons.encoder.NoHeaderCsvEncoder;
 import io.micronaut.serde.csv.error.CsvException;
 import io.micronaut.serde.csv.introspection.CsvFormatConfig;
 import org.junit.jupiter.api.Test;
@@ -54,15 +53,4 @@ class DefaultCsvEncoderTest {
         assertEquals(2, result.trim().split("\n").length);
     }
 
-    @Test
-    void testEncodeHeaderlessCsvWithNoHeaderEncoder() throws CsvException {
-        NoHeaderCsvEncoder encoder = new NoHeaderCsvEncoder();
-        var values = List.of(
-            List.of("Alice", "30"),
-            List.of("Bob", "25")
-        );
-        String result = encoder.encodeToString(values, DEFAULT_CONFIG);
-        assertTrue(result.contains("Alice,30"));
-        assertTrue(result.contains("Bob,25"));
-    }
 }

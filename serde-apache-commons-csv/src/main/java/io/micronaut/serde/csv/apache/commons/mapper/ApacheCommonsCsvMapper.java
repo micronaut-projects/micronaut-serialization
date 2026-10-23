@@ -15,15 +15,14 @@
  */
 package io.micronaut.serde.csv.apache.commons.mapper;
 
-import io.micronaut.core.type.Argument;
 import io.micronaut.json.JsonStreamConfig;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.ObjectMapper;
+import io.micronaut.serde.csv.apache.commons.CsvFormats;
 import io.micronaut.serde.csv.decoder.CsvToMapDecoder;
 import io.micronaut.serde.csv.encoder.MapToCsvEncoder;
 import io.micronaut.serde.csv.error.CsvException;
 import io.micronaut.serde.csv.error.CsvMappingException;
-import io.micronaut.serde.csv.error.CsvParseException;
 import io.micronaut.serde.csv.introspection.CsvFormatConfig;
 import io.micronaut.serde.csv.introspection.CsvIntrospection;
 import io.micronaut.serde.csv.mapper.CsvMapper;
@@ -32,13 +31,11 @@ import jakarta.inject.Singleton;
 import org.apache.commons.csv.CSVFormat;
 import org.jspecify.annotations.Nullable;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -83,163 +80,71 @@ public final class ApacheCommonsCsvMapper extends CommonsCsvMapperBase {
 
     @Override
     protected CSVFormat createReadFormat(CsvFormatConfig config) {
-        CSVFormat.Builder builder = CSVFormat.DEFAULT
-            .builder()
-            .setDelimiter(config.delimiter())
-            .setQuote(config.quote())
-            .setEscape(config.escape())
-            .setRecordSeparator(config.lineSeparator())
-            .setNullString(config.nullValue())
-            .setIgnoreEmptyLines(config.skipEmptyLines())
-            .setIgnoreSurroundingSpaces(config.trim())
-            .setQuoteMode(org.apache.commons.csv.QuoteMode.MINIMAL);
-        if (config.hasHeader()) {
-            if (config.explicitColumns()) {
-                builder.setHeader(config.columns().toArray(new String[0]));
-            } else {
-                builder.setHeader();
-            }
-            builder.setSkipHeaderRecord(true);
-        }
-        return builder.get();
+        return CsvFormats.from(config);
     }
 
     @Override
     protected CSVFormat createWriteFormat(CsvFormatConfig config) {
-        CSVFormat.Builder builder = CSVFormat.DEFAULT
-            .builder()
-            .setDelimiter(config.delimiter())
-            .setQuote(config.quote())
-            .setEscape(config.escape())
-            .setRecordSeparator(config.lineSeparator())
-            .setNullString(config.nullValue())
-            .setIgnoreEmptyLines(config.skipEmptyLines())
-            .setIgnoreSurroundingSpaces(config.trim())
-            .setQuoteMode(org.apache.commons.csv.QuoteMode.MINIMAL);
-        if (config.writeHeader() && !config.columns().isEmpty()) {
-            builder.setHeader(config.columns().toArray(new String[0]));
-        }
-        return builder.get();
+        return CsvFormats.writeFormat(config);
     }
 
     @Override
     protected CSVFormat createWriteFormat(CsvFormatConfig config, Collection<String> header) {
-        CSVFormat.Builder builder = CSVFormat.DEFAULT
-            .builder()
-            .setDelimiter(config.delimiter())
-            .setQuote(config.quote())
-            .setEscape(config.escape())
-            .setRecordSeparator(config.lineSeparator())
-            .setNullString(config.nullValue())
-            .setIgnoreEmptyLines(config.skipEmptyLines())
-            .setIgnoreSurroundingSpaces(config.trim())
-            .setQuoteMode(org.apache.commons.csv.QuoteMode.MINIMAL);
-        builder.setHeader(header.toArray(new String[0]));
-        return builder.get();
+        return CsvFormats.format(config, header);
     }
 
     @Override
     public <T> Iterable<T> readAll(String value, Class<T> type) throws CsvException {
         CsvFormatConfig config = configFor(type);
-        Iterable<Map<String, String>> data = csvDecoder.decode(value, config);
-        return readRecords(data, type, config, record -> {
-            Map<String, @Nullable String> properties = CsvRecordMappings.toPropertyMap(config, record);
-            if (Map.class.isAssignableFrom(type)) {
-                return type.cast(properties);
-            }
-            try {
-                Map<String, Object> expanded = CsvRecordMappings.expandInlineProperties(
-                    config,
-                    properties,
-                    this::decodeInline
-                );
-                return Objects.requireNonNull(objectMapper.readValueFromTree(JsonNode.from(expanded), type));
-            } catch (Exception e) {
-                throw toCsvException(e, type);
-            }
-        });
+        Iterable<Map<String, @Nullable String>> data = csvDecoder.decode(value, config);
+        return readRecords(data, type, config, record -> readRecord(record, type, config));
     }
 
     @Override
     public <T> T read(List<String> value, Class<T> type) throws CsvException {
         CsvFormatConfig config = configFor(type);
-        Map<String, @Nullable String> map = CsvRecordMappings.rowToPropertyMap(config, value);
-        try {
-            Map<String, Object> expanded = CsvRecordMappings.expandInlineProperties(config, map, this::decodeInline);
-            return Objects.requireNonNull(objectMapper.readValueFromTree(JsonNode.from(expanded), type));
-        } catch (Exception e) {
-            throw toCsvException(e, type);
-        }
-    }
-
-    @Override
-    public <T> Iterable<T> read(Iterable<List<String>> values, Class<T> type) throws CsvException {
-        return () -> new Iterator<>() {
-            private final Iterator<List<String>> iterator = values.iterator();
-
-            @Override
-            public boolean hasNext() {
-                return iterator.hasNext();
-            }
-
-            @Override
-            public T next() {
-                try {
-                    return read(iterator.next(), type);
-                } catch (CsvException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-    }
-
-    @Override
-    public <T> Iterable<T> read(InputStream input, String charset, Class<T> type) throws CsvException {
-        return read(input, Charset.forName(charset), type);
+        return readPropertyMap(CsvRecordMappings.rowToPropertyMap(config, value), type, config);
     }
 
     @Override
     public <T> Iterable<T> read(InputStream input, Charset charset, Class<T> type) throws CsvException {
         CsvFormatConfig config = configFor(type);
-        Iterable<Map<String, String>> records = csvDecoder.decode(input, charset, config);
-        return readRecords(records, type, config, record -> {
-            Map<String, @Nullable String> properties = CsvRecordMappings.toPropertyMap(config, record);
-            if (Map.class.isAssignableFrom(type)) {
-                return type.cast(properties);
-            }
-            try {
-                Map<String, Object> expanded = CsvRecordMappings.expandInlineProperties(
-                    config,
-                    properties,
-                    this::decodeInline
-                );
-                return Objects.requireNonNull(objectMapper.readValueFromTree(JsonNode.from(expanded), type));
-            } catch (Exception e) {
-                throw toCsvException(e, type);
-            }
-        });
+        Iterable<Map<String, @Nullable String>> records = csvDecoder.decode(input, charset, config);
+        return readRecords(records, type, config, record -> readRecord(record, type, config));
     }
 
     @Override
     public String writeToString(Iterable<?> values) throws CsvException {
-        return csvEncoder.encodeToString(convertToMapIterable(values), configFor(firstElementType(values)));
+        try {
+            return csvEncoder.encodeToString(convertToMapIterable(values), configFor(firstElementType(values)));
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof CsvException csvException) {
+                throw csvException;
+            }
+            throw e;
+        }
     }
 
     @Override
     public String writeToString(Iterable<?> values, Collection<String> header) throws CsvException {
-        return csvEncoder.encodeToString(convertToMapIterable(values), header, configFor(firstElementType(values)));
+        try {
+            return csvEncoder.encodeToString(convertToMapIterable(values), header, configFor(firstElementType(values)));
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof CsvException csvException) {
+                throw csvException;
+            }
+            throw e;
+        }
     }
 
     @Override
-    public List<String> writeAsLine(@Nullable Object value) throws CsvException {
+    public List<@Nullable String> writeAsLine(@Nullable Object value) throws CsvException {
         if (value == null) {
             return List.of();
         }
-        JsonNode tree;
-        try {
-            tree = objectMapper.writeValueToTree(value);
-        } catch (IOException e) {
-            throw new CsvException("Failed to write value to tree", e);
+        JsonNode tree = toJsonTree(value);
+        if (tree.isNull()) {
+            return List.of();
         }
         List<@Nullable String> result = new ArrayList<>();
         Object raw = Objects.requireNonNull(tree.getValue());
@@ -277,19 +182,19 @@ public final class ApacheCommonsCsvMapper extends CommonsCsvMapperBase {
         return mapRecords(values, this::toMap);
     }
 
-    private Map<String, @Nullable String> toMap(Object value) throws CsvException {
-        Map<String, @Nullable String> converted = new LinkedHashMap<>();
-        if (value instanceof Map<?, ?> map) {
-            for (Map.Entry<?, ?> entry : map.entrySet()) {
-                Object entryValue = entry.getValue();
-                converted.put(entry.getKey().toString(), entryValue == null ? null : entryValue.toString());
-            }
+    private Map<String, @Nullable String> toMap(@Nullable Object value) throws CsvException {
+        CsvRecordMappings.requireRecord(value);
+        Object record = Objects.requireNonNull(value);
+        if (record instanceof Map<?, ?> map) {
+            Map<String, ?> raw = CsvRecordMappings.toStringKeyedMap(map);
+            Map<String, @Nullable String> converted = new LinkedHashMap<>(raw.size());
+            raw.forEach((key, entryValue) -> converted.put(key, entryValue == null ? null : entryValue.toString()));
             return converted;
         }
-        JsonNode tree = writeValueToTree(value);
+        JsonNode tree = toJsonTree(record);
         if (tree.isObject()) {
             Map<String, ?> map = asMap(tree.getValue());
-            CsvFormatConfig config = configFor(value.getClass());
+            CsvFormatConfig config = configFor(record.getClass());
             Map<String, Object> collapsed = CsvRecordMappings.collapseInlineProperties(
                 config,
                 map,
@@ -297,34 +202,7 @@ public final class ApacheCommonsCsvMapper extends CommonsCsvMapperBase {
             );
             return CsvRecordMappings.toColumnMap(config, collapsed);
         }
-        throw new CsvMappingException("Cannot convert " + value + " to a CSV record.", value.getClass());
-    }
-
-    @Override
-    public JsonNode writeValueToTree(@Nullable Object value) throws CsvException {
-        try {
-            return objectMapper.writeValueToTree(value);
-        } catch (IOException e) {
-            throw new CsvException("Failed to write value to tree", e);
-        }
-    }
-
-    @Override
-    public <T> JsonNode writeValueToTree(Argument<T> type, @Nullable T value) throws CsvException {
-        try {
-            return objectMapper.writeValueToTree(type, value);
-        } catch (IOException e) {
-            throw new CsvException("Failed to write value to tree", e);
-        }
-    }
-
-    @Override
-    public <T> @Nullable T readValueFromTree(JsonNode tree, Argument<T> type) throws CsvException {
-        try {
-            return objectMapper.readValueFromTree(tree, type);
-        } catch (IOException e) {
-            throw new CsvParseException("Failed to read from tree: " + e.getMessage(), e);
-        }
+        throw new CsvMappingException("Cannot convert " + record + " to a CSV record.", record.getClass());
     }
 
     /**

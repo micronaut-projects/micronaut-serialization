@@ -16,7 +16,6 @@
 package io.micronaut.serde.csv.apache.commons;
 
 import io.micronaut.core.annotation.Internal;
-
 import io.micronaut.serde.csv.error.CsvException;
 import io.micronaut.serde.csv.introspection.CsvFormatConfig;
 import org.apache.commons.csv.CSVFormat;
@@ -26,6 +25,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.Collection;
 
 /**
  * Pre-configured {@link CSVFormat} instances used by the CSV serde.
@@ -44,15 +44,6 @@ public final class CsvFormats {
         .setSkipHeaderRecord(true)
         .setNullString("")
         .setCommentMarker('#')
-        .get();
-
-    /**
-     * Header-less format using minimal quoting and empty string nulls.
-     */
-    public static final CSVFormat NO_HEADER = CSVFormat.DEFAULT
-        .builder()
-        .setQuoteMode(QuoteMode.MINIMAL)
-        .setNullString("")
         .get();
 
     private CsvFormats() {
@@ -122,6 +113,20 @@ public final class CsvFormats {
         if (withHeader && !config.columns().isEmpty()) {
             builder.setHeader(config.columns().toArray(new String[0]));
         }
+        return builder.get();
+    }
+
+    /**
+     * Builds a printer {@link CSVFormat} from a resolved {@link CsvFormatConfig} with an explicit
+     * header.
+     *
+     * @param config The resolved CSV format
+     * @param header The explicit header columns
+     * @return The Apache Commons CSV format
+     */
+    public static CSVFormat format(CsvFormatConfig config, Collection<String> header) {
+        CSVFormat.Builder builder = apply(config);
+        builder.setHeader(header.toArray(new String[0]));
         return builder.get();
     }
 

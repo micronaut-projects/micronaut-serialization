@@ -23,12 +23,8 @@ import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 import spock.lang.Specification
 
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.OutputStream
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
-import java.util.List
 
 @MicronautTest
 abstract class AbstractCsvMessageHandlerSpec extends Specification {

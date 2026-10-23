@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.csv
 
+import io.micronaut.serde.csv.error.CsvException
 import io.micronaut.serde.csv.mapper.CsvMapper
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
@@ -230,8 +231,29 @@ abstract class AbstractCsvConsistencySpec extends Specification {
         csv.trim() == "1,"
         line.size() == 2
         line[0] == "1"
+        line[1] == null
         values[0].id == "1"
         values[0].person == null
+    }
+
+    void "writing a null record fails with a mapping exception"() {
+        when:
+        mapper.writeToString([new Person("Alice", 30), null])
+
+        then:
+        thrown(CsvException)
+    }
+
+    void "writing a null map key fails with a mapping exception"() {
+        given:
+        def record = new LinkedHashMap()
+        record.put(null, "value")
+
+        when:
+        mapper.writeToString([record])
+
+        then:
+        thrown(CsvException)
     }
 
     void "skips empty lines by default"() {

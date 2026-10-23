@@ -17,10 +17,12 @@ package io.micronaut.serde.csv.mapper;
 
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.serde.csv.error.CsvException;
+import io.micronaut.serde.csv.error.CsvMappingException;
 import io.micronaut.serde.csv.introspection.CsvFormatConfig;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -80,6 +82,29 @@ public final class CsvRecordMappings {
         for (int i = 0; i < columns.size(); i++) {
             String column = columns.get(i);
             String propertyName = propertyNames.size() == columns.size() ? propertyNames.get(i) : column;
+            Object value = values.containsKey(propertyName) ? values.get(propertyName) : values.get(column);
+            result.put(column, stringify(value));
+        }
+        return result;
+    }
+
+    /**
+     * Projects a record onto explicit CSV columns, preserving the given column order.
+     *
+     * @param config  The resolved CSV format
+     * @param values  The values keyed by bean property name, or by CSV column name
+     * @param columns The CSV columns to project
+     * @return The values keyed by the given CSV column names
+     */
+    public static Map<String, @Nullable String> toColumnMap(CsvFormatConfig config,
+                                                            Map<String, ?> values,
+                                                            Collection<String> columns) {
+        List<String> configColumns = config.columns();
+        List<String> propertyNames = config.propertyNames();
+        Map<String, @Nullable String> result = new LinkedHashMap<>(columns.size());
+        for (String column : columns) {
+            int index = configColumns.indexOf(column);
+            String propertyName = index >= 0 && index < propertyNames.size() ? propertyNames.get(index) : column;
             Object value = values.containsKey(propertyName) ? values.get(propertyName) : values.get(column);
             result.put(column, stringify(value));
         }
@@ -167,6 +192,37 @@ public final class CsvRecordMappings {
         Map<String, @Nullable String> result = new LinkedHashMap<>(size);
         for (int i = 0; i < size && i < values.size(); i++) {
             result.put(propertyNames.get(i), normalize(config, values.get(i)));
+        }
+        return result;
+    }
+
+    /**
+     * Rejects a null CSV record value.
+     *
+     * @param value The record value
+     * @throws CsvException If the value is {@code null}
+     */
+    public static void requireRecord(@Nullable Object value) throws CsvException {
+        if (value == null) {
+            throw new CsvMappingException("Cannot convert null to a CSV record.", Object.class);
+        }
+    }
+
+    /**
+     * Normalizes a raw record map so that all keys are non-null strings.
+     *
+     * @param map The raw record map
+     * @return The record map with string keys
+     * @throws CsvException If a key is {@code null}
+     */
+    public static Map<String, ?> toStringKeyedMap(Map<?, ?> map) throws CsvException {
+        Map<String, Object> result = new LinkedHashMap<>(map.size());
+        for (Map.Entry<?, ?> entry : map.entrySet()) {
+            Object key = entry.getKey();
+            if (key == null) {
+                throw new CsvMappingException("CSV record keys cannot be null.", Map.class);
+            }
+            result.put(key.toString(), entry.getValue());
         }
         return result;
     }

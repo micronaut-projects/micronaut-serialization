@@ -27,10 +27,4 @@ class CsvFormatsTest {
         assertEquals("", format.getNullString());
         assertEquals('#', format.getCommentMarker());
     }
-
-    @Test
-    void testNoHeaderFormatHasNoHeader() {
-        var format = CsvFormats.NO_HEADER;
-        assertEquals("", format.getNullString());
-    }
 }

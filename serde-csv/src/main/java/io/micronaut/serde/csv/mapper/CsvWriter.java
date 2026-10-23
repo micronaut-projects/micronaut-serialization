@@ -34,10 +34,10 @@ public interface CsvWriter {
      * Encodes a value as a single CSV line.
      *
      * @param value The value to encode
-     * @return The encoded line as a list of cell values
+     * @return The encoded line as a list of cell values; individual cells may be {@code null}
      * @throws CsvException If the value cannot be encoded
      */
-    List<String> writeAsLine(@Nullable Object value) throws CsvException;
+    List<@Nullable String> writeAsLine(@Nullable Object value) throws CsvException;
 
     /**
      * Encodes an iterable as a CSV string.

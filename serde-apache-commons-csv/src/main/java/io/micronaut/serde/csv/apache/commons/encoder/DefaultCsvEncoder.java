@@ -15,9 +15,8 @@
  */
 package io.micronaut.serde.csv.apache.commons.encoder;
 
+import io.micronaut.context.annotation.Secondary;
 import io.micronaut.core.annotation.Internal;
-
-import io.micronaut.context.annotation.Primary;
 import io.micronaut.serde.csv.apache.commons.CsvFormats;
 import io.micronaut.serde.csv.encoder.MapToCsvEncoder;
 import io.micronaut.serde.csv.error.CsvException;
@@ -37,7 +36,7 @@ import java.util.Map;
  * @since 3.2.5
  */
 @Singleton
-@Primary
+@Secondary
 @Internal
 public final class DefaultCsvEncoder extends AbstractCsvEncoder implements MapToCsvEncoder {
 
@@ -84,7 +83,7 @@ public final class DefaultCsvEncoder extends AbstractCsvEncoder implements MapTo
         @SuppressWarnings("unchecked")
         Iterable<Map<String, @Nullable String>> mapValues = (Iterable<Map<String, @Nullable String>>) values;
         boolean withHeader = config.writeHeader() && !config.columns().isEmpty();
-        String @Nullable [] projectionHeader = config.columns().isEmpty() ? null : config.columns().toArray(new String[0]);
+        String[] projectionHeader = config.columns().isEmpty() ? null : config.columns().toArray(new String[0]);
         return encodeRawLinesToString(CsvFormats.format(config, withHeader), projectionHeader, mapValues);
     }
 

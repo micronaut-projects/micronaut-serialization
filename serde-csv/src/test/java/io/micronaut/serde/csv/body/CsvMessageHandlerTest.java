@@ -116,6 +116,17 @@ class CsvMessageHandlerTest {
     }
 
     @Test
+    void testReadWithRawIterableType() {
+        CsvMessageHandler<Iterable> codec = new CsvMessageHandler<>(createCsvMapper(List.of("Alice", "Bob")));
+        ByteArrayInputStream input = new ByteArrayInputStream("name,age\nAlice,30".getBytes(StandardCharsets.UTF_8));
+        Argument<Iterable> type = Argument.of(Iterable.class);
+        Iterable<?> result = codec.read(type, new MediaType("text/csv"), null, input);
+        var iterator = result.iterator();
+        assertEquals("Alice", iterator.next());
+        assertEquals("Bob", iterator.next());
+    }
+
+    @Test
     void testReadWithNonIterableType() {
         CsvMessageHandler<String> codec = new CsvMessageHandler<>(createCsvMapper(List.of("Alice")));
         ByteArrayInputStream input = new ByteArrayInputStream("name,age\nAlice,30".getBytes(StandardCharsets.UTF_8));
@@ -169,6 +180,15 @@ class CsvMessageHandlerTest {
         CsvMessageHandler<String> codec = new CsvMessageHandler<>(createCsvMapper(List.of()));
         Argument<String> type = Argument.of(String.class);
         codec.writeTo(type, new MediaType("text/csv"), "single", null, (OutputStream) null);
+    }
+
+    @Test
+    void testWriteToWithNullObject() {
+        CsvMessageHandler<String> codec = new CsvMessageHandler<>(createCsvMapper(List.of()));
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        Argument<String> type = Argument.of(String.class);
+        codec.writeTo(type, new MediaType("text/csv"), null, null, output);
+        assertEquals("", output.toString(StandardCharsets.UTF_8));
     }
 
     @Test

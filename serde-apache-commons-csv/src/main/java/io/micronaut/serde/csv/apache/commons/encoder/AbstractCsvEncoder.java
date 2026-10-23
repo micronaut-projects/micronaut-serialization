@@ -16,7 +16,6 @@
 package io.micronaut.serde.csv.apache.commons.encoder;
 
 import io.micronaut.core.annotation.Internal;
-
 import io.micronaut.serde.csv.error.CsvException;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;

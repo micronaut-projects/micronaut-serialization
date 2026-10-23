@@ -16,7 +16,6 @@
 package io.micronaut.serde.csv.mapper;
 
 import io.micronaut.core.type.Argument;
-import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.csv.error.CsvException;
 import org.jspecify.annotations.Nullable;
 
@@ -29,8 +28,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Extended CSV mapper that provides tree-based operations.
- * Implementations may choose to support or not support the tree-based operations.
+ * Extended CSV mapper that provides convenience value operations.
  * @since 3.2.5
  */
 public interface CsvObjectMapper extends CsvReader, CsvWriter {
@@ -129,54 +127,5 @@ public interface CsvObjectMapper extends CsvReader, CsvWriter {
         var baos = new ByteArrayOutputStream();
         writeCsvValue(baos, type, value, Charset.defaultCharset());
         return baos.toByteArray();
-    }
-
-    /**
-     * Serializes an object to a {@link JsonNode} tree.
-     * <p>
-     * Default implementation throws {@link UnsupportedOperationException}.
-     * Implementations that support tree bridging should override this method.
-     * </p>
-     *
-     * @param value The value to serialize
-     * @return The JSON node tree
-     * @throws CsvException If the value cannot be serialized
-     */
-    default JsonNode writeValueToTree(@Nullable Object value) throws CsvException {
-        throw new UnsupportedOperationException("writeValueToTree is not supported for CSV mapper");
-    }
-
-    /**
-     * Serializes a typed value to a {@link JsonNode} tree.
-     * <p>
-     * Default implementation throws {@link UnsupportedOperationException}.
-     * Implementations that support tree bridging should override this method.
-     * </p>
-     *
-     * @param type  The type of the value
-     * @param value The value to serialize
-     * @param <T>   The value type
-     * @return The JSON node tree
-     * @throws CsvException If the value cannot be serialized
-     */
-    default <T> JsonNode writeValueToTree(Argument<T> type, @Nullable T value) throws CsvException {
-        throw new UnsupportedOperationException("writeValueToTree is not supported for CSV mapper");
-    }
-
-    /**
-     * Reads a typed value from a {@link JsonNode} tree.
-     * <p>
-     * Default implementation throws {@link UnsupportedOperationException}.
-     * Implementations that support tree bridging should override this method.
-     * </p>
-     *
-     * @param tree The JSON node tree
-     * @param type The type to read
-     * @param <T>  The value type
-     * @return The decoded value
-     * @throws CsvException If the value cannot be decoded
-     */
-    default <T> @Nullable T readValueFromTree(JsonNode tree, Argument<T> type) throws CsvException {
-        throw new UnsupportedOperationException("readValueFromTree is not supported for CSV mapper");
     }
 }

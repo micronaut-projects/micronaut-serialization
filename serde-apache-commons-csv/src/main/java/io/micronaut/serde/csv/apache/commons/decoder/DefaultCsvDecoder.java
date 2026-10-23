@@ -15,22 +15,20 @@
  */
 package io.micronaut.serde.csv.apache.commons.decoder;
 
+import io.micronaut.context.annotation.Secondary;
 import io.micronaut.core.annotation.Internal;
-
-import io.micronaut.context.annotation.Primary;
 import io.micronaut.serde.csv.apache.commons.CsvFormats;
+import io.micronaut.serde.csv.apache.commons.CsvRecords;
 import io.micronaut.serde.csv.decoder.CsvToMapDecoder;
-import io.micronaut.serde.csv.error.CsvException;
 import io.micronaut.serde.csv.introspection.CsvFormatConfig;
 import jakarta.inject.Singleton;
 import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVRecord;
+import org.jspecify.annotations.Nullable;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.nio.charset.Charset;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -39,44 +37,25 @@ import java.util.Map;
  * @since 3.2.5
  */
 @Singleton
-@Primary
+@Secondary
 @Internal
 public final class DefaultCsvDecoder extends AbstractCsvDecoder implements CsvToMapDecoder {
 
     private static final CSVFormat FORMAT = CsvFormats.DEFAULT;
-    private static final String EMPTY_MAP_MESSAGE =
-        "CSV data map is empty. It may be caused when no header passed at first line.";
 
-    private Iterable<Map<String, String>> decodeAsRecord(CSVFormat format, List<String> columns, String value) {
-        return decode(format, () -> new StringReader(value), record -> toMap(record, columns));
+    private Iterable<Map<String, @Nullable String>> decodeAsRecord(CSVFormat format, List<String> columns, String value) {
+        return decode(format, () -> new StringReader(value), record -> CsvRecords.toMap(record, columns));
     }
 
-    private Iterable<Map<String, String>> decodeAsRecord(CSVFormat format,
+    private Iterable<Map<String, @Nullable String>> decodeAsRecord(CSVFormat format,
                                                          List<String> columns,
                                                          InputStream input,
                                                          Charset charset) {
-        return decode(format, () -> new InputStreamReader(input, charset), record -> toMap(record, columns));
-    }
-
-    private static Map<String, String> toMap(CSVRecord record, List<String> columns) {
-        Map<String, String> map;
-        if (columns.isEmpty()) {
-            map = record.toMap();
-        } else {
-            List<String> values = record.toList();
-            map = new LinkedHashMap<>();
-            for (int i = 0; i < columns.size(); i++) {
-                map.put(columns.get(i), i < values.size() ? values.get(i) : null);
-            }
-        }
-        if (map.isEmpty()) {
-            throw new IllegalStateException(EMPTY_MAP_MESSAGE);
-        }
-        return map;
+        return decode(format, () -> new InputStreamReader(input, charset), record -> CsvRecords.toMap(record, columns));
     }
 
     @Override
-    public Iterable<Map<String, String>> decode(String value, List<String> header) throws CsvException {
+    public Iterable<Map<String, @Nullable String>> decode(String value, List<String> header) {
         CSVFormat formatWithHeader = FORMAT.builder()
             .setHeader(header.toArray(new String[0]))
             .setSkipHeaderRecord(false)
@@ -84,23 +63,23 @@ public final class DefaultCsvDecoder extends AbstractCsvDecoder implements CsvTo
         return decodeAsRecord(formatWithHeader, List.of(), value);
     }
 
-    public Iterable<Map<String, String>> decode(String value) throws CsvException {
+    public Iterable<Map<String, @Nullable String>> decode(String value) {
         return decodeAsRecord(FORMAT, List.of(), value);
     }
 
-    public Iterable<Map<String, String>> decode(InputStream input, Charset charset) throws CsvException {
+    public Iterable<Map<String, @Nullable String>> decode(InputStream input, Charset charset) {
         return decodeAsRecord(FORMAT, List.of(), input, charset);
     }
 
     @Override
-    public Iterable<Map<String, String>> decode(String value, CsvFormatConfig config) throws CsvException {
+    public Iterable<Map<String, @Nullable String>> decode(String value, CsvFormatConfig config) {
         CSVFormat format = CsvFormats.from(config);
         List<String> columns = config.hasHeader() ? List.of() : config.columns();
         return decodeAsRecord(format, columns, value);
     }
 
     @Override
-    public Iterable<Map<String, String>> decode(InputStream input, Charset charset, CsvFormatConfig config) throws CsvException {
+    public Iterable<Map<String, @Nullable String>> decode(InputStream input, Charset charset, CsvFormatConfig config) {
         CSVFormat format = CsvFormats.from(config);
         List<String> columns = config.hasHeader() ? List.of() : config.columns();
         return decodeAsRecord(format, columns, input, charset);

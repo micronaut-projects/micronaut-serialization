@@ -16,7 +16,6 @@
 package io.micronaut.serde.csv.apache.commons.decoder;
 
 import io.micronaut.core.annotation.Internal;
-
 import io.micronaut.serde.csv.error.CsvParseException;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -58,6 +57,21 @@ public abstract class AbstractCsvDecoder {
     protected final <T> Iterable<T> decode(CSVFormat format,
                                            Supplier<Reader> readerSupplier,
                                            Function<CSVRecord, T> mapper) {
+        return decodeRecords(format, readerSupplier, mapper);
+    }
+
+    /**
+     * Creates a lazy iterable that opens a parser for every iterator.
+     *
+     * @param format         The CSV format
+     * @param readerSupplier Supplies a reader for each iterator
+     * @param mapper         Maps each CSV record to a value
+     * @param <T>            The value type
+     * @return The lazy iterable
+     */
+    public static <T> Iterable<T> decodeRecords(CSVFormat format,
+                                                Supplier<Reader> readerSupplier,
+                                                Function<CSVRecord, T> mapper) {
         return () -> new RecordIterator<>(format, readerSupplier.get(), mapper);
     }
 

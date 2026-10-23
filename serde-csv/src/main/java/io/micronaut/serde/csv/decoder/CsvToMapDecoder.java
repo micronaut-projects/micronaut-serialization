@@ -17,6 +17,7 @@ package io.micronaut.serde.csv.decoder;
 
 import io.micronaut.serde.csv.error.CsvException;
 import io.micronaut.serde.csv.introspection.CsvFormatConfig;
+import org.jspecify.annotations.Nullable;
 
 import java.io.InputStream;
 import java.nio.charset.Charset;
@@ -27,7 +28,7 @@ import java.util.Map;
  * Decoder that maps CSV records to maps keyed by header.
  * @since 3.2.5
  */
-public interface CsvToMapDecoder extends CsvDecoder<Map<String, String>> {
+public interface CsvToMapDecoder extends CsvDecoder<Map<String, @Nullable String>> {
 
     /**
      * Decodes a CSV string using explicit header columns. Records are decoded lazily, and each
@@ -35,10 +36,10 @@ public interface CsvToMapDecoder extends CsvDecoder<Map<String, String>> {
      *
      * @param value  The CSV string
      * @param header The explicit header columns
-     * @return The decoded records
+     * @return The decoded records; map values may be {@code null}
      * @throws CsvException If the value cannot be decoded
      */
-    Iterable<Map<String, String>> decode(String value, List<String> header) throws CsvException;
+    Iterable<Map<String, @Nullable String>> decode(String value, List<String> header) throws CsvException;
 
     /**
      * Decodes CSV using a resolved {@link CsvFormatConfig}, honoring the delimiter, header
@@ -46,11 +47,11 @@ public interface CsvToMapDecoder extends CsvDecoder<Map<String, String>> {
      *
      * @param value  The CSV string
      * @param config The resolved format
-     * @return The decoded records
+     * @return The decoded records; map values may be {@code null}
      * @throws CsvException If the value cannot be decoded
      */
     @Override
-    Iterable<Map<String, String>> decode(String value, CsvFormatConfig config) throws CsvException;
+    Iterable<Map<String, @Nullable String>> decode(String value, CsvFormatConfig config) throws CsvException;
 
     /**
      * Decodes CSV from an input stream using a resolved {@link CsvFormatConfig}.
@@ -58,9 +59,9 @@ public interface CsvToMapDecoder extends CsvDecoder<Map<String, String>> {
      * @param input   The input stream
      * @param charset The charset
      * @param config  The resolved format
-     * @return The decoded records
+     * @return The decoded records; map values may be {@code null}
      * @throws CsvException If the value cannot be decoded
      */
     @Override
-    Iterable<Map<String, String>> decode(InputStream input, Charset charset, CsvFormatConfig config) throws CsvException;
+    Iterable<Map<String, @Nullable String>> decode(InputStream input, Charset charset, CsvFormatConfig config) throws CsvException;
 }
