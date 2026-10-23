@@ -18,7 +18,6 @@ package io.micronaut.serde.csv.jackson;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.serde.csv.error.CsvException;
 import io.micronaut.serde.csv.introspection.CsvFormatConfig;
-import io.micronaut.serde.csv.introspection.CsvIntrospection;
 import io.micronaut.serde.csv.mapper.AbstractCsvMapper;
 import org.jspecify.annotations.Nullable;
 import tools.jackson.dataformat.csv.CsvSchema;
@@ -181,11 +180,6 @@ abstract class JacksonCsvMapperBase extends AbstractCsvMapper {
     protected abstract CsvSchema createReadSchema(CsvFormatConfig config);
 
     /**
-     * Creates the write-time schema for a type.
-     */
-    protected abstract CsvSchema createWriteSchema(CsvFormatConfig config);
-
-    /**
      * Creates the write-time schema for a type with a specific first record.
      */
     protected abstract CsvSchema createWriteSchema(CsvFormatConfig config, Map<String, ?> firstRecord);
@@ -195,13 +189,6 @@ abstract class JacksonCsvMapperBase extends AbstractCsvMapper {
      */
     protected final CsvSchema readSchema(CsvFormatConfig config) {
         return createReadSchema(config);
-    }
-
-    /**
-     * Returns the write schema for a type, cached.
-     */
-    protected final CsvSchema writeSchema(Class<?> type) {
-        return createWriteSchema(CsvIntrospection.formatFor(type));
     }
 
     /**

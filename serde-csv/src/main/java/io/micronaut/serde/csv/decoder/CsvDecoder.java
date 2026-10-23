@@ -52,29 +52,4 @@ public interface CsvDecoder<T> {
      * @throws CsvException If the value cannot be decoded
      */
     Iterable<T> decode(InputStream input, Charset charset, CsvFormatConfig config) throws CsvException;
-
-    /**
-     * Decodes a CSV string into a streaming iterator.
-     *
-     * @param value The CSV string
-     * @param config The CSV format configuration
-     * @return An iterator over the decoded values
-     * @throws CsvException If the value cannot be decoded
-     */
-    default Iterator<T> decodeIterator(String value, CsvFormatConfig config) throws CsvException {
-        return decode(value, config).iterator();
-    }
-
-    /**
-     * Decodes a CSV input stream into a streaming iterator.
-     *
-     * @param input   The input stream
-     * @param charset The charset
-     * @param config  The CSV format configuration
-     * @return An iterator over the decoded values
-     * @throws CsvException If the value cannot be decoded
-     */
-    default Iterator<T> decodeIterator(InputStream input, Charset charset, CsvFormatConfig config) throws CsvException {
-        return decode(input, charset, config).iterator();
-    }
 }

@@ -1,3 +1,5 @@
+import jdk.internal.vm.vector.VectorSupport.test
+
 plugins {
     id("io.micronaut.build.internal.serde-module")
 }
@@ -27,7 +29,6 @@ dependencies {
 
     testImplementation(projects.micronautSerdeProcessor)
     testImplementation(projects.micronautSerdeTck)
-    testImplementation(projects.micronautSerdeCsv)
     testImplementation(projects.micronautSerdeCsvTck)
     testImplementation(mn.micronaut.inject.java.test)
     testImplementation(mnTest.micronaut.test.junit5)

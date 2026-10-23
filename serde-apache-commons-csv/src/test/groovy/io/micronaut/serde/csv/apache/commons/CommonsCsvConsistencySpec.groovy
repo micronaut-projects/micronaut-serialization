@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.serde.csv.apache.commons;
+package io.micronaut.serde.csv.apache.commons
 
-import io.micronaut.serde.csv.AbstractCsvConsistencySpec;
+import io.micronaut.serde.csv.AbstractCsvConsistencySpec
 
 class CommonsCsvConsistencySpec extends AbstractCsvConsistencySpec {
 }

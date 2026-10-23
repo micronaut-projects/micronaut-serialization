@@ -119,15 +119,6 @@ public record CsvFormatConfig(
     }
 
     /**
-     * Returns an empty format configuration.
-     *
-     * @return The default format configuration
-     */
-    public static CsvFormatConfig empty() {
-        return DEFAULT;
-    }
-
-    /**
      * Checks whether the format uses a header row for reading.
      *
      * @return Whether the format uses a header row for reading

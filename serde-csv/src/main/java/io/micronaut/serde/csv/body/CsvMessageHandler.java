@@ -109,7 +109,7 @@ public final class CsvMessageHandler<T> implements MessageBodyHandler<T> {
                         T object,
                         @Nullable MutableHeaders outgoingHeaders,
                         @Nullable OutputStream outputStream) {
-        if (outputStream == null || object == null) {
+        if (outputStream == null) {
             return;
         }
         Charset charset = mediaType != null

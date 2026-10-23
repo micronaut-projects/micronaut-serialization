@@ -39,7 +39,7 @@ class CsvFormatConfigTest {
     }
 
     @Test
-    void decodesUsingConfiguredDelimiter() throws CsvException {
+    void decodesUsingConfiguredDelimiter() {
         DefaultCsvDecoder decoder = new DefaultCsvDecoder();
         Map<String, String> first = decoder.decode("id;name\n1;Alice\n", CONFIG).iterator().next();
         assertEquals("1", first.get("id"));

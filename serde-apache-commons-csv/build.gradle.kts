@@ -26,7 +26,6 @@ dependencies {
 
     testImplementation(projects.micronautSerdeProcessor)
     testImplementation(projects.micronautSerdeTck)
-    testImplementation(projects.micronautSerdeCsv)
     testImplementation(projects.micronautSerdeCsvTck)
     testImplementation(projects.micronautSerdeJackson)
     testImplementation(mn.micronaut.inject.java.test)

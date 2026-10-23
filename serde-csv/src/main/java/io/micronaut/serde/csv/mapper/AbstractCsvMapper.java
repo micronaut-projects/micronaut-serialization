@@ -16,6 +16,7 @@
 package io.micronaut.serde.csv.mapper;
 
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.core.type.Argument;
 import io.micronaut.serde.csv.error.CsvException;
 import io.micronaut.serde.csv.introspection.CsvFormatConfig;
 import io.micronaut.serde.csv.introspection.CsvFormatConfig.CsvPropertyFormat;
@@ -122,16 +123,12 @@ public abstract class AbstractCsvMapper implements CsvMapper, CsvObjectMapper {
      * Creates an iterable that maps raw records to typed beans.
      *
      * @param records     The raw records
-     * @param type        The bean type
-     * @param config      The CSV format configuration
      * @param recordMapper The record mapper function
      * @param <T>         The bean type
      * @return The iterable of typed beans
      */
     protected final <T> Iterable<T> readRecords(
         Iterable<Map<String, @Nullable String>> records,
-        Class<T> type,
-        CsvFormatConfig config,
         ThrowingFunction<Map<String, @Nullable String>, T> recordMapper
     ) {
         return () -> new Iterator<>() {
@@ -321,21 +318,7 @@ public abstract class AbstractCsvMapper implements CsvMapper, CsvObjectMapper {
     }
 
     @Override
-    public <T> byte[] writeCsvValueAsBytes(io.micronaut.core.type.Argument<T> type, @Nullable T value) throws CsvException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        writeCsvValue(baos, type, value, Charset.defaultCharset());
-        return baos.toByteArray();
-    }
-
-    @Override
-    public <T> @Nullable T readCsvValue(InputStream inputStream, io.micronaut.core.type.Argument<T> type) throws CsvException {
-        Iterable<T> records = read(inputStream, Charset.defaultCharset(), type.getType());
-        var it = records.iterator();
-        return it.hasNext() ? it.next() : null;
-    }
-
-    @Override
-    public <T> @Nullable T readCsvValue(byte[] bytes, io.micronaut.core.type.Argument<T> type) throws CsvException {
+    public <T> @Nullable T readCsvValue(byte[] bytes, Argument<T> type) throws CsvException {
         try (var is = new ByteArrayInputStream(bytes)) {
             return readCsvValue(is, type);
         } catch (Exception e) {

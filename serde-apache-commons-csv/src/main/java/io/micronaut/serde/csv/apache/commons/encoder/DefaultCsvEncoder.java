@@ -74,7 +74,7 @@ public final class DefaultCsvEncoder extends AbstractCsvEncoder implements MapTo
     }
 
     @Override
-    public List<String> encodeLine(@Nullable Object value, CsvFormatConfig config) throws CsvException {
+    public List<String> encodeLine(@Nullable Object value, CsvFormatConfig config) {
         throw new UnsupportedOperationException("encodeLine not supported for MapToCsvEncoder");
     }
 

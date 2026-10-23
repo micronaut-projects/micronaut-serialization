@@ -21,6 +21,8 @@ import io.micronaut.serde.ObjectMapper;
 import io.micronaut.serde.csv.apache.commons.CsvFormats;
 import io.micronaut.serde.csv.apache.commons.CsvRecords;
 import io.micronaut.serde.csv.apache.commons.decoder.AbstractCsvDecoder;
+import io.micronaut.serde.csv.decoder.CsvToMapDecoder;
+import io.micronaut.serde.csv.encoder.MapToCsvEncoder;
 import io.micronaut.serde.csv.error.CsvException;
 import io.micronaut.serde.csv.introspection.CsvFormatConfig;
 import io.micronaut.serde.csv.mapper.AbstractCsvMapper;
@@ -46,8 +48,8 @@ import java.util.Objects;
 @Internal
 abstract class CommonsCsvMapperBase extends AbstractCsvMapper {
 
-    protected final io.micronaut.serde.csv.decoder.CsvToMapDecoder csvDecoder;
-    protected final io.micronaut.serde.csv.encoder.MapToCsvEncoder csvEncoder;
+    protected final CsvToMapDecoder csvDecoder;
+    protected final MapToCsvEncoder csvEncoder;
     protected final ObjectMapper objectMapper;
 
     /**
@@ -58,8 +60,8 @@ abstract class CommonsCsvMapperBase extends AbstractCsvMapper {
      * @param objectMapper The object mapper
      */
     protected CommonsCsvMapperBase(
-        io.micronaut.serde.csv.decoder.CsvToMapDecoder csvDecoder,
-        io.micronaut.serde.csv.encoder.MapToCsvEncoder csvEncoder,
+        CsvToMapDecoder csvDecoder,
+        MapToCsvEncoder csvEncoder,
         ObjectMapper objectMapper
     ) {
         this.csvDecoder = csvDecoder;
@@ -73,7 +75,7 @@ abstract class CommonsCsvMapperBase extends AbstractCsvMapper {
     }
 
     @Override
-    protected Iterable<Map<String, @Nullable String>> decodeRecords(String value, CsvFormatConfig config) throws CsvException {
+    protected Iterable<Map<String, @Nullable String>> decodeRecords(String value, CsvFormatConfig config) {
         CSVFormat format = createReadFormat(config);
         List<String> columns = config.hasHeader() ? List.of() : config.columns();
         return decodeAsRecord(format, columns, value);
@@ -85,9 +87,8 @@ abstract class CommonsCsvMapperBase extends AbstractCsvMapper {
      * @param reader The reader
      * @param config The CSV format configuration
      * @return The decoded records
-     * @throws CsvException If the records cannot be decoded
      */
-    protected Iterable<Map<String, @Nullable String>> decodeRecords(Reader reader, CsvFormatConfig config) throws CsvException {
+    protected Iterable<Map<String, @Nullable String>> decodeRecords(Reader reader, CsvFormatConfig config) {
         CSVFormat format = createReadFormat(config);
         List<String> columns = config.hasHeader() ? List.of() : config.columns();
         return decodeAsRecord(format, columns, reader);
@@ -165,11 +166,10 @@ abstract class CommonsCsvMapperBase extends AbstractCsvMapper {
         }
     }
 
-    @SuppressWarnings("NullAway")
     @Override
     protected <T> T fromPropertyMap(Map<String, ?> map, Class<T> type) {
         try {
-            return objectMapper.readValueFromTree(JsonNode.from(map), type);
+            return Objects.requireNonNull(objectMapper.readValueFromTree(JsonNode.from(map), type));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -184,26 +184,4 @@ abstract class CommonsCsvMapperBase extends AbstractCsvMapper {
      * Creates the read-time format for a config.
      */
     protected abstract CSVFormat createReadFormat(CsvFormatConfig config);
-
-    /**
-     * Creates the write-time format for a config.
-     */
-    protected abstract CSVFormat createWriteFormat(CsvFormatConfig config);
-
-    /**
-     * Creates the write-time format for a config with an explicit header.
-     */
-    protected abstract CSVFormat createWriteFormat(CsvFormatConfig config, Collection<String> header);
-
-    protected final CSVFormat writeFormat(CsvFormatConfig config) {
-        return createWriteFormat(config);
-    }
-
-    protected final CSVFormat writeFormat(CsvFormatConfig config, Collection<String> header) {
-        return createWriteFormat(config, header);
-    }
-
-    protected final CSVFormat readFormat(CsvFormatConfig config) {
-        return createReadFormat(config);
-    }
 }

@@ -32,7 +32,7 @@ class CsvFormatConfigTest {
     }
 
     @Test
-    void decodesUsingConfiguredDelimiter() throws CsvException {
+    void decodesUsingConfiguredDelimiter() {
         JacksonCsvMapper mapper = new JacksonCsvMapper();
         CsvSemiColon first = mapper.readAll("id;name\na;Alice\n", CsvSemiColon.class).iterator().next();
         assertEquals(new CsvSemiColon("a", "Alice"), first);

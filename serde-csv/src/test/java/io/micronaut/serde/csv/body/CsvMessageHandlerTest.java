@@ -43,47 +43,47 @@ class CsvMessageHandlerTest {
     private CsvMapper createCsvMapper(Iterable<String> readResult) {
         return new CsvMapper() {
             @Override
-            public <T> Iterable<T> readAll(String value, Class<T> type) throws CsvException {
+            public <T> @NonNull Iterable<T> readAll(@NonNull String value, @NonNull Class<T> type) {
                 return List.of();
             }
 
             @Override
-            public <T> T read(List<String> value, Class<T> type) throws CsvException {
+            public <T> @NonNull T read(@NonNull List<String> value, @NonNull Class<T> type) {
                 throw new UnsupportedOperationException("Not yet implemented");
             }
 
             @Override
-            public <T> Iterable<T> read(@NonNull Iterable<List<String>> values, Class<T> type) throws CsvException {
+            public <T> @NonNull Iterable<T> read(@NonNull Iterable<List<String>> values, @NonNull Class<T> type) throws CsvException {
                 throw new UnsupportedOperationException("Not yet implemented");
             }
 
             @Override
-            public <T> Iterable<T> read(@NonNull InputStream input, @NonNull String charset, Class<T> type) throws CsvException {
+            public <T> @NonNull Iterable<T> read(@NonNull InputStream input, @NonNull String charset, @NonNull Class<T> type) {
                 return (Iterable<T>) readResult;
             }
 
             @Override
-            public <T> @NonNull Iterable<T> read(@NonNull InputStream input, @NonNull Charset charset, @NonNull Class<T> type) throws CsvException {
+            public <T> @NonNull Iterable<T> read(@NonNull InputStream input, @NonNull Charset charset, @NonNull Class<T> type) {
                 return (Iterable<T>) readResult;
             }
 
             @Override
-            public List<String> writeAsLine(Object value) throws CsvException {
+            public @NonNull List<String> writeAsLine(Object value) {
                 throw new UnsupportedOperationException("Not yet implemented");
             }
 
             @Override
-            public String writeToString(Iterable<?> values) throws CsvException {
+            public @NonNull String writeToString(@NonNull Iterable<?> values) {
                 return "name,age\nAlice,30\nBob,25";
             }
 
             @Override
-            public String writeToString(Iterable<?> values, Collection<String> header) throws CsvException {
+            public @NonNull String writeToString(@NonNull Iterable<?> values, @NonNull Collection<String> header) {
                 throw new UnsupportedOperationException("Not yet implemented");
             }
 
             @Override
-            public void writeValue(OutputStream outputStream, Object value, Charset charset) throws CsvException {
+            public void writeValue(@NonNull OutputStream outputStream, Object value, @NonNull Charset charset) throws CsvException {
                 String csv = "name,age\nAlice,30\nBob,25";
                 try {
                     outputStream.write(csv.getBytes(charset));
@@ -93,7 +93,7 @@ class CsvMessageHandlerTest {
             }
 
             @Override
-            public void writeValues(OutputStream outputStream, Iterable<?> values, Charset charset) throws CsvException {
+            public void writeValues(@NonNull OutputStream outputStream, @NonNull Iterable<?> values, @NonNull Charset charset) throws CsvException {
                 String csv = "name,age\nAlice,30\nBob,25";
                 try {
                     outputStream.write(csv.getBytes(charset));
@@ -109,7 +109,7 @@ class CsvMessageHandlerTest {
         CsvMessageHandler<List<String>> codec = new CsvMessageHandler<>(createCsvMapper(List.of("Alice", "Bob")));
         ByteArrayInputStream input = new ByteArrayInputStream("name,age\nAlice,30".getBytes(StandardCharsets.UTF_8));
         Argument<List<String>> type = Argument.listOf(String.class);
-        List<String> result = codec.read(type, new MediaType("text/csv"), null, input);
+        List<String> result = codec.read(type, MediaType.TEXT_CSV_TYPE, null, input);
         assertEquals(2, result.size());
         assertEquals("Alice", result.get(0));
         assertEquals("Bob", result.get(1));
@@ -120,7 +120,7 @@ class CsvMessageHandlerTest {
         CsvMessageHandler<Iterable> codec = new CsvMessageHandler<>(createCsvMapper(List.of("Alice", "Bob")));
         ByteArrayInputStream input = new ByteArrayInputStream("name,age\nAlice,30".getBytes(StandardCharsets.UTF_8));
         Argument<Iterable> type = Argument.of(Iterable.class);
-        Iterable<?> result = codec.read(type, new MediaType("text/csv"), null, input);
+        Iterable<?> result = codec.read(type, MediaType.TEXT_CSV_TYPE, null, input);
         var iterator = result.iterator();
         assertEquals("Alice", iterator.next());
         assertEquals("Bob", iterator.next());
@@ -131,7 +131,7 @@ class CsvMessageHandlerTest {
         CsvMessageHandler<String> codec = new CsvMessageHandler<>(createCsvMapper(List.of("Alice")));
         ByteArrayInputStream input = new ByteArrayInputStream("name,age\nAlice,30".getBytes(StandardCharsets.UTF_8));
         Argument<String> type = Argument.of(String.class);
-        String result = codec.read(type, new MediaType("text/csv"), null, input);
+        String result = codec.read(type, MediaType.TEXT_CSV_TYPE, null, input);
         assertEquals("Alice", result);
     }
 
@@ -141,7 +141,7 @@ class CsvMessageHandlerTest {
         ByteArrayInputStream input = new ByteArrayInputStream("name,age\nAlice,30\nBob,25".getBytes(StandardCharsets.UTF_8));
         Argument<String> type = Argument.of(String.class);
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-            () -> codec.read(type, new MediaType("text/csv"), null, input));
+            () -> codec.read(type, MediaType.TEXT_CSV_TYPE, null, input));
         CsvShapeException cause = assertInstanceOf(CsvShapeException.class, exception.getCause());
         assertEquals(2, cause.getActualRecordCount());
     }
@@ -151,7 +151,7 @@ class CsvMessageHandlerTest {
         CsvMessageHandler<String> codec = new CsvMessageHandler<>(createCsvMapper(List.of()));
         ByteArrayInputStream input = new ByteArrayInputStream("".getBytes(StandardCharsets.UTF_8));
         Argument<String> type = Argument.of(String.class);
-        assertThrows(IllegalArgumentException.class, () -> codec.read(type, new MediaType("text/csv"), null, input));
+        assertThrows(IllegalArgumentException.class, () -> codec.read(type, MediaType.TEXT_CSV_TYPE, null, input));
     }
 
     @Test
@@ -160,7 +160,7 @@ class CsvMessageHandlerTest {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         Argument<List<String>> type = Argument.listOf(String.class);
         List<String> data = List.of("Alice", "Bob");
-        codec.writeTo(type, new MediaType("text/csv"), data, null, output);
+        codec.writeTo(type, MediaType.TEXT_CSV_TYPE, data, null, output);
         String result = output.toString(StandardCharsets.UTF_8);
         assertEquals("name,age\nAlice,30\nBob,25", result);
     }
@@ -170,7 +170,7 @@ class CsvMessageHandlerTest {
         CsvMessageHandler<String> codec = new CsvMessageHandler<>(createCsvMapper(List.of()));
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         Argument<String> type = Argument.of(String.class);
-        codec.writeTo(type, new MediaType("text/csv"), "single", null, output);
+        codec.writeTo(type, MediaType.TEXT_CSV_TYPE, "single", null, output);
         String result = output.toString(StandardCharsets.UTF_8);
         assertEquals("name,age\nAlice,30\nBob,25", result);
     }
@@ -179,7 +179,7 @@ class CsvMessageHandlerTest {
     void testWriteToWithNullOutputStream() {
         CsvMessageHandler<String> codec = new CsvMessageHandler<>(createCsvMapper(List.of()));
         Argument<String> type = Argument.of(String.class);
-        codec.writeTo(type, new MediaType("text/csv"), "single", null, (OutputStream) null);
+        codec.writeTo(type, MediaType.TEXT_CSV_TYPE, "single", null, (OutputStream) null);
     }
 
     @Test
@@ -187,7 +187,7 @@ class CsvMessageHandlerTest {
         CsvMessageHandler<String> codec = new CsvMessageHandler<>(createCsvMapper(List.of()));
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         Argument<String> type = Argument.of(String.class);
-        codec.writeTo(type, new MediaType("text/csv"), null, null, output);
+        codec.writeTo(type, MediaType.TEXT_CSV_TYPE, null, null, output);
         assertEquals("", output.toString(StandardCharsets.UTF_8));
     }
 
@@ -195,8 +195,8 @@ class CsvMessageHandlerTest {
     void testWriteToWithNullType() {
         CsvMessageHandler<String> codec = new CsvMessageHandler<>(createCsvMapper(List.of()));
         ByteArrayOutputStream output = new ByteArrayOutputStream();
-        codec.writeTo(null, new MediaType("text/csv"), "single", null, output);
-        String result = output.toString(Charset.forName("UTF-8"));
+        codec.writeTo(null, MediaType.TEXT_CSV_TYPE, "single", null, output);
+        String result = output.toString(StandardCharsets.UTF_8);
         assertEquals("name,age\nAlice,30\nBob,25", result);
     }
 }

@@ -72,8 +72,7 @@ public final class JacksonCsvMapper extends JacksonCsvMapperBase {
         );
     }
 
-    @Override
-    protected CsvSchema createWriteSchema(CsvFormatConfig config) {
+    private CsvSchema createWriteSchema(CsvFormatConfig config) {
         return writeSchemaCache.computeIfAbsent(
             config,
             c -> c.columns().isEmpty() ? csvMapper.schemaFor(Object.class) : schemaBuilder(c, true).build()
@@ -95,7 +94,7 @@ public final class JacksonCsvMapper extends JacksonCsvMapperBase {
     @Override
     public <T> Iterable<T> readAll(String value, Class<T> type) {
         CsvFormatConfig config = CsvIntrospection.formatFor(type);
-        return readRecords(decodeRecords(value, config), type, config, record -> readRecord(record, type, config));
+        return readRecords(decodeRecords(value, config), record -> readRecord(record, type, config));
     }
 
     @Override
@@ -109,8 +108,6 @@ public final class JacksonCsvMapper extends JacksonCsvMapperBase {
         CsvFormatConfig config = CsvIntrospection.formatFor(type);
         return readRecords(
             decodeRecords(new InputStreamReader(input, charset), config),
-            type,
-            config,
             record -> readRecord(record, type, config)
         );
     }

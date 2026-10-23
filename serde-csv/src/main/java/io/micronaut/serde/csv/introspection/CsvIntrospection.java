@@ -113,14 +113,13 @@ public final class CsvIntrospection {
         ResolvedColumns resolved = resolveColumns(introspection, metadata, configuredColumns);
         boolean explicitColumns = configuredColumns.length > 0;
         Map<String, CsvFormatConfig.CsvPropertyFormat> propertyFormats = resolvePropertyFormats(introspection);
-        if (format == null) {
-            return CsvFormatConfig.DEFAULT
-                .withColumns(explicitColumns, resolved.columns(), resolved.propertyNames())
-                .withPropertyFormats(propertyFormats);
-        }
-        return CsvFormatConfig.of(format, CsvFormatConfig.DEFAULT
+        CsvFormatConfig csvFormatConfig = CsvFormatConfig.DEFAULT
             .withColumns(explicitColumns, resolved.columns(), resolved.propertyNames())
-            .withPropertyFormats(propertyFormats));
+            .withPropertyFormats(propertyFormats);
+        if (format == null) {
+            return csvFormatConfig;
+        }
+        return CsvFormatConfig.of(format, csvFormatConfig);
     }
 
     private static Map<String, CsvFormatConfig.CsvPropertyFormat> resolvePropertyFormats(BeanIntrospection<?> introspection) {

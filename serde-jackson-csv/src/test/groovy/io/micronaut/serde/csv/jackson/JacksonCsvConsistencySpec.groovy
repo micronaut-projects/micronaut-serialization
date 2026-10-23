@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.serde.csv.jackson;
+package io.micronaut.serde.csv.jackson
 
-import io.micronaut.serde.csv.AbstractCsvConsistencySpec;
+import io.micronaut.serde.csv.AbstractCsvConsistencySpec
 
 class JacksonCsvConsistencySpec extends AbstractCsvConsistencySpec {
 }

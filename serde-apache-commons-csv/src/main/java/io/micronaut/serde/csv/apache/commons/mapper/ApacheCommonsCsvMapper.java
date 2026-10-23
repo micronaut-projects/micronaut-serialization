@@ -15,7 +15,6 @@
  */
 package io.micronaut.serde.csv.apache.commons.mapper;
 
-import io.micronaut.json.JsonStreamConfig;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.ObjectMapper;
 import io.micronaut.serde.csv.apache.commons.CsvFormats;
@@ -84,20 +83,10 @@ public final class ApacheCommonsCsvMapper extends CommonsCsvMapperBase {
     }
 
     @Override
-    protected CSVFormat createWriteFormat(CsvFormatConfig config) {
-        return CsvFormats.writeFormat(config);
-    }
-
-    @Override
-    protected CSVFormat createWriteFormat(CsvFormatConfig config, Collection<String> header) {
-        return CsvFormats.format(config, header);
-    }
-
-    @Override
     public <T> Iterable<T> readAll(String value, Class<T> type) throws CsvException {
         CsvFormatConfig config = configFor(type);
         Iterable<Map<String, @Nullable String>> data = csvDecoder.decode(value, config);
-        return readRecords(data, type, config, record -> readRecord(record, type, config));
+        return readRecords(data, record -> readRecord(record, type, config));
     }
 
     @Override
@@ -110,7 +99,7 @@ public final class ApacheCommonsCsvMapper extends CommonsCsvMapperBase {
     public <T> Iterable<T> read(InputStream input, Charset charset, Class<T> type) throws CsvException {
         CsvFormatConfig config = configFor(type);
         Iterable<Map<String, @Nullable String>> records = csvDecoder.decode(input, charset, config);
-        return readRecords(records, type, config, record -> readRecord(record, type, config));
+        return readRecords(records, record -> readRecord(record, type, config));
     }
 
     @Override
@@ -178,7 +167,7 @@ public final class ApacheCommonsCsvMapper extends CommonsCsvMapperBase {
         throw new CsvMappingException("Cannot serialize non-primitive value " + value + ".", value.getClass());
     }
 
-    private Iterable<Map<String, @Nullable String>> convertToMapIterable(Iterable<?> values) throws CsvException {
+    private Iterable<Map<String, @Nullable String>> convertToMapIterable(Iterable<?> values) {
         return mapRecords(values, this::toMap);
     }
 
@@ -203,14 +192,5 @@ public final class ApacheCommonsCsvMapper extends CommonsCsvMapperBase {
             return CsvRecordMappings.toColumnMap(config, collapsed);
         }
         throw new CsvMappingException("Cannot convert " + record + " to a CSV record.", record.getClass());
-    }
-
-    /**
-     * Returns the stream configuration for JSON streaming.
-     *
-     * @return the stream configuration
-     */
-    public JsonStreamConfig getStreamConfig() {
-        return JsonStreamConfig.DEFAULT;
     }
 }

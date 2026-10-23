@@ -16,7 +16,6 @@
 package io.micronaut.serde.csv.apache.commons;
 
 import io.micronaut.serde.csv.apache.commons.decoder.DefaultCsvDecoder;
-import io.micronaut.serde.csv.error.CsvException;
 import io.micronaut.serde.csv.introspection.CsvFormatConfig;
 import org.junit.jupiter.api.Test;
 
@@ -30,21 +29,21 @@ class DefaultCsvDecoderTest {
     private static final CsvFormatConfig DEFAULT_CONFIG = CsvFormatConfig.DEFAULT;
 
     @Test
-    void testDecodeSimpleCsvWithDefaultDecoder() throws CsvException {
+    void testDecodeSimpleCsvWithDefaultDecoder() {
         DefaultCsvDecoder decoder = new DefaultCsvDecoder();
         var records = decoder.decode("name,age\nAlice,30\nBob,25", DEFAULT_CONFIG);
         assertEquals(2, count(records));
     }
 
     @Test
-    void testDecodeCsvWithCustomHeader() throws CsvException {
+    void testDecodeCsvWithCustomHeader() {
         DefaultCsvDecoder decoder = new DefaultCsvDecoder();
         var records = decoder.decode("30,Alice\n25,Bob", List.of("age", "name"));
         assertEquals(2, count(records));
     }
 
     @Test
-    void testDecodeEmptyCsv() throws CsvException {
+    void testDecodeEmptyCsv() {
         DefaultCsvDecoder decoder = new DefaultCsvDecoder();
         var records = decoder.decode("", DEFAULT_CONFIG);
         assertEquals(0, count(records));
