@@ -106,10 +106,10 @@ public final class CsvMessageHandler<T> implements MessageBodyHandler<T> {
     @Override
     public void writeTo(@Nullable Argument<T> type,
                         @Nullable MediaType mediaType,
-                        T object,
+                        @Nullable T object,
                         @Nullable MutableHeaders outgoingHeaders,
                         @Nullable OutputStream outputStream) {
-        if (outputStream == null) {
+        if (outputStream == null || object == null) {
             return;
         }
         Charset charset = mediaType != null
