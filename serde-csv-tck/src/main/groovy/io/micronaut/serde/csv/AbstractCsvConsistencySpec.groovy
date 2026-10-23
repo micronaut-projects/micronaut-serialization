@@ -20,6 +20,8 @@ import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 import spock.lang.Specification
 
+import java.nio.charset.StandardCharsets
+
 @MicronautTest
 abstract class AbstractCsvConsistencySpec extends Specification {
 
@@ -110,6 +112,126 @@ abstract class AbstractCsvConsistencySpec extends Specification {
         then:
         line == ["1", "\"Alice|Bob\"|30"]
         values == [value]
+    }
+
+    void "property-level CsvFormat on record component encodes a nested bean inline"() {
+        given:
+        def value = new CsvRecordComponentFormat(new CsvRecordComponentFormat.Name("John", "Doe"), 25)
+
+        when:
+        def csv = mapper.writeToString([value])
+        def line = mapper.writeAsLine(value)
+        def values = mapper.readAll("full_name,age\nJohn|Doe,25\n", CsvRecordComponentFormat).toList()
+
+        then:
+        csv.trim() == "John|Doe,25"
+        line == ["John|Doe", "25"]
+        values == [value]
+    }
+
+    void "multiple inline properties with different delimiters"() {
+        given:
+        def value = new CsvMultiInlineProperty(
+            "1",
+            new Person("Alice", 30),
+            new CsvMultiInlineProperty.Address("New York", "10001")
+        )
+
+        when:
+        def csv = mapper.writeToString([value])
+        def line = mapper.writeAsLine(value)
+        def values = mapper.readAll("id,person,address_info\n1,Alice|30,New York;10001\n", CsvMultiInlineProperty).toList()
+
+        then:
+        csv.replace('"', '').trim() == "1,Alice|30,New York;10001"
+        line == ["1", "Alice|30", "New York;10001"]
+        values == [value]
+    }
+
+    void "nested inline properties (recursive inline encoding)"() {
+        given:
+        def ceo = new CsvNestedInlineProperty.Company.Employee("Bob", 45)
+        def company = new CsvNestedInlineProperty.Company("Acme Corp", ceo)
+        def value = new CsvNestedInlineProperty("1", company)
+
+        when:
+        def csv = mapper.writeToString([value])
+        def line = mapper.writeAsLine(value)
+        def values = mapper.readAll("id,company\n1,Acme Corp|Bob;45\n", CsvNestedInlineProperty).toList()
+
+        then:
+        csv.contains("Acme Corp|Bob;45")
+        !csv.contains("company")
+        line == ["1", "Acme Corp|Bob;45"]
+        values == [value]
+    }
+
+    void "CsvFormat with Header ABSENT writes and reads without header"() {
+        given:
+        def value = new CsvNoHeader("Alice", 30)
+
+        when:
+        def csv = mapper.writeToString([value])
+        def line = mapper.writeAsLine(value)
+        def values = mapper.readAll(csv, CsvNoHeader).toList()
+
+        then:
+        !csv.contains("name")
+        line == ["Alice", "30"]
+        values == [value]
+    }
+
+    void "CsvFormat with nullValue writes NULL for null fields"() {
+        given:
+        def value = new CsvWithNullAndTrim("Alice", null)
+
+        when:
+        def csv = mapper.writeToString([value])
+        def line = mapper.writeAsLine(value)
+
+        then:
+        csv.trim() == "name,age\nAlice,NULL"
+        line == ["Alice", null]
+    }
+
+    void "CsvFormat with trim trims whitespace when reading"() {
+        when:
+        def values = mapper.readAll("name,age\n  Alice  , 30  \n", CsvWithNullAndTrim).toList()
+
+        then:
+        values.size() == 1
+        values[0].name == "Alice"
+        values[0].age == 30
+    }
+
+    void "CsvFormat with custom quote character"() {
+        given:
+        def value = new CsvWithNullAndTrim("Alice, Jr.", 30)
+
+        when:
+        def csv = mapper.writeToString([value])
+        def values = mapper.readAll(csv, CsvWithNullAndTrim).toList()
+
+        then:
+        csv.trim() == "name,age\n'Alice, Jr.',30"
+        values == [value]
+    }
+
+    void "inline property with null value"() {
+        given:
+        def value = new CsvInlineWithNull("1", null)
+
+        when:
+        def csv = mapper.writeToString([value])
+        def line = mapper.writeAsLine(value)
+        def values = mapper.readAll("id,person\n1,\n", CsvInlineWithNull).toList()
+
+        then:
+        csv.trim() == "1,"
+        line.size() == 2
+        line[0] == "1"
+        values[0].id == "1"
+        values[0].person == null
     }
 
     void "skips empty lines by default"() {
@@ -206,5 +328,55 @@ abstract class AbstractCsvConsistencySpec extends Specification {
         then:
         consumed == 1
         first == new Person("Alice", 30)
+    }
+
+    void "reads from InputStream with charset"() {
+        given:
+        def csvString = "name,age\nAlice,30\nBob,25\n"
+        def inputStream = new ByteArrayInputStream(csvString.bytes)
+
+        when:
+        def values = mapper.read(inputStream, "UTF-8", Person).toList()
+
+        then:
+        values == [new Person("Alice", 30), new Person("Bob", 25)]
+    }
+
+    void "reads single value from InputStream"() {
+        given:
+        def csvString = "name,age\nAlice,30\n"
+        def inputStream = new ByteArrayInputStream(csvString.bytes)
+
+        when:
+        def value = mapper.read(inputStream, "UTF-8", Person).iterator().next()
+
+        then:
+        value == new Person("Alice", 30)
+    }
+
+    void "writes to OutputStream"() {
+        given:
+        def value = new Person("Alice", 30)
+        def outputStream = new ByteArrayOutputStream()
+
+        when:
+        mapper.writeValue(outputStream, value, StandardCharsets.UTF_8)
+        def csv = outputStream.toString(StandardCharsets.UTF_8)
+
+        then:
+        csv.trim() == "Alice,30"
+    }
+
+    void "writes multiple values to OutputStream"() {
+        given:
+        def values = [new Person("Alice", 30), new Person("Bob", 25)]
+        def outputStream = new ByteArrayOutputStream()
+
+        when:
+        mapper.writeValues(outputStream, values, StandardCharsets.UTF_8)
+        def csv = outputStream.toString(StandardCharsets.UTF_8)
+
+        then:
+        csv.trim() == "Alice,30\nBob,25"
     }
 }
