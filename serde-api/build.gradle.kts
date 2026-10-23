@@ -7,6 +7,8 @@ dependencies {
 
     api(mn.micronaut.context)
     api(mn.micronaut.json.core)
+    // Application-generated sources must resolve the retained generated-code marker.
+    api(libs.micronaut.sourcegen.annotations)
 
     testImplementation(mnTest.micronaut.test.spock)
 }
