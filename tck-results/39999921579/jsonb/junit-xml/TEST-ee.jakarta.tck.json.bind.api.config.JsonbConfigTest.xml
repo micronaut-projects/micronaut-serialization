@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ee.jakarta.tck.json.bind.api.config.JsonbConfigTest" tests="22" skipped="0" failures="0" errors="0" timestamp="SANITIZED" hostname="SANITIZED" time="0">
+  <properties/>
+  <testcase name="testWithAdapters()" classname="ee.jakarta.tck.json.bind.api.config.JsonbConfigTest" time="0"/>
+  <testcase name="testWithAdaptersMultipleCalls()" classname="ee.jakarta.tck.json.bind.api.config.JsonbConfigTest" time="0"/>
+  <testcase name="testWithPropertyNamingStrategyString()" classname="ee.jakarta.tck.json.bind.api.config.JsonbConfigTest" time="0"/>
+  <testcase name="testGetAsMap()" classname="ee.jakarta.tck.json.bind.api.config.JsonbConfigTest" time="0"/>
+  <testcase name="testWithSerializers()" classname="ee.jakarta.tck.json.bind.api.config.JsonbConfigTest" time="0"/>
+  <testcase name="testWithPropertyVisibilityStrategy()" classname="ee.jakarta.tck.json.bind.api.config.JsonbConfigTest" time="0"/>
+  <testcase name="testWithPropertyNamingStrategy()" classname="ee.jakarta.tck.json.bind.api.config.JsonbConfigTest" time="0"/>
+  <testcase name="testWithDeserializersMultipleCalls()" classname="ee.jakarta.tck.json.bind.api.config.JsonbConfigTest" time="0"/>
+  <testcase name="testWithPropertyOrderStrategy()" classname="ee.jakarta.tck.json.bind.api.config.JsonbConfigTest" time="0"/>
+  <testcase name="testWithDateFormat()" classname="ee.jakarta.tck.json.bind.api.config.JsonbConfigTest" time="0"/>
+  <testcase name="testWithSerializersMultipleCalls()" classname="ee.jakarta.tck.json.bind.api.config.JsonbConfigTest" time="0"/>
+  <testcase name="testWithBinaryDataStrategy()" classname="ee.jakarta.tck.json.bind.api.config.JsonbConfigTest" time="0"/>
+  <testcase name="testWithDeserializers()" classname="ee.jakarta.tck.json.bind.api.config.JsonbConfigTest" time="0"/>
+  <testcase name="testWithFormatting()" classname="ee.jakarta.tck.json.bind.api.config.JsonbConfigTest" time="0"/>
+  <testcase name="testGetUnsetProperty()" classname="ee.jakarta.tck.json.bind.api.config.JsonbConfigTest" time="0"/>
+  <testcase name="testSetProperty()" classname="ee.jakarta.tck.json.bind.api.config.JsonbConfigTest" time="0"/>
+  <testcase name="testGetProperty()" classname="ee.jakarta.tck.json.bind.api.config.JsonbConfigTest" time="0"/>
+  <testcase name="testWithEncoding()" classname="ee.jakarta.tck.json.bind.api.config.JsonbConfigTest" time="0"/>
+  <testcase name="testWithLocale()" classname="ee.jakarta.tck.json.bind.api.config.JsonbConfigTest" time="0"/>
+  <testcase name="testWithMultipleAdapters()" classname="ee.jakarta.tck.json.bind.api.config.JsonbConfigTest" time="0"/>
+  <testcase name="testWithStrictIJson()" classname="ee.jakarta.tck.json.bind.api.config.JsonbConfigTest" time="0"/>
+  <testcase name="testWithNullValues()" classname="ee.jakarta.tck.json.bind.api.config.JsonbConfigTest" time="0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
