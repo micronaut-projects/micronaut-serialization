@@ -29,7 +29,7 @@ micronaut-oracle-cloud = "6.2.1"
 micronaut-reactor = "4.3.0"
 micronaut-validation = "5.2.1"
 micronaut-gradle-plugin = "5.0.2"
-micronaut-sourcegen = "2.2.3"
+micronaut-sourcegen = "2.2.4"
 # Only used by the YAML TCK parity suite. Ahead of the platform Jackson line because the YAML
 # schema selection the parity suite needs (YAMLSchema.CORE) arrived in 3.2.0.
 jackson-dataformat-yaml = "3.2.3"
