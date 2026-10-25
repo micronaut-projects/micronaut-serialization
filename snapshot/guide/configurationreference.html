@@ -46,7 +46,7 @@
         <div class="docs-content">
             <div class="project">
                 <h1>Configuration Reference</h1>
-                <p><strong>Version:</strong>3.2.7-SNAPSHOT</p>
+                <p><strong>Version:</strong>3.3.0-SNAPSHOT</p>
                 <p></p>
             </div>
 <div class="sect2">
@@ -501,6 +501,18 @@
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.jackson.recycler-pool</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../api/io/micronaut/serde/jackson/SerdeJacksonConfiguration.RecyclerPoolType.html">SerdeJacksonConfiguration$RecyclerPoolType</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The pool of the buffers that parsers and generators reuse. Defaults to {@link RecyclerPoolType#DEFAULT}.</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.jackson.recycler-pool-size</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">int</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The capacity of a {@link RecyclerPoolType#BOUNDED} pool. Defaults to {@value RecyclerPool.BoundedPoolBase#DEFAULT_CAPACITY}.</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
 </tbody>
 </table>
 <div style="page-break-after: always;"></div>
@@ -614,10 +626,55 @@
 <div style="page-break-after: always;"></div>
 </div>
 <div class="sect2">
+<h3 id="_micronaut_serde_toon_config_properties">Micronaut Serde Toon Config Properties</h3>
+<a id="io.micronaut.serde.toon.SerdeToonConfiguration" href="#io.micronaut.serde.toon.SerdeToonConfiguration">&#128279;</a>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 9. Configuration Properties for <a href="../api/io/micronaut/serde/toon/SerdeToonConfiguration.html">SerdeToonConfiguration</a></caption>
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Default value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.format.toon.delimiter</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../api/io/micronaut/serde/toon/SerdeToonConfiguration.Delimiter.html">SerdeToonConfiguration$Delimiter</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the delimiter used to separate inline array values, tabular row
+ cells, and keyed entry-row cells.</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.format.toon.indent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">int</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the number of spaces used per indentation level.</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.format.toon.max-input-size</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">long</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sets the maximum number of bytes of TOON input that is read when
+ decoding. Input larger than this is rejected with a
+ <a href="../api/io/micronaut/serde/exceptions/SerdeException.html">SerdeException</a>.</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+</tbody>
+</table>
+<div style="page-break-after: always;"></div>
+</div>
+<div class="sect2">
 <h3 id="_micronaut_serde_yaml_config_properties">Micronaut Serde Yaml Config Properties</h3>
 <a id="io.micronaut.serde.yaml.SerdeYamlConfiguration$ReadFeatures" href="#io.micronaut.serde.yaml.SerdeYamlConfiguration$ReadFeatures">&#128279;</a>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 9. Configuration Properties for <a href="../api/io/micronaut/serde/yaml/SerdeYamlConfiguration.ReadFeatures.html">SerdeYamlConfiguration$ReadFeatures</a></caption>
+<caption class="title">Table 10. Configuration Properties for <a href="../api/io/micronaut/serde/yaml/SerdeYamlConfiguration.ReadFeatures.html">SerdeYamlConfiguration$ReadFeatures</a></caption>
 <colgroup>
 <col style="width: 25%;">
 <col style="width: 25%;">
@@ -656,7 +713,7 @@
 <div style="page-break-after: always;"></div>
 <a id="io.micronaut.serde.yaml.SerdeYamlConfiguration$WriteFeatures" href="#io.micronaut.serde.yaml.SerdeYamlConfiguration$WriteFeatures">&#128279;</a>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 10. Configuration Properties for <a href="../api/io/micronaut/serde/yaml/SerdeYamlConfiguration.WriteFeatures.html">SerdeYamlConfiguration$WriteFeatures</a></caption>
+<caption class="title">Table 11. Configuration Properties for <a href="../api/io/micronaut/serde/yaml/SerdeYamlConfiguration.WriteFeatures.html">SerdeYamlConfiguration$WriteFeatures</a></caption>
 <colgroup>
 <col style="width: 25%;">
 <col style="width: 25%;">
