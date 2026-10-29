@@ -185,6 +185,24 @@ class OracleOsonDecoderLayoutSpec extends Specification {
         decoder(scalarDoc { it.u8(0x3a).u16(2).u8(1, 0xAB) }).decodeString() == "01AB"
     }
 
+    def "rejects dates before year 1 as the parser path does"() {
+        given: "4712 BC: Oracle stores century -47 and year -12, each plus 100"
+        byte[] bc = scalarDoc { it.u8(0x3c, 53, 88, 1, 1, 1, 1, 1) }
+
+        when:
+        decoder(bc).decodeLocalDateTime()
+        then:
+        thrown(IllegalStateException)
+
+        when:
+        decoder(bc).decodeString()
+        then:
+        thrown(IllegalStateException)
+
+        expect: "year 1 is still read"
+        decoder(scalarDoc { it.u8(0x3c, 100, 101, 1, 1, 1, 1, 1) }).decodeLocalDateTime() == LocalDateTime.of(1, 1, 1, 0, 0)
+    }
+
     def "rejects vectors with a clear error instead of exposing their encoding"() {
         given:
         byte[] vector = scalarDoc { it.u8(0x7b, 0x01).i32(2).u8(9, 8) }

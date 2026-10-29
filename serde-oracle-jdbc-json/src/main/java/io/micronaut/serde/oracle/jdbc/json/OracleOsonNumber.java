@@ -35,6 +35,7 @@ import java.math.BigInteger;
 final class OracleOsonNumber {
 
     private static final int MAX_LONG_PAIRS = 9;
+    private static final int MAX_PLAIN_INTEGER_DIGITS = 40;
 
     private OracleOsonNumber() {
     }
@@ -135,10 +136,12 @@ final class OracleOsonNumber {
      * @param data   the document
      * @param offset the offset of the first byte
      * @param length the number of bytes
-     * @return the value as a plain decimal string
+     * @return the value as the parser path prints it: plain, or scientific past 40 integer digits
      */
     static String toPlainString(byte[] data, int offset, int length) {
-        return toBigDecimal(data, offset, length).toPlainString();
+        BigDecimal value = toBigDecimal(data, offset, length);
+        // the parser path switches to scientific notation past 40 integer digits
+        return value.precision() - value.scale() > MAX_PLAIN_INTEGER_DIGITS ? value.stripTrailingZeros().toString() : value.toPlainString();
     }
 
     private static int exponent(int first, boolean positive) {

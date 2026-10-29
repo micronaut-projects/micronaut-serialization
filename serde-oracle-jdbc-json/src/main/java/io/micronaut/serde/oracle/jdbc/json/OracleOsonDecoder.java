@@ -195,7 +195,7 @@ public final class OracleOsonDecoder extends AbstractStreamDecoder {
         int primaryFlags = u16(pos);
         pos += 2;
         relativeOffsets = (primaryFlags & FLAG_REL_OFFSET_MODE) != 0;
-        int treeSizeWidth = (primaryFlags & FLAG_TREE_SEG_UINT32) != 0 ? 4 : 2;
+        int treeSizeWidth = (primaryFlags & FLAG_TREE_SEG_UINT32) == 0 ? 2 : 4;
         if ((primaryFlags & FLAG_IS_SCALAR) != 0) {
             treeSegPos = pos + treeSizeWidth;
             token = readNode(treeSegPos);
@@ -204,7 +204,7 @@ public final class OracleOsonDecoder extends AbstractStreamDecoder {
         fieldIdLength = width(primaryFlags, FLAG_NUM_FNAMES_UINT32, FLAG_NUM_FNAMES_UINT16);
         int numShort = unsigned(pos, fieldIdLength);
         pos += fieldIdLength;
-        int shortOffsetsSize = (primaryFlags & FLAG_FNAMES_SEG_UINT32) != 0 ? 4 : 2;
+        int shortOffsetsSize = (primaryFlags & FLAG_FNAMES_SEG_UINT32) == 0 ? 2 : 4;
         int shortSegSize = unsigned(pos, shortOffsetsSize);
         pos += shortOffsetsSize;
         int numLong = 0;
@@ -212,7 +212,7 @@ public final class OracleOsonDecoder extends AbstractStreamDecoder {
         int longSegSize = 0;
         if (version == VERSION_MAX_FNAME_65535) {
             int secondaryFlags = u16(pos);
-            longOffsetsSize = (secondaryFlags & FLAG_SEC_FNAMES_SEG_UINT16) != 0 ? 2 : 4;
+            longOffsetsSize = (secondaryFlags & FLAG_SEC_FNAMES_SEG_UINT16) == 0 ? 4 : 2;
             numLong = i32(pos + 2);
             longSegSize = i32(pos + 6);
             pos += 10;
@@ -263,7 +263,7 @@ public final class OracleOsonDecoder extends AbstractStreamDecoder {
         if ((flags & uint32Flag) != 0) {
             return 4;
         }
-        return (flags & uint16Flag) != 0 ? 2 : 1;
+        return (flags & uint16Flag) == 0 ? 1 : 2;
     }
 
     // ---- byte access ---------------------------------------------------------------------------------------
@@ -400,7 +400,7 @@ public final class OracleOsonDecoder extends AbstractStreamDecoder {
         boolean object = (type & ARRAY_BIT) == 0;
         int childrenBits = type & CHILDREN_BITS;
         int containerOffset = typePos - treeSegPos;
-        int offsetSize = (type & OFFSETS_UINT32_BIT) != 0 ? 4 : 2;
+        int offsetSize = (type & OFFSETS_UINT32_BIT) == 0 ? 2 : 4;
         int count;
         int fieldIdsPos;
         int offsetsPos;
@@ -552,6 +552,10 @@ public final class OracleOsonDecoder extends AbstractStreamDecoder {
     private LocalDateTime localDateTime() {
         int o = scalarPos;
         int year = (u8(o) - 100) * 100 + u8(o + 1) - 100;
+        if (year <= 0) {
+            // Oracle years have no year 0 and the parser path rejects BC dates, so do the same rather than shift them
+            throw new IllegalStateException("OSON dates before year 1 are not supported, year " + year);
+        }
         int nanos = scalarLength >= TIMESTAMP_LENGTH ? i32(o + 7) : 0;
         return LocalDateTime.of(year, u8(o + 2), u8(o + 3), u8(o + 4) - 1, u8(o + 5) - 1, u8(o + 6) - 1, nanos);
     }
@@ -592,7 +596,7 @@ public final class OracleOsonDecoder extends AbstractStreamDecoder {
 
     private float getFloat() {
         int bits = i32(scalarPos);
-        bits = (bits & Integer.MIN_VALUE) != 0 ? bits & Integer.MAX_VALUE : ~bits;
+        bits = (bits & Integer.MIN_VALUE) == 0 ? ~bits : bits & Integer.MAX_VALUE;
         return Float.intBitsToFloat(bits);
     }
 
@@ -618,7 +622,7 @@ public final class OracleOsonDecoder extends AbstractStreamDecoder {
             case SCALAR_DOUBLE -> {
                 // binary double is stored sortable: positive values have the sign bit set, negative ones are complemented
                 long bits = i64(scalarPos);
-                bits = (bits & Long.MIN_VALUE) != 0 ? bits & Long.MAX_VALUE : ~bits;
+                bits = (bits & Long.MIN_VALUE) == 0 ? ~bits : bits & Long.MAX_VALUE;
                 yield Double.longBitsToDouble(bits);
             }
             case SCALAR_FLOAT -> getFloat();

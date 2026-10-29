@@ -203,6 +203,24 @@ class OracleOsonDecoderSpec extends Specification {
         textMapper.writeValueAsString(viaNative) == textMapper.writeValueAsString(viaParser)
     }
 
+    def "prints numbers as strings exactly as the parser path does"() {
+        given:
+        OracleJsonObject obj = factory.createObject()
+        def values = ["1E+39", "1E+40", "1.5E+40", "-1E+40", "-9.99E+125", "1E+125", "1E-130", "100", "-0.000123",
+                      "9999999999999999999999999999999999999999", "123456789012345678901234567890123456789"]
+        values.eachWithIndex { n, i -> obj.put("n$i".toString(), new OracleJsonDecimalImpl(new BigDecimal(n))) }
+        byte[] oson = mapper.writeValueAsBytes(obj)
+
+        when:
+        Map viaParser = mapper.readValue(new ByteArrayInputStream(oson), Argument.mapOf(String, String))
+        Map viaNative = mapper.readValue(oson, Argument.mapOf(String, String))
+
+        then:
+        viaNative == viaParser
+        viaNative.n1 == "1E+40"
+        viaNative.n0 == "1000000000000000000000000000000000000000"
+    }
+
     def "decodes generic maps and lists with numbers of every width"() {
         given:
         def values = [tiny: 1, small: 200, medium: 70000, large: 5000000000L, frac: 1.5, neg: -7, zero: 0,
