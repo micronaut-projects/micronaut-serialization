@@ -53,6 +53,7 @@ public final class SerdeCborConfiguration {
      * Default constructor.
      */
     public SerdeCborConfiguration() {
+        // All settings have defaults
     }
 
     /**

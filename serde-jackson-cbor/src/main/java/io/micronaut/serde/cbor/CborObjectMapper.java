@@ -80,6 +80,8 @@ import java.util.function.Consumer;
 @BootstrapContextCompatible
 @Order(150) // lower precedence than Jackson JSON (@Primary) and BSON JSON
 public final class CborObjectMapper implements ObjectMapper {
+    private static final String VALUE_TO_UPDATE_NULL = "Value to update cannot be null";
+    private static final String TYPE_NULL = "Type cannot be null";
 
     private final SerdeRegistry registry;
     private final SerdeConfiguration serdeConfiguration;
@@ -475,8 +477,8 @@ public final class CborObjectMapper implements ObjectMapper {
 
     @Override
     public <T> T updateValue(T valueToUpdate, Argument<T> type, @Nullable Object overrides) throws IOException {
-        Objects.requireNonNull(valueToUpdate, "Value to update cannot be null");
-        Objects.requireNonNull(type, "Type cannot be null");
+        Objects.requireNonNull(valueToUpdate, VALUE_TO_UPDATE_NULL);
+        Objects.requireNonNull(type, TYPE_NULL);
         if (overrides == null) {
             return valueToUpdate;
         }
@@ -498,8 +500,8 @@ public final class CborObjectMapper implements ObjectMapper {
 
     @Override
     public <T> T updateValue(T valueToUpdate, Argument<T> type, InputStream inputStream) throws IOException {
-        Objects.requireNonNull(valueToUpdate, "Value to update cannot be null");
-        Objects.requireNonNull(type, "Type cannot be null");
+        Objects.requireNonNull(valueToUpdate, VALUE_TO_UPDATE_NULL);
+        Objects.requireNonNull(type, TYPE_NULL);
         Objects.requireNonNull(inputStream, "Input stream cannot be null");
         try (JsonParser parser = cborFactory.createParser(inputStream)) {
             return updateValue(parser, valueToUpdate, type);
@@ -510,8 +512,8 @@ public final class CborObjectMapper implements ObjectMapper {
 
     @Override
     public <T> T updateValue(T valueToUpdate, Argument<T> type, byte[] byteArray) throws IOException {
-        Objects.requireNonNull(valueToUpdate, "Value to update cannot be null");
-        Objects.requireNonNull(type, "Type cannot be null");
+        Objects.requireNonNull(valueToUpdate, VALUE_TO_UPDATE_NULL);
+        Objects.requireNonNull(type, TYPE_NULL);
         Objects.requireNonNull(byteArray, "Byte array cannot be null");
         try (JsonParser parser = cborFactory.createParser(byteArray)) {
             return updateValue(parser, valueToUpdate, type);

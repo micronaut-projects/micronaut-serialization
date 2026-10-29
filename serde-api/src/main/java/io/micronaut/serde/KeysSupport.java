@@ -152,7 +152,7 @@ public final class KeysSupport {
         private final List<KeyDescriptor> descriptors;
         private final boolean caseInsensitive;
         private final StringIntMap keyToIndex;
-        private volatile Object[][] contributedKeys;
+        private volatile Contributions contributedKeys;
 
         private DefaultKeys(List<String> keys,
                             @Nullable List<KeyDescriptor> descriptors,
@@ -168,7 +168,7 @@ public final class KeysSupport {
                     keyToIndex.put(key, i);
                 }
             }
-            this.contributedKeys = contributedKeys;
+            this.contributedKeys = new Contributions(contributedKeys);
         }
 
         @Override
@@ -183,7 +183,7 @@ public final class KeysSupport {
         }
 
         private Object[] get(int keysIndex) {
-            Object[][] contributions = contributedKeys;
+            Object[][] contributions = contributedKeys.values();
             if (keysIndex < contributions.length) {
                 Object[] contribution = contributions[keysIndex];
                 if (contribution != null) {
@@ -194,7 +194,7 @@ public final class KeysSupport {
         }
 
         private synchronized Object[] createLateContribution(int keysIndex) {
-            Object[][] contributions = contributedKeys;
+            Object[][] contributions = contributedKeys.values();
             if (keysIndex < contributions.length && contributions[keysIndex] != null) {
                 return contributions[keysIndex];
             }
@@ -208,7 +208,7 @@ public final class KeysSupport {
             );
             Object[][] expanded = Arrays.copyOf(contributions, Math.max(contributions.length, keysIndex + 1));
             expanded[keysIndex] = contribution;
-            contributedKeys = expanded;
+            contributedKeys = new Contributions(expanded);
             return contribution;
         }
 
@@ -218,6 +218,15 @@ public final class KeysSupport {
 
         private String normalize(String key) {
             return caseInsensitive ? key.toLowerCase(Locale.ROOT) : key;
+        }
+
+        /**
+         * Immutable snapshot of the contributions. The wrapped array is never modified once published
+         * through the volatile field, so readers always see a fully initialized array.
+         *
+         * @param values The contributions by keys index
+         */
+        private record Contributions(Object[][] values) {
         }
     }
 
