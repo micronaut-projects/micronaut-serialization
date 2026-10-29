@@ -158,6 +158,51 @@ class OracleOsonDecoderSpec extends Specification {
         viaParser.bin() == read.bin()
     }
 
+    def "reads Oracle scalar types into maps exactly as the parser path does"() {
+        given:
+        OracleJsonObject obj = factory.createObject()
+        def stamps = [LocalDateTime.of(2024, 2, 29, 0, 0), LocalDateTime.of(2024, 2, 29, 13, 45),
+                      LocalDateTime.of(2024, 2, 29, 13, 45, 7, 500000000), LocalDateTime.of(2024, 2, 29, 13, 45, 7, 123456789)]
+        stamps.eachWithIndex { t, i ->
+            obj.put("date$i".toString(), new OracleJsonDateImpl(t))
+            obj.put("timestamp$i".toString(), new OracleJsonTimestampImpl(t))
+            obj.put("utc$i".toString(), new OracleJsonTimestampTZImpl(OffsetDateTime.of(t, ZoneOffset.UTC)))
+            obj.put("offset$i".toString(), new OracleJsonTimestampTZImpl(OffsetDateTime.of(t, ZoneOffset.ofHoursMinutes(-5, -30))))
+        }
+        [Duration.ZERO, Duration.ofDays(3).plusHours(4).plusMinutes(5).plusSeconds(6).plusMillis(700), Duration.ofSeconds(59),
+         Duration.ofNanos(123456789), Duration.ofNanos(123456000), Duration.ofDays(400), Duration.ofHours(5), Duration.ofMinutes(7),
+         Duration.ofDays(2).plusSeconds(1), Duration.ofDays(1).plusNanos(1)].eachWithIndex { d, i ->
+            obj.put("ds$i".toString(), new OracleJsonIntervalDSImpl(d))
+        }
+        [Period.ZERO, Period.of(2, 11, 0), Period.ofYears(5), Period.ofMonths(3)].eachWithIndex { period, i ->
+            obj.put("ym$i".toString(), new OracleJsonIntervalYMImpl(period))
+        }
+        ["100", "5000000000", "1e20", "-100", "0", "1.50", "-0.000123", "123456789012345678901234567890"].eachWithIndex { n, i ->
+            obj.put("number$i".toString(), new OracleJsonDecimalImpl(new BigDecimal(n)))
+        }
+        obj.put("binary", new OracleJsonBinaryImpl([1, 2, (byte) 0xAB] as byte[], false))
+        obj.put("id", new OracleJsonBinaryImpl([0x5f, 0x1f, 0x7e, (byte) 0xAB] as byte[], true))
+        def list = factory.createArray()
+        list.add(new OracleJsonDecimalImpl(new BigDecimal("100")))
+        list.add(new OracleJsonDateImpl(LocalDateTime.of(2000, 1, 2, 0, 0)))
+        obj.put("list", list)
+        byte[] oson = mapper.writeValueAsBytes(obj)
+
+        when:
+        Map viaParser = mapper.readValue(new ByteArrayInputStream(oson), Argument.mapOf(String, Object))
+        Map viaNative = mapper.readValue(oson, Argument.mapOf(String, Object))
+
+        then:
+        viaNative.keySet() == viaParser.keySet()
+        viaNative.each { k, v ->
+            assert v == viaParser[k], k
+            assert v?.getClass() == viaParser[k]?.getClass(), k
+        }
+        viaNative.number0 == new BigDecimal("100")
+        viaNative.id == "5f1f7eab"
+        textMapper.writeValueAsString(viaNative) == textMapper.writeValueAsString(viaParser)
+    }
+
     def "decodes generic maps and lists with numbers of every width"() {
         given:
         def values = [tiny: 1, small: 200, medium: 70000, large: 5000000000L, frac: 1.5, neg: -7, zero: 0,

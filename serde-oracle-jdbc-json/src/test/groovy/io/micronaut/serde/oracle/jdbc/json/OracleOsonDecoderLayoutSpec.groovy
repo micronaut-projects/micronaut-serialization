@@ -170,7 +170,7 @@ class OracleOsonDecoderLayoutSpec extends Specification {
 
     // ---- scalar nodes ----------------------------------------------------------------------------------------
 
-    def "decodes long strings, long binaries, ids and vectors"() {
+    def "decodes long strings, long binaries and ids"() {
         given:
         String longString = "s" * 70000
         byte[] longBinary = new byte[70000]
@@ -181,8 +181,57 @@ class OracleOsonDecoderLayoutSpec extends Specification {
         decoder(scalarDoc { it.u8(0x38).i32(70000).ascii(longString) }).decodeString() == longString
         decoder(scalarDoc { it.u8(0x3b).i32(70000).raw(longBinary) }).decodeBinary() == longBinary
         decoder(scalarDoc { it.u8(0x7e, 3, 1, 2, 0xAB) }).decodeBinary() == [1, 2, (byte) 0xAB] as byte[]
-        decoder(scalarDoc { it.u8(0x7e, 3, 1, 2, 0xAB) }).decodeString() == "0102AB"
-        decoder(scalarDoc { it.u8(0x7b, 0x01).i32(2).u8(9, 8) }).decodeBinary() == [9, 8] as byte[]
+        decoder(scalarDoc { it.u8(0x7e, 3, 1, 2, 0xAB) }).decodeString() == "0102ab"
+        decoder(scalarDoc { it.u8(0x3a).u16(2).u8(1, 0xAB) }).decodeString() == "01AB"
+    }
+
+    def "rejects vectors with a clear error instead of exposing their encoding"() {
+        given:
+        byte[] vector = scalarDoc { it.u8(0x7b, 0x01).i32(2).u8(9, 8) }
+
+        when:
+        decoder(vector).decodeBinary()
+        then:
+        def e = thrown(IllegalStateException)
+        e.message.contains("VECTOR")
+
+        when:
+        decoder(vector).decodeString()
+        then:
+        thrown(IllegalStateException)
+
+        expect: "a document holding a vector can still skip it"
+        decoder(new Bytes()
+            .u8(0xFF, 0x4A, 0x5A, 0x01).u16(0)
+            .u8(1).u16(2).u16(13).u16(0)
+            .u8(0x76).u16(0).u8(1).ascii("v")
+            .u8(0x84, 1, 1).u16(5)
+            .u8(0x7b, 0x01).i32(2).u8(9, 8)
+            .bytes()).with {
+            def object = decodeObject()
+            assert object.decodeKey() == "v"
+            object.skipValue()
+            assert object.decodeKey() == null
+            object.finishStructure()
+            true
+        }
+    }
+
+    def "does not read dates, intervals or binary values as numbers"() {
+        when:
+        decoder(scalarDoc { dateTime(it.u8(0x3c), LocalDateTime.of(2024, 2, 29, 0, 0)) }).decodeBigDecimal()
+        then:
+        thrown(SerdeException)
+
+        when:
+        decoder(scalarDoc { it.u8(0x3e).i32(0x80000003L).u8(64, 65, 66).i32(0x80000000L) }).decodeLong()
+        then:
+        thrown(SerdeException)
+
+        when:
+        decoder(scalarDoc { it.u8(0x7e, 1, 1) }).decodeInt()
+        then:
+        thrown(SerdeException)
     }
 
     def "coerces numbers, booleans and dates to strings"() {
@@ -199,7 +248,7 @@ class OracleOsonDecoderLayoutSpec extends Specification {
         decoder(scalarDoc { it.u8(0x31) }).decodeString() == "true"
         decoder(scalarDoc { it.u8(0x32) }).decodeString() == "false"
         decoder(date).decodeString() == t.toString()
-        decoder(timestampTz).decodeString() == tz.toString()
+        decoder(timestampTz).decodeString() == "2024-02-29T10:20:30.000000+02:00"
         decoder(timestampTz).decodeLocalDateTime() == t
     }
 

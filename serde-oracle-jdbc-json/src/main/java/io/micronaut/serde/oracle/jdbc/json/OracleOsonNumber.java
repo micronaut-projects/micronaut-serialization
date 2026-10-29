@@ -114,6 +114,10 @@ final class OracleOsonNumber {
         // mantissa pairs cover exponent+1 integer pairs; scale is in decimal digits
         int scale = (mantissa - (exponent + 1)) * 2;
         BigDecimal result = new BigDecimal(positive ? unscaled : unscaled.negate(), scale);
+        if (scale < 0) {
+            // NUMBER drops trailing zero pairs, so whole numbers such as 100 arrive as 1E+2: report them with scale 0
+            return result.setScale(0);
+        }
         return scale > 0 ? result.stripTrailingZeros() : result;
     }
 

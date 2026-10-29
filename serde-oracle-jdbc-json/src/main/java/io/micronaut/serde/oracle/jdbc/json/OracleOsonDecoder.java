@@ -48,9 +48,11 @@ import java.util.HexFormat;
  * a stream of documents with the same shape allocates no name strings after the first. Requires the AL32UTF8
  * database character set, which is what Oracle 23ai and later use for JSON.
  * <p>
- * Dates and timestamps decode to {@code java.time} values or ISO-8601 strings, intervals to ISO-8601 duration
- * and period strings, binary values (including vectors and ids) to hexadecimal strings or byte arrays, the same
- * shapes the {@link OracleJdbcJsonParserDecoder} produces.
+ * Dates, timestamps, intervals, binary values and ids are reported as {@link TokenType#OTHER}, as the
+ * {@link OracleJdbcJsonParserDecoder} reports them, so they are never read as numbers. Read as strings they use the
+ * formats of the parser path: ISO-8601 dates and timestamps that always carry seconds, durations with a days part,
+ * upper case hexadecimal for binary values and lower case for ids. {@code VECTOR} values are not supported and fail
+ * when read.
  *
  * @since 3.3.0
  */
@@ -125,6 +127,8 @@ public final class OracleOsonDecoder extends AbstractStreamDecoder {
     private static final int SCALAR_TIMESTAMP_TZ = 10;
     private static final int SCALAR_INTERVAL_YM = 11;
     private static final int SCALAR_INTERVAL_DS = 12;
+    private static final int SCALAR_ID = 13;
+    private static final int SCALAR_VECTOR = 14;
 
     private static final int INITIAL_FRAMES = 8;
     private static final String[] NO_NAMES = new String[0];
@@ -324,7 +328,7 @@ public final class OracleOsonDecoder extends AbstractStreamDecoder {
                 return scalar(SCALAR_NUMBER, p + 1, u8(p));
             }
             case TYPE_ID -> {
-                return scalar(SCALAR_BINARY, p + 1, u8(p));
+                return scalar(SCALAR_ID, p + 1, u8(p));
             }
             case TYPE_BINARY_DOUBLE -> {
                 return scalar(SCALAR_DOUBLE, p, 8);
@@ -356,7 +360,7 @@ public final class OracleOsonDecoder extends AbstractStreamDecoder {
             case TYPE_EXTENDED -> {
                 int subtype = u8(p);
                 if (subtype == EXTENDED_VECTOR) {
-                    return scalar(SCALAR_BINARY, p + 5, i32(p + 1));
+                    return scalar(SCALAR_VECTOR, p + 5, i32(p + 1));
                 }
                 throw new IllegalStateException("Unsupported OSON extended node " + subtype);
             }
@@ -387,7 +391,8 @@ public final class OracleOsonDecoder extends AbstractStreamDecoder {
             case SCALAR_NULL -> TokenType.NULL;
             case SCALAR_BOOLEAN -> TokenType.BOOLEAN;
             case SCALAR_NUMBER, SCALAR_DOUBLE, SCALAR_FLOAT -> TokenType.NUMBER;
-            default -> TokenType.STRING;
+            case SCALAR_STRING -> TokenType.STRING;
+            default -> TokenType.OTHER;
         };
     }
 
@@ -533,11 +538,13 @@ public final class OracleOsonDecoder extends AbstractStreamDecoder {
             case SCALAR_DOUBLE -> Double.toString(getDouble());
             case SCALAR_FLOAT -> Float.toString(getFloat());
             case SCALAR_BOOLEAN -> Boolean.toString(scalarBoolean);
-            case SCALAR_DATE, SCALAR_TIMESTAMP -> localDateTime().toString();
-            case SCALAR_TIMESTAMP_TZ -> offsetDateTime().toString();
-            case SCALAR_INTERVAL_YM -> period().toString();
-            case SCALAR_INTERVAL_DS -> duration().toString();
+            case SCALAR_DATE, SCALAR_TIMESTAMP -> OracleOsonFormat.dateTime(localDateTime(), false);
+            case SCALAR_TIMESTAMP_TZ -> OracleOsonFormat.offsetDateTime(offsetDateTime());
+            case SCALAR_INTERVAL_YM -> OracleOsonFormat.period(period());
+            case SCALAR_INTERVAL_DS -> OracleOsonFormat.duration(duration());
             case SCALAR_BINARY -> HexFormat.of().withUpperCase().formatHex(data, scalarPos, scalarPos + scalarLength);
+            case SCALAR_ID -> HexFormat.of().formatHex(data, scalarPos, scalarPos + scalarLength);
+            case SCALAR_VECTOR -> throw unsupportedVector();
             default -> throw new IllegalStateException(METHOD_CALLED_IN_WRONG_CONTEXT + token);
         };
     }
@@ -664,9 +671,10 @@ public final class OracleOsonDecoder extends AbstractStreamDecoder {
      */
     @Override
     public byte[] decodeBinary() throws IOException {
-        if (token == TokenType.STRING) {
+        if (token == TokenType.STRING || token == TokenType.OTHER) {
             byte[] bytes = switch (scalarKind) {
-                case SCALAR_BINARY -> bytes();
+                case SCALAR_BINARY, SCALAR_ID -> bytes();
+                case SCALAR_VECTOR -> throw unsupportedVector();
                 case SCALAR_STRING -> HexFormat.of().parseHex(getString());
                 default -> throw new IllegalStateException(METHOD_CALLED_IN_WRONG_CONTEXT + token);
             };
@@ -680,9 +688,13 @@ public final class OracleOsonDecoder extends AbstractStreamDecoder {
     }
 
     private void requireScalar() {
-        if (token != TokenType.STRING) {
+        if (token != TokenType.STRING && token != TokenType.OTHER) {
             throw new IllegalStateException(METHOD_CALLED_IN_WRONG_CONTEXT + token);
         }
+    }
+
+    private static IllegalStateException unsupportedVector() {
+        return new IllegalStateException("OSON VECTOR values are not supported, read the column as a VECTOR instead");
     }
 
     /**
