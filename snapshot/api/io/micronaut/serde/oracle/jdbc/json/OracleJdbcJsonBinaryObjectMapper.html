@@ -73,10 +73,12 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
 <li><a href="#cloneWithViewClass(java.lang.Class)" tabindex="0">cloneWithViewClass(Class)</a></li>
+<li><a href="#readValue(byte%5B%5D,io.micronaut.core.type.Argument)" tabindex="0">readValue(byte[], Argument)</a></li>
+<li><a href="#readValue(oracle.sql.json.OracleJsonDatum,io.micronaut.core.type.Argument)" tabindex="0">readValue(OracleJsonDatum, Argument)</a></li>
+<li><a href="#readValue(byte%5B%5D,int,int,io.micronaut.core.type.Argument)" tabindex="0">readValue(byte[], int, int, Argument)</a></li>
 <li><a href="#getSerdeRegistry()" tabindex="0">getSerdeRegistry()</a></li>
 <li><a href="#readValueFromTree(io.micronaut.json.tree.JsonNode,io.micronaut.core.type.Argument)" tabindex="0">readValueFromTree(JsonNode, Argument)</a></li>
 <li><a href="#readValue(java.io.InputStream,io.micronaut.core.type.Argument)" tabindex="0">readValue(InputStream, Argument)</a></li>
-<li><a href="#readValue(byte%5B%5D,io.micronaut.core.type.Argument)" tabindex="0">readValue(byte[], Argument)</a></li>
 <li><a href="#readValue(oracle.sql.json.OracleJsonParser,io.micronaut.core.type.Argument)" tabindex="0">readValue(OracleJsonParser, Argument)</a></li>
 <li><a href="#createReactiveParser(java.util.function.Consumer,boolean)" tabindex="0">createReactiveParser(Consumer, boolean)</a></li>
 <li><a href="#writeValueToTree(java.lang.Object)" tabindex="0">writeValueToTree(Object)</a></li>
@@ -110,7 +112,12 @@ loadScripts(document, 'script');</script>
 @Order(200)
 </span><span class="modifiers">public final class </span><span class="element-name type-name-label">OracleJdbcJsonBinaryObjectMapper</span>
 <span class="extends-implements">extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></span></div>
-<div class="block">Implementation of the <code>JsonMapper</code> interface for Oracle JDBC Binary JSON.</div>
+<div class="block">Implementation of the <code>JsonMapper</code> interface for Oracle JDBC Binary JSON (OSON).
+<p>
+Documents given as bytes are decoded by the native <a href="OracleOsonDecoder.html" title="class in io.micronaut.serde.oracle.jdbc.json"><code>OracleOsonDecoder</code></a>, which reads the encoded form in
+place; <a href="#readValue(oracle.sql.json.OracleJsonDatum,io.micronaut.core.type.Argument)"><code>readValue(OracleJsonDatum, Argument)</code></a> does the same over the bytes the JDBC driver already
+holds for a JSON column. The <code>OracleJsonParser</code> path stays in use for streams, for the
+<code>OracleJsonValue</code> tree types and through <a href="#readValue(oracle.sql.json.OracleJsonParser,io.micronaut.core.type.Argument)"><code>readValue(OracleJsonParser, Argument)</code></a>.</div>
 <dl class="notes">
 <dt>Since:</dt>
 <dd>1.2.0</dd>
@@ -195,13 +202,30 @@ loadScripts(document, 'script');</script>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getStreamConfig()" class="member-name-link">getStreamConfig</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;T&gt;&nbsp;@Nullable T</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#readValue(byte%5B%5D,io.micronaut.core.type.Argument)" class="member-name-link">readValue</a><wbr>(byte[]&nbsp;byteArray,
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#readValue(byte%5B%5D,int,int,io.micronaut.core.type.Argument)" class="member-name-link">readValue</a><wbr>(byte[]&nbsp;byteArray,
+ int&nbsp;offset,
+ int&nbsp;length,
+ io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Reads an OSON document held in a slice of an array with the native decoder.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;T&gt;&nbsp;@Nullable T</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#readValue(byte%5B%5D,io.micronaut.core.type.Argument)" class="member-name-link">readValue</a><wbr>(byte[]&nbsp;byteArray,
+ io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Reads an OSON document with the native decoder.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;T&gt;&nbsp;@Nullable T</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#readValue(java.io.InputStream,io.micronaut.core.type.Argument)" class="member-name-link">readValue</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/InputStream.html" title="class or interface in java.io" class="external-link">InputStream</a>&nbsp;inputStream,
  io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;T&gt;&nbsp;@Nullable T</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#readValue(java.io.InputStream,io.micronaut.core.type.Argument)" class="member-name-link">readValue</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/InputStream.html" title="class or interface in java.io" class="external-link">InputStream</a>&nbsp;inputStream,
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#readValue(oracle.sql.json.OracleJsonDatum,io.micronaut.core.type.Argument)" class="member-name-link">readValue</a><wbr>(oracle.sql.json.OracleJsonDatum&nbsp;datum,
  io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Reads a JSON column value with the native decoder, straight over the bytes the driver holds; obtain the
+datum with <code>resultSet.getObject(column, OracleJsonDatum.class)</code>.</div>
+</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;T&gt;&nbsp;@Nullable T</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#readValue(oracle.sql.json.OracleJsonParser,io.micronaut.core.type.Argument)" class="member-name-link">readValue</a><wbr>(oracle.sql.json.OracleJsonParser&nbsp;parser,
  io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type)</code></div>
@@ -333,6 +357,84 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
+<section class="detail" id="readValue(byte[],io.micronaut.core.type.Argument)">
+<h3>readValue</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="type-parameters">&lt;T&gt;</span>&nbsp;<span class="return-type">@Nullable T</span>&nbsp;<span class="element-name">readValue</span><wbr><span class="parameters">(byte[]&nbsp;byteArray,
+ io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type)</span>
+                          throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block">Reads an OSON document with the native decoder. The <code>OracleJsonValue</code> tree types are read with the
+<code>OracleJsonParser</code> instead, as the native decoder has no tree.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code>readValue</code>&nbsp;in interface&nbsp;<code>io.micronaut.json.JsonMapper</code></dd>
+<dt>Type Parameters:</dt>
+<dd><span id="readValue(byte[],io.micronaut.core.type.Argument)-type-param-T"><code>T</code> - the type</span></dd>
+<dt>Parameters:</dt>
+<dd><code>byteArray</code> - the OSON document</dd>
+<dd><code>type</code> - the type to read</dd>
+<dt>Returns:</dt>
+<dd>the value</dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - if the document cannot be decoded</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="readValue(oracle.sql.json.OracleJsonDatum,io.micronaut.core.type.Argument)">
+<h3>readValue</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="type-parameters">&lt;T&gt;</span>&nbsp;<span class="return-type">@Nullable T</span>&nbsp;<span class="element-name">readValue</span><wbr><span class="parameters">(oracle.sql.json.OracleJsonDatum&nbsp;datum,
+ io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type)</span>
+                          throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block">Reads a JSON column value with the native decoder, straight over the bytes the driver holds; obtain the
+datum with <code>resultSet.getObject(column, OracleJsonDatum.class)</code>.</div>
+<dl class="notes">
+<dt>Type Parameters:</dt>
+<dd><span id="readValue(oracle.sql.json.OracleJsonDatum,io.micronaut.core.type.Argument)-type-param-T"><code>T</code> - the type</span></dd>
+<dt>Parameters:</dt>
+<dd><code>datum</code> - the column value</dd>
+<dd><code>type</code> - the type to read</dd>
+<dt>Returns:</dt>
+<dd>the value</dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - if the document cannot be decoded</dd>
+<dt>Since:</dt>
+<dd>3.3.0</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="readValue(byte[],int,int,io.micronaut.core.type.Argument)">
+<h3>readValue</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="type-parameters">&lt;T&gt;</span>&nbsp;<span class="return-type">@Nullable T</span>&nbsp;<span class="element-name">readValue</span><wbr><span class="parameters">(byte[]&nbsp;byteArray,
+ int&nbsp;offset,
+ int&nbsp;length,
+ io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type)</span>
+                          throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block">Reads an OSON document held in a slice of an array with the native decoder.</div>
+<dl class="notes">
+<dt>Type Parameters:</dt>
+<dd><span id="readValue(byte[],int,int,io.micronaut.core.type.Argument)-type-param-T"><code>T</code> - the type</span></dd>
+<dt>Parameters:</dt>
+<dd><code>byteArray</code> - the array</dd>
+<dd><code>offset</code> - the offset of the document</dd>
+<dd><code>length</code> - the length of the document</dd>
+<dd><code>type</code> - the type to read</dd>
+<dt>Returns:</dt>
+<dd>the value</dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - if the document cannot be decoded</dd>
+<dt>Since:</dt>
+<dd>3.3.0</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
 <section class="detail" id="getSerdeRegistry()">
 <h3>getSerdeRegistry</h3>
 <div class="horizontal-scroll">
@@ -369,22 +471,6 @@ loadScripts(document, 'script');</script>
 <h3>readValue</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="type-parameters">&lt;T&gt;</span>&nbsp;<span class="return-type">@Nullable T</span>&nbsp;<span class="element-name">readValue</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/InputStream.html" title="class or interface in java.io" class="external-link">InputStream</a>&nbsp;inputStream,
- io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type)</span>
-                          throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
-<dl class="notes">
-<dt>Specified by:</dt>
-<dd><code>readValue</code>&nbsp;in interface&nbsp;<code>io.micronaut.json.JsonMapper</code></dd>
-<dt>Throws:</dt>
-<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code></dd>
-</dl>
-</div>
-</section>
-</li>
-<li>
-<section class="detail" id="readValue(byte[],io.micronaut.core.type.Argument)">
-<h3>readValue</h3>
-<div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="type-parameters">&lt;T&gt;</span>&nbsp;<span class="return-type">@Nullable T</span>&nbsp;<span class="element-name">readValue</span><wbr><span class="parameters">(byte[]&nbsp;byteArray,
  io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type)</span>
                           throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
 <dl class="notes">

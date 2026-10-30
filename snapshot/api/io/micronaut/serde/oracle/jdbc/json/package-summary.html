@@ -91,7 +91,7 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color class-summary class-summary-tab2"><a href="OracleJdbcJsonBinaryObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonBinaryObjectMapper</a></div>
 <div class="col-last even-row-color class-summary class-summary-tab2">
-<div class="block">Implementation of the <code>JsonMapper</code> interface for Oracle JDBC Binary JSON.</div>
+<div class="block">Implementation of the <code>JsonMapper</code> interface for Oracle JDBC Binary JSON (OSON).</div>
 </div>
 <div class="col-first odd-row-color class-summary class-summary-tab2"><a href="OracleJdbcJsonGeneratorEncoder.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonGeneratorEncoder</a></div>
 <div class="col-last odd-row-color class-summary class-summary-tab2">
@@ -104,6 +104,16 @@ loadScripts(document, 'script');</script>
 <div class="col-first odd-row-color class-summary class-summary-tab2"><a href="OracleJdbcJsonTextObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonTextObjectMapper</a></div>
 <div class="col-last odd-row-color class-summary class-summary-tab2">
 <div class="block">Implementation of the <code>JsonMapper</code> interface for Oracle JDBC Text JSON.</div>
+</div>
+<div class="col-first even-row-color class-summary class-summary-tab2"><a href="OracleOsonDecoder.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleOsonDecoder</a></div>
+<div class="col-last even-row-color class-summary class-summary-tab2">
+<div class="block">A serde stream decoder that reads Oracle's binary JSON (OSON) in place from a byte array: no DOM, no event
+objects, no copy of the document.</div>
+</div>
+<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="OracleOsonFieldNameCache.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleOsonFieldNameCache</a></div>
+<div class="col-last odd-row-color class-summary class-summary-tab2">
+<div class="block">Interns OSON field names across documents, so that a stream of documents with the same shape (the rows of a
+query) allocates no name strings after the first.</div>
 </div>
 </div>
 </div>

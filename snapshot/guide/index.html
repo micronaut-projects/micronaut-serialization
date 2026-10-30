@@ -10280,6 +10280,34 @@ class Feature {
 <p>This section documents breaking changes between Micronaut Serialization versions:</p>
 </div>
 <div class="sect2">
+<h3 id="_micronaut_serialization_3_3_0">Micronaut Serialization 3.3.0</h3>
+<div class="sect3">
+<h4 id="_oracle_jdbc_json">Oracle JDBC JSON</h4>
+<div class="paragraph">
+<p><code>OracleJdbcJsonBinaryObjectMapper</code> decodes Oracle binary JSON (OSON) with a native decoder that reads the encoded document in place, instead of going through <code>OracleJsonParser</code>. <code>readValue(byte[], Argument)</code> and the new <code>readValue(OracleJsonDatum, Argument)</code> use it. Reading from an <code>InputStream</code>, through <code>readValue(OracleJsonParser, Argument)</code> or into the <code>OracleJsonValue</code> tree types still uses the parser. Values read into a <code>String</code>, <code>Map</code> or <code>Object</code> keep the strings the parser path produced. The native decoder differs from the parser path in the following cases:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>With <code>micronaut.serde.deserialization.accept-float-as-int</code> set to <code>false</code>, a whole Oracle <code>NUMBER</code> such as <code>100</code> is read into an <code>int</code> or <code>long</code>. The parser path reported every <code>NUMBER</code> as a floating point number and rejected it.</p>
+</li>
+<li>
+<p>Negative day to second and year to month intervals are read. The parser path failed with ORA-26304. Read as strings they are prefixed with <code>-</code>, as <code>Duration.parse</code> and <code>Period.parse</code> accept.</p>
+</li>
+<li>
+<p>A <code>TIMESTAMP WITH TIME ZONE</code> value is read into a <code>LocalDateTime</code>, at its own offset. The parser path only read <code>DATE</code> and <code>TIMESTAMP</code> values into a <code>LocalDateTime</code>.</p>
+</li>
+<li>
+<p>A <code>VECTOR</code> value fails with an error naming the type. The parser path also failed on it.</p>
+</li>
+<li>
+<p>A subclass of <code>AbstractOracleJsonSerde</code> that only implements the <code>OracleJdbcJsonParserDecoder</code> variant of <code>doDeserializeNonNull</code> falls back to <code>getDefault()</code> when the native decoder is used. Override the <code>OracleOsonDecoder</code> variant to read the Oracle type directly.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect2">
 <h3 id="_micronaut_serialization_3_2_0">Micronaut Serialization 3.2.0</h3>
 <div class="sect3">
 <h4 id="_deserialization">Deserialization</h4>

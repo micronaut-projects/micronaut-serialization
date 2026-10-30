@@ -64,6 +64,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
 <li><a href="#doDeserializeNonNull(io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" tabindex="0">doDeserializeNonNull(OracleJdbcJsonParserDecoder, Deserializer.DecoderContext, Argument)</a></li>
+<li><a href="#doDeserializeNonNull(io.micronaut.serde.oracle.jdbc.json.OracleOsonDecoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" tabindex="0">doDeserializeNonNull(OracleOsonDecoder, Deserializer.DecoderContext, Argument)</a></li>
 <li><a href="#doSerializeNonNull(io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonGeneratorEncoder,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,java.time.LocalTime)" tabindex="0">doSerializeNonNull(OracleJdbcJsonGeneratorEncoder, Serializer.EncoderContext, Argument, LocalTime)</a></li>
 <li><a href="#getDefault()" tabindex="0">getDefault()</a></li>
 </ol>
@@ -145,17 +146,24 @@ loadScripts(document, 'script');</script>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Deserializes object using <a href="../OracleJdbcJsonParserDecoder.html" title="class in io.micronaut.serde.oracle.jdbc.json"><code>OracleJdbcJsonParserDecoder</code></a>.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#doSerializeNonNull(io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonGeneratorEncoder,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,java.time.LocalTime)" class="member-name-link">doSerializeNonNull</a><wbr>(<a href="../OracleJdbcJsonGeneratorEncoder.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonGeneratorEncoder</a>&nbsp;encoder,
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/LocalTime.html" title="class or interface in java.time" class="external-link">LocalTime</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#doDeserializeNonNull(io.micronaut.serde.oracle.jdbc.json.OracleOsonDecoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">doDeserializeNonNull</a><wbr>(<a href="../OracleOsonDecoder.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleOsonDecoder</a>&nbsp;decoder,
+ <a href="../../../../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
+ io.micronaut.core.type.Argument&lt;? super <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/LocalTime.html" title="class or interface in java.time" class="external-link">LocalTime</a>&gt;&nbsp;type)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Deserializes object using the native <a href="../OracleOsonDecoder.html" title="class in io.micronaut.serde.oracle.jdbc.json"><code>OracleOsonDecoder</code></a>.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#doSerializeNonNull(io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonGeneratorEncoder,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,java.time.LocalTime)" class="member-name-link">doSerializeNonNull</a><wbr>(<a href="../OracleJdbcJsonGeneratorEncoder.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonGeneratorEncoder</a>&nbsp;encoder,
  <a href="../../../../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
  io.micronaut.core.type.Argument&lt;? extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/LocalTime.html" title="class or interface in java.time" class="external-link">LocalTime</a>&gt;&nbsp;type,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/LocalTime.html" title="class or interface in java.time" class="external-link">LocalTime</a>&nbsp;value)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Serializes non null value.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="../../../../Serde.html" title="interface in io.micronaut.serde">Serde</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/LocalTime.html" title="class or interface in java.time" class="external-link">LocalTime</a>&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getDefault()" class="member-name-link">getDefault</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="../../../../Serde.html" title="interface in io.micronaut.serde">Serde</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/LocalTime.html" title="class or interface in java.time" class="external-link">LocalTime</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getDefault()" class="member-name-link">getDefault</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 </div>
 </div>
 </div>
@@ -212,6 +220,29 @@ loadScripts(document, 'script');</script>
 <dd><code><a href="AbstractOracleJsonSerde.html#doDeserializeNonNull(io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">doDeserializeNonNull</a></code>&nbsp;in class&nbsp;<code><a href="AbstractOracleJsonSerde.html" title="class in io.micronaut.serde.oracle.jdbc.json.serde">AbstractOracleJsonSerde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/LocalTime.html" title="class or interface in java.time" class="external-link">LocalTime</a>&gt;</code></dd>
 <dt>Parameters:</dt>
 <dd><code>decoder</code> - the Oracle JSON decoder</dd>
+<dd><code>decoderContext</code> - the decoder context</dd>
+<dd><code>type</code> - the type being deserialized</dd>
+<dt>Returns:</dt>
+<dd>the deserialized instance of given type</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="doDeserializeNonNull(io.micronaut.serde.oracle.jdbc.json.OracleOsonDecoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">
+<h3>doDeserializeNonNull</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/LocalTime.html" title="class or interface in java.time" class="external-link">LocalTime</a></span>&nbsp;<span class="element-name">doDeserializeNonNull</span><wbr><span class="parameters">(<a href="../OracleOsonDecoder.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleOsonDecoder</a>&nbsp;decoder,
+ <a href="../../../../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
+ io.micronaut.core.type.Argument&lt;? super <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/LocalTime.html" title="class or interface in java.time" class="external-link">LocalTime</a>&gt;&nbsp;type)</span></div>
+<div class="block"><span class="description-from-type-label">Description copied from class:&nbsp;<code><a href="AbstractOracleJsonSerde.html#doDeserializeNonNull(io.micronaut.serde.oracle.jdbc.json.OracleOsonDecoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">AbstractOracleJsonSerde</a></code></span></div>
+<div class="block">Deserializes object using the native <a href="../OracleOsonDecoder.html" title="class in io.micronaut.serde.oracle.jdbc.json"><code>OracleOsonDecoder</code></a>. The default implementation falls back to
+<a href="AbstractOracleJsonSerde.html#getDefault()"><code>AbstractOracleJsonSerde.getDefault()</code></a>; the serdes of this module override it to read the Oracle type directly.</div>
+<dl class="notes">
+<dt>Overrides:</dt>
+<dd><code><a href="AbstractOracleJsonSerde.html#doDeserializeNonNull(io.micronaut.serde.oracle.jdbc.json.OracleOsonDecoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">doDeserializeNonNull</a></code>&nbsp;in class&nbsp;<code><a href="AbstractOracleJsonSerde.html" title="class in io.micronaut.serde.oracle.jdbc.json.serde">AbstractOracleJsonSerde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/LocalTime.html" title="class or interface in java.time" class="external-link">LocalTime</a>&gt;</code></dd>
+<dt>Parameters:</dt>
+<dd><code>decoder</code> - the OSON decoder</dd>
 <dd><code>decoderContext</code> - the decoder context</dd>
 <dd><code>type</code> - the type being deserialized</dd>
 <dt>Returns:</dt>

@@ -67,6 +67,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#deserializeNullable(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" tabindex="0">deserializeNullable(Decoder, Deserializer.DecoderContext, Argument)</a></li>
 <li><a href="#serialize(io.micronaut.serde.Encoder,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,T)" tabindex="0">serialize(Encoder, Serializer.EncoderContext, Argument, T)</a></li>
 <li><a href="#doDeserializeNonNull(io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" tabindex="0">doDeserializeNonNull(OracleJdbcJsonParserDecoder, Deserializer.DecoderContext, Argument)</a></li>
+<li><a href="#doDeserializeNonNull(io.micronaut.serde.oracle.jdbc.json.OracleOsonDecoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" tabindex="0">doDeserializeNonNull(OracleOsonDecoder, Deserializer.DecoderContext, Argument)</a></li>
 <li><a href="#doSerializeNonNull(io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonGeneratorEncoder,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,T)" tabindex="0">doSerializeNonNull(OracleJdbcJsonGeneratorEncoder, Serializer.EncoderContext, Argument, T)</a></li>
 <li><a href="#getDefault()" tabindex="0">getDefault()</a></li>
 </ol>
@@ -162,23 +163,30 @@ implements <a href="../../../../Serde.html" title="interface in io.micronaut.ser
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Deserializes object using <a href="../OracleJdbcJsonParserDecoder.html" title="class in io.micronaut.serde.oracle.jdbc.json"><code>OracleJdbcJsonParserDecoder</code></a>.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>protected abstract void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#doSerializeNonNull(io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonGeneratorEncoder,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,T)" class="member-name-link">doSerializeNonNull</a><wbr>(<a href="../OracleJdbcJsonGeneratorEncoder.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonGeneratorEncoder</a>&nbsp;encoder,
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="#type-param-T" title="type parameter in AbstractOracleJsonSerde">T</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#doDeserializeNonNull(io.micronaut.serde.oracle.jdbc.json.OracleOsonDecoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">doDeserializeNonNull</a><wbr>(<a href="../OracleOsonDecoder.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleOsonDecoder</a>&nbsp;decoder,
+ <a href="../../../../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
+ io.micronaut.core.type.Argument&lt;? super <a href="#type-param-T" title="type parameter in AbstractOracleJsonSerde">T</a>&gt;&nbsp;type)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Deserializes object using the native <a href="../OracleOsonDecoder.html" title="class in io.micronaut.serde.oracle.jdbc.json"><code>OracleOsonDecoder</code></a>.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>protected abstract void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#doSerializeNonNull(io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonGeneratorEncoder,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,T)" class="member-name-link">doSerializeNonNull</a><wbr>(<a href="../OracleJdbcJsonGeneratorEncoder.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonGeneratorEncoder</a>&nbsp;encoder,
  <a href="../../../../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
  io.micronaut.core.type.Argument&lt;? extends <a href="#type-param-T" title="type parameter in AbstractOracleJsonSerde">T</a>&gt;&nbsp;type,
  <a href="#type-param-T" title="type parameter in AbstractOracleJsonSerde">T</a>&nbsp;value)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Serializes non null value.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>protected abstract <a href="../../../../Serde.html" title="interface in io.micronaut.serde">Serde</a><wbr>&lt;<a href="#type-param-T" title="type parameter in AbstractOracleJsonSerde">T</a>&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getDefault()" class="member-name-link">getDefault</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#serialize(io.micronaut.serde.Encoder,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,T)" class="member-name-link">serialize</a><wbr>(<a href="../../../../Encoder.html" title="interface in io.micronaut.serde">Encoder</a>&nbsp;encoder,
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>protected abstract <a href="../../../../Serde.html" title="interface in io.micronaut.serde">Serde</a><wbr>&lt;<a href="#type-param-T" title="type parameter in AbstractOracleJsonSerde">T</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getDefault()" class="member-name-link">getDefault</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#serialize(io.micronaut.serde.Encoder,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,T)" class="member-name-link">serialize</a><wbr>(<a href="../../../../Encoder.html" title="interface in io.micronaut.serde">Encoder</a>&nbsp;encoder,
  <a href="../../../../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
  io.micronaut.core.type.Argument&lt;? extends <a href="#type-param-T" title="type parameter in AbstractOracleJsonSerde">T</a>&gt;&nbsp;type,
  <a href="#type-param-T" title="type parameter in AbstractOracleJsonSerde">T</a>&nbsp;value)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Serializes the given value using the passed <a href="../../../../Encoder.html" title="interface in io.micronaut.serde"><code>Encoder</code></a>.</div>
 </div>
 </div>
@@ -316,6 +324,31 @@ this method will return <code>null</code>.</div>
 <dd>the deserialized instance of given type</dd>
 <dt>Throws:</dt>
 <dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - if an unrecoverable error occurs</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="doDeserializeNonNull(io.micronaut.serde.oracle.jdbc.json.OracleOsonDecoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">
+<h3>doDeserializeNonNull</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type"><a href="#type-param-T" title="type parameter in AbstractOracleJsonSerde">T</a></span>&nbsp;<span class="element-name">doDeserializeNonNull</span><wbr><span class="parameters">(<a href="../OracleOsonDecoder.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleOsonDecoder</a>&nbsp;decoder,
+ <a href="../../../../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
+ io.micronaut.core.type.Argument&lt;? super <a href="#type-param-T" title="type parameter in AbstractOracleJsonSerde">T</a>&gt;&nbsp;type)</span>
+                          throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block">Deserializes object using the native <a href="../OracleOsonDecoder.html" title="class in io.micronaut.serde.oracle.jdbc.json"><code>OracleOsonDecoder</code></a>. The default implementation falls back to
+<a href="#getDefault()"><code>getDefault()</code></a>; the serdes of this module override it to read the Oracle type directly.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>decoder</code> - the OSON decoder</dd>
+<dd><code>decoderContext</code> - the decoder context</dd>
+<dd><code>type</code> - the type being deserialized</dd>
+<dt>Returns:</dt>
+<dd>the deserialized instance of given type</dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - if an unrecoverable error occurs</dd>
+<dt>Since:</dt>
+<dd>3.3.0</dd>
 </dl>
 </div>
 </section>

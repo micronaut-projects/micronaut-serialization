@@ -1146,7 +1146,7 @@ through <a href="io/micronaut/serde/util/NullableDeserializer.html#deserializeNu
 </div>
 <div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonBinaryObjectMapper</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">
-<div class="block">Implementation of the <code>JsonMapper</code> interface for Oracle JDBC Binary JSON.</div>
+<div class="block">Implementation of the <code>JsonMapper</code> interface for Oracle JDBC Binary JSON (OSON).</div>
 </div>
 <div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonGeneratorEncoder.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonGeneratorEncoder</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
@@ -1187,6 +1187,16 @@ through <a href="io/micronaut/serde/util/NullableDeserializer.html#deserializeNu
 <div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/oracle/jdbc/json/serde/OracleJsonZonedDateTimeSerde.html" title="class in io.micronaut.serde.oracle.jdbc.json.serde">OracleJsonZonedDateTimeSerde</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Serde for <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/ZonedDateTime.html" title="class or interface in java.time" class="external-link"><code>ZonedDateTime</code></a> from Oracle JSON.</div>
+</div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/oracle/jdbc/json/OracleOsonDecoder.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleOsonDecoder</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
+<div class="block">A serde stream decoder that reads Oracle's binary JSON (OSON) in place from a byte array: no DOM, no event
+objects, no copy of the document.</div>
+</div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/oracle/jdbc/json/OracleOsonFieldNameCache.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleOsonFieldNameCache</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
+<div class="block">Interns OSON field names across documents, so that a stream of documents with the same shape (the rows of a
+query) allocates no name strings after the first.</div>
 </div>
 <div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/support/reference/PendingDocumentIdReference.html" title="class in io.micronaut.serde.support.reference">PendingDocumentIdReference</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
