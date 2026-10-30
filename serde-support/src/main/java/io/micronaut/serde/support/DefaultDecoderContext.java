@@ -28,6 +28,7 @@ import io.micronaut.serde.reference.AbstractPropertyReferenceManager;
 import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.support.reference.DocumentIdReference;
 import io.micronaut.serde.support.reference.PendingDocumentIdReference;
+import io.micronaut.serde.util.SpecificSerdeTracker;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -38,6 +39,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 /**
  * Default implementation of {@link io.micronaut.serde.Deserializer.DecoderContext}.
@@ -45,16 +47,46 @@ import java.util.Optional;
  * @since 1.0.0
  */
 @Internal
-class DefaultDecoderContext extends AbstractPropertyReferenceManager implements Deserializer.DecoderContext {
+class DefaultDecoderContext extends AbstractPropertyReferenceManager implements Deserializer.DecoderContext, SpecificSerdeTracker {
+    private static final AtomicIntegerFieldUpdater<DefaultDecoderContext> BOUND_MARKS =
+        AtomicIntegerFieldUpdater.newUpdater(DefaultDecoderContext.class, "boundMarks");
+
     private final DefaultSerdeRegistry registry;
     // Document-scoped identifier state, allocated only when a document uses identifiers and released on close
     @Nullable
     private Map<String, Object> documentIds;
     @Nullable
     private Map<String, List<PendingDocumentIdReference>> pendingDocumentIds;
+    // Counts the serdes bound to this context, only ever increases (see SpecificSerdeTracker)
+    private volatile int boundMarks;
 
     DefaultDecoderContext(DefaultSerdeRegistry registry) {
         this.registry = registry;
+    }
+
+    /**
+     * Whether this is a context of the registry without a view, whose specific serdes are the same for every document.
+     *
+     * @param registry The registry
+     * @return Whether the context is a plain context of the registry
+     */
+    final boolean isPlainContextOf(DefaultSerdeRegistry registry) {
+        return this.registry == registry && getClass() == DefaultDecoderContext.class;
+    }
+
+    /**
+     * The number of times a serde created with this context was bound to it. A specific serde whose creation did not
+     * change it does not depend on this context.
+     *
+     * @return The number of marks
+     */
+    final int boundMarks() {
+        return boundMarks;
+    }
+
+    @Override
+    public final void markContextBound() {
+        BOUND_MARKS.incrementAndGet(this);
     }
 
     @Override
