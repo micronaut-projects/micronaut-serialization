@@ -23,8 +23,10 @@ import io.micronaut.core.beans.BeanProperty;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
+import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.ObjectMapper;
 import io.micronaut.serde.SerdeIntrospections;
+import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.SerializationConfiguration;
@@ -178,15 +180,20 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
                 properties.put("micronaut.serde.jsonb.provider", jsonProvider.getClass().getName());
             }
             ObjectMapper.CloseableObjectMapper mapper = ObjectMapper.create(properties, additionalPackages(config));
-            SerdeConfiguration serdeConfiguration = mapper.getSerdeRegistry().newEncoderContext(null)
-                .getSerdeConfiguration()
-                .orElseThrow();
-            SerializationConfiguration serializationConfiguration = mapper.getSerdeRegistry().newEncoderContext(null)
-                .getSerializationConfiguration()
-                .orElseThrow();
-            DeserializationConfiguration deserializationConfiguration = mapper.getSerdeRegistry().newDecoderContext(null)
-                .getDeserializationConfiguration()
-                .orElseThrow();
+            SerdeConfiguration serdeConfiguration;
+            SerializationConfiguration serializationConfiguration;
+            try (Serializer.EncoderContext encoderContext = mapper.getSerdeRegistry().newEncoderContext(null)) {
+                serdeConfiguration = encoderContext.getSerdeConfiguration().orElseThrow();
+                serializationConfiguration = encoderContext.getSerializationConfiguration().orElseThrow();
+            } catch (IOException e) {
+                throw new IllegalStateException("Unable to close the encoder context", e);
+            }
+            DeserializationConfiguration deserializationConfiguration;
+            try (Deserializer.DecoderContext decoderContext = mapper.getSerdeRegistry().newDecoderContext(null)) {
+                deserializationConfiguration = decoderContext.getDeserializationConfiguration().orElseThrow();
+            } catch (IOException e) {
+                throw new IllegalStateException("Unable to close the decoder context", e);
+            }
             JsonbRuntimeCustomizations customizations = JsonbRuntimeCustomizations.of(config);
             RuntimeMapperAndClose runtimeMapper = runtimeMapper(
                 config,

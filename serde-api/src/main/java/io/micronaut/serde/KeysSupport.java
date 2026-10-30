@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Support logic for creating {@link Keys} instances.
@@ -152,7 +153,7 @@ public final class KeysSupport {
         private final List<KeyDescriptor> descriptors;
         private final boolean caseInsensitive;
         private final StringIntMap keyToIndex;
-        private volatile Object[][] contributedKeys;
+        private final AtomicReference<Object[][]> contributedKeys;
 
         private DefaultKeys(List<String> keys,
                             @Nullable List<KeyDescriptor> descriptors,
@@ -168,7 +169,7 @@ public final class KeysSupport {
                     keyToIndex.put(key, i);
                 }
             }
-            this.contributedKeys = contributedKeys;
+            this.contributedKeys = new AtomicReference<>(contributedKeys);
         }
 
         @Override
@@ -183,7 +184,7 @@ public final class KeysSupport {
         }
 
         private Object[] get(int keysIndex) {
-            Object[][] contributions = contributedKeys;
+            Object[][] contributions = Objects.requireNonNull(contributedKeys.get());
             if (keysIndex < contributions.length) {
                 Object[] contribution = contributions[keysIndex];
                 if (contribution != null) {
@@ -194,7 +195,7 @@ public final class KeysSupport {
         }
 
         private synchronized Object[] createLateContribution(int keysIndex) {
-            Object[][] contributions = contributedKeys;
+            Object[][] contributions = Objects.requireNonNull(contributedKeys.get());
             if (keysIndex < contributions.length && contributions[keysIndex] != null) {
                 return contributions[keysIndex];
             }
@@ -208,7 +209,7 @@ public final class KeysSupport {
             );
             Object[][] expanded = Arrays.copyOf(contributions, Math.max(contributions.length, keysIndex + 1));
             expanded[keysIndex] = contribution;
-            contributedKeys = expanded;
+            contributedKeys.set(expanded);
             return contribution;
         }
 

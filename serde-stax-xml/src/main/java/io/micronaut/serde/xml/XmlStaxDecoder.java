@@ -241,17 +241,21 @@ public abstract sealed class XmlStaxDecoder extends LimitingStream implements De
                     }
                     return text.toString();
                 case XMLStreamConstants.START_ELEMENT:
-                    increaseDepth();
-                    try {
-                        return readArbitraryObject();
-                    } finally {
-                        decreaseDepth();
-                    }
+                    return readNestedArbitraryObject();
                 case XMLStreamConstants.END_DOCUMENT:
                     return text == null ? null : text.toString();
                 default:
                     cursor.advance();
             }
+        }
+    }
+
+    private Object readNestedArbitraryObject() throws IOException {
+        increaseDepth();
+        try {
+            return readArbitraryObject();
+        } finally {
+            decreaseDepth();
         }
     }
 
