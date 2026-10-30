@@ -20,6 +20,7 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Serde;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonGeneratorEncoder;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder;
+import io.micronaut.serde.oracle.jdbc.json.OracleOsonDecoder;
 import io.micronaut.serde.support.serdes.OffsetDateTimeSerde;
 import jakarta.inject.Singleton;
 
@@ -42,6 +43,11 @@ public class OracleJsonOffsetDateTimeSerde extends AbstractOracleJsonSerde<Offse
 
     @Override
     protected OffsetDateTime doDeserializeNonNull(OracleJdbcJsonParserDecoder decoder, DecoderContext decoderContext, Argument<? super OffsetDateTime> type) {
+        return decoder.decodeOffsetDateTime();
+    }
+
+    @Override
+    protected OffsetDateTime doDeserializeNonNull(OracleOsonDecoder decoder, DecoderContext decoderContext, Argument<? super OffsetDateTime> type) {
         return decoder.decodeOffsetDateTime();
     }
 

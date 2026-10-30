@@ -167,11 +167,11 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
         };
     }
 
-    private CoercionPolicy coercionPolicy() {
+    CoercionPolicy coercionPolicy() {
         return coercionPolicy;
     }
 
-    private LimitingStream.RemainingLimits limits() {
+    LimitingStream.RemainingLimits limits() {
         return serdeConfiguration == null ? LimitingStream.DEFAULT_LIMITS : LimitingStream.limitsFromConfiguration(serdeConfiguration);
     }
 

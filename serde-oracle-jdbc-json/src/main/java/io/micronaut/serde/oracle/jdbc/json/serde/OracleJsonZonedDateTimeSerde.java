@@ -20,6 +20,7 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Serde;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonGeneratorEncoder;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder;
+import io.micronaut.serde.oracle.jdbc.json.OracleOsonDecoder;
 import io.micronaut.serde.support.serdes.ZonedDateTimeSerde;
 import jakarta.inject.Singleton;
 
@@ -42,6 +43,11 @@ public class OracleJsonZonedDateTimeSerde extends AbstractOracleJsonSerde<ZonedD
 
     @Override
     protected ZonedDateTime doDeserializeNonNull(OracleJdbcJsonParserDecoder decoder, DecoderContext decoderContext, Argument<? super ZonedDateTime> type) {
+        return decoder.decodeZonedDateTime();
+    }
+
+    @Override
+    protected ZonedDateTime doDeserializeNonNull(OracleOsonDecoder decoder, DecoderContext decoderContext, Argument<? super ZonedDateTime> type) {
         return decoder.decodeZonedDateTime();
     }
 

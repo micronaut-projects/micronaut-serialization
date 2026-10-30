@@ -18,6 +18,29 @@ Additional benchmark sources may exist for focused local investigation, but
 the checked-in results below are limited to Micronaut Serialization and Jackson
 Databind/Blackbird comparisons.
 
+### Oracle OSON decoding (`OracleOsonDecodeBenchmark`)
+
+Decodes one Oracle binary JSON (OSON) document into a generated deserializer
+through the `OracleJsonParser` path and through the native OSON decoder of
+`micronaut-serde-oracle-jdbc-json`. Both read through the public
+`OracleJdbcJsonBinaryObjectMapper` API with a deserializer lookup per call, and
+the parser is created over the same bytes. The `flat` shape is the twelve
+property document of the micronaut-oracledb spike, `nested` adds a nested
+object and lists. It measures decoding only: through JDBC the fetch dominates
+and the end-to-end gain is much smaller. Not part of the default JMH includes
+list.
+
+```bash
+./gradlew :micronaut-benchmarks:jmh \
+  -Pjmh.includes='.*OracleOsonDecodeBenchmark.*' \
+  -Pjmh.forks=3 \
+  -Pjmh.warmupIterations=5 \
+  -Pjmh.iterations=10 \
+  -Pjmh.warmup=1s \
+  -Pjmh.timeOnIteration=1s \
+  -Pjmh.profilers=gc
+```
+
 ### Format comparison: JSON vs BSON vs CBOR (`FormatComparisonBenchmark`)
 
 Same `Users` payload (java-json-benchmark style) across Micronaut Serde format

@@ -24,6 +24,7 @@ import io.micronaut.serde.WrappedDecoder;
 import io.micronaut.serde.WrappedEncoder;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonGeneratorEncoder;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder;
+import io.micronaut.serde.oracle.jdbc.json.OracleOsonDecoder;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -38,25 +39,24 @@ public abstract class AbstractOracleJsonSerde<T> implements Serde<T> {
 
     @Override
     public final T deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super T> type) throws IOException {
-        Decoder unwrappedDecoder = WrappedDecoder.unwrap(decoder);
-        if (unwrappedDecoder instanceof OracleJdbcJsonParserDecoder oracleJdbcJsonParserDecoder) {
-            return doDeserializeNonNull(oracleJdbcJsonParserDecoder, decoderContext, type);
-        } else {
-            return getDefault().deserialize(decoder, decoderContext, type);
-        }
+        return switch (WrappedDecoder.unwrap(decoder)) {
+            case OracleJdbcJsonParserDecoder parserDecoder -> doDeserializeNonNull(parserDecoder, decoderContext, type);
+            case OracleOsonDecoder osonDecoder -> doDeserializeNonNull(osonDecoder, decoderContext, type);
+            default -> getDefault().deserialize(decoder, decoderContext, type);
+        };
     }
 
     @Override
     public final @Nullable T deserializeNullable(Decoder decoder, DecoderContext decoderContext, Argument<? super T> type) throws IOException {
         Decoder unwrappedDecoder = WrappedDecoder.unwrap(decoder);
-        if (unwrappedDecoder instanceof OracleJdbcJsonParserDecoder oracleJdbcJsonParserDecoder) {
-            if (decoder.decodeNull()) {
-                return null;
-            }
-            return doDeserializeNonNull(oracleJdbcJsonParserDecoder, decoderContext, type);
-        } else {
+        boolean oracleDecoder = unwrappedDecoder instanceof OracleJdbcJsonParserDecoder || unwrappedDecoder instanceof OracleOsonDecoder;
+        if (!oracleDecoder) {
             return getDefault().deserializeNullable(decoder, decoderContext, type);
         }
+        if (decoder.decodeNull()) {
+            return null;
+        }
+        return deserialize(decoder, decoderContext, type);
     }
 
     @Override
@@ -80,6 +80,22 @@ public abstract class AbstractOracleJsonSerde<T> implements Serde<T> {
      */
     protected abstract T doDeserializeNonNull(OracleJdbcJsonParserDecoder decoder, DecoderContext decoderContext,
                                               Argument<? super T> type) throws IOException;
+
+    /**
+     * Deserializes object using the native {@link OracleOsonDecoder}. The default implementation falls back to
+     * {@link #getDefault()}; the serdes of this module override it to read the Oracle type directly.
+     *
+     * @param decoder        the OSON decoder
+     * @param decoderContext the decoder context
+     * @param type           the type being deserialized
+     * @return the deserialized instance of given type
+     * @throws IOException if an unrecoverable error occurs
+     * @since 3.3.0
+     */
+    protected T doDeserializeNonNull(OracleOsonDecoder decoder, DecoderContext decoderContext,
+                                     Argument<? super T> type) throws IOException {
+        return getDefault().deserialize(decoder, decoderContext, type);
+    }
 
     /**
      * Serializes non null value.
