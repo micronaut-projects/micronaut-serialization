@@ -20,7 +20,6 @@ import io.micronaut.serde.csv.introspection.CsvFormatConfig;
 
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.util.Iterator;
 
 /**
  * Decodes CSV data into a specific representation.

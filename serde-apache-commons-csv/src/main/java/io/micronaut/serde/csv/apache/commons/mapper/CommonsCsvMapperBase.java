@@ -35,7 +35,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.nio.charset.Charset;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
