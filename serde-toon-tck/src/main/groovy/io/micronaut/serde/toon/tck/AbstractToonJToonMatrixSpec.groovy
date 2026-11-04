@@ -233,27 +233,18 @@ abstract class AbstractToonJToonMatrixSpec extends Specification implements Toon
         ToonSpecFixtures.jsonEquals(JToon.decode(writeToon(deep)), deep)
     }
 
-    @Unroll
-    void "jtoon length marker output is accepted by jtoon and rejected by the mapper: #label"() {
+    void "legacy jtoon length marker input is rejected by the mapper"() {
         given:
-        def text = JToon.encode(data, new EncodeOptions(2, Delimiter.COMMA, true, KeyFolding.OFF, Integer.MAX_VALUE))
+        def text = 'a[#3]: 1,2,3'
 
         expect:
-        text.contains('[#')
-        JToon.decode(text) == data
         attempt { readToon(text, Argument.of(Object)) }.error != null
-
-        where:
-        data                             | label
-        [a: [1, 2, 3]]                   | 'inline array'
-        [a: [[x: 1], [x: 2]]]            | 'tabular array'
-        [a: [[x: 1, y: [1, 2]], [x: 2]]] | 'list array'
     }
 
     void "jtoon key folding output is read as literal keys by both decoders"() {
         given:
         def data = [a: [b: [c: 1]], d: [e: 'x']]
-        def text = JToon.encode(data, new EncodeOptions(2, Delimiter.COMMA, false, KeyFolding.SAFE, Integer.MAX_VALUE))
+        def text = JToon.encode(data, new EncodeOptions(2, Delimiter.COMMA, KeyFolding.SAFE, Integer.MAX_VALUE))
 
         expect:
         text.contains('a.b.c: 1')
@@ -317,13 +308,13 @@ abstract class AbstractToonJToonMatrixSpec extends Specification implements Toon
         '- a\n- b'                         | 'root list without header'
     }
 
-    void "whitespace before a nested field group is rejected by the mapper and accepted by jtoon"() {
+    void "whitespace before a nested field group is rejected by both decoders"() {
         given:
         def text = 'a[1]{x {y}}:\n  1'
 
         expect:
         attempt { readToon(text, Argument.of(Object)) }.error != null
-        JToon.decode(text) == [a: [[x: [y: 1]]]]
+        attempt { JToon.decode(text) }.error != null
     }
 
     /**
@@ -342,7 +333,7 @@ abstract class AbstractToonJToonMatrixSpec extends Specification implements Toon
     }
 
     private static EncodeOptions encodeOptions(Delimiter delimiter) {
-        new EncodeOptions(2, delimiter, false, KeyFolding.OFF, Integer.MAX_VALUE)
+        new EncodeOptions(2, delimiter, KeyFolding.OFF, Integer.MAX_VALUE)
     }
 
     private static boolean numbersEqual(Object actual, Object expected) {

@@ -31,7 +31,7 @@ import spock.lang.Unroll
 abstract class AbstractToonJToonParitySpec extends Specification implements ToonSpec {
 
     /**
-     * Spec encode fixtures whose expected output jtoon 2.0.4 does not read back to the fixture's input.
+     * Spec encode fixtures whose expected output jtoon 2.0.8 does not read back to the fixture's input.
      * jtoon decodes {@code data: []} in a list item as the string {@code "[]"} rather than an empty array,
      * although its own encoder emits that form.
      */
@@ -55,13 +55,26 @@ abstract class AbstractToonJToonParitySpec extends Specification implements Toon
     ] as Set<String>
 
     /**
-     * Spec decode fixtures with a valid input that jtoon 2.0.4 does not decode to the fixture's expected value.
+     * Spec decode fixtures with a valid input that jtoon 2.0.8 does not decode to the fixture's expected value.
      */
     private static final Set<String> JTOON_DECODE_VALID_DIVERGENCES = [
     ] as Set<String>
 
     /**
-     * Spec decode fixtures with an invalid input that jtoon 2.0.4 accepts.
+     * Spec decode fixtures with valid non-strict input that jtoon rejects.
+     */
+    private static final Set<String> JTOON_REJECTS_VALID = [
+            'delimiters.json :: falls through to a key-value line on a header delimiter mismatch',
+            'objects-keyed.json :: skips an entry-depth line without a colon in non-strict mode',
+            'objects.json :: treats extra brackets after valid array segment as literal key (non-strict)',
+            'objects.json :: treats bracket segment without a length as literal key (non-strict)',
+            'objects.json :: treats non-integer bracket content as literal key (non-strict)',
+            'objects.json :: treats text between bracket segment and colon as literal key (non-strict)',
+            'objects.json :: falls through to a key-value line when whitespace precedes the bracket segment',
+    ] as Set<String>
+
+    /**
+     * Spec decode fixtures with an invalid input that jtoon 2.0.8 accepts.
      */
     private static final Set<String> JTOON_ACCEPTS_INVALID = [
     ] as Set<String>
@@ -260,7 +273,7 @@ abstract class AbstractToonJToonParitySpec extends Specification implements Toon
         given:
         Map<String, Object> options = fixture.options ?: [:]
         Delimiter delimiter = options.delimiter ? Delimiter.values().find { it.value == (options.delimiter as String).charAt(0) } : Delimiter.COMMA
-        EncodeOptions encodeOptions = new EncodeOptions((options.indentSize ?: 2) as int, delimiter, false, KeyFolding.OFF, Integer.MAX_VALUE)
+        EncodeOptions encodeOptions = new EncodeOptions((options.indentSize ?: 2) as int, delimiter, KeyFolding.OFF, Integer.MAX_VALUE)
 
         when:
         String toon = JToon.encode(fixture.input, encodeOptions)
@@ -325,8 +338,12 @@ abstract class AbstractToonJToonParitySpec extends Specification implements Toon
         if (fixture.shouldError) {
             assert jtoon.error != null: "jtoon accepted invalid input"
         } else {
-            assert jtoon.error == null: "jtoon failed: ${jtoon.error}"
-            assert ToonSpecFixtures.jsonEquals(jtoon.value, fixture.expected)
+            if (JTOON_REJECTS_VALID.contains(fixture.toString())) {
+                assert jtoon.error != null: "jtoon now accepts this input, remove it from JTOON_REJECTS_VALID"
+            } else {
+                assert jtoon.error == null: "jtoon failed: ${jtoon.error}"
+                assert ToonSpecFixtures.jsonEquals(jtoon.value, fixture.expected)
+            }
         }
 
         and:

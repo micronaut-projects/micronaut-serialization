@@ -45,7 +45,7 @@ final class JToonMappers {
         if (properties.containsKey(INDENT_PROP)) {
             indent = Integer.parseInt(properties[INDENT_PROP].toString())
         }
-        return new EncodeOptions(indent, delimiter, false, KeyFolding.OFF, 0)
+        return new EncodeOptions(indent, delimiter, KeyFolding.OFF, 0)
     }
 
     static DecodeOptions decodeOptions(Map<String, Object> properties) {
