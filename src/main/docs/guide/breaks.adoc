@@ -1,5 +1,17 @@
 This section documents breaking changes between Micronaut Serialization versions:
 
+=== Micronaut Serialization 3.3.0
+
+==== Oracle JDBC JSON
+
+`OracleJdbcJsonBinaryObjectMapper` decodes Oracle binary JSON (OSON) with a native decoder that reads the encoded document in place, instead of going through `OracleJsonParser`. `readValue(byte[], Argument)` and the new `readValue(OracleJsonDatum, Argument)` use it. Reading from an `InputStream`, through `readValue(OracleJsonParser, Argument)` or into the `OracleJsonValue` tree types still uses the parser. Values read into a `String`, `Map` or `Object` keep the strings the parser path produced. The native decoder differs from the parser path in the following cases:
+
+- With `micronaut.serde.deserialization.accept-float-as-int` set to `false`, a whole Oracle `NUMBER` such as `100` is read into an `int` or `long`. The parser path reported every `NUMBER` as a floating point number and rejected it.
+- Negative day to second and year to month intervals are read. The parser path failed with ORA-26304. Read as strings they are prefixed with `-`, as `Duration.parse` and `Period.parse` accept.
+- A `TIMESTAMP WITH TIME ZONE` value is read into a `LocalDateTime`, at its own offset. The parser path only read `DATE` and `TIMESTAMP` values into a `LocalDateTime`.
+- A `VECTOR` value fails with an error naming the type. The parser path also failed on it.
+- A subclass of `AbstractOracleJsonSerde` that only implements the `OracleJdbcJsonParserDecoder` variant of `doDeserializeNonNull` falls back to `getDefault()` when the native decoder is used. Override the `OracleOsonDecoder` variant to read the Oracle type directly.
+
 === Micronaut Serialization 3.2.0
 
 ==== Deserialization

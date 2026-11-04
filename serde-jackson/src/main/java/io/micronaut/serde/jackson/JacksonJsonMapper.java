@@ -65,7 +65,6 @@ import tools.jackson.core.json.JsonWriteFeature;
 import tools.jackson.core.util.BufferRecycler;
 import tools.jackson.core.util.ByteArrayBuilder;
 import tools.jackson.core.util.DefaultPrettyPrinter;
-import tools.jackson.core.util.JsonRecyclerPools;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -218,7 +217,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
 
     private static JsonFactory buildJsonFactory(SerdeJacksonConfiguration jacksonConfiguration) {
         JsonFactoryBuilder builder = JsonFactory.builder()
-            .recyclerPool(JsonRecyclerPools.threadLocalPool());
+            .recyclerPool(jacksonConfiguration.createRecyclerPool());
         for (Map.Entry<TokenStreamFactory.Feature, Boolean> e : jacksonConfiguration.getJsonFactoryFeatures().entrySet()) {
             builder = builder.configure(e.getKey(), e.getValue());
         }

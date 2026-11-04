@@ -80,6 +80,7 @@ public final class SimpleSerdeShapeAnalyzer {
      */
     private static final Set<String> SUPPORTED_JACKSON_ANNOTATIONS = Set.of(
         JACKSON_ANNOTATION_PREFIX + "JsonProperty",
+        JACKSON_ANNOTATION_PREFIX + "JsonGetter",
         JACKSON_ANNOTATION_PREFIX + "JsonIgnore",
         JACKSON_ANNOTATION_PREFIX + "JsonIgnoreProperties",
         JACKSON_ANNOTATION_PREFIX + "JsonIgnoreType",
@@ -359,6 +360,11 @@ public final class SimpleSerdeShapeAnalyzer {
             return true;
         }
         if (analysis.open() && hasAnnotation(element, BSON_REPRESENTATION) && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE)) {
+            return true;
+        }
+        if (analysis.serializerOpen()
+            && hasUnsupportedGetterMethod(element, analysis.propertyExclusionSupported())
+            && analysis.failSerializer(FallbackReason.UNSUPPORTED_SHAPE)) {
             return true;
         }
         return analysis.shapeKind == ShapeKind.ENUM
@@ -659,6 +665,36 @@ public final class SimpleSerdeShapeAnalyzer {
     private boolean isDeserializerSkipped(ClassElement element) {
         return element.booleanValue(SerdeableGenerated.class, "skip").orElse(false)
             || element.booleanValue(SerdeableGenerated.class, "skipDeserializer").orElse(false);
+    }
+
+    /**
+     * A getter method the runtime serializer writes is generated as a call of the method, which has to be
+     * accessible from the generated serializer and return a resolved type. Getter methods inherited from a
+     * supertype are not covered by the checks of the declared members, so their metadata is checked here.
+     */
+    private boolean hasUnsupportedGetterMethod(ClassElement element, boolean propertyExclusionSupported) {
+        for (MethodElement method : SerdeSourceGenGetterMethods.getterMethods(element, beanProperties(element))) {
+            AnnotationMetadata annotationMetadata = method.getAnnotationMetadata();
+            if (!SerdeSourceGenGetterMethods.isSerialized(annotationMetadata)) {
+                continue;
+            }
+            ClassElement returnType = method.getGenericReturnType();
+            if (!method.isAccessible(element, false)
+                || hasTypeVariable(returnType)
+                || isDirectIterableType(returnType)
+                || returnType.hasDeclaredAnnotation(SerdeConfig.SerSubtyped.class)
+                || hasAnnotation(returnType, SerdeConfig.SerValue.class)
+                || method.hasAnnotation(SERDEABLE_SERIALIZABLE)
+                || hasUnsupportedSerdeConfigMetadata(annotationMetadata, propertyExclusionSupported)) {
+                return true;
+            }
+            var unsupportedAnnotations = new LinkedHashMap<String, Boolean>();
+            collectJacksonAnnotationNames(method.getAnnotationNames(), unsupportedAnnotations);
+            if (!unsupportedAnnotations.isEmpty()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean hasDuplicateSerializedNames(ClassElement element) {
