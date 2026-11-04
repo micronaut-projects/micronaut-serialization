@@ -84,6 +84,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     private static final String JSON_AUTO_DETECT = "com.fasterxml.jackson.annotation.JsonAutoDetect";
     private static final String JSON_AUTO_DETECT_ANY = "ANY";
     private static final String VISIBILITY = "visibility";
+    private static final String JAXB_DEFAULT_NAME = "##default";
+    private static final String NAMES = "names";
     private static final String JAXB_ANNOTATION_PREFIX = "jakarta.xml.bind.annotation.";
     private static final String JAXB_XML_ROOT_ELEMENT = JAXB_ANNOTATION_PREFIX + "XmlRootElement";
     private static final String JAXB_XML_TYPE = JAXB_ANNOTATION_PREFIX + "XmlType";
@@ -437,7 +439,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             }
             if (element instanceof TypedElement typedElement
                 && element.stringValue(JAXB_XML_ELEMENT_WRAPPER, "name")
-                    .filter(name -> "##default".equals(name))
+                    .filter(name -> JAXB_DEFAULT_NAME.equals(name))
                     .isPresent()) {
                 element.annotate(SerdeConfig.class, builder -> builder.member(SerdeConfig.WRAPPER_PROPERTY, resolvePropertyName(typedElement)));
             }
@@ -792,7 +794,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                             String typeName = typeNameVal.getName();
                             if (typeName.equals(subtype.getName())) {
                                 parentSubtype.stringValue("name").ifPresent(allNames::add);
-                                allNames.addAll(Arrays.asList(parentSubtype.stringValues("names")));
+                                allNames.addAll(Arrays.asList(parentSubtype.stringValues(NAMES)));
                                 break;
                             }
                         }
@@ -976,7 +978,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 if (name.isPresent()) {
                     return name;
                 }
-                String[] names = parentSubtype.stringValues("names");
+                String[] names = parentSubtype.stringValues(NAMES);
                 if (names.length > 0) {
                     return Optional.of(names[0]);
                 }
@@ -1095,8 +1097,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             || element.hasAnnotation("com.fasterxml.jackson.annotation.JsonRootName")) {
             return;
         }
-        String rootName = element.stringValue(JAXB_XML_ROOT_ELEMENT, "name").orElse("##default");
-        if ("##default".equals(rootName)) {
+        String rootName = element.stringValue(JAXB_XML_ROOT_ELEMENT, "name").orElse(JAXB_DEFAULT_NAME);
+        if (JAXB_DEFAULT_NAME.equals(rootName)) {
             String simpleName = element.getSimpleName();
             int nestedSeparator = simpleName.lastIndexOf('$');
             if (nestedSeparator >= 0) {
@@ -1280,14 +1282,14 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             }
             ClassElement referencedType = resolveRefType(property.getGenericType());
             AnnotationValue<?> rootElement = referencedType.getAnnotation(JAXB_XML_ROOT_ELEMENT);
-            String name = elementRef.stringValue("name").filter(value -> !"##default".equals(value))
+            String name = elementRef.stringValue("name").filter(value -> !JAXB_DEFAULT_NAME.equals(value))
                 .orElseGet(() -> rootElement == null ? NameUtils.decapitalize(referencedType.getSimpleName())
-                    : rootElement.stringValue("name").filter(value -> !"##default".equals(value))
+                    : rootElement.stringValue("name").filter(value -> !JAXB_DEFAULT_NAME.equals(value))
                         .orElseGet(() -> NameUtils.decapitalize(referencedType.getSimpleName())));
             AnnotationValue<SerdeConfig.SerSubtyped.SerSubtype> subtype = AnnotationValue
                 .builder(SerdeConfig.SerSubtyped.SerSubtype.class)
                 .member(AnnotationMetadata.VALUE_MEMBER, new AnnotationClassValue<>(referencedType.getName()))
-                .member("names", new String[] {name})
+                .member(NAMES, new String[] {name})
                 .build();
             property.annotate(SerdeConfig.SerUnwrapped.class);
             property.annotate(SerdeConfig.SerSubtyped.class, builder -> builder
@@ -1412,7 +1414,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         for (PropertyElement property : beanProperties) {
             ClassElement type = property.getGenericType();
             if (property.hasAnnotation(JAXB_XML_ELEMENT_WRAPPER)
-                && property.stringValue(JAXB_XML_ELEMENT_WRAPPER, "name").filter("##default"::equals).isPresent()) {
+                && property.stringValue(JAXB_XML_ELEMENT_WRAPPER, "name").filter(JAXB_DEFAULT_NAME::equals).isPresent()) {
                 property.annotate(SerdeConfig.class, builder -> builder.member(SerdeConfig.WRAPPER_PROPERTY, property.getName()));
             } else if ((type.isArray() || type.isAssignable(Collection.class))
                 && !property.hasAnnotation(JAXB_XML_ELEMENT_WRAPPER)

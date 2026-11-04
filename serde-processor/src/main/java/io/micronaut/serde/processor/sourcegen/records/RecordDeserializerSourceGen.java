@@ -76,6 +76,7 @@ public final class RecordDeserializerSourceGen {
     private static final String CONTEXT_PARAMETER = "context";
     private static final String KEYS_FIELD = "KEYS";
     private static final String FAIL_ON_NULL_FOR_PRIMITIVES_FIELD = "failOnNullForPrimitives";
+    private static final String FAIL_ON_NULL_FOR_PRIMITIVES_METHOD_NAME = "failOnNullForPrimitives";
     private static final String IGNORE_UNKNOWN_FIELD = "ignoreUnknown";
     private static final String STRICT_NULLABLE_FIELD = "strictNullable";
     private static final String REQUIRE_ALL_CREATOR_PARAMETERS_FIELD = "requireAllCreatorParameters";
@@ -157,7 +158,7 @@ public final class RecordDeserializerSourceGen {
     );
     private static final Method FAIL_ON_NULL_FOR_PRIMITIVES_METHOD = ReflectionUtils.getRequiredMethod(
         GeneratedSerdeExceptionUtil.class,
-        "failOnNullForPrimitives",
+        FAIL_ON_NULL_FOR_PRIMITIVES_METHOD_NAME,
         Deserializer.DecoderContext.class
     );
     private static final Method IGNORE_UNKNOWN_METHOD = ReflectionUtils.getRequiredMethod(

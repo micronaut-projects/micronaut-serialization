@@ -82,6 +82,7 @@ public final class BeanDeserializerSourceGen {
     private static final String BEAN_LOCAL = "bean";
     private static final String KEYS_FIELD = "KEYS";
     private static final String FAIL_ON_NULL_FOR_PRIMITIVES_FIELD = "failOnNullForPrimitives";
+    private static final String FAIL_ON_NULL_FOR_PRIMITIVES_METHOD_NAME = "failOnNullForPrimitives";
     private static final String IGNORE_UNKNOWN_FIELD = "ignoreUnknown";
     private static final String GENERATED_VALUE_MEMBER = "value";
     private static final String NULLAWAY_WARNING = "NullAway";
@@ -161,7 +162,7 @@ public final class BeanDeserializerSourceGen {
     );
     private static final Method FAIL_ON_NULL_FOR_PRIMITIVES_METHOD = ReflectionUtils.getRequiredMethod(
         GeneratedSerdeExceptionUtil.class,
-        "failOnNullForPrimitives",
+        FAIL_ON_NULL_FOR_PRIMITIVES_METHOD_NAME,
         Deserializer.DecoderContext.class
     );
     private static final Method IGNORE_UNKNOWN_METHOD = ReflectionUtils.getRequiredMethod(
