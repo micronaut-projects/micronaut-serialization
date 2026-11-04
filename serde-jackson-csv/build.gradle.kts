@@ -1,5 +1,3 @@
-import jdk.internal.vm.vector.VectorSupport.test
-
 plugins {
     id("io.micronaut.build.internal.serde-module")
 }
