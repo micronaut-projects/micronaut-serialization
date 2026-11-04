@@ -13,12 +13,12 @@ dependencies {
 
     compileOnly(mn.graalvm.nativeimage)
     compileOnly(mn.micronaut.jackson.databind)
+    compileOnly(libs.oracle.jdbc.driver)
 
     api(mn.micronaut.context)
     api(projects.micronautSerdeApi)
 
     implementation(projects.micronautSerdeSupport)
-    implementation(libs.oracle.jdbc.driver)
 
     testAnnotationProcessor(mn.micronaut.inject.java)
     testAnnotationProcessor(projects.micronautSerdeProcessor)
@@ -34,7 +34,7 @@ dependencies {
     testImplementation(mn.micronaut.http.client)
     testImplementation(mnTest.micronaut.test.spock)
     testImplementation(mnReactor.micronaut.reactor)
-
+    testImplementation(libs.oracle.jdbc.driver)
     testRuntimeOnly(mnTest.junit.jupiter.engine)
 }
 
