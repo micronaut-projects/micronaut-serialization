@@ -30,14 +30,31 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.SortedSet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CsvMessageHandlerTest {
+
+    @SafeVarargs
+    private static <E> Iterable<E> lazyIterable(E... values) {
+        return () -> List.of(values).iterator();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Argument<Object> argument(Class<?> type, Class<?>... parameters) {
+        return (Argument<Object>) (Argument<?>) Argument.of(type, parameters);
+    }
 
     @SuppressWarnings("unchecked")
     private CsvMapper createCsvMapper(Iterable<String> readResult) {
@@ -106,21 +123,61 @@ class CsvMessageHandlerTest {
 
     @Test
     void testReadWithIterableType() {
-        CsvMessageHandler<List<String>> codec = new CsvMessageHandler<>(createCsvMapper(List.of("Alice", "Bob")));
+        Iterable<String> values = lazyIterable("Alice", "Bob");
+        CsvMessageHandler<List<String>> codec = new CsvMessageHandler<>(createCsvMapper(values));
         ByteArrayInputStream input = new ByteArrayInputStream("name,age\nAlice,30".getBytes(StandardCharsets.UTF_8));
         Argument<List<String>> type = Argument.listOf(String.class);
         List<String> result = codec.read(type, MediaType.TEXT_CSV_TYPE, null, input);
+        assertInstanceOf(ArrayList.class, result);
         assertEquals(2, result.size());
         assertEquals("Alice", result.get(0));
         assertEquals("Bob", result.get(1));
     }
 
     @Test
+    void testReadWithSetType() {
+        Iterable<String> values = lazyIterable("Alice", "Bob");
+        CsvMessageHandler<Set<String>> codec = new CsvMessageHandler<>(createCsvMapper(values));
+        ByteArrayInputStream input = new ByteArrayInputStream("name,age\nAlice,30".getBytes(StandardCharsets.UTF_8));
+        Argument<Set<String>> type = Argument.setOf(String.class);
+        Set<String> result = codec.read(type, MediaType.TEXT_CSV_TYPE, null, input);
+        assertInstanceOf(LinkedHashSet.class, result);
+        assertEquals(Set.of("Alice", "Bob"), result);
+    }
+
+    @Test
+    void testReadWithUnsupportedIterableTypeThrows() {
+        CsvMessageHandler<Object> codec = new CsvMessageHandler<>(createCsvMapper(lazyIterable("Alice")));
+        ByteArrayInputStream input = new ByteArrayInputStream("name,age\nAlice,30".getBytes(StandardCharsets.UTF_8));
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+            () -> codec.read(argument(SortedSet.class, String.class), MediaType.TEXT_CSV_TYPE, null, input));
+        assertTrue(exception.getMessage().contains("SortedSet"));
+    }
+
+    @Test
+    void testIsReadableForSupportedTypes() {
+        CsvMessageHandler<Object> codec = new CsvMessageHandler<>(createCsvMapper(List.of()));
+        assertTrue(codec.isReadable(argument(String.class), MediaType.TEXT_CSV_TYPE));
+        assertTrue(codec.isReadable(argument(Iterable.class), MediaType.TEXT_CSV_TYPE));
+        assertTrue(codec.isReadable(argument(Collection.class, String.class), MediaType.TEXT_CSV_TYPE));
+        assertTrue(codec.isReadable(argument(List.class, String.class), MediaType.TEXT_CSV_TYPE));
+        assertTrue(codec.isReadable(argument(Set.class, String.class), MediaType.TEXT_CSV_TYPE));
+    }
+
+    @Test
+    void testIsNotReadableForUnsupportedCollectionType() {
+        CsvMessageHandler<Object> codec = new CsvMessageHandler<>(createCsvMapper(List.of()));
+        assertFalse(codec.isReadable(argument(SortedSet.class, String.class), MediaType.TEXT_CSV_TYPE));
+    }
+
+    @Test
     void testReadWithRawIterableType() {
-        CsvMessageHandler<Iterable> codec = new CsvMessageHandler<>(createCsvMapper(List.of("Alice", "Bob")));
+        Iterable<String> values = lazyIterable("Alice", "Bob");
+        CsvMessageHandler<Iterable> codec = new CsvMessageHandler<>(createCsvMapper(values));
         ByteArrayInputStream input = new ByteArrayInputStream("name,age\nAlice,30".getBytes(StandardCharsets.UTF_8));
         Argument<Iterable> type = Argument.of(Iterable.class);
         Iterable<?> result = codec.read(type, MediaType.TEXT_CSV_TYPE, null, input);
+        assertSame(values, result);
         var iterator = result.iterator();
         assertEquals("Alice", iterator.next());
         assertEquals("Bob", iterator.next());

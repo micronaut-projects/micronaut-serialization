@@ -41,12 +41,39 @@ abstract class AbstractCsvMessageHandlerSpec extends Specification {
         def codec = createCodec()
         def input = new ByteArrayInputStream("name,age\nAlice,30".getBytes())
         def type = (Argument<Object>) (Argument<?>) Argument.of(List, Map)
-        def result = codec.read(type, new MediaType("text/csv"), null, input) as List<Map<String, String>>
+        def result = codec.read(type, new MediaType("text/csv"), null, input)
 
         then:
+        result instanceof List
         result.size() == 1
         result[0]["name"] == "Alice"
         result[0]["age"] == "30"
+    }
+
+    void "read with set type"() {
+        when:
+        def codec = createCodec()
+        def input = new ByteArrayInputStream("name,age\nAlice,30".getBytes())
+        def type = (Argument<Object>) (Argument<?>) Argument.of(Set, Map)
+        def result = codec.read(type, new MediaType("text/csv"), null, input)
+        def entry = result.iterator().next()
+
+        then:
+        result instanceof LinkedHashSet
+        result.size() == 1
+        entry["name"] == "Alice"
+        entry["age"] == "30"
+    }
+
+    void "unsupported collection types are not readable"() {
+        when:
+        def codec = createCodec()
+        def list = (Argument<Object>) (Argument<?>) Argument.of(List, String)
+        def sortedSet = (Argument<Object>) (Argument<?>) Argument.of(SortedSet, String)
+
+        then:
+        codec.isReadable(list, new MediaType("text/csv"))
+        !codec.isReadable(sortedSet, new MediaType("text/csv"))
     }
 
     void "write to output stream"() {

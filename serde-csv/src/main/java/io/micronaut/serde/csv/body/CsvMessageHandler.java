@@ -44,7 +44,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 
 /**
  * {@link MessageBodyHandler} that encodes and decodes CSV using the {@link CsvObjectMapper}.
@@ -70,6 +72,12 @@ public final class CsvMessageHandler<T> implements MessageBodyHandler<T> {
     }
 
     @Override
+    public boolean isReadable(Argument<T> type, @Nullable MediaType mediaType) {
+        Class<?> rawType = type.getType();
+        return !Iterable.class.isAssignableFrom(rawType) || isSupportedCollection(rawType);
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public T read(Argument<T> type, @Nullable MediaType mediaType, @Nullable Headers httpHeaders, InputStream inputStream) {
         Charset charset = mediaType != null
@@ -81,7 +89,7 @@ public final class CsvMessageHandler<T> implements MessageBodyHandler<T> {
         try {
             Iterable<T> values = decode(inputStream, charset, elementType);
             if (iterable) {
-                return (T) values;
+                return (T) materialize(values, rawType);
             }
             CsvFormatConfig config = CsvIntrospection.formatFor(elementType);
             Iterator<T> iterator = values.iterator();
@@ -101,6 +109,41 @@ public final class CsvMessageHandler<T> implements MessageBodyHandler<T> {
     @SuppressWarnings("unchecked")
     private <E> Iterable<T> decode(InputStream inputStream, Charset charset, Class<E> elementType) throws CsvException {
         return (Iterable<T>) csvMapper.read(inputStream, charset, elementType);
+    }
+
+    /**
+     * Adapts the backend's lazy {@link Iterable} to the requested collection type. A raw
+     * {@link Iterable} request keeps the lazy result, while {@link java.util.List} and
+     * {@link java.util.Set} requests are materialized so the returned value is assignable to the
+     * declared type.
+     *
+     * @param values  The decoded values
+     * @param rawType The requested raw type
+     * @param <V>     The element type
+     * @return A value assignable to the requested type
+     */
+    private static <V> Iterable<V> materialize(Iterable<V> values, Class<?> rawType) {
+        if (!isSupportedCollection(rawType)) {
+            throw new IllegalArgumentException("Cannot decode CSV to " + rawType.getName()
+                + "; supported collection types are Iterable, Collection, List and Set");
+        }
+        if (rawType == Iterable.class) {
+            return values;
+        }
+        if (rawType.isAssignableFrom(ArrayList.class)) {
+            ArrayList<V> result = new ArrayList<>();
+            values.forEach(result::add);
+            return result;
+        }
+        LinkedHashSet<V> result = new LinkedHashSet<>();
+        values.forEach(result::add);
+        return result;
+    }
+
+    private static boolean isSupportedCollection(Class<?> rawType) {
+        return rawType == Iterable.class
+            || rawType.isAssignableFrom(ArrayList.class)
+            || rawType.isAssignableFrom(LinkedHashSet.class);
     }
 
     @Override
