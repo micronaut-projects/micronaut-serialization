@@ -20,6 +20,7 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Serde;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonGeneratorEncoder;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder;
+import io.micronaut.serde.oracle.jdbc.json.OracleOsonDecoder;
 import io.micronaut.serde.support.serdes.LocalDateTimeSerde;
 import jakarta.inject.Singleton;
 
@@ -42,6 +43,11 @@ public class OracleJsonLocaleDateTimeSerde extends AbstractOracleJsonSerde<Local
 
     @Override
     protected LocalDateTime doDeserializeNonNull(OracleJdbcJsonParserDecoder decoder, DecoderContext decoderContext, Argument<? super LocalDateTime> type) {
+        return decoder.decodeLocalDateTime();
+    }
+
+    @Override
+    protected LocalDateTime doDeserializeNonNull(OracleOsonDecoder decoder, DecoderContext decoderContext, Argument<? super LocalDateTime> type) {
         return decoder.decodeLocalDateTime();
     }
 
