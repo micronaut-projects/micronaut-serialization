@@ -35,6 +35,7 @@ import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,13 +65,36 @@ public final class ApacheCommonsCsvMapper extends CommonsCsvMapperBase {
             || BigDecimal.class.isAssignableFrom(type);
     }
 
-    private static @Nullable Class<?> firstElementType(Iterable<?> values) {
+    private static <T> PeekedValues<T> peek(Iterable<T> values) {
         if (values instanceof Collection<?> collection) {
             for (Object value : collection) {
-                return value == null ? null : value.getClass();
+                return new PeekedValues<>(values, value == null ? null : value.getClass());
             }
+            return new PeekedValues<>(values, null);
         }
-        return null;
+        Iterator<T> iterator = values.iterator();
+        if (!iterator.hasNext()) {
+            return new PeekedValues<>(List.of(), null);
+        }
+        T first = iterator.next();
+        Iterable<T> replay = () -> new Iterator<>() {
+            private boolean firstPending = true;
+
+            @Override
+            public boolean hasNext() {
+                return firstPending || iterator.hasNext();
+            }
+
+            @Override
+            public T next() {
+                if (firstPending) {
+                    firstPending = false;
+                    return first;
+                }
+                return iterator.next();
+            }
+        };
+        return new PeekedValues<>(replay, first == null ? null : first.getClass());
     }
 
     private static CsvFormatConfig configFor(@Nullable Class<?> type) {
@@ -105,7 +129,8 @@ public final class ApacheCommonsCsvMapper extends CommonsCsvMapperBase {
     @Override
     public String writeToString(Iterable<?> values) throws CsvException {
         try {
-            return csvEncoder.encodeToString(convertToMapIterable(values), configFor(firstElementType(values)));
+            PeekedValues<?> peeked = peek(values);
+            return csvEncoder.encodeToString(convertToMapIterable(peeked.values()), configFor(peeked.firstType()));
         } catch (RuntimeException e) {
             if (e.getCause() instanceof CsvException csvException) {
                 throw csvException;
@@ -117,7 +142,8 @@ public final class ApacheCommonsCsvMapper extends CommonsCsvMapperBase {
     @Override
     public String writeToString(Iterable<?> values, Collection<String> header) throws CsvException {
         try {
-            return csvEncoder.encodeToString(convertToMapIterable(values), header, configFor(firstElementType(values)));
+            PeekedValues<?> peeked = peek(values);
+            return csvEncoder.encodeToString(convertToMapIterable(peeked.values()), header, configFor(peeked.firstType()));
         } catch (RuntimeException e) {
             if (e.getCause() instanceof CsvException csvException) {
                 throw csvException;
@@ -192,5 +218,8 @@ public final class ApacheCommonsCsvMapper extends CommonsCsvMapperBase {
             return CsvRecordMappings.toColumnMap(config, collapsed);
         }
         throw new CsvMappingException("Cannot convert " + record + " to a CSV record.", record.getClass());
+    }
+
+    private record PeekedValues<T>(Iterable<T> values, @Nullable Class<?> firstType) {
     }
 }

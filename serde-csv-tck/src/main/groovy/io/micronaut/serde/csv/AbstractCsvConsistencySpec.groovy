@@ -211,6 +211,21 @@ abstract class AbstractCsvConsistencySpec extends Specification {
         line == ["Alice", null]
     }
 
+    void "lazy iterable resolves the element csv format"() {
+        given:
+        def value = new CsvWithNullAndTrim("Alice", null)
+        Iterable<CsvWithNullAndTrim> values = () -> List.of(value).iterator()
+        Iterable<CsvWithNullAndTrim> headerValues = () -> List.of(value).iterator()
+
+        when:
+        def csv = mapper.writeToString(values)
+        def withHeader = mapper.writeToString(headerValues, ["name", "age"])
+
+        then:
+        csv.trim() == "name,age\nAlice,NULL"
+        withHeader.trim() == "name,age\nAlice,NULL"
+    }
+
     void "CsvFormat with trim trims whitespace when reading"() {
         when:
         def values = mapper.readAll("name,age\n  Alice  , 30  \n", CsvWithNullAndTrim).toList()
