@@ -24,7 +24,7 @@ class CommonsCsvEncoderSpec extends Specification {
         def result = defaultEncoder.encodeToString(values, ["name", "age"], DEFAULT_CONFIG)
 
         then:
-        result.trim().split('\n').size() == 2
+        result.trim().split('\n').size() == 3
         result.contains("Alice,30")
         result.contains("Bob,25")
     }
@@ -46,6 +46,6 @@ class CommonsCsvEncoderSpec extends Specification {
         def result = defaultEncoder.encodeToString([[name: "Alice", age: "30"]], ["name", "age"], DEFAULT_CONFIG)
 
         then:
-        result.trim() == "Alice,30"
+        result.trim() == "name,age\nAlice,30"
     }
 }

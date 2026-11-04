@@ -91,7 +91,7 @@ public final class DefaultCsvEncoder extends AbstractCsvEncoder implements MapTo
     public String encodeToString(Iterable<?> values, Collection<String> header, CsvFormatConfig config) throws CsvException {
         @SuppressWarnings("unchecked")
         Iterable<Map<String, @Nullable String>> mapValues = (Iterable<Map<String, @Nullable String>>) values;
-        return encodeRawLinesToString(CsvFormats.format(config, true), header.toArray(new String[0]), mapValues);
+        return encodeRawLinesToString(CsvFormats.format(config, header), header.toArray(new String[0]), mapValues);
     }
 
     @Override
