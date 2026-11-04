@@ -26,7 +26,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Support logic for creating {@link Keys} instances.
@@ -35,6 +34,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @since 3.1
  */
 @Internal
+@SuppressWarnings({"java:S3077", "java:S6218"}) // Keep the volatile array snapshot for the hot lookup path.
 public final class KeysSupport {
 
     private static final Object[][] EMPTY_CONTRIBUTIONS = new Object[0][];
@@ -153,7 +153,7 @@ public final class KeysSupport {
         private final List<KeyDescriptor> descriptors;
         private final boolean caseInsensitive;
         private final StringIntMap keyToIndex;
-        private final AtomicReference<Object[][]> contributedKeys;
+        private volatile Object[][] contributedKeys;
 
         private DefaultKeys(List<String> keys,
                             @Nullable List<KeyDescriptor> descriptors,
@@ -169,7 +169,7 @@ public final class KeysSupport {
                     keyToIndex.put(key, i);
                 }
             }
-            this.contributedKeys = new AtomicReference<>(contributedKeys);
+            this.contributedKeys = contributedKeys;
         }
 
         @Override
@@ -184,7 +184,7 @@ public final class KeysSupport {
         }
 
         private Object[] get(int keysIndex) {
-            Object[][] contributions = Objects.requireNonNull(contributedKeys.get());
+            Object[][] contributions = contributedKeys;
             if (keysIndex < contributions.length) {
                 Object[] contribution = contributions[keysIndex];
                 if (contribution != null) {
@@ -195,7 +195,7 @@ public final class KeysSupport {
         }
 
         private synchronized Object[] createLateContribution(int keysIndex) {
-            Object[][] contributions = Objects.requireNonNull(contributedKeys.get());
+            Object[][] contributions = contributedKeys;
             if (keysIndex < contributions.length && contributions[keysIndex] != null) {
                 return contributions[keysIndex];
             }
@@ -209,7 +209,7 @@ public final class KeysSupport {
             );
             Object[][] expanded = Arrays.copyOf(contributions, Math.max(contributions.length, keysIndex + 1));
             expanded[keysIndex] = contribution;
-            contributedKeys.set(expanded);
+            contributedKeys = expanded;
             return contribution;
         }
 
