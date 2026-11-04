@@ -8,7 +8,7 @@ class CsvFormatsSpec extends Specification {
         expect:
         def format = CsvFormats.DEFAULT
         format.getIgnoreEmptyLines()
-        format.getCommentMarker() == '#'
+        format.getCommentMarker() == null
         format.getNullString() == ""
         format.getSkipHeaderRecord()
     }

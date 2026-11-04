@@ -35,7 +35,7 @@ import java.util.Collection;
 public final class CsvFormats {
 
     /**
-     * Default format with a header row, skipped on read, {@code #} comment marker and empty string nulls.
+     * Default format with a header row, skipped on read and empty string nulls.
      */
     public static final CSVFormat DEFAULT = CSVFormat.DEFAULT
         .builder()
@@ -43,7 +43,6 @@ public final class CsvFormats {
         .setHeader()
         .setSkipHeaderRecord(true)
         .setNullString("")
-        .setCommentMarker('#')
         .get();
 
     private CsvFormats() {
@@ -131,7 +130,7 @@ public final class CsvFormats {
     }
 
     private static CSVFormat.Builder apply(CsvFormatConfig config) {
-        return CSVFormat.DEFAULT
+        CSVFormat.Builder builder = CSVFormat.DEFAULT
             .builder()
             .setDelimiter(config.delimiter())
             .setQuote(config.quote())
@@ -141,5 +140,9 @@ public final class CsvFormats {
             .setIgnoreEmptyLines(config.skipEmptyLines())
             .setIgnoreSurroundingSpaces(config.trim())
             .setQuoteMode(QuoteMode.MINIMAL);
+        if (config.allowComments()) {
+            builder.setCommentMarker('#');
+        }
+        return builder;
     }
 }

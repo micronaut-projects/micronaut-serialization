@@ -25,6 +25,6 @@ class CsvFormatsTest {
     void testDefaultFormatHasExpectedSettings() {
         var format = CsvFormats.DEFAULT;
         assertEquals("", format.getNullString());
-        assertEquals('#', format.getCommentMarker());
+        assertEquals(null, format.getCommentMarker());
     }
 }

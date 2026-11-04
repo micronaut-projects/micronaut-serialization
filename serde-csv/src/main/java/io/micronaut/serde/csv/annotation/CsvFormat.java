@@ -76,6 +76,15 @@ public @interface CsvFormat {
     String[] columns() default {};
 
     /**
+     * Whether lines starting with {@code #} are treated as comments and skipped while reading.
+     * Both backends support only {@code #} as the comment marker, so this is a boolean flag
+     * rather than a configurable character, keeping behavior consistent across backends.
+     *
+     * @return {@code true} to enable comment parsing
+     */
+    boolean allowComments() default false;
+
+    /**
      * The delimiter separating columns. Defaults to a comma.
      *
      * @return The delimiter

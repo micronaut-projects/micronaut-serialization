@@ -295,6 +295,21 @@ abstract class AbstractCsvConsistencySpec extends Specification {
         values == [new Person("Alice", 30)]
     }
 
+    void "does not treat lines starting with # as comments"() {
+        when:
+        def values = mapper.readAll("name,age\n#Alice,30\nBob,25\n", Person).toList()
+
+        then:
+        values == [new Person("#Alice", 30), new Person("Bob", 25)]
+    }
+
+    void "explicit comment marker skips comment lines"() {
+        when:
+        def values = mapper.readAll("name,age\n#Alice,30\nBob,25\n", CsvWithComments).toList()
+
+        then:
+        values == [new CsvWithComments("Bob", 25)]
+    }
     void "reads a single line by column position"() {
         when:
         def value = mapper.read(["Alice", "30"], Person)

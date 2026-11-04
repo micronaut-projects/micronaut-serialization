@@ -37,6 +37,7 @@ import java.util.Map;
  * @param escape          The escape character
  * @param lineSeparator   The line separator
  * @param nullValue       The value representing {@code null}
+ * @param allowComments  Whether lines starting with {@code #} are treated as comments while reading
  * @param skipEmptyLines  Whether empty lines are skipped while reading
  * @param trim            Whether column values are trimmed
  * @param shape           The record shape constraint
@@ -54,6 +55,7 @@ public record CsvFormatConfig(
     char escape,
     String lineSeparator,
     String nullValue,
+    boolean allowComments,
     boolean skipEmptyLines,
     boolean trim,
     CsvFormat.Shape shape,
@@ -74,6 +76,7 @@ public record CsvFormatConfig(
         '"',
         "\n",
         "",
+        false,
         true,
         false,
         CsvFormat.Shape.INFER,
@@ -111,6 +114,7 @@ public record CsvFormatConfig(
             format.contains("escape") ? format.charValue("escape").orElse(nested.escape()) : nested.escape(),
             format.contains("lineSeparator") ? format.stringValue("lineSeparator").orElse(nested.lineSeparator()) : nested.lineSeparator(),
             format.contains("nullValue") ? format.stringValue("nullValue").orElse(nested.nullValue()) : nested.nullValue(),
+            format.contains("allowComments") ? format.booleanValue("allowComments").orElse(nested.allowComments()) : nested.allowComments(),
             format.contains("skipEmptyLines") ? format.booleanValue("skipEmptyLines").orElse(nested.skipEmptyLines()) : nested.skipEmptyLines(),
             format.contains("trim") ? format.booleanValue("trim").orElse(nested.trim()) : nested.trim(),
             format.contains("shape") ? format.enumValue("shape", CsvFormat.Shape.class).orElse(nested.shape()) : nested.shape(),
@@ -167,6 +171,7 @@ public record CsvFormatConfig(
             escape,
             lineSeparator,
             nullValue,
+            allowComments,
             skipEmptyLines,
             trim,
             shape,
@@ -192,6 +197,7 @@ public record CsvFormatConfig(
             escape,
             lineSeparator,
             nullValue,
+            allowComments,
             skipEmptyLines,
             trim,
             shape,

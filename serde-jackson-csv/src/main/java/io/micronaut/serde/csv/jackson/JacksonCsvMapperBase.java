@@ -87,11 +87,15 @@ abstract class JacksonCsvMapperBase extends AbstractCsvMapper {
     protected tools.jackson.databind.ObjectReader mapReader(CsvFormatConfig config) {
         tools.jackson.databind.ObjectReader reader = csvMapper.readerForMapOf(String.class).with(readSchema(config));
         if (config.skipEmptyLines()) {
-            reader = reader.with(tools.jackson.dataformat.csv.CsvReadFeature.SKIP_EMPTY_LINES)
-                .with(tools.jackson.dataformat.csv.CsvReadFeature.ALLOW_COMMENTS);
+            reader = reader.with(tools.jackson.dataformat.csv.CsvReadFeature.SKIP_EMPTY_LINES);
         } else {
-            reader = reader.without(tools.jackson.dataformat.csv.CsvReadFeature.SKIP_EMPTY_LINES)
-                .without(tools.jackson.dataformat.csv.CsvReadFeature.ALLOW_COMMENTS);
+            reader = reader.without(tools.jackson.dataformat.csv.CsvReadFeature.SKIP_EMPTY_LINES);
+        }
+        if (config.allowComments()) {
+            // Both backends only support '#' as the comment marker.
+            reader = reader.with(tools.jackson.dataformat.csv.CsvReadFeature.ALLOW_COMMENTS);
+        } else {
+            reader = reader.without(tools.jackson.dataformat.csv.CsvReadFeature.ALLOW_COMMENTS);
         }
         if (config.trim()) {
             reader = reader.with(tools.jackson.dataformat.csv.CsvReadFeature.TRIM_SPACES)
