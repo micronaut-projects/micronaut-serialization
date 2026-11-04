@@ -48,6 +48,22 @@ abstract class AbstractCsvConsistencySpec extends Specification {
         values == [new CsvMappedNoFormat("C", "A", null, "B")]
     }
 
+    void "json property order does not bypass csv ignores and renames"() {
+        given:
+        def value = new CsvJsonOrdered("Alice", "S3CR3T-TOKEN", "1")
+
+        when:
+        def csv = mapper.writeToString([value])
+        def line = mapper.writeAsLine(value)
+        def values = mapper.readAll("display_name,id\nAlice,1\n", CsvJsonOrdered).toList()
+
+        then:
+        csv.trim() == "Alice,1"
+        !csv.contains("S3CR3T-TOKEN")
+        line == ["Alice", "1"]
+        values == [new CsvJsonOrdered("Alice", null, "1")]
+    }
+
     void "write as line uses the configured column order"() {
         when:
         def line = mapper.writeAsLine(new CsvMappedNoFormat("C", "A", "ignored", "B"))

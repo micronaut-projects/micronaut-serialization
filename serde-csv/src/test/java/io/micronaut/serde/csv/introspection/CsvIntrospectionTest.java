@@ -17,6 +17,7 @@ package io.micronaut.serde.csv.introspection;
 
 import io.micronaut.serde.csv.CsvExplicitColumns;
 import io.micronaut.serde.csv.CsvFormatted;
+import io.micronaut.serde.csv.CsvJsonPropertyOrder;
 import io.micronaut.serde.csv.CsvNestedProperty;
 import io.micronaut.serde.csv.CsvOrdered;
 import io.micronaut.serde.csv.Person;
@@ -59,6 +60,13 @@ class CsvIntrospectionTest {
         CsvFormatConfig config = CsvIntrospection.formatFor(CsvOrdered.class);
         assertEquals(List.of("a_renamed", "b", "c"), config.columns());
         assertEquals(List.of("a", "b", "c"), config.propertyNames());
+    }
+
+    @Test
+    void appliesJsonPropertyOrderWithoutBypassingCsvIgnoresAndRenames() {
+        CsvFormatConfig config = CsvIntrospection.formatFor(CsvJsonPropertyOrder.class);
+        assertEquals(List.of("display_name", "id"), config.columns());
+        assertEquals(List.of("name", "id"), config.propertyNames());
     }
 
     @Test

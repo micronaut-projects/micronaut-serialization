@@ -166,11 +166,6 @@ public final class CsvIntrospection {
             List<String> columns = List.of(configuredColumns);
             return new ResolvedColumns(columns, columns);
         }
-        String[] unifiedOrder = metadata.stringValues(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER);
-        if (unifiedOrder.length > 0) {
-            List<String> columns = List.of(unifiedOrder);
-            return new ResolvedColumns(columns, columns);
-        }
         List<Column> columns = new ArrayList<>();
         int index = 0;
         for (BeanProperty<?, ?> property : introspection.getBeanProperties()) {
@@ -181,19 +176,25 @@ public final class CsvIntrospection {
                 index++;
                 continue;
             }
+            String originalName = property.getName();
             String propertyName = property.getAnnotationMetadata()
                 .stringValue(SerdeConfig.class, SerdeConfig.PROPERTY)
                 .filter(value -> !value.isEmpty())
-                .orElse(property.getName());
+                .orElse(originalName);
             String name = propertyName;
             int order = -1;
             if (csvProperty != null) {
                 name = csvProperty.stringValue("name").filter(value -> !value.isEmpty()).orElse(name);
                 order = csvProperty.intValue("order").orElse(-1);
             }
-            columns.add(new Column(name, propertyName, order, index++));
+            columns.add(new Column(name, propertyName, originalName, order, index++));
         }
-        sort(columns);
+        String[] unifiedOrder = metadata.stringValues(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER);
+        if (unifiedOrder.length > 0) {
+            sortByPropertyOrder(columns, unifiedOrder);
+        } else {
+            sort(columns);
+        }
         List<String> names = new ArrayList<>(columns.size());
         List<String> propertyNames = new ArrayList<>(columns.size());
         for (Column column : columns) {
@@ -201,6 +202,27 @@ public final class CsvIntrospection {
             propertyNames.add(column.propertyName());
         }
         return new ResolvedColumns(List.copyOf(names), List.copyOf(propertyNames));
+    }
+
+    private static void sortByPropertyOrder(List<Column> columns, String[] order) {
+        Set<String> serializedNames = new HashSet<>(columns.size());
+        for (Column column : columns) {
+            serializedNames.add(column.propertyName());
+        }
+        columns.sort(Comparator
+            .comparingInt((Column column) -> propertyOrderIndex(order, column, serializedNames))
+            .thenComparingInt(Column::index));
+    }
+
+    private static int propertyOrderIndex(String[] order, Column column, Set<String> serializedNames) {
+        for (int i = 0; i < order.length; i++) {
+            String entry = order[i];
+            if (column.propertyName().equals(entry)
+                || (column.originalName().equals(entry) && !serializedNames.contains(entry))) {
+                return i;
+            }
+        }
+        return Integer.MAX_VALUE;
     }
 
     private static void sort(List<Column> columns) {
@@ -222,7 +244,7 @@ public final class CsvIntrospection {
         return BeanIntrospector.SHARED.findIntrospection(type).orElse(null);
     }
 
-    private record Column(String name, String propertyName, int order, int index) {
+    private record Column(String name, String propertyName, String originalName, int order, int index) {
     }
 
     private record ResolvedColumns(List<String> columns, List<String> propertyNames) {
