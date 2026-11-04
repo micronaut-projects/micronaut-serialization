@@ -34,6 +34,7 @@ import java.util.Objects;
  * @since 3.1
  */
 @Internal
+@SuppressWarnings({"java:S3077", "java:S6218"}) // Keep the volatile array snapshot for the hot lookup path.
 public final class KeysSupport {
 
     private static final Object[][] EMPTY_CONTRIBUTIONS = new Object[0][];
