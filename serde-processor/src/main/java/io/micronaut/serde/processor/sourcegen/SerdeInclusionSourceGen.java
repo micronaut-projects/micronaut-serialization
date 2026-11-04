@@ -19,6 +19,7 @@ import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.inject.ast.ClassElement;
+import io.micronaut.inject.ast.MethodElement;
 import io.micronaut.inject.ast.PropertyElement;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.annotation.SerdeConfig;
@@ -133,6 +134,28 @@ public final class SerdeInclusionSourceGen {
             .or(() -> property.getReadMethod().flatMap(method -> includeValue(method.getAnnotationMetadata())))
             .or(() -> property.getWriteMethod().flatMap(method -> includeValue(method.getAnnotationMetadata())))
             .or(() -> property.getField().flatMap(field -> includeValue(field.getAnnotationMetadata())))
+            .or(() -> includeValue(element.getAnnotationMetadata()))
+            .or(() -> includeValue(element.getPackage().getAnnotationMetadata()))
+            .orElse(null);
+        return include == SerdeConfig.SerInclude.USE_DEFAULTS ? null : include;
+    }
+
+    /**
+     * Resolves the inclusion of a getter method at build time, the way the runtime serializer resolves
+     * it from the method, the type and the package.
+     *
+     * @param element     The serialized type
+     * @param method      The getter method
+     * @param keyMetadata The metadata contributed with the key
+     * @return The inclusion, or {@code null} when the runtime configuration decides
+     */
+    public static SerdeConfig.@Nullable SerInclude resolveMethodInclude(ClassElement element,
+                                                                       MethodElement method,
+                                                                       Map<String, String> keyMetadata) {
+        if (Boolean.parseBoolean(keyMetadata.get(SerdeConfig.XML_NILLABLE)) || keyMetadata.containsKey(SerdeConfig.XML_WRAPPER_NILLABLE)) {
+            return SerdeConfig.SerInclude.ALWAYS;
+        }
+        SerdeConfig.SerInclude include = includeValue(method.getAnnotationMetadata())
             .or(() -> includeValue(element.getAnnotationMetadata()))
             .or(() -> includeValue(element.getPackage().getAnnotationMetadata()))
             .orElse(null);

@@ -25,6 +25,7 @@ import io.micronaut.inject.ast.PropertyElement;
 import io.micronaut.inject.ast.PropertyElementQuery;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.processor.sourcegen.SerdeInclusionSourceGen;
+import io.micronaut.serde.processor.sourcegen.SerdeSourceGenGetterMethods;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenPropertyOrder;
 import io.micronaut.serde.util.SerdePropertyAccess;
 import org.jspecify.annotations.Nullable;
@@ -64,6 +65,10 @@ public final class BeanSerdeShapeResolver {
                 return Optional.empty();
             }
         }
+        List<String> serializedNames = serializationProperties.stream().map(named -> named.property().name()).toList();
+        SerdeSourceGenGetterMethods.resolve(element, beanProperties, serializedNames).stream()
+            .map(getterMethod -> new NamedProperty(getterMethod.originalName(), getterProperty(getterMethod)))
+            .forEach(serializationProperties::add);
         List<BeanSerdeShape.BeanProperty> orderedSerializationProperties = SerdeSourceGenPropertyOrder.order(
             element,
             serializationProperties,
@@ -229,6 +234,28 @@ public final class BeanSerdeShapeResolver {
             propertyAccess.readField(),
             propertyAccess.writeField()
         ));
+    }
+
+    /**
+     * A getter method is written like a read-only property whose value the method returns.
+     */
+    private static BeanSerdeShape.BeanProperty getterProperty(SerdeSourceGenGetterMethods.GetterMethod getterMethod) {
+        MethodElement method = getterMethod.method();
+        return new BeanSerdeShape.BeanProperty(
+            getterMethod.serializedName(),
+            getterMethod.type(),
+            getterMethod.type(),
+            method.isNonNull(),
+            method.isNullable(),
+            getterMethod.keyMetadata(),
+            getterMethod.include(),
+            false,
+            List.of(),
+            method,
+            null,
+            null,
+            null
+        );
     }
 
     private static Map<String, String> resolveKeyMetadata(PropertyElement property) {
