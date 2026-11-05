@@ -16,9 +16,10 @@
 package io.micronaut.serde.csv
 
 import io.micronaut.serde.csv.error.CsvException
-import io.micronaut.serde.csv.mapper.CsvMapper
+import io.micronaut.serde.csv.CsvObjectMapper
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.nio.charset.StandardCharsets
@@ -27,7 +28,7 @@ import java.nio.charset.StandardCharsets
 abstract class AbstractCsvConsistencySpec extends Specification {
 
     @Inject
-    CsvMapper mapper
+    CsvObjectMapper mapper
 
     void "csv property rename order and ignore are honored when writing"() {
         when:

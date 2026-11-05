@@ -18,6 +18,7 @@ package io.micronaut.serde.csv;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.serde.csv.annotation.CsvProperty;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Test fixture combining a JSON property order with CSV renames and exclusions.
@@ -26,7 +27,7 @@ import io.micronaut.serde.csv.annotation.CsvProperty;
 @JsonPropertyOrder({"name", "secret"})
 public record CsvJsonOrdered(
     @CsvProperty(name = "display_name") String name,
-    @CsvProperty(ignore = true) String secret,
+    @CsvProperty(ignore = true) @Nullable String secret,
     String id
 ) {
 }

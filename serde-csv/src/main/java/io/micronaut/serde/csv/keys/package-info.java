@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 /**
- * CSV serde support for Micronaut Serialization.
+ * CSV bean introspection helpers for Micronaut Serialization.
  */
 @NullMarked
-package io.micronaut.serde.csv.serde;
+package io.micronaut.serde.csv.keys;
 
 import org.jspecify.annotations.NullMarked;

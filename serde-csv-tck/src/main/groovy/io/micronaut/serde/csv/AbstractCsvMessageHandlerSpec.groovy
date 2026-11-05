@@ -17,8 +17,8 @@ package io.micronaut.serde.csv
 
 import io.micronaut.core.type.Argument
 import io.micronaut.http.MediaType
+import io.micronaut.serde.csv.CsvObjectMapper
 import io.micronaut.serde.csv.body.CsvMessageHandler
-import io.micronaut.serde.csv.mapper.CsvMapper
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 import spock.lang.Specification
@@ -30,10 +30,10 @@ import java.nio.charset.StandardCharsets
 abstract class AbstractCsvMessageHandlerSpec extends Specification {
 
     @Inject
-    CsvMapper csvMapper
+    CsvObjectMapper csvObjectMapper
 
     private CsvMessageHandler<Object> createCodec() {
-        new CsvMessageHandler<>(csvMapper)
+        new CsvMessageHandler<>(csvObjectMapper)
     }
 
     void "read with iterable type"() {

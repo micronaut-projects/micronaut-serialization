@@ -17,13 +17,14 @@ package io.micronaut.serde.csv.error;
 
 import org.jspecify.annotations.Nullable;
 
+import java.io.IOException;
 import java.io.Serial;
 
 /**
  * Base exception for CSV serialization/deserialization errors.
  * @since 3.2.5
  */
-public class CsvException extends Exception {
+public class CsvException extends IOException {
 
     @Serial
     private static final long serialVersionUID = 1L;

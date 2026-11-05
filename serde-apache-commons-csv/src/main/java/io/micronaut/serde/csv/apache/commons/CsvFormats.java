@@ -90,6 +90,19 @@ public final class CsvFormats {
     }
 
     /**
+     * Builds a parser {@link CSVFormat} for a single inline record. Header handling is not
+     * applied because an inline record never contains a header.
+     *
+     * @param config The resolved CSV format
+     * @return The Apache Commons CSV format
+     */
+    public static CSVFormat parseLineFormat(CsvFormatConfig config) {
+        return apply(config)
+            .setIgnoreEmptyLines(false)
+            .get();
+    }
+
+    /**
      * Builds a printer {@link CSVFormat} from a resolved {@link CsvFormatConfig}. The header
      * is attached when {@link CsvFormatConfig#writeHeader()} is {@code true}.
      *

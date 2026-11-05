@@ -177,11 +177,12 @@ public final class CsvIntrospection {
                 continue;
             }
             String originalName = property.getName();
-            String propertyName = property.getAnnotationMetadata()
+            String serialized = property.getAnnotationMetadata()
                 .stringValue(SerdeConfig.class, SerdeConfig.PROPERTY)
                 .filter(value -> !value.isEmpty())
                 .orElse(originalName);
-            String name = propertyName;
+            String propertyName = originalName;
+            String name = serialized;
             int order = -1;
             if (csvProperty != null) {
                 name = csvProperty.stringValue("name").filter(value -> !value.isEmpty()).orElse(name);

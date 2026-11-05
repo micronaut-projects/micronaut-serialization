@@ -20,9 +20,6 @@ dependencies {
     implementation(projects.micronautSerdeSupport)
     implementation(libs.managed.jackson.dataformat.csv)
 
-    testAnnotationProcessor(mn.micronaut.inject.java)
-    testAnnotationProcessor(projects.micronautSerdeProcessor)
-
     testCompileOnly(mn.micronaut.inject.groovy)
 
     testImplementation(projects.micronautSerdeProcessor)

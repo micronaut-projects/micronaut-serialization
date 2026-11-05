@@ -16,7 +16,7 @@ dependency:micronaut-serde-jackson-csv[groupId="io.micronaut.serde",scope="imple
 
 NOTE: This backend honors Jackson annotations rather than Micronaut Serialization's build-time serializers. Column names, order, empty-line handling, trimming, and null values follow `@CsvFormat` and `@CsvProperty`, the same as the Apache Commons CSV backend.
 
-TIP: Add only one backend to an application. Both modules depend on `micronaut-serde-csv`, which provides the api:serde.csv.mapper.CsvMapper[] bean contract, the ann:serde.csv.annotation.CsvFormat[] and ann:serde.csv.annotation.CsvProperty[] annotations, and the HTTP message body handler.
+TIP: Add only one backend to an application. Both modules depend on `micronaut-serde-csv`, which provides the api:serde.csv.CsvObjectMapper[] bean contract, the ann:serde.csv.annotation.CsvFormat[] and ann:serde.csv.annotation.CsvProperty[] annotations, and the HTTP message body handler.
 
 With a backend in place you can define an object to be serialized:
 
@@ -25,7 +25,7 @@ snippet::example.Person[project-base="doc-examples/example-csv", source="main"]
 <1> ann:serde.annotation.Serdeable[] enables Micronaut Serialization's build-time serializers and deserializers. The Apache Commons CSV backend uses them for object mapping; the Jackson CSV backend uses Jackson Databind.
 <2> ann:serde.csv.annotation.CsvFormat[] configures the CSV layout; here a header row is written and expected when reading
 
-Inject api:serde.csv.mapper.CsvMapper[] to read and write CSV. By default, column names come from the introspected property names and follow the declaration order:
+Inject api:serde.csv.CsvObjectMapper[] to read and write CSV. By default, column names come from the introspected property names and follow the declaration order:
 
 snippet::example.PersonTest[project-base="doc-examples/example-csv"]
 

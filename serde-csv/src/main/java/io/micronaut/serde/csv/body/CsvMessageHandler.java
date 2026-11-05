@@ -24,16 +24,11 @@ import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.Consumes;
 import io.micronaut.http.annotation.Produces;
 import io.micronaut.http.body.MessageBodyHandler;
-import io.micronaut.serde.csv.annotation.CsvFormat;
-import io.micronaut.serde.csv.error.CsvException;
-import io.micronaut.serde.csv.error.CsvShapeException;
-import io.micronaut.serde.csv.introspection.CsvFormatConfig;
-import io.micronaut.serde.csv.introspection.CsvIntrospection;
-import io.micronaut.serde.csv.mapper.CsvMapper;
-import io.micronaut.serde.csv.mapper.CsvObjectMapper;
+import io.micronaut.serde.csv.CsvObjectMapper;
 import jakarta.inject.Singleton;
 import org.jspecify.annotations.Nullable;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.annotation.Documented;
@@ -45,7 +40,6 @@ import java.lang.annotation.Target;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 
 /**
@@ -60,15 +54,15 @@ import java.util.LinkedHashSet;
 @BootstrapContextCompatible
 public final class CsvMessageHandler<T> implements MessageBodyHandler<T> {
 
-    private final CsvMapper csvMapper;
+    private final CsvObjectMapper csvObjectMapper;
 
     /**
      * Creates the CSV message body handler.
      *
-     * @param csvMapper The CSV mapper used to read and write values
+     * @param csvObjectMapper The CSV object mapper used to read and write values
      */
-    public CsvMessageHandler(CsvMapper csvMapper) {
-        this.csvMapper = csvMapper;
+    public CsvMessageHandler(CsvObjectMapper csvObjectMapper) {
+        this.csvObjectMapper = csvObjectMapper;
     }
 
     @Override
@@ -87,28 +81,22 @@ public final class CsvMessageHandler<T> implements MessageBodyHandler<T> {
         boolean iterable = Iterable.class.isAssignableFrom(rawType);
         Class<?> elementType = iterable ? type.getWrappedType().getType() : rawType;
         try {
-            Iterable<T> values = decode(inputStream, charset, elementType);
             if (iterable) {
-                return (T) materialize(values, rawType);
+                return readIterable(type, elementType, inputStream);
             }
-            CsvFormatConfig config = CsvIntrospection.formatFor(elementType);
-            Iterator<T> iterator = values.iterator();
-            if (!iterator.hasNext()) {
+            T first = csvObjectMapper.readValue(inputStream, Argument.of((Class<T>) elementType));
+            if (first == null) {
                 throw new IllegalArgumentException("Cannot decode empty CSV to " + rawType.getName());
             }
-            T first = iterator.next();
-            if (config.shape() != CsvFormat.Shape.FIRST && iterator.hasNext()) {
-                throw new CsvShapeException(config.shape(), 2);
-            }
             return first;
-        } catch (CsvException e) {
+        } catch (Exception e) {
             throw new IllegalArgumentException("Failed to decode CSV: " + e.getMessage(), e);
         }
     }
 
     @SuppressWarnings("unchecked")
-    private <E> Iterable<T> decode(InputStream inputStream, Charset charset, Class<E> elementType) throws CsvException {
-        return (Iterable<T>) csvMapper.read(inputStream, charset, elementType);
+    private <E> T readIterable(Argument<T> type, Class<?> elementType, InputStream inputStream) throws IOException {
+        return (T) materialize(csvObjectMapper.readValues(inputStream, Argument.of((Class<E>) elementType)), type.getType());
     }
 
     /**
@@ -160,11 +148,11 @@ public final class CsvMessageHandler<T> implements MessageBodyHandler<T> {
             : StandardCharsets.UTF_8;
         try {
             if (Iterable.class.isAssignableFrom(type != null ? type.getType() : object.getClass())) {
-                csvMapper.writeValues(outputStream, (Iterable<?>) object, charset);
+                csvObjectMapper.writeValues(outputStream, (Iterable<?>) object);
             } else {
-                csvMapper.writeValue(outputStream, object, charset);
+                csvObjectMapper.writeValue(outputStream, object);
             }
-        } catch (CsvException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Failed to encode CSV: " + e.getMessage(), e);
         }
     }
@@ -196,4 +184,5 @@ public final class CsvMessageHandler<T> implements MessageBodyHandler<T> {
     @Consumes({MediaType.TEXT_CSV, MediaType.TEXT_PLAIN})
     public @interface ConsumesCsv {
     }
+
 }

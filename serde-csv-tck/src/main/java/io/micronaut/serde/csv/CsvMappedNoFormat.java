@@ -17,6 +17,7 @@ package io.micronaut.serde.csv;
 
 import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.serde.csv.annotation.CsvProperty;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Test fixture exercising {@link CsvProperty} column name, order and ignore without an
@@ -26,7 +27,7 @@ import io.micronaut.serde.csv.annotation.CsvProperty;
 public record CsvMappedNoFormat(
     @CsvProperty(order = 2) String c,
     @CsvProperty(order = 0, name = "a_renamed") String a,
-    @CsvProperty(ignore = true) String ignored,
+    @CsvProperty(ignore = true) @Nullable String ignored,
     @CsvProperty(order = 1) String b
 ) {
 }
