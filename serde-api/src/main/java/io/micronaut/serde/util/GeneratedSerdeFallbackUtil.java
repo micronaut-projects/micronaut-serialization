@@ -206,6 +206,9 @@ public final class GeneratedSerdeFallbackUtil {
 
     private static boolean isCustomised(Argument<?> type) {
         AnnotationMetadata annotationMetadata = type.getAnnotationMetadata();
+        if (annotationMetadata.isEmpty()) {
+            return false;
+        }
         return annotationMetadata.hasAnnotation(SerdeConfig.SerUnwrapped.class)
             || annotationMetadata.hasAnnotation(SerdeConfig.SerIncluded.class)
             || annotationMetadata.hasAnnotation(SerdeConfig.SerIgnored.class)

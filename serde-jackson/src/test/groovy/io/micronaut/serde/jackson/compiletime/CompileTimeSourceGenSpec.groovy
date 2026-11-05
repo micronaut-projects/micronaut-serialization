@@ -124,10 +124,10 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
         assertGeneratedDeserializer(registry, beanArgument)
         assertGeneratedSerializer(registry, recordArgument)
         assertGeneratedDeserializer(registry, recordArgument)
-        assertGeneratedPrototypeSerializer(registry, beanArgument)
-        assertGeneratedPrototypeDeserializer(registry, beanArgument)
-        assertGeneratedPrototypeSerializer(registry, recordArgument)
-        assertGeneratedPrototypeDeserializer(registry, recordArgument)
+        assertGeneratedReusedSerializer(registry, beanArgument)
+        assertGeneratedReusedDeserializer(registry, beanArgument)
+        assertGeneratedReusedSerializer(registry, recordArgument)
+        assertGeneratedReusedDeserializer(registry, recordArgument)
         validateJsonWithoutOrder(jsonMapper, '{"value":"hello","tags":["a","b"]}', beanJson)
         validateJsonWithoutOrder(jsonMapper, '{"value":"hi","tags":["x","y"]}', recordJson)
         beanDeserialized.value == 'hello'
@@ -1117,22 +1117,24 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
         assert deserializer.class.name != generatedClassName(argument.type, 'Deserializer')
     }
 
-    private static void assertGeneratedPrototypeSerializer(SerdeRegistry registry, Argument argument) {
+    private static void assertGeneratedReusedSerializer(SerdeRegistry registry, Argument argument) {
         def encoderContext = registry.newEncoderContext(Object)
         Serializer serializer1 = registry.findSerializer(argument).createSpecific(encoderContext, argument)
         Serializer serializer2 = registry.findSerializer(argument).createSpecific(encoderContext, argument)
         assert serializer1.class.name == generatedClassName(argument.type, 'Serializer')
         assert serializer2.class.name == generatedClassName(argument.type, 'Serializer')
-        assert !serializer1.is(serializer2)
+        // The generated serde is a prototype, and its specific serializer is reused for later documents
+        assert serializer1.is(serializer2)
     }
 
-    private static void assertGeneratedPrototypeDeserializer(SerdeRegistry registry, Argument argument) {
+    private static void assertGeneratedReusedDeserializer(SerdeRegistry registry, Argument argument) {
         def decoderContext = registry.newDecoderContext(Object)
         Deserializer deserializer1 = registry.findDeserializer(argument).createSpecific(decoderContext, argument)
         Deserializer deserializer2 = registry.findDeserializer(argument).createSpecific(decoderContext, argument)
         assert deserializer1.class.name == generatedClassName(argument.type, 'Deserializer')
         assert deserializer2.class.name == generatedClassName(argument.type, 'Deserializer')
-        assert !deserializer1.is(deserializer2)
+        // The generated serde is a prototype, and its specific deserializer is reused for later documents
+        assert deserializer1.is(deserializer2)
     }
 
     private static void assertPropertyArgumentFallsBackToObjectSerde(SerdeRegistry registry, String propertyName) {
