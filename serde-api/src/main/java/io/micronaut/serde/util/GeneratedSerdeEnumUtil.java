@@ -27,8 +27,6 @@ import org.jspecify.annotations.Nullable;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 /**
  * Enum helpers used by generated serdes.
@@ -37,7 +35,17 @@ import java.util.concurrent.ConcurrentMap;
 @UsedByGeneratedCode
 public final class GeneratedSerdeEnumUtil {
 
-    private static final ConcurrentMap<Class<?>, EnumLookup<?>> ENUM_LOOKUPS = new ConcurrentHashMap<>();
+    /**
+     * The lookups, kept on the enum class itself: a map keyed by class would keep every enum, and its
+     * classloader, reachable for the life of the process, which pins a retired generation in development mode.
+     */
+    private static final ClassValue<EnumLookup<?>> ENUM_LOOKUPS = new ClassValue<>() {
+        @Override
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        protected EnumLookup<?> computeValue(Class<?> type) {
+            return buildEnumLookup((Class) type);
+        }
+    };
 
     private GeneratedSerdeEnumUtil() {
     }
@@ -62,7 +70,7 @@ public final class GeneratedSerdeEnumUtil {
 
     @SuppressWarnings("unchecked")
     private static <E extends Enum<E>> EnumLookup<E> enumLookup(Class<E> enumType) {
-        return (EnumLookup<E>) ENUM_LOOKUPS.computeIfAbsent(enumType, type -> buildEnumLookup((Class<E>) type));
+        return (EnumLookup<E>) ENUM_LOOKUPS.get(enumType);
     }
 
     private static <E extends Enum<E>> EnumLookup<E> buildEnumLookup(Class<E> enumType) {
