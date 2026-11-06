@@ -92,7 +92,7 @@ public final class ToonDecoder {
         }
 
         // Reading a long limit in a single call is capped by the array size.
-        int readLimit = (int) Math.min(maxInputSize + 1, Integer.MAX_VALUE - 8);
+        int readLimit = (int) Math.min(maxInputSize + 1, Integer.MAX_VALUE - 8L);
         byte[] bytes = stream.readNBytes(readLimit);
         if (bytes.length > maxInputSize) {
             throw new SerdeException("TOON input exceeds the maximum input size of " + maxInputSize + " bytes");

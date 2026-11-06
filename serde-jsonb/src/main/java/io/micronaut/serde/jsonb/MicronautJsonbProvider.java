@@ -159,7 +159,15 @@ public class MicronautJsonbProvider extends JsonbProvider {
         }
 
         protected MicronautJsonb(JsonbConfig config, ObjectMapper mapper, Runnable closeAction) {
-            this(config, mapper, mapper.getSerdeRegistry().newEncoderContext(null).getSerdeConfiguration().orElse(null), closeAction);
+            this(config, mapper, serdeConfiguration(mapper), closeAction);
+        }
+
+        private static @Nullable SerdeConfiguration serdeConfiguration(ObjectMapper mapper) {
+            try (Serializer.EncoderContext encoderContext = mapper.getSerdeRegistry().newEncoderContext(null)) {
+                return encoderContext.getSerdeConfiguration().orElse(null);
+            } catch (IOException e) {
+                throw new IllegalStateException("Unable to close the encoder context", e);
+            }
         }
 
         protected MicronautJsonb(JsonbConfig config, ObjectMapper mapper, @Nullable SerdeConfiguration serdeConfiguration, Runnable closeAction) {
@@ -382,9 +390,8 @@ public class MicronautJsonbProvider extends JsonbProvider {
 
         @SuppressWarnings({"unchecked", "rawtypes"})
         private boolean canCreateGeneratedDeserializerUncached(Argument<?> argument) {
-            try {
+            try (Deserializer.DecoderContext decoderContext = registry.newDecoderContext(null)) {
                 Argument<Object> typedArgument = (Argument) argument;
-                Deserializer.DecoderContext decoderContext = registry.newDecoderContext(null);
                 decoderContext.findDeserializer(typedArgument).createSpecific(decoderContext, typedArgument);
                 return true;
             } catch (Exception e) {
@@ -409,9 +416,8 @@ public class MicronautJsonbProvider extends JsonbProvider {
 
         @SuppressWarnings({"unchecked", "rawtypes"})
         private boolean canCreateGeneratedSerializerUncached(Argument<?> argument) {
-            try {
+            try (Serializer.EncoderContext encoderContext = registry.newEncoderContext(null)) {
                 Argument<Object> typedArgument = (Argument) argument;
-                Serializer.EncoderContext encoderContext = registry.newEncoderContext(null);
                 encoderContext.findSerializer(typedArgument).createSpecific(encoderContext, typedArgument);
                 return true;
             } catch (Exception e) {
@@ -434,9 +440,10 @@ public class MicronautJsonbProvider extends JsonbProvider {
                 if (object == null) {
                     generator.writeNull();
                 } else {
-                    Serializer.EncoderContext encoderContext = registry.newEncoderContext(null);
-                    Serializer<? super T> serializer = encoderContext.findSerializer(argument).createSpecific(encoderContext, argument);
-                    serializer.serialize(new JsonbEncoder(JacksonEncoder.create(generator, limits()), binaryDataStrategy), encoderContext, argument, object);
+                    try (Serializer.EncoderContext encoderContext = registry.newEncoderContext(null)) {
+                        Serializer<? super T> serializer = encoderContext.findSerializer(argument).createSpecific(encoderContext, argument);
+                        serializer.serialize(new JsonbEncoder(JacksonEncoder.create(generator, limits()), binaryDataStrategy), encoderContext, argument, object);
+                    }
                 }
             }
         }
