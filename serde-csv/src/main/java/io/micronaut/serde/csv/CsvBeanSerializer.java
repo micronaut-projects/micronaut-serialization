@@ -38,22 +38,34 @@ public final class CsvBeanSerializer implements Serializer<Object> {
 
     private final Class<?> type;
     private final CsvLineEncoder codec;
+    private final @Nullable BeanIntrospection<?> introspection;
+    private final CsvFormatConfig fmt;
+    private final List<String> columns;
+    private final List<String> propNames;
 
     public CsvBeanSerializer(Class<?> type, CsvLineEncoder codec) {
         this.type = type;
         this.codec = codec;
+        BeanIntrospection<?> bi = BeanIntrospector.SHARED.findIntrospection(type).orElse(null);
+        this.introspection = bi;
+        CsvFormatConfig f = CsvIntrospection.formatFor(type);
+        this.fmt = f;
+        if (bi == null) {
+            this.columns = List.of();
+            this.propNames = List.of();
+        } else {
+            List<String> cols = CsvColumnResolution.resolveColumns(f, bi);
+            this.columns = cols;
+            this.propNames = CsvColumnResolution.resolvePropNames(f, bi, cols);
+        }
     }
 
     @Override
     public void serialize(Encoder encoder, Serializer.EncoderContext context, Argument<? extends Object> type, Object value) throws IOException {
-        BeanIntrospection<?> introspection = BeanIntrospector.SHARED.findIntrospection(this.type).orElse(null);
         if (introspection == null) {
             throw new IOException("No bean introspection for " + this.type);
         }
-        CsvFormatConfig fmt = CsvIntrospection.formatFor(this.type);
-        List<String> columns = CsvColumnResolution.resolveColumns(fmt, introspection);
-        List<@Nullable String> cells = renderCells(value, fmt, introspection, columns,
-            CsvColumnResolution.resolvePropNames(fmt, introspection, columns));
+        List<@Nullable String> cells = renderCells(value, fmt, introspection, columns, propNames);
         encoder.encodeObject(type);
         for (int i = 0; i < columns.size(); i++) {
             String col = columns.get(i);
@@ -68,13 +80,6 @@ public final class CsvBeanSerializer implements Serializer<Object> {
         encoder.finishStructure();
     }
 
-    /**
-     * Recursively renders a bean as a list of logical cell values. Inline nested
-     * beans (properties carrying {@code @CsvFormat}) are rendered by recursing
-     * and folding the result through the {@link CsvLineEncoder} codec into a
-     * single cell string. This is the single source of truth for both top-level
-     * row rendering and inline nested-bean rendering.
-     */
     private List<@Nullable String> renderCells(Object value, CsvFormatConfig fmt, BeanIntrospection<?> introspection,
                                                List<String> columns, List<String> propNames) throws IOException {
         List<@Nullable String> cells = new ArrayList<>(columns.size());

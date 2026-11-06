@@ -52,6 +52,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -67,6 +68,8 @@ public abstract class CsvObjectMapper implements ObjectMapper {
     protected final Class<?> view;
     protected final LimitingStream.RemainingLimits streamLimits;
     protected final CoercionPolicy coercionPolicy;
+    private final ConcurrentHashMap<Class<?>, Serializer<Object>> serializerCache = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Class<?>, Deserializer<Object>> deserializerCache = new ConcurrentHashMap<>();
 
     protected CsvObjectMapper(SerdeRegistry registry,
                             @Nullable SerdeConfiguration serdeConfiguration,
@@ -382,7 +385,7 @@ public abstract class CsvObjectMapper implements ObjectMapper {
         if (clazz != Map.class && clazz != java.util.LinkedHashMap.class
                 && clazz != java.util.HashMap.class
                 && io.micronaut.core.beans.BeanIntrospector.SHARED.findIntrospection(clazz).isPresent()) {
-            Serializer<Object> serializer = new CsvBeanSerializer(clazz, this::encodeCsvLine);
+            Serializer<Object> serializer = serializerCache.computeIfAbsent(clazz, c -> new CsvBeanSerializer(c, this::encodeCsvLine));
             try (Serializer.EncoderContext context = registry.newEncoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view))) {
                 serializer.serialize(encoder, context, type, object);
             }
@@ -405,8 +408,11 @@ public abstract class CsvObjectMapper implements ObjectMapper {
         if (clazz != Map.class && clazz != java.util.LinkedHashMap.class
                 && clazz != java.util.HashMap.class
                 && io.micronaut.core.beans.BeanIntrospector.SHARED.findIntrospection(clazz).isPresent()) {
+            Deserializer<Object> deserializer = deserializerCache.computeIfAbsent(clazz, c -> {
+                Deserializer.DecoderContext ctx = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view));
+                return new CsvBeanDeserializer(c, this::decodeCsvLine, ctx);
+            });
             try (Deserializer.DecoderContext context = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view))) {
-                Deserializer<?> deserializer = new CsvBeanDeserializer(clazz, this::decodeCsvLine, context);
                 @SuppressWarnings("unchecked")
                 Argument<? super Object> arg = (Argument<? super Object>) (Object) type;
                 return (T) deserializer.deserializeNullable(rowDecoder, context, arg);

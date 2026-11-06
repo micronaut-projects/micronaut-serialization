@@ -15,14 +15,21 @@
  */
 package io.micronaut.serde.processor.sourcegen.csv;
 
+import io.micronaut.context.annotation.Prototype;
+import io.micronaut.context.annotation.Secondary;
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.inject.ast.ClassElement;
+import io.micronaut.inject.ast.FieldElement;
+import io.micronaut.inject.ast.MethodElement;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Keys;
 import io.micronaut.serde.KeysAwareDecoder;
+import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
 import io.micronaut.serde.processor.sourcegen.beans.BeanSerdeShape;
+import io.micronaut.serde.util.GeneratedSerdeFallbackUtil;
 import io.micronaut.sourcegen.model.AnnotationDef;
 import io.micronaut.sourcegen.model.ClassDef;
 import io.micronaut.sourcegen.model.ClassTypeDef;
@@ -65,6 +72,7 @@ public final class CsvDeserializerSourceGen {
     private static final Method KEYS_CREATE_METHOD = ReflectionUtils.getRequiredMethod(Keys.class, "create", String[].class);
     private static final Method DECODE_OBJECT_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeObject", io.micronaut.core.type.Argument.class);
     private static final Method DECODE_KEY_KEYS_METHOD = ReflectionUtils.getRequiredMethod(KeysAwareDecoder.class, "decodeKey", Keys.class);
+    private static final Method DECODE_NULL_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeNull");
     private static final Method DECODE_STRING_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeString");
     private static final Method FINISH_STRUCTURE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "finishStructure");
     private static final Method SKIP_VALUE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "skipValue");
@@ -79,11 +87,18 @@ public final class CsvDeserializerSourceGen {
         int index = 0;
         for (BeanSerdeShape.BeanProperty property : beanShape.deserializationProperties()) {
             String keyFieldName = "KEY_" + index;
+            String argumentFieldName = "ARGUMENT_" + index;
             keyFieldNames.put(property.name(), keyFieldName);
             String colName = shape.propertyToColumn().getOrDefault(property.name(), property.name());
             fields.add(FieldDef.builder(keyFieldName, STRING_TYPE)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
                 .initializer(ExpressionDef.constant(colName))
+                .build());
+            fields.add(FieldDef.builder(argumentFieldName, ARGUMENT_TYPE)
+                .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                .initializer(ClassTypeDef.of(io.micronaut.core.type.Argument.class)
+                    .invokeStatic(ReflectionUtils.getRequiredMethod(io.micronaut.core.type.Argument.class, "of", Class.class),
+                        ExpressionDef.constant(TypeDef.of(property.deserializationType()))))
                 .build());
             index++;
         }
@@ -98,14 +113,24 @@ public final class CsvDeserializerSourceGen {
                 .build());
         }
 
+        boolean fieldAccessProperties = false;
+        for (BeanSerdeShape.BeanProperty p : beanShape.deserializationProperties()) {
+            if (p.writeField() != null) { fieldAccessProperties = true; }
+        }
+
         ClassDef.ClassDefBuilder classDefBuilder = ClassDef.builder(SerdeSourceGenClassNaming.generatedDeserializerClassName(element))
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+            .addAnnotation(Prototype.class)
+            .addAnnotation(Internal.class)
             .addAnnotation(AnnotationDef.builder(Generated.class).addMember(GENERATED_VALUE_MEMBER, "Micronaut").build())
             .addSuperinterface(TypeDef.parameterized(Deserializer.class, beanTypeDef))
             .addFields(fields)
             .addMethod(generateCreateSpecificMethod(beanTypeDef))
             .addMethod(generateDeserializeMethod(element, beanTypeDef, deserializerClassTypeDef, beanShape, keyFieldNames));
 
+        if (fieldAccessProperties) {
+            classDefBuilder.addAnnotation(Secondary.class);
+        }
         return classDefBuilder.build();
     }
 
@@ -162,29 +187,128 @@ public final class CsvDeserializerSourceGen {
                     objectDecoder).newLocal("keysAwareDecoder");
                 VariableDef keysAwareDecoder = keysAwareDecoderDef.variable();
                 stmts.add(keysAwareDecoderDef);
+
+                // Switch-based O(1) key dispatch over the decoded key index.
+                Map<ExpressionDef.Constant, StatementDef> cases = new java.util.LinkedHashMap<>();
                 for (int i = 0; i < beanShape.deserializationProperties().size(); i++) {
                     BeanSerdeShape.BeanProperty property = beanShape.deserializationProperties().get(i);
-                    ExpressionDef keyIndex = keysAwareDecoder.invoke(DECODE_KEY_KEYS_METHOD,
-                        deserializerClassTypeDef.getStaticField(KEYS_FIELD, KEYS_TYPE));
-                    stmts.add(keyIndex.compare(ExpressionDef.ComparisonOperation.OpType.EQUAL_TO, ExpressionDef.constant(i))
-                        .ifTrue(StatementDef.multi(
-                            beanVariable.invoke(
-                                java.util.Objects.requireNonNull(property.writeMethod()),
-                                ClassTypeDef.of(io.micronaut.core.convert.ConversionService.class)
-                                    .getStaticField("SHARED", ClassTypeDef.of(io.micronaut.core.convert.ConversionService.class))
-                                    .invoke(
-                                        ReflectionUtils.getRequiredMethod(io.micronaut.core.convert.ConversionService.class, "convertRequired", Object.class, Class.class),
-                                        keysAwareDecoder.invoke(DECODE_STRING_METHOD),
-                                        ExpressionDef.constant(TypeDef.of(property.deserializationType()))
-                                    )
-                            )
-                        )));
+                    if (property.writeMethod() == null && property.writeField() == null) {
+                        // Writable properties excluded from deserialization are skipped.
+                        continue;
+                    }
+                    Method scalarMethod = scalarDecoderMethod(property.deserializationType(), property.deserializationType().isPrimitive());
+                    ExpressionDef convertedValue;
+                    if (scalarMethod != null) {
+                        // Use the typed decoder directly (no ConversionService indirection).
+                        // Null cell -> null for boxed types; primitives keep their default.
+                        ExpressionDef nullCell = keysAwareDecoder.invoke(DECODE_NULL_METHOD);
+                        ExpressionDef typedValue = keysAwareDecoder.invoke(scalarMethod);
+                        if (property.deserializationType().isPrimitive()) {
+                            // Primitive: skip assignment on null cell (leave default 0/false).
+                            convertedValue = typedValue;
+                        } else {
+                            convertedValue = nullCell.ifTrue(
+                                ExpressionDef.nullValue(),
+                                typedValue
+                            );
+                        }
+                    } else {
+                        ExpressionDef nullCell = keysAwareDecoder.invoke(DECODE_NULL_METHOD);
+                        convertedValue = nullCell.ifTrue(
+                            ExpressionDef.nullValue(),
+                            ClassTypeDef.of(io.micronaut.core.convert.ConversionService.class)
+                                .getStaticField("SHARED", ClassTypeDef.of(io.micronaut.core.convert.ConversionService.class))
+                                .invoke(
+                                    ReflectionUtils.getRequiredMethod(io.micronaut.core.convert.ConversionService.class, "convertRequired", Object.class, Class.class),
+                                    keysAwareDecoder.invoke(DECODE_STRING_METHOD),
+                                    ExpressionDef.constant(TypeDef.of(property.deserializationType()))
+                                )
+                        );
+                    }
+                    StatementDef assignment = buildPropertyAssignment(beanVariable, property, convertedValue);
+                    // Property-path wrapping: any exception during assignment is reported under
+                    // the property's Argument so callers see the right path.
+                    ExpressionDef argumentExpression = deserializerClassTypeDef.getStaticField(
+                        "ARGUMENT_" + i, ARGUMENT_TYPE);
+                    StatementDef wrapped = StatementDef.doTry(assignment)
+                        .doCatch(ClassTypeDef.of(Throwable.class), exceptionVariable ->
+                            ClassTypeDef.of(io.micronaut.serde.util.GeneratedSerdeExceptionUtil.class)
+                                .invokeStatic(
+                                    ReflectionUtils.getRequiredMethod(
+                                        io.micronaut.serde.util.GeneratedSerdeExceptionUtil.class,
+                                        "withPropertyPath",
+                                        Throwable.class,
+                                        io.micronaut.core.type.Argument.class,
+                                        io.micronaut.core.type.Argument.class),
+                                    exceptionVariable,
+                                    type,
+                                    argumentExpression)
+                                .doThrow());
+                    cases.put(ExpressionDef.constant(i), wrapped);
                 }
-                stmts.add(keysAwareDecoder.invoke(SKIP_VALUE_METHOD));
-
-                stmts.add(objectDecoder.invoke(FINISH_STRUCTURE_METHOD));
+                // Unknown key -> skip value
+                cases.put(ExpressionDef.constant(KeysAwareDecoder.MATCH_UNKNOWN_NAME), keysAwareDecoder.invoke(SKIP_VALUE_METHOD));
+                // End of structure -> finish
+                cases.put(ExpressionDef.constant(KeysAwareDecoder.MATCH_END_OBJECT), StatementDef.multi(
+                    objectDecoder.invoke(FINISH_STRUCTURE_METHOD),
+                    beanVariable.returning()
+                ));
+                stmts.add(keysAwareDecoder.invoke(
+                    ReflectionUtils.getRequiredMethod(KeysAwareDecoder.class, "decodeKey", Keys.class),
+                    deserializerClassTypeDef.getStaticField(KEYS_FIELD, KEYS_TYPE)
+                ).asStatementSwitch(
+                    TypeDef.Primitive.INT,
+                    cases
+                ));
+                // Trailing return: the switch is a statement switch (not exhaustive), so the
+                // method must return after it to satisfy the compiler.
                 stmts.add(beanVariable.returning());
                 return StatementDef.multi(stmts);
             });
+    }
+
+    private StatementDef buildPropertyAssignment(VariableDef beanVariable,
+                                                 BeanSerdeShape.BeanProperty property,
+                                                 ExpressionDef value) {
+        FieldElement writeField = property.writeField();
+        if (writeField != null) {
+            return new VariableDef.Local(
+                BEAN_LOCAL + "." + writeField.getName(),
+                TypeDef.of(writeField.getType())
+            ).assign(value);
+        }
+        MethodElement writeMethod = property.writeMethod();
+        if (writeMethod != null) {
+            return beanVariable.invoke(writeMethod, value);
+        }
+        return StatementDef.multi();
+    }
+
+    private static @org.jspecify.annotations.Nullable Method scalarDecoderMethod(io.micronaut.inject.ast.ClassElement type, boolean nullablePrimitive) {
+        if (type.isArray()) {
+            return null;
+        }
+        return switch (type.getName()) {
+            case "boolean" -> nullablePrimitive ? ReflectionUtils.getRequiredMethod(Decoder.class, "decodeBooleanNullable") : ReflectionUtils.getRequiredMethod(Decoder.class, "decodeBoolean");
+            case "java.lang.Boolean" -> ReflectionUtils.getRequiredMethod(Decoder.class, "decodeBooleanNullable");
+            case "byte" -> nullablePrimitive ? ReflectionUtils.getRequiredMethod(Decoder.class, "decodeByteNullable") : ReflectionUtils.getRequiredMethod(Decoder.class, "decodeByte");
+            case "java.lang.Byte" -> ReflectionUtils.getRequiredMethod(Decoder.class, "decodeByteNullable");
+            case "short" -> nullablePrimitive ? ReflectionUtils.getRequiredMethod(Decoder.class, "decodeShortNullable") : ReflectionUtils.getRequiredMethod(Decoder.class, "decodeShort");
+            case "java.lang.Short" -> ReflectionUtils.getRequiredMethod(Decoder.class, "decodeShortNullable");
+            case "char" -> nullablePrimitive ? ReflectionUtils.getRequiredMethod(Decoder.class, "decodeCharNullable") : ReflectionUtils.getRequiredMethod(Decoder.class, "decodeChar");
+            case "java.lang.Character" -> ReflectionUtils.getRequiredMethod(Decoder.class, "decodeCharNullable");
+            case "int" -> nullablePrimitive ? ReflectionUtils.getRequiredMethod(Decoder.class, "decodeIntNullable") : ReflectionUtils.getRequiredMethod(Decoder.class, "decodeInt");
+            case "java.lang.Integer" -> ReflectionUtils.getRequiredMethod(Decoder.class, "decodeIntNullable");
+            case "long" -> nullablePrimitive ? ReflectionUtils.getRequiredMethod(Decoder.class, "decodeLongNullable") : ReflectionUtils.getRequiredMethod(Decoder.class, "decodeLong");
+            case "java.lang.Long" -> ReflectionUtils.getRequiredMethod(Decoder.class, "decodeLongNullable");
+            case "float" -> nullablePrimitive ? ReflectionUtils.getRequiredMethod(Decoder.class, "decodeFloatNullable") : ReflectionUtils.getRequiredMethod(Decoder.class, "decodeFloat");
+            case "java.lang.Float" -> ReflectionUtils.getRequiredMethod(Decoder.class, "decodeFloatNullable");
+            case "double" -> nullablePrimitive ? ReflectionUtils.getRequiredMethod(Decoder.class, "decodeDoubleNullable") : ReflectionUtils.getRequiredMethod(Decoder.class, "decodeDouble");
+            case "java.lang.Double" -> ReflectionUtils.getRequiredMethod(Decoder.class, "decodeDoubleNullable");
+            case "java.lang.String" -> ReflectionUtils.getRequiredMethod(Decoder.class, "decodeStringNullable");
+            case "java.math.BigInteger" -> ReflectionUtils.getRequiredMethod(Decoder.class, "decodeBigIntegerNullable");
+            case "java.math.BigDecimal" -> ReflectionUtils.getRequiredMethod(Decoder.class, "decodeBigDecimalNullable");
+            default -> null;
+        };
     }
 }

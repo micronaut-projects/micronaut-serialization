@@ -38,16 +38,63 @@ public final class CsvBeanDeserializer implements Deserializer<Object> {
 
     private final Class<?> type;
     private final CsvLineDecoder codec;
-    private final Deserializer.DecoderContext context;
+    final Deserializer.DecoderContext context;
+    private final @Nullable BeanIntrospection<?> introspection;
+    private final CsvFormatConfig fmt;
+    private final List<String> columns;
+    private final List<String> propNames;
+    private final Map<String, String> propToCol;
+    private final Map<String, BeanProperty<?, ?>> propMap;
+    private final Map<String, Deserializer<?>> propDeserializers;
 
     public CsvBeanDeserializer(Class<?> type, CsvLineDecoder codec, Deserializer.DecoderContext context) {
         this.type = type;
         this.codec = codec;
         this.context = context;
+        BeanIntrospection<?> bi = BeanIntrospector.SHARED.findIntrospection(type).orElse(null);
+        this.introspection = bi;
+        CsvFormatConfig f = CsvIntrospection.formatFor(type);
+        this.fmt = f;
+        List<String> cols;
+        List<String> pNames;
+        if (bi == null) {
+            cols = new ArrayList<>(f.columns());
+            pNames = new ArrayList<>(f.propertyNames());
+        } else {
+            cols = CsvColumnResolution.resolveColumns(f, bi);
+            pNames = CsvColumnResolution.resolvePropNames(f, bi, cols);
+        }
+        this.columns = cols;
+        this.propNames = pNames;
+        Map<String, String> ptc = new LinkedHashMap<>();
+        for (int i = 0; i < cols.size(); i++) {
+            String col = cols.get(i);
+            String propName = (i < pNames.size()) ? pNames.get(i) : col;
+            ptc.put(propName, col);
+        }
+        this.propToCol = ptc;
+        Map<String, BeanProperty<?, ?>> pm = new LinkedHashMap<>();
+        if (bi != null) {
+            for (BeanProperty<?, ?> bp : bi.getBeanProperties()) {
+                pm.put(bp.getName(), bp);
+            }
+        }
+        this.propMap = pm;
+        Map<String, Deserializer<?>> ds = new LinkedHashMap<>();
+        if (bi != null) {
+            for (BeanProperty<?, ?> bp : bi.getBeanProperties()) {
+                try {
+                    @SuppressWarnings("unchecked")
+                    Argument<Object> arg = Argument.of((Class<Object>) bp.getType());
+                    ds.put(bp.getName(), context.findDeserializer(arg).createSpecific(context, arg));
+                } catch (Exception ignored) {
+                }
+            }
+        }
+        this.propDeserializers = ds;
     }
 
     @Override
-    @SuppressWarnings({"NullAway"})
     public Object deserialize(Decoder decoder, Deserializer.DecoderContext context, Argument<? super Object> type) throws IOException {
         return deserializeNullable(decoder, context, type);
     }
@@ -55,26 +102,38 @@ public final class CsvBeanDeserializer implements Deserializer<Object> {
     @Override
     @SuppressWarnings("unchecked")
     public Object deserializeNullable(Decoder decoder, Deserializer.DecoderContext context, Argument<? super Object> type) throws IOException {
-        BeanIntrospection<?> introspection = BeanIntrospector.SHARED.findIntrospection(this.type).orElse(null);
         if (introspection == null) {
             throw new IOException("No bean introspection for " + this.type);
         }
-        CsvFormatConfig fmt = CsvIntrospection.formatFor(this.type);
         Map<String, @Nullable String> row = new LinkedHashMap<>();
         String key;
         while ((key = decoder.decodeKey()) != null) {
             row.put(key, decoder.decodeNull() ? null : decoder.decodeString());
         }
-        Map<String, String> propToCol = getPropToCol(fmt, row);
+        Map<String, String> propToCol = this.propToCol;
+        if (propToCol.isEmpty() && !row.isEmpty()) {
+            // fall back to row keys
+            propToCol = new LinkedHashMap<>();
+            List<String> cols = new ArrayList<>(row.keySet());
+            for (int i = 0; i < cols.size(); i++) {
+                propToCol.put(cols.get(i), cols.get(i));
+            }
+        }
         List<Object> values = new ArrayList<>();
-        for (BeanProperty<?, ?> bp : introspection.getBeanProperties()) {
+        List<BeanProperty<?, ?>> props = new ArrayList<>(introspection.getBeanProperties());
+        Set<String> ignored = new LinkedHashSet<>();
+        for (BeanProperty<?, ?> bp : props) {
             String propName = bp.getName();
             String col = propToCol.get(propName);
             if (col == null) {
                 values.add(null);
+                ignored.add(propName);
                 continue;
             }
-            String cell = row.get(propName);
+            String cell = row.get(col);
+            if (cell == null) {
+                cell = row.get(propName);
+            }
             CsvFormatConfig.CsvPropertyFormat pf = fmt.propertyFormats().get(propName);
             if (pf == null) {
                 pf = fmt.propertyFormats().get(col);
@@ -85,57 +144,39 @@ public final class CsvBeanDeserializer implements Deserializer<Object> {
             } else if (pf != null) {
                 value = parseInline(cell, pf.type(), pf.config());
             } else {
-                value = decodeScalarProperty(propName, cell, bp.getType(), fmt);
+                value = decodeScalarProperty(propName, cell, bp.getType());
             }
             values.add(value);
         }
         Object[] args = values.toArray();
-        // Remember which properties are ignored (no CSV column) so we can reset
-        // them to null after construction.
-        Set<String> ignored = new LinkedHashSet<>();
-        for (BeanProperty<?, ?> bp : introspection.getBeanProperties()) {
-            String propName = bp.getName();
-            String col = propToCol.get(propName);
-            if (col == null) {
-                ignored.add(propName);
-            }
-        }
         Object instance;
         try {
             instance = introspection.instantiate(args);
         } catch (io.micronaut.core.reflect.exception.InstantiationException e) {
-            // Fall back to no-arg constructor + setters for JavaBean types.
             try {
                 instance = introspection.instantiate(new Object[0]);
                 int i = 0;
-                for (BeanProperty<?, ?> bp : introspection.getBeanProperties()) {
+                for (BeanProperty<?, ?> bp : props) {
                     Object v = args[i];
                     try {
                         ((BeanProperty<Object, Object>) bp).set(instance, v);
                     } catch (Exception ignored2) {
-                        // Ignore property set failures.
                     }
                     i++;
                 }
             } catch (Exception e2) {
                 Object[] defaults = new Object[args.length];
-                int i = 0;
-                for (BeanProperty<?, ?> bp : introspection.getBeanProperties()) {
-                    defaults[i] = args[i];
-                    i++;
-                }
+                System.arraycopy(args, 0, defaults, 0, args.length);
                 try {
                     instance = introspection.instantiate(defaults);
                 } catch (Exception e3) {
-                    // Last resort: no-arg + setters with defaults already applied above.
                     instance = introspection.instantiate(new Object[0]);
-                    i = 0;
-                    for (BeanProperty<?, ?> bp : introspection.getBeanProperties()) {
+                    int i = 0;
+                    for (BeanProperty<?, ?> bp : props) {
                         Object v = defaults[i];
                         try {
                             ((BeanProperty<Object, Object>) bp).set(instance, v);
                         } catch (Exception ignored2) {
-                            // Ignore property set failures.
                         }
                         i++;
                     }
@@ -144,49 +185,31 @@ public final class CsvBeanDeserializer implements Deserializer<Object> {
         }
         // Reset ignored components to null.
         for (String propName : ignored) {
-            BeanProperty<?, ?> bp = introspection.getBeanProperties().stream()
-                .filter(p -> p.getName().equals(propName)).findFirst().orElse(null);
+            BeanProperty<?, ?> bp = propMap.get(propName);
             if (bp != null) {
                 try {
                     ((BeanProperty<Object, Object>) bp).set(instance, null);
                 } catch (Exception ignored2) {
-                    // Ignore property set failures.
                 }
             }
         }
         return instance;
     }
 
-    private static Map<String, String> getPropToCol(CsvFormatConfig fmt, Map<String, @Nullable String> row) {
-        List<String> columns = fmt.columns();
-        List<String> propNames = fmt.propertyNames();
-        if (columns.isEmpty()) {
-            columns = new ArrayList<>(row.keySet());
-            propNames = new ArrayList<>(columns);
-        }
-        Map<String, String> propToCol = new LinkedHashMap<>();
-        for (int i = 0; i < columns.size(); i++) {
-            String col = columns.get(i);
-            String propName = (i < propNames.size()) ? propNames.get(i) : col;
-            propToCol.put(propName, col);
-        }
-        return propToCol;
-    }
-
     @SuppressWarnings("unchecked")
-    private Object decodeScalarProperty(String propName, String cell, Class<?> type, CsvFormatConfig fmt) throws IOException {
+    private Object decodeScalarProperty(String propName, String cell, Class<?> type) throws IOException {
         String normalized = fmt.trim() ? cell.trim() : cell;
-        try {
-            Argument<Object> propArg = Argument.of((Class<Object>) type);
-            Deserializer<?> deserializer = context.findDeserializer(propArg).createSpecific(context, propArg);
-            CsvDecoder propDecoder = CsvDecoder.forRow(Map.of(propName, normalized));
-            propDecoder.setCurrentValue(normalized);
-            Object result = deserializer.deserializeNullable(propDecoder, context, propArg);
-            if (result != null) {
-                return result;
+        Deserializer<?> deserializer = propDeserializers.get(propName);
+        if (deserializer != null) {
+            try {
+                CsvDecoder propDecoder = CsvDecoder.forRow(Map.of(propName, normalized));
+                propDecoder.setCurrentValue(normalized);
+                Object result = deserializer.deserializeNullable(propDecoder, context, Argument.of((Class<Object>) type));
+                if (result != null) {
+                    return result;
+                }
+            } catch (Exception ignored) {
             }
-        } catch (Exception ignored) {
-            // Fall through to ConversionService below.
         }
         var converted = ConversionService.SHARED.convert(normalized, type);
         if (converted.isEmpty()) {
@@ -226,11 +249,10 @@ public final class CsvBeanDeserializer implements Deserializer<Object> {
             } else if (pf != null) {
                 value = parseInline(cellVal, pf.type(), pf.config());
             } else {
-                value = decodeScalarProperty(propName, cellVal, prop.getType(), fmt);
+                value = decodeScalarProperty(propName, cellVal, prop.getType());
             }
             values.add(value);
         }
-        // Use no-arg constructor + setters for JavaBean types; fall back to all-arg.
         try {
             Object instance = bi.instantiate(new Object[0]);
             int idx = 0;
@@ -242,14 +264,12 @@ public final class CsvBeanDeserializer implements Deserializer<Object> {
                     try {
                         prop.set(instance, values.get(idx));
                     } catch (Exception ignored) {
-                        // Ignore property set failures.
                     }
                 }
                 idx++;
             }
             return instance;
         } catch (Exception e) {
-            // no-arg failed; try all-arg
             try {
                 return bi.instantiate(values.toArray());
             } catch (Exception e2) {

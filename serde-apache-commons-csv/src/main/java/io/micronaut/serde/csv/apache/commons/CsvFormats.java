@@ -26,6 +26,7 @@ import org.jspecify.annotations.Nullable;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Collection;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Pre-configured {@link CSVFormat} instances used by the CSV serde.
@@ -47,6 +48,8 @@ public final class CsvFormats {
 
     private CsvFormats() {
     }
+
+    private static final ConcurrentHashMap<CsvFormatConfig, CSVFormat> FROM_CACHE = new ConcurrentHashMap<>();
 
     /**
      * Encodes a single record without a header.
@@ -77,16 +80,18 @@ public final class CsvFormats {
      * @return The Apache Commons CSV format
      */
     public static CSVFormat from(CsvFormatConfig config) {
-        CSVFormat.Builder builder = apply(config);
-        if (config.hasHeader()) {
-            if (config.explicitColumns()) {
-                builder.setHeader(config.columns().toArray(new String[0]));
-            } else {
-                builder.setHeader();
+        return FROM_CACHE.computeIfAbsent(config, c -> {
+            CSVFormat.Builder builder = apply(c);
+            if (c.hasHeader()) {
+                if (c.explicitColumns()) {
+                    builder.setHeader(c.columns().toArray(new String[0]));
+                } else {
+                    builder.setHeader();
+                }
+                builder.setSkipHeaderRecord(true);
             }
-            builder.setSkipHeaderRecord(true);
-        }
-        return builder.get();
+            return builder.get();
+        });
     }
 
     /**
