@@ -73,7 +73,7 @@ public abstract class CsvEncoder implements Encoder, KeysAwareEncoder {
     }
 
     public void setLineSeparator(String lineSeparator) {
-        this.lineSeparator = lineSeparator == null || lineSeparator.isEmpty()
+        this.lineSeparator = lineSeparator.isEmpty()
             ? CsvFormatConfig.DEFAULT.lineSeparator() : lineSeparator;
     }
 
@@ -98,7 +98,7 @@ public abstract class CsvEncoder implements Encoder, KeysAwareEncoder {
     }
 
     public void setNullValue(String nullValue) {
-        this.nullValue = nullValue == null ? CsvFormatConfig.DEFAULT.nullValue() : nullValue;
+        this.nullValue = nullValue;
     }
 
     public String nullValue() {

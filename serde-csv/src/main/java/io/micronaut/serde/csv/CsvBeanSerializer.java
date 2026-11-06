@@ -45,92 +45,66 @@ public final class CsvBeanSerializer implements Serializer<Object> {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void serialize(Encoder encoder, Serializer.EncoderContext context, Argument<? extends Object> type, Object value) throws IOException {
-        if (value == null) {
-            return;
-        }
         BeanIntrospection<?> introspection = BeanIntrospector.SHARED.findIntrospection(this.type).orElse(null);
         if (introspection == null) {
             throw new IOException("No bean introspection for " + this.type);
         }
         CsvFormatConfig fmt = CsvIntrospection.formatFor(this.type);
-        List<String> columns = fmt.columns();
-        List<String> propNames = fmt.propertyNames();
-        if (columns.isEmpty()) {
-            columns = new ArrayList<>();
-            propNames = new ArrayList<>();
-            for (BeanProperty<?, ?> p : introspection.getBeanProperties()) {
-                columns.add(p.getName());
-                propNames.add(p.getName());
-            }
-        }
+        List<String> columns = CsvColumnResolution.resolveColumns(fmt, introspection);
+        List<@Nullable String> cells = renderCells(value, fmt, introspection, columns,
+            CsvColumnResolution.resolvePropNames(fmt, introspection, columns));
         encoder.encodeObject(type);
         for (int i = 0; i < columns.size(); i++) {
             String col = columns.get(i);
-            String propName = (i < propNames.size()) ? propNames.get(i) : col;
-            @SuppressWarnings("unchecked")
-            BeanProperty<Object, Object> prop = (BeanProperty<Object, Object>) introspection.getProperty(propName).orElse(null);
-            if (prop == null) {
-                continue;
-            }
-            Object v;
-            try {
-                v = prop.get(value);
-            } catch (Exception e) {
-                v = null;
-            }
-            CsvFormatConfig.CsvPropertyFormat pf = fmt.propertyFormats().get(propName);
             encoder.encodeKey(col);
-            if (v == null) {
+            @Nullable String cell = cells.get(i);
+            if (cell == null) {
                 encoder.encodeNull();
-            } else if (pf != null && pf.config() != null) {
-                encoder.encodeString(renderInline(v, pf.config()));
             } else {
-                encoder.encodeString(String.valueOf(v));
+                encoder.encodeString(cell);
             }
         }
         encoder.finishStructure();
     }
 
-    private String renderInline(Object value, CsvFormatConfig fmt) throws IOException {
-        Class<?> clazz = value.getClass();
-        BeanIntrospection<?> bi = BeanIntrospector.SHARED.findIntrospection(clazz).orElse(null);
-        if (bi == null) {
-            return String.valueOf(value);
-        }
-        List<String> columns = fmt.columns();
-        List<String> propNames = fmt.propertyNames();
-        if (columns.isEmpty()) {
-            columns = new ArrayList<>();
-            propNames = new ArrayList<>();
-            for (BeanProperty<?, ?> p : bi.getBeanProperties()) {
-                columns.add(p.getName());
-                propNames.add(p.getName());
-            }
-        }
+    /**
+     * Recursively renders a bean as a list of logical cell values. Inline nested
+     * beans (properties carrying {@code @CsvFormat}) are rendered by recursing
+     * and folding the result through the {@link CsvLineEncoder} codec into a
+     * single cell string. This is the single source of truth for both top-level
+     * row rendering and inline nested-bean rendering.
+     */
+    private List<@Nullable String> renderCells(Object value, CsvFormatConfig fmt, BeanIntrospection<?> introspection,
+                                               List<String> columns, List<String> propNames) throws IOException {
         List<@Nullable String> cells = new ArrayList<>(columns.size());
         for (int i = 0; i < columns.size(); i++) {
             String propName = (i < propNames.size()) ? propNames.get(i) : columns.get(i);
             @SuppressWarnings("unchecked")
-            BeanProperty<Object, Object> prop = (BeanProperty<Object, Object>) bi.getProperty(propName).orElse(null);
+            BeanProperty<Object, Object> prop = (BeanProperty<Object, Object>) introspection.getProperty(propName).orElse(null);
             Object v = null;
             if (prop != null) {
                 try {
                     v = prop.get(value);
                 } catch (Exception ignored) {
-                    v = null;
                 }
             }
             CsvFormatConfig.CsvPropertyFormat pf = fmt.propertyFormats().get(propName);
             if (v == null) {
                 cells.add(null);
-            } else if (pf != null && pf.config() != null) {
-                cells.add(renderInline(v, pf.config()));
+            } else if (pf != null) {
+                BeanIntrospection<?> bi = BeanIntrospector.SHARED.findIntrospection(v.getClass()).orElse(null);
+                if (bi == null) {
+                    cells.add(String.valueOf(v));
+                } else {
+                    List<String> nestedColumns = CsvColumnResolution.resolveColumns(pf.config(), bi);
+                    cells.add(codec.encodeLine(pf.config(), renderCells(v, pf.config(), bi, nestedColumns,
+                        CsvColumnResolution.resolvePropNames(pf.config(), bi, nestedColumns))));
+                }
             } else {
                 cells.add(String.valueOf(v));
             }
         }
-        return codec.encodeLine(fmt, cells);
+        return cells;
     }
 }

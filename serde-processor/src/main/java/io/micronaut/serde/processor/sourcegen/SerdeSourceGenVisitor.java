@@ -28,6 +28,10 @@ import io.micronaut.serde.processor.sourcegen.beans.BeanDeserializerSourceGen;
 import io.micronaut.serde.processor.sourcegen.beans.BeanSerdeShape;
 import io.micronaut.serde.processor.sourcegen.beans.BeanSerdeShapeResolver;
 import io.micronaut.serde.processor.sourcegen.beans.BeanSerializerSourceGen;
+import io.micronaut.serde.processor.sourcegen.csv.CsvSerdeShape;
+import io.micronaut.serde.processor.sourcegen.csv.CsvSerdeShapeResolver;
+import io.micronaut.serde.processor.sourcegen.csv.CsvSerializerSourceGen;
+import io.micronaut.serde.processor.sourcegen.csv.CsvDeserializerSourceGen;
 import io.micronaut.serde.processor.sourcegen.enums.EnumDeserializerSourceGen;
 import io.micronaut.serde.processor.sourcegen.enums.EnumSerdeShape;
 import io.micronaut.serde.processor.sourcegen.enums.EnumSerdeShapeResolver;
@@ -45,10 +49,7 @@ import org.jspecify.annotations.Nullable;
 
 import javax.annotation.processing.Generated;
 import javax.lang.model.element.Modifier;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Entry-point visitor that emits simple-shape generated serializers and deserializers.
@@ -60,6 +61,7 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Object, O
     private final RecordSerdeShapeResolver recordSerdeShapeResolver = new RecordSerdeShapeResolver();
     private final BeanSerdeShapeResolver beanSerdeShapeResolver = new BeanSerdeShapeResolver();
     private final EnumSerdeShapeResolver enumSerdeShapeResolver = new EnumSerdeShapeResolver();
+    private final CsvSerdeShapeResolver csvSerdeShapeResolver = new CsvSerdeShapeResolver();
     private final Set<String> writtenGeneratedClassNames = new HashSet<>(32);
 
     @Override
@@ -140,6 +142,10 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Object, O
             }
         }
         if (decision.shapeKind() == SimpleSerdeShapeDecision.ShapeKind.DEFAULT_CONSTRUCTOR_BEAN) {
+            Optional<CsvSerdeShape> csvShape = csvSerdeShapeResolver.resolve(element);
+            if (csvShape.isPresent()) {
+                return new CsvSerializerSourceGen().generate(element, csvShape.get());
+            }
             BeanSerdeShape beanSerdeShape = beanSerdeShapeResolver.resolve(element).orElse(null);
             if (beanSerdeShape != null) {
                 return new BeanSerializerSourceGen().generate(element, beanSerdeShape);
@@ -169,6 +175,10 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Object, O
             }
         }
         if (decision.shapeKind() == SimpleSerdeShapeDecision.ShapeKind.DEFAULT_CONSTRUCTOR_BEAN) {
+            Optional<CsvSerdeShape> csvShape = csvSerdeShapeResolver.resolve(element);
+            if (csvShape.isPresent()) {
+                return new CsvDeserializerSourceGen().generate(element, csvShape.get());
+            }
             BeanSerdeShape beanSerdeShape = beanSerdeShapeResolver.resolve(element).orElse(null);
             if (beanSerdeShape != null) {
                 return new BeanDeserializerSourceGen(language).generate(element, beanSerdeShape);

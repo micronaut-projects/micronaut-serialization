@@ -35,8 +35,6 @@ public abstract class CsvDecoder implements Decoder {
     @Nullable
     private Iterator<String> keyIterator;
     @Nullable
-    private String currentKey;
-    @Nullable
     private String currentValue;
 
     protected CsvDecoder(Map<String, @Nullable String> row) {
@@ -85,11 +83,6 @@ public abstract class CsvDecoder implements Decoder {
         return hasNextRow();
     }
 
-    @Nullable
-    public CsvDecoder nextRow() {
-        return null;
-    }
-
     @Override
     public Decoder decodeObject(Argument<?> type) throws IOException {
         keyIterator = row.keySet().iterator();
@@ -101,7 +94,7 @@ public abstract class CsvDecoder implements Decoder {
         if (keyIterator == null || !keyIterator.hasNext()) {
             return null;
         }
-        currentKey = keyIterator.next();
+        String currentKey = keyIterator.next();
         currentValue = row.get(currentKey);
         return currentKey;
     }

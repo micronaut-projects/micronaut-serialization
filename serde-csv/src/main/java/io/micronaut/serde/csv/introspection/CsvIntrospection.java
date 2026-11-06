@@ -177,18 +177,16 @@ public final class CsvIntrospection {
                 continue;
             }
             String originalName = property.getName();
-            String serialized = property.getAnnotationMetadata()
+            String name = property.getAnnotationMetadata()
                 .stringValue(SerdeConfig.class, SerdeConfig.PROPERTY)
-                .filter(value -> !value.isEmpty())
+                .filter(value1 -> !value1.isEmpty())
                 .orElse(originalName);
-            String propertyName = originalName;
-            String name = serialized;
             int order = -1;
             if (csvProperty != null) {
                 name = csvProperty.stringValue("name").filter(value -> !value.isEmpty()).orElse(name);
                 order = csvProperty.intValue("order").orElse(-1);
             }
-            columns.add(new Column(name, propertyName, originalName, order, index++));
+            columns.add(new Column(name, originalName, originalName, order, index++));
         }
         String[] unifiedOrder = metadata.stringValues(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER);
         if (unifiedOrder.length > 0) {

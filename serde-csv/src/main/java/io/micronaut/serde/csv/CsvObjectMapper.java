@@ -236,8 +236,7 @@ public abstract class CsvObjectMapper implements ObjectMapper {
 
     public <T> List<T> readValues(InputStream inputStream, Argument<T> elementType) throws IOException {
         List<T> result = new ArrayList<>();
-        CsvDecoder decoder = (CsvDecoder) newDecoder(inputStream);
-        try {
+        try (CsvDecoder decoder = (CsvDecoder) newDecoder(inputStream)) {
             while (decoder.hasNextRow(elementType)) {
                 T value = deserializeRow(decoder.decodeObject(elementType), elementType);
                 if (value == null) {
@@ -245,8 +244,6 @@ public abstract class CsvObjectMapper implements ObjectMapper {
                 }
                 result.add(value);
             }
-        } finally {
-            decoder.close();
         }
         return result;
     }
@@ -312,15 +309,12 @@ public abstract class CsvObjectMapper implements ObjectMapper {
             return List.of();
         }
         CsvFormatConfig format = CsvIntrospection.formatFor(value.getClass());
-        Encoder encoder = newEncoder(new ByteArrayOutputStream());
-        try {
+        try (Encoder encoder = newEncoder(new ByteArrayOutputStream())) {
             if (encoder instanceof CsvEncoder csvEncoder) {
                 csvEncoder.configure(format);
             }
             serializeRuntimeTyped(encoder, value);
             return encoder instanceof CsvEncoder csvEncoder ? csvEncoder.lastRow() : List.of();
-        } finally {
-            encoder.close();
         }
     }
 
@@ -383,18 +377,14 @@ public abstract class CsvObjectMapper implements ObjectMapper {
         return io.micronaut.json.JsonStreamConfig.DEFAULT;
     }
 
-    @SuppressWarnings("unchecked")
     private <T> void serialize(Encoder encoder, T object, Argument<T> type) throws IOException {
-        if (object == null) {
-            return;
-        }
         Class<?> clazz = type.getType();
         if (clazz != Map.class && clazz != java.util.LinkedHashMap.class
                 && clazz != java.util.HashMap.class
                 && io.micronaut.core.beans.BeanIntrospector.SHARED.findIntrospection(clazz).isPresent()) {
             Serializer<Object> serializer = new CsvBeanSerializer(clazz, this::encodeCsvLine);
             try (Serializer.EncoderContext context = registry.newEncoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view))) {
-                ((Serializer) serializer).serialize(encoder, context, type, object);
+                serializer.serialize(encoder, context, type, object);
             }
             return;
         }
@@ -417,7 +407,9 @@ public abstract class CsvObjectMapper implements ObjectMapper {
                 && io.micronaut.core.beans.BeanIntrospector.SHARED.findIntrospection(clazz).isPresent()) {
             try (Deserializer.DecoderContext context = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view))) {
                 Deserializer<?> deserializer = new CsvBeanDeserializer(clazz, this::decodeCsvLine, context);
-                return (T) deserializer.deserializeNullable(rowDecoder, context, (Argument<? super Object>) type);
+                @SuppressWarnings("unchecked")
+                Argument<? super Object> arg = (Argument<? super Object>) (Object) type;
+                return (T) deserializer.deserializeNullable(rowDecoder, context, arg);
             }
         }
         if (isRawMap(type) && rowDecoder instanceof CsvDecoder csvDecoder) {
