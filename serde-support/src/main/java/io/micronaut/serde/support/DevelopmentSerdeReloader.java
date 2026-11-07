@@ -152,18 +152,19 @@ final class DevelopmentSerdeReloader {
         if (!(beanContext instanceof WatchableBeanContext context)) {
             return;
         }
-        Collection<BeanRegistration<SerdeRegistry>> registries = beanContext.getActiveBeanRegistrations(SerdeRegistry.class);
-        if (registries.isEmpty()) {
-            return;
-        }
+        List<BeanRegistration<SerdeRegistry>> registries = new ArrayList<>(beanContext.getActiveBeanRegistrations(SerdeRegistry.class));
         BeanDependencyGraph graph = context instanceof ConfigurableBeanContext configurable ? configurable.findDependencyGraph().orElse(null) : null;
         if (graph != null) {
-            for (BeanRegistration<SerdeRegistry> registry : registries) {
-                if (destroysApplication(graph, registry)) {
+            registries.removeIf(registry -> {
+                boolean kept = destroysApplication(graph, registry);
+                if (kept) {
                     LOG.debug("Serde registry {} not rebuilt: recreating it would destroy the running application", registry.getBeanDefinition());
-                    return;
                 }
-            }
+                return kept;
+            });
+        }
+        if (registries.isEmpty()) {
+            return;
         }
         LOG.debug("Rebuilding the serde registry: {}", reason);
         // found before anything is destroyed, while the graph still records what each of them received
