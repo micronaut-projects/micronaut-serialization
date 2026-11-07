@@ -1,5 +1,10 @@
 package io.micronaut.serde.csv.apache.commons
 
+import io.micronaut.core.type.Argument
+import io.micronaut.serde.csv.CsvDecoder
+import io.micronaut.serde.csv.apache.commons.CommonsCsvDecoder
+import io.micronaut.serde.csv.apache.commons.CsvSemiColon
+import java.io.ByteArrayInputStream
 import io.micronaut.serde.csv.apache.commons.decoder.DefaultCsvDecoder
 import io.micronaut.serde.csv.error.CsvException
 import io.micronaut.serde.csv.introspection.CsvFormatConfig
@@ -50,5 +55,21 @@ class CommonsCsvDecoderSpec extends Specification {
         records.count { true } == 2
         records[0] == [name: 'Alice "The Great"', age: "30"]
         records[1] == [name: "Bob", age: "25"]
+    }
+
+    void "hasNextRow uses resolved format not default"() {
+        given:
+        def csv = "id;name\n1;Alice\n2;Bob\n"
+        def input = new ByteArrayInputStream(csv.getBytes(java.nio.charset.StandardCharsets.UTF_8))
+        def decoder = new CommonsCsvDecoder(input)
+
+        expect:
+        decoder.hasNextRow()
+
+        when:
+        def rowDecoder = (CsvDecoder) decoder.decodeObject(Argument.of(CsvSemiColon))
+        then:
+        rowDecoder.row().get("name") == "Alice"
+        rowDecoder.row().get("id") == "1"
     }
 }

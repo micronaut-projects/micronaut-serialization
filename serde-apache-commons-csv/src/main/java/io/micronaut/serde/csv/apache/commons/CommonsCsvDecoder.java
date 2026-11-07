@@ -44,13 +44,19 @@ public class CommonsCsvDecoder extends CsvDecoder {
     @Nullable
     private CSVParser parser;
     @Nullable
+    private CsvFormatConfig parserConfig;
+    @Nullable
     private Iterator<CSVRecord> recordIterator;
     @Nullable
     private CsvDecoder currentRow;
 
     public CommonsCsvDecoder(InputStream inputStream) {
         super(new LinkedHashMap<>());
-        this.inputStream = inputStream;
+        try {
+            this.inputStream = new java.io.ByteArrayInputStream(inputStream.readAllBytes());
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read CSV input", e);
+        }
     }
 
     public CommonsCsvDecoder(Map<String, @Nullable String> row) {
@@ -64,13 +70,33 @@ public class CommonsCsvDecoder extends CsvDecoder {
     }
 
     private void ensureParser(CsvFormatConfig config) {
-        if (parser != null || inputStream == null) {
+        if (inputStream == null) {
             return;
         }
+        // Rebuild the parser if it was never created or if it was built with a
+        // different format (e.g. the no-arg hasNextRow() used CsvFormatConfig.DEFAULT
+        // but the type carries a custom @CsvFormat). Otherwise the wrong delimiter/
+        // quote/header settings would silently be reused.
+        if (parser != null && parserConfig != null && parserConfig.equals(config)) {
+            return;
+        }
+        if (parser != null) {
+            try {
+                parser.close();
+            } catch (IOException ignored) {
+                // ignore
+            }
+            parser = null;
+            recordIterator = null;
+        }
         try {
+            if (inputStream instanceof java.io.ByteArrayInputStream) {
+                ((java.io.ByteArrayInputStream) inputStream).reset();
+            }
             CSVFormat format = CsvFormats.from(config);
             parser = format.parse(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
             recordIterator = parser.iterator();
+            parserConfig = config;
         } catch (IOException e) {
             throw new RuntimeException("Failed to parse CSV", e);
         }
