@@ -84,7 +84,14 @@ public final class CsvFormats {
      * @throws CsvException If the record cannot be encoded
      */
     public static String encodeLine(CsvFormatConfig config, Iterable<? extends @Nullable String> values) throws CsvException {
-        StringWriter writer = new StringWriter();
+        // Estimate a capacity so the StringWriter's backing buffer does not grow repeatedly.
+        int capacity = 64;
+        for (@Nullable String v : values) {
+            if (v != null) {
+                capacity += v.length() + 2;
+            }
+        }
+        StringWriter writer = new StringWriter(capacity);
         try (CSVPrinter printer = new CSVPrinter(writer, format(config, false))) {
             printer.printRecord(values);
         } catch (IOException e) {

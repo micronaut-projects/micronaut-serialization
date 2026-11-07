@@ -49,10 +49,10 @@ public final class CsvRecords {
         if (columns.isEmpty()) {
             map = record.toMap();
         } else {
-            List<String> values = record.toList();
-            map = new LinkedHashMap<>();
+            int size = record.size();
+            map = new LinkedHashMap<>(columns.size());
             for (int i = 0; i < columns.size(); i++) {
-                map.put(columns.get(i), i < values.size() ? values.get(i) : null);
+                map.put(columns.get(i), i < size ? record.get(i) : null);
             }
         }
         if (map.isEmpty()) {
