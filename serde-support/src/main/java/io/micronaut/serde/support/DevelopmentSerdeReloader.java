@@ -26,13 +26,11 @@ import io.micronaut.context.reload.ClassChange;
 import io.micronaut.context.reload.ClassChangeEvent;
 import io.micronaut.context.reload.ReloadStrategy;
 import io.micronaut.core.annotation.Internal;
-import io.micronaut.core.annotation.Introspected;
-import io.micronaut.core.beans.BeanIntrospector;
 import io.micronaut.inject.BeanDefinition;
+import io.micronaut.runtime.EmbeddedApplication;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.Serializer;
-import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.serde.support.deserializers.SerdeDeserializationPreInstantiateCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +45,8 @@ import java.util.Set;
 /**
  * Rebuilds the serde registry, and the object mappers made from it, when what they were built from
  * changes in development mode: a serializer or deserializer definition added or removed, or a reload
- * that changes a serializable type. It exists only in development mode, so nothing of it is on the
+ * that changes an introspection or retires a classloader. A method body redefined in place, in a serializable
+ * class or any other, changes none of that. It exists only in development mode, so nothing of it is on the
  * path of a serialization: the registry and the mappers are recreated as beans, and the next lookup
  * or injection gets the new ones.
  *
@@ -66,6 +65,10 @@ import java.util.Set;
  * A derived mapper is never changed or tracked: nothing of the serialization path, the clones included, knows of
  * development mode. A mapper derived by code that the graph does not see, such as a bean that looks the mapper up in
  * the context, follows only when that bean is recreated.</p>
+ *
+ * <p>Nothing is recreated if that would destroy the running application: stopping an embedded server stops the
+ * context. The JSON media type codec is such a holder, since the codec registry and through it the server received
+ * the codec. Such a bean keeps what it holds, and sees the change after a restart.</p>
  *
  * <p>It holds the context only, never the registry or a mapper: a bean that received the registry is
  * a dependent of it, which recreating the registry would destroy along with its watches.</p>
@@ -117,7 +120,8 @@ final class DevelopmentSerdeReloader {
      * Whether a class change concerns what the registry resolved. A change that restarts the application
      * creates a new registry with the new context. One applied in place does not: the registry caches by
      * class, so a change that retires a classloader leaves it holding classes and serdes of the retired
-     * generation, and one that redefines an introspected type in place changes what its serde reads.
+     * generation, and a changed introspection changes what a serde reads. A class redefined with its structure kept
+     * changes neither: the serdes read it through generated classes that did not change, and call its new bodies.
      *
      * @param change The class change
      * @return Whether to rebuild the registry
@@ -130,26 +134,11 @@ final class DevelopmentSerdeReloader {
             return true;
         }
         for (ClassChange classChange : change.changes()) {
-            String className = classChange.className();
-            if (className.endsWith("$Introspection") || isSerializable(className, change.newLoader())) {
+            if (classChange.className().endsWith("$Introspection")) {
                 return true;
             }
         }
         return false;
-    }
-
-    private static boolean isSerializable(String className, ClassLoader loader) {
-        try {
-            Class<?> type = Class.forName(className, false, loader);
-            return type.isAnnotationPresent(Serdeable.class)
-                || type.isAnnotationPresent(Serdeable.Serializable.class)
-                || type.isAnnotationPresent(Serdeable.Deserializable.class)
-                || type.isAnnotationPresent(Introspected.class)
-                || BeanIntrospector.SHARED.findIntrospection(type).isPresent();
-        } catch (ClassNotFoundException | LinkageError e) {
-            // removed, or not loadable on its own: nothing the registry can have resolved from the new generation
-            return false;
-        }
     }
 
     /**
@@ -167,9 +156,18 @@ final class DevelopmentSerdeReloader {
         if (registries.isEmpty()) {
             return;
         }
+        BeanDependencyGraph graph = context instanceof ConfigurableBeanContext configurable ? configurable.findDependencyGraph().orElse(null) : null;
+        if (graph != null) {
+            for (BeanRegistration<SerdeRegistry> registry : registries) {
+                if (destroysApplication(graph, registry)) {
+                    LOG.debug("Serde registry {} not rebuilt: recreating it would destroy the running application", registry.getBeanDefinition());
+                    return;
+                }
+            }
+        }
         LOG.debug("Rebuilding the serde registry: {}", reason);
         // found before anything is destroyed, while the graph still records what each of them received
-        List<Object> lazyHolders = lazyHolders(context, registries);
+        List<Object> lazyHolders = graph == null ? List.of() : lazyHolders(graph, registries);
         for (BeanRegistration<SerdeRegistry> registry : registries) {
             if (!context.recreate(registry.bean())) {
                 // no dependency graph, or a registry registered at runtime: kept, and read again after a restart
@@ -188,20 +186,14 @@ final class DevelopmentSerdeReloader {
      * The singletons that received, through a provider, a registry, or a bean that recreating the registries
      * destroys, such as a mapper, and that are not destroyed with them: what they resolved, or derived from it, holds
      * the registry it was made from. A holder found is destroyed with its own dependents when it is recreated, and
-     * those may hold yet another bean through a provider, so the search goes on until it finds no new holder.
+     * those may hold yet another bean through a provider, so the search goes on until it finds no new holder. A bean
+     * whose recreation would destroy the running application is not one of them.
      *
-     * @param context The context
+     * @param graph The dependency graph
      * @param registries The registries about to be recreated
      * @return The holders, in the order they were found
      */
-    private List<Object> lazyHolders(WatchableBeanContext context, Collection<BeanRegistration<SerdeRegistry>> registries) {
-        if (!(context instanceof ConfigurableBeanContext configurable)) {
-            return List.of();
-        }
-        BeanDependencyGraph graph = configurable.findDependencyGraph().orElse(null);
-        if (graph == null) {
-            return List.of();
-        }
+    private List<Object> lazyHolders(BeanDependencyGraph graph, Collection<BeanRegistration<SerdeRegistry>> registries) {
         Set<BeanDefinition<?>> destroyed = Collections.newSetFromMap(new IdentityHashMap<>());
         for (BeanRegistration<SerdeRegistry> registry : registries) {
             destroyed.add(registry.getBeanDefinition());
@@ -217,7 +209,7 @@ final class DevelopmentSerdeReloader {
                     continue;
                 }
                 for (BeanDependencyGraph.BeanDependency dependency : graph.dependenciesOf(registration)) {
-                    if (dependency.lazy() && destroyed.contains(dependency.dependency())) {
+                    if (dependency.lazy() && destroyed.contains(dependency.dependency()) && !destroysApplication(graph, registration)) {
                         holders.add(registration.bean());
                         destroyed.add(registration.getBeanDefinition());
                         destroyed.addAll(graph.transitiveDependentsOf(registration));
@@ -228,6 +220,18 @@ final class DevelopmentSerdeReloader {
             }
         }
         return holders;
+    }
+
+    private static boolean destroysApplication(BeanDependencyGraph graph, BeanRegistration<?> registration) {
+        if (EmbeddedApplication.class.isAssignableFrom(registration.getBeanDefinition().getBeanType())) {
+            return true;
+        }
+        for (BeanDefinition<?> dependent : graph.transitiveDependentsOf(registration)) {
+            if (EmbeddedApplication.class.isAssignableFrom(dependent.getBeanType())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static boolean containsInstance(List<Object> beans, Object bean) {
