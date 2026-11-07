@@ -49,7 +49,31 @@ public final class CsvFormats {
     private CsvFormats() {
     }
 
+    /**
+     * Cache of parser formats built by {@link #from(CsvFormatConfig)}: header-aware,
+     * multi-line document parsing (attaches header columns and skips the header record
+     * when {@link CsvFormatConfig#hasHeader()} is true).
+     */
     private static final ConcurrentHashMap<CsvFormatConfig, CSVFormat> FROM_CACHE = new ConcurrentHashMap<>();
+
+    /**
+     * Cache of parser formats built by {@link #parseLineFormat(CsvFormatConfig)}: single
+     * inline record parsing with no header handling and empty lines preserved
+     * ({@code ignoreEmptyLines=false}).
+     */
+    private static final ConcurrentHashMap<CsvFormatConfig, CSVFormat> PARSE_LINE_CACHE = new ConcurrentHashMap<>();
+
+    /**
+     * Key for {@link #FORMAT_CACHE}: a resolved config plus whether the printer should
+     * attach a header row.
+     */
+    private record FormatKey(CsvFormatConfig config, boolean withHeader) {}
+
+    /**
+     * Cache of printer formats built by {@link #format(CsvFormatConfig, boolean)}:
+     * encoding records, optionally with a header row.
+     */
+    private static final ConcurrentHashMap<FormatKey, CSVFormat> FORMAT_CACHE = new ConcurrentHashMap<>();
 
     /**
      * Encodes a single record without a header.
@@ -102,9 +126,9 @@ public final class CsvFormats {
      * @return The Apache Commons CSV format
      */
     public static CSVFormat parseLineFormat(CsvFormatConfig config) {
-        return apply(config)
+        return PARSE_LINE_CACHE.computeIfAbsent(config, c -> apply(c)
             .setIgnoreEmptyLines(false)
-            .get();
+            .get());
     }
 
     /**
@@ -126,11 +150,14 @@ public final class CsvFormats {
      * @return The Apache Commons CSV format
      */
     public static CSVFormat format(CsvFormatConfig config, boolean withHeader) {
-        CSVFormat.Builder builder = apply(config);
-        if (withHeader && !config.columns().isEmpty()) {
-            builder.setHeader(config.columns().toArray(new String[0]));
-        }
-        return builder.get();
+        FormatKey key = new FormatKey(config, withHeader);
+        return FORMAT_CACHE.computeIfAbsent(key, k -> {
+            CSVFormat.Builder builder = apply(k.config());
+            if (k.withHeader() && !k.config().columns().isEmpty()) {
+                builder.setHeader(k.config().columns().toArray(new String[0]));
+            }
+            return builder.get();
+        });
     }
 
     /**
