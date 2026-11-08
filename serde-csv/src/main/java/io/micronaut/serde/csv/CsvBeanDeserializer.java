@@ -113,8 +113,8 @@ public final class CsvBeanDeserializer implements Deserializer<Object> {
             // fall back to row keys
             propToCol = new LinkedHashMap<>();
             List<String> cols = new ArrayList<>(row.keySet());
-            for (int i = 0; i < cols.size(); i++) {
-                propToCol.put(cols.get(i), cols.get(i));
+            for (String col : cols) {
+                propToCol.put(col, col);
             }
         }
         List<Object> values = new ArrayList<>();

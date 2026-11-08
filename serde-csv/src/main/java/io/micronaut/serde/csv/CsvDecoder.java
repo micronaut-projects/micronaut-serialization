@@ -29,9 +29,9 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Internal
-@SuppressWarnings("checkstyle:DesignForExtension")
 public abstract class CsvDecoder extends AbstractStreamDecoder implements CsvStreamDecoder {
 
     private final Map<String, @Nullable String> row;
@@ -48,21 +48,6 @@ public abstract class CsvDecoder extends AbstractStreamDecoder implements CsvStr
         this.row = row;
         this.columns = new ArrayList<>(row.keySet());
     }
-
-    // Expose protected stream hooks publicly so subclasses (e.g. CommonsCsvDecoder) can
-    // delegate to a child row decoder without reflection.
-    public AbstractStreamDecoder.TokenType currentTokenPublic() { return currentToken(); }
-    public void nextTokenPublic() throws IOException { nextToken(); }
-    public String getCurrentKeyPublic() throws IOException { return getCurrentKey(); }
-    public String getStringPublic() throws IOException { return getString(); }
-    public boolean getBooleanPublic() throws IOException { return getBoolean(); }
-    public long getLongPublic() throws IOException { return getLong(); }
-    public double getDoublePublic() throws IOException { return getDouble(); }
-    public BigInteger getBigIntegerPublic() throws IOException { return getBigInteger(); }
-    public BigDecimal getBigDecimalPublic() throws IOException { return getBigDecimal(); }
-    public Number getBestNumberPublic() throws IOException { return getBestNumber(); }
-    public String coerceScalarToStringPublic(AbstractStreamDecoder.TokenType t) throws IOException { return coerceScalarToString(t); }
-    public void skipChildrenPublic() throws IOException { skipChildren(); }
 
     /**
      * Returns the logical row backing this decoder.
@@ -81,7 +66,7 @@ public abstract class CsvDecoder extends AbstractStreamDecoder implements CsvStr
     }
 
     @Override
-    protected void nextToken() throws IOException {
+    protected void nextToken() {
         AbstractStreamDecoder.TokenType t = token;
         if (t == null) {
             return;
@@ -120,32 +105,32 @@ public abstract class CsvDecoder extends AbstractStreamDecoder implements CsvStr
     }
 
     @Override
-    protected String getCurrentKey() throws IOException {
-        return java.util.Objects.requireNonNull(currentKey, "Not at a field name");
+    protected String getCurrentKey() {
+        return Objects.requireNonNull(currentKey, "Not at a field name");
     }
 
     @Override
-    protected String getString() throws IOException {
+    protected String getString() {
         return currentValue == null ? "" : currentValue;
     }
 
     @Override
-    protected boolean getBoolean() throws IOException {
+    protected boolean getBoolean() {
         return Boolean.parseBoolean(currentValue);
     }
 
     @Override
-    protected long getLong() throws IOException {
+    protected long getLong() {
         return Long.parseLong(currentValue == null ? "" : currentValue);
     }
 
     @Override
-    protected double getDouble() throws IOException {
+    protected double getDouble() {
         return Double.parseDouble(currentValue == null ? "" : currentValue);
     }
 
     @Override
-    protected BigInteger getBigInteger() throws IOException {
+    protected BigInteger getBigInteger() {
         return new BigInteger(currentValue == null ? "" : currentValue);
     }
 
@@ -182,16 +167,6 @@ public abstract class CsvDecoder extends AbstractStreamDecoder implements CsvStr
         // no-op: CSV cells are flat strings
     }
 
-
-
-
-
-
-
-
-
-
-
     @Override
     public JsonNode decodeNode() throws IOException {
         throw createDeserializationException("decodeNode() not supported in CSV decoder.", currentValue);
@@ -222,12 +197,7 @@ public abstract class CsvDecoder extends AbstractStreamDecoder implements CsvStr
     }
 
     @Override
-    public boolean hasNextRow(Argument<?> type) throws IOException {
+    public boolean hasNextRow(Argument<?> type) {
         return hasNextRow();
-    }
-
-    // Keep row() accessor
-    public Map<String, @Nullable String> rowPublic() {
-        return row();
     }
 }

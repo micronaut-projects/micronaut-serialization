@@ -70,7 +70,7 @@ public final class CsvBeanSerializer implements Serializer<Object> {
         for (int i = 0; i < columns.size(); i++) {
             String col = columns.get(i);
             encoder.encodeKey(col);
-            @Nullable String cell = cells.get(i);
+            String cell = cells.get(i);
             if (cell == null) {
                 encoder.encodeNull();
             } else {

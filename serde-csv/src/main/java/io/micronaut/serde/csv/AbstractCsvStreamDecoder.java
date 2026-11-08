@@ -65,7 +65,7 @@ public abstract class AbstractCsvStreamDecoder implements CsvStreamDecoder {
 
     @Override
     public boolean decodeBoolean() throws IOException {
-        return currentRow == null ? false : currentRow.decodeBoolean();
+        return currentRow != null && currentRow.decodeBoolean();
     }
 
     @Override
@@ -124,7 +124,7 @@ public abstract class AbstractCsvStreamDecoder implements CsvStreamDecoder {
     }
 
     @Override
-    public boolean hasNextArrayValue() throws IOException {
+    public boolean hasNextArrayValue() {
         return false;
     }
 

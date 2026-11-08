@@ -70,7 +70,7 @@ public class JacksonCsvDecoder extends AbstractCsvStreamDecoder {
             return;
         }
         synchronized (this) {
-            if (iterator != null || inputStream == null) {
+            if (iterator != null) {
                 return;
             }
             try {
@@ -148,27 +148,6 @@ public class JacksonCsvDecoder extends AbstractCsvStreamDecoder {
         }
         return rowDecoder.decodeObject(type);
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     @Override
     public void close() throws IOException {

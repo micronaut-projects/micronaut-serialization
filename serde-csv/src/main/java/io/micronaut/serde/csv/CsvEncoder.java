@@ -45,7 +45,7 @@ public abstract class CsvEncoder implements Encoder, KeysAwareEncoder {
     private List<@Nullable String> lastRow = List.of();
     private String currentKey = "";
     private int objectDepth;
-    private final Map<String, CsvEncoder> nestedEncoders = new LinkedHashMap<>();
+//    private final Map<String, CsvEncoder> nestedEncoders = new LinkedHashMap<>();
 
     protected CsvEncoder() {
     }
@@ -139,7 +139,7 @@ public abstract class CsvEncoder implements Encoder, KeysAwareEncoder {
             return this;
         }
         CsvEncoder child = createNestedEncoder(currentKey);
-        nestedEncoders.put(currentKey, child);
+//        nestedEncoders.put(currentKey, child);
         return child;
     }
 
@@ -151,7 +151,7 @@ public abstract class CsvEncoder implements Encoder, KeysAwareEncoder {
             flushRow();
             columnNames.clear();
             columnValues.clear();
-            nestedEncoders.clear();
+//            nestedEncoders.clear();
         }
     }
 
@@ -181,17 +181,17 @@ public abstract class CsvEncoder implements Encoder, KeysAwareEncoder {
     }
 
     @Override
-    public void encodeByte(byte value) throws IOException {
+    public void encodeByte(byte value) {
         addColumn(currentKey, String.valueOf(value));
     }
 
     @Override
-    public void encodeShort(short value) throws IOException {
+    public void encodeShort(short value) {
         addColumn(currentKey, String.valueOf(value));
     }
 
     @Override
-    public void encodeChar(char value) throws IOException {
+    public void encodeChar(char value) {
         addColumn(currentKey, String.valueOf(value));
     }
 
@@ -206,7 +206,7 @@ public abstract class CsvEncoder implements Encoder, KeysAwareEncoder {
     }
 
     @Override
-    public void encodeFloat(float value) throws IOException {
+    public void encodeFloat(float value) {
         addColumn(currentKey, String.valueOf(value));
     }
 
@@ -216,12 +216,12 @@ public abstract class CsvEncoder implements Encoder, KeysAwareEncoder {
     }
 
     @Override
-    public void encodeBigInteger(BigInteger value) throws IOException {
+    public void encodeBigInteger(BigInteger value) {
         addColumn(currentKey, value.toString());
     }
 
     @Override
-    public void encodeBigDecimal(BigDecimal value) throws IOException {
+    public void encodeBigDecimal(BigDecimal value) {
         addColumn(currentKey, value.toString());
     }
 
@@ -231,7 +231,7 @@ public abstract class CsvEncoder implements Encoder, KeysAwareEncoder {
     }
 
     @Override
-    public Encoder encodeArray(Argument<?> type) throws IOException {
+    public Encoder encodeArray(Argument<?> type) {
         throw new UnsupportedOperationException("Arrays are not supported as CSV cell values");
     }
 

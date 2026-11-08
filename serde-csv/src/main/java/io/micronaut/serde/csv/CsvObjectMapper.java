@@ -58,7 +58,6 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 
 @Internal
-@SuppressWarnings("checkstyle:DesignForExtension")
 public abstract class CsvObjectMapper implements ObjectMapper {
 
     protected final SerdeRegistry registry;
