@@ -122,10 +122,7 @@ public class CommonsCsvDecoder extends CsvDecoder {
 
     /**
      * Decodes the next CSV row into an object.
-     * <p>
-     * Dynamic header reading for raw {@code Map} types is not yet implemented (upcoming).
-     * See the CSV guide:
-     * <a href="https://docs.micronaut.io/latest/guide/index.html#csv">CSV</a>.
+     * Raw {@code Map} types are keyed by the header read from the first record.
      */
     @Override
     public Decoder decodeObject(Argument<?> type) throws IOException {
@@ -143,7 +140,7 @@ public class CommonsCsvDecoder extends CsvDecoder {
                 ? CsvIntrospection.columnsFor(type.getType())
                 : config.columns();
             Map<String, @Nullable String> row = CsvRecords.toMap(record, columns);
-            Map<String, @Nullable String> propertyRow = CsvRecordMappings.toPropertyMap(config, row);
+            Map<String, @Nullable String> propertyRow = CsvRecordMappings.toPropertyMap(config, row, columnMapping(config));
             rowDecoder = CsvDecoder.forRow(propertyRow);
         }
         if (inputStream == null) {

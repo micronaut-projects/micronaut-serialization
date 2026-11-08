@@ -23,6 +23,7 @@ import io.micronaut.serde.csv.introspection.CsvFormatConfig;
 import io.micronaut.serde.csv.introspection.CsvIntrospection;
 import io.micronaut.serde.csv.mapper.CsvRecordMappings;
 import org.jspecify.annotations.Nullable;
+import tools.jackson.databind.MappingIterator;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,9 +39,9 @@ public class JacksonCsvDecoder extends CsvDecoder {
     @Nullable
     private final InputStream inputStream;
     private final tools.jackson.dataformat.csv.CsvMapper csvMapper;
-    @SuppressWarnings("NullAway")
-    private tools.jackson.databind.MappingIterator<Map<String, @Nullable String>> iterator = null;
-    @SuppressWarnings("NullAway")
+    @Nullable
+    private MappingIterator<Map<String, @Nullable String>> iterator = null;
+    @Nullable
     private CsvDecoder currentRow = null;
 
     public JacksonCsvDecoder(InputStream inputStream) {
@@ -134,7 +135,7 @@ public class JacksonCsvDecoder extends CsvDecoder {
                     }
                 }
             }
-            Map<String, @Nullable String> propertyRow = CsvRecordMappings.toPropertyMap(config, row);
+            Map<String, @Nullable String> propertyRow = CsvRecordMappings.toPropertyMap(config, row, columnMapping(config));
             rowDecoder = CsvDecoder.forRow(propertyRow);
         }
         if (inputStream == null) {

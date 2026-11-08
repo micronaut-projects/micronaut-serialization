@@ -22,6 +22,7 @@ import io.micronaut.serde.csv.introspection.CsvFormatConfig;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -43,24 +44,75 @@ public final class CsvRecordMappings {
     /**
      * Converts a record keyed by CSV column names to a record keyed by bean property names.
      *
+     * <p>The given map is mutated in place when possible, so callers must not share it
+     * between threads.</p>
+     *
      * @param config The resolved CSV format
-     * @param values The values keyed by CSV column name
+     * @param values The values keyed by CSV column name; may be mutated and returned
      * @return The values keyed by bean property name
      */
     public static Map<String, @Nullable String> toPropertyMap(CsvFormatConfig config, Map<String, @Nullable String> values) {
-        List<String> columns = config.columns();
-        List<String> propertyNames = config.propertyNames();
-        if (columns.isEmpty() || columns.size() != propertyNames.size()) {
+        return toPropertyMap(config, values, new ColumnMapping(config));
+    }
+
+    /**
+     * Converts a record keyed by CSV column names to a record keyed by bean property names,
+     * using a precomputed {@link ColumnMapping}.
+     *
+     * <p>The mapping is computed once per resolved {@link CsvFormatConfig} and reused for every
+     * row. Only columns that are actually renamed are touched, so a partially mapped bean no
+     * longer forces a full map copy. Values are normalized in place and the given map is
+     * returned when possible.</p>
+     *
+     * <p>The given map is mutated in place when possible, so callers must not share it
+     * between threads.</p>
+     *
+     * @param config  The resolved CSV format
+     * @param values  The values keyed by CSV column name; may be mutated and returned
+     * @param mapping The precomputed column mapping for {@code config}
+     * @return The values keyed by bean property name
+     * @since 3.3.0
+     */
+    public static Map<String, @Nullable String> toPropertyMap(CsvFormatConfig config,
+                                                              Map<String, @Nullable String> values,
+                                                              ColumnMapping mapping) {
+        if (!mapping.columnar) {
             return normalizeValues(config, values);
         }
-        Map<String, @Nullable String> result = new LinkedHashMap<>(columns.size());
-        for (int i = 0; i < columns.size(); i++) {
-            String column = columns.get(i);
-            if (values.containsKey(column)) {
-                result.put(propertyNames.get(i), normalize(config, values.get(column)));
+        for (Map.Entry<String, @Nullable String> entry : values.entrySet()) {
+            entry.setValue(normalize(config, entry.getValue()));
+        }
+        if (mapping.identity) {
+            return values;
+        }
+        // Renaming in place is only safe when no target property name is also a column name,
+        // otherwise a renamed key could be picked up again as a source in a later iteration.
+        if (!mapping.inPlaceSafe) {
+            return rebuildPropertyMap(mapping, values);
+        }
+        for (int index : mapping.renamed) {
+            if (values.containsKey(mapping.columns[index]) && values.containsKey(mapping.propertyNames[index])) {
+                return rebuildPropertyMap(mapping, values);
             }
         }
-        return result;
+        for (int index : mapping.renamed) {
+            String column = mapping.columns[index];
+            if (values.containsKey(column)) {
+                values.put(mapping.propertyNames[index], values.remove(column));
+            }
+        }
+        return values;
+    }
+
+    /**
+     * Precomputes the per-column mapping for a resolved CSV format.
+     *
+     * @param config The resolved CSV format
+     * @return The column mapping
+     * @since 3.3.0
+     */
+    public static ColumnMapping mapping(CsvFormatConfig config) {
+        return new ColumnMapping(config);
     }
 
     /**
@@ -233,6 +285,18 @@ public final class CsvRecordMappings {
         return result;
     }
 
+    private static Map<String, @Nullable String> rebuildPropertyMap(ColumnMapping mapping,
+                                                                    Map<String, @Nullable String> values) {
+        Map<String, @Nullable String> result = new LinkedHashMap<>(mapping.columns.length);
+        for (int i = 0; i < mapping.columns.length; i++) {
+            String column = mapping.columns[i];
+            if (values.containsKey(column)) {
+                result.put(mapping.propertyNames[i], values.get(column));
+            }
+        }
+        return result;
+    }
+
     private static @Nullable String normalize(CsvFormatConfig config, @Nullable String value) {
         if (value == null) {
             return null;
@@ -243,6 +307,66 @@ public final class CsvRecordMappings {
 
     private static @Nullable String stringify(@Nullable Object value) {
         return value == null ? null : value.toString();
+    }
+
+    /**
+     * Precomputed column-to-property mapping for a resolved CSV format.
+     *
+     * <p>Instances are immutable and can be cached per {@link CsvFormatConfig}, so the
+     * column/property comparison and the list of renamed columns are computed once instead of
+     * on every row.</p>
+     *
+     * @since 3.3.0
+     */
+    @Internal
+    public static final class ColumnMapping {
+
+        private final String[] columns;
+        private final String[] propertyNames;
+        private final int[] renamed;
+        private final boolean identity;
+        private final boolean columnar;
+        private final boolean inPlaceSafe;
+
+        private ColumnMapping(CsvFormatConfig config) {
+            List<String> configColumns = config.columns();
+            List<String> configPropertyNames = config.propertyNames();
+            this.columnar = !configColumns.isEmpty() && configColumns.size() == configPropertyNames.size();
+            if (!columnar) {
+                this.columns = new String[0];
+                this.propertyNames = new String[0];
+                this.renamed = new int[0];
+                this.identity = false;
+                this.inPlaceSafe = false;
+                return;
+            }
+            this.columns = configColumns.toArray(String[]::new);
+            this.propertyNames = configPropertyNames.toArray(String[]::new);
+            int[] renamedIndexes = new int[this.columns.length];
+            int renamedCount = 0;
+            for (int i = 0; i < this.columns.length; i++) {
+                if (!this.columns[i].equals(this.propertyNames[i])) {
+                    renamedIndexes[renamedCount++] = i;
+                }
+            }
+            this.renamed = renamedCount == renamedIndexes.length
+                ? renamedIndexes
+                : Arrays.copyOf(renamedIndexes, renamedCount);
+            this.identity = renamedCount == 0;
+            this.inPlaceSafe = identity || !collidesWithColumn(renamed, this.columns, this.propertyNames);
+        }
+
+        private static boolean collidesWithColumn(int[] renamed, String[] columns, String[] propertyNames) {
+            for (int index : renamed) {
+                String propertyName = propertyNames[index];
+                for (String column : columns) {
+                    if (column.equals(propertyName)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
     }
 
     /**

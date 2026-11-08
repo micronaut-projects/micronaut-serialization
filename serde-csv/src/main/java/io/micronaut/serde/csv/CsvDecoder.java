@@ -19,6 +19,9 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.csv.introspection.CsvFormatConfig;
+import io.micronaut.serde.csv.mapper.CsvRecordMappings;
+import io.micronaut.serde.csv.mapper.CsvRecordMappings.ColumnMapping;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -36,6 +39,8 @@ public abstract class CsvDecoder implements Decoder {
     private Iterator<String> keyIterator;
     @Nullable
     private String currentValue;
+    @Nullable
+    private MappingCache mappingCache;
 
     protected CsvDecoder(Map<String, @Nullable String> row) {
         this.row = row;
@@ -56,6 +61,26 @@ public abstract class CsvDecoder implements Decoder {
      */
     public Map<String, @Nullable String> row() {
         return row;
+    }
+
+    /**
+     * Returns the precomputed column mapping for the given format, recomputing it only when the
+     * format instance changes. Backends call this once per row so the per-column mapping is
+     * cached across rows of the same type.
+     *
+     * @param config The resolved CSV format
+     * @return The precomputed column mapping
+     */
+    @SuppressWarnings("ReferenceEquality")
+    protected final ColumnMapping columnMapping(CsvFormatConfig config) {
+        // CsvIntrospection caches one config instance per type, so identity is stable and
+        // cheaper than comparing the whole record on every row.
+        MappingCache cache = mappingCache;
+        if (cache == null || cache.config != config) {
+            cache = new MappingCache(config, CsvRecordMappings.mapping(config));
+            mappingCache = cache;
+        }
+        return cache.mapping;
     }
 
     public static CsvDecoder forRow(Map<String, @Nullable String> row) {
@@ -208,5 +233,20 @@ public abstract class CsvDecoder implements Decoder {
     @Override
     public Decoder decodeBuffer() throws IOException {
         return this;
+    }
+
+    /**
+     * Immutable config/mapping pair. Decoders are single-threaded, so the field needs no
+     * synchronization; bundling both values keeps the identity check consistent.
+     */
+    private static final class MappingCache {
+
+        private final CsvFormatConfig config;
+        private final ColumnMapping mapping;
+
+        private MappingCache(CsvFormatConfig config, ColumnMapping mapping) {
+            this.config = config;
+            this.mapping = mapping;
+        }
     }
 }

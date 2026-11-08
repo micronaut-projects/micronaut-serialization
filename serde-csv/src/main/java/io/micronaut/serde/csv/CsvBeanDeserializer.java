@@ -46,6 +46,7 @@ public final class CsvBeanDeserializer implements Deserializer<Object> {
     private final Map<String, String> propToCol;
     private final Map<String, BeanProperty<?, ?>> propMap;
     private final Map<String, Deserializer<?>> propDeserializers;
+    private final List<BeanProperty<?, ?>> props;
 
     public CsvBeanDeserializer(Class<?> type, CsvLineDecoder codec, Deserializer.DecoderContext context) {
         this.type = type;
@@ -92,6 +93,7 @@ public final class CsvBeanDeserializer implements Deserializer<Object> {
             }
         }
         this.propDeserializers = ds;
+        this.props = bi == null ? List.of() : List.copyOf(bi.getBeanProperties());
     }
 
     @Override
@@ -120,7 +122,7 @@ public final class CsvBeanDeserializer implements Deserializer<Object> {
             }
         }
         List<Object> values = new ArrayList<>();
-        List<BeanProperty<?, ?>> props = new ArrayList<>(introspection.getBeanProperties());
+        List<BeanProperty<?, ?>> props = this.props;
         Set<String> ignored = new LinkedHashSet<>();
         for (BeanProperty<?, ?> bp : props) {
             String propName = bp.getName();
