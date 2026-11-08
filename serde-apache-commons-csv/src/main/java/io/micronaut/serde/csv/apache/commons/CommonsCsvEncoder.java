@@ -72,9 +72,11 @@ public class CommonsCsvEncoder extends CsvEncoder {
         if (!headerWritten && !header.isEmpty()) {
             synchronized (this) {
                 if (!headerWritten && !header.isEmpty()) {
-                    try (CSVPrinter p = printer()) {
-                        p.printRecord((Object[]) header.toArray(new String[0]));
-                    }
+                    // Print the header without closing the printer: closing it would close the
+                    // underlying OutputStreamWriter/outputStream, making subsequent flushRow()
+                    // writes fail with "Stream closed". The printer (and stream) are closed by
+                    // close() once all rows have been written.
+                    printer().printRecord((Object[]) header.toArray(new String[0]));
                     headerWritten = true;
                 }
             }
