@@ -91,7 +91,8 @@ public final class CsvBeanSerializer implements Serializer<Object> {
             if (prop != null) {
                 try {
                     v = prop.get(value);
-                } catch (Exception ignored) {
+                } catch (UnsupportedOperationException ignored) {
+                    // write-only property: skip
                 }
             }
             CsvFormatConfig.CsvPropertyFormat pf = fmt.propertyFormats().get(propName);

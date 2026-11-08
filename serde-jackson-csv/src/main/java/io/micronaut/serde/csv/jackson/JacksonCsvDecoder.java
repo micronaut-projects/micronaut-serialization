@@ -42,7 +42,7 @@ public class JacksonCsvDecoder extends AbstractCsvStreamDecoder {
     private final InputStream inputStream;
     private final tools.jackson.dataformat.csv.CsvMapper csvMapper;
     @Nullable
-    private MappingIterator<Map<String, @Nullable String>> iterator = null;
+    private volatile MappingIterator<Map<String, @Nullable String>> iterator = null;
     @Nullable
     private CsvDecoder currentRow;
 
@@ -69,25 +69,30 @@ public class JacksonCsvDecoder extends AbstractCsvStreamDecoder {
         if (iterator != null || inputStream == null) {
             return;
         }
-        try {
-            tools.jackson.dataformat.csv.CsvSchema.Builder builder = JacksonCsvFormats.builder(config, config.hasHeader());
-            List<String> columns = config.columns();
-            if (!columns.isEmpty()) {
-                builder.addColumns(columns, tools.jackson.dataformat.csv.CsvSchema.ColumnType.STRING);
+        synchronized (this) {
+            if (iterator != null || inputStream == null) {
+                return;
             }
-            tools.jackson.databind.ObjectReader reader = csvMapper.readerForMapOf(String.class).with(builder.build());
-            if (config.skipEmptyLines()) {
-                reader = reader.with(tools.jackson.dataformat.csv.CsvReadFeature.SKIP_EMPTY_LINES);
+            try {
+                tools.jackson.dataformat.csv.CsvSchema.Builder builder = JacksonCsvFormats.builder(config, config.hasHeader());
+                List<String> columns = config.columns();
+                if (!columns.isEmpty()) {
+                    builder.addColumns(columns, tools.jackson.dataformat.csv.CsvSchema.ColumnType.STRING);
+                }
+                tools.jackson.databind.ObjectReader reader = csvMapper.readerForMapOf(String.class).with(builder.build());
+                if (config.skipEmptyLines()) {
+                    reader = reader.with(tools.jackson.dataformat.csv.CsvReadFeature.SKIP_EMPTY_LINES);
+                }
+                if (config.allowComments()) {
+                    reader = reader.with(tools.jackson.dataformat.csv.CsvReadFeature.ALLOW_COMMENTS);
+                }
+                if (config.trim()) {
+                    reader = reader.with(tools.jackson.dataformat.csv.CsvReadFeature.TRIM_SPACES);
+                }
+                iterator = reader.readValues(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to parse CSV", e);
             }
-            if (config.allowComments()) {
-                reader = reader.with(tools.jackson.dataformat.csv.CsvReadFeature.ALLOW_COMMENTS);
-            }
-            if (config.trim()) {
-                reader = reader.with(tools.jackson.dataformat.csv.CsvReadFeature.TRIM_SPACES);
-            }
-            iterator = reader.readValues(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to parse CSV", e);
         }
     }
 

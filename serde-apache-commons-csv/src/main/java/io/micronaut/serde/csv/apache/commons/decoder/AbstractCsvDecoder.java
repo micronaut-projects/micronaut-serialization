@@ -16,7 +16,6 @@
 package io.micronaut.serde.csv.apache.commons.decoder;
 
 import io.micronaut.core.annotation.Internal;
-import io.micronaut.serde.csv.error.CsvParseException;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -35,14 +34,6 @@ import java.util.function.Supplier;
  */
 @Internal
 public abstract class AbstractCsvDecoder {
-
-    protected final Iterable<CSVRecord> decode(CSVFormat format, Reader reader) throws CsvParseException {
-        try {
-            return format.parse(reader);
-        } catch (IOException e) {
-            throw new CsvParseException("Failed to parse CSV: " + e.getMessage(), e);
-        }
-    }
 
     /**
      * Creates a lazy iterable that opens a parser for every iterator. Supplying a fresh reader
@@ -79,7 +70,7 @@ public abstract class AbstractCsvDecoder {
         private final Function<CSVRecord, T> mapper;
         private final CSVParser parser;
         private final Iterator<CSVRecord> records;
-        private boolean closed;
+        private volatile boolean closed;
 
         private RecordIterator(CSVFormat format, Reader reader, Function<CSVRecord, T> mapper) {
             this.mapper = mapper;

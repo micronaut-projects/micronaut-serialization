@@ -74,9 +74,6 @@ public final class CsvMessageHandler<T> implements MessageBodyHandler<T> {
     @Override
     @SuppressWarnings("unchecked")
     public T read(Argument<T> type, @Nullable MediaType mediaType, @Nullable Headers httpHeaders, InputStream inputStream) {
-        Charset charset = mediaType != null
-            ? mediaType.getCharset().orElse(StandardCharsets.UTF_8)
-            : StandardCharsets.UTF_8;
         Class<?> rawType = type.getType();
         boolean iterable = Iterable.class.isAssignableFrom(rawType);
         Class<?> elementType = iterable ? type.getWrappedType().getType() : rawType;
@@ -143,9 +140,6 @@ public final class CsvMessageHandler<T> implements MessageBodyHandler<T> {
         if (outputStream == null || object == null) {
             return;
         }
-        Charset charset = mediaType != null
-            ? mediaType.getCharset().orElse(StandardCharsets.UTF_8)
-            : StandardCharsets.UTF_8;
         try {
             if (Iterable.class.isAssignableFrom(type != null ? type.getType() : object.getClass())) {
                 csvObjectMapper.writeValues(outputStream, (Iterable<?>) object);

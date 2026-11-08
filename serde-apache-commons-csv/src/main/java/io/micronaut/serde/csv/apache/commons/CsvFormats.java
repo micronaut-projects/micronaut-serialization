@@ -139,17 +139,6 @@ public final class CsvFormats {
     }
 
     /**
-     * Builds a printer {@link CSVFormat} from a resolved {@link CsvFormatConfig}. The header
-     * is attached when {@link CsvFormatConfig#writeHeader()} is {@code true}.
-     *
-     * @param config The resolved CSV format
-     * @return The Apache Commons CSV format
-     */
-    public static CSVFormat writeFormat(CsvFormatConfig config) {
-        return format(config, config.writeHeader());
-    }
-
-    /**
      * Builds a printer {@link CSVFormat} from a resolved {@link CsvFormatConfig}.
      *
      * @param config     The resolved CSV format

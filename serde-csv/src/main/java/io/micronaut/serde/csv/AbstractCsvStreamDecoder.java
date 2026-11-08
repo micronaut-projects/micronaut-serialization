@@ -40,7 +40,7 @@ import java.util.Map;
 public abstract class AbstractCsvStreamDecoder implements CsvStreamDecoder {
 
     @Nullable
-    protected CsvDecoder currentRow;
+    protected volatile CsvDecoder currentRow;
 
     protected AbstractCsvStreamDecoder() {
     }

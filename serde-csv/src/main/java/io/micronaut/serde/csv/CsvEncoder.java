@@ -238,7 +238,7 @@ public abstract class CsvEncoder implements Encoder, KeysAwareEncoder {
     protected abstract void flushRow() throws IOException;
 
     protected CsvEncoder createNestedEncoder(String prefix) {
-        return new NestedCsvEncoder(prefix, this);
+        return new NestedCsvEncoder(prefix);
     }
 
     private void addColumn(String key, @Nullable String value) {
@@ -249,12 +249,12 @@ public abstract class CsvEncoder implements Encoder, KeysAwareEncoder {
     private static final class NestedCsvEncoder extends CsvEncoder {
         private final String prefix;
 
-        NestedCsvEncoder(String prefix, CsvEncoder parent) {
+        NestedCsvEncoder(String prefix) {
             this.prefix = prefix;
         }
 
         @Override
-        public void writeHeader(List<String> header) throws IOException {
+        public void writeHeader(List<String> header) {
             // no-op: nested encoder contributes columns to parent
         }
 

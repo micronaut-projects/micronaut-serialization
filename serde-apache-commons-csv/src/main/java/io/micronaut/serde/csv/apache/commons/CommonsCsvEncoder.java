@@ -31,41 +31,53 @@ import java.util.List;
 public class CommonsCsvEncoder extends CsvEncoder {
 
     @Nullable
-    private CSVPrinter printer;
+    private volatile CSVPrinter printer;
     @Nullable
     private final List<String> header;
     private final OutputStream outputStream;
-    private boolean headerWritten;
+    private volatile boolean headerWritten;
 
-    public CommonsCsvEncoder(OutputStream outputStream, @Nullable List<String> header) throws IOException {
+    public CommonsCsvEncoder(OutputStream outputStream, @Nullable List<String> header) {
         this.outputStream = outputStream;
         this.header = header;
     }
 
-    @SuppressWarnings("NullAway")
     private CSVPrinter printer() throws IOException {
-        if (printer == null) {
-            CSVFormat format = CSVFormat.DEFAULT.builder()
-                .setDelimiter(delimiter())
-                .setQuote(quoteChar())
-                .setEscape(escapeChar())
-                .setRecordSeparator(lineSeparator())
-                .setNullString(nullValue())
-                .get();
-            printer = new CSVPrinter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8), format);
-            if (header != null && !header.isEmpty()) {
-                printer.printRecord((Object[]) header.toArray(new String[0]));
-                headerWritten = true;
+        CSVPrinter p = printer;
+        if (p == null) {
+            synchronized (this) {
+                p = printer;
+                if (p == null) {
+                    CSVFormat format = CSVFormat.DEFAULT.builder()
+                        .setDelimiter(delimiter())
+                        .setQuote(quoteChar())
+                        .setEscape(escapeChar())
+                        .setRecordSeparator(lineSeparator())
+                        .setNullString(nullValue())
+                        .get();
+                    p = new CSVPrinter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8), format);
+                    if (header != null && !header.isEmpty()) {
+                        p.printRecord((Object[]) header.toArray(new String[0]));
+                    }
+                    this.printer = p;
+                    this.headerWritten = header != null && !header.isEmpty();
+                }
             }
         }
-        return printer;
+        return p;
     }
 
     @Override
     public void writeHeader(List<String> header) throws IOException {
-        if (!headerWritten && header != null && !header.isEmpty()) {
-            printer().printRecord((Object[]) header.toArray(new String[0]));
-            headerWritten = true;
+        if (!headerWritten && !header.isEmpty()) {
+            synchronized (this) {
+                if (!headerWritten && !header.isEmpty()) {
+                    try (CSVPrinter p = printer()) {
+                        p.printRecord((Object[]) header.toArray(new String[0]));
+                    }
+                    headerWritten = true;
+                }
+            }
         }
     }
 
@@ -76,8 +88,12 @@ public class CommonsCsvEncoder extends CsvEncoder {
 
     @Override
     public void close() throws IOException {
-        if (printer != null) {
-            printer.close();
+        CSVPrinter p;
+        synchronized (this) {
+            p = printer;
+        }
+        if (p != null) {
+            p.close();
         }
     }
 }

@@ -20,7 +20,6 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.csv.AbstractCsvStreamDecoder;
 import io.micronaut.serde.csv.CsvDecoder;
-import io.micronaut.serde.csv.CsvStreamDecoder;
 import io.micronaut.serde.csv.introspection.CsvFormatConfig;
 import io.micronaut.serde.csv.introspection.CsvIntrospection;
 import io.micronaut.serde.csv.mapper.CsvRecordMappings;
@@ -29,6 +28,7 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.jspecify.annotations.Nullable;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -44,17 +44,15 @@ public class CommonsCsvDecoder extends AbstractCsvStreamDecoder {
     @Nullable
     private final InputStream inputStream;
     @Nullable
-    private CSVParser parser;
+    private volatile CSVParser parser;
     @Nullable
-    private CsvFormatConfig parserConfig;
+    private volatile CsvFormatConfig parserConfig;
     @Nullable
-    private Iterator<CSVRecord> recordIterator;
-    @Nullable
-    private CsvDecoder currentRow;
+    private volatile Iterator<CSVRecord> recordIterator;
 
     public CommonsCsvDecoder(InputStream inputStream) {
         try {
-            this.inputStream = new java.io.ByteArrayInputStream(inputStream.readAllBytes());
+            this.inputStream = new ByteArrayInputStream(inputStream.readAllBytes());
         } catch (IOException e) {
             throw new RuntimeException("Failed to read CSV input", e);
         }
@@ -65,35 +63,40 @@ public class CommonsCsvDecoder extends AbstractCsvStreamDecoder {
         this.inputStream = null;
     }
 
-    public static CommonsCsvDecoder forRow(Map<String, @Nullable String> row) {
-        return new CommonsCsvDecoder(row);
-    }
-
     private void ensureParser(CsvFormatConfig config) {
         if (inputStream == null) {
             return;
         }
-        if (parser != null && parserConfig != null && parserConfig.equals(config)) {
+        CSVParser p = parser;
+        CsvFormatConfig cfg = parserConfig;
+        if (p != null && cfg != null && cfg.equals(config)) {
             return;
         }
-        if (parser != null) {
+        synchronized (this) {
+            p = parser;
+            cfg = parserConfig;
+            if (p != null && cfg != null && cfg.equals(config)) {
+                return;
+            }
+            if (p != null) {
+                try {
+                    p.close();
+                } catch (IOException ignored) {
+                }
+            }
             try {
-                parser.close();
-            } catch (IOException ignored) {
+                if (inputStream instanceof java.io.ByteArrayInputStream) {
+                    ((java.io.ByteArrayInputStream) inputStream).reset();
+                }
+                CSVFormat format = CsvFormats.from(config);
+                CSVParser newParser = format.parse(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+                Iterator<CSVRecord> newIterator = newParser.iterator();
+                parser = newParser;
+                recordIterator = newIterator;
+                parserConfig = config;
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to parse CSV", e);
             }
-            parser = null;
-            recordIterator = null;
-        }
-        try {
-            if (inputStream instanceof java.io.ByteArrayInputStream) {
-                ((java.io.ByteArrayInputStream) inputStream).reset();
-            }
-            CSVFormat format = CsvFormats.from(config);
-            parser = format.parse(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-            recordIterator = parser.iterator();
-            parserConfig = config;
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to parse CSV", e);
         }
     }
 

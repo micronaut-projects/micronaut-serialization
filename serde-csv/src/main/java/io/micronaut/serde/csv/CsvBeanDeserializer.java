@@ -41,8 +41,6 @@ public final class CsvBeanDeserializer implements Deserializer<Object> {
     final Deserializer.DecoderContext context;
     private final @Nullable BeanIntrospection<?> introspection;
     private final CsvFormatConfig fmt;
-    private final List<String> columns;
-    private final List<String> propNames;
     private final Map<String, String> propToCol;
     private final Map<String, BeanProperty<?, ?>> propMap;
     private final Map<String, Deserializer<?>> propDeserializers;
@@ -65,8 +63,6 @@ public final class CsvBeanDeserializer implements Deserializer<Object> {
             cols = CsvColumnResolution.resolveColumns(f, bi);
             pNames = CsvColumnResolution.resolvePropNames(f, bi, cols);
         }
-        this.columns = cols;
-        this.propNames = pNames;
         Map<String, String> ptc = new LinkedHashMap<>();
         for (int i = 0; i < cols.size(); i++) {
             String col = cols.get(i);
@@ -84,9 +80,9 @@ public final class CsvBeanDeserializer implements Deserializer<Object> {
         Map<String, Deserializer<?>> ds = new LinkedHashMap<>();
         if (bi != null) {
             for (BeanProperty<?, ?> bp : bi.getBeanProperties()) {
+                @SuppressWarnings("unchecked")
+                Argument<Object> arg = Argument.of((Class<Object>) bp.getType());
                 try {
-                    @SuppressWarnings("unchecked")
-                    Argument<Object> arg = Argument.of((Class<Object>) bp.getType());
                     ds.put(bp.getName(), context.findDeserializer(arg).createSpecific(context, arg));
                 } catch (Exception ignored) {
                 }
@@ -162,7 +158,8 @@ public final class CsvBeanDeserializer implements Deserializer<Object> {
                     Object v = args[i];
                     try {
                         ((BeanProperty<Object, Object>) bp).set(instance, v);
-                    } catch (Exception ignored2) {
+                    } catch (UnsupportedOperationException _ignored) {
+                        // read-only property: skip
                     }
                     i++;
                 }
@@ -178,7 +175,8 @@ public final class CsvBeanDeserializer implements Deserializer<Object> {
                         Object v = defaults[i];
                         try {
                             ((BeanProperty<Object, Object>) bp).set(instance, v);
-                        } catch (Exception ignored2) {
+                        } catch (UnsupportedOperationException _ignored) {
+                            // read-only property: skip
                         }
                         i++;
                     }
@@ -191,7 +189,8 @@ public final class CsvBeanDeserializer implements Deserializer<Object> {
             if (bp != null) {
                 try {
                     ((BeanProperty<Object, Object>) bp).set(instance, null);
-                } catch (Exception ignored2) {
+                } catch (UnsupportedOperationException _ignored) {
+                    // read-only property: skip
                 }
             }
         }
@@ -265,10 +264,7 @@ public final class CsvBeanDeserializer implements Deserializer<Object> {
                 @SuppressWarnings("unchecked")
                 BeanProperty<Object, Object> prop = (BeanProperty<Object, Object>) bi.getProperty(propName).orElse(null);
                 if (prop != null && idx < values.size()) {
-                    try {
-                        prop.set(instance, values.get(idx));
-                    } catch (Exception ignored) {
-                    }
+                    prop.set(instance, values.get(idx));
                 }
                 idx++;
             }

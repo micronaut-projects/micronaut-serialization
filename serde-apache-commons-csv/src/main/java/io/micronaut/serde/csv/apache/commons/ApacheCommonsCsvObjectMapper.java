@@ -53,11 +53,7 @@ public class ApacheCommonsCsvObjectMapper extends CsvObjectMapper {
 
     @Override
     protected io.micronaut.serde.Encoder newEncoder(OutputStream outputStream) {
-        try {
-            return new CommonsCsvEncoder(outputStream, null);
-        } catch (java.io.IOException e) {
-            throw new RuntimeException(e);
-        }
+        return new CommonsCsvEncoder(outputStream, null);
     }
 
     @Override

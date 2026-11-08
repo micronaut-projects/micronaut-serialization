@@ -33,8 +33,8 @@ public class JacksonCsvEncoder extends CsvEncoder {
     private final tools.jackson.dataformat.csv.CsvMapper csvMapper;
     private final OutputStream outputStream;
     @Nullable
-    private List<String> header;
-    private boolean headerWritten;
+    private volatile List<String> header;
+    private volatile boolean headerWritten;
 
     public JacksonCsvEncoder(OutputStream outputStream) {
         this(outputStream, new tools.jackson.dataformat.csv.CsvMapper());
@@ -49,8 +49,12 @@ public class JacksonCsvEncoder extends CsvEncoder {
     protected void flushRow() throws IOException {
         List<String> names = columnNames();
         List<@Nullable String> values = columnValues();
-        List<String> columns = header == null || header.isEmpty() ? names : header;
-        boolean writeHeader = !headerWritten && header != null && !header.isEmpty();
+        List<String> columns;
+        boolean writeHeader;
+        synchronized (this) {
+            columns = header == null || header.isEmpty() ? names : header;
+            writeHeader = !headerWritten && header != null && !header.isEmpty();
+        }
         CsvSchema.Builder builder = CsvSchema.builder()
             .setUseHeader(writeHeader)
             .setColumnSeparator(delimiter())
@@ -70,7 +74,9 @@ public class JacksonCsvEncoder extends CsvEncoder {
             .with(tools.jackson.dataformat.csv.CsvWriteFeature.STRICT_CHECK_FOR_QUOTING)
             .writeValueAsString(record);
         outputStream.write(csv.getBytes(StandardCharsets.UTF_8));
-        headerWritten = true;
+        synchronized (this) {
+            headerWritten = true;
+        }
     }
 
     @Override
