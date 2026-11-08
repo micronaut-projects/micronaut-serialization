@@ -18,7 +18,9 @@ package io.micronaut.serde.csv.jackson;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.csv.AbstractCsvStreamDecoder;
 import io.micronaut.serde.csv.CsvDecoder;
+import io.micronaut.serde.csv.CsvStreamDecoder;
 import io.micronaut.serde.csv.introspection.CsvFormatConfig;
 import io.micronaut.serde.csv.introspection.CsvIntrospection;
 import io.micronaut.serde.csv.mapper.CsvRecordMappings;
@@ -34,7 +36,7 @@ import java.util.List;
 import java.util.Map;
 
 @Internal
-public class JacksonCsvDecoder extends CsvDecoder {
+public class JacksonCsvDecoder extends AbstractCsvStreamDecoder {
 
     @Nullable
     private final InputStream inputStream;
@@ -42,14 +44,13 @@ public class JacksonCsvDecoder extends CsvDecoder {
     @Nullable
     private MappingIterator<Map<String, @Nullable String>> iterator = null;
     @Nullable
-    private CsvDecoder currentRow = null;
+    private CsvDecoder currentRow;
 
     public JacksonCsvDecoder(InputStream inputStream) {
         this(inputStream, new tools.jackson.dataformat.csv.CsvMapper());
     }
 
     public JacksonCsvDecoder(InputStream inputStream, tools.jackson.dataformat.csv.CsvMapper csvMapper) {
-        super(new LinkedHashMap<>());
         this.inputStream = inputStream;
         this.csvMapper = csvMapper;
     }
@@ -58,7 +59,6 @@ public class JacksonCsvDecoder extends CsvDecoder {
         super(row);
         this.inputStream = null;
         this.csvMapper = new tools.jackson.dataformat.csv.CsvMapper();
-        this.currentRow = CsvDecoder.forRow(row);
     }
 
     public static JacksonCsvDecoder forRow(Map<String, @Nullable String> row) {
@@ -101,7 +101,7 @@ public class JacksonCsvDecoder extends CsvDecoder {
     }
 
     @Override
-    public boolean hasNextRow(Argument<?> type) {
+    public boolean hasNextRow(Argument<?> type) throws IOException {
         if (inputStream == null) {
             return false;
         }
@@ -135,7 +135,7 @@ public class JacksonCsvDecoder extends CsvDecoder {
                     }
                 }
             }
-            Map<String, @Nullable String> propertyRow = CsvRecordMappings.toPropertyMap(config, row, columnMapping(config));
+            Map<String, @Nullable String> propertyRow = CsvRecordMappings.toPropertyMap(config, row, CsvRecordMappings.mapping(config));
             rowDecoder = CsvDecoder.forRow(propertyRow);
         }
         if (inputStream == null) {
@@ -144,140 +144,32 @@ public class JacksonCsvDecoder extends CsvDecoder {
         return rowDecoder.decodeObject(type);
     }
 
-    @Override
-    public @Nullable String decodeKey() throws IOException {
-        return currentRow == null ? super.decodeKey() : currentRow.decodeKey();
-    }
 
-    @Override
-    public String decodeString() throws IOException {
-        return currentRow == null ? super.decodeString() : currentRow.decodeString();
-    }
 
-    @Override
-    public boolean decodeBoolean() throws IOException {
-        return currentRow == null ? super.decodeBoolean() : currentRow.decodeBoolean();
-    }
 
-    @Override
-    public byte decodeByte() throws IOException {
-        return currentRow == null ? super.decodeByte() : currentRow.decodeByte();
-    }
 
-    @Override
-    public short decodeShort() throws IOException {
-        return currentRow == null ? super.decodeShort() : currentRow.decodeShort();
-    }
 
-    @Override
-    public char decodeChar() throws IOException {
-        return currentRow == null ? super.decodeChar() : currentRow.decodeChar();
-    }
 
-    @Override
-    public int decodeInt() throws IOException {
-        return currentRow == null ? super.decodeInt() : currentRow.decodeInt();
-    }
 
-    @Override
-    public long decodeLong() throws IOException {
-        return currentRow == null ? super.decodeLong() : currentRow.decodeLong();
-    }
 
-    @Override
-    public float decodeFloat() throws IOException {
-        return currentRow == null ? super.decodeFloat() : currentRow.decodeFloat();
-    }
 
-    @Override
-    public double decodeDouble() throws IOException {
-        return currentRow == null ? super.decodeDouble() : currentRow.decodeDouble();
-    }
 
-    @Override
-    public java.math.BigInteger decodeBigInteger() throws IOException {
-        return currentRow == null ? super.decodeBigInteger() : currentRow.decodeBigInteger();
-    }
 
-    @Override
-    public java.math.BigDecimal decodeBigDecimal() throws IOException {
-        return currentRow == null ? super.decodeBigDecimal() : currentRow.decodeBigDecimal();
-    }
 
-    @Override
-    public boolean decodeNull() throws IOException {
-        return currentRow == null ? super.decodeNull() : currentRow.decodeNull();
-    }
 
-    @Override
-    public Decoder decodeArray(Argument<?> type) throws IOException {
-        return currentRow == null ? super.decodeArray(type) : currentRow.decodeArray(type);
-    }
 
-    @Override
-    public boolean hasNextArrayValue() throws IOException {
-        return currentRow == null ? super.hasNextArrayValue() : currentRow.hasNextArrayValue();
-    }
 
-    @Override
-    public void skipValue() throws IOException {
-        if (currentRow != null) {
-            currentRow.skipValue();
-        } else {
-            super.skipValue();
-        }
-    }
 
-    @Override
-    public void finishStructure() throws IOException {
-        if (currentRow != null) {
-            currentRow.finishStructure();
-        } else {
-            super.finishStructure();
-        }
-    }
 
-    @Override
-    public void finishStructure(boolean consumeLeftElements) throws IOException {
-        if (currentRow != null) {
-            currentRow.finishStructure(consumeLeftElements);
-        } else {
-            super.finishStructure(consumeLeftElements);
-        }
-    }
+
+
+
 
     @Override
     public void close() throws IOException {
-        if (currentRow != null) {
-            currentRow.close();
-        }
+        super.close();
         if (iterator != null) {
             iterator.close();
         }
-    }
-
-    @Override
-    public IOException createDeserializationException(String message, @Nullable Object invalidValue) {
-        return currentRow == null ? super.createDeserializationException(message, invalidValue) : currentRow.createDeserializationException(message, invalidValue);
-    }
-
-    @Override
-    @Nullable
-    public Object decodeArbitrary() throws IOException {
-        return currentRow == null ? super.decodeArbitrary() : currentRow.decodeArbitrary();
-    }
-
-    @Override
-    public io.micronaut.json.tree.JsonNode decodeNode() throws IOException {
-        return currentRow == null ? super.decodeNode() : currentRow.decodeNode();
-    }
-
-    @Override
-    public Decoder decodeBuffer() throws IOException {
-        CsvDecoder d = currentRow;
-        if (d == null) {
-            return super.decodeBuffer();
-        }
-        return d.decodeBuffer();
     }
 }

@@ -205,7 +205,9 @@ public final class CsvBeanDeserializer implements Deserializer<Object> {
         if (deserializer != null) {
             try {
                 CsvDecoder propDecoder = CsvDecoder.forRow(Map.of(propName, normalized));
-                propDecoder.setCurrentValue(normalized);
+                // Position the decoder at the cell value so inherited coercion applies.
+                propDecoder.nextToken(); // START_OBJECT -> KEY
+                propDecoder.nextToken(); // KEY -> STRING
                 Object result = deserializer.deserializeNullable(propDecoder, context, Argument.of((Class<Object>) type));
                 if (result != null) {
                     return result;

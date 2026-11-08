@@ -239,7 +239,7 @@ public abstract class CsvObjectMapper implements ObjectMapper {
 
     public <T> List<T> readValues(InputStream inputStream, Argument<T> elementType) throws IOException {
         List<T> result = new ArrayList<>();
-        try (CsvDecoder decoder = (CsvDecoder) newDecoder(inputStream)) {
+        try (CsvStreamDecoder decoder = (CsvStreamDecoder) newDecoder(inputStream)) {
             while (decoder.hasNextRow(elementType)) {
                 T value = deserializeRow(decoder.decodeObject(elementType), elementType);
                 if (value == null) {
@@ -257,7 +257,7 @@ public abstract class CsvObjectMapper implements ObjectMapper {
     }
 
     public <T> Iterable<T> read(InputStream input, Charset charset, Class<T> type) throws IOException {
-        return () -> new CsvRowIterator<>((CsvDecoder) newDecoder(input), Argument.of(type));
+        return () -> new CsvRowIterator<>((CsvStreamDecoder) newDecoder(input), Argument.of(type));
     }
 
     public <T> Iterable<T> read(InputStream input, String charsetName, Class<T> type) throws IOException {
@@ -437,7 +437,7 @@ public abstract class CsvObjectMapper implements ObjectMapper {
         private final Argument<T> type;
         private final List<T> cache = new ArrayList<>();
         @Nullable
-        private CsvDecoder decoder;
+        private CsvStreamDecoder decoder;
         private boolean exhausted;
 
         LazyCsvList(byte[] bytes, Argument<T> type) {
@@ -447,7 +447,7 @@ public abstract class CsvObjectMapper implements ObjectMapper {
 
         private void fill(int index) throws IOException {
             if (decoder == null) {
-                decoder = (CsvDecoder) newDecoder(new ByteArrayInputStream(bytes));
+                decoder = (CsvStreamDecoder) newDecoder(new ByteArrayInputStream(bytes));
             }
             while (!exhausted && cache.size() <= index) {
                 if (decoder.hasNextRow(type)) {
@@ -481,12 +481,12 @@ public abstract class CsvObjectMapper implements ObjectMapper {
     }
 
     private final class CsvRowIterator<T> implements Iterator<T> {
-        private final CsvDecoder decoder;
+        private final CsvStreamDecoder decoder;
         private final Argument<T> type;
         private boolean prepared;
         private boolean available;
 
-        CsvRowIterator(CsvDecoder decoder, Argument<T> type) {
+        CsvRowIterator(CsvStreamDecoder decoder, Argument<T> type) {
             this.decoder = decoder;
             this.type = type;
         }

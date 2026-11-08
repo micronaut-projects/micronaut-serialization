@@ -18,7 +18,9 @@ package io.micronaut.serde.csv.apache.commons;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.csv.AbstractCsvStreamDecoder;
 import io.micronaut.serde.csv.CsvDecoder;
+import io.micronaut.serde.csv.CsvStreamDecoder;
 import io.micronaut.serde.csv.introspection.CsvFormatConfig;
 import io.micronaut.serde.csv.introspection.CsvIntrospection;
 import io.micronaut.serde.csv.mapper.CsvRecordMappings;
@@ -37,7 +39,7 @@ import java.util.List;
 import java.util.Map;
 
 @Internal
-public class CommonsCsvDecoder extends CsvDecoder {
+public class CommonsCsvDecoder extends AbstractCsvStreamDecoder {
 
     @Nullable
     private final InputStream inputStream;
@@ -51,7 +53,6 @@ public class CommonsCsvDecoder extends CsvDecoder {
     private CsvDecoder currentRow;
 
     public CommonsCsvDecoder(InputStream inputStream) {
-        super(new LinkedHashMap<>());
         try {
             this.inputStream = new java.io.ByteArrayInputStream(inputStream.readAllBytes());
         } catch (IOException e) {
@@ -62,7 +63,6 @@ public class CommonsCsvDecoder extends CsvDecoder {
     public CommonsCsvDecoder(Map<String, @Nullable String> row) {
         super(row);
         this.inputStream = null;
-        this.currentRow = CsvDecoder.forRow(row);
     }
 
     public static CommonsCsvDecoder forRow(Map<String, @Nullable String> row) {
@@ -73,10 +73,6 @@ public class CommonsCsvDecoder extends CsvDecoder {
         if (inputStream == null) {
             return;
         }
-        // Rebuild the parser if it was never created or if it was built with a
-        // different format (e.g. the no-arg hasNextRow() used CsvFormatConfig.DEFAULT
-        // but the type carries a custom @CsvFormat). Otherwise the wrong delimiter/
-        // quote/header settings would silently be reused.
         if (parser != null && parserConfig != null && parserConfig.equals(config)) {
             return;
         }
@@ -84,7 +80,6 @@ public class CommonsCsvDecoder extends CsvDecoder {
             try {
                 parser.close();
             } catch (IOException ignored) {
-                // ignore
             }
             parser = null;
             recordIterator = null;
@@ -120,10 +115,6 @@ public class CommonsCsvDecoder extends CsvDecoder {
         return recordIterator != null && recordIterator.hasNext();
     }
 
-    /**
-     * Decodes the next CSV row into an object.
-     * Raw {@code Map} types are keyed by the header read from the first record.
-     */
     @Override
     public Decoder decodeObject(Argument<?> type) throws IOException {
         if (inputStream == null && currentRow != null) {
@@ -140,7 +131,7 @@ public class CommonsCsvDecoder extends CsvDecoder {
                 ? CsvIntrospection.columnsFor(type.getType())
                 : config.columns();
             Map<String, @Nullable String> row = CsvRecords.toMap(record, columns);
-            Map<String, @Nullable String> propertyRow = CsvRecordMappings.toPropertyMap(config, row, columnMapping(config));
+            Map<String, @Nullable String> propertyRow = CsvRecordMappings.toPropertyMap(config, row, CsvRecordMappings.mapping(config));
             rowDecoder = CsvDecoder.forRow(propertyRow);
         }
         if (inputStream == null) {
@@ -149,146 +140,35 @@ public class CommonsCsvDecoder extends CsvDecoder {
         return rowDecoder.decodeObject(type);
     }
 
-    @Override
-    public @Nullable String decodeKey() throws IOException {
-        return currentRow == null ? super.decodeKey() : currentRow.decodeKey();
-    }
 
-    @Override
-    public String decodeString() throws IOException {
-        return currentRow == null ? super.decodeString() : currentRow.decodeString();
-    }
 
-    @Override
-    public boolean decodeBoolean() throws IOException {
-        return currentRow == null ? super.decodeBoolean() : currentRow.decodeBoolean();
-    }
 
-    @Override
-    public byte decodeByte() throws IOException {
-        return currentRow == null ? super.decodeByte() : currentRow.decodeByte();
-    }
 
-    @Override
-    public short decodeShort() throws IOException {
-        return currentRow == null ? super.decodeShort() : currentRow.decodeShort();
-    }
 
-    @Override
-    public char decodeChar() throws IOException {
-        return currentRow == null ? super.decodeChar() : currentRow.decodeChar();
-    }
 
-    @Override
-    public int decodeInt() throws IOException {
-        return currentRow == null ? super.decodeInt() : currentRow.decodeInt();
-    }
 
-    @Override
-    public long decodeLong() throws IOException {
-        return currentRow == null ? super.decodeLong() : currentRow.decodeLong();
-    }
 
-    @Override
-    public float decodeFloat() throws IOException {
-        return currentRow == null ? super.decodeFloat() : currentRow.decodeFloat();
-    }
 
-    @Override
-    public double decodeDouble() throws IOException {
-        return currentRow == null ? super.decodeDouble() : currentRow.decodeDouble();
-    }
 
-    @Override
-    public java.math.BigInteger decodeBigInteger() throws IOException {
-        return currentRow == null ? super.decodeBigInteger() : currentRow.decodeBigInteger();
-    }
 
-    @Override
-    public java.math.BigDecimal decodeBigDecimal() throws IOException {
-        return currentRow == null ? super.decodeBigDecimal() : currentRow.decodeBigDecimal();
-    }
 
-    @Override
-    public boolean decodeNull() throws IOException {
-        return currentRow == null ? super.decodeNull() : currentRow.decodeNull();
-    }
 
-    @Override
-    public Decoder decodeArray(Argument<?> type) throws IOException {
-        return currentRow == null ? super.decodeArray(type) : currentRow.decodeArray(type);
-    }
 
-    @Override
-    public boolean hasNextArrayValue() throws IOException {
-        return currentRow == null ? super.hasNextArrayValue() : currentRow.hasNextArrayValue();
-    }
 
-    @Override
-    public void skipValue() throws IOException {
-        if (currentRow != null) {
-            currentRow.skipValue();
-        } else {
-            super.skipValue();
-        }
-    }
 
-    @Override
-    public void finishStructure() throws IOException {
-        if (currentRow != null) {
-            currentRow.finishStructure();
-        } else {
-            super.finishStructure();
-        }
-    }
 
-    @Override
-    public void finishStructure(boolean consumeLeftElements) throws IOException {
-        if (currentRow != null) {
-            currentRow.finishStructure(consumeLeftElements);
-        } else {
-            super.finishStructure(consumeLeftElements);
-        }
-    }
+
+
+
 
     @Override
     public void close() throws IOException {
-        if (currentRow != null) {
-            currentRow.close();
-        } else {
-            super.close();
-        }
+        super.close();
         if (parser != null) {
             try {
                 parser.close();
-            } catch (IOException e) {
-                // ignore
+            } catch (IOException ignored) {
             }
         }
-    }
-
-    @Override
-    public IOException createDeserializationException(String message, @Nullable Object invalidValue) {
-        return currentRow == null ? super.createDeserializationException(message, invalidValue) : currentRow.createDeserializationException(message, invalidValue);
-    }
-
-    @Override
-    @Nullable
-    public Object decodeArbitrary() throws IOException {
-        return currentRow == null ? super.decodeArbitrary() : currentRow.decodeArbitrary();
-    }
-
-    @Override
-    public io.micronaut.json.tree.JsonNode decodeNode() throws IOException {
-        return currentRow == null ? super.decodeNode() : currentRow.decodeNode();
-    }
-
-    @Override
-    public Decoder decodeBuffer() throws IOException {
-        CsvDecoder d = currentRow;
-        if (d == null) {
-            return super.decodeBuffer();
-        }
-        return d.decodeBuffer();
     }
 }

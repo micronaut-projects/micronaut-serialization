@@ -19,211 +19,178 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
-import io.micronaut.serde.csv.introspection.CsvFormatConfig;
-import io.micronaut.serde.csv.mapper.CsvRecordMappings;
-import io.micronaut.serde.csv.mapper.CsvRecordMappings.ColumnMapping;
+import io.micronaut.serde.LimitingStream;
+import io.micronaut.serde.support.AbstractStreamDecoder;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Internal
 @SuppressWarnings("checkstyle:DesignForExtension")
-public abstract class CsvDecoder implements Decoder {
+public abstract class CsvDecoder extends AbstractStreamDecoder implements CsvStreamDecoder {
 
     private final Map<String, @Nullable String> row;
+    private final List<String> columns;
+    private int index = -1;
+    private AbstractStreamDecoder.@Nullable TokenType token = AbstractStreamDecoder.TokenType.START_OBJECT;
     @Nullable
-    private Iterator<String> keyIterator;
+    private String currentKey;
     @Nullable
     private String currentValue;
-    @Nullable
-    private MappingCache mappingCache;
 
     protected CsvDecoder(Map<String, @Nullable String> row) {
+        super(LimitingStream.DEFAULT_LIMITS);
         this.row = row;
+        this.columns = new ArrayList<>(row.keySet());
     }
 
-    /**
-     * Sets the current cell value for a single-value decoder. Package-private for use by
-     * {@link CsvBeanDeserializer} when invoking custom deserializers.
-     */
-    final void setCurrentValue(@Nullable String value) {
-        this.currentValue = value;
-    }
+    // Expose protected stream hooks publicly so subclasses (e.g. CommonsCsvDecoder) can
+    // delegate to a child row decoder without reflection.
+    public AbstractStreamDecoder.TokenType currentTokenPublic() { return currentToken(); }
+    public void nextTokenPublic() throws IOException { nextToken(); }
+    public String getCurrentKeyPublic() throws IOException { return getCurrentKey(); }
+    public String getStringPublic() throws IOException { return getString(); }
+    public boolean getBooleanPublic() throws IOException { return getBoolean(); }
+    public long getLongPublic() throws IOException { return getLong(); }
+    public double getDoublePublic() throws IOException { return getDouble(); }
+    public BigInteger getBigIntegerPublic() throws IOException { return getBigInteger(); }
+    public BigDecimal getBigDecimalPublic() throws IOException { return getBigDecimal(); }
+    public Number getBestNumberPublic() throws IOException { return getBestNumber(); }
+    public String coerceScalarToStringPublic(AbstractStreamDecoder.TokenType t) throws IOException { return coerceScalarToString(t); }
+    public void skipChildrenPublic() throws IOException { skipChildren(); }
 
     /**
      * Returns the logical row backing this decoder.
-     *
-     * @return The row keyed by property or column name
      */
     public Map<String, @Nullable String> row() {
         return row;
     }
 
-    /**
-     * Returns the precomputed column mapping for the given format, recomputing it only when the
-     * format instance changes. Backends call this once per row so the per-column mapping is
-     * cached across rows of the same type.
-     *
-     * @param config The resolved CSV format
-     * @return The precomputed column mapping
-     */
-    @SuppressWarnings("ReferenceEquality")
-    protected final ColumnMapping columnMapping(CsvFormatConfig config) {
-        // CsvIntrospection caches one config instance per type, so identity is stable and
-        // cheaper than comparing the whole record on every row.
-        MappingCache cache = mappingCache;
-        if (cache == null || cache.config != config) {
-            cache = new MappingCache(config, CsvRecordMappings.mapping(config));
-            mappingCache = cache;
+    @Override
+    protected AbstractStreamDecoder.TokenType currentToken() {
+        AbstractStreamDecoder.TokenType t = token;
+        if (t == null) {
+            throw new IllegalStateException("No current token");
         }
-        return cache.mapping;
+        return t;
     }
 
-    public static CsvDecoder forRow(Map<String, @Nullable String> row) {
-        return new CsvDecoder(row) {
-            @Override
-            public void close() {
+    @Override
+    protected void nextToken() throws IOException {
+        AbstractStreamDecoder.TokenType t = token;
+        if (t == null) {
+            return;
+        }
+        switch (t) {
+            case START_OBJECT -> {
+                index = 0;
+                advanceToKeyOrEnd();
+            }
+            case KEY -> {
+                token = AbstractStreamDecoder.TokenType.STRING;
+            }
+            case STRING -> {
+                index++;
+                advanceToKeyOrEnd();
+            }
+            case END_OBJECT -> {
+                token = null;
+            }
+            default -> {
                 // no-op
             }
-        };
-    }
-
-    public boolean hasNextRow() {
-        return false;
-    }
-
-    /**
-     * Checks whether another CSV row is available for the given element type. Backends override
-     * this to configure their native parser from the type's {@code CsvFormat}.
-     *
-     * @param type The element type
-     * @return {@code true} when another row is available
-     * @throws IOException If the parser cannot be initialized
-     */
-    public boolean hasNextRow(Argument<?> type) throws IOException {
-        return hasNextRow();
-    }
-
-    @Override
-    public Decoder decodeObject(Argument<?> type) throws IOException {
-        keyIterator = row.keySet().iterator();
-        return this;
-    }
-
-    @Override
-    public @Nullable String decodeKey() throws IOException {
-        if (keyIterator == null || !keyIterator.hasNext()) {
-            return null;
         }
-        String currentKey = keyIterator.next();
-        currentValue = row.get(currentKey);
-        return currentKey;
+    }
+
+    private void advanceToKeyOrEnd() {
+        if (index < columns.size()) {
+            currentKey = columns.get(index);
+            currentValue = row.get(currentKey);
+            token = AbstractStreamDecoder.TokenType.KEY;
+        } else {
+            currentKey = null;
+            currentValue = null;
+            token = AbstractStreamDecoder.TokenType.END_OBJECT;
+        }
     }
 
     @Override
-    public String decodeString() throws IOException {
+    protected String getCurrentKey() throws IOException {
+        return java.util.Objects.requireNonNull(currentKey, "Not at a field name");
+    }
+
+    @Override
+    protected String getString() throws IOException {
         return currentValue == null ? "" : currentValue;
     }
 
     @Override
-    public boolean decodeBoolean() throws IOException {
+    protected boolean getBoolean() throws IOException {
         return Boolean.parseBoolean(currentValue);
     }
 
     @Override
-    public byte decodeByte() throws IOException {
-        return Byte.parseByte(currentValue);
+    protected long getLong() throws IOException {
+        return Long.parseLong(currentValue == null ? "" : currentValue);
     }
 
     @Override
-    public short decodeShort() throws IOException {
-        return Short.parseShort(currentValue);
+    protected double getDouble() throws IOException {
+        return Double.parseDouble(currentValue == null ? "" : currentValue);
     }
 
     @Override
-    public char decodeChar() throws IOException {
-        return currentValue == null || currentValue.isEmpty() ? '\0' : currentValue.charAt(0);
+    protected BigInteger getBigInteger() throws IOException {
+        return new BigInteger(currentValue == null ? "" : currentValue);
     }
 
     @Override
-    public int decodeInt() throws IOException {
-        return Integer.parseInt(currentValue);
+    protected BigDecimal getBigDecimal() throws IOException {
+        return new BigDecimal(currentValue == null ? "" : currentValue);
     }
 
     @Override
-    public long decodeLong() throws IOException {
-        return Long.parseLong(currentValue);
+    protected Number getBestNumber() throws IOException {
+        String v = currentValue == null ? "" : currentValue;
+        try {
+            return Integer.parseInt(v);
+        } catch (NumberFormatException e) {
+            try {
+                return Long.parseLong(v);
+            } catch (NumberFormatException e2) {
+                try {
+                    return Double.parseDouble(v);
+                } catch (NumberFormatException e3) {
+                    return new BigDecimal(v);
+                }
+            }
+        }
     }
 
     @Override
-    public float decodeFloat() throws IOException {
-        return Float.parseFloat(currentValue);
+    protected String coerceScalarToString(AbstractStreamDecoder.TokenType currentToken) throws IOException {
+        return currentValue == null ? "" : currentValue;
     }
 
     @Override
-    public double decodeDouble() throws IOException {
-        return Double.parseDouble(currentValue);
+    protected void skipChildren() throws IOException {
+        // no-op: CSV cells are flat strings
     }
 
-    @Override
-    public BigInteger decodeBigInteger() throws IOException {
-        return new BigInteger(currentValue);
-    }
 
-    @Override
-    public BigDecimal decodeBigDecimal() throws IOException {
-        return new BigDecimal(currentValue);
-    }
 
-    @Override
-    public boolean decodeNull() throws IOException {
-        return currentValue == null;
-    }
 
-    @Override
-    public Decoder decodeArray(Argument<?> type) throws IOException {
-        throw new UnsupportedOperationException("Arrays are not supported as CSV cell values");
-    }
 
-    @Override
-    public boolean hasNextArrayValue() throws IOException {
-        return false;
-    }
 
-    @Override
-    public void skipValue() throws IOException {
-        // no-op
-    }
 
-    @Override
-    public void finishStructure() throws IOException {
-        // no-op
-    }
 
-    @Override
-    public void finishStructure(boolean consumeLeftElements) throws IOException {
-        // no-op
-    }
 
-    @Override
-    public void close() throws IOException {
-        // no-op
-    }
 
-    @Override
-    public IOException createDeserializationException(String message, @Nullable Object invalidValue) {
-        return new IOException(message);
-    }
-
-    @Override
-    @Nullable
-    public Object decodeArbitrary() throws IOException {
-        return currentValue;
-    }
 
     @Override
     public JsonNode decodeNode() throws IOException {
@@ -235,18 +202,32 @@ public abstract class CsvDecoder implements Decoder {
         return this;
     }
 
-    /**
-     * Immutable config/mapping pair. Decoders are single-threaded, so the field needs no
-     * synchronization; bundling both values keeps the identity check consistent.
-     */
-    private static final class MappingCache {
+    public static CsvDecoder forRow(Map<String, @Nullable String> row) {
+        return new CsvDecoder(row) {
+            @Override
+            public void close() {
+                // no-op
+            }
 
-        private final CsvFormatConfig config;
-        private final ColumnMapping mapping;
+            @Override
+            public IOException createDeserializationException(String message, @Nullable Object invalidValue) {
+                return new IOException(message);
+            }
+        };
+    }
 
-        private MappingCache(CsvFormatConfig config, ColumnMapping mapping) {
-            this.config = config;
-            this.mapping = mapping;
-        }
+    @Override
+    public boolean hasNextRow() {
+        return false;
+    }
+
+    @Override
+    public boolean hasNextRow(Argument<?> type) throws IOException {
+        return hasNextRow();
+    }
+
+    // Keep row() accessor
+    public Map<String, @Nullable String> rowPublic() {
+        return row();
     }
 }
