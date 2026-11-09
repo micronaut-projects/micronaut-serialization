@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.annotation.Documented;
+import java.nio.charset.Charset;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
@@ -75,11 +76,12 @@ public final class CsvMessageHandler<T> implements MessageBodyHandler<T> {
         Class<?> rawType = type.getType();
         boolean iterable = Iterable.class.isAssignableFrom(rawType);
         Class<?> elementType = iterable ? type.getWrappedType().getType() : rawType;
+        Charset charset = charset(mediaType);
         try {
             if (iterable) {
-                return readIterable(type, elementType, inputStream);
+                return readIterable(type, elementType, inputStream, charset);
             }
-            T first = csvObjectMapper.readValue(inputStream, Argument.of((Class<T>) elementType));
+            T first = csvObjectMapper.readValue(inputStream, charset, Argument.of((Class<T>) elementType));
             if (first == null) {
                 throw new IllegalArgumentException("Cannot decode empty CSV to " + rawType.getName());
             }
@@ -90,8 +92,12 @@ public final class CsvMessageHandler<T> implements MessageBodyHandler<T> {
     }
 
     @SuppressWarnings("unchecked")
-    private <E> T readIterable(Argument<T> type, Class<?> elementType, InputStream inputStream) throws IOException {
-        return (T) materialize(csvObjectMapper.readValues(inputStream, Argument.of((Class<E>) elementType)), type.getType());
+    private <E> T readIterable(Argument<T> type, Class<?> elementType, InputStream inputStream, Charset charset) throws IOException {
+        return (T) materialize(csvObjectMapper.readValues(inputStream, charset, Argument.of((Class<E>) elementType)), type.getType());
+    }
+
+    private static Charset charset(@Nullable MediaType mediaType) {
+        return mediaType != null ? mediaType.getCharset().orElse(CsvObjectMapper.DEFAULT_CHARSET) : CsvObjectMapper.DEFAULT_CHARSET;
     }
 
     /**
@@ -138,11 +144,12 @@ public final class CsvMessageHandler<T> implements MessageBodyHandler<T> {
         if (outputStream == null || object == null) {
             return;
         }
+        Charset charset = charset(mediaType);
         try {
             if (Iterable.class.isAssignableFrom(type != null ? type.getType() : object.getClass())) {
-                csvObjectMapper.writeValues(outputStream, (Iterable<?>) object);
+                csvObjectMapper.writeValues(outputStream, (Iterable<?>) object, charset);
             } else {
-                csvObjectMapper.writeValue(outputStream, object);
+                csvObjectMapper.writeValue(outputStream, object, charset);
             }
         } catch (Exception e) {
             throw new RuntimeException("Failed to encode CSV: " + e.getMessage(), e);

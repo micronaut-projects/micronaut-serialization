@@ -17,6 +17,7 @@ package io.micronaut.serde.csv.apache.commons;
 
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.serde.csv.CsvEncoder;
+import io.micronaut.serde.csv.CsvObjectMapper;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.jspecify.annotations.Nullable;
@@ -24,7 +25,7 @@ import org.jspecify.annotations.Nullable;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.util.List;
 
 /**
@@ -39,11 +40,17 @@ public class CommonsCsvEncoder extends CsvEncoder {
     @Nullable
     private final List<String> header;
     private final OutputStream outputStream;
+    private final Charset charset;
     private volatile boolean headerWritten;
 
     public CommonsCsvEncoder(OutputStream outputStream, @Nullable List<String> header) {
+        this(outputStream, header, CsvObjectMapper.DEFAULT_CHARSET);
+    }
+
+    public CommonsCsvEncoder(OutputStream outputStream, @Nullable List<String> header, Charset charset) {
         this.outputStream = outputStream;
         this.header = header;
+        this.charset = charset;
     }
 
     private CSVPrinter printer() throws IOException {
@@ -59,7 +66,7 @@ public class CommonsCsvEncoder extends CsvEncoder {
                         .setRecordSeparator(lineSeparator())
                         .setNullString(nullValue())
                         .get();
-                    p = new CSVPrinter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8), format);
+                    p = new CSVPrinter(new OutputStreamWriter(outputStream, charset), format);
                     if (header != null && !header.isEmpty()) {
                         p.printRecord((Object[]) header.toArray(new String[0]));
                     }

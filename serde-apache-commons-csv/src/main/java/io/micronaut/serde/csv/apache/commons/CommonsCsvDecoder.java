@@ -20,6 +20,7 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.csv.AbstractCsvStreamDecoder;
 import io.micronaut.serde.csv.CsvDecoder;
+import io.micronaut.serde.csv.CsvObjectMapper;
 import io.micronaut.serde.csv.introspection.CsvFormatConfig;
 import io.micronaut.serde.csv.introspection.CsvIntrospection;
 import io.micronaut.serde.csv.mapper.CsvRecordMappings;
@@ -32,7 +33,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -53,18 +54,25 @@ public class CommonsCsvDecoder extends AbstractCsvStreamDecoder {
     private volatile CsvFormatConfig parserConfig;
     @Nullable
     private volatile Iterator<CSVRecord> recordIterator;
+    private final Charset charset;
 
     public CommonsCsvDecoder(InputStream inputStream) {
+        this(inputStream, CsvObjectMapper.DEFAULT_CHARSET);
+    }
+
+    public CommonsCsvDecoder(InputStream inputStream, Charset charset) {
         try {
             this.inputStream = new ByteArrayInputStream(inputStream.readAllBytes());
         } catch (IOException e) {
             throw new RuntimeException("Failed to read CSV input", e);
         }
+        this.charset = charset;
     }
 
     public CommonsCsvDecoder(Map<String, @Nullable String> row) {
         super(row);
         this.inputStream = null;
+        this.charset = CsvObjectMapper.DEFAULT_CHARSET;
     }
 
     private void ensureParser(CsvFormatConfig config) {
@@ -93,7 +101,7 @@ public class CommonsCsvDecoder extends AbstractCsvStreamDecoder {
                     ((java.io.ByteArrayInputStream) inputStream).reset();
                 }
                 CSVFormat format = CsvFormats.from(config);
-                CSVParser newParser = format.parse(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+                CSVParser newParser = format.parse(new InputStreamReader(inputStream, charset));
                 Iterator<CSVRecord> newIterator = newParser.iterator();
                 parser = newParser;
                 recordIterator = newIterator;

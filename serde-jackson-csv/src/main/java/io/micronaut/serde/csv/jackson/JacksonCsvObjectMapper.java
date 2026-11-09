@@ -29,6 +29,7 @@ import tools.jackson.dataformat.csv.CsvSchema;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,13 +55,13 @@ public class JacksonCsvObjectMapper extends CsvObjectMapper {
     }
 
     @Override
-    protected io.micronaut.serde.Encoder newEncoder(OutputStream outputStream) {
-        return new JacksonCsvEncoder(outputStream);
+    protected io.micronaut.serde.Encoder newEncoder(OutputStream outputStream, Charset charset) {
+        return new JacksonCsvEncoder(outputStream, charset);
     }
 
     @Override
-    protected io.micronaut.serde.Decoder newDecoder(InputStream inputStream) {
-        return new JacksonCsvDecoder(inputStream);
+    protected io.micronaut.serde.Decoder newDecoder(InputStream inputStream, Charset charset) {
+        return new JacksonCsvDecoder(inputStream, charset);
     }
 
     @Override

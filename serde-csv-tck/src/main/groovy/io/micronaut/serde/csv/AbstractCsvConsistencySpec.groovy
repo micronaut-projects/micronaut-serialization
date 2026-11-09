@@ -22,6 +22,8 @@ import jakarta.inject.Inject
 import spock.lang.Ignore
 import spock.lang.Specification
 
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
 
 @MicronautTest
@@ -447,5 +449,25 @@ abstract class AbstractCsvConsistencySpec extends Specification {
 
         then:
         csv.trim() == "Alice,30\nBob,25"
+    }
+
+    void "round trip honors a non-UTF-8 charset"() {
+        given:
+        def value = new Person("Zoé", 42)
+
+        when:
+        def csv = mapper.writeToString([value], ["name", "age"])
+        def bytes = csv.getBytes(StandardCharsets.ISO_8859_1)
+
+        then:
+        // 'é' is a single byte 0xE9 in ISO-8859-1 (two bytes 0xC3 0xA9 in UTF-8)
+        new String(bytes, StandardCharsets.ISO_8859_1).contains("Zoé")
+        new String(bytes, StandardCharsets.UTF_8) != "name,age\nZoé,42\n"
+
+        when:
+        def read = mapper.read(new ByteArrayInputStream(bytes), StandardCharsets.ISO_8859_1, Person).iterator().next()
+
+        then:
+        read == new Person("Zoé", 42)
     }
 }

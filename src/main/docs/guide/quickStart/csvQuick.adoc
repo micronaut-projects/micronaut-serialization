@@ -109,6 +109,45 @@ String internalId;
 
 NOTE: Both backends honor `@CsvProperty`, including when the type does not declare `@CsvFormat`; in that case the backend defaults are used for the format attributes and the column name, order, and ignore flags come from `@CsvProperty`.
 
+=== Character encoding
+
+`api:serde.csv.CsvObjectMapper[]` defaults to `StandardCharsets.UTF_8`. Each read/write method has a charset-accepting overload; the no-charset overloads keep the UTF-8 default:
+
+[source,java]
+----
+import java.nio.charset.StandardCharsets;
+
+import io.micronaut.core.type.Argument;
+import io.micronaut.serde.csv.CsvObjectMapper;
+
+CsvObjectMapper csv = ...;
+
+ByteArrayOutputStream out = new ByteArrayOutputStream();
+csv.writeValue(out, person, StandardCharsets.ISO_8859_1);
+csv.writeValues(out, people, StandardCharsets.ISO_8859_1);
+
+Person person = csv.readValue(inputStream, StandardCharsets.ISO_8859_1, Argument.of(Person.class));
+List<Person> people = csv.readValues(inputStream, StandardCharsets.ISO_8859_1, Argument.of(Person.class));
+Iterable<Person> streamed = csv.read(inputStream, "ISO-8859-1", Person.class);
+----
+
+The charset-accepting overloads are `writeValue(OutputStream, Object, Charset)`, `writeValues(OutputStream, Iterable, Charset)`, `readValue(InputStream, Charset, Argument)`, `readValues(InputStream, Charset, Argument)`, and `read(InputStream, Charset, Class)` (plus a `String` charset-name variant).
+
+HTTP content-type charset
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The `text/csv` message body handler reads the charset from the request and response content-type (`MediaType.getCharset()`), falling back to UTF-8 when none is present. The same charset decodes the request body and encodes the response body:
+
+[source,java]
+----
+@Post(uri = "/echo", consumes = MediaType.TEXT_CSV, produces = MediaType.TEXT_CSV)
+Person echo(@Body Person person) {
+    return person;
+}
+----
+
+A client that POSTs `text/csv; charset=ISO-8859-1` causes the server to decode and encode the body with ISO-8859-1.
+
 === Inline nested beans
 
 Applying ann:serde.csv.annotation.CsvFormat[] to a property encodes the nested bean as a single CSV column. Attributes set on the property override the nested type's format; attributes that are not set are inherited from the nested type:

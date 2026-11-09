@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringReader;
+import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.List;
 
@@ -56,13 +57,13 @@ public class ApacheCommonsCsvObjectMapper extends CsvObjectMapper {
     }
 
     @Override
-    protected io.micronaut.serde.Encoder newEncoder(OutputStream outputStream) {
-        return new CommonsCsvEncoder(outputStream, null);
+    protected io.micronaut.serde.Encoder newEncoder(OutputStream outputStream, Charset charset) {
+        return new CommonsCsvEncoder(outputStream, null, charset);
     }
 
     @Override
-    protected io.micronaut.serde.Decoder newDecoder(InputStream inputStream) {
-        return new CommonsCsvDecoder(inputStream);
+    protected io.micronaut.serde.Decoder newDecoder(InputStream inputStream, Charset charset) {
+        return new CommonsCsvDecoder(inputStream, charset);
     }
 
     @Override

@@ -66,6 +66,11 @@ import java.util.Objects;
 @SuppressWarnings("checkstyle:DesignForExtension")
 public abstract class CsvObjectMapper implements ObjectMapper {
 
+    /**
+     * The default charset used when reading or writing CSV without an explicit charset.
+     */
+    public static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
+
     protected final SerdeRegistry registry;
     @Nullable
     protected final SerdeConfiguration serdeConfiguration;
@@ -125,9 +130,9 @@ public abstract class CsvObjectMapper implements ObjectMapper {
                                                           @Nullable SerdeConfiguration configuration,
                                                           @Nullable Class<?> view);
 
-    protected abstract Encoder newEncoder(OutputStream outputStream);
+    protected abstract Encoder newEncoder(OutputStream outputStream, Charset charset);
 
-    protected abstract Decoder newDecoder(InputStream inputStream);
+    protected abstract Decoder newDecoder(InputStream inputStream, Charset charset);
 
     /**
      * Encodes logical cell values using the backend CSV library.
@@ -151,17 +156,21 @@ public abstract class CsvObjectMapper implements ObjectMapper {
 
     @Override
     public <T> @Nullable T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
-        return readValue(JsonNodeDecoder.create(tree, streamLimits, coercionPolicy), type);
+        return deserializeRow(JsonNodeDecoder.create(tree, streamLimits, coercionPolicy), type);
     }
 
     @Override
     public <T> @Nullable T readValue(InputStream inputStream, Argument<T> type) throws IOException {
-        Decoder decoder = newDecoder(inputStream);
-        return readValue(decoder.decodeObject(type), type);
+        return readValue(inputStream, DEFAULT_CHARSET, type);
     }
 
-    private <T> @Nullable T readValue(Decoder decoder, Argument<T> type) throws IOException {
-        return deserializeRow(decoder, type);
+    public <T> @Nullable T readValue(InputStream inputStream, Charset charset, Argument<T> type) throws IOException {
+        try (CsvStreamDecoder decoder = (CsvStreamDecoder) newDecoder(inputStream, charset)) {
+            if (decoder.hasNextRow(type)) {
+                return deserializeRow(decoder.decodeObject(type), type);
+            }
+            return null;
+        }
     }
 
     @Override
@@ -194,16 +203,17 @@ public abstract class CsvObjectMapper implements ObjectMapper {
         if (object == null) {
             return;
         }
-        writeValuesWithHeader(outputStream, List.of(object), null);
+        writeValuesWithHeader(outputStream, List.of(object), null, DEFAULT_CHARSET);
     }
 
     public void writeValues(OutputStream outputStream, Iterable<?> values) throws IOException {
-        writeValuesWithHeader(outputStream, values, null);
+        writeValuesWithHeader(outputStream, values, null, DEFAULT_CHARSET);
     }
 
     private void writeValuesWithHeader(OutputStream outputStream,
                              Iterable<?> values,
-                             @Nullable Collection<String> header) throws IOException {
+                             @Nullable Collection<String> header,
+                             Charset charset) throws IOException {
         Iterator<?> iterator = values.iterator();
         if (!iterator.hasNext()) {
             return;
@@ -211,7 +221,7 @@ public abstract class CsvObjectMapper implements ObjectMapper {
         Object first = iterator.next();
         requireWritable(first);
         CsvFormatConfig format = CsvIntrospection.formatFor(first.getClass());
-        try (Encoder encoder = newEncoder(outputStream)) {
+        try (Encoder encoder = newEncoder(outputStream, charset)) {
             if (encoder instanceof CsvEncoder csvEncoder) {
                 csvEncoder.configure(format);
                 if (header != null && !header.isEmpty()) {
@@ -243,8 +253,12 @@ public abstract class CsvObjectMapper implements ObjectMapper {
     }
 
     public <T> List<T> readValues(InputStream inputStream, Argument<T> elementType) throws IOException {
+        return readValues(inputStream, DEFAULT_CHARSET, elementType);
+    }
+
+    public <T> List<T> readValues(InputStream inputStream, Charset charset, Argument<T> elementType) throws IOException {
         List<T> result = new ArrayList<>();
-        try (CsvStreamDecoder decoder = (CsvStreamDecoder) newDecoder(inputStream)) {
+        try (CsvStreamDecoder decoder = (CsvStreamDecoder) newDecoder(inputStream, charset)) {
             while (decoder.hasNextRow(elementType)) {
                 T value = deserializeRow(decoder.decodeObject(elementType), elementType);
                 if (value == null) {
@@ -258,11 +272,11 @@ public abstract class CsvObjectMapper implements ObjectMapper {
 
     // Convenience methods mirroring the legacy CsvMapper API for test compatibility
     public <T> Iterable<T> readAll(String value, Class<T> type) throws IOException {
-        return new LazyCsvList<>(value.getBytes(StandardCharsets.UTF_8), Argument.of(type));
+        return new LazyCsvList<>(value.getBytes(DEFAULT_CHARSET), Argument.of(type));
     }
 
     public <T> Iterable<T> read(InputStream input, Charset charset, Class<T> type) throws IOException {
-        return () -> new CsvRowIterator<>((CsvStreamDecoder) newDecoder(input), Argument.of(type));
+        return () -> new CsvRowIterator<>((CsvStreamDecoder) newDecoder(input, charset), Argument.of(type));
     }
 
     public <T> Iterable<T> read(InputStream input, String charsetName, Class<T> type) throws IOException {
@@ -303,13 +317,13 @@ public abstract class CsvObjectMapper implements ObjectMapper {
     public String writeToString(Iterable<?> values) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         writeValues(baos, values);
-        return baos.toString(StandardCharsets.UTF_8);
+        return baos.toString(DEFAULT_CHARSET);
     }
 
     public String writeToString(Iterable<?> values, Collection<String> header) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        writeValuesWithHeader(baos, values, header);
-        return baos.toString(StandardCharsets.UTF_8);
+        writeValuesWithHeader(baos, values, header, DEFAULT_CHARSET);
+        return baos.toString(DEFAULT_CHARSET);
     }
 
     public List<@Nullable String> writeAsLine(@Nullable Object value) throws IOException {
@@ -317,7 +331,7 @@ public abstract class CsvObjectMapper implements ObjectMapper {
             return List.of();
         }
         CsvFormatConfig format = CsvIntrospection.formatFor(value.getClass());
-        try (Encoder encoder = newEncoder(new ByteArrayOutputStream())) {
+        try (Encoder encoder = newEncoder(new ByteArrayOutputStream(), DEFAULT_CHARSET)) {
             if (encoder instanceof CsvEncoder csvEncoder) {
                 csvEncoder.configure(format);
             }
@@ -327,11 +341,11 @@ public abstract class CsvObjectMapper implements ObjectMapper {
     }
 
     public void writeValue(OutputStream outputStream, Object value, Charset charset) throws IOException {
-        writeValue(outputStream, value);
+        writeValuesWithHeader(outputStream, List.of(value), null, charset);
     }
 
     public void writeValues(OutputStream outputStream, Iterable<?> values, Charset charset) throws IOException {
-        writeValues(outputStream, values);
+        writeValuesWithHeader(outputStream, values, null, charset);
     }
 
     @Override
@@ -340,7 +354,7 @@ public abstract class CsvObjectMapper implements ObjectMapper {
             return;
         }
         CsvFormatConfig format = CsvIntrospection.formatFor(type.getType());
-        try (Encoder encoder = newEncoder(outputStream)) {
+        try (Encoder encoder = newEncoder(outputStream, DEFAULT_CHARSET)) {
             if (encoder instanceof CsvEncoder csvEncoder) {
                 csvEncoder.configure(format);
                 if (format.writeHeader() && !format.columns().isEmpty()) {
@@ -452,7 +466,7 @@ public abstract class CsvObjectMapper implements ObjectMapper {
 
         private void fill(int index) throws IOException {
             if (decoder == null) {
-                decoder = (CsvStreamDecoder) newDecoder(new ByteArrayInputStream(bytes));
+                decoder = (CsvStreamDecoder) newDecoder(new ByteArrayInputStream(bytes), DEFAULT_CHARSET);
             }
             while (!exhausted && cache.size() <= index) {
                 if (decoder.hasNextRow(type)) {

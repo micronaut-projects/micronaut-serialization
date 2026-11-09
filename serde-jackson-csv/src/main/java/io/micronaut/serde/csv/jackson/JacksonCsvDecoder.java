@@ -20,7 +20,7 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.csv.AbstractCsvStreamDecoder;
 import io.micronaut.serde.csv.CsvDecoder;
-import io.micronaut.serde.csv.CsvStreamDecoder;
+import io.micronaut.serde.csv.CsvObjectMapper;
 import io.micronaut.serde.csv.introspection.CsvFormatConfig;
 import io.micronaut.serde.csv.introspection.CsvIntrospection;
 import io.micronaut.serde.csv.mapper.CsvRecordMappings;
@@ -30,7 +30,7 @@ import tools.jackson.databind.MappingIterator;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,24 +41,35 @@ public class JacksonCsvDecoder extends AbstractCsvStreamDecoder {
     @Nullable
     private final InputStream inputStream;
     private final tools.jackson.dataformat.csv.CsvMapper csvMapper;
+    private final Charset charset;
     @Nullable
     private volatile MappingIterator<Map<String, @Nullable String>> iterator = null;
     @Nullable
     private CsvDecoder currentRow;
 
     public JacksonCsvDecoder(InputStream inputStream) {
-        this(inputStream, new tools.jackson.dataformat.csv.CsvMapper());
+        this(inputStream, CsvObjectMapper.DEFAULT_CHARSET);
+    }
+
+    public JacksonCsvDecoder(InputStream inputStream, Charset charset) {
+        this(inputStream, new tools.jackson.dataformat.csv.CsvMapper(), charset);
     }
 
     public JacksonCsvDecoder(InputStream inputStream, tools.jackson.dataformat.csv.CsvMapper csvMapper) {
+        this(inputStream, csvMapper, CsvObjectMapper.DEFAULT_CHARSET);
+    }
+
+    public JacksonCsvDecoder(InputStream inputStream, tools.jackson.dataformat.csv.CsvMapper csvMapper, Charset charset) {
         this.inputStream = inputStream;
         this.csvMapper = csvMapper;
+        this.charset = charset;
     }
 
     public JacksonCsvDecoder(Map<String, @Nullable String> row) {
         super(row);
         this.inputStream = null;
         this.csvMapper = new tools.jackson.dataformat.csv.CsvMapper();
+        this.charset = CsvObjectMapper.DEFAULT_CHARSET;
     }
 
     public static JacksonCsvDecoder forRow(Map<String, @Nullable String> row) {
@@ -89,7 +100,7 @@ public class JacksonCsvDecoder extends AbstractCsvStreamDecoder {
                 if (config.trim()) {
                     reader = reader.with(tools.jackson.dataformat.csv.CsvReadFeature.TRIM_SPACES);
                 }
-                iterator = reader.readValues(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+                iterator = reader.readValues(new InputStreamReader(inputStream, charset));
             } catch (Exception e) {
                 throw new RuntimeException("Failed to parse CSV", e);
             }

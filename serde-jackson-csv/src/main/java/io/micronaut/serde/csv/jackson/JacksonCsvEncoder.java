@@ -17,12 +17,13 @@ package io.micronaut.serde.csv.jackson;
 
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.serde.csv.CsvEncoder;
+import io.micronaut.serde.csv.CsvObjectMapper;
 import org.jspecify.annotations.Nullable;
 import tools.jackson.dataformat.csv.CsvSchema;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,17 +33,27 @@ public class JacksonCsvEncoder extends CsvEncoder {
 
     private final tools.jackson.dataformat.csv.CsvMapper csvMapper;
     private final OutputStream outputStream;
+    private final Charset charset;
     @Nullable
     private volatile List<String> header;
     private volatile boolean headerWritten;
 
     public JacksonCsvEncoder(OutputStream outputStream) {
-        this(outputStream, new tools.jackson.dataformat.csv.CsvMapper());
+        this(outputStream, CsvObjectMapper.DEFAULT_CHARSET);
+    }
+
+    public JacksonCsvEncoder(OutputStream outputStream, Charset charset) {
+        this(outputStream, new tools.jackson.dataformat.csv.CsvMapper(), charset);
     }
 
     public JacksonCsvEncoder(OutputStream outputStream, tools.jackson.dataformat.csv.CsvMapper csvMapper) {
+        this(outputStream, csvMapper, CsvObjectMapper.DEFAULT_CHARSET);
+    }
+
+    public JacksonCsvEncoder(OutputStream outputStream, tools.jackson.dataformat.csv.CsvMapper csvMapper, Charset charset) {
         this.csvMapper = csvMapper;
         this.outputStream = outputStream;
+        this.charset = charset;
     }
 
     @Override
@@ -73,7 +84,7 @@ public class JacksonCsvEncoder extends CsvEncoder {
         String csv = csvMapper.writer(schema)
             .with(tools.jackson.dataformat.csv.CsvWriteFeature.STRICT_CHECK_FOR_QUOTING)
             .writeValueAsString(record);
-        outputStream.write(csv.getBytes(StandardCharsets.UTF_8));
+        outputStream.write(csv.getBytes(charset));
         synchronized (this) {
             headerWritten = true;
         }

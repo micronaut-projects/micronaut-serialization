@@ -14,6 +14,9 @@ dependencies {
     api(projects.micronautSerdeCsv)
     api(mn.micronaut.inject.java.test)
     api(mnTest.micronaut.test.spock)
+
+    compileOnly(mn.micronaut.http.server.netty)
+    compileOnly(mn.micronaut.http.client)
 }
 
 tasks.named("spotlessGroovyCheck").configure {
