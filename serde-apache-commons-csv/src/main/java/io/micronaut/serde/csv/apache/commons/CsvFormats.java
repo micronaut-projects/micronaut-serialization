@@ -46,9 +46,6 @@ public final class CsvFormats {
         .setNullString("")
         .get();
 
-    private CsvFormats() {
-    }
-
     /**
      * Cache of parser formats built by {@link #from(CsvFormatConfig)}: header-aware,
      * multi-line document parsing (attaches header columns and skips the header record
@@ -64,16 +61,13 @@ public final class CsvFormats {
     private static final ConcurrentHashMap<CsvFormatConfig, CSVFormat> PARSE_LINE_CACHE = new ConcurrentHashMap<>();
 
     /**
-     * Key for {@link #FORMAT_CACHE}: a resolved config plus whether the printer should
-     * attach a header row.
-     */
-    private record FormatKey(CsvFormatConfig config, boolean withHeader) {}
-
-    /**
      * Cache of printer formats built by {@link #format(CsvFormatConfig, boolean)}:
      * encoding records, optionally with a header row.
      */
     private static final ConcurrentHashMap<FormatKey, CSVFormat> FORMAT_CACHE = new ConcurrentHashMap<>();
+
+    private CsvFormats() {
+    }
 
     /**
      * Encodes a single record without a header.
@@ -186,4 +180,13 @@ public final class CsvFormats {
         }
         return builder;
     }
+
+    /**
+     * Key for {@link #FORMAT_CACHE}: a resolved config plus whether the printer should
+     * attach a header row.
+     *
+     * @param config     The resolved CSV format
+     * @param withHeader Whether the column header should be attached
+     */
+    private record FormatKey(CsvFormatConfig config, boolean withHeader) { }
 }

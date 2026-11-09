@@ -27,7 +27,12 @@ import io.micronaut.serde.csv.introspection.CsvIntrospection;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * CSV-aware {@link Deserializer} for bean types. Drives {@link CsvDecoder} from
@@ -38,7 +43,7 @@ public final class CsvBeanDeserializer implements Deserializer<Object> {
 
     private final Class<?> type;
     private final CsvLineDecoder codec;
-    final Deserializer.DecoderContext context;
+    private final Deserializer.DecoderContext context;
     private final @Nullable BeanIntrospection<?> introspection;
     private final CsvFormatConfig fmt;
     private final Map<String, String> propToCol;

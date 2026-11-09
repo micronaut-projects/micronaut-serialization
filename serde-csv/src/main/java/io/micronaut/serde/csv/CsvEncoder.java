@@ -27,10 +27,11 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
+/**
+ * Encodes logical cell values using the backend CSV library.
+ */
 @Internal
 @SuppressWarnings("checkstyle:DesignForExtension")
 public abstract class CsvEncoder implements Encoder, KeysAwareEncoder {

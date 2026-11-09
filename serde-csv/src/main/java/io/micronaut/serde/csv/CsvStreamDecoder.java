@@ -20,6 +20,9 @@ import io.micronaut.serde.Decoder;
 
 import java.io.IOException;
 
+/**
+ * A CSV stream decoder capable of iterating over multiple records.
+ */
 public interface CsvStreamDecoder extends Decoder {
     boolean hasNextRow() throws IOException;
 

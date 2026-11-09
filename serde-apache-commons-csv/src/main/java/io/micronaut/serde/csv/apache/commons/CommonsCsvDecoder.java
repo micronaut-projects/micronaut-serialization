@@ -38,6 +38,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Apache Commons CSV implementation of {@link AbstractCsvStreamDecoder}. Parses a CSV
+ * input stream into {@link CSVRecord} rows and exposes them as decoder token events.
+ */
 @Internal
 public class CommonsCsvDecoder extends AbstractCsvStreamDecoder {
 
@@ -142,27 +146,6 @@ public class CommonsCsvDecoder extends AbstractCsvStreamDecoder {
         }
         return rowDecoder.decodeObject(type);
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     @Override
     public void close() throws IOException {

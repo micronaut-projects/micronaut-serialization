@@ -57,7 +57,13 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
+/**
+ * CSV implementation of {@link ObjectMapper}. Provides convenience methods mirroring
+ * the legacy CsvMapper API and delegates encoding and decoding to backend-specific
+ * encoder and decoder implementations.
+ */
 @Internal
+@SuppressWarnings("checkstyle:DesignForExtension")
 public abstract class CsvObjectMapper implements ObjectMapper {
 
     protected final SerdeRegistry registry;

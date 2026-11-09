@@ -27,6 +27,10 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+/**
+ * Apache Commons CSV based {@link CsvEncoder} implementation. Writes CSV records using a
+ * {@link CSVPrinter} backed by an {@link OutputStream}.
+ */
 @Internal
 public class CommonsCsvEncoder extends CsvEncoder {
 

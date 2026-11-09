@@ -17,14 +17,9 @@ package io.micronaut.serde.csv;
 
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
-import io.micronaut.serde.csv.introspection.CsvFormatConfig;
-import io.micronaut.serde.csv.introspection.CsvIntrospection;
-import io.micronaut.serde.csv.mapper.CsvRecordMappings;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**

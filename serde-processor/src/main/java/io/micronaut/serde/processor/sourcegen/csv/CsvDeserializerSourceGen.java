@@ -26,10 +26,8 @@ import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Keys;
 import io.micronaut.serde.KeysAwareDecoder;
-import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
 import io.micronaut.serde.processor.sourcegen.beans.BeanSerdeShape;
-import io.micronaut.serde.util.GeneratedSerdeFallbackUtil;
 import io.micronaut.sourcegen.model.AnnotationDef;
 import io.micronaut.sourcegen.model.ClassDef;
 import io.micronaut.sourcegen.model.ClassTypeDef;
@@ -115,7 +113,10 @@ public final class CsvDeserializerSourceGen {
 
         boolean fieldAccessProperties = false;
         for (BeanSerdeShape.BeanProperty p : beanShape.deserializationProperties()) {
-            if (p.writeField() != null) { fieldAccessProperties = true; }
+            if (p.writeField() != null) {
+                fieldAccessProperties = true;
+                break;
+            }
         }
 
         ClassDef.ClassDefBuilder classDefBuilder = ClassDef.builder(SerdeSourceGenClassNaming.generatedDeserializerClassName(element))

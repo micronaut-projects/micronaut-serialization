@@ -49,7 +49,11 @@ import org.jspecify.annotations.Nullable;
 
 import javax.annotation.processing.Generated;
 import javax.lang.model.element.Modifier;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * Entry-point visitor that emits simple-shape generated serializers and deserializers.

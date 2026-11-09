@@ -18,7 +18,6 @@ package io.micronaut.serde.csv;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.BeanProperty;
 import io.micronaut.serde.csv.introspection.CsvFormatConfig;
-import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -31,6 +31,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * Decodes CSV records from a logical row map into {@link Decoder} token events.
+ */
 @Internal
 public abstract class CsvDecoder extends AbstractStreamDecoder implements CsvStreamDecoder {
 
@@ -51,6 +54,8 @@ public abstract class CsvDecoder extends AbstractStreamDecoder implements CsvStr
 
     /**
      * Returns the logical row backing this decoder.
+     *
+     * @return the logical row backing this decoder
      */
     public Map<String, @Nullable String> row() {
         return row;

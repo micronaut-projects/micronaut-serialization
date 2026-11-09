@@ -33,6 +33,10 @@ import java.io.StringReader;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * Apache Commons CSV based implementation of {@link CsvObjectMapper}. Registers as a
+ * secondary singleton bean and delegates encoding/decoding to Commons CSV backend classes.
+ */
 @Singleton
 @Secondary
 @Internal

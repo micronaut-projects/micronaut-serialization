@@ -25,6 +25,11 @@ import java.util.Map;
  * CSV-specific shape model for source generation. Wraps a {@link BeanSerdeShape} (which
  * carries the bean properties, constructor, inclusion, etc.) and adds the resolved CSV
  * column names and per-property inline format flags.
+ *
+ * @param beanShape        the underlying bean serde shape
+ * @param columns          the resolved CSV column names
+ * @param inlineProperties per-property inline format flags
+ * @param propertyToColumn mapping from property names to CSV column names
  */
 public record CsvSerdeShape(
     BeanSerdeShape beanShape,
