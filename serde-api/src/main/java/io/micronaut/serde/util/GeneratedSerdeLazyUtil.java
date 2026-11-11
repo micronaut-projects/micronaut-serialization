@@ -55,6 +55,8 @@ public final class GeneratedSerdeLazyUtil {
      * @return The lazy serializer
      */
     public static <T> Serializer<T> lazySerializer(Serializer.EncoderContext context, Argument<T> type) {
+        // The lazy serializer keeps the context to create its delegate later
+        SpecificSerdeTracker.markContextBound(context);
         return new LazySerializer<>(context, type);
     }
 
@@ -67,6 +69,8 @@ public final class GeneratedSerdeLazyUtil {
      * @return The lazy deserializer
      */
     public static <T> Deserializer<T> lazyDeserializer(Deserializer.DecoderContext context, Argument<T> type) {
+        // The lazy deserializer keeps the context to create its delegate later
+        SpecificSerdeTracker.markContextBound(context);
         return new LazyDeserializer<>(context, type);
     }
 
