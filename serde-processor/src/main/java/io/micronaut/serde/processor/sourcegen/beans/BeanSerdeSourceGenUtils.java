@@ -19,6 +19,7 @@ import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.type.Argument;
 import io.micronaut.inject.ast.ClassElement;
+import io.micronaut.inject.ast.GenericPlaceholderElement;
 import io.micronaut.inject.ast.WildcardElement;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.util.SerdeArgumentConstants;
@@ -260,8 +261,12 @@ final class BeanSerdeSourceGenUtils {
             }
             return ClassElement.of(Object.class);
         }
-        if (classElement.isTypeVariable()) {
-            List<? extends ClassElement> bounds = classElement.getBoundGenericTypes();
+        // Only an unresolved type variable is replaced by its bound. A type argument resolved from a type
+        // variable, such as the upper bound of the wildcard in Map<String, ? extends Map<String, String>>
+        // that Kotlin emits for nested collections, also reports isTypeVariable() and must be kept as is:
+        // its bound generic types are its own type arguments, not bounds.
+        if (classElement instanceof GenericPlaceholderElement placeholderElement) {
+            List<? extends ClassElement> bounds = placeholderElement.getBounds();
             if (!bounds.isEmpty()) {
                 return normalizeArgumentType(bounds.get(0));
             }
