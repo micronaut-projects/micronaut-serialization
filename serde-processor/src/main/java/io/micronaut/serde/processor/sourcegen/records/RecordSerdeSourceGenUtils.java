@@ -19,9 +19,8 @@ import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.type.Argument;
 import io.micronaut.inject.ast.ClassElement;
-import io.micronaut.inject.ast.GenericPlaceholderElement;
-import io.micronaut.inject.ast.WildcardElement;
 import io.micronaut.serde.config.annotation.SerdeConfig;
+import io.micronaut.serde.processor.sourcegen.SerdeSourceGenArgumentTypes;
 import io.micronaut.serde.util.SerdeArgumentConstants;
 import io.micronaut.sourcegen.model.ClassTypeDef;
 import io.micronaut.sourcegen.model.ExpressionDef;
@@ -106,9 +105,9 @@ final class RecordSerdeSourceGenUtils {
     }
 
     static ExpressionDef argumentExpression(ClassElement classElement) {
-        ClassElement argumentType = normalizeArgumentType(classElement);
+        ClassElement argumentType = SerdeSourceGenArgumentTypes.normalize(classElement);
         Map<String, ClassElement> typeArgumentsByName = argumentType.getTypeArguments();
-        List<? extends ClassElement> typeArguments = resolveTypeArguments(argumentType);
+        List<? extends ClassElement> typeArguments = SerdeSourceGenArgumentTypes.typeArguments(argumentType);
         if (!typeArguments.isEmpty()) {
             List<ExpressionDef> typeArgumentExpressions = new ArrayList<>(typeArguments.size());
             if (typeArgumentsByName.size() == typeArguments.size()) {
@@ -139,9 +138,9 @@ final class RecordSerdeSourceGenUtils {
     }
 
     private static ExpressionDef typeVariableArgumentExpression(String variableName, ClassElement classElement) {
-        ClassElement argumentType = normalizeArgumentType(classElement);
+        ClassElement argumentType = SerdeSourceGenArgumentTypes.normalize(classElement);
         Map<String, ClassElement> typeArgumentsByName = argumentType.getTypeArguments();
-        List<? extends ClassElement> typeArguments = resolveTypeArguments(argumentType);
+        List<? extends ClassElement> typeArguments = SerdeSourceGenArgumentTypes.typeArguments(argumentType);
         if (typeArguments.isEmpty()) {
             return ClassTypeDef.of(Argument.class)
                 .invokeStatic(ARGUMENT_OF_TYPE_VARIABLE_METHOD, ExpressionDef.constant(TypeDef.erasure(argumentType)), ExpressionDef.constant(variableName));
@@ -322,58 +321,5 @@ final class RecordSerdeSourceGenUtils {
             default -> throw new IllegalArgumentException("Unsupported key metadata property: " + property);
         };
         return SERDE_CONFIG_TYPE.getStaticField(field);
-    }
-
-    private static List<? extends ClassElement> resolveTypeArguments(ClassElement classElement) {
-        Map<String, ClassElement> byName = classElement.getTypeArguments();
-        if (!byName.isEmpty()) {
-            return new ArrayList<>(byName.values());
-        }
-        return classElement.getBoundGenericTypes();
-    }
-
-    private static ClassElement normalizeArgumentType(ClassElement classElement) {
-        if (classElement.isPrimitive() && !classElement.isArray()) {
-            return switch (classElement.getName()) {
-                case BOOLEAN_TYPE -> ClassElement.of(Boolean.class);
-                case "byte" -> ClassElement.of(Byte.class);
-                case SHORT_TYPE -> ClassElement.of(Short.class);
-                case "char" -> ClassElement.of(Character.class);
-                case "int" -> ClassElement.of(Integer.class);
-                case "long" -> ClassElement.of(Long.class);
-                case FLOAT_TYPE -> ClassElement.of(Float.class);
-                case DOUBLE_TYPE -> ClassElement.of(Double.class);
-                default -> classElement;
-            };
-        }
-        if ("java.lang.Iterable".equals(classElement.getName())) {
-            ClassElement collectionType = ClassElement.of(Collection.class);
-            List<? extends ClassElement> iterableTypeArguments = resolveTypeArguments(classElement);
-            if (!iterableTypeArguments.isEmpty()) {
-                collectionType = collectionType.withTypeArguments(new ArrayList<>(iterableTypeArguments));
-            }
-            return collectionType;
-        }
-        if (classElement instanceof WildcardElement wildcardElement) {
-            if (!wildcardElement.getUpperBounds().isEmpty()) {
-                return normalizeArgumentType(wildcardElement.getUpperBounds().get(0));
-            }
-            if (!wildcardElement.getLowerBounds().isEmpty()) {
-                return normalizeArgumentType(wildcardElement.getLowerBounds().get(0));
-            }
-            return ClassElement.of(Object.class);
-        }
-        // Only an unresolved type variable is replaced by its bound. A type argument resolved from a type
-        // variable, such as the upper bound of the wildcard in Map<String, ? extends Map<String, String>>
-        // that Kotlin emits for nested collections, also reports isTypeVariable() and must be kept as is:
-        // its bound generic types are its own type arguments, not bounds.
-        if (classElement instanceof GenericPlaceholderElement placeholderElement) {
-            List<? extends ClassElement> bounds = placeholderElement.getBounds();
-            if (!bounds.isEmpty()) {
-                return normalizeArgumentType(bounds.get(0));
-            }
-            return ClassElement.of(Object.class);
-        }
-        return classElement;
     }
 }
