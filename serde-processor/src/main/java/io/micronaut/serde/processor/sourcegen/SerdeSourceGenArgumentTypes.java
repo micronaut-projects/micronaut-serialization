@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.processor.sourcegen;
 
+import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.GenericPlaceholderElement;
@@ -41,12 +42,12 @@ public final class SerdeSourceGenArgumentTypes {
      * @param classElement The type
      * @return The type arguments
      */
-    public static List<? extends ClassElement> typeArguments(ClassElement classElement) {
+    public static List<ClassElement> typeArguments(ClassElement classElement) {
         Map<String, ClassElement> byName = classElement.getTypeArguments();
         if (!byName.isEmpty()) {
             return new ArrayList<>(byName.values());
         }
-        return classElement.getBoundGenericTypes();
+        return new ArrayList<>(classElement.getBoundGenericTypes());
     }
 
     /**
@@ -72,12 +73,13 @@ public final class SerdeSourceGenArgumentTypes {
             };
         }
         if ("java.lang.Iterable".equals(classElement.getName())) {
-            ClassElement collectionType = ClassElement.of(Collection.class);
-            List<? extends ClassElement> iterableTypeArguments = typeArguments(classElement);
-            if (!iterableTypeArguments.isEmpty()) {
-                collectionType = collectionType.withTypeArguments(new ArrayList<>(iterableTypeArguments));
+            List<ClassElement> iterableTypeArguments = typeArguments(classElement);
+            if (iterableTypeArguments.isEmpty()) {
+                return ClassElement.of(Collection.class);
             }
-            return collectionType;
+            // A reflection based element declares no type variables, so the element type has to be
+            // bound by name rather than through withTypeArguments
+            return ClassElement.of(Collection.class, AnnotationMetadata.EMPTY_METADATA, Map.of("E", iterableTypeArguments.get(0)));
         }
         if (classElement instanceof WildcardElement wildcardElement) {
             if (!wildcardElement.getUpperBounds().isEmpty()) {
