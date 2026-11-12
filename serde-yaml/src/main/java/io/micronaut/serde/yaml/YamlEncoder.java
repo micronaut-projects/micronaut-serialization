@@ -206,8 +206,11 @@ public class YamlEncoder extends LimitingStream implements Encoder {
 
     @Override
     public void close() throws IOException {
-        while (!contextStack.isEmpty()) {
+        // Child encoders are this instance, and serializers close them with try-with-resources
+        // to finish their own structure, so only the innermost structure may be finished here
+        if (!contextStack.isEmpty()) {
             finishStructure();
+            return;
         }
         closeDocumentIfOpen();
         flushWriter();
