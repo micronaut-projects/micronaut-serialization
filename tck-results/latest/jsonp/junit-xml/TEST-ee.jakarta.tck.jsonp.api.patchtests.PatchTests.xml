@@ -10,223 +10,223 @@
   <testcase name="jsonPatchMoveTest()" classname="ee.jakarta.tck.jsonp.api.patchtests.PatchTests" time="0"/>
   <testcase name="jsonPatchAddTest()" classname="ee.jakarta.tck.jsonp.api.patchtests.PatchTests" time="0"/>
   <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchCreate test
+  <system-err><![CDATA[Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchCreate test
 INFO: JsonPatch API factory methods added in JSON-P 1.1.
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchCreate testCreateDiff
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchCreate testCreateDiff
 INFO:  - Json#createDiff(JsonStructure,JsonStructure)
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchCreate testCreatePatch
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchCreate testCreatePatch
 INFO:  - Json#createPatch(JsonArray)
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchCreate testCreatePatchBuilder
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchCreate testCreatePatchBuilder
 INFO:  - Json#createPatchBuilder(JsonArray)
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationReplace test
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationReplace test
 INFO: Testing RFC 6902 replace operation:
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationReplace testReplaceStringOnSimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationReplace testReplaceStringOnSimpleObject
 INFO:  - for String on simple JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationReplace testReplaceStringOnSimpleArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationReplace testReplaceStringOnSimpleArray
 INFO:  - for String on simple JSON array of size 1
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationReplace testReplaceStringOnSimpleArray2
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationReplace testReplaceStringOnSimpleArray2
 INFO:  - for String on simple JSON array of size 5
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationReplace testReplaceIntOnSimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationReplace testReplaceIntOnSimpleObject
 INFO:  - for int on simple JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationReplace testReplaceIntOnSimpleArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationReplace testReplaceIntOnSimpleArray
 INFO:  - for int on simple JSON array of size 1
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationReplace testReplaceIntOnSimpleArray2
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationReplace testReplaceIntOnSimpleArray2
 INFO:  - for int on simple JSON array of size 5
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationReplace testReplaceBoolOnSimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationReplace testReplaceBoolOnSimpleObject
 INFO:  - for boolean on simple JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationReplace testReplaceBoolOnSimpleArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationReplace testReplaceBoolOnSimpleArray
 INFO:  - for boolean on simple JSON array of size 1
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationReplace testReplaceBoolOnSimpleArray2
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationReplace testReplaceBoolOnSimpleArray2
 INFO:  - for boolean on simple JSON array of size 5
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationReplace testReplaceObjectOnCompoundObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationReplace testReplaceObjectOnCompoundObject
 INFO:  - for JsonObject on simple JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationReplace testReplaceObjectOnSimpleArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationReplace testReplaceObjectOnSimpleArray
 INFO:  - for JsonObject on simple JSON array of size 1
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationReplace testReplaceObjectOnSimpleArray2
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationReplace testReplaceObjectOnSimpleArray2
 INFO:  - for JsonObject on simple JSON array of size 5
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationReplace testReplaceOfNonExistingLocationInObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationReplace testReplaceOfNonExistingLocationInObject
 INFO:  - for non existing location in JsonObject
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationReplace testReplaceOfNonExistingLocationInArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationReplace testReplaceOfNonExistingLocationInArray
 INFO:  - for non existing location in JsonArray
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationTest test
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationTest test
 INFO: Testing RFC 6902 test operation:
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationTest testOnEmptyObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationTest testOnEmptyObject
 INFO:  - on empty JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationTest testOnEmptyArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationTest testOnEmptyArray
 INFO:  - on empty JSON array
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationTest testOnSimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationTest testOnSimpleObject
 INFO:  - on simple JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationTest testOnSimpleStringArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationTest testOnSimpleStringArray
 INFO:  - on simple JSON String array of size 5
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationTest testOnSimpleIntArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationTest testOnSimpleIntArray
 INFO:  - on simple JSON int array of size 5
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationTest testOnSimpleBoolArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationTest testOnSimpleBoolArray
 INFO:  - on simple JSON boolean array of size 2
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationTest testOnSimpleObjectArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationTest testOnSimpleObjectArray
 INFO:  - on simple JSON JsonObject array of size 5
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationCopy test
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationCopy test
 INFO: Testing RFC 6902 copy operation:
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationCopy testCopyStringOnSimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationCopy testCopyStringOnSimpleObject
 INFO:  - for String on simple JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationCopy testCopyStringOnSimpleArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationCopy testCopyStringOnSimpleArray
 INFO:  - for String on simple JSON array of size 2
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationCopy testCopyIntOnSimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationCopy testCopyIntOnSimpleObject
 INFO:  - for int on simple JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationCopy testCopyIntOnSimpleArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationCopy testCopyIntOnSimpleArray
 INFO:  - for int on simple JSON array of size 2
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationCopy testCopyBoolOnSimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationCopy testCopyBoolOnSimpleObject
 INFO:  - for boolean on simple JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationCopy testCopyBoolOnSimpleArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationCopy testCopyBoolOnSimpleArray
 INFO:  - for boolean on simple JSON array of size 2
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationCopy testCopyObjectOnSimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationCopy testCopyObjectOnSimpleObject
 INFO:  - for JsonObject on simple JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationCopy testCopyObjectOnSimpleArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationCopy testCopyObjectOnSimpleArray
 INFO:  - for JsonObject on simple JSON array of size 2
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationCopy testCopyStringOnCompoundObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationCopy testCopyStringOnCompoundObject
 INFO:  - for String on compound JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationCopy testCopyOfNonExistingLocationInObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationCopy testCopyOfNonExistingLocationInObject
 INFO:  - for non existing location in JsonObject
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationCopy testCopyOfNonExistingLocationInArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationCopy testCopyOfNonExistingLocationInArray
 INFO:  - for non existing location in JsonArray
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove test
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove test
 INFO: Testing RFC 6902 remove operation:
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveStringOnEmptyObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveStringOnEmptyObject
 INFO:  - for String to produce empty JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveStringOnEmptyArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveStringOnEmptyArray
 INFO:  - for String to produce empty JSON array
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveStringOnSimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveStringOnSimpleObject
 INFO:  - for String on simple JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveStringOnSimpleArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveStringOnSimpleArray
 INFO:  - for String on simple JSON array of size 2
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveStringOnSimpleArray2
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveStringOnSimpleArray2
 INFO:  - for String on simple JSON array of size 5
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveIntOnEmptyObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveIntOnEmptyObject
 INFO:  - for int to produce empty JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveIntOnEmptyArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveIntOnEmptyArray
 INFO:  - for int to produce empty JSON array
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveIntOnSimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveIntOnSimpleObject
 INFO:  - for int on simple JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveIntOnSimpleArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveIntOnSimpleArray
 INFO:  - for int on simple JSON array of size 2
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveIntOnSimpleArray2
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveIntOnSimpleArray2
 INFO:  - for int on simple JSON array of size 5
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveBoolOnEmptyObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveBoolOnEmptyObject
 INFO:  - for boolean to produce empty JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveBoolOnEmptyArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveBoolOnEmptyArray
 INFO:  - for boolean to produce empty JSON array
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveBoolOnSimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveBoolOnSimpleObject
 INFO:  - for boolean on simple JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveBoolOnSimpleArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveBoolOnSimpleArray
 INFO:  - for boolean on simple JSON array of size 2
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveBoolOnSimpleArray2
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveBoolOnSimpleArray2
 INFO:  - for boolean on simple JSON array of size 5
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveObjectOnEmptyObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveObjectOnEmptyObject
 INFO:  - for JsonObject to produce empty JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveObjectOnEmptyArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveObjectOnEmptyArray
 INFO:  - for JsonObject to produce empty JSON array
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveObjectOnSimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveObjectOnSimpleObject
 INFO:  - for JsonObject on simple JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveObjectOnSimpleArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveObjectOnSimpleArray
 INFO:  - for JsonObject on simple JSON array of size 2
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveObjectOnSimpleArray2
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveObjectOnSimpleArray2
 INFO:  - for JsonObject on simple JSON array of size 5
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveFromNonExistingLocationInObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveFromNonExistingLocationInObject
 INFO:  - for non existing location in JsonObject
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveFromNonExistingLocationInArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationRemove testRemoveFromNonExistingLocationInArray
 INFO:  - for non existing location in JsonArray
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationEnum test
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationEnum test
 INFO: JsonPatch.Operation enumeration test
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationEnum testOperationName
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationEnum testOperationName
 INFO:  - fromOperationName(String) and operationName(String)
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationEnum testOperationValueOf
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationEnum testOperationValueOf
 INFO:  - valueOf(String)
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove test
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove test
 INFO: Testing RFC 6902 move operation:
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveStringOnSimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveStringOnSimpleObject
 INFO:  - for String on simple JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveStringOnSimpleArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveStringOnSimpleArray
 INFO:  - for String on simple JSON array of size 2
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveStringOnSimpleArray2
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveStringOnSimpleArray2
 INFO:  - for String on simple JSON array of size 5
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveIntOnSimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveIntOnSimpleObject
 INFO:  - for int on simple JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveIntOnSimpleArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveIntOnSimpleArray
 INFO:  - for int on simple JSON array of size 2
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveIntOnSimpleArray2
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveIntOnSimpleArray2
 INFO:  - for int on simple JSON array of size 5
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveBoolOnSimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveBoolOnSimpleObject
 INFO:  - for boolean on simple JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveBoolOnSimpleArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveBoolOnSimpleArray
 INFO:  - for boolean on simple JSON array of size 2
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveBoolOnSimpleArray2
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveBoolOnSimpleArray2
 INFO:  - for boolean on simple JSON array of size 5
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveObjectOnSimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveObjectOnSimpleObject
 INFO:  - for JsonObject on simple JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveObjectOnSimpleArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveObjectOnSimpleArray
 INFO:  - for JsonObject on simple JSON array of size 2
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveObjectOnSimpleArray2
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveObjectOnSimpleArray2
 INFO:  - for JsonObject on simple JSON array of size 5
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveStringOnCompoundObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveStringOnCompoundObject
 INFO:  - for String on compound JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveOfNonExistingLocationInObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveOfNonExistingLocationInObject
 INFO:  - for non existing location in JsonObject
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveOfNonExistingLocationInArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveOfNonExistingLocationInArray
 INFO:  - for non existing location in JsonArray
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveVsRemoveAddOnSelfContainedPath
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveVsRemoveAddOnSelfContainedPath
 INFO:  - for moving JsonObject under itself
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveVsRemoveAddOnSelfContainedPath
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveVsRemoveAddOnSelfContainedPath
 INFO:    REMOVE and ADD failed: JSON pointer does not resolve: /child/name
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveVsRemoveAddOnSelfContainedPath
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationMove testMoveVsRemoveAddOnSelfContainedPath
 INFO:    MOVE failed: JSON pointer does not resolve: /child/name
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd test
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd test
 INFO: Testing RFC 6902 add operation:
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddStringOnEmptyObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddStringOnEmptyObject
 INFO:  - for String on empty JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddStringOnSimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddStringOnSimpleObject
 INFO:  - for String on simple JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddStringOnEmptyArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddStringOnEmptyArray
 INFO:  - for String on empty JSON array
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddStringOnSimpleArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddStringOnSimpleArray
 INFO:  - for String on simple JSON array of size 1
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddStringOnSimpleArray2
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddStringOnSimpleArray2
 INFO:  - for String on simple JSON array of size 2
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddIntOnEmptyObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddIntOnEmptyObject
 INFO:  - for int on empty JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddIntOnSimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddIntOnSimpleObject
 INFO:  - for int on simple JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddIntOnEmptyArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddIntOnEmptyArray
 INFO:  - for int on empty JSON array
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddIntOnSimpleArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddIntOnSimpleArray
 INFO:  - for int on simple JSON array of size 1
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddIntOnSimpleArray2
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddIntOnSimpleArray2
 INFO:  - for int on simple JSON array of size 2
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddBooleanOnEmptyObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddBooleanOnEmptyObject
 INFO:  - for boolean on empty JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddBooleanOnSimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddBooleanOnSimpleObject
 INFO:  - for boolean on simple JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddBooleanOnEmptyArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddBooleanOnEmptyArray
 INFO:  - for boolean on empty JSON array
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddBooleanOnSimpleArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddBooleanOnSimpleArray
 INFO:  - for boolean on simple JSON array of size 1
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddBooleanOnSimpleArray2
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddBooleanOnSimpleArray2
 INFO:  - for boolean on simple JSON array of size 2
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddObjectOnEmptyObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddObjectOnEmptyObject
 INFO:  - for JsonObject on empty JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddObjectOnSimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddObjectOnSimpleObject
 INFO:  - for JsonObject on simple JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddObjectOnEmptyArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddObjectOnEmptyArray
 INFO:  - for JsonObject on empty JSON array
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddObjectOnSimpleArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddObjectOnSimpleArray
 INFO:  - for JsonObject on simple JSON array of size 1
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddObjectOnSimpleArray2
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddObjectOnSimpleArray2
 INFO:  - for JsonObject on simple JSON array of size 2
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddArrayToReplaceObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddArrayToReplaceObject
 INFO:  - for JsonArray to replace JsonObject
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddArrayToReplaceDocument
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddArrayToReplaceDocument
 INFO:  - for JsonArray to replace whole document
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddStringArrayToStringArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddStringArrayToStringArray
 INFO:  - for String array to be added to existing String array
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddStringToNonExistingObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.patchtests.PatchOperationAdd testAddStringToNonExistingObject
 INFO:  - for String to be added to non existing JsonObject
 ]]></system-err>
 </testsuite>

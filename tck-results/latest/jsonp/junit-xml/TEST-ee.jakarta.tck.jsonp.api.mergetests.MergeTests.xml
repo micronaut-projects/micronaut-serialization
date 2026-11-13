@@ -7,83 +7,83 @@
   <testcase name="jsonMergeAddValueTest()" classname="ee.jakarta.tck.jsonp.api.mergetests.MergeTests" time="0"/>
   <testcase name="jsonMergeRemoveValueTest()" classname="ee.jakarta.tck.jsonp.api.mergetests.MergeTests" time="0"/>
   <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeNonObject test
+  <system-err><![CDATA[Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeNonObject test
 INFO: Testing RFC 7396: Non object patch
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeNonObject testStringOnEmptyObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeNonObject testStringOnEmptyObject
 INFO:  - for String on empty JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeNonObject testStringOnSimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeNonObject testStringOnSimpleObject
 INFO:  - for String on simple JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeNonObject testStringOnSimpleArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeNonObject testStringOnSimpleArray
 INFO:  - for String on simple JSON array
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeNonObject testIntOnEmptyObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeNonObject testIntOnEmptyObject
 INFO:  - for int on empty JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeNonObject testIntOnSimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeNonObject testIntOnSimpleObject
 INFO:  - for int on simple JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeNonObject testIntOnSimpleArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeNonObject testIntOnSimpleArray
 INFO:  - for int on simple JSON array
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeNonObject testBoolOnEmptyObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeNonObject testBoolOnEmptyObject
 INFO:  - for boolean on empty JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeNonObject testBoolOnSimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeNonObject testBoolOnSimpleObject
 INFO:  - for boolean on simple JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeNonObject testBoolOnSimpleArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeNonObject testBoolOnSimpleArray
 INFO:  - for boolean on simple JSON array
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeNonObject testArrayOnEmptyObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeNonObject testArrayOnEmptyObject
 INFO:  - for JsonArray on empty JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeNonObject testArrayOnCompoundObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeNonObject testArrayOnCompoundObject
 INFO:  - for JsonArray on compound JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeNonObject testArrayOnSimpleArray
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeNonObject testArrayOnSimpleArray
 INFO:  - for JsonArray on simple JSON array
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeRFCSample test
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeRFCSample test
 INFO: Testing RFC 7396: Example JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeRFCSample testMerge
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeRFCSample testMerge
 INFO:  - merge
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeRFCSample testDiff
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeRFCSample testDiff
 INFO:  - diff
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeReplaceValue test
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeReplaceValue test
 INFO: Testing RFC 7396: Replace existing values
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeReplaceValue testStringOnsimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeReplaceValue testStringOnsimpleObject
 INFO:  - for String on simple JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeReplaceValue testIntOnsimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeReplaceValue testIntOnsimpleObject
 INFO:  - for int on simple JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeReplaceValue testBoolOnsimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeReplaceValue testBoolOnsimpleObject
 INFO:  - for boolean on simple JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeReplaceValue testObjectOnsimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeReplaceValue testObjectOnsimpleObject
 INFO:  - for JsonObject on simple JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeAddValue test
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeAddValue test
 INFO: Testing RFC 7396: Add non existing values
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeAddValue testStringOnEmptyObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeAddValue testStringOnEmptyObject
 INFO:  - for String on empty JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeAddValue testStringOnsimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeAddValue testStringOnsimpleObject
 INFO:  - for String on simple JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeAddValue testIntOnEmptyObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeAddValue testIntOnEmptyObject
 INFO:  - for int on empty JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeAddValue testIntOnsimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeAddValue testIntOnsimpleObject
 INFO:  - for int on simple JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeAddValue testBoolOnEmptyObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeAddValue testBoolOnEmptyObject
 INFO:  - for boolean on empty JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeAddValue testBoolOnsimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeAddValue testBoolOnsimpleObject
 INFO:  - for boolean on simple JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeAddValue testObjectOnEmptyObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeAddValue testObjectOnEmptyObject
 INFO:  - for JsonObject on empty JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeAddValue testObjectOnsimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeAddValue testObjectOnsimpleObject
 INFO:  - for JsonObject on compound JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeRemoveValue test
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeRemoveValue test
 INFO: Testing RFC 7396: Remove existing values
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeRemoveValue testStringOnEmptyObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeRemoveValue testStringOnEmptyObject
 INFO:  - for String to produce empty JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeRemoveValue testStringOnsimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeRemoveValue testStringOnsimpleObject
 INFO:  - for String on simple JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeRemoveValue testIntOnEmptyObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeRemoveValue testIntOnEmptyObject
 INFO:  - for int to produce empty JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeRemoveValue testIntOnsimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeRemoveValue testIntOnsimpleObject
 INFO:  - for int on simple JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeRemoveValue testBoolOnEmptyObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeRemoveValue testBoolOnEmptyObject
 INFO:  - for boolean to produce empty JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeRemoveValue testBoolOnsimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeRemoveValue testBoolOnsimpleObject
 INFO:  - for boolean on simple JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeRemoveValue testObjectOnEmptyObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeRemoveValue testObjectOnEmptyObject
 INFO:  - for JsonObject to produce empty JSON object
-Nov 08, 2026 1:26:15 PM ee.jakarta.tck.jsonp.api.mergetests.MergeRemoveValue testObjectOnsimpleObject
+Nov 13, 2026 9:02:17 AM ee.jakarta.tck.jsonp.api.mergetests.MergeRemoveValue testObjectOnsimpleObject
 INFO:  - for JsonObject on compoubnd JSON object
 ]]></system-err>
 </testsuite>
