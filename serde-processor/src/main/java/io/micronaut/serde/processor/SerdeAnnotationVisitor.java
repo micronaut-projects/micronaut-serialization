@@ -1486,6 +1486,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                                    ClassElement type,
                                    List<AnnotationClassValue<?>> classValues) {
         classValues.add(new AnnotationClassValue<>(type.getName()));
+        // each imported type is processed independently of the previously imported one
+        resetMemberState();
         final ClassElement mixinType = value.stringValue("mixin").flatMap(context::getClassElement)
                 .orElse(null);
         if (value.booleanValue("serializable").orElse(true)) {
@@ -1841,6 +1843,14 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             .or(() -> element.booleanValue(Serdeable.class, SerdeConfig.VALIDATE))
             .orElse(true);
         this.creatorMode = SerdeConfig.SerCreatorMode.PROPERTIES;
+        resetMemberState();
+    }
+
+    /**
+     * Resets the per-type state collected while visiting members, so that state from one type
+     * (for example the any getter of a previous {@code @SerdeImport}) does not leak into the next.
+     */
+    private void resetMemberState() {
         this.anyGetterMethod = null;
         this.anySetterMethod = null;
         this.anyGetterField = null;
