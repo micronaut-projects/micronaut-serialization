@@ -1,6 +1,8 @@
 package io.micronaut.serde.yaml
 
 import io.micronaut.core.type.Argument
+import io.micronaut.serde.Encoder
+import io.micronaut.serde.LimitingStream
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 import spock.lang.Specification
@@ -43,5 +45,29 @@ class YamlEncoderSpec extends Specification {
         mapper.writeValueAsString([c: 'a' as char]) == "c: a\n"
         mapper.writeValueAsString([c: ':' as char]) == "c: \":\"\n"
         mapper.readValue("c: a\n", Argument.mapOf(String, Character)).c == ('a' as char)
+    }
+
+    def "closing a nested child encoder finishes only its own structure (#1505)"() {
+        given:
+        def out = new ByteArrayOutputStream()
+        def encoder = new YamlEncoder(out, LimitingStream.DEFAULT_LIMITS)
+
+        when: "serializers close the child encoders they open, as they do for a list in a map value"
+        def root = encoder.encodeObject(Argument.OBJECT_ARGUMENT)
+        root.encodeKey("nested")
+        try (Encoder nested = root.encodeObject(Argument.OBJECT_ARGUMENT)) {
+            nested.encodeKey("list")
+            try (Encoder list = nested.encodeArray(Argument.OBJECT_ARGUMENT)) {
+                list.encodeString("a")
+            }
+            nested.encodeKey("after")
+            nested.encodeInt(1)
+        }
+        root.encodeKey("type")
+        root.encodeString("x")
+        root.close()
+
+        then:
+        out.toString("UTF-8") == "nested:\n  list:\n  - a\n  after: 1\ntype: x\n"
     }
 }
