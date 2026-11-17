@@ -24,6 +24,7 @@ import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.reference.PropertyReference;
+import io.micronaut.serde.util.SpecificSerdeTracker;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -37,7 +38,7 @@ import java.util.Set;
  * @since 3.0
  */
 @Internal
-final class FeatureDecoderContext implements Deserializer.DecoderContext {
+final class FeatureDecoderContext implements Deserializer.DecoderContext, SpecificSerdeTracker {
     private final Deserializer.DecoderContext delegate;
     private final Set<DeserializationConfiguration.Feature> features;
 
@@ -110,5 +111,10 @@ final class FeatureDecoderContext implements Deserializer.DecoderContext {
     @Override
     public void popManagedRef() {
         delegate.popManagedRef();
+    }
+
+    @Override
+    public void markContextBound() {
+        SpecificSerdeTracker.markContextBound(delegate);
     }
 }

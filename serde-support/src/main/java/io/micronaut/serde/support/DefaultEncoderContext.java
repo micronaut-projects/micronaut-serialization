@@ -27,10 +27,12 @@ import io.micronaut.serde.reference.AbstractPropertyReferenceManager;
 import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.reference.SerializationReference;
 import io.micronaut.serde.support.reference.DocumentIdSerializationReference;
+import io.micronaut.serde.util.SpecificSerdeTracker;
 import org.jspecify.annotations.Nullable;
 
 import java.util.IdentityHashMap;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 /**
  * Default implementation of {@link io.micronaut.serde.Serializer.EncoderContext}.
@@ -38,14 +40,44 @@ import java.util.Optional;
  * @since 1.0.0
  */
 @Internal
-class DefaultEncoderContext extends AbstractPropertyReferenceManager implements Serializer.EncoderContext {
+class DefaultEncoderContext extends AbstractPropertyReferenceManager implements Serializer.EncoderContext, SpecificSerdeTracker {
+    private static final AtomicIntegerFieldUpdater<DefaultEncoderContext> BOUND_MARKS =
+        AtomicIntegerFieldUpdater.newUpdater(DefaultEncoderContext.class, "boundMarks");
+
     private final DefaultSerdeRegistry registry;
     // Beans written in full in the current document, allocated only when a document uses object identity
     @Nullable
     private IdentityHashMap<Object, Object> writtenBeans;
+    // Counts the serdes bound to this context, only ever increases (see SpecificSerdeTracker)
+    private volatile int boundMarks;
 
     DefaultEncoderContext(DefaultSerdeRegistry registry) {
         this.registry = registry;
+    }
+
+    /**
+     * Whether this is a context of the registry without a view, whose specific serdes are the same for every document.
+     *
+     * @param registry The registry
+     * @return Whether the context is a plain context of the registry
+     */
+    final boolean isPlainContextOf(DefaultSerdeRegistry registry) {
+        return this.registry == registry && getClass() == DefaultEncoderContext.class;
+    }
+
+    /**
+     * The number of times a serde created with this context was bound to it. A specific serde whose creation did not
+     * change it does not depend on this context.
+     *
+     * @return The number of marks
+     */
+    final int boundMarks() {
+        return boundMarks;
+    }
+
+    @Override
+    public final void markContextBound() {
+        BOUND_MARKS.incrementAndGet(this);
     }
 
     @Override
