@@ -8,6 +8,7 @@ quickStart:
   jsonpQuick: JSON-B Annotations & JSON-P
   bsonQuick: BSON Annotations and BSON
   cborQuick: CBOR
+  csvQuick: CSV
   yamlQuick: YAML
   toonQuick: TOON
   tomlQuick: TOML
