@@ -34,7 +34,12 @@ import java.util.concurrent.ConcurrentHashMap;
 @Internal
 final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
     private final EncoderContext encoderContext;
-    private final Map<Class<?>, Serializer<Object>> inners = new ConcurrentHashMap<>(10);
+    /*
+     * The serializers of the runtime types, created with one context. A serializer may be bound to the context it
+     * was created with (a serde bean taking the context as a constructor argument), so they are only reused with
+     * that context. This serializer can outlive a document, as the property serializer of a bean.
+     */
+    private volatile Inners inners = new Inners(null);
     @Nullable
     private final Serializer<Object> outer;
     @Nullable
@@ -123,8 +128,13 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
     }
 
     private Serializer<Object> getSerializer(EncoderContext context, Object value) throws SerdeException {
+        Inners current = inners;
+        if (current.context != context) {
+            current = new Inners(context);
+            inners = current;
+        }
         try {
-            return inners.computeIfAbsent(value.getClass(), t -> {
+            return current.serializers.computeIfAbsent(value.getClass(), t -> {
                 try {
                     if (value.getClass().equals(outerType.getType())) {
                         if (outer == null) {
@@ -152,6 +162,18 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
             } else {
                 throw e;
             }
+        }
+    }
+
+    /**
+     * The serializers of the runtime types created with a context.
+     *
+     * @param context     The context, or {@code null} before the first use
+     * @param serializers The serializers by runtime type
+     */
+    private record Inners(@Nullable EncoderContext context, Map<Class<?>, Serializer<Object>> serializers) {
+        Inners(@Nullable EncoderContext context) {
+            this(context, new ConcurrentHashMap<>(10));
         }
     }
 
