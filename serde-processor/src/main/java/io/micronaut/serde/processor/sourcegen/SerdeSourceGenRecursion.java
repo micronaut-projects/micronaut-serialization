@@ -100,11 +100,16 @@ public final class SerdeSourceGenRecursion {
      */
     private boolean boundReaches(GenericPlaceholderElement placeholderElement, Set<String> visited) {
         List<? extends ClassElement> bounds = placeholderElement.getBounds();
-        // a bound such as T extends Comparable<T> refers to the variable again
-        if (bounds.isEmpty() || !visited.add("<" + placeholderElement.getVariableName() + ">")) {
+        if (bounds.isEmpty()) {
             return false;
         }
-        return reaches(bounds.get(0), visited);
+        ClassElement bound = bounds.get(0);
+        // a bound such as T extends Comparable<T> refers to the variable again, so a variable is followed once. Two
+        // types commonly name their variables the same, so the variable is identified with its bound
+        if (!visited.add("<" + placeholderElement.getVariableName() + " extends " + bound.getName() + ">")) {
+            return false;
+        }
+        return reaches(bound, visited);
     }
 
     private boolean reaches(ClassElement type, Set<String> visited) {
