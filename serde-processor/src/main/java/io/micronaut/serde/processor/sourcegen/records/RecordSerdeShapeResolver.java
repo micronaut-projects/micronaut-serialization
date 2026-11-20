@@ -62,15 +62,7 @@ public final class RecordSerdeShapeResolver {
                 return Optional.empty();
             }
             String serializedName = stringValue(propertyElement, SerdeConfig.PROPERTY).orElse(parameter.getName());
-            String parameterName = parameter.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(serializedName);
-            List<String> aliases = aliases(propertyElement, parameter);
-            if (!parameterName.equals(serializedName) && !aliases.contains(parameterName)) {
-                // The property is written with its own name, such as one a naming strategy derives, and read with the
-                // explicit name of its creator parameter as well, like the runtime deserializer
-                aliases = new ArrayList<>(aliases);
-                aliases.add(parameterName);
-                aliases = List.copyOf(aliases);
-            }
+            List<String> aliases = componentAliases(propertyElement, parameter, serializedName);
             Map<String, String> keyMetadata = resolveKeyMetadata(propertyElement);
             components.add(new RecordSerdeShape.RecordComponent(
                 parameter.getName(),
@@ -92,6 +84,22 @@ public final class RecordSerdeShapeResolver {
             .map(RecordSerdeShapeResolver::getterComponent)
             .toList();
         return Optional.of(new RecordSerdeShape(canonicalConstructor, List.copyOf(components), getterMethods));
+    }
+
+    /**
+     * The aliases a component is read with. The property is written with its own name, such as one a naming
+     * strategy derives, and read with the explicit name of its creator parameter as well, like the runtime
+     * deserializer.
+     */
+    private static List<String> componentAliases(PropertyElement propertyElement, ParameterElement parameter, String serializedName) {
+        String parameterName = parameter.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(serializedName);
+        List<String> aliases = aliases(propertyElement, parameter);
+        if (parameterName.equals(serializedName) || aliases.contains(parameterName)) {
+            return aliases;
+        }
+        List<String> withParameterName = new ArrayList<>(aliases);
+        withParameterName.add(parameterName);
+        return List.copyOf(withParameterName);
     }
 
     /**
