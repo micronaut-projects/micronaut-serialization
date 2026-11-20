@@ -265,4 +265,116 @@ final class Imports {
         cleanup:
         context.close()
     }
+
+    void "importing one type twice with mixins that mark the same any setter is accepted"() {
+        given:
+        def context = buildContext('mixintest.Imports', '''
+package mixintest;
+
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import io.micronaut.serde.annotation.SerdeImport;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+@SerdeImport(value = Imports.Target.class, mixin = Imports.FirstMixin.class)
+@SerdeImport(value = Imports.Target.class, mixin = Imports.SecondMixin.class)
+final class Imports {
+    public static class Target {
+        public final Map<String, Object> other = new LinkedHashMap<>();
+        public void put(String name, Object value) { other.put(name, value); }
+    }
+    abstract static class FirstMixin {
+        @JsonAnySetter public abstract void put(String name, Object value);
+    }
+    abstract static class SecondMixin {
+        @JsonAnySetter public abstract void put(String name, Object value);
+    }
+}
+''')
+        def target = context.classLoader.loadClass('mixintest.Imports$Target')
+
+        expect:
+        jsonMapper.readValue('{"x":1}', target).other == [x: 1]
+
+        cleanup:
+        context.close()
+    }
+
+    void "a later mixin of a type imported again is still validated"() {
+        when:
+        buildContext('mixintest.Imports', '''
+package mixintest;
+
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.serde.annotation.SerdeImport;
+
+@SerdeImport(Imports.Target.class)
+@SerdeImport(value = Imports.Target.class, mixin = Imports.UnwrapMixin.class)
+final class Imports {
+    public static class Target {
+        private String name;
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+    }
+    abstract static class UnwrapMixin {
+        @JsonUnwrapped public abstract String getName();
+    }
+}
+''')
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message.contains('Unwrapped cannot be declared on basic types')
+    }
+
+    void "a nested unwrapped property does not collide under its own prefixed name"() {
+        given:
+        def context = buildContext('mixintest.Outer', '''
+package mixintest;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Outer {
+    private Address address;
+    private String note;
+    @JsonUnwrapped(prefix = "addr_")
+    public Address getAddress() { return address; }
+    public void setAddress(Address address) { this.address = address; }
+    @JsonProperty("addr_cityData")
+    public String getNote() { return note; }
+    public void setNote(String note) { this.note = note; }
+}
+
+@Serdeable
+class Address {
+    private CityData cityData;
+    @JsonUnwrapped(prefix = "cd_")
+    public CityData getCityData() { return cityData; }
+    public void setCityData(CityData cityData) { this.cityData = cityData; }
+}
+
+@Serdeable
+class CityData {
+    private String city;
+    public String getCity() { return city; }
+    public void setCity(String city) { this.city = city; }
+}
+''')
+        def outer = context.classLoader.loadClass('mixintest.Outer').newInstance()
+        def address = context.classLoader.loadClass('mixintest.Address').newInstance()
+        def cityData = context.classLoader.loadClass('mixintest.CityData').newInstance()
+        cityData.city = 'Prague'
+        address.cityData = cityData
+        outer.address = address
+        outer.note = 'n'
+
+        expect: 'it compiles, and the outer property and the nested ones have distinct keys'
+        jsonMapper.writeValueAsString(outer) == '{"addr_cd_city":"Prague","addr_cityData":"n"}'
+
+        cleanup:
+        context.close()
+    }
 }
