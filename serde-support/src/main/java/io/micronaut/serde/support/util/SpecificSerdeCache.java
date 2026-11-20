@@ -21,9 +21,10 @@ import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.util.DocumentContextTracker;
+import org.jspecify.annotations.Nullable;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The specific serdes a mapper creates for the documents it reads and writes, kept for the next
@@ -36,8 +37,8 @@ public final class SpecificSerdeCache {
 
     private static final int MAX_CACHED_SERDES = 256;
 
-    private final Map<Argument<?>, Serializer<?>> serializers = new ConcurrentHashMap<>();
-    private final Map<Argument<?>, Deserializer<?>> deserializers = new ConcurrentHashMap<>();
+    private final TypeTable<Serializer<?>> serializers = new TypeTable<>();
+    private final TypeTable<Deserializer<?>> deserializers = new TypeTable<>();
 
     /**
      * Finds the specific serializer of a type.
@@ -58,7 +59,7 @@ public final class SpecificSerdeCache {
             }
         }
         Serializer<T> serializer = (Serializer<T>) context.findSerializer(type).createSpecific(context, (Argument) type);
-        if (cacheable && !DocumentContextTracker.isDocumentBound(context) && serializers.size() < MAX_CACHED_SERDES) {
+        if (cacheable && !DocumentContextTracker.isDocumentBound(context)) {
             serializers.putIfAbsent(type, serializer);
         }
         return serializer;
@@ -83,7 +84,7 @@ public final class SpecificSerdeCache {
             }
         }
         Deserializer<? extends T> deserializer = (Deserializer<? extends T>) context.findDeserializer(type).createSpecific(context, (Argument) type);
-        if (cacheable && !DocumentContextTracker.isDocumentBound(context) && deserializers.size() < MAX_CACHED_SERDES) {
+        if (cacheable && !DocumentContextTracker.isDocumentBound(context)) {
             deserializers.putIfAbsent(type, deserializer);
         }
         return deserializer;
@@ -116,5 +117,72 @@ public final class SpecificSerdeCache {
             }
         }
         return true;
+    }
+
+    /**
+     * The serdes by type, compared as {@link Argument#equalsType(Argument)} does. The equality of arguments
+     * also compares their names, which the serde does not depend on; the name of an argument created without
+     * one is computed on every call with a new argument, with allocations. Lookups don't allocate: the table
+     * is an open-addressing array, copied on each addition, which stops at {@link #MAX_CACHED_SERDES}.
+     *
+     * @param <V> The serde type
+     */
+    private static final class TypeTable<V> {
+        private static final int CAPACITY = MAX_CACHED_SERDES * 2;
+
+        private volatile Entry<V>[] table = newTable();
+        private int size;
+
+        @Nullable
+        V get(Argument<?> type) {
+            Entry<V>[] entries = table;
+            int mask = entries.length - 1;
+            for (int i = type.typeHashCode() & mask; ; i = (i + 1) & mask) {
+                Entry<V> entry = entries[i];
+                if (entry == null) {
+                    return null;
+                }
+                if (entry.type == type || entry.type.equalsType(type)) {
+                    return entry.value;
+                }
+            }
+        }
+
+        synchronized void putIfAbsent(Argument<?> type, V value) {
+            if (size >= MAX_CACHED_SERDES || get(type) != null) {
+                return;
+            }
+            Entry<V>[] entries = table.clone();
+            int mask = entries.length - 1;
+            int i = type.typeHashCode() & mask;
+            while (entries[i] != null) {
+                i = (i + 1) & mask;
+            }
+            entries[i] = new Entry<>(type, value);
+            size++;
+            table = entries;
+        }
+
+        synchronized int size() {
+            return size;
+        }
+
+        List<V> values() {
+            List<V> values = new ArrayList<>();
+            for (Entry<V> entry : table) {
+                if (entry != null) {
+                    values.add(entry.value);
+                }
+            }
+            return values;
+        }
+
+        @SuppressWarnings("unchecked")
+        private static <V> Entry<V>[] newTable() {
+            return new Entry[CAPACITY];
+        }
+
+        private record Entry<V>(Argument<?> type, V value) {
+        }
     }
 }
