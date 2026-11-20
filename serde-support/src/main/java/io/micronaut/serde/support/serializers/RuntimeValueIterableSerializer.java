@@ -19,6 +19,7 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.exceptions.SerdeException;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -57,18 +58,26 @@ final class RuntimeValueIterableSerializer<T> extends AbstractIterableSerializer
                     elements.put(lastValueClass, element);
                 }
                 lastValueClass = valueClass;
-                element = elements == null ? null : elements.get(valueClass);
-                if (element == null) {
-                    Argument<T> generic = (Argument<T>) Argument.of(valueClass);
-                    element = new Element<>(generic, context.findSerializer(generic).createSpecific(context, generic));
-                    if (elements != null) {
-                        elements.put(valueClass, element);
-                    }
-                }
+                element = elementOf(context, valueClass, elements);
             }
             element.serializer.serialize(childEncoder, context, element.argument, t);
         }
         childEncoder.finishStructure();
+    }
+
+    @SuppressWarnings("unchecked")
+    private Element<T> elementOf(EncoderContext context,
+                                 Class<?> valueClass,
+                                 @Nullable Map<Class<?>, Element<T>> elements) throws SerdeException {
+        Element<T> element = elements == null ? null : elements.get(valueClass);
+        if (element == null) {
+            Argument<T> generic = (Argument<T>) Argument.of(valueClass);
+            element = new Element<>(generic, context.findSerializer(generic).createSpecific(context, generic));
+            if (elements != null) {
+                elements.put(valueClass, element);
+            }
+        }
+        return element;
     }
 
     @Override
