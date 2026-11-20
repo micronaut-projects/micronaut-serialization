@@ -179,4 +179,23 @@ class VirtualThreadAwareRecyclerPoolSpec extends Specification {
         pool.clear()
         pool.@virtualThreadPool.get() == null
     }
+
+    void "a pool holding recyclers of virtual threads can be serialized, and is deserialized empty"() {
+        given:
+        def pool = new VirtualThreadAwareRecyclerPool()
+        Thread.ofVirtual().start {
+            pool.releasePooled(pool.acquirePooled())
+        }.join()
+
+        when:
+        def bytes = new ByteArrayOutputStream()
+        new ObjectOutputStream(bytes).withCloseable { it.writeObject(pool) }
+        def copy = new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray())).withCloseable { it.readObject() }
+
+        then:
+        pool.pooledCount() == 1
+        copy instanceof VirtualThreadAwareRecyclerPool
+        copy.pooledCount() == 0
+        copy.acquirePooled() != null
+    }
 }
