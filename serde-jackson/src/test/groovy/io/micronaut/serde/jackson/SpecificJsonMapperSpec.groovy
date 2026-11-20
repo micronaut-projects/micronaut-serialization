@@ -24,6 +24,22 @@ class SpecificJsonMapperSpec extends Specification {
 
     }
 
+    void "derived mappers share the JSON factory and its buffer pool"() {
+        when:
+            def factory = jacksonJsonMapper.@jsonFactory
+            def specific = jacksonJsonMapper.createSpecific(Argument.of(TestX))
+            def withView = jacksonJsonMapper.cloneWithViewClass(Object)
+            def withSerdeConfiguration = jacksonJsonMapper.cloneWithConfiguration(null, null, null)
+            def withJacksonConfiguration = jacksonJsonMapper.cloneWithConfiguration(jacksonJsonMapper.@jacksonConfiguration)
+
+        then:
+            specific.@jsonFactory.is(factory)
+            withView.@jsonFactory.is(factory)
+            withSerdeConfiguration.@jsonFactory.is(factory)
+            !withJacksonConfiguration.@jsonFactory.is(factory)
+            specific.writeValueAsString(new TestX(name: "Fred")) == '{"name":"Fred"}'
+    }
+
     void "write value as bytes uses the thread local buffer recycler on platform threads"() {
         given:
             def recyclerPool = jacksonJsonMapper.@jsonFactory._getRecyclerPool()
