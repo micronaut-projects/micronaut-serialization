@@ -77,14 +77,22 @@ final class SubtypedPropertyObjectDeserializer implements Deserializer<Object> {
                 if (keyIndex == KeysAwareDecoder.MATCH_END_OBJECT) {
                     // an empty object, which the subtype reads as one
                     objectDecoder.finishStructure();
-                    Decoder empty = JsonNodeDecoder.create(JsonNode.createObjectNode(Map.of()), LimitingStream.DEFAULT_LIMITS);
-                    return subtypeInfo.findDeserializer(null).deserialize(empty, decoderContext, type);
+                    return subtypeInfo.findDeserializer(null).deserialize(emptyObjectDecoder(), decoderContext, type);
                 }
                 // MATCH_UNKNOWN_NAME: decodeKey() returns the same name again, so the demuxing decoder sees every key
             }
             return deserializeDemuxed(new OpenedObjectDecoder(objectDecoder), decoderContext, type);
         }
         return deserializeDemuxed(decoder, decoderContext, type);
+    }
+
+    /**
+     * A decoder over an empty object. It holds no resource, and closing it would finish a structure that the
+     * subtype deserializer already finished, so it is not closed.
+     */
+    @SuppressWarnings("java:S2095")
+    private static Decoder emptyObjectDecoder() {
+        return JsonNodeDecoder.create(JsonNode.createObjectNode(Map.of()), LimitingStream.DEFAULT_LIMITS);
     }
 
     private Deserializer<? super Object> findDeserializerForValue(Decoder decoder) throws IOException {
