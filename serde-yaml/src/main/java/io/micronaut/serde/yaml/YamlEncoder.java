@@ -216,6 +216,21 @@ public class YamlEncoder extends LimitingStream implements Encoder {
         flushWriter();
     }
 
+    /**
+     * Finishes every structure that is still open, closes the document and flushes the output.
+     * Unlike {@link #close()}, which finishes only the innermost structure because child encoders
+     * are this instance, this completes the whole document once the root value is written.
+     *
+     * @throws IOException If the document cannot be written
+     */
+    void finishDocument() throws IOException {
+        while (!contextStack.isEmpty()) {
+            finishStructure();
+        }
+        closeDocumentIfOpen();
+        flushWriter();
+    }
+
     private void flushWriter() throws IOException {
         try {
             writer.flush();

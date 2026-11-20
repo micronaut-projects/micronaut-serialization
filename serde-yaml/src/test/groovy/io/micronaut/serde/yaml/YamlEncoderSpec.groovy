@@ -70,4 +70,20 @@ class YamlEncoderSpec extends Specification {
         then:
         out.toString("UTF-8") == "nested:\n  list:\n  - a\n  after: 1\ntype: x\n"
     }
+
+    def "finishing the document completes structures a serializer left open"() {
+        given:
+        def out = new ByteArrayOutputStream()
+        def encoder = new YamlEncoder(out, LimitingStream.DEFAULT_LIMITS)
+
+        when:
+        def root = encoder.encodeObject(Argument.OBJECT_ARGUMENT)
+        root.encodeKey("nested")
+        def nested = root.encodeArray(Argument.OBJECT_ARGUMENT)
+        nested.encodeString("a")
+        encoder.finishDocument()
+
+        then:
+        out.toString("UTF-8") == "nested:\n- a\n"
+    }
 }
