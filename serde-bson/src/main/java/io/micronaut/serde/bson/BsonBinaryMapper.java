@@ -16,6 +16,7 @@
 package io.micronaut.serde.bson;
 
 import io.micronaut.core.annotation.Order;
+import io.micronaut.core.type.Argument;
 import io.micronaut.json.JsonMapper;
 import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.config.SerdeConfiguration;
@@ -25,7 +26,6 @@ import org.bson.AbstractBsonWriter;
 import org.bson.BsonBinaryReader;
 import org.bson.BsonBinaryWriter;
 import org.bson.BsonReader;
-import org.bson.io.BasicOutputBuffer;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -41,6 +41,13 @@ import java.util.Objects;
 @Singleton
 @Order(200) // lower precedence than BsonJsonMapper
 public final class BsonBinaryMapper extends AbstractBsonMapper {
+
+    private static final int MAX_OUTPUT_SIZE_HINT = 64 * 1024;
+
+    /**
+     * The initial size of the buffer of {@code writeValueAsBytes}, grown to fit the documents written.
+     */
+    private int outputSizeHint = BsonOutputBuffer.INITIAL_SIZE;
 
     @Inject
     public BsonBinaryMapper(SerdeRegistry registry, SerdeConfiguration serdeConfiguration) {
@@ -64,11 +71,11 @@ public final class BsonBinaryMapper extends AbstractBsonMapper {
     @Override
     protected AbstractBsonWriter createBsonWriter(OutputStream os) {
         Objects.requireNonNull(os, "Output stream cannot be null");
-        return new BsonBinaryWriter(new BasicOutputBuffer()) {
+        return new BsonBinaryWriter(new BsonOutputBuffer()) {
             @Override
             public void flush() {
                 try {
-                    ((BasicOutputBuffer) getBsonOutput()).pipe(os);
+                    ((BsonOutputBuffer) getBsonOutput()).pipe(os);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -76,4 +83,31 @@ public final class BsonBinaryMapper extends AbstractBsonMapper {
         };
     }
 
+    @Override
+    public byte[] writeValueAsBytes(@Nullable Object object) throws IOException {
+        return encodeToBytes(null, object);
+    }
+
+    @Override
+    public <T> byte[] writeValueAsBytes(Argument<T> type, @Nullable T object) throws IOException {
+        return encodeToBytes(type, object);
+    }
+
+    /**
+     * Builds the document in one buffer, sized from the previous documents, and copies it out once.
+     * Going through {@link #createBsonWriter(OutputStream)} would pipe the buffer into a growing
+     * {@link java.io.ByteArrayOutputStream} and copy it again.
+     */
+    private byte[] encodeToBytes(@Nullable Argument<?> type, @Nullable Object object) throws IOException {
+        BsonOutputBuffer buffer = new BsonOutputBuffer(outputSizeHint);
+        try (BsonBinaryWriter bsonWriter = new BsonBinaryWriter(buffer)) {
+            encodeValue(bsonWriter, type, object);
+        }
+        int size = buffer.getSize();
+        if (size > outputSizeHint) {
+            // A racy hint is fine: it only sizes the next buffers
+            outputSizeHint = Math.min(size + (size >> 1), MAX_OUTPUT_SIZE_HINT);
+        }
+        return buffer.toByteArray();
+    }
 }
