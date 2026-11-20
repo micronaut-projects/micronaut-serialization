@@ -54,6 +54,84 @@ class Person {
         '@Serdeable.Serializable @Serdeable.Deserializable(naming = SnakeCaseStrategy.class)' | false
     }
 
+    void "a setter of a property bound through a named creator parameter does not read another key"() {
+        given:
+        def context = buildContext('test.Person', '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+
+@Serdeable.Serializable
+@Serdeable.Deserializable(naming = SnakeCaseStrategy.class)
+class Person {
+    private String firstName;
+
+    @JsonCreator
+    Person(@JsonProperty("first_name") String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+}
+''', true, [:])
+
+        when:
+        def bean = jsonMapper.readValue('{"first_name":"Jane","firstName":"Eve"}', argumentOf(context, 'test.Person'))
+
+        then:
+        bean.firstName == 'Jane'
+
+        cleanup:
+        context.close()
+    }
+
+    void "the creator of an importing class does not name the properties of an imported type"() {
+        given:
+        def context = buildContext('test.Holder', '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.SerdeImport;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+
+@Serdeable
+@SerdeImport(Holder.Target.class)
+class Holder {
+    private final String firstName;
+
+    @JsonCreator
+    Holder(@JsonProperty("legacy") String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getFirstName() { return firstName; }
+
+    @Serdeable.Serializable
+    @Serdeable.Deserializable(naming = SnakeCaseStrategy.class)
+    public static class Target {
+        private String firstName;
+        public String getFirstName() { return firstName; }
+        public void setFirstName(String firstName) { this.firstName = firstName; }
+    }
+}
+''', true, [:])
+
+        when:
+        def target = jsonMapper.readValue('{"first_name":"Jane"}', argumentOf(context, 'test.Holder$Target'))
+
+        then:
+        target.firstName == 'Jane'
+
+        cleanup:
+        context.close()
+    }
+
     void "test serializeNaming only - serialized output uses snake_case, deserialization uses identity"() {
         given:
         def context = buildContext('test.UserDto', '''
