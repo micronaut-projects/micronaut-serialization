@@ -139,6 +139,7 @@ import io.micronaut.serde.annotation.SerdeImport;
 
 @SerdeImport(Imports.Wrapper.class)
 @SerdeImport(Imports.Animal.class)
+@SerdeImport(Imports.Dog.class)
 public final class Imports {
     public static class Wrapper {
         private final String value;
