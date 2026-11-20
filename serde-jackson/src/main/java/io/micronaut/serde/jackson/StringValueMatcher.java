@@ -71,6 +71,37 @@ final class StringValueMatcher {
         return -1;
     }
 
+    /**
+     * @param value The value, for a parser that holds strings rather than characters, such as one reading a tree
+     * @return The index of the first matching value or -1
+     */
+    int match(String value) {
+        int length = value.length();
+        int h = 0;
+        for (int i = 0; i < length; i++) {
+            h = 31 * h + value.charAt(i);
+        }
+        int slot = (h ^ (h >>> 16)) & mask;
+        int entry;
+        while ((entry = table[slot]) != 0) {
+            char[] candidate = values[entry - 1];
+            if (candidate.length == length && matches(candidate, value)) {
+                return entry - 1;
+            }
+            slot = (slot + 1) & mask;
+        }
+        return -1;
+    }
+
+    private static boolean matches(char[] candidate, String value) {
+        for (int i = 0; i < candidate.length; i++) {
+            if (candidate[i] != value.charAt(i)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private static int hash(char[] chars, int offset, int length) {
         int h = 0;
         for (int i = offset, end = offset + length; i < end; i++) {

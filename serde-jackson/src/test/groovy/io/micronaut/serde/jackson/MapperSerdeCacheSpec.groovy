@@ -79,6 +79,133 @@ public enum Season {
         context.close()
     }
 
+    void "documents written in parallel with a user serde keeping the context each use their own"() {
+        given:
+        def context = buildContext('test.Holder', '''
+package test;
+
+import io.micronaut.core.type.Argument;
+import io.micronaut.serde.Encoder;
+import io.micronaut.serde.Serializer;
+import io.micronaut.serde.annotation.Serdeable;
+import jakarta.inject.Singleton;
+import java.io.IOException;
+import java.util.List;
+
+@Serdeable
+public record Holder(String name, List<Token> tokens) {
+}
+
+record Token(String value) {
+}
+
+@Singleton
+class TokenSerializer implements Serializer<Token> {
+    @Override
+    public Serializer<Token> createSpecific(EncoderContext context, Argument<? extends Token> type) {
+        return new Specific(context);
+    }
+
+    @Override
+    public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Token> type, Token value) throws IOException {
+        throw new IOException("Specific serializer expected");
+    }
+
+    private record Specific(EncoderContext createdWith) implements Serializer<Token> {
+        @Override
+        public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Token> type, Token value) throws IOException {
+            if (createdWith != context) {
+                throw new IOException("Used with the context of another document");
+            }
+            encoder.encodeString(value.value());
+        }
+    }
+}
+''', true, [:])
+        def holderClass = context.classLoader.loadClass('test.Holder')
+        def tokenClass = context.classLoader.loadClass('test.Token')
+        def pool = java.util.concurrent.Executors.newFixedThreadPool(8)
+
+        when:
+        def results = pool.invokeAll((1..400).collect { i ->
+            (java.util.concurrent.Callable<Boolean>) {
+                def holder = holderClass.newInstance("h$i".toString(), [tokenClass.newInstance("a$i".toString()), tokenClass.newInstance("b$i".toString())])
+                jsonMapper.writeValueAsString(holder) == "{\"name\":\"h$i\",\"tokens\":[\"a$i\",\"b$i\"]}"
+            }
+        }).collect { it.get() }
+
+        then:
+        results.every()
+
+        cleanup:
+        pool.shutdown()
+        context.close()
+    }
+
+    void "generated enums are read from a tree and from a stream alike"() {
+        given:
+        def context = buildContext('test.Holder', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import java.util.List;
+
+@Serdeable
+public record Holder(List<Status> statuses) {
+}
+
+@Serdeable
+enum Status {
+    NEW, OLD
+}
+''', true, [:])
+        def type = argumentOf(context, 'test.Holder')
+        def json = '{"statuses":["OLD","NEW","OLD"]}'
+
+        when:
+        def fromStream = jsonMapper.readValue(json, type)
+        def fromTree = jsonMapper.readValueFromTree(jsonMapper.readValue(json, io.micronaut.json.tree.JsonNode), type)
+
+        then:
+        fromStream.statuses()*.name() == ['OLD', 'NEW', 'OLD']
+        fromTree.statuses()*.name() == ['OLD', 'NEW', 'OLD']
+
+        cleanup:
+        context.close()
+    }
+
+    void "a generated bean read through an alias reports a duplicate under the alias"() {
+        given:
+        def context = buildContext('test.Person', '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonAlias;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+public class Person {
+    @JsonAlias("nickname")
+    private String name;
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+}
+''', true, ['micronaut.serde.deserialization.fail-on-duplicate-properties': true])
+        def type = argumentOf(context, 'test.Person')
+
+        expect:
+        jsonMapper.readValue('{"nickname":"Jo"}', type).name == 'Jo'
+
+        when:
+        jsonMapper.readValue('{"name":"A","nickname":"B"}', type)
+
+        then:
+        def e = thrown(Exception)
+        e.message.contains('nickname')
+
+        cleanup:
+        context.close()
+    }
+
     void "a generated enum deserializer uses a user string deserializer"() {
         given:
         def context = buildContext('test.Status', '''

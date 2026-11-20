@@ -221,6 +221,10 @@ public final class BeanDeserializerSourceGen {
         return new ExpressionDef.Constant(DISPATCH_RESULT_TYPE, name);
     }
 
+    private static String aliasArgumentFieldName(String aliasKeyFieldName) {
+        return aliasKeyFieldName + "_ARGUMENT";
+    }
+
     private static ExpressionDef dynamicPropertyArgument(ExpressionDef propertyNameExpression) {
         return ClassTypeDef.of(Argument.class)
             .getStaticField(OBJECT_ARGUMENT_FIELD)
@@ -307,6 +311,11 @@ public final class BeanDeserializerSourceGen {
                 fields.add(FieldDef.builder(aliasKeyFieldName, STRING_TYPE)
                     .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
                     .initializer(ExpressionDef.constant(alias))
+                    .build());
+                // the argument a duplicate is reported with, built once rather than on every read of the alias
+                fields.add(FieldDef.builder(aliasArgumentFieldName(aliasKeyFieldName), ARGUMENT_TYPE)
+                    .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                    .initializer(dynamicPropertyArgument(ExpressionDef.constant(alias)))
                     .build());
             }
             propertyIndex++;
@@ -814,7 +823,7 @@ public final class BeanDeserializerSourceGen {
                 beanVariable,
                 dispatchInfo,
                 dispatchInfo.aliasKeys().targets().get(i),
-                dynamicPropertyArgument(deserializerClassTypeDef.getStaticField(dispatchInfo.aliasKeys().keyFieldNames().get(i), STRING_TYPE)),
+                deserializerClassTypeDef.getStaticField(aliasArgumentFieldName(dispatchInfo.aliasKeys().keyFieldNames().get(i)), ARGUMENT_TYPE),
                 primitiveNullMode
             ));
         }

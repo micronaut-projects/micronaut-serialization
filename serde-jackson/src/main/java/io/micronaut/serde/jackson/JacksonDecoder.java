@@ -224,8 +224,11 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
             currentValues = values;
             currentValueMatcher = matcher;
         }
-        // The value is matched in the buffer of the parser, without creating a string
-        int index = matcher.match(parser.getTextCharacters(), parser.getTextOffset(), parser.getTextLength());
+        // The value is matched in the buffer of the parser, without creating a string. A parser without a buffer,
+        // such as one reading a tree, already holds the string, and would copy it into a new array
+        int index = parser.hasStringCharacters()
+            ? matcher.match(parser.getTextCharacters(), parser.getTextOffset(), parser.getTextLength())
+            : matcher.match(parser.getString());
         if (index < 0) {
             // The peeked string stays for the caller to decode
             return MATCH_UNKNOWN_NAME;
