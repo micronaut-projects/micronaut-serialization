@@ -30,6 +30,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Subtyped property deserializer.
@@ -39,6 +40,12 @@ import java.util.Map;
  */
 @Internal
 final class SubtypedPropertyObjectDeserializer implements Deserializer<Object> {
+
+    /**
+     * This deserializer is created per document. Decoders cache work per {@link Keys} instance (Jackson's name
+     * matcher, the protobuf slot table), so one instance per discriminator name keeps those caches bounded.
+     */
+    private static final Map<String, Keys> DISCRIMINATOR_KEYS = new ConcurrentHashMap<>();
 
     private final DeserializerSubtypeInfo<? super Object> subtypeInfo;
     private final Keys discriminatorKeys;
@@ -51,7 +58,7 @@ final class SubtypedPropertyObjectDeserializer implements Deserializer<Object> {
             && discriminatorType != SerdeConfig.SerSubtyped.DiscriminatorType.EXISTING_PROPERTY) {
             throw new IllegalStateException("Unsupported discriminator type: " + discriminatorType);
         }
-        this.discriminatorKeys = Keys.create(subtypeInfo.parent().info().discriminatorName());
+        this.discriminatorKeys = DISCRIMINATOR_KEYS.computeIfAbsent(subtypeInfo.parent().info().discriminatorName(), Keys::create);
         this.discriminatorVisible = subtypeInfo.parent().info().discriminatorVisible();
     }
 

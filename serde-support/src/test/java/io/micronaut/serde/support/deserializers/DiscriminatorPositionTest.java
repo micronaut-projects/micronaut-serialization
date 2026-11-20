@@ -107,6 +107,20 @@ class DiscriminatorPositionTest {
     }
 
     @Test
+    void emptyAndMissingDiscriminatorUseTheDefaultImpl() throws IOException {
+        String json = """
+            [{},{"type":"dot","x":1},{"x":2},{"x":3,"type":"dot"},{"type":null,"x":4}]""";
+        List<Mark> fromJson = mapper.readValue(json, Argument.listOf(Mark.class));
+        List<Mark> fromTree = mapper.readValueFromTree(mapper.readValue(json, JsonNode.class), Argument.listOf(Mark.class));
+        for (List<Mark> marks : List.of(fromJson, fromTree)) {
+            assertEquals(5, marks.size());
+            for (int i = 0; i < marks.size(); i++) {
+                assertEquals(i, assertInstanceOf(Dot.class, marks.get(i)).x);
+            }
+        }
+    }
+
+    @Test
     void nullShape() throws IOException {
         assertNull(mapper.readValue("null", Argument.of(Shape.class)));
     }
@@ -157,6 +171,19 @@ class DiscriminatorPositionTest {
     })
     public abstract static class Shape {
         public String id;
+    }
+
+    @Serdeable
+    @Introspected(accessKind = Introspected.AccessKind.FIELD)
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type", defaultImpl = Dot.class)
+    @JsonSubTypes(@JsonSubTypes.Type(value = Dot.class, name = "dot"))
+    public abstract static class Mark {
+    }
+
+    @Serdeable
+    @Introspected(accessKind = Introspected.AccessKind.FIELD)
+    public static final class Dot extends Mark {
+        public int x;
     }
 
     @Serdeable
