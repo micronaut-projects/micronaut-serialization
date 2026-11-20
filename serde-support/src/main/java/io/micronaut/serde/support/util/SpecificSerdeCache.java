@@ -106,7 +106,8 @@ public final class SpecificSerdeCache {
      * @return Whether the serde of the type can be cached by the type
      */
     private static boolean isCacheable(Argument<?> type) {
-        if (!type.getAnnotationMetadata().isEmpty()) {
+        // a type variable equals the concrete argument of its type, but is serialized by runtime type
+        if (type.isTypeVariable() || !type.getAnnotationMetadata().isEmpty()) {
             return false;
         }
         for (Argument<?> typeParameter : type.getTypeParameters()) {

@@ -197,7 +197,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
                                                @Nullable SerializationConfiguration serializationConfiguration,
                                                @Nullable DeserializationConfiguration deserializationConfiguration,
                                                @Nullable SerdeIntrospections introspections) {
-        return new JacksonJsonMapper(
+        JacksonJsonMapper clone = new JacksonJsonMapper(
             introspections == null
                 ? registry.cloneWithConfiguration(configuration, serializationConfiguration, deserializationConfiguration)
                 : registry.cloneWithConfiguration(configuration, serializationConfiguration, deserializationConfiguration, introspections),
@@ -206,10 +206,12 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
             jacksonConfiguration,
             jsonFactory,
             view,
-            specificType,
-            specificDeserializer,
-            specificSerializer
+            null,
+            null,
+            null
         );
+        // the specific serdes keep the serdes they resolved, so they are resolved again with the new configuration
+        return specificType == null ? clone : (ObjectMapper) clone.createSpecific(specificType);
     }
 
     @Override
