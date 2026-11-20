@@ -596,6 +596,24 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     }
 
     /**
+     * Marks the serdes created with the context as bound to the document when a lookup returns a user serde. A
+     * user serde's {@code createSpecific} can return an instance that keeps the context, or state of one document,
+     * so the serdes created with it must not be cached across documents. The serdes of Micronaut Serialization and
+     * the generated serdes are known not to.
+     *
+     * @param context The encoder or decoder context of the lookup
+     * @param serde   The serde found
+     * @param <S>     The serde type
+     * @return The serde
+     */
+    static <S> S trackUserSerde(Object context, S serde) {
+        if (!(serde instanceof GeneratedSerde) && !serde.getClass().getName().startsWith("io.micronaut.serde.")) {
+            DocumentContextTracker.markDocumentBound(context);
+        }
+        return serde;
+    }
+
+    /**
      * Creates the beans of a serde definition that takes the context and the type as constructor arguments, the way
      * {@link BeanContext#createBean(Class, Object...)} creates a bean once it has found its definition. The registry
      * has already selected the definition, so it is not looked up again for every specific serde.

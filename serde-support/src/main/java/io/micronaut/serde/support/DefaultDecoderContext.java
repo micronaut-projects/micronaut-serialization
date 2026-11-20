@@ -67,12 +67,12 @@ class DefaultDecoderContext extends AbstractPropertyReferenceManager implements 
     @Override
     public final <T, D extends Deserializer<? extends T>> D findCustomDeserializer(Class<? extends D> deserializerClass)
             throws SerdeException {
-        return registry.findCustomDeserializer(deserializerClass);
+        return DefaultSerdeRegistry.trackUserSerde(this, registry.findCustomDeserializer(deserializerClass));
     }
 
     @Override
     public final <T> Deserializer<? extends T> findDeserializer(Argument<? extends T> type) throws SerdeException {
-        return registry.findDeserializer(type);
+        return DefaultSerdeRegistry.trackUserSerde(this, registry.findDeserializer(type));
     }
 
     @Override
