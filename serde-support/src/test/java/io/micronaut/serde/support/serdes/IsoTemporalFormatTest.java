@@ -69,6 +69,10 @@ class IsoTemporalFormatTest {
             assertNull(IsoTemporalFormat.formatOffsetDateTime(dateTime.atOffset(ZoneOffset.UTC)));
         }
         assertEquals("0000-01-01T00:00:00Z", IsoTemporalFormat.formatInstant(LocalDateTime.of(0, 1, 1, 0, 0).toInstant(ZoneOffset.UTC)));
+        assertEquals("9999-12-31T23:59:59.999999999Z", IsoTemporalFormat.formatInstant(LocalDateTime.of(9999, 12, 31, 23, 59, 59, 999_999_999).toInstant(ZoneOffset.UTC)));
+        // outside the LocalDateTime range
+        assertNull(IsoTemporalFormat.formatInstant(Instant.MAX));
+        assertNull(IsoTemporalFormat.formatInstant(Instant.MIN));
     }
 
     @Test
