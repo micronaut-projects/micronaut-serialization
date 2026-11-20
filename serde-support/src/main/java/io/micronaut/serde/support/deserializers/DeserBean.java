@@ -767,13 +767,9 @@ final class DeserBean<T> {
                 ? findDeserializerWithoutFormat(propertyContext, property.argument)
                 : findDeserializer(propertyContext, property.argument, property.format));
         };
-        int contextBound = ContextBoundSerdes.count();
-        Deserializer<Object> specific = factory.create(decoderContext);
         // The bean keeps its property deserializers between documents: one that a serde bean bound to the context
         // of this document is specialized again for the context of each document
-        property.deserializer = ContextBoundSerdes.count() == contextBound
-            ? specific
-            : new ContextBoundSerdes.PerContextDeserializer<>(factory, decoderContext, specific);
+        property.deserializer = ContextBoundSerdes.specialize(factory, decoderContext);
         if (property.format == null && !property.hasFeatureOverrides && property.deserializer instanceof DecoderValueKind.Provider decoderValueKind) {
             property.decoderValueKind = decoderValueKind.decoderValueKind().code();
             property.updateDirectModes();

@@ -928,13 +928,9 @@ final class SerBean<T> {
                 ? (Serializer<Z>) resolved.createSpecific(propertyContext, resolvedArgument)
                 : createSpecific(prop.format, resolved, propertyContext, resolvedArgument);
         };
-        int contextBound = ContextBoundSerdes.count();
-        Serializer<Z> specific = factory.create(encoderContext);
         // The bean keeps its property serializers between documents: one that a serde bean bound to the context
         // of this document is specialized again for the context of each document
-        prop.serializer = ContextBoundSerdes.count() == contextBound
-            ? specific
-            : new ContextBoundSerdes.PerContextSerializer<>(factory, encoderContext, specific);
+        prop.serializer = ContextBoundSerdes.specialize(factory, encoderContext);
 
         if (prop.serializableInto) {
             if (prop.serializer instanceof io.micronaut.serde.ObjectSerializer<Z> objectSerializer) {
