@@ -41,7 +41,7 @@ import java.util.Optional;
 @Internal
 class DefaultEncoderContext extends AbstractPropertyReferenceManager implements Serializer.EncoderContext, DocumentContextTracker {
     private final DefaultSerdeRegistry registry;
-    private boolean documentBound;
+    private int documentBindings;
     // Beans written in full in the current document, allocated only when a document uses object identity
     @Nullable
     private IdentityHashMap<Object, Object> writtenBeans;
@@ -113,12 +113,12 @@ class DefaultEncoderContext extends AbstractPropertyReferenceManager implements 
 
     @Override
     public void markDocumentBound() {
-        documentBound = true;
+        documentBindings++;
     }
 
     @Override
-    public boolean isDocumentBound() {
-        return documentBound;
+    public int documentBindings() {
+        return documentBindings;
     }
 
     @Override

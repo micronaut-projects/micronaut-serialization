@@ -113,7 +113,7 @@ final class FeatureEncoderContext implements Serializer.EncoderContext, Document
     }
 
     @Override
-    public boolean isDocumentBound() {
-        return DocumentContextTracker.isDocumentBound(delegate);
+    public int documentBindings() {
+        return DocumentContextTracker.documentBindings(delegate);
     }
 }

@@ -48,7 +48,7 @@ import java.util.Optional;
 @Internal
 class DefaultDecoderContext extends AbstractPropertyReferenceManager implements Deserializer.DecoderContext, DocumentContextTracker {
     private final DefaultSerdeRegistry registry;
-    private boolean documentBound;
+    private int documentBindings;
     // Document-scoped identifier state, allocated only when a document uses identifiers and released on close
     @Nullable
     private Map<String, Object> documentIds;
@@ -181,11 +181,11 @@ class DefaultDecoderContext extends AbstractPropertyReferenceManager implements 
 
     @Override
     public void markDocumentBound() {
-        documentBound = true;
+        documentBindings++;
     }
 
     @Override
-    public boolean isDocumentBound() {
-        return documentBound;
+    public int documentBindings() {
+        return documentBindings;
     }
 }
