@@ -47,6 +47,7 @@ final class IsoTemporalFormat {
     private static final int NANOS_PER_MILLI = 1_000_000;
     private static final int NANOS_PER_MICRO = 1_000;
     private static final int MAX_YEAR = 9999;
+    private static final int INVALID_OFFSET = Integer.MIN_VALUE;
 
     private IsoTemporalFormat() {
     }
@@ -216,30 +217,13 @@ final class IsoTemporalFormat {
         if (len < 17) {
             return null;
         }
-        int end;
-        int offsetSeconds;
-        if (text.charAt(len - 1) == 'Z') {
-            end = len - 1;
-            offsetSeconds = 0;
-        } else {
-            int signPos;
-            int seconds = 0;
-            if (len >= 25 && text.charAt(len - 3) == ':' && text.charAt(len - 6) == ':' && isSign(text.charAt(len - 9))) {
-                signPos = len - 9;
-                seconds = parse2(text, len - 2);
-            } else if (text.charAt(len - 3) == ':' && isSign(text.charAt(len - 6))) {
-                signPos = len - 6;
-            } else {
-                return null;
-            }
-            int hours = parse2(text, signPos + 1);
-            int minutes = parse2(text, signPos + 4);
-            if (hours < 0 || minutes < 0 || seconds < 0 || minutes > 59 || seconds > 59) {
-                return null;
-            }
-            int total = hours * 3600 + minutes * 60 + seconds;
-            offsetSeconds = text.charAt(signPos) == '-' ? -total : total;
-            end = signPos;
+        int end = offsetStart(text, len);
+        if (end < 0) {
+            return null;
+        }
+        int offsetSeconds = parseOffsetSeconds(text, end, len);
+        if (offsetSeconds == INVALID_OFFSET) {
+            return null;
         }
         LocalDateTime dateTime = parseLocalDateTime(text, end);
         if (dateTime == null) {
@@ -250,6 +234,43 @@ final class IsoTemporalFormat {
         } catch (DateTimeException e) {
             return null;
         }
+    }
+
+    /**
+     * Finds where the offset starts: {@code Z}, {@code +HH:MM} or {@code +HH:MM:SS}.
+     *
+     * @return The position of the {@code Z} or the sign, or {@code -1} for another shape
+     */
+    private static int offsetStart(String text, int len) {
+        if (text.charAt(len - 1) == 'Z') {
+            return len - 1;
+        }
+        if (len >= 25 && text.charAt(len - 3) == ':' && text.charAt(len - 6) == ':' && isSign(text.charAt(len - 9))) {
+            return len - 9;
+        }
+        if (text.charAt(len - 3) == ':' && isSign(text.charAt(len - 6))) {
+            return len - 6;
+        }
+        return -1;
+    }
+
+    /**
+     * Parses the offset found by {@link #offsetStart(String, int)}.
+     *
+     * @return The offset in seconds, or {@link #INVALID_OFFSET}
+     */
+    private static int parseOffsetSeconds(String text, int start, int len) {
+        if (text.charAt(start) == 'Z') {
+            return 0;
+        }
+        int hours = parse2(text, start + 1);
+        int minutes = parse2(text, start + 4);
+        int seconds = len - start == 9 ? parse2(text, start + 7) : 0;
+        if (hours < 0 || minutes < 0 || seconds < 0 || minutes > 59 || seconds > 59) {
+            return INVALID_OFFSET;
+        }
+        int total = hours * 3600 + minutes * 60 + seconds;
+        return text.charAt(start) == '-' ? -total : total;
     }
 
     private static @Nullable LocalDateTime parseLocalDateTime(String text, int end) {
@@ -292,35 +313,43 @@ final class IsoTemporalFormat {
             return null;
         }
         int pos = start + 5;
-        int second = 0;
-        int nano = 0;
-        if (pos < end) {
-            if (end - pos < 3 || text.charAt(pos) != ':') {
-                return null;
-            }
-            second = parse2(text, pos + 1);
-            if (second < 0 || second > 59) {
-                return null;
-            }
-            pos += 3;
-            if (pos < end) {
-                int digits = end - pos - 1;
-                if (text.charAt(pos) != '.' || digits < 1 || digits > 9) {
-                    return null;
-                }
-                for (int i = pos + 1; i < end; i++) {
-                    int d = digit(text.charAt(i));
-                    if (d < 0) {
-                        return null;
-                    }
-                    nano = nano * 10 + d;
-                }
-                for (int i = digits; i < 9; i++) {
-                    nano *= 10;
-                }
-            }
+        if (pos == end) {
+            return LocalTime.of(hour, minute);
         }
-        return LocalTime.of(hour, minute, second, nano);
+        if (end - pos < 3 || text.charAt(pos) != ':') {
+            return null;
+        }
+        int second = parse2(text, pos + 1);
+        if (second < 0 || second > 59) {
+            return null;
+        }
+        pos += 3;
+        int nano = pos < end ? parseFraction(text, pos, end) : 0;
+        return nano < 0 ? null : LocalTime.of(hour, minute, second, nano);
+    }
+
+    /**
+     * Parses a fraction of a second written as {@code .f} with one to nine digits.
+     *
+     * @return The nanoseconds, or {@code -1} for another shape
+     */
+    private static int parseFraction(String text, int pos, int end) {
+        int digits = end - pos - 1;
+        if (text.charAt(pos) != '.' || digits < 1 || digits > 9) {
+            return -1;
+        }
+        int nano = 0;
+        for (int i = pos + 1; i < end; i++) {
+            int d = digit(text.charAt(i));
+            if (d < 0) {
+                return -1;
+            }
+            nano = nano * 10 + d;
+        }
+        for (int i = digits; i < 9; i++) {
+            nano *= 10;
+        }
+        return nano;
     }
 
     private static boolean fastYear(int year) {
