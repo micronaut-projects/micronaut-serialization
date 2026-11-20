@@ -31,6 +31,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.IdentityHashMap;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Default implementation of {@link io.micronaut.serde.Serializer.EncoderContext}.
@@ -111,11 +112,16 @@ class DefaultEncoderContext extends AbstractPropertyReferenceManager implements 
 
     @Override
     public Optional<SerdeConfiguration> getSerdeConfiguration() {
-        return Optional.of(registry.getSerdeConfiguration());
+        return registry.optionalSerdeConfiguration();
     }
 
     @Override
     public Optional<SerializationConfiguration> getSerializationConfiguration() {
-        return Optional.of(registry.getSerializationConfiguration());
+        return registry.optionalSerializationConfiguration();
+    }
+
+    @Override
+    public Set<SerializationConfiguration.Feature> getFeatures() {
+        return registry.serializationFeatures();
     }
 }
