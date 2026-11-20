@@ -43,10 +43,11 @@ list.
 
 ### Value shapes (`ValueShapeBenchmark`)
 
-Shapes the user bean benchmarks do not cover, with the default configuration
-and generated serdes: `java.time` values, epoch timestamps, polymorphic reads
-and writes, `Long` map keys, and lists written with and without a declared
-type. Not part of the default JMH includes list.
+Shapes the user bean benchmarks do not cover, with the default configuration:
+`java.time` values, epoch timestamps, polymorphic reads and writes, `Long` map
+keys, and lists written with and without a declared type. The beans use
+generated serdes, except the polymorphic ones, which the shape analyzer leaves
+to the runtime serdes. Not part of the default JMH includes list.
 
 ```bash
 ./gradlew :micronaut-benchmarks:jmh \
