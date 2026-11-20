@@ -332,20 +332,20 @@ public final class ForyJsonMapper implements ObjectMapper {
     }
 
     /**
-     * Distinguishes a decoded {@code null} from {@link ReadBuffer#useFastHeapBuffer} not calling the function.
-     *
-     * @param value The decoded value
-     * @param <T> The value type
-     */
-    private record HeapResult<T>(@Nullable T value) {
-    }
-
-    /**
      * Rethrows {@code throwable} unchanged through a lambda that cannot declare checked exceptions;
      * the enclosing mapper methods declare {@link IOException}.
      */
     @SuppressWarnings("unchecked")
     private static <E extends Throwable> RuntimeException sneakyThrow(Throwable throwable) throws E {
         throw (E) throwable;
+    }
+
+    /**
+     * Distinguishes a decoded {@code null} from {@link ReadBuffer#useFastHeapBuffer} not calling the function.
+     *
+     * @param value The decoded value
+     * @param <T> The value type
+     */
+    private record HeapResult<T>(@Nullable T value) {
     }
 }
