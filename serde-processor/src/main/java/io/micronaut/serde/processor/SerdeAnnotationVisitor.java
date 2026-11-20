@@ -64,6 +64,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -119,6 +120,9 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     private @Nullable FieldElement jsonKeyField;
     private final Set<MethodElement> readMethods = new HashSet<>(20);
     private final Set<MethodElement> writeMethods = new HashSet<>(20);
+    // The member state of the types imported by the current class, by type name
+    private final Map<String, MemberState> importedMemberStates = new HashMap<>();
+    private boolean currentClassImported;
     private final Set<String> elementVisitedAsSubtype = new HashSet<>(10);
     private final SimpleSerdeShapeAnalyzer sourceGenShapeAnalyzer = new SimpleSerdeShapeAnalyzer();
     private SerdeConfig.SerCreatorMode creatorMode = SerdeConfig.SerCreatorMode.PROPERTIES;
@@ -405,7 +409,12 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             if (isBasicType(propertyType)) {
                 throw new ProcessingException(element, "Unwrapped cannot be declared on basic types");
             }
-            final List<String> thatProperties = resolvePropertyNames(context, propertyType, element);
+            // the unwrapped properties appear in the outer object with the prefix and suffix of the unwrapped property
+            final String unwrappedPrefix = element.stringValue(SerdeConfig.SerUnwrapped.class, SerdeConfig.SerUnwrapped.PREFIX).orElse("");
+            final String unwrappedSuffix = element.stringValue(SerdeConfig.SerUnwrapped.class, SerdeConfig.SerUnwrapped.SUFFIX).orElse("");
+            final List<String> thatProperties = resolvePropertyNames(context, propertyType, element).stream()
+                .map(name -> unwrappedPrefix + name + unwrappedSuffix)
+                .toList();
             final List<String> thisProperties = resolvePropertyNames(context, currentClass(), null);
             String currentUnwrappedName = null;
             if (element instanceof TypedElement te) {
@@ -1843,19 +1852,59 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         this.failOnError = element.booleanValue(SerdeConfig.class, SerdeConfig.VALIDATE)
             .or(() -> element.booleanValue(Serdeable.class, SerdeConfig.VALIDATE))
             .orElse(true);
-        resetForImportedClass(element);
+        importedMemberStates.clear();
+        currentClassImported = false;
+        this.currentClass = element;
+        this.creatorMode = SerdeConfig.SerCreatorMode.PROPERTIES;
+        resetMemberState();
     }
 
     /**
      * Resets the per-type state for a type imported with {@code @SerdeImport}. The validation
-     * setting of the importing class is kept, everything collected for the previous type is cleared.
+     * setting of the importing class is kept, and the state collected for the previous type is put
+     * aside. A type imported again, such as with another mixin, continues from its own state, so
+     * that its mixins are still validated together (two any setters, for example).
      *
      * @param element The type that is processed next
      */
     private void resetForImportedClass(ClassElement element) {
+        if (currentClassImported && currentClass != null) {
+            importedMemberStates.put(currentClass.getName(), new MemberState(anyGetterMethod, anySetterMethod,
+                anyGetterField, anySetterField, jsonValueMethod, jsonValueField, jsonKeyMethod, jsonKeyField,
+                Set.copyOf(readMethods), Set.copyOf(writeMethods)));
+        }
+        currentClassImported = true;
         this.currentClass = element;
         this.creatorMode = SerdeConfig.SerCreatorMode.PROPERTIES;
         resetMemberState();
+        MemberState saved = importedMemberStates.get(element.getName());
+        if (saved != null) {
+            anyGetterMethod = saved.anyGetterMethod();
+            anySetterMethod = saved.anySetterMethod();
+            anyGetterField = saved.anyGetterField();
+            anySetterField = saved.anySetterField();
+            jsonValueMethod = saved.jsonValueMethod();
+            jsonValueField = saved.jsonValueField();
+            jsonKeyMethod = saved.jsonKeyMethod();
+            jsonKeyField = saved.jsonKeyField();
+            readMethods.addAll(saved.readMethods());
+            writeMethods.addAll(saved.writeMethods());
+        }
+    }
+
+    /**
+     * The member state collected for an imported type.
+     */
+    private record MemberState(@Nullable MethodElement anyGetterMethod,
+                               @Nullable MethodElement anySetterMethod,
+                               @Nullable FieldElement anyGetterField,
+                               @Nullable FieldElement anySetterField,
+                               @Nullable MethodElement jsonValueMethod,
+                               @Nullable FieldElement jsonValueField,
+                               @Nullable MethodElement jsonKeyMethod,
+                               @Nullable FieldElement jsonKeyField,
+                               Set<MethodElement> readMethods,
+                               Set<MethodElement> writeMethods) {
     }
 
     /**
