@@ -51,6 +51,47 @@ class RawCollectionContextSerdeSpec extends Specification {
     }
 
     @Unroll
+    void "documents written in parallel each use the serializers of their own context (generated: #generated)"() {
+        given:
+        def context = ApplicationContext.run(generated ? [:] : [
+            'micronaut.serde.serialization.disable-generated-serializer': true,
+            'micronaut.serde.deserialization.disable-generated-deserializer': true
+        ])
+        def mapper = context.getBean(ObjectMapper)
+        def pool = java.util.concurrent.Executors.newFixedThreadPool(8)
+
+        when:
+        def results = pool.invokeAll((1..400).collect { i ->
+            (java.util.concurrent.Callable<Boolean>) {
+                def bean = new ObjectListHolder(values: [new Secret("a$i"), "x", new Secret("b$i")])
+                mapper.writeValueAsString(bean) == "{\"values\":[\"a$i\",\"x\",\"b$i\"]}"
+            }
+        }).collect { it.get() }
+
+        then:
+        results.every()
+
+        cleanup:
+        pool.shutdown()
+        context.close()
+
+        where:
+        generated << [true, false]
+    }
+
+    void "a new application context does not see the serializers of a closed one"() {
+        expect:
+        (1..3).every {
+            def context = ApplicationContext.run()
+            try {
+                context.getBean(ObjectMapper).writeValueAsString(new ObjectHolder(value: new Secret("c$it"))) == "{\"value\":\"c$it\"}"
+            } finally {
+                context.close()
+            }
+        }
+    }
+
+    @Unroll
     void "the serializer of a runtime type is created once per document (generated: #generated)"() {
         given:
         def context = ApplicationContext.run(['spec.name': 'RawCollectionContextSerdeSpec'] + (generated ? [:] : [
