@@ -69,6 +69,7 @@ import java.util.stream.Stream;
  */
 public final class BeanDeserializerSourceGen {
 
+    private static final String SEEN_PROPERTIES_LOCAL = "seenProperties";
     private static final TypeDef ARGUMENT_TYPE = TypeDef.of(Argument.class);
     private static final TypeDef BOOLEAN_TYPE = TypeDef.primitive(boolean.class);
     private static final TypeDef.Primitive INT_TYPE = TypeDef.Primitive.INT;
@@ -536,14 +537,14 @@ public final class BeanDeserializerSourceGen {
         if (!properties.isEmpty() && properties.size() <= Long.SIZE) {
             seenPropertiesMaskLong = true;
             StatementDef.DefineAndAssign seenPropertiesMaskDef = ExpressionDef.constant(0L)
-                .newLocal("seenProperties");
+                .newLocal(SEEN_PROPERTIES_LOCAL);
             statements.add(seenPropertiesMaskDef);
             seenPropertiesMaskVariable = seenPropertiesMaskDef.variable();
         } else {
             // A wide bean tracks the seen properties in a long per 64 properties
             for (int i = 0; i < properties.size(); i += Long.SIZE) {
                 StatementDef.DefineAndAssign seenPropertyDef = ExpressionDef.constant(0L)
-                    .newLocal(BeanSerdeSourceGenUtils.localName("seenProperties", i / Long.SIZE));
+                    .newLocal(BeanSerdeSourceGenUtils.localName(SEEN_PROPERTIES_LOCAL, i / Long.SIZE));
                 statements.add(seenPropertyDef);
                 seenPropertyVariables.add(seenPropertyDef.variable());
             }
@@ -921,7 +922,7 @@ public final class BeanDeserializerSourceGen {
                 .addParameter(CONTEXT_PARAMETER, TypeDef.of(Deserializer.DecoderContext.class))
                 .addParameter("type", TypeDef.of(Argument.class))
                 .addParameter(BEAN_LOCAL, beanTypeDef)
-                .addParameter("seenProperties", TypeDef.Primitive.LONG)
+                .addParameter(SEEN_PROPERTIES_LOCAL, TypeDef.Primitive.LONG)
                 .addParameter("duplicateArgument", ARGUMENT_TYPE)
                 .returns(TypeDef.Primitive.LONG)
                 .addThrows(TypeDef.of(IOException.class))
