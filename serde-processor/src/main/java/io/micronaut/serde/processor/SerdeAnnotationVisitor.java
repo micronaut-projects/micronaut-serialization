@@ -270,7 +270,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         } else if (methodMetadata.hasDeclaredAnnotation(SerdeConfig.SerAnyGetter.class)) {
             if (this.anyGetterMethod == null) {
                 this.anyGetterMethod = element;
-            } else {
+            } else if (!this.anyGetterMethod.equals(element)) {
+                // two mixins of a type imported twice may annotate the same method
                 throw new ProcessingException(element, "Type already defines a method annotated with JsonAnyGetter: " + anyGetterMethod.getDescription(true));
             }
 
@@ -286,7 +287,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         } else if (methodMetadata.hasDeclaredAnnotation(SerdeConfig.SerAnySetter.class)) {
             if (this.anySetterMethod == null) {
                 this.anySetterMethod = element;
-            } else {
+            } else if (!this.anySetterMethod.equals(element)) {
+                // two mixins of a type imported twice may annotate the same method
                 throw new ProcessingException(element, "Type already defines a method annotated with JsonAnySetter: " + anySetterMethod.getDescription(true));
             }
             if (methodMetadata.hasDeclaredAnnotation(SerdeConfig.SerUnwrapped.class)) {
@@ -412,7 +414,13 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             // the unwrapped properties appear in the outer object with the prefix and suffix of the unwrapped property
             final String unwrappedPrefix = element.stringValue(SerdeConfig.SerUnwrapped.class, SerdeConfig.SerUnwrapped.PREFIX).orElse("");
             final String unwrappedSuffix = element.stringValue(SerdeConfig.SerUnwrapped.class, SerdeConfig.SerUnwrapped.SUFFIX).orElse("");
+            // a property that is itself unwrapped does not appear under its own name, its properties do
+            final Set<String> nestedUnwrapped = propertyType.getBeanProperties().stream()
+                .filter(p -> p.hasAnnotation(SerdeConfig.SerUnwrapped.class))
+                .map(this::resolvePropertyName)
+                .collect(Collectors.toSet());
             final List<String> thatProperties = resolvePropertyNames(context, propertyType, element).stream()
+                .filter(name -> !nestedUnwrapped.contains(name))
                 .map(name -> unwrappedPrefix + name + unwrappedSuffix)
                 .toList();
             final List<String> thisProperties = resolvePropertyNames(context, currentClass(), null);
@@ -1870,8 +1878,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     private void resetForImportedClass(ClassElement element) {
         if (currentClassImported && currentClass != null) {
             importedMemberStates.put(currentClass.getName(), new MemberState(anyGetterMethod, anySetterMethod,
-                anyGetterField, anySetterField, jsonValueMethod, jsonValueField, jsonKeyMethod, jsonKeyField,
-                Set.copyOf(readMethods), Set.copyOf(writeMethods)));
+                anyGetterField, anySetterField, jsonValueMethod, jsonValueField, jsonKeyMethod, jsonKeyField));
         }
         currentClassImported = true;
         this.currentClass = element;
@@ -1887,8 +1894,6 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             jsonValueField = saved.jsonValueField();
             jsonKeyMethod = saved.jsonKeyMethod();
             jsonKeyField = saved.jsonKeyField();
-            readMethods.addAll(saved.readMethods());
-            writeMethods.addAll(saved.writeMethods());
         }
     }
 
@@ -2050,8 +2055,6 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
      * @param jsonValueField The JSON value field
      * @param jsonKeyMethod The JSON key method
      * @param jsonKeyField The JSON key field
-     * @param readMethods The read methods
-     * @param writeMethods The write methods
      */
     private record MemberState(@Nullable MethodElement anyGetterMethod,
                                @Nullable MethodElement anySetterMethod,
@@ -2060,8 +2063,6 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                                @Nullable MethodElement jsonValueMethod,
                                @Nullable FieldElement jsonValueField,
                                @Nullable MethodElement jsonKeyMethod,
-                               @Nullable FieldElement jsonKeyField,
-                               Set<MethodElement> readMethods,
-                               Set<MethodElement> writeMethods) {
+                               @Nullable FieldElement jsonKeyField) {
     }
 }
