@@ -627,7 +627,7 @@ final class EnumValuesSerializer<E extends Enum<E>> implements FormattedSerializ
             return null;
         }
         String[] values = new String[constants.length];
-        Set<String> uniqueValues = new HashSet<>(constants.length);
+        Set<String> uniqueValues = HashSet.newHashSet(constants.length);
         for (E constant : constants) {
             String value = serializedValues != null ? serializedValues.get(constant) : constant.name();
             if (value == null || !uniqueValues.add(value)) {
