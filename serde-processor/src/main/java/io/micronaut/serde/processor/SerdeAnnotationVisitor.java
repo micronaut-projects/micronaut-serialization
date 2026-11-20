@@ -1030,6 +1030,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             element.annotate(Introspected.class, builder ->
                 builder.member("classes", classValues.toArray(new AnnotationClassValue[0]))
             );
+            // the members of the importing class are visited next, they must not see the state of the last import
+            resetForNewClass(element);
         } else if (isSerdeAnnotated(element) || isImport) {
             if (!element.hasStereotype(Serdeable.Serializable.class) &&
                     !element.hasStereotype(Serdeable.Deserializable.class) && !isImport) {
@@ -1487,7 +1489,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                                    List<AnnotationClassValue<?>> classValues) {
         classValues.add(new AnnotationClassValue<>(type.getName()));
         // each imported type is processed independently of the previously imported one
-        resetMemberState();
+        resetForImportedClass(type);
         final ClassElement mixinType = value.stringValue("mixin").flatMap(context::getClassElement)
                 .orElse(null);
         if (value.booleanValue("serializable").orElse(true)) {
@@ -1837,11 +1839,21 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     }
 
     private void resetForNewClass(ClassElement element) {
-        this.currentClass = element;
         // NOTE: `AliasFor` does not apply here; read directly from both annotations.
         this.failOnError = element.booleanValue(SerdeConfig.class, SerdeConfig.VALIDATE)
             .or(() -> element.booleanValue(Serdeable.class, SerdeConfig.VALIDATE))
             .orElse(true);
+        resetForImportedClass(element);
+    }
+
+    /**
+     * Resets the per-type state for a type imported with {@code @SerdeImport}. The validation
+     * setting of the importing class is kept, everything collected for the previous type is cleared.
+     *
+     * @param element The type that is processed next
+     */
+    private void resetForImportedClass(ClassElement element) {
+        this.currentClass = element;
         this.creatorMode = SerdeConfig.SerCreatorMode.PROPERTIES;
         resetMemberState();
     }

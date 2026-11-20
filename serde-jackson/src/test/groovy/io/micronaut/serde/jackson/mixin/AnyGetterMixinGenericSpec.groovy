@@ -80,4 +80,107 @@ final class Imports {
         cleanup:
         context.close()
     }
+
+    void "the importing class does not see the any getter/setter of the last imported type"() {
+        given:
+        def context = buildContext('mixintest.Host', '''
+package mixintest;
+
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import io.micronaut.serde.annotation.SerdeImport;
+import io.micronaut.serde.annotation.Serdeable;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+@Serdeable
+@SerdeImport(value = io.micronaut.serde.jackson.mixin.AnyExtPlain.class, mixin = Host.PlainMixin.class)
+public class Host {
+    private final Map<String, Object> other = new LinkedHashMap<>();
+
+    @JsonAnyGetter
+    public Map<String, Object> getOther() {
+        return other;
+    }
+
+    @JsonAnySetter
+    public void put(String key, Object value) {
+        other.put(key, value);
+    }
+
+    abstract static class PlainMixin {
+        @JsonAnyGetter public abstract Map<String, Object> getExtensions();
+        @JsonAnySetter public abstract void addExtension(String name, Object value);
+    }
+}
+''')
+        def plain = context.classLoader.loadClass("io.micronaut.serde.jackson.mixin.AnyExtPlain")
+        def a = plain.newInstance()
+        a.addExtension("x-a", 1)
+
+        expect:
+        jsonMapper.writeValueAsString(a) == '{"x-a":1}'
+        jsonMapper.readValue('{"x-b":2}', plain).extensions == ['x-b': 2]
+
+        cleanup:
+        context.close()
+    }
+
+    void "a delegating creator of one imported type does not apply to the next imported type"() {
+        given:
+        def context = buildContext('mixintest.Imports', '''
+package mixintest;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonValue;
+import io.micronaut.serde.annotation.SerdeImport;
+
+@SerdeImport(Imports.Wrapper.class)
+@SerdeImport(Imports.Animal.class)
+public final class Imports {
+    public static class Wrapper {
+        private final String value;
+
+        @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+        public Wrapper(String value) {
+            this.value = value;
+        }
+
+        @JsonValue
+        public String getValue() {
+            return value;
+        }
+    }
+
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+    @JsonSubTypes(@JsonSubTypes.Type(value = Dog.class, name = "dog"))
+    public static class Animal {
+        private String name;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+    }
+
+    public static class Dog extends Animal {
+    }
+}
+''')
+        def animal = context.classLoader.loadClass('mixintest.Imports$Animal')
+        def dog = context.classLoader.loadClass('mixintest.Imports$Dog').newInstance()
+        dog.name = 'Rex'
+
+        expect:
+        jsonMapper.writeValueAsString(dog) == '{"type":"dog","name":"Rex"}'
+        jsonMapper.readValue('{"type":"dog","name":"Rex"}', animal).name == 'Rex'
+
+        cleanup:
+        context.close()
+    }
 }
