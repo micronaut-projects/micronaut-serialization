@@ -132,4 +132,41 @@ class GenericResourceSerdeSpec extends Specification {
         resources.size() == 1
         (resources[0] as GenericResource).additionalProperties == [name: "Frank Herbert"]
     }
+
+    void "test read embedded relations written as a single object"() {
+        // HAL allows a single object instead of an array, which jackson-databind and serde write for one resource
+        when:
+        GenericResource author = jsonMapper.readValue('{"name":"Frank Herbert","_embedded":{"book":{"title":"Dune","_embedded":{"cover":{"color":"orange"}}},' +
+            '"awards":[{"name":"Hugo"},{"name":"Nebula"}]}}', GenericResource)
+
+        then:
+        List<Resource> book = author.embedded.get("book").get()
+        book.size() == 1
+        (book[0] as GenericResource).additionalProperties == [title: "Dune"]
+        (book[0].embedded.get("cover").get()[0] as GenericResource).additionalProperties == [color: "orange"]
+        author.embedded.get("awards").get().collect { (it as GenericResource).additionalProperties.name } == ["Hugo", "Nebula"]
+    }
+
+    void "test @JsonIgnoreProperties on a GenericResource property"() {
+        given:
+        GenericResource resource = new GenericResource()
+        resource.addProperty("name", "Frank Herbert")
+        resource.addProperty("secret", "s3cr3t")
+        resource.link(Link.SELF, Link.of("/authors/7"))
+
+        expect:
+        jsonMapper.writeValueAsString(new IgnoringResourceHolder(resource)) == '{"resource":{"name":"Frank Herbert"}}'
+
+        when:
+        IgnoringResourceHolder read = jsonMapper.readValue('{"resource":{"name":"Frank Herbert","secret":"s3cr3t","_links":{"self":{"href":"/authors/7"}}}}', IgnoringResourceHolder)
+
+        then:
+        read.resource().additionalProperties == [name: "Frank Herbert"]
+        read.resource().links.isEmpty()
+    }
+
+    void "test a subtype of Resource is read with its own deserializer"() {
+        expect:
+        jsonMapper.readValue('{"name":"ignored"}', CustomResource) instanceof CustomResource
+    }
 }
