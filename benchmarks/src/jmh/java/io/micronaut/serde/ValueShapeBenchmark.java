@@ -162,7 +162,8 @@ public class ValueShapeBenchmark {
                 if (i > 0) {
                     epoch.append(',');
                 }
-                epoch.append("{\"id\":").append(i).append(",\"at\":").append(base.toEpochMilli() + i * 1000L).append('}');
+                // epoch seconds, the default numeric time unit
+                epoch.append("{\"id\":").append(i).append(",\"at\":").append(base.getEpochSecond() + i).append('}');
             }
             epoch.append(']');
             datedJson = mapper.writeValueAsBytes(DATED_LIST, dated);
@@ -175,6 +176,10 @@ public class ValueShapeBenchmark {
                 || mapper.readValue(longMapJson, LONG_MAP).size() != SIZE
                 || mapper.readValue(epochJson, EPOCH_LIST).size() != SIZE) {
                 throw new IllegalStateException("Unexpected payload");
+            }
+            Instant firstEpoch = mapper.readValue(epochJson, EPOCH_LIST).get(0).at;
+            if (!firstEpoch.equals(Instant.ofEpochSecond(base.getEpochSecond()))) {
+                throw new IllegalStateException("Unexpected epoch instant " + firstEpoch);
             }
         }
 
