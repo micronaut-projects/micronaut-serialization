@@ -28,6 +28,7 @@ include("serde-tck")
 include("serde-jackson-tck")
 include("serde-tck-tests")
 include("serde-oracle-jdbc-json")
+include("serde-fory-json")
 
 include("doc-examples:example-bson-java")
 include("doc-examples:example-groovy")
@@ -41,6 +42,7 @@ include("benchmarks")
 
 include("test-suite-tck-jackson-databind")
 include("test-suite-tck-serde")
+include("test-suite-tck-fory")
 include("test-suite-http-server-tck-netty")
 include("test-suite-properties-jackson-databind")
 
