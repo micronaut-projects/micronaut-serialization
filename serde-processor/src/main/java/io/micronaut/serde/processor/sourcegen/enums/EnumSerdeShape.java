@@ -22,10 +22,12 @@ import java.util.List;
  *
  * @param constants Enum constants participating in generated mapping.
  * @param hasPropertyOverrides Whether any constant has an overridden serialized name.
+ * @param serializedValues The serialized value of every constant, in declaration (ordinal) order.
  */
 public record EnumSerdeShape(
     List<EnumConstant> constants,
-    boolean hasPropertyOverrides
+    boolean hasPropertyOverrides,
+    List<String> serializedValues
 ) {
     /**
      * Enum constant metadata used by source generation.
