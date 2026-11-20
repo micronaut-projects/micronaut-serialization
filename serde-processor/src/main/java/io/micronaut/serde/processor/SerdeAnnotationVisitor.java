@@ -1798,6 +1798,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 continue;
             }
             boolean hasExplicitProperty = beanProperty.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).isPresent();
+            // An explicit name on the creator parameter of the property is the name it is read with
+            final boolean creatorNamesProperty = creatorParameterHasExplicitName(beanProperty);
             if (hasPerPropertyDirectionalNaming && !hasExplicitProperty) {
                 if (resolvedPerPropSerNaming != null) {
                     String serName = resolvedPerPropSerNaming.translate(beanProperty);
@@ -1822,7 +1824,9 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                         builder.member(SerdeConfig.SERIALIZE_PROPERTY_NAME, serName)
                     );
                 }
-                if (resolvedPerPropDeserNaming != null) {
+                if (creatorNamesProperty) {
+                    // the creator parameter keeps its explicit name
+                } else if (resolvedPerPropDeserNaming != null) {
                     String deserName = resolvedPerPropDeserNaming.translate(beanProperty);
                     beanProperty.annotate(SerdeConfig.class, (builder) ->
                         builder.member(SerdeConfig.DESERIALIZE_PROPERTY_NAME, deserName)
@@ -1840,7 +1844,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                         builder.member(SerdeConfig.SERIALIZE_PROPERTY_NAME, serName)
                     );
                 }
-                if (deserializeNamingStrategy != null) {
+                if (deserializeNamingStrategy != null && !creatorNamesProperty) {
                     String deserName = deserializeNamingStrategy.translate(beanProperty);
                     beanProperty.annotate(SerdeConfig.class, (builder) ->
                         builder.member(SerdeConfig.DESERIALIZE_PROPERTY_NAME, deserName)
@@ -1956,6 +1960,26 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
     private ClassElement currentClass() {
         return Objects.requireNonNull(currentClass);
+    }
+
+    /**
+     * @param beanProperty The bean property
+     * @return Whether the creator parameter of the property names it explicitly, such as with {@code @JsonProperty}
+     */
+    private boolean creatorParameterHasExplicitName(TypedElement beanProperty) {
+        if (currentClass == null) {
+            return false;
+        }
+        MethodElement creator = currentClass.getPrimaryConstructor().orElse(null);
+        if (creator == null) {
+            return false;
+        }
+        for (ParameterElement parameter : creator.getParameters()) {
+            if (parameter.getName().equals(beanProperty.getName())) {
+                return parameter.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).isPresent();
+            }
+        }
+        return false;
     }
 
     private SerdeConfig.SerSubtyped.DiscriminatorValueKind getDiscriminatorValueKind(Element typeInfo) {

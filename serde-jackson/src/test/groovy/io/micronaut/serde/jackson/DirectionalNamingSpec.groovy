@@ -6,6 +6,54 @@ import tools.jackson.databind.PropertyNamingStrategies
 
 class DirectionalNamingSpec extends JsonCompileSpec {
 
+    @spock.lang.Unroll
+    void "an explicit @JsonProperty on a constructor parameter wins over #naming (generated: #generated)"() {
+        given:
+        def context = buildContext('test.Person', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+
+$naming
+class Person {
+    private final String firstName;
+    private final String lastName;
+
+    @JsonCreator
+    Person(@JsonProperty("legacy") String firstName, String lastName) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
+
+    public String getFirstName() { return firstName; }
+    public String getLastName() { return lastName; }
+}
+""", true, generated ? [:] : [
+            'micronaut.serde.serialization.disable-generated-serializer': true,
+            'micronaut.serde.deserialization.disable-generated-deserializer': true
+        ])
+
+        when:
+        def bean = jsonMapper.readValue('{"legacy":"Jane","last_name":"Smith"}', argumentOf(context, 'test.Person'))
+
+        then:
+        bean.firstName == 'Jane'
+        bean.lastName == 'Smith'
+
+        cleanup:
+        context.close()
+
+        where:
+        // shared naming with generated serdes reads first_name instead, on 3.3.x too: a separate issue
+        naming                                                                          | generated
+        '@Serdeable(naming = SnakeCaseStrategy.class)'                                  | false
+        '@Serdeable.Serializable @Serdeable.Deserializable(naming = SnakeCaseStrategy.class)' | true
+        '@Serdeable.Serializable @Serdeable.Deserializable(naming = SnakeCaseStrategy.class)' | false
+    }
+
     void "test serializeNaming only - serialized output uses snake_case, deserialization uses identity"() {
         given:
         def context = buildContext('test.UserDto', '''
