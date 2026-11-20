@@ -29,7 +29,10 @@ import io.micronaut.serde.Serializer;
 import io.micronaut.serde.XmlEncoder;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.support.serdes.Serdes;
+import io.micronaut.serde.support.util.DecoderValueKind;
 import io.micronaut.serde.support.util.JsonNodeEncoder;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.Map;
@@ -50,6 +53,9 @@ final class RuntimeMapSerializer<K, V> extends AbstractMapObjectSerializer<K, V>
     private final boolean isStringKey;
     private final Argument<K> keyGeneric;
     private final Serializer<K> keySerializer;
+    // The class of the keys whose built-in serializer writes exactly their toString(), or null
+    @Nullable
+    private final Class<?> toStringKeyType;
 
     RuntimeMapSerializer(Argument<? extends Map<K, V>> type, EncoderContext context) throws SerdeException {
         super(type, context);
@@ -63,6 +69,25 @@ final class RuntimeMapSerializer<K, V> extends AbstractMapObjectSerializer<K, V>
             isStringKey = false;
         }
         keySerializer = findKeySerializer(context, keyGeneric);
+        toStringKeyType = writesToString(keySerializer) ? keyGeneric.getType() : null;
+    }
+
+    /**
+     * The built-in serializers of integers, booleans and UUIDs write a value that, as a key, is the
+     * {@code toString()} of the key. Such a key does not need to be serialized into a tree first.
+     * A custom or a formatted key serializer is another instance and keeps the general path.
+     */
+    private static boolean writesToString(Serializer<?> keySerializer) {
+        if (keySerializer == Serdes.UUID_SERDE) {
+            return true;
+        }
+        if (keySerializer instanceof DecoderValueKind.Provider provider) {
+            return switch (provider.decoderValueKind()) {
+                case INT, LONG, SHORT, BYTE, BOOLEAN -> true;
+                default -> false;
+            };
+        }
+        return false;
     }
 
     @Override
@@ -75,7 +100,7 @@ final class RuntimeMapSerializer<K, V> extends AbstractMapObjectSerializer<K, V>
             }
             return;
         }
-        if (isStringKey || k instanceof CharSequence) {
+        if (isStringKey || k instanceof CharSequence || k.getClass() == toStringKeyType) {
             encodeMapKey(encoder, k.toString());
         } else {
             encodeMapKey(context, encoder, keyGeneric, keySerializer, k);
