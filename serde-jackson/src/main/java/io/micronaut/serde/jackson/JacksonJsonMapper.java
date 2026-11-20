@@ -200,7 +200,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
                                                @Nullable SerializationConfiguration serializationConfiguration,
                                                @Nullable DeserializationConfiguration deserializationConfiguration,
                                                @Nullable SerdeIntrospections introspections) {
-        return new JacksonJsonMapper(
+        JacksonJsonMapper clone = new JacksonJsonMapper(
             introspections == null
                 ? registry.cloneWithConfiguration(configuration, serializationConfiguration, deserializationConfiguration)
                 : registry.cloneWithConfiguration(configuration, serializationConfiguration, deserializationConfiguration, introspections),
@@ -209,10 +209,12 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
             jacksonConfiguration,
             jsonFactory,
             view,
-            specificType,
-            specificDeserializer,
-            specificSerializer
+            null,
+            null,
+            null
         );
+        // the specific serdes keep the serdes they resolved, so they are resolved again with the new configuration
+        return specificType == null ? clone : (ObjectMapper) clone.createSpecific(specificType);
     }
 
     @Override
@@ -591,7 +593,8 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
      * @return Whether the serde of the type can be cached by the type
      */
     private static boolean isCacheable(Argument<?> type) {
-        if (!type.getAnnotationMetadata().isEmpty()) {
+        // a type variable equals the concrete argument of its type, but is serialized by runtime type
+        if (type.isTypeVariable() || !type.getAnnotationMetadata().isEmpty()) {
             return false;
         }
         for (Argument<?> typeParameter : type.getTypeParameters()) {

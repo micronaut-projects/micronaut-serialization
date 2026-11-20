@@ -90,6 +90,11 @@ public final class EnumDeserializerSourceGen {
         Deserializer.DecoderContext.class,
         Argument.class
     );
+    private static final Method IS_BUILT_IN_STRING_DESERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
+        GeneratedSerdeEnumUtil.class,
+        "isBuiltInStringDeserializer",
+        Deserializer.class
+    );
     private static final Method ENUM_VALUE_OF_METHOD = ReflectionUtils.getRequiredMethod(
         GeneratedSerdeEnumUtil.class,
         "enumValueOf",
@@ -254,22 +259,28 @@ public final class EnumDeserializerSourceGen {
                 ExpressionDef stringArgument = deserializerClassTypeDef.getStaticField(ARGUMENT_STRING_FIELD, ARGUMENT_TYPE);
                 List<StatementDef> statements = new ArrayList<>();
 
-                if (enumSerdeShape.hasUniqueSerializedValues()) {
-                    StatementDef.DefineAndAssign indexDef = ClassTypeDef.of(KeysAwareDecoder.class)
-                        .invokeStatic(DECODE_STRING_VALUE_METHOD, decoder, deserializerClassTypeDef.getStaticField(VALUES_FIELD, KEYS_TYPE))
-                        .newLocal("valueIndex");
-                    statements.add(indexDef);
-                    statements.add(indexDef.variable()
-                        .compare(ExpressionDef.ComparisonOperation.OpType.GREATER_THAN_OR_EQUAL, ExpressionDef.constant(0))
-                        .ifTrue(deserializerClassTypeDef.getStaticField(CONSTANTS_FIELD, enumTypeDef.array())
-                            .arrayElement(indexDef.variable())
-                            .returning()));
-                }
-
                 StatementDef.DefineAndAssign deserializerDef = aThis.field(STRING_DESERIALIZER_FIELD, DESERIALIZER_TYPE)
                     .newLocal(STRING_DESERIALIZER_LOCAL);
                 statements.add(deserializerDef);
                 VariableDef deserializerVariable = deserializerDef.variable();
+
+                if (enumSerdeShape.hasUniqueSerializedValues()) {
+                    // the constant names are matched directly only with a built-in string deserializer, so that a
+                    // user string deserializer still sees every value
+                    StatementDef.DefineAndAssign indexDef = ClassTypeDef.of(KeysAwareDecoder.class)
+                        .invokeStatic(DECODE_STRING_VALUE_METHOD, decoder, deserializerClassTypeDef.getStaticField(VALUES_FIELD, KEYS_TYPE))
+                        .newLocal("valueIndex");
+                    statements.add(ClassTypeDef.of(GeneratedSerdeEnumUtil.class)
+                        .invokeStatic(IS_BUILT_IN_STRING_DESERIALIZER_METHOD, deserializerVariable)
+                        .ifTrue(StatementDef.multi(
+                            indexDef,
+                            indexDef.variable()
+                                .compare(ExpressionDef.ComparisonOperation.OpType.GREATER_THAN_OR_EQUAL, ExpressionDef.constant(0))
+                                .ifTrue(deserializerClassTypeDef.getStaticField(CONSTANTS_FIELD, enumTypeDef.array())
+                                    .arrayElement(indexDef.variable())
+                                    .returning())
+                        )));
+                }
 
                 StatementDef.DefineAndAssign decodedValueDef = deserializerVariable.invoke(
                     DESERIALIZE_METHOD,
