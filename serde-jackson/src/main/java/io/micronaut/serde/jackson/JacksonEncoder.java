@@ -27,6 +27,7 @@ import org.jspecify.annotations.Nullable;
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.SerializableString;
 import tools.jackson.core.TokenStreamContext;
+import tools.jackson.core.json.JsonGeneratorBase;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -50,17 +51,22 @@ public abstract class JacksonEncoder extends LimitingStream implements KeysAware
     @Nullable
     private Keys currentValues;
     private SerializableString @Nullable [] currentSerializableValues;
+    // Whether constant values can be written pre-encoded: the pre-encoded form only has the standard JSON escapes
+    private final boolean preEncodedValues;
 
     private JacksonEncoder(JacksonEncoder parent, RemainingLimits remainingLimits) {
         super(remainingLimits);
         this.generator = parent.generator;
         this.parent = parent;
+        this.preEncodedValues = parent.preEncodedValues;
     }
 
     private JacksonEncoder(JsonGenerator generator, RemainingLimits remainingLimits) {
         super(remainingLimits);
         this.generator = generator;
         this.parent = null;
+        this.preEncodedValues = !(generator instanceof JsonGeneratorBase jsonGenerator)
+            || (jsonGenerator.getHighestNonEscapedChar() == 0 && jsonGenerator.getCharacterEscapes() == null);
     }
 
     public static Encoder create(JsonGenerator generator) {
@@ -167,7 +173,12 @@ public abstract class JacksonEncoder extends LimitingStream implements KeysAware
             currentValues = values;
             currentSerializableValues = serializableValues;
         }
-        generator.writeString(serializableValues[index]);
+        if (preEncodedValues) {
+            generator.writeString(serializableValues[index]);
+        } else {
+            // escaping configured on the generator, such as ESCAPE_NON_ASCII, applies to the value
+            generator.writeString(serializableValues[index].getValue());
+        }
     }
 
     @Override

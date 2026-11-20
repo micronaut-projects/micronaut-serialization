@@ -58,12 +58,12 @@ class DefaultEncoderContext extends AbstractPropertyReferenceManager implements 
     @Override
     public final <T, D extends Serializer<? extends T>> D findCustomSerializer(Class<? extends D> serializerClass)
             throws SerdeException {
-        return registry.findCustomSerializer(serializerClass);
+        return DefaultSerdeRegistry.trackUserSerde(this, registry.findCustomSerializer(serializerClass));
     }
 
     @Override
     public final <T> Serializer<? super T> findSerializer(Argument<? extends T> forType) throws SerdeException {
-        return registry.findSerializer(forType);
+        return DefaultSerdeRegistry.trackUserSerde(this, registry.findSerializer(forType));
     }
 
     @Override
