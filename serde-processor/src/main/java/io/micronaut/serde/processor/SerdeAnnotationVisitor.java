@@ -64,6 +64,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -1225,6 +1226,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         PropertyNamingStrategy deserializeNamingStrategy = hasExplicitDeserializeNaming
             ? getPropertyNamingStrategy(classElement, propertyNamingStrategy, SerdeConfig.DESERIALIZE_NAMING, SerdeConfig.DESERIALIZE_RUNTIME_NAMING)
             : propertyNamingStrategy;
+        Map<String, String> creatorNames = explicitCreatorNames(classElement);
         processProperties(
             context,
                 beanProperties,
@@ -1236,7 +1238,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 propertyNamingStrategy,
                 hasDirectionalNaming,
                 serializeNamingStrategy,
-                deserializeNamingStrategy
+                deserializeNamingStrategy,
+                creatorNames
         );
         if (supportFields) {
             final List<FieldElement> fields = classElement.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyInstance()
@@ -1252,7 +1255,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                     propertyNamingStrategy,
                     hasDirectionalNaming,
                     serializeNamingStrategy,
-                    deserializeNamingStrategy
+                    deserializeNamingStrategy,
+                    creatorNames
             );
         }
     }
@@ -1747,7 +1751,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                                    @Nullable PropertyNamingStrategy namingStrategy,
                                    boolean hasDirectionalNaming,
                                    @Nullable PropertyNamingStrategy serializeNamingStrategy,
-                                   @Nullable PropertyNamingStrategy deserializeNamingStrategy) {
+                                   @Nullable PropertyNamingStrategy deserializeNamingStrategy,
+                                   Map<String, String> creatorNames) {
         final Set<String> ignoredSet = CollectionUtils.setOf(ignoresProperties);
         final Set<String> includeSet = CollectionUtils.setOf(includeProperties);
         final List<String> order = new ArrayList<>(orderDef);
@@ -1799,7 +1804,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             }
             boolean hasExplicitProperty = beanProperty.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).isPresent();
             // An explicit name on the creator parameter of the property is the name it is read with
-            final boolean creatorNamesProperty = creatorParameterHasExplicitName(beanProperty);
+            final String creatorName = creatorNames.get(beanProperty.getName());
             if (hasPerPropertyDirectionalNaming && !hasExplicitProperty) {
                 if (resolvedPerPropSerNaming != null) {
                     String serName = resolvedPerPropSerNaming.translate(beanProperty);
@@ -1824,13 +1829,18 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                         builder.member(SerdeConfig.SERIALIZE_PROPERTY_NAME, serName)
                     );
                 }
-                // a creator parameter keeps its explicit name
-                if (!creatorNamesProperty && resolvedPerPropDeserNaming != null) {
+                // the property is read with the explicit name of its creator parameter, so that a setter of the
+                // same property shares the name of the creator argument
+                if (creatorName != null) {
+                    beanProperty.annotate(SerdeConfig.class, (builder) ->
+                        builder.member(SerdeConfig.DESERIALIZE_PROPERTY_NAME, creatorName)
+                    );
+                } else if (resolvedPerPropDeserNaming != null) {
                     String deserName = resolvedPerPropDeserNaming.translate(beanProperty);
                     beanProperty.annotate(SerdeConfig.class, (builder) ->
                         builder.member(SerdeConfig.DESERIALIZE_PROPERTY_NAME, deserName)
                     );
-                } else if (!creatorNamesProperty && !resolvedHasPropDeserNaming && deserializeNamingStrategy != null) {
+                } else if (!resolvedHasPropDeserNaming && deserializeNamingStrategy != null) {
                     String deserName = deserializeNamingStrategy.translate(beanProperty);
                     beanProperty.annotate(SerdeConfig.class, (builder) ->
                         builder.member(SerdeConfig.DESERIALIZE_PROPERTY_NAME, deserName)
@@ -1843,7 +1853,11 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                         builder.member(SerdeConfig.SERIALIZE_PROPERTY_NAME, serName)
                     );
                 }
-                if (deserializeNamingStrategy != null && !creatorNamesProperty) {
+                if (creatorName != null) {
+                    beanProperty.annotate(SerdeConfig.class, (builder) ->
+                        builder.member(SerdeConfig.DESERIALIZE_PROPERTY_NAME, creatorName)
+                    );
+                } else if (deserializeNamingStrategy != null) {
                     String deserName = deserializeNamingStrategy.translate(beanProperty);
                     beanProperty.annotate(SerdeConfig.class, (builder) ->
                         builder.member(SerdeConfig.DESERIALIZE_PROPERTY_NAME, deserName)
@@ -1962,23 +1976,19 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     }
 
     /**
-     * @param beanProperty The bean property
-     * @return Whether the creator parameter of the property names it explicitly, such as with {@code @JsonProperty}
+     * @param classElement The class whose properties are processed
+     * @return The explicit names, such as with {@code @JsonProperty}, of the parameters of its creator, by parameter name
      */
-    private boolean creatorParameterHasExplicitName(TypedElement beanProperty) {
-        if (currentClass == null) {
-            return false;
-        }
-        MethodElement creator = currentClass.getPrimaryConstructor().orElse(null);
+    private static Map<String, String> explicitCreatorNames(ClassElement classElement) {
+        MethodElement creator = classElement.getPrimaryConstructor().orElse(null);
         if (creator == null) {
-            return false;
+            return Map.of();
         }
+        Map<String, String> names = new HashMap<>();
         for (ParameterElement parameter : creator.getParameters()) {
-            if (parameter.getName().equals(beanProperty.getName())) {
-                return parameter.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).isPresent();
-            }
+            parameter.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).ifPresent(name -> names.put(parameter.getName(), name));
         }
-        return false;
+        return names;
     }
 
     private SerdeConfig.SerSubtyped.DiscriminatorValueKind getDiscriminatorValueKind(Element typeInfo) {
