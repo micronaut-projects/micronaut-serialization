@@ -83,21 +83,18 @@ public final class SerdeSourceGenRecursion {
         return false;
     }
 
+    /**
+     * Kotlin declares {@code List<Self>} inside a collection as {@code ? extends List<Self>}, so the
+     * bounds are what the property can hold.
+     */
+    private boolean boundsReach(WildcardElement wildcardElement, Set<String> visited) {
+        return wildcardElement.getUpperBounds().stream().anyMatch(bound -> reaches(bound, visited))
+            || wildcardElement.getLowerBounds().stream().anyMatch(bound -> reaches(bound, visited));
+    }
+
     private boolean reaches(ClassElement type, Set<String> visited) {
         if (type instanceof WildcardElement wildcardElement) {
-            // Kotlin declares List<Self> inside a collection as ? extends List<Self>, the bounds
-            // are what the property can hold
-            for (ClassElement bound : wildcardElement.getUpperBounds()) {
-                if (reaches(bound, visited)) {
-                    return true;
-                }
-            }
-            for (ClassElement bound : wildcardElement.getLowerBounds()) {
-                if (reaches(bound, visited)) {
-                    return true;
-                }
-            }
-            return false;
+            return boundsReach(wildcardElement, visited);
         }
         // Only an unresolved type variable stops the search. A type argument resolved from a type
         // variable, such as the bound of ? extends List<Self>, also reports isTypeVariable() and
