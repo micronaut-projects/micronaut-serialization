@@ -26,6 +26,7 @@ import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.SerdeFeatures;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.time.DateTimeException;
@@ -49,12 +50,22 @@ import static io.micronaut.serde.config.SerdeConfiguration.TimeShape.STRING;
 public abstract sealed class DefaultFormattedTemporalSerde<T extends TemporalAccessor> implements TemporalSerde<T> permits LocalDateSerde, LocalDateTimeSerde, NumericSupportTemporalSerde {
 
     private final DateTimeFormatter stringFormatter;
+    private final boolean isoFormatter;
 
     /**
      * @param stringFormatter The resolved string formatter
      */
     protected DefaultFormattedTemporalSerde(DateTimeFormatter stringFormatter) {
+        this(stringFormatter, null);
+    }
+
+    /**
+     * @param stringFormatter The resolved string formatter
+     * @param isoFormatter    The JDK formatter that {@link #formatIso} and {@link #parseIso} reproduce
+     */
+    DefaultFormattedTemporalSerde(DateTimeFormatter stringFormatter, @Nullable DateTimeFormatter isoFormatter) {
         this.stringFormatter = stringFormatter;
+        this.isoFormatter = isoFormatter != null && stringFormatter == isoFormatter;
     }
 
     protected static Optional<DateTimeFormatter> createFormatter(SerdeConfiguration configuration) {
@@ -353,12 +364,20 @@ public abstract sealed class DefaultFormattedTemporalSerde<T extends TemporalAcc
      * @param value   The value to serialize
      */
     void serialize0(Encoder encoder, T value) throws IOException {
-        encoder.encodeString(stringFormatter.format(value));
+        String text = isoFormatter ? formatIso(value) : null;
+        encoder.encodeString(text == null ? stringFormatter.format(value) : text);
     }
 
     @Override
     public final T deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super T> type) throws IOException {
         String text = decoder.decodeString();
+        if (isoFormatter) {
+            // an ISO formatter never parses a plain number, so go to the numeric fallback without the exception
+            T value = parseNumber(text);
+            if (value != null) {
+                return value;
+            }
+        }
         try {
             return parseString(text);
         } catch (DateTimeException e) {
@@ -373,7 +392,43 @@ public abstract sealed class DefaultFormattedTemporalSerde<T extends TemporalAcc
      * @return The parsed value
      */
     T parseString(String text) {
+        if (isoFormatter) {
+            T value = parseIso(text);
+            if (value != null) {
+                return value;
+            }
+        }
         return stringFormatter.parse(text, query());
+    }
+
+    /**
+     * Formats like the ISO formatter given to the constructor, without the formatter.
+     *
+     * @param value The value
+     * @return The text, or {@code null} to use the formatter
+     */
+    @Nullable String formatIso(T value) {
+        return null;
+    }
+
+    /**
+     * Parses the plain shape of the ISO formatter given to the constructor, without the formatter.
+     *
+     * @param text The text
+     * @return The value, or {@code null} to use the formatter
+     */
+    @Nullable T parseIso(String text) {
+        return null;
+    }
+
+    /**
+     * Parses a plain number the way {@link #deserializeFallback} would, when the formatter is an ISO formatter.
+     *
+     * @param text The text
+     * @return The value, or {@code null} when the text is not a plain number
+     */
+    @Nullable T parseNumber(String text) {
+        return null;
     }
 
     /**

@@ -24,6 +24,7 @@ import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerdeRegistrar;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.time.DateTimeException;
@@ -52,9 +53,36 @@ public final class LocalDateSerde extends DefaultFormattedTemporalSerde<LocalDat
     private LocalDateSerde(DateTimeFormatter stringFormatter,
                            SerdeConfiguration.TimeShape writeShape,
                            boolean strictIJson) {
-        super(stringFormatter);
+        super(stringFormatter, DateTimeFormatter.ISO_LOCAL_DATE);
         this.writeNumeric = writeShape != SerdeConfiguration.TimeShape.STRING;
         this.strictIJson = strictIJson;
+    }
+
+    @Override
+    @Nullable String formatIso(LocalDate value) {
+        return IsoTemporalFormat.formatLocalDate(value);
+    }
+
+    @Override
+    @Nullable LocalDate parseIso(String text) {
+        return IsoTemporalFormat.parseLocalDate(text);
+    }
+
+    @Override
+    @Nullable LocalDate parseNumber(String text) {
+        // an epoch day, as deserializeFallback reads it; longer numbers keep the fallback and its error
+        int len = text.length();
+        int start = len > 0 && text.charAt(0) == '-' ? 1 : 0;
+        if (start == len || len > 18) {
+            return null;
+        }
+        for (int i = start; i < len; i++) {
+            char c = text.charAt(i);
+            if (c < '0' || c > '9') {
+                return null;
+            }
+        }
+        return LocalDate.ofEpochDay(Long.parseLong(text));
     }
 
     @Override
