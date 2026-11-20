@@ -61,10 +61,17 @@ public final class RecordSerdeShapeResolver {
             if (propertyElement == null) {
                 return Optional.empty();
             }
+            String serializedName = stringValue(propertyElement, SerdeConfig.PROPERTY).orElse(parameter.getName());
+            String parameterName = parameter.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(serializedName);
+            if (!parameterName.equals(serializedName)) {
+                // The runtime reads the argument with the explicit name of the parameter and writes the property
+                // with its own name, such as one a naming strategy derives. A component has one name for both.
+                return Optional.empty();
+            }
             Map<String, String> keyMetadata = resolveKeyMetadata(propertyElement);
             components.add(new RecordSerdeShape.RecordComponent(
                 parameter.getName(),
-                stringValue(propertyElement, SerdeConfig.PROPERTY).orElse(parameter.getName()),
+                serializedName,
                 parameter.getType(),
                 keyMetadata,
                 SerdeInclusionSourceGen.resolvePropertyInclude(element, propertyElement, keyMetadata),
