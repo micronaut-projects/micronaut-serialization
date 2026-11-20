@@ -68,6 +68,8 @@ import java.util.stream.Stream;
  */
 public final class BeanSerializerSourceGen {
     private static final String CONTEXT_PARAMETER = "context";
+    private static final String ENCODER_LOCAL = "encoder";
+    private static final String KEYS_AWARE_ENCODER_LOCAL = "keysAwareEncoder";
     private static final String VALUE_PARAMETER = "value";
     private static final String VALUE_LOCAL_PREFIX = "value";
     private static final String GENERATED_VALUE_MEMBER = "value";
@@ -313,7 +315,7 @@ public final class BeanSerializerSourceGen {
         return MethodDef.builder("serialize")
             .addModifiers(Modifier.PUBLIC)
             .overrides()
-            .addParameter("encoder", TypeDef.of(Encoder.class))
+            .addParameter(ENCODER_LOCAL, TypeDef.of(Encoder.class))
             .addParameter(CONTEXT_PARAMETER, TypeDef.of(Serializer.EncoderContext.class))
             .addParameter("type", TypeDef.of(Argument.class))
             .addParameter(VALUE_PARAMETER, beanTypeDef)
@@ -342,7 +344,7 @@ public final class BeanSerializerSourceGen {
         return MethodDef.builder("serializeInto")
             .addModifiers(Modifier.PUBLIC)
             .overrides()
-            .addParameter("encoder", TypeDef.of(Encoder.class))
+            .addParameter(ENCODER_LOCAL, TypeDef.of(Encoder.class))
             .addParameter(CONTEXT_PARAMETER, TypeDef.of(Serializer.EncoderContext.class))
             .addParameter("type", TypeDef.of(Argument.class))
             .addParameter(VALUE_PARAMETER, beanTypeDef)
@@ -371,7 +373,7 @@ public final class BeanSerializerSourceGen {
                 int size = beanSerdeShape.serializationProperties().size();
                 if (size > SERIALIZE_CHUNK_THRESHOLD) {
                     return KEYS_AWARE_ENCODER_TYPE.invokeStatic(KEYS_AWARE_ENCODER_OF_METHOD, encoder)
-                        .newLocal("keysAwareEncoder", keysAwareEncoder -> {
+                        .newLocal(KEYS_AWARE_ENCODER_LOCAL, keysAwareEncoder -> {
                             List<StatementDef> chunkCalls = new ArrayList<>();
                             for (int from = 0; from < size; from += SERIALIZE_CHUNK_SIZE) {
                                 chunkCalls.add(aThis.invoke(serializeChunkMethodName(from), TypeDef.VOID, encoder, keysAwareEncoder, context, type, value));
@@ -380,7 +382,7 @@ public final class BeanSerializerSourceGen {
                         });
                 }
                 return KEYS_AWARE_ENCODER_TYPE.invokeStatic(KEYS_AWARE_ENCODER_OF_METHOD, encoder)
-                    .newLocal("keysAwareEncoder", keysAwareEncoder -> StatementDef.multi(serializeIntoStatements(
+                    .newLocal(KEYS_AWARE_ENCODER_LOCAL, keysAwareEncoder -> StatementDef.multi(serializeIntoStatements(
                             aThis,
                             serializerClassTypeDef,
                             encoder,
@@ -452,8 +454,8 @@ public final class BeanSerializerSourceGen {
             int chunkTo = Math.min(size, from + SERIALIZE_CHUNK_SIZE);
             methods.add(MethodDef.builder(serializeChunkMethodName(chunkFrom))
                 .addModifiers(Modifier.PRIVATE)
-                .addParameter("encoder", TypeDef.of(Encoder.class))
-                .addParameter("keysAwareEncoder", KEYS_AWARE_ENCODER_TYPE)
+                .addParameter(ENCODER_LOCAL, TypeDef.of(Encoder.class))
+                .addParameter(KEYS_AWARE_ENCODER_LOCAL, KEYS_AWARE_ENCODER_TYPE)
                 .addParameter(CONTEXT_PARAMETER, TypeDef.of(Serializer.EncoderContext.class))
                 .addParameter("type", TypeDef.of(Argument.class))
                 .addParameter(VALUE_PARAMETER, beanTypeDef)
