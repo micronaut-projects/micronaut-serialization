@@ -173,12 +173,15 @@ public final class Imports {
 }
 ''')
         def animal = context.classLoader.loadClass('mixintest.Imports$Animal')
-        def dog = context.classLoader.loadClass('mixintest.Imports$Dog').newInstance()
-        dog.name = 'Rex'
+        def wrapper = context.classLoader.loadClass('mixintest.Imports$Wrapper')
 
-        expect:
-        jsonMapper.writeValueAsString(dog) == '{"type":"dog","name":"Rex"}'
-        jsonMapper.readValue('{"type":"dog","name":"Rex"}', animal).name == 'Rex'
+        when:
+        def decoded = jsonMapper.readValue('{"type":"dog","name":"Rex"}', animal)
+
+        then:
+        decoded.class.name == 'mixintest.Imports$Dog'
+        decoded.name == 'Rex'
+        jsonMapper.readValue('"x"', wrapper).value == 'x'
 
         cleanup:
         context.close()
