@@ -18,14 +18,17 @@ package io.micronaut.serde.yaml.data;
 import io.micronaut.serde.annotation.Serdeable;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
- * A model whose map values are declared as the base type and may hold subtypes (#1505).
+ * A model with a list property that is nested in the values of a map (#1505). The list is written
+ * by the customized iterable serializer, which closes the child encoder it opens.
  */
 @Serdeable
 public class Shape {
     private String type;
+    private List<Integer> values;
     private Map<String, Shape> properties;
 
     public String getType() {
@@ -34,6 +37,14 @@ public class Shape {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public List<Integer> getValues() {
+        return values;
+    }
+
+    public void setValues(List<Integer> values) {
+        this.values = values;
     }
 
     public Map<String, Shape> getProperties() {
