@@ -47,6 +47,9 @@ public abstract class JacksonEncoder extends LimitingStream implements KeysAware
     @Nullable
     private Keys currentKeys;
     private SerializableString @Nullable [] currentSerializableKeys;
+    @Nullable
+    private Keys currentValues;
+    private SerializableString @Nullable [] currentSerializableValues;
 
     private JacksonEncoder(JacksonEncoder parent, RemainingLimits remainingLimits) {
         super(remainingLimits);
@@ -153,6 +156,18 @@ public abstract class JacksonEncoder extends LimitingStream implements KeysAware
             currentSerializableKeys = serializableKeys;
         }
         return serializableKeys[index];
+    }
+
+    @Override
+    public final void encodeStringValue(Keys values, int index) throws IOException {
+        // The quoted UTF-8 form of a constant value is encoded once and reused
+        SerializableString[] serializableValues = currentSerializableValues;
+        if (values != currentValues || serializableValues == null) {
+            serializableValues = (SerializableString[]) KeysSupport.get(values, JACKSON_KEYS_INDEX)[JacksonKeysProvider.SERIALIZABLE_KEYS_INDEX];
+            currentValues = values;
+            currentSerializableValues = serializableValues;
+        }
+        generator.writeString(serializableValues[index]);
     }
 
     @Override

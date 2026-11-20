@@ -46,4 +46,35 @@ public interface KeysAwareEncoder extends Encoder {
      * @throws IOException If an unrecoverable error occurs
      */
     void encodeKey(Keys keys, int index) throws IOException;
+
+    /**
+     * Encode a string value by index from the supplied set of constant values, such as the
+     * serialized names of the constants of an enum. An encoder can write a value it prepared once
+     * for the set instead of encoding the string again.
+     *
+     * @param values The values
+     * @param index The value index
+     * @throws IOException If an unrecoverable error occurs
+     * @since 3.3
+     */
+    default void encodeStringValue(Keys values, int index) throws IOException {
+        encodeString(KeysSupport.keyAt(values, index));
+    }
+
+    /**
+     * Encode a string value by index from the supplied set of constant values with any encoder.
+     *
+     * @param encoder The encoder
+     * @param values The values
+     * @param index The value index
+     * @throws IOException If an unrecoverable error occurs
+     * @since 3.3
+     */
+    static void encodeStringValue(Encoder encoder, Keys values, int index) throws IOException {
+        if (encoder instanceof KeysAwareEncoder keysAwareEncoder) {
+            keysAwareEncoder.encodeStringValue(values, index);
+        } else {
+            encoder.encodeString(KeysSupport.keyAt(values, index));
+        }
+    }
 }
