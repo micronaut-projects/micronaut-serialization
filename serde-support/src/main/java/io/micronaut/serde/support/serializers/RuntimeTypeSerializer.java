@@ -25,7 +25,9 @@ import io.micronaut.serde.exceptions.SerdeException;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -35,14 +37,12 @@ import java.util.concurrent.ConcurrentHashMap;
 final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
     private final EncoderContext encoderContext;
     /*
-     * The serializers of the runtime types, created with one context. A serializer may be bound to the context it
-     * was created with (a serde bean taking the context as a constructor argument), so they are only reused with
-     * that context. This serializer can outlive a document, as the property serializer of a bean.
-     *
-     * Inners is immutable apart from its ConcurrentHashMap, so publishing it through a volatile field is safe.
+     * The serializers of the runtime types by the context they were created with. A serializer may be bound to the
+     * context it was created with (a serde bean taking the context as a constructor argument), so it is only reused
+     * with that context. This serializer can outlive a document, as the property serializer of a bean, and serve
+     * several documents at once, so each context keeps its own serializers until it is no longer referenced.
      */
-    @SuppressWarnings("java:S3077")
-    private volatile Inners inners = new Inners(null);
+    private final Map<EncoderContext, Map<Class<?>, Serializer<Object>>> inners = Collections.synchronizedMap(new WeakHashMap<>());
     @Nullable
     private final Serializer<Object> outer;
     @Nullable
@@ -131,13 +131,9 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
     }
 
     private Serializer<Object> getSerializer(EncoderContext context, Object value) throws SerdeException {
-        Inners current = inners;
-        if (current.context != context) {
-            current = new Inners(context);
-            inners = current;
-        }
+        Map<Class<?>, Serializer<Object>> serializers = inners.computeIfAbsent(context, ignored -> new ConcurrentHashMap<>(4));
         try {
-            return current.serializers.computeIfAbsent(value.getClass(), t -> {
+            return serializers.computeIfAbsent(value.getClass(), t -> {
                 try {
                     if (value.getClass().equals(outerType.getType())) {
                         if (outer == null) {
@@ -165,18 +161,6 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
             } else {
                 throw e;
             }
-        }
-    }
-
-    /**
-     * The serializers of the runtime types created with a context.
-     *
-     * @param context     The context, or {@code null} before the first use
-     * @param serializers The serializers by runtime type
-     */
-    private record Inners(@Nullable EncoderContext context, Map<Class<?>, Serializer<Object>> serializers) {
-        Inners(@Nullable EncoderContext context) {
-            this(context, new ConcurrentHashMap<>(10));
         }
     }
 
