@@ -369,19 +369,17 @@ class Second {
         context.close()
     }
 
-    void 'test propagating directional naming to sourcegen'() {
+    void 'test directional naming on a type with explicit Serializable and Deserializable annotations'() {
         given:
         def context = buildContext('test.DirectionalTypes', '''
 package test;
 
 import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.annotation.Serdeable;
-import io.micronaut.serde.annotation.SerdeableGenerated;
 import io.micronaut.serde.config.naming.SnakeCaseStrategy;
 import io.micronaut.serde.config.naming.UpperCamelCaseStrategy;
 
 public final class DirectionalTypes {
-    @SerdeableGenerated
     @Serdeable.Serializable(naming = SnakeCaseStrategy.class)
     @Serdeable.Deserializable(naming = UpperCamelCaseStrategy.class)
     @Introspected
@@ -392,7 +390,6 @@ public final class DirectionalTypes {
         public void setFirstName(String firstName) { this.firstName = firstName; }
     }
 
-    @SerdeableGenerated
     @Serdeable.Serializable(naming = SnakeCaseStrategy.class)
     @Serdeable.Deserializable(naming = UpperCamelCaseStrategy.class)
     @Introspected
@@ -406,11 +403,9 @@ public final class DirectionalTypes {
         Argument beanArgument = Argument.of(beanType)
         Argument recordArgument = Argument.of(recordType)
 
-        expect:
-        assertGeneratedSerializer(registry, beanArgument)
-        assertGeneratedDeserializer(registry, beanArgument)
-        assertGeneratedSerializer(registry, recordArgument)
-        assertGeneratedDeserializer(registry, recordArgument)
+        expect: 'explicit type-level Serializable and Deserializable annotations keep the runtime serdes'
+        !isGeneratedSerializer(registry, beanArgument)
+        !isGeneratedSerializer(registry, recordArgument)
 
         when:
         def bean = beanType.getDeclaredConstructor().newInstance()
@@ -430,6 +425,11 @@ public final class DirectionalTypes {
 
         cleanup:
         context.close()
+    }
+
+    private static boolean isGeneratedSerializer(SerdeRegistry registry, Argument argument) {
+        Serializer serializer = registry.findSerializer(argument).createSpecific(registry.newEncoderContext(Object), argument)
+        return serializer.class.name == generatedClassName(argument.type, 'Serializer')
     }
 
     private static void assertGeneratedSerializer(SerdeRegistry registry, Argument argument) {
