@@ -5,6 +5,7 @@ import io.micronaut.serde.Encoder
 import io.micronaut.serde.ObjectMapper
 import io.micronaut.serde.Serializer
 import io.micronaut.serde.annotation.Serdeable
+import io.micronaut.serde.jackson.specific.Secret
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
@@ -33,6 +34,19 @@ class RuntimeElementSerializerSpec extends Specification {
             objectMapper.writeValueAsString(new Holder(value: new Counted(name: "a"))) == '{"value":"counted:a"}'
             objectMapper.writeValueAsString(new Holder(value: new Other(name: "Bob"))) == '{"value":{"name":"Bob"}}'
             objectMapper.writeValueAsString(new Holder(value: [new Holder(value: 1), new Holder(value: "x")])) == '{"value":[{"value":1},{"value":"x"}]}'
+    }
+
+    void "the element serializers of a root list are not reused with the context of another document"() {
+        // SecretSerializer requires the context it was created with
+        expect:
+            objectMapper.writeValueAsString([new Secret("d"), "x"]) == '["d","x"]'
+            objectMapper.writeValueAsString([new Secret("d"), "x"]) == '["d","x"]'
+    }
+
+    void "the element serializers of a list in an Object property are not reused with the context of another document"() {
+        expect:
+            objectMapper.writeValueAsString(new Holder(value: [new Secret("c")])) == '{"value":["c"]}'
+            objectMapper.writeValueAsString(new Holder(value: [new Secret("c")])) == '{"value":["c"]}'
     }
 
     @Serdeable

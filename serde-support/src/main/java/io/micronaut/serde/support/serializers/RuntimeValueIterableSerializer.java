@@ -23,8 +23,8 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The customized iterable serializer.
@@ -35,27 +35,35 @@ import java.util.concurrent.ConcurrentHashMap;
 @Internal
 final class RuntimeValueIterableSerializer<T> extends AbstractIterableSerializer<T> {
 
-    // The serializers of the elements by their class, shared by the documents this serializer writes
-    private final Map<Class<?>, Element<T>> elements = new ConcurrentHashMap<>();
-
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Iterable<T>> type, Iterable<T> value) throws IOException {
         // slow path, generic look up per element
         final Encoder childEncoder = encoder.encodeArray(type);
         Class<?> lastValueClass = null;
         Element<T> element = null;
+        // The element serializers are created with the context of this call, so they are only kept for this call:
+        // a serializer may depend on its context (views, features, user serdes created with it).
+        // A homogeneous iterable needs only the last element; the map is created on the first change of class.
+        Map<Class<?>, Element<T>> elements = null;
         for (T t : value) {
             if (t == null) {
                 childEncoder.encodeNull();
                 continue;
             }
-            if (lastValueClass != t.getClass() || element == null) {
-                lastValueClass = t.getClass();
-                element = elements.get(lastValueClass);
-                if (element == null) {
-                    Argument<T> generic = (Argument<T>) Argument.of(lastValueClass);
-                    element = new Element<>(generic, context.findSerializer(generic).createSpecific(context, generic));
+            Class<?> valueClass = t.getClass();
+            if (lastValueClass != valueClass || element == null) {
+                if (element != null && elements == null) {
+                    elements = new HashMap<>();
                     elements.put(lastValueClass, element);
+                }
+                lastValueClass = valueClass;
+                element = elements == null ? null : elements.get(valueClass);
+                if (element == null) {
+                    Argument<T> generic = (Argument<T>) Argument.of(valueClass);
+                    element = new Element<>(generic, context.findSerializer(generic).createSpecific(context, generic));
+                    if (elements != null) {
+                        elements.put(valueClass, element);
+                    }
                 }
             }
             element.serializer.serialize(childEncoder, context, element.argument, t);
