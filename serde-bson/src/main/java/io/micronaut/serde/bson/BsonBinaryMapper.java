@@ -16,6 +16,7 @@
 package io.micronaut.serde.bson;
 
 import io.micronaut.core.annotation.Order;
+import io.micronaut.core.type.Argument;
 import io.micronaut.json.JsonMapper;
 import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.config.SerdeConfiguration;
@@ -41,6 +42,7 @@ import java.util.Objects;
 @Singleton
 @Order(200) // lower precedence than BsonJsonMapper
 public final class BsonBinaryMapper extends AbstractBsonMapper {
+
 
     @Inject
     public BsonBinaryMapper(SerdeRegistry registry, SerdeConfiguration serdeConfiguration) {
@@ -74,6 +76,29 @@ public final class BsonBinaryMapper extends AbstractBsonMapper {
                 }
             }
         };
+    }
+
+    @Override
+    public byte[] writeValueAsBytes(@Nullable Object object) throws IOException {
+        return encodeToBytes(null, object);
+    }
+
+    @Override
+    public <T> byte[] writeValueAsBytes(Argument<T> type, @Nullable T object) throws IOException {
+        return encodeToBytes(type, object);
+    }
+
+    /**
+     * The document is built in one buffer and copied out once. Going through
+     * {@link #createBsonWriter(OutputStream)} would pipe that buffer into a growing
+     * {@link java.io.ByteArrayOutputStream} and copy it again.
+     */
+    private byte[] encodeToBytes(@Nullable Argument<?> type, @Nullable Object object) throws IOException {
+        BasicOutputBuffer buffer = new BasicOutputBuffer();
+        try (BsonBinaryWriter bsonWriter = new BsonBinaryWriter(buffer)) {
+            encodeValue(bsonWriter, type, object);
+            return buffer.toByteArray();
+        }
     }
 
 }
