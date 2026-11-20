@@ -8,6 +8,8 @@ import io.micronaut.json.tree.JsonNode
 import io.micronaut.serde.ObjectMapper
 import io.micronaut.serde.yaml.data.Book
 import io.micronaut.serde.yaml.data.MutableBook
+import io.micronaut.serde.yaml.data.Shape
+import io.micronaut.serde.yaml.data.StringShape
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 import spock.lang.Specification
@@ -112,5 +114,24 @@ class YamlObjectMapperSpec extends Specification {
         flow.yamlConfiguration.is(configuration)
         flow.writeValueAsString(new Book("A", 1)) == "{title: A, pages: 1}\n"
         mapper.writeValueAsString(new Book("A", 1)) == "title: A\npages: 1\n"
+    }
+
+    def "a subtype with a list property nested in a map value serializes (#1505)"() {
+        given:
+        def nested = new StringShape(values: ['a', 'b'])
+        def other = new StringShape(values: ['c'])
+        def root = new Shape(type: 'object').addProperty('s', nested).addProperty('t', other)
+
+        when:
+        String yaml = mapper.writeValueAsString(root)
+
+        then:
+        mapper.readValue(yaml, Map) == [
+            type: 'object',
+            properties: [
+                s: [type: 'string', values: ['a', 'b']],
+                t: [type: 'string', values: ['c']]
+            ]
+        ]
     }
 }
