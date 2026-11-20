@@ -33,6 +33,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Internal
 final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
+    private static final String NO_SERIALIZER_FOUND = "No serializer found for type: ";
+
     private final EncoderContext encoderContext;
     private final Map<Class<?>, Inner> inners = new ConcurrentHashMap<>(10);
     @Nullable
@@ -136,24 +138,9 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
         try {
             return inners.computeIfAbsent(value.getClass(), t -> {
                 try {
-                    if (value.getClass().equals(outerType.getType())) {
-                        if (outer == null) {
-                            if (introspectionException != null) {
-                                String message = introspectionException.getMessage();
-                                if (message == null) {
-                                    message = "No serializer found for type: " + value.getClass();
-                                }
-                                throw new SerdeException(message, introspectionException);
-                            }
-                            throw new SerdeException("No serializer found for type: " + value.getClass());
-                        }
-                        return new Inner(Argument.of(t), outer);
-                    } else {
-                        Argument<Object> arg = Argument.of((Class) value.getClass(), outerType.getAnnotationMetadata());
-                        return new Inner(Argument.of(t), encoderContext.findSerializer(arg).createSpecific(context, arg));
-                    }
+                    return createInner(context, t);
                 } catch (SerdeException ex) {
-                    throw new IntrospectionException("No serializer found for type: " + value.getClass(), ex);
+                    throw new IntrospectionException(NO_SERIALIZER_FOUND + t, ex);
                 }
             });
         } catch (IntrospectionException e) {
@@ -163,6 +150,25 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
                 throw e;
             }
         }
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private Inner createInner(EncoderContext context, Class<?> valueType) throws SerdeException {
+        if (!valueType.equals(outerType.getType())) {
+            Argument<Object> arg = Argument.of((Class) valueType, outerType.getAnnotationMetadata());
+            return new Inner(Argument.of(valueType), encoderContext.findSerializer(arg).createSpecific(context, arg));
+        }
+        if (outer != null) {
+            return new Inner(Argument.of(valueType), outer);
+        }
+        if (introspectionException == null) {
+            throw new SerdeException(NO_SERIALIZER_FOUND + valueType);
+        }
+        String message = introspectionException.getMessage();
+        if (message == null) {
+            message = NO_SERIALIZER_FOUND + valueType;
+        }
+        throw new SerdeException(message, introspectionException);
     }
 
     /**
