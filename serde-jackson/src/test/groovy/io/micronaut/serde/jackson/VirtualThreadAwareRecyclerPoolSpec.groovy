@@ -33,6 +33,27 @@ class VirtualThreadAwareRecyclerPoolSpec extends Specification {
         second.get().is(first.get())
     }
 
+    void "virtual threads take recyclers released to the deques of other virtual threads"() {
+        given:
+        def pool = new VirtualThreadAwareRecyclerPool()
+        def recyclers = Collections.newSetFromMap(new IdentityHashMap<BufferRecycler, Boolean>())
+
+        when:
+        100.times {
+            Thread.ofVirtual().start {
+                BufferRecycler recycler = pool.acquireAndLinkPooled()
+                synchronized (recyclers) {
+                    recyclers.add(recycler)
+                }
+                recycler.releaseToPool()
+            }.join()
+        }
+
+        then:
+        recyclers.size() == 1
+        pool.pooledCount() == 1
+    }
+
     void "platform threads keep their own recycler"() {
         given:
         def pool = new VirtualThreadAwareRecyclerPool()
