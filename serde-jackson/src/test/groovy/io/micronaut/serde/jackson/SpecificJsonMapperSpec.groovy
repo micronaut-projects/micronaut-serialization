@@ -44,8 +44,8 @@ class SpecificJsonMapperSpec extends Specification {
             second == '{"name":"Bob"}'
             read.name == 'Fred'
             readAgain.name == 'Bob'
-            mapper.@serializers.size() == 1
-            mapper.@deserializers.size() == 1
+            mapper.@serdeCache.@serializers.size() == 1
+            mapper.@serdeCache.@deserializers.size() == 1
     }
 
     void "untyped maps reuse the serializers of their values"() {
@@ -56,7 +56,7 @@ class SpecificJsonMapperSpec extends Specification {
             def valueSerializer = { ->
                 def field = Class.forName('io.micronaut.serde.support.serializers.AbstractMapObjectSerializer').getDeclaredField('valueSerializer')
                 field.accessible = true
-                field.get(mapper.@serializers.get(type))
+                field.get(mapper.@serdeCache.@serializers.get(type))
             }
             def inners = { serializer ->
                 def field = serializer.class.getDeclaredField('inners')
