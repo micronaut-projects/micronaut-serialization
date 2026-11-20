@@ -973,7 +973,9 @@ final class SerBean<T> {
             return false;
         }
         for (SerProperty<T, Object> property : writeProperties) {
-            if (property.serializableInto || property.backRef != null || property.include != SerdeConfig.SerInclude.ALWAYS || property.views != null || property.managedRef != null) {
+            if (property.serializableInto || property.backRef != null || property.views != null || property.managedRef != null
+                || !SimpleObjectSerializer.supportsInclusion(property.include)
+                || !property.featuresWith.isEmpty() || !property.featuresWithout.isEmpty()) {
                 return false;
             }
         }
