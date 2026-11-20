@@ -45,7 +45,6 @@ import javax.lang.model.element.Modifier;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -185,7 +184,7 @@ public final class EnumSerializerSourceGen {
      * the string path.
      */
     private static List<FieldDef> valuesField(EnumSerdeShape enumSerdeShape) {
-        if (!hasUniqueValues(enumSerdeShape)) {
+        if (!enumSerdeShape.hasUniqueSerializedValues()) {
             return List.of();
         }
         List<ExpressionDef> values = enumSerdeShape.serializedValues().stream()
@@ -197,16 +196,11 @@ public final class EnumSerializerSourceGen {
             .build());
     }
 
-    private static boolean hasUniqueValues(EnumSerdeShape enumSerdeShape) {
-        List<String> values = enumSerdeShape.serializedValues();
-        return !values.isEmpty() && new HashSet<>(values).size() == values.size();
-    }
-
     private List<StatementDef> serializeStatements(VariableDef encoder,
                                                    VariableDef.MethodParameter value,
                                                    EnumSerdeShape enumSerdeShape) {
         List<StatementDef> statements = new ArrayList<>();
-        if (hasUniqueValues(enumSerdeShape)) {
+        if (enumSerdeShape.hasUniqueSerializedValues()) {
             statements.add(ClassTypeDef.of(KeysAwareEncoder.class).invokeStatic(
                 ENCODE_STRING_VALUE_METHOD,
                 encoder,
