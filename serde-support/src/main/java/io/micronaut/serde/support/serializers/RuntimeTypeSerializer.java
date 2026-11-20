@@ -27,7 +27,6 @@ import org.jspecify.annotations.Nullable;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * The runtime type serializer.
@@ -39,8 +38,11 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
      * The serializers of the runtime types, created with one context. A serializer may be bound to the context it
      * was created with (a serde bean taking the context as a constructor argument), so they are only reused with
      * that context. This serializer can outlive a document, as the property serializer of a bean.
+     *
+     * Inners is immutable apart from its ConcurrentHashMap, so publishing it through a volatile field is safe.
      */
-    private final AtomicReference<Inners> inners = new AtomicReference<>(new Inners(null));
+    @SuppressWarnings("java:S3077")
+    private volatile Inners inners = new Inners(null);
     @Nullable
     private final Serializer<Object> outer;
     @Nullable
@@ -129,10 +131,10 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
     }
 
     private Serializer<Object> getSerializer(EncoderContext context, Object value) throws SerdeException {
-        Inners current = inners.get();
+        Inners current = inners;
         if (current.context != context) {
             current = new Inners(context);
-            inners.set(current);
+            inners = current;
         }
         try {
             return current.serializers.computeIfAbsent(value.getClass(), t -> {
