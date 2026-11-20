@@ -1893,21 +1893,6 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     }
 
     /**
-     * The member state collected for an imported type.
-     */
-    private record MemberState(@Nullable MethodElement anyGetterMethod,
-                               @Nullable MethodElement anySetterMethod,
-                               @Nullable FieldElement anyGetterField,
-                               @Nullable FieldElement anySetterField,
-                               @Nullable MethodElement jsonValueMethod,
-                               @Nullable FieldElement jsonValueField,
-                               @Nullable MethodElement jsonKeyMethod,
-                               @Nullable FieldElement jsonKeyField,
-                               Set<MethodElement> readMethods,
-                               Set<MethodElement> writeMethods) {
-    }
-
-    /**
      * Resets the per-type state collected while visiting members, so that state from one type
      * (for example the any getter of a previous {@code @SerdeImport}) does not leak into the next.
      */
@@ -2052,5 +2037,31 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     }
 
     private record TypePropertyDescriptor(String propertyName, String propertyValue) {
+    }
+
+    /**
+     * The member state collected for an imported type.
+     *
+     * @param anyGetterMethod The any getter method
+     * @param anySetterMethod The any setter method
+     * @param anyGetterField The any getter field
+     * @param anySetterField The any setter field
+     * @param jsonValueMethod The JSON value method
+     * @param jsonValueField The JSON value field
+     * @param jsonKeyMethod The JSON key method
+     * @param jsonKeyField The JSON key field
+     * @param readMethods The read methods
+     * @param writeMethods The write methods
+     */
+    private record MemberState(@Nullable MethodElement anyGetterMethod,
+                               @Nullable MethodElement anySetterMethod,
+                               @Nullable FieldElement anyGetterField,
+                               @Nullable FieldElement anySetterField,
+                               @Nullable MethodElement jsonValueMethod,
+                               @Nullable FieldElement jsonValueField,
+                               @Nullable MethodElement jsonKeyMethod,
+                               @Nullable FieldElement jsonKeyField,
+                               Set<MethodElement> readMethods,
+                               Set<MethodElement> writeMethods) {
     }
 }
