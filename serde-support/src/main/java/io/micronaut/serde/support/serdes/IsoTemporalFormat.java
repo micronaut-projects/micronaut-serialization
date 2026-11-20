@@ -47,6 +47,8 @@ final class IsoTemporalFormat {
     private static final int NANOS_PER_MILLI = 1_000_000;
     private static final int NANOS_PER_MICRO = 1_000;
     private static final int MAX_YEAR = 9999;
+    private static final long YEAR_0_EPOCH_SECOND = LocalDateTime.of(0, 1, 1, 0, 0).toEpochSecond(ZoneOffset.UTC);
+    private static final long YEAR_10000_EPOCH_SECOND = LocalDateTime.of(MAX_YEAR + 1, 1, 1, 0, 0).toEpochSecond(ZoneOffset.UTC);
 
     private IsoTemporalFormat() {
     }
@@ -77,10 +79,12 @@ final class IsoTemporalFormat {
      * @return The text, or {@code null} for a year outside 0 to 9999
      */
     static @Nullable String formatInstant(Instant value) {
-        LocalDateTime dateTime = LocalDateTime.ofEpochSecond(value.getEpochSecond(), 0, ZoneOffset.UTC);
-        if (!fastYear(dateTime.getYear())) {
+        long epochSecond = value.getEpochSecond();
+        // also keeps instants outside the LocalDateTime range, such as Instant.MAX, away from ofEpochSecond
+        if (epochSecond < YEAR_0_EPOCH_SECOND || epochSecond >= YEAR_10000_EPOCH_SECOND) {
             return null;
         }
+        LocalDateTime dateTime = LocalDateTime.ofEpochSecond(epochSecond, 0, ZoneOffset.UTC);
         // yyyy-MM-ddTHH:mm:ss + up to 10 fraction chars + Z
         byte[] buf = new byte[30];
         int pos = writeDate(buf, 0, dateTime.getYear(), dateTime.getMonthValue(), dateTime.getDayOfMonth());
