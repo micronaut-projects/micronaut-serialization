@@ -30,6 +30,8 @@ import java.util.concurrent.TimeUnit;
 
 abstract non-sealed class NumericSupportTemporalSerde<T extends TemporalAccessor> extends DefaultFormattedTemporalSerde<T> {
     private static final BigInteger NS_FACTOR = BigInteger.valueOf(1_000_000_000);
+    // with an optional minus sign, any such text fits in a long
+    private static final int MAX_LONG_DIGITS = 18;
 
     private final SerdeConfiguration.TimeShape writeShape;
     private final SerdeConfiguration.NumericTimeUnit numericUnit;
@@ -88,7 +90,20 @@ abstract non-sealed class NumericSupportTemporalSerde<T extends TemporalAccessor
 
     @Override
     final @Nullable T parseNumber(String text) {
-        return isPlainDecimal(text) ? fromDecimal(new BigDecimal(text)) : null;
+        if (!isPlainDecimal(text)) {
+            return null;
+        }
+        if (text.length() <= MAX_LONG_DIGITS && text.indexOf('.') == -1) {
+            // the same truncation toward zero as fromDecimal, without BigDecimal
+            long value = Long.parseLong(text);
+            return switch (numericUnit) {
+                case LEGACY -> throw new AssertionError("Should be replaced in constructor");
+                case SECONDS -> fromNanos(value, 0);
+                case MILLISECONDS -> fromNanos(value / 1_000, (int) (value % 1_000) * 1_000_000);
+                case NANOSECONDS -> fromNanos(value / 1_000_000_000, (int) (value % 1_000_000_000));
+            };
+        }
+        return fromDecimal(new BigDecimal(text));
     }
 
     /**

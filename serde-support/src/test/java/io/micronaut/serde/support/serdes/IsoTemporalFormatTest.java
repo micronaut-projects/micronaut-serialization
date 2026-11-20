@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.support.serdes;
 
+import io.micronaut.serde.config.SerdeConfiguration;
 import org.junit.jupiter.api.Test;
 
 import java.time.DateTimeException;
@@ -202,6 +203,58 @@ class IsoTemporalFormatTest {
         }
         for (String text : List.of("", "-", ".5", "5.", "1.2.3", "+5", "1e3", "1,0", " 1", "2026-11-20")) {
             assertFalse(NumericSupportTemporalSerde.isPlainDecimal(text), text);
+        }
+    }
+
+    @Test
+    void readsPlainNumbersLikeTheFallback() {
+        Random random = new Random(3);
+        List<String> numbers = new ArrayList<>(List.of("0", "-0", "1", "-1", "999", "-999", "1000", "-1001", "999999999999999999",
+            "-999999999999999999", "1763638686123", "-1763638686123", "1763638686.5", "-0.000000001", "1234567890123456789"));
+        for (int i = 0; i < 2_000; i++) {
+            numbers.add(Long.toString(random.nextLong() >> random.nextInt(64)));
+        }
+        for (SerdeConfiguration.NumericTimeUnit unit : List.of(SerdeConfiguration.NumericTimeUnit.SECONDS,
+            SerdeConfiguration.NumericTimeUnit.MILLISECONDS, SerdeConfiguration.NumericTimeUnit.NANOSECONDS)) {
+            InstantNumbers serde = new InstantNumbers(unit);
+            for (String number : numbers) {
+                assertEquals(outcome(() -> serde.deserializeFallback(new DateTimeException("not a date"), number)),
+                    outcome(() -> serde.parseNumber(number)), unit + " " + number);
+            }
+        }
+    }
+
+    private static Object outcome(java.util.function.Supplier<Object> read) {
+        try {
+            return read.get();
+        } catch (ArithmeticException | DateTimeException e) {
+            return e.getClass();
+        }
+    }
+
+    private static final class InstantNumbers extends NumericSupportTemporalSerde<Instant> {
+        InstantNumbers(SerdeConfiguration.NumericTimeUnit unit) {
+            super(DateTimeFormatter.ISO_INSTANT, DateTimeFormatter.ISO_INSTANT, unit, SerdeConfiguration.TimeShape.STRING, unit);
+        }
+
+        @Override
+        protected Instant fromNanos(long seconds, int nanos) {
+            return Instant.ofEpochSecond(seconds, nanos);
+        }
+
+        @Override
+        protected long getSecondPart(Instant value) {
+            return value.getEpochSecond();
+        }
+
+        @Override
+        protected int getNanoPart(Instant value) {
+            return value.getNano();
+        }
+
+        @Override
+        public TemporalQuery<Instant> query() {
+            return Instant::from;
         }
     }
 
