@@ -746,13 +746,13 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
         @Override
         public Argument<T> asArgument() {
-            Argument<?> argument = this.argument;
-            if (argument == null) {
+            Argument<?> resolved = argument;
+            if (resolved == null) {
                 // Created on demand: the registry matches the type argument, not this one
-                argument = Argument.of(container, typeArgument);
-                this.argument = argument;
+                resolved = Argument.of(container, typeArgument);
+                argument = resolved;
             }
-            return (Argument<T>) argument;
+            return (Argument<T>) resolved;
         }
 
         @Override

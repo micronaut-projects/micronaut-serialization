@@ -115,13 +115,13 @@ public final class VirtualThreadAwareRecyclerPool implements RecyclerPool<Buffer
 
         private static final int STRIPES = Math.min(64, Integer.highestOneBit(Math.max(1, 2 * Runtime.getRuntime().availableProcessors() - 1)) << 1);
 
-        private final ConcurrentLinkedDeque<BufferRecycler>[] stripes;
+        private final ConcurrentLinkedDeque<BufferRecycler>[] deques;
 
         @SuppressWarnings("unchecked")
         StripedDequePool() {
-            stripes = new ConcurrentLinkedDeque[STRIPES];
+            deques = new ConcurrentLinkedDeque[STRIPES];
             for (int i = 0; i < STRIPES; i++) {
-                stripes[i] = new ConcurrentLinkedDeque<>();
+                deques[i] = new ConcurrentLinkedDeque<>();
             }
         }
 
@@ -133,12 +133,12 @@ public final class VirtualThreadAwareRecyclerPool implements RecyclerPool<Buffer
         @Override
         public BufferRecycler acquirePooled() {
             int stripe = stripe();
-            BufferRecycler recycler = stripes[stripe].pollFirst();
+            BufferRecycler recycler = deques[stripe].pollFirst();
             if (recycler != null) {
                 return recycler;
             }
             for (int i = 1; i < STRIPES; i++) {
-                recycler = stripes[(stripe + i) & (STRIPES - 1)].pollFirst();
+                recycler = deques[(stripe + i) & (STRIPES - 1)].pollFirst();
                 if (recycler != null) {
                     return recycler;
                 }
@@ -148,13 +148,13 @@ public final class VirtualThreadAwareRecyclerPool implements RecyclerPool<Buffer
 
         @Override
         public void releasePooled(BufferRecycler pooled) {
-            stripes[stripe()].offerFirst(pooled);
+            deques[stripe()].offerFirst(pooled);
         }
 
         @Override
         public int pooledCount() {
             int count = 0;
-            for (ConcurrentLinkedDeque<BufferRecycler> deque : stripes) {
+            for (ConcurrentLinkedDeque<BufferRecycler> deque : deques) {
                 count += deque.size();
             }
             return count;
@@ -162,7 +162,7 @@ public final class VirtualThreadAwareRecyclerPool implements RecyclerPool<Buffer
 
         @Override
         public boolean clear() {
-            for (ConcurrentLinkedDeque<BufferRecycler> deque : stripes) {
+            for (ConcurrentLinkedDeque<BufferRecycler> deque : deques) {
                 deque.clear();
             }
             return true;
