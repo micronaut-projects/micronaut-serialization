@@ -33,6 +33,8 @@ import io.micronaut.serde.FormattedDeserializer;
 import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.FormattedSerde;
 import io.micronaut.serde.FormattedSerializer;
+import io.micronaut.serde.Keys;
+import io.micronaut.serde.KeysAwareEncoder;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.DeserializationConfiguration;
@@ -43,11 +45,13 @@ import io.micronaut.serde.util.CustomizableDeserializer;
 
 import java.io.IOException;
 import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -58,8 +62,15 @@ import java.util.stream.Collectors;
  */
 final class EnumSerde<E extends Enum<E>> implements CustomizableDeserializer<E>, FormattedSerde<E>, SerdeRegistrar<E> {
     private static final String JACKSON_KEY = "com.fasterxml.jackson.annotation.JsonKey";
+    private static final Serializer<?> NO_VALUES_SERIALIZER = new EnumNameSerializer<>();
 
     private final SerdeIntrospections introspections;
+    /**
+     * The serializers writing the encoded values of an enum type, created once per type since the
+     * specific serializer of an enum is created for every document read without a specific mapper.
+     * A type that cannot have one maps to {@link #NO_VALUES_SERIALIZER}.
+     */
+    private final Map<Class<?>, Serializer<?>> valuesSerializers = new ConcurrentHashMap<>();
 
     EnumSerde(SerdeIntrospections introspections) {
         this.introspections = introspections;
@@ -237,13 +248,24 @@ final class EnumSerde<E extends Enum<E>> implements CustomizableDeserializer<E>,
                         String enumAsString = enumConstant.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(enumValue.name());
                         cache.put(enumValue, enumAsString);
                     }
-                    return new EnumPropertySerializer<>(cache);
+                    Serializer<E> valuesSerializer = valuesSerializer(enumBeanIntrospection.getBeanType(), cache);
+                    return valuesSerializer != null ? valuesSerializer : new EnumPropertySerializer<>(cache);
                 }
             }
         } catch (IntrospectionException ignore) {
             // ignore
         }
-        return new EnumNameSerializer<>();
+        Serializer<E> valuesSerializer = valuesSerializer(type.getType(), null);
+        return valuesSerializer != null ? valuesSerializer : new EnumNameSerializer<>();
+    }
+
+    @SuppressWarnings("unchecked")
+    private @Nullable Serializer<E> valuesSerializer(Class<? extends E> enumType, @Nullable Map<E, String> serializedValues) {
+        Serializer<?> serializer = valuesSerializers.computeIfAbsent(enumType, t -> {
+            Serializer<E> created = EnumValuesSerializer.create(enumType, serializedValues);
+            return created != null ? created : NO_VALUES_SERIALIZER;
+        });
+        return serializer == NO_VALUES_SERIALIZER ? null : (Serializer<E>) serializer;
     }
 
     private static boolean isJsonKey(AnnotationMetadata annotationMetadata) {
@@ -576,6 +598,56 @@ final class EnumNameSerializer<E extends Enum<E>> implements FormattedSerializer
                           Argument<? extends E> type,
                           E value) throws IOException {
         encoder.encodeString(value.name());
+    }
+}
+
+/**
+ * Writes the serialized values of the constants of an enum by ordinal, which lets an encoder write
+ * a value it encoded once, such as a Jackson {@code SerializableString}.
+ *
+ * @param <E> The enum type
+ */
+final class EnumValuesSerializer<E extends Enum<E>> implements FormattedSerializer<E> {
+
+    private final Keys values;
+
+    private EnumValuesSerializer(Keys values) {
+        this.values = values;
+    }
+
+    /**
+     * @param enumType The enum type
+     * @param serializedValues The serialized values of the constants, or null for their names
+     * @param <E> The enum type
+     * @return The serializer, or null if the type has no constants or two constants have the same value
+     */
+    static <E extends Enum<E>> @Nullable Serializer<E> create(Class<? extends E> enumType, @Nullable Map<E, String> serializedValues) {
+        E[] constants = enumType.getEnumConstants();
+        if (constants == null || constants.length == 0) {
+            return null;
+        }
+        String[] values = new String[constants.length];
+        Set<String> uniqueValues = new HashSet<>(constants.length);
+        for (E constant : constants) {
+            String value = serializedValues != null ? serializedValues.get(constant) : constant.name();
+            if (value == null || !uniqueValues.add(value)) {
+                return null;
+            }
+            values[constant.ordinal()] = value;
+        }
+        return new EnumValuesSerializer<>(Keys.create(values));
+    }
+
+    @Override
+    public Serializer<E> createSpecific(EncoderContext context,
+                                        Argument<? extends E> type,
+                                        FormatConfiguration format) throws SerdeException {
+        return EnumSerde.createSerializerForShape(context, type, this, format);
+    }
+
+    @Override
+    public void serialize(Encoder encoder, EncoderContext context, Argument<? extends E> type, E value) throws IOException {
+        KeysAwareEncoder.encodeStringValue(encoder, values, value.ordinal());
     }
 }
 
