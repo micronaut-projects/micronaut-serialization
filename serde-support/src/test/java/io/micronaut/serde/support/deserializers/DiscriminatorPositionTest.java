@@ -109,14 +109,17 @@ class DiscriminatorPositionTest {
     @Test
     void emptyAndMissingDiscriminatorUseTheDefaultImpl() throws IOException {
         String json = """
-            [{},{"type":"dot","x":1},{"x":2},{"x":3,"type":"dot"},{"type":null,"x":4}]""";
+            [{},{"type":"dot","x":1},{"x":2},{"x":3,"type":"dot"},{"type":null,"x":4},{"type":"ring","x":5},{"x":6,"type":"ring"}]""";
         List<Mark> fromJson = mapper.readValue(json, Argument.listOf(Mark.class));
         List<Mark> fromTree = mapper.readValueFromTree(mapper.readValue(json, JsonNode.class), Argument.listOf(Mark.class));
         for (List<Mark> marks : List.of(fromJson, fromTree)) {
-            assertEquals(5, marks.size());
-            for (int i = 0; i < marks.size(); i++) {
+            assertEquals(7, marks.size());
+            for (int i = 0; i < 5; i++) {
                 assertEquals(i, assertInstanceOf(Dot.class, marks.get(i)).x);
             }
+            // an explicit discriminator still selects the other subtype
+            assertEquals(5, assertInstanceOf(Ring.class, marks.get(5)).x);
+            assertEquals(6, assertInstanceOf(Ring.class, marks.get(6)).x);
         }
     }
 
@@ -176,13 +179,22 @@ class DiscriminatorPositionTest {
     @Serdeable
     @Introspected(accessKind = Introspected.AccessKind.FIELD)
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type", defaultImpl = Dot.class)
-    @JsonSubTypes(@JsonSubTypes.Type(value = Dot.class, name = "dot"))
+    @JsonSubTypes({
+        @JsonSubTypes.Type(value = Dot.class, name = "dot"),
+        @JsonSubTypes.Type(value = Ring.class, name = "ring")
+    })
     public abstract static class Mark {
     }
 
     @Serdeable
     @Introspected(accessKind = Introspected.AccessKind.FIELD)
     public static final class Dot extends Mark {
+        public int x;
+    }
+
+    @Serdeable
+    @Introspected(accessKind = Introspected.AccessKind.FIELD)
+    public static final class Ring extends Mark {
         public int x;
     }
 

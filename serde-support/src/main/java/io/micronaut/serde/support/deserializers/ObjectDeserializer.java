@@ -24,6 +24,7 @@ import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.core.util.SupplierUtil;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.Keys;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.UpdatingDeserializer;
 import io.micronaut.serde.config.DeserializationConfiguration;
@@ -51,6 +52,8 @@ import java.util.function.Supplier;
 public class ObjectDeserializer implements CustomizableDeserializer<Object>, DeserBeanRegistry {
     private final SerdeIntrospections introspections;
     private final Map<DeserBeanKey, Supplier<DeserBean<?>>> deserBeanMap = new ConcurrentHashMap<>(50);
+    // The keys of the discriminator names, shared by the subtyped deserializers this registry creates per document
+    private final Map<String, Keys> discriminatorKeys = new ConcurrentHashMap<>();
     private final DeserializationConfiguration deserializationConfiguration;
     private final SerdeConfiguration serdeConfiguration;
     @Nullable
@@ -202,7 +205,8 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
             case WRAPPER_ARRAY ->
                 new WrappedArraySubtypedDeserializer(deserializerSubtypeInfo, deserBean.ignoreUnknown);
             case PROPERTY, EXISTING_PROPERTY ->
-                new SubtypedPropertyObjectDeserializer(deserializerSubtypeInfo);
+                new SubtypedPropertyObjectDeserializer(deserializerSubtypeInfo,
+                    discriminatorKeys.computeIfAbsent(info.discriminatorName(), Keys::create));
             case EXTERNAL_PROPERTY ->
                 new SubtypedExternalPropertyObjectDeserializer(deserializerSubtypeInfo);
         };

@@ -30,7 +30,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Subtyped property deserializer.
@@ -41,24 +40,24 @@ import java.util.concurrent.ConcurrentHashMap;
 @Internal
 final class SubtypedPropertyObjectDeserializer implements Deserializer<Object> {
 
-    /**
-     * This deserializer is created per document. Decoders cache work per {@link Keys} instance (Jackson's name
-     * matcher, the protobuf slot table), so one instance per discriminator name keeps those caches bounded.
-     */
-    private static final Map<String, Keys> DISCRIMINATOR_KEYS = new ConcurrentHashMap<>();
-
     private final DeserializerSubtypeInfo<? super Object> subtypeInfo;
     private final Keys discriminatorKeys;
     private final boolean discriminatorVisible;
 
-    public SubtypedPropertyObjectDeserializer(DeserializerSubtypeInfo<? super Object> subtypeInfo) {
+    /**
+     * @param subtypeInfo       The subtype info
+     * @param discriminatorKeys The keys of the discriminator name. This deserializer is created per document, and
+     *                          decoders cache work per {@link Keys} instance (Jackson's name matcher, the protobuf
+     *                          slot table), so the registry that creates it shares one instance per name.
+     */
+    SubtypedPropertyObjectDeserializer(DeserializerSubtypeInfo<? super Object> subtypeInfo, Keys discriminatorKeys) {
         this.subtypeInfo = subtypeInfo;
         SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType = subtypeInfo.parent().info().discriminatorType();
         if (discriminatorType != SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY
             && discriminatorType != SerdeConfig.SerSubtyped.DiscriminatorType.EXISTING_PROPERTY) {
             throw new IllegalStateException("Unsupported discriminator type: " + discriminatorType);
         }
-        this.discriminatorKeys = DISCRIMINATOR_KEYS.computeIfAbsent(subtypeInfo.parent().info().discriminatorName(), Keys::create);
+        this.discriminatorKeys = discriminatorKeys;
         this.discriminatorVisible = subtypeInfo.parent().info().discriminatorVisible();
     }
 
