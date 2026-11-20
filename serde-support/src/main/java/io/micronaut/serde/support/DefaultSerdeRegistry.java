@@ -58,6 +58,7 @@ import io.micronaut.serde.support.serdes.ObjectArraySerde;
 import io.micronaut.serde.support.serdes.Serdes;
 import io.micronaut.serde.support.serializers.CoreSerializers;
 import io.micronaut.serde.support.serializers.ObjectSerializer;
+import io.micronaut.serde.support.util.ContextBoundSerdes;
 import io.micronaut.serde.support.util.TypeKey;
 import io.micronaut.serde.util.CustomizableDeserializer;
 import io.micronaut.serde.util.CustomizableSerializer;
@@ -462,7 +463,9 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         boolean createdByDefinition = !beanDefinition.isProxy()
             && !beanDefinition.hasAnnotation(DependsOn.class)
             && !hasBeanCreatedEventListener(beanDefinition.getBeanType());
-        return new SpecificBeanFactory<>(beanContext, parametrizedBeanDefinition, arguments[0].getName(), arguments[1].getName(), createdByDefinition);
+        // A generated serde passes the context of each document on; a user serde may keep the one it is created with
+        boolean contextBound = !beanDefinition.hasDeclaredAnnotation("javax.annotation.processing.Generated");
+        return new SpecificBeanFactory<>(beanContext, parametrizedBeanDefinition, arguments[0].getName(), arguments[1].getName(), createdByDefinition, contextBound);
     }
 
     private boolean hasBeanCreatedEventListener(Class<?> beanType) {
@@ -606,15 +609,20 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
      * @param contextName         The name of the context argument
      * @param typeName            The name of the type argument
      * @param createdByDefinition Whether the bean is created from the definition, otherwise by the bean context
+     * @param contextBound        Whether the bean may keep the context it is created with, such as a user serde
      * @param <T>                 The serde type
      */
     private record SpecificBeanFactory<T>(BeanContext beanContext,
                                           ParametrizedInstantiatableBeanDefinition<T> beanDefinition,
                                           String contextName,
                                           String typeName,
-                                          boolean createdByDefinition) {
+                                          boolean createdByDefinition,
+                                          boolean contextBound) {
 
         T create(Object context, Argument<?> type) {
+            if (contextBound) {
+                ContextBoundSerdes.created();
+            }
             if (!createdByDefinition) {
                 return beanContext.createBean(beanDefinition.getBeanType(), context, type);
             }

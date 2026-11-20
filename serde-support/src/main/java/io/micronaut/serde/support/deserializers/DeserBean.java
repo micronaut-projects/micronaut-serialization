@@ -50,6 +50,7 @@ import io.micronaut.serde.exceptions.InvalidPropertyFormatException;
 import io.micronaut.serde.exceptions.NullValueSerdeException;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
+import io.micronaut.serde.support.util.ContextBoundSerdes;
 import io.micronaut.serde.support.util.DecoderValueKind;
 import io.micronaut.serde.support.util.DocumentIdUtil;
 import io.micronaut.serde.support.util.ObjectShapeSerdeHelper;
@@ -760,10 +761,19 @@ final class DeserBean<T> {
         if (property.ignored) {
             return;
         }
-        Deserializer.DecoderContext propertyContext = decoderContext.withFeatures(property.featuresWith, property.featuresWithout);
-        property.deserializer = unwrapErrorCatching(property.format == null
-            ? findDeserializerWithoutFormat(propertyContext, property.argument)
-            : findDeserializer(propertyContext, property.argument, property.format));
+        ContextBoundSerdes.DeserializerFactory<Object> factory = context -> {
+            Deserializer.DecoderContext propertyContext = context.withFeatures(property.featuresWith, property.featuresWithout);
+            return unwrapErrorCatching(property.format == null
+                ? findDeserializerWithoutFormat(propertyContext, property.argument)
+                : findDeserializer(propertyContext, property.argument, property.format));
+        };
+        int contextBound = ContextBoundSerdes.count();
+        Deserializer<Object> specific = factory.create(decoderContext);
+        // The bean keeps its property deserializers between documents: one that a serde bean bound to the context
+        // of this document is specialized again for the context of each document
+        property.deserializer = ContextBoundSerdes.count() == contextBound
+            ? specific
+            : new ContextBoundSerdes.PerContextDeserializer<>(factory, decoderContext, specific);
         if (property.format == null && !property.hasFeatureOverrides && property.deserializer instanceof DecoderValueKind.Provider decoderValueKind) {
             property.decoderValueKind = decoderValueKind.decoderValueKind().code();
             property.updateDirectModes();
@@ -774,7 +784,8 @@ final class DeserBean<T> {
             && !property.hasFeatureOverrides
             && !property.argument.getType().isArray()
             && !(property.deserializer instanceof UpdatingDeserializer)) {
-            UpdatingDeserializer<Object> mergeDeserializer = ObjectShapeSerdeHelper.updatingObjectDeserializer(propertyContext, property.argument);
+            UpdatingDeserializer<Object> mergeDeserializer = ObjectShapeSerdeHelper.updatingObjectDeserializer(
+                decoderContext.withFeatures(property.featuresWith, property.featuresWithout), property.argument);
             if (mergeDeserializer != null) {
                 property.mergeDeserializer = unwrapErrorCatching(mergeDeserializer);
             }
