@@ -45,7 +45,8 @@ public final class VirtualThreadAwareRecyclerPool implements RecyclerPool<Buffer
     private static final long serialVersionUID = 1L;
 
     private final RecyclerPool<BufferRecycler> platformThreadPool = JsonRecyclerPools.threadLocalPool();
-    private final AtomicReference<RecyclerPool<BufferRecycler>> virtualThreadPool = new AtomicReference<>();
+    // The pooled recyclers are not serializable, so a deserialized pool starts empty, see readResolve
+    private final transient AtomicReference<RecyclerPool<BufferRecycler>> virtualThreadPool = new AtomicReference<>();
 
     /**
      * Creates a pool that uses {@link JsonRecyclerPools#threadLocalPool()} on platform threads and a new pool of
@@ -81,6 +82,14 @@ public final class VirtualThreadAwareRecyclerPool implements RecyclerPool<Buffer
     public boolean clear() {
         RecyclerPool<BufferRecycler> pool = virtualThreadPool.get();
         return pool == null || pool.clear();
+    }
+
+    /**
+     * @return A new, empty pool in place of the deserialized one, like the pools of Jackson
+     */
+    @Serial
+    private Object readResolve() {
+        return new VirtualThreadAwareRecyclerPool();
     }
 
     private RecyclerPool<BufferRecycler> pool() {
