@@ -92,6 +92,21 @@ public final class SerdeSourceGenRecursion {
             || wildcardElement.getLowerBounds().stream().anyMatch(bound -> reaches(bound, visited));
     }
 
+    /**
+     * An unresolved type variable is described by its first bound, as SerdeSourceGenArgumentTypes.normalize
+     * does, so the bound is what the property can hold: {@code Iterable<T extends Self>} used raw holds Self.
+     * A type argument resolved from a type variable, such as the bound of {@code ? extends List<Self>}, also
+     * reports isTypeVariable() and is followed as a regular type.
+     */
+    private boolean boundReaches(GenericPlaceholderElement placeholderElement, Set<String> visited) {
+        List<? extends ClassElement> bounds = placeholderElement.getBounds();
+        // a bound such as T extends Comparable<T> refers to the variable again
+        if (bounds.isEmpty() || !visited.add("<" + placeholderElement.getVariableName() + ">")) {
+            return false;
+        }
+        return reaches(bounds.get(0), visited);
+    }
+
     private boolean reaches(ClassElement type, Set<String> visited) {
         if (type instanceof WildcardElement wildcardElement) {
             return boundsReach(wildcardElement, visited);
@@ -99,17 +114,8 @@ public final class SerdeSourceGenRecursion {
         if (type.isPrimitive()) {
             return false;
         }
-        // An unresolved type variable is described by its first bound, as SerdeSourceGenArgumentTypes.normalize
-        // does, so the bound is what the property can hold: Iterable<T extends Self> used raw holds Self. A type
-        // argument resolved from a type variable, such as the bound of ? extends List<Self>, also reports
-        // isTypeVariable() and is followed below as a regular type
         if (type instanceof GenericPlaceholderElement placeholderElement) {
-            List<? extends ClassElement> bounds = placeholderElement.getBounds();
-            // a bound such as T extends Comparable<T> refers to the variable again
-            if (bounds.isEmpty() || !visited.add("<" + placeholderElement.getVariableName() + ">")) {
-                return false;
-            }
-            return reaches(bounds.get(0), visited);
+            return boundReaches(placeholderElement, visited);
         }
         if (type.isArray()) {
             return reaches(type.fromArray(), visited);
