@@ -17,6 +17,7 @@ package io.micronaut.serde.support.serdes;
 
 import org.jspecify.annotations.Nullable;
 
+import java.nio.charset.StandardCharsets;
 import java.time.DateTimeException;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -38,11 +39,35 @@ import java.time.format.DateTimeFormatter;
  */
 final class IsoTemporalFormat {
 
+    /**
+     * The number of digits up to which any {@link #isPlainInteger plain integer} fits in a long.
+     */
+    static final int MAX_LONG_DIGITS = 18;
+
     private static final int NANOS_PER_MILLI = 1_000_000;
     private static final int NANOS_PER_MICRO = 1_000;
     private static final int MAX_YEAR = 9999;
 
     private IsoTemporalFormat() {
+    }
+
+    /**
+     * @param text      The text
+     * @param maxDigits The maximum number of digits
+     * @return Whether the text is an optional minus sign followed by one to {@code maxDigits} digits
+     */
+    static boolean isPlainInteger(String text, int maxDigits) {
+        int len = text.length();
+        int start = len > 0 && text.charAt(0) == '-' ? 1 : 0;
+        if (start == len || len - start > maxDigits) {
+            return false;
+        }
+        for (int i = start; i < len; i++) {
+            if (digit(text.charAt(i)) < 0) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -57,7 +82,7 @@ final class IsoTemporalFormat {
             return null;
         }
         // yyyy-MM-ddTHH:mm:ss + up to 10 fraction chars + Z
-        char[] buf = new char[30];
+        byte[] buf = new byte[30];
         int pos = writeDate(buf, 0, dateTime.getYear(), dateTime.getMonthValue(), dateTime.getDayOfMonth());
         buf[pos++] = 'T';
         pos = writeHourMinute(buf, pos, dateTime.getHour(), dateTime.getMinute());
@@ -75,7 +100,7 @@ final class IsoTemporalFormat {
             }
         }
         buf[pos++] = 'Z';
-        return new String(buf, 0, pos);
+        return new String(buf, 0, pos, StandardCharsets.ISO_8859_1);
     }
 
     /**
@@ -88,9 +113,9 @@ final class IsoTemporalFormat {
         if (!fastYear(value.getYear())) {
             return null;
         }
-        char[] buf = new char[10];
+        byte[] buf = new byte[10];
         writeDate(buf, 0, value.getYear(), value.getMonthValue(), value.getDayOfMonth());
-        return new String(buf);
+        return new String(buf, StandardCharsets.ISO_8859_1);
     }
 
     /**
@@ -104,9 +129,9 @@ final class IsoTemporalFormat {
         if (!fastYear(value.getYear())) {
             return null;
         }
-        char[] buf = new char[29];
+        byte[] buf = new byte[29];
         int pos = writeLocalDateTime(buf, value);
-        return new String(buf, 0, pos);
+        return new String(buf, 0, pos, StandardCharsets.ISO_8859_1);
     }
 
     /**
@@ -121,14 +146,14 @@ final class IsoTemporalFormat {
             return null;
         }
         // local date time (29) + offset (9)
-        char[] buf = new char[38];
+        byte[] buf = new byte[38];
         int pos = writeLocalDateTime(buf, dateTime);
         int totalSeconds = value.getOffset().getTotalSeconds();
         if (totalSeconds == 0) {
             buf[pos++] = 'Z';
         } else {
             int abs = Math.abs(totalSeconds);
-            buf[pos++] = totalSeconds < 0 ? '-' : '+';
+            buf[pos++] = (byte) (totalSeconds < 0 ? '-' : '+');
             pos = writeHourMinute(buf, pos, abs / 3600, (abs / 60) % 60);
             int seconds = abs % 60;
             if (seconds != 0) {
@@ -136,7 +161,7 @@ final class IsoTemporalFormat {
                 pos = write2(buf, pos, seconds);
             }
         }
-        return new String(buf, 0, pos);
+        return new String(buf, 0, pos, StandardCharsets.ISO_8859_1);
     }
 
     /**
@@ -322,7 +347,7 @@ final class IsoTemporalFormat {
         return a < 0 || b < 0 ? -1 : a * 100 + b;
     }
 
-    private static int writeLocalDateTime(char[] buf, LocalDateTime value) {
+    private static int writeLocalDateTime(byte[] buf, LocalDateTime value) {
         int pos = writeDate(buf, 0, value.getYear(), value.getMonthValue(), value.getDayOfMonth());
         buf[pos++] = 'T';
         pos = writeHourMinute(buf, pos, value.getHour(), value.getMinute());
@@ -343,7 +368,7 @@ final class IsoTemporalFormat {
         return pos;
     }
 
-    private static int writeDate(char[] buf, int pos, int year, int month, int day) {
+    private static int writeDate(byte[] buf, int pos, int year, int month, int day) {
         pos = writeDigits(buf, pos, year, 4);
         buf[pos++] = '-';
         pos = write2(buf, pos, month);
@@ -351,21 +376,21 @@ final class IsoTemporalFormat {
         return write2(buf, pos, day);
     }
 
-    private static int writeHourMinute(char[] buf, int pos, int hour, int minute) {
+    private static int writeHourMinute(byte[] buf, int pos, int hour, int minute) {
         pos = write2(buf, pos, hour);
         buf[pos++] = ':';
         return write2(buf, pos, minute);
     }
 
-    private static int write2(char[] buf, int pos, int value) {
-        buf[pos] = (char) ('0' + value / 10);
-        buf[pos + 1] = (char) ('0' + value % 10);
+    private static int write2(byte[] buf, int pos, int value) {
+        buf[pos] = (byte) ('0' + value / 10);
+        buf[pos + 1] = (byte) ('0' + value % 10);
         return pos + 2;
     }
 
-    private static int writeDigits(char[] buf, int pos, int value, int width) {
+    private static int writeDigits(byte[] buf, int pos, int value, int width) {
         for (int i = pos + width - 1; i >= pos; i--) {
-            buf[i] = (char) ('0' + value % 10);
+            buf[i] = (byte) ('0' + value % 10);
             value /= 10;
         }
         return pos + width;

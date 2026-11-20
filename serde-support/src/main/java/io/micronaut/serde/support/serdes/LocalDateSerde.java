@@ -71,18 +71,7 @@ public final class LocalDateSerde extends DefaultFormattedTemporalSerde<LocalDat
     @Override
     @Nullable LocalDate parseNumber(String text) {
         // an epoch day, as deserializeFallback reads it; longer numbers keep the fallback and its error
-        int len = text.length();
-        int start = len > 0 && text.charAt(0) == '-' ? 1 : 0;
-        if (start == len || len > 18) {
-            return null;
-        }
-        for (int i = start; i < len; i++) {
-            char c = text.charAt(i);
-            if (c < '0' || c > '9') {
-                return null;
-            }
-        }
-        return LocalDate.ofEpochDay(Long.parseLong(text));
+        return IsoTemporalFormat.isPlainInteger(text, IsoTemporalFormat.MAX_LONG_DIGITS) ? LocalDate.ofEpochDay(Long.parseLong(text)) : null;
     }
 
     @Override

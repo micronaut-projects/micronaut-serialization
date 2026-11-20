@@ -50,7 +50,7 @@ import static io.micronaut.serde.config.SerdeConfiguration.TimeShape.STRING;
 public abstract sealed class DefaultFormattedTemporalSerde<T extends TemporalAccessor> implements TemporalSerde<T> permits LocalDateSerde, LocalDateTimeSerde, NumericSupportTemporalSerde {
 
     private final DateTimeFormatter stringFormatter;
-    private final boolean isoFormatter;
+    private final boolean isoFastPath;
 
     /**
      * @param stringFormatter The resolved string formatter
@@ -65,7 +65,7 @@ public abstract sealed class DefaultFormattedTemporalSerde<T extends TemporalAcc
      */
     DefaultFormattedTemporalSerde(DateTimeFormatter stringFormatter, @Nullable DateTimeFormatter isoFormatter) {
         this.stringFormatter = stringFormatter;
-        this.isoFormatter = isoFormatter != null && stringFormatter == isoFormatter;
+        this.isoFastPath = isoFormatter != null && stringFormatter == isoFormatter;
     }
 
     protected static Optional<DateTimeFormatter> createFormatter(SerdeConfiguration configuration) {
@@ -364,14 +364,14 @@ public abstract sealed class DefaultFormattedTemporalSerde<T extends TemporalAcc
      * @param value   The value to serialize
      */
     void serialize0(Encoder encoder, T value) throws IOException {
-        String text = isoFormatter ? formatIso(value) : null;
+        String text = isoFastPath ? formatIso(value) : null;
         encoder.encodeString(text == null ? stringFormatter.format(value) : text);
     }
 
     @Override
     public final T deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super T> type) throws IOException {
         String text = decoder.decodeString();
-        if (isoFormatter) {
+        if (isoFastPath) {
             // an ISO formatter never parses a plain number, so go to the numeric fallback without the exception
             T value = parseNumber(text);
             if (value != null) {
@@ -392,7 +392,7 @@ public abstract sealed class DefaultFormattedTemporalSerde<T extends TemporalAcc
      * @return The parsed value
      */
     T parseString(String text) {
-        if (isoFormatter) {
+        if (isoFastPath) {
             T value = parseIso(text);
             if (value != null) {
                 return value;
