@@ -187,4 +187,82 @@ public final class Imports {
         cleanup:
         context.close()
     }
+
+    void "importing one type twice with mixins that declare two different any setters is rejected"() {
+        when:
+        buildContext('mixintest.Imports', '''
+package mixintest;
+
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import io.micronaut.serde.annotation.SerdeImport;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+@SerdeImport(value = Imports.Target.class, mixin = Imports.FirstMixin.class)
+@SerdeImport(value = Imports.Target.class, mixin = Imports.SecondMixin.class)
+final class Imports {
+    public static class Target {
+        public final Map<String, Object> first = new LinkedHashMap<>();
+        public final Map<String, Object> second = new LinkedHashMap<>();
+        public void putFirst(String name, Object value) { first.put(name, value); }
+        public void putSecond(String name, Object value) { second.put(name, value); }
+    }
+    abstract static class FirstMixin {
+        @JsonAnySetter public abstract void putFirst(String name, Object value);
+    }
+    abstract static class SecondMixin {
+        @JsonAnySetter public abstract void putSecond(String name, Object value);
+    }
+}
+''')
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message.contains('JsonAnySetter')
+    }
+
+    void "an imported type unwrapping a value with a prefix may share a property name with it"() {
+        given:
+        def context = buildContext('mixintest.Imports', '''
+package mixintest;
+
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.serde.annotation.SerdeImport;
+
+@SerdeImport(value = Imports.Outer.class, mixin = Imports.OuterMixin.class)
+@SerdeImport(Imports.Details.class)
+final class Imports {
+    public static class Outer {
+        private String id;
+        private Details details;
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+        public Details getDetails() { return details; }
+        public void setDetails(Details details) { this.details = details; }
+    }
+    public static class Details {
+        private String id;
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+    }
+    abstract static class OuterMixin {
+        @JsonUnwrapped(prefix = "details_") public abstract Details getDetails();
+    }
+}
+''')
+        def outerType = context.classLoader.loadClass('mixintest.Imports$Outer')
+        def detailsType = context.classLoader.loadClass('mixintest.Imports$Details')
+        def details = detailsType.newInstance()
+        details.id = 'd'
+        def outer = outerType.newInstance()
+        outer.id = 'o'
+        outer.details = details
+
+        expect:
+        jsonMapper.writeValueAsString(outer) == '{"id":"o","details_id":"d"}'
+        jsonMapper.readValue('{"id":"o","details_id":"d"}', outerType).details.id == 'd'
+
+        cleanup:
+        context.close()
+    }
 }
