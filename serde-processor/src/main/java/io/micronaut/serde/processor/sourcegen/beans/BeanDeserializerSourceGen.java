@@ -76,6 +76,8 @@ public final class BeanDeserializerSourceGen {
     private static final ClassTypeDef KEYS_TYPE = ClassTypeDef.of(Keys.class);
     private static final ClassTypeDef KEY_DESCRIPTOR_TYPE = ClassTypeDef.of(KeyDescriptor.class);
     private static final ClassTypeDef KEYS_AWARE_DECODER_TYPE = ClassTypeDef.of(KeysAwareDecoder.class);
+    // Beyond the properties a single long mask tracks, every property is read by a method of its own
+    private static final int OUTLINE_PROPERTIES_THRESHOLD = Long.SIZE;
     private static final ClassTypeDef DISPATCH_RESULT_TYPE = ClassTypeDef.of(GeneratedSerdeExceptionUtil.PropertyDispatchResult.class);
     private static final String CONTEXT_PARAMETER = "context";
     private static final String VALUE_LOCAL_PREFIX = "value";
@@ -348,6 +350,14 @@ public final class BeanDeserializerSourceGen {
                 deserializerFieldNames,
                 new AliasKeys(aliasKeyFieldNames, aliasTargets),
                 PrimitiveNullMode.DYNAMIC
+            ))
+            .addMethods(generateOutlinedPropertyMethods(
+                beanTypeDef,
+                deserializerClassTypeDef,
+                beanSerdeShape,
+                argumentFieldNames,
+                deserializerFieldNames,
+                PrimitiveNullMode.DYNAMIC
             ));
         classDefBuilder.addMethod(generateConstructor(
             element,
@@ -519,9 +529,10 @@ public final class BeanDeserializerSourceGen {
             statements.add(seenPropertiesMaskDef);
             seenPropertiesMaskVariable = seenPropertiesMaskDef.variable();
         } else {
-            for (int i = 0; i < properties.size(); i++) {
-                StatementDef.DefineAndAssign seenPropertyDef = ExpressionDef.falseValue()
-                    .newLocal(BeanSerdeSourceGenUtils.localName("seenProperty", i));
+            // A wide bean tracks the seen properties in a long per 64 properties
+            for (int i = 0; i < properties.size(); i += Long.SIZE) {
+                StatementDef.DefineAndAssign seenPropertyDef = ExpressionDef.constant(0L)
+                    .newLocal(BeanSerdeSourceGenUtils.localName("seenProperties", i / Long.SIZE));
                 statements.add(seenPropertyDef);
                 seenPropertyVariables.add(seenPropertyDef.variable());
             }
@@ -822,19 +833,33 @@ public final class BeanDeserializerSourceGen {
         BeanSerdeShape.BeanProperty property = dispatchInfo.properties().get(propertyIndex);
         ExpressionDef argumentExpression = deserializerClassTypeDef.getStaticField(required(dispatchInfo.argumentFieldNames(), property.name()), ARGUMENT_TYPE);
         ExpressionDef duplicateArgument = duplicateArgumentExpression == null ? argumentExpression : duplicateArgumentExpression;
+        if (isOutlined(dispatchInfo.properties().size())) {
+            // The method checks and marks the property, so a case is a single call
+            VariableDef.Local word = seenPropertyWord(dispatchInfo.seenPropertyVariables(), propertyIndex);
+            return word.assign(aThis.invoke(
+                outlinedPropertyMethodName(propertyIndex),
+                TypeDef.Primitive.LONG,
+                objectDecoder,
+                context,
+                type,
+                beanVariable,
+                word,
+                duplicateArgument
+            ));
+        }
         StatementDef deserializeAndAssignProperty = wrapWithPropertyPath(deserializeAndAssignPropertyDirect(
-            aThis,
-            deserializerClassTypeDef,
-            objectDecoder,
-            context,
-            type,
-            beanVariable,
-            property,
-            propertyIndex,
-            dispatchInfo.argumentFieldNames(),
-            dispatchInfo.deserializerFieldNames(),
-            primitiveNullMode
-        ), type, argumentExpression);
+                aThis,
+                deserializerClassTypeDef,
+                objectDecoder,
+                context,
+                type,
+                beanVariable,
+                property,
+                propertyIndex,
+                dispatchInfo.argumentFieldNames(),
+                dispatchInfo.deserializerFieldNames(),
+                primitiveNullMode
+            ), type, argumentExpression);
         if (dispatchInfo.seenPropertiesMask() != null) {
             return StatementDef.multi(
                 isPropertySeen(dispatchInfo, propertyIndex).ifTrue(duplicatePropertyStatement(duplicateArgument, type)),
@@ -849,6 +874,73 @@ public final class BeanDeserializerSourceGen {
                 deserializeAndAssignProperty
             )
         );
+    }
+
+    /**
+     * HotSpot does not JIT-compile a method of more than 8000 bytes of bytecode, and the inline
+     * read of a property takes about 70 bytes of the dispatch loop. The properties of a wide bean
+     * are read by a method each, which keeps the loop compilable and lets the JIT inline the reads.
+     */
+    private static boolean isOutlined(int propertyCount) {
+        return propertyCount > OUTLINE_PROPERTIES_THRESHOLD;
+    }
+
+    private static String outlinedPropertyMethodName(int propertyIndex) {
+        return BeanSerdeSourceGenUtils.localName("deserializeProperty", propertyIndex);
+    }
+
+    @SuppressWarnings("java:S107")
+    private List<MethodDef> generateOutlinedPropertyMethods(TypeDef beanTypeDef,
+                                                            ClassTypeDef deserializerClassTypeDef,
+                                                            BeanSerdeShape beanSerdeShape,
+                                                            Map<String, String> argumentFieldNames,
+                                                            Map<String, String> deserializerFieldNames,
+                                                            PrimitiveNullMode primitiveNullMode) {
+        List<BeanSerdeShape.BeanProperty> properties = beanSerdeShape.deserializationProperties();
+        if (!isOutlined(properties.size())) {
+            return List.of();
+        }
+        List<MethodDef> methods = new ArrayList<>(properties.size());
+        for (int i = 0; i < properties.size(); i++) {
+            BeanSerdeShape.BeanProperty property = properties.get(i);
+            int propertyIndex = i;
+            methods.add(MethodDef.builder(outlinedPropertyMethodName(propertyIndex))
+                .addModifiers(Modifier.PRIVATE)
+                .addParameter("objectDecoder", TypeDef.of(Decoder.class))
+                .addParameter(CONTEXT_PARAMETER, TypeDef.of(Deserializer.DecoderContext.class))
+                .addParameter("type", TypeDef.of(Argument.class))
+                .addParameter(BEAN_LOCAL, beanTypeDef)
+                .addParameter("seenProperties", TypeDef.Primitive.LONG)
+                .addParameter("duplicateArgument", ARGUMENT_TYPE)
+                .returns(TypeDef.Primitive.LONG)
+                .addThrows(TypeDef.of(IOException.class))
+                .build((aThis, methodParameters) -> {
+                    VariableDef.MethodParameter type = methodParameters.get(2);
+                    VariableDef.MethodParameter seenProperties = methodParameters.get(4);
+                    ExpressionDef bit = seenPropertyWordBit(propertyIndex);
+                    ExpressionDef argumentExpression = deserializerClassTypeDef.getStaticField(required(argumentFieldNames, property.name()), ARGUMENT_TYPE);
+                    return StatementDef.multi(
+                        seenProperties.math(ExpressionDef.MathBinaryOperation.OpType.BITWISE_AND, bit)
+                            .compare(ExpressionDef.ComparisonOperation.OpType.NOT_EQUAL_TO, ExpressionDef.constant(0L))
+                            .ifTrue(duplicatePropertyStatement(methodParameters.get(5), type)),
+                        wrapWithPropertyPath(deserializeAndAssignPropertyDirect(
+                        aThis,
+                        deserializerClassTypeDef,
+                        methodParameters.get(0),
+                        methodParameters.get(1),
+                        type,
+                        methodParameters.get(3),
+                        property,
+                        propertyIndex,
+                        argumentFieldNames,
+                        deserializerFieldNames,
+                        primitiveNullMode
+                    ), type, argumentExpression),
+                        seenProperties.math(ExpressionDef.MathBinaryOperation.OpType.BITWISE_OR, bit).returning()
+                    );
+                }));
+        }
+        return methods;
     }
 
     /**
@@ -879,7 +971,10 @@ public final class BeanDeserializerSourceGen {
                     .compare(ExpressionDef.ComparisonOperation.OpType.EQUAL_TO, seenPropertyZero(seenPropertiesMaskLong))
                     .ifTrue(missing));
             } else {
-                statements.add(seenPropertyVariables.get(i).isFalse().ifTrue(missing));
+                statements.add(seenPropertyWord(seenPropertyVariables, i)
+                    .math(ExpressionDef.MathBinaryOperation.OpType.BITWISE_AND, seenPropertyWordBit(i))
+                    .compare(ExpressionDef.ComparisonOperation.OpType.EQUAL_TO, ExpressionDef.constant(0L))
+                    .ifTrue(missing));
             }
         }
         if (statements.isEmpty()) {
@@ -1054,7 +1149,9 @@ public final class BeanDeserializerSourceGen {
             return seenPropertiesMask.math(ExpressionDef.MathBinaryOperation.OpType.BITWISE_AND, seenPropertyMask(propertyIndex, seenPropertiesMaskLong))
                 .compare(ExpressionDef.ComparisonOperation.OpType.NOT_EQUAL_TO, seenPropertyZero(seenPropertiesMaskLong));
         }
-        return seenPropertyVariables.get(propertyIndex).isTrue();
+        return seenPropertyWord(seenPropertyVariables, propertyIndex)
+            .math(ExpressionDef.MathBinaryOperation.OpType.BITWISE_AND, seenPropertyWordBit(propertyIndex))
+            .compare(ExpressionDef.ComparisonOperation.OpType.NOT_EQUAL_TO, ExpressionDef.constant(0L));
     }
 
     private StatementDef markPropertySeen(BeanDispatchInfo dispatchInfo, int propertyIndex) {
@@ -1075,7 +1172,16 @@ public final class BeanDeserializerSourceGen {
                 seenPropertiesMask.math(ExpressionDef.MathBinaryOperation.OpType.BITWISE_OR, seenPropertyMask(propertyIndex, seenPropertiesMaskLong))
             );
         }
-        return seenPropertyVariables.get(propertyIndex).assign(ExpressionDef.trueValue());
+        VariableDef.Local word = seenPropertyWord(seenPropertyVariables, propertyIndex);
+        return word.assign(word.math(ExpressionDef.MathBinaryOperation.OpType.BITWISE_OR, seenPropertyWordBit(propertyIndex)));
+    }
+
+    private static VariableDef.Local seenPropertyWord(List<VariableDef.Local> seenPropertyWords, int propertyIndex) {
+        return seenPropertyWords.get(propertyIndex / Long.SIZE);
+    }
+
+    private static ExpressionDef.Constant seenPropertyWordBit(int propertyIndex) {
+        return ExpressionDef.constant(1L << (propertyIndex % Long.SIZE));
     }
 
     private ExpressionDef.Constant seenPropertyMask(int propertyIndex, boolean seenPropertiesMaskLong) {
