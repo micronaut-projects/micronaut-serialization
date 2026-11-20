@@ -53,6 +53,42 @@ class SerdeCreatorPropertyNamingSpec extends JsonCompileSpec {
         'record'      | false     | RECORD      | '{"legacy":"Jane","last_name":"Smith"}'
     }
 
+    @Unroll
+    void "documents read in parallel with either name of a #kind creator parameter (generated: #generated)"() {
+        given:
+        def context = buildContext('test.Person', source, true, generated ? [:] : [
+            'micronaut.serde.serialization.disable-generated-serializer': true,
+            'micronaut.serde.deserialization.disable-generated-deserializer': true
+        ])
+        def type = argumentOf(context, 'test.Person')
+        def pool = java.util.concurrent.Executors.newFixedThreadPool(8)
+        // a record component is named by its annotation only, so the strategy name is not one of its names
+        def keys = kind == 'record' ? ['legacy', 'nickname'] : ['legacy', 'first_name', 'nickname']
+
+        when:
+        def results = pool.invokeAll((1..300).collect { i ->
+            (java.util.concurrent.Callable<Boolean>) {
+                def key = keys[i % keys.size()]
+                def bean = jsonMapper.readValue("{\"$key\":\"n$i\",\"last_name\":\"l$i\"}", type)
+                bean.firstName == "n$i" && bean.lastName == "l$i"
+            }
+        }).collect { it.get() }
+
+        then:
+        results.every()
+
+        cleanup:
+        pool.shutdown()
+        context.close()
+
+        where:
+        kind          | generated | source
+        'constructor' | true      | CONSTRUCTOR
+        'constructor' | false     | CONSTRUCTOR
+        'record'      | true      | RECORD
+        'record'      | false     | RECORD
+    }
+
     private static final String CONSTRUCTOR = '''
 package test;
 
