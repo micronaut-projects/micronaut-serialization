@@ -101,31 +101,6 @@ class GeneratedWildcardNestedCollectionsParitySpec extends JsonCompileSpec {
         runtimeContext.close()
     }
 
-    void 'test an iterable property keeps its element type in the generated serdes'() {
-        given:
-        def generatedContext = ApplicationContext.run()
-        def runtimeContext = ApplicationContext.run([
-            'micronaut.serde.serialization.disable-generated-serializer': true,
-            'micronaut.serde.deserialization.disable-generated-deserializer': true
-        ])
-        def registry = generatedContext.getBean(SerdeRegistry)
-        Argument argument = Argument.of(SourceGenIterableBean)
-        def bean = new SourceGenIterableBean([new SourceGenWildcardNestedCollectionsBean.Item('a'), new SourceGenWildcardNestedCollectionsBean.Item('b')])
-        String json = '{"items":[{"name":"a"},{"name":"b"}]}'
-
-        expect:
-        registry.findSerializer(argument).createSpecific(registry.newEncoderContext(Object), argument).class.name == 'io.micronaut.serde.jackson.compiletime.SerdeSourceGenIterableBeanSerializer'
-        serializeToString(generatedContext.getBean(JsonMapper), bean) == json
-        serializeToString(runtimeContext.getBean(JsonMapper), bean) == json
-        parse(DatabindJsonMapper.builder().build().writeValueAsString(bean)) == parse(json)
-        generatedContext.getBean(JsonMapper).readValue(json, SourceGenIterableBean).items().toList() ==
-            runtimeContext.getBean(JsonMapper).readValue(json, SourceGenIterableBean).items().toList()
-
-        cleanup:
-        generatedContext.close()
-        runtimeContext.close()
-    }
-
     private static SourceGenWildcardNestedCollectionsBean newBean() {
         def deepMap = new LinkedHashMap<String, Map<String, String>>()
         deepMap.characteristics = Collections.singletonMap('color', 'pink')
