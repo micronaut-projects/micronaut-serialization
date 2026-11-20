@@ -213,7 +213,6 @@ public final class YamlObjectMapper implements ObjectMapper {
             } else {
                 serializeRuntimeTyped(encoder, object);
             }
-            encoder.finishDocument();
         }
     }
 
@@ -225,7 +224,6 @@ public final class YamlObjectMapper implements ObjectMapper {
             } else {
                 serialize(encoder, object, type);
             }
-            encoder.finishDocument();
         }
     }
 

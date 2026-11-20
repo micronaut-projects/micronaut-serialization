@@ -71,7 +71,7 @@ class YamlEncoderSpec extends Specification {
         out.toString("UTF-8") == "nested:\n  list:\n  - a\n  after: 1\ntype: x\n"
     }
 
-    def "finishing the document completes structures a serializer left open"() {
+    def "closing the root encoder completes structures a serializer left open"() {
         given:
         def out = new ByteArrayOutputStream()
         def encoder = new YamlEncoder(out, LimitingStream.DEFAULT_LIMITS)
@@ -81,9 +81,63 @@ class YamlEncoderSpec extends Specification {
         root.encodeKey("nested")
         def nested = root.encodeArray(Argument.OBJECT_ARGUMENT)
         nested.encodeString("a")
-        encoder.finishDocument()
+        encoder.close()
 
         then:
         out.toString("UTF-8") == "nested:\n- a\n"
+    }
+
+    def "closing the encoder itself completes and flushes every structure that is still open"() {
+        given:
+        def out = new ByteArrayOutputStream()
+
+        when: "a caller of the public encoder lets try-with-resources close it with structures open"
+        try (YamlEncoder encoder = new YamlEncoder(out, LimitingStream.DEFAULT_LIMITS)) {
+            def root = encoder.encodeObject(Argument.OBJECT_ARGUMENT)
+            root.encodeKey("nested")
+            def nested = root.encodeArray(Argument.OBJECT_ARGUMENT)
+            nested.encodeString("a")
+        }
+
+        then:
+        out.toString("UTF-8") == "nested:\n- a\n"
+    }
+
+    def "a child encoder closed after finishing its structure does not finish its parent"() {
+        given:
+        def out = new ByteArrayOutputStream()
+        def encoder = new YamlEncoder(out, LimitingStream.DEFAULT_LIMITS)
+
+        when:
+        def root = encoder.encodeObject(Argument.OBJECT_ARGUMENT)
+        root.encodeKey("list")
+        try (Encoder list = root.encodeArray(Argument.OBJECT_ARGUMENT)) {
+            list.encodeString("a")
+            list.finishStructure()
+        }
+        root.encodeKey("after")
+        root.encodeInt(1)
+        root.finishStructure()
+
+        then:
+        out.toString("UTF-8") == "list:\n- a\nafter: 1\n"
+    }
+
+    def "a serializer that fails still leaves the finished partial document in the output"() {
+        given:
+        def out = new ByteArrayOutputStream()
+        def encoder = new YamlEncoder(out, LimitingStream.DEFAULT_LIMITS)
+
+        when: "the mapper closes the root encoder when serialization throws"
+        try (encoder) {
+            def outer = encoder.encodeArray(Argument.OBJECT_ARGUMENT)
+            def inner = outer.encodeArray(Argument.OBJECT_ARGUMENT)
+            inner.encodeInt(1)
+            throw new IOException("boom")
+        }
+
+        then:
+        thrown(IOException)
+        out.toString("UTF-8") == "- - 1\n"
     }
 }
