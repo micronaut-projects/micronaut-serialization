@@ -40,12 +40,7 @@ import io.micronaut.serde.support.util.JsonViewUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.apache.fory.json.ForyJson;
-import org.apache.fory.json.ForyJsonAccess;
 import org.apache.fory.json.ForyJsonException;
-import org.apache.fory.json.JsonConfig;
-import org.apache.fory.json.reader.Utf8JsonReader;
-import org.apache.fory.json.resolver.JsonSharedRegistry;
-import org.apache.fory.json.resolver.JsonTypeResolver;
 import org.apache.fory.json.writer.Utf8JsonWriter;
 import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Processor;
@@ -55,7 +50,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.function.Consumer;
 
 /**
@@ -69,7 +63,7 @@ public final class ForyJsonMapper implements ObjectMapper {
     private final SerdeRegistry registry;
     private final @Nullable SerdeConfiguration serdeConfiguration;
     private final @Nullable Class<?> view;
-    private final Shared shared;
+    private final ForyJson fory;
     private final Serializer.EncoderContext encoderContext;
     private final Deserializer.DecoderContext decoderContext;
     private final @Nullable Argument<?> specificType;
@@ -78,20 +72,20 @@ public final class ForyJsonMapper implements ObjectMapper {
 
     @Inject
     public ForyJsonMapper(SerdeRegistry registry, SerdeConfiguration serdeConfiguration) {
-        this(registry, serdeConfiguration, null, new Shared(), null, null, null);
+        this(registry, serdeConfiguration, null, ForyJson.builder().build(), null, null, null);
     }
 
     private ForyJsonMapper(SerdeRegistry registry,
                            @Nullable SerdeConfiguration serdeConfiguration,
                            @Nullable Class<?> view,
-                           Shared shared,
+                           ForyJson fory,
                            @Nullable Argument<?> specificType,
                            @Nullable Serializer<Object> specificSerializer,
                            @Nullable Deserializer<Object> specificDeserializer) {
         this.registry = registry;
         this.serdeConfiguration = serdeConfiguration;
         this.view = view;
-        this.shared = shared;
+        this.fory = fory;
         this.encoderContext = registry.newEncoderContext(view);
         this.decoderContext = registry.newDecoderContext(view);
         this.specificType = specificType;
@@ -109,10 +103,10 @@ public final class ForyJsonMapper implements ObjectMapper {
     public JsonMapper createSpecific(Argument<?> type) {
         @Nullable Class<?> viewClass = JsonViewUtil.extractView(serdeConfiguration, type, view);
         if (viewClass != view) {
-            return new ForyJsonMapper(registry, serdeConfiguration, viewClass, shared, null, null, null).createSpecific(type);
+            return new ForyJsonMapper(registry, serdeConfiguration, viewClass, fory, null, null, null).createSpecific(type);
         }
         try {
-            return new ForyJsonMapper(registry, serdeConfiguration, view, shared, type,
+            return new ForyJsonMapper(registry, serdeConfiguration, view, fory, type,
                 (Serializer) encoderContext.findSerializer(type).createSpecific(encoderContext, (Argument) type),
                 (Deserializer) decoderContext.findDeserializer(type).createSpecific(decoderContext, (Argument) type));
         } catch (Exception e) {
@@ -136,12 +130,12 @@ public final class ForyJsonMapper implements ObjectMapper {
         SerdeRegistry newRegistry = introspections == null
             ? registry.cloneWithConfiguration(configuration, serializationConfiguration, deserializationConfiguration)
             : registry.cloneWithConfiguration(configuration, serializationConfiguration, deserializationConfiguration, introspections);
-        return new ForyJsonMapper(newRegistry, configuration == null ? serdeConfiguration : configuration, view, shared, null, null, null);
+        return new ForyJsonMapper(newRegistry, configuration == null ? serdeConfiguration : configuration, view, fory, null, null, null);
     }
 
     @Override
     public JsonMapper cloneWithViewClass(Class<?> viewClass) {
-        return new ForyJsonMapper(registry, serdeConfiguration, viewClass, shared, null, null, null);
+        return new ForyJsonMapper(registry, serdeConfiguration, viewClass, fory, null, null, null);
     }
 
     @Override
@@ -213,17 +207,16 @@ public final class ForyJsonMapper implements ObjectMapper {
     private <T> @Nullable T readValue(byte[] bytes, int offset, int length, Argument<T> type) throws IOException {
         Deserializer.DecoderContext context = decoderContext(type);
         Deserializer<? extends T> deserializer = deserializer(context, type);
-        State state = shared.acquire();
-        Utf8JsonReader reader = state.reader.reset(bytes, offset, length, state.decodeBuffer);
         try {
-            T value = deserializer.deserializeNullable(new ForyDecoder(reader), context, type);
-            reader.finish();
-            return value;
+            return fory.readUtf8(bytes, offset, length, reader -> {
+                try {
+                    return deserializer.deserializeNullable(new ForyDecoder(reader), context, type);
+                } catch (IOException e) {
+                    throw sneakyThrow(e);
+                }
+            });
         } catch (ForyJsonException e) {
             throw new JsonSyntaxException(e);
-        } finally {
-            reader.clear();
-            shared.release(state);
         }
     }
 
@@ -284,20 +277,18 @@ public final class ForyJsonMapper implements ObjectMapper {
 
     @Override
     public <T> byte[] writeValueAsBytes(Argument<T> type, @Nullable T object) throws IOException {
-        State state = shared.acquire();
-        Utf8JsonWriter writer = state.writer;
-        writer.reset();
-        try {
-            if (object == null) {
-                writer.writeNull();
-            } else {
-                Serializer.EncoderContext context = encoderContext(type);
-                serializer(context, type).serialize(new ForyEncoder(writer), context, type, object);
-            }
-            return writer.toJsonBytes();
-        } finally {
-            shared.release(state);
+        if (object == null) {
+            return fory.writeUtf8(Utf8JsonWriter::writeNull);
         }
+        Serializer.EncoderContext context = encoderContext(type);
+        Serializer<? super T> serializer = serializer(context, type);
+        return fory.writeUtf8(writer -> {
+            try {
+                serializer.serialize(new ForyEncoder(writer), context, type, object);
+            } catch (IOException e) {
+                throw sneakyThrow(e);
+            }
+        });
     }
 
     @Override
@@ -350,64 +341,11 @@ public final class ForyJsonMapper implements ObjectMapper {
     }
 
     /**
-     * Fory reader/writer state shared by all clones of a mapper. One state is cached per thread;
-     * re-entrant use (a serializer calling back into the mapper) gets a fresh state.
+     * Rethrows {@code throwable} unchanged through a lambda that cannot declare checked exceptions;
+     * the enclosing mapper methods declare {@link IOException}.
      */
-    private static final class Shared {
-        private static final int PROBES = 4;
-
-        private final JsonConfig config;
-        private final JsonSharedRegistry sharedRegistry;
-        private final AtomicReferenceArray<@Nullable State> slots;
-        private final int mask;
-
-        Shared() {
-            config = ForyJsonAccess.config(ForyJson.builder().build());
-            sharedRegistry = new JsonSharedRegistry(config);
-            // bounded by CPUs, not threads: virtual threads must not each retain a reader/writer and buffers
-            int size = Integer.highestOneBit(Math.max(1, Runtime.getRuntime().availableProcessors()) * 4 - 1) << 1;
-            slots = new AtomicReferenceArray<>(size);
-            mask = size - 1;
-        }
-
-        private static int home() {
-            int h = (int) Thread.currentThread().threadId();
-            return h ^ (h >>> 16);
-        }
-
-        State acquire() {
-            int home = home();
-            for (int i = 0; i < PROBES; i++) {
-                State state = slots.getAndSet((home + i) & mask, null);
-                if (state != null) {
-                    return state;
-                }
-            }
-            return new State(config, sharedRegistry);
-        }
-
-        void release(State state) {
-            int home = home();
-            for (int i = 0; i < PROBES; i++) {
-                if (slots.compareAndSet((home + i) & mask, null, state)) {
-                    return;
-                }
-            }
-            // pool full: drop the state
-        }
-    }
-
-    private static final class State {
-        private static final int INITIAL_BUFFER_SIZE = 8192;
-
-        final Utf8JsonWriter writer;
-        final Utf8JsonReader reader;
-        final byte[] decodeBuffer = new byte[INITIAL_BUFFER_SIZE];
-
-        State(JsonConfig config, JsonSharedRegistry sharedRegistry) {
-            JsonTypeResolver resolver = new JsonTypeResolver(sharedRegistry);
-            writer = new Utf8JsonWriter(config, resolver, new byte[INITIAL_BUFFER_SIZE]);
-            reader = new Utf8JsonReader(config, resolver);
-        }
+    @SuppressWarnings("unchecked")
+    private static <E extends Throwable> RuntimeException sneakyThrow(Throwable throwable) throws E {
+        throw (E) throwable;
     }
 }

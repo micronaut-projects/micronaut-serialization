@@ -19,39 +19,35 @@ import io.micronaut.core.type.Argument
 import io.micronaut.serde.Keys
 import io.micronaut.serde.KeysAwareDecoder
 import org.apache.fory.json.ForyJson
-import org.apache.fory.json.ForyJsonAccess
-import org.apache.fory.json.reader.Utf8JsonReader
-import org.apache.fory.json.resolver.JsonSharedRegistry
-import org.apache.fory.json.resolver.JsonTypeResolver
-import org.apache.fory.json.writer.Utf8JsonWriter
 import spock.lang.Specification
 
 import java.nio.charset.StandardCharsets
 
 class ForyTokenSpec extends Specification {
 
+    private static final ForyJson FORY = ForyJson.builder().build()
+
     void "packed keys preserve first and subsequent prefixes at token boundaries"() {
         given:
         def name = 'a' * length
         def keys = Keys.create([name, 'last'])
-        def writer = writer()
-        def encoder = new ForyEncoder(writer)
 
         when:
-        encoder.encodeArray()
-        2.times {
-            encoder.encodeObject()
-            encoder.encodeKey(keys, 0)
-            encoder.encodeInt(1)
-            encoder.encodeKey(keys, 1)
-            encoder.encodeInt(2)
+        def json = write { ForyEncoder encoder ->
+            encoder.encodeArray()
+            2.times {
+                encoder.encodeObject()
+                encoder.encodeKey(keys, 0)
+                encoder.encodeInt(1)
+                encoder.encodeKey(keys, 1)
+                encoder.encodeInt(2)
+                encoder.finishStructure()
+            }
             encoder.finishStructure()
         }
-        encoder.finishStructure()
 
         then:
-        new String(writer.toJsonBytes(), StandardCharsets.UTF_8) ==
-            "[{\"$name\":1,\"last\":2},{\"$name\":1,\"last\":2}]"
+        json == "[{\"$name\":1,\"last\":2},{\"$name\":1,\"last\":2}]"
 
         where:
         length << (0..18)
@@ -62,25 +58,18 @@ class ForyTokenSpec extends Specification {
         def name = 'a' * length
         def keys = Keys.create([name, 'last'])
         def fields = reversed ? ['"last"', '"' + name + '"'] : ['"' + name + '"', '"last"']
-        def reader = reader("{${space}${fields[0]}${space}:${space}1,${space}${fields[1]}${space}:${space}2${space}}")
-        def decoder = new ForyDecoder(reader)
+        def json = "{${space}${fields[0]}${space}:${space}1,${space}${fields[1]}${space}:${space}2${space}}".toString()
 
         when:
-        decoder.decodeObject()
+        def result = read(json) { ForyDecoder decoder ->
+            decoder.decodeObject()
+            def r = [decoder.decodeKey(keys), decoder.decodeInt(), decoder.decodeKey(keys), decoder.decodeInt(), decoder.decodeKey(keys)]
+            decoder.finishStructure()
+            r
+        }
 
         then:
-        decoder.decodeKey(keys) == (reversed ? 1 : 0)
-        decoder.decodeInt() == 1
-        decoder.decodeKey(keys) == (reversed ? 0 : 1)
-        decoder.decodeInt() == 2
-        decoder.decodeKey(keys) == KeysAwareDecoder.MATCH_END_OBJECT
-
-        when:
-        decoder.finishStructure()
-        reader.finish()
-
-        then:
-        noExceptionThrown()
+        result == [reversed ? 1 : 0, 1, reversed ? 0 : 1, 2, KeysAwareDecoder.MATCH_END_OBJECT]
 
         where:
         [length, space, reversed] << [(0..18), ['', ' \n\t\r'], [false, true]].combinations()
@@ -89,33 +78,25 @@ class ForyTokenSpec extends Specification {
     void "escaped and unicode names round trip through packed and raw tokens"() {
         given:
         def keys = Keys.create([name, 'tail'])
-        def writer = writer()
-        def encoder = new ForyEncoder(writer)
-        encoder.encodeObject(Argument.OBJECT_ARGUMENT)
-        encoder.encodeKey(keys, 0)
-        encoder.encodeString('first')
-        encoder.encodeKey(keys, 1)
-        encoder.encodeNull()
-        encoder.finishStructure()
-        def reader = reader(new String(writer.toJsonBytes(), StandardCharsets.UTF_8))
-        def decoder = new ForyDecoder(reader)
+        def json = write { ForyEncoder encoder ->
+            encoder.encodeObject(Argument.OBJECT_ARGUMENT)
+            encoder.encodeKey(keys, 0)
+            encoder.encodeString('first')
+            encoder.encodeKey(keys, 1)
+            encoder.encodeNull()
+            encoder.finishStructure()
+        }
 
         when:
-        decoder.decodeObject()
+        def result = read(json) { ForyDecoder decoder ->
+            decoder.decodeObject()
+            def r = [decoder.decodeKey(keys), decoder.decodeString(), decoder.decodeKey(keys), decoder.decodeNull(), decoder.decodeKey(keys)]
+            decoder.finishStructure()
+            r
+        }
 
         then:
-        decoder.decodeKey(keys) == 0
-        decoder.decodeString() == 'first'
-        decoder.decodeKey(keys) == 1
-        decoder.decodeNull()
-        decoder.decodeKey(keys) == KeysAwareDecoder.MATCH_END_OBJECT
-
-        when:
-        decoder.finishStructure()
-        reader.finish()
-
-        then:
-        noExceptionThrown()
+        result == [0, 'first', 1, true, KeysAwareDecoder.MATCH_END_OBJECT]
 
         where:
         name << ['"', '\\', '\n', 'é', '🍃', 'long "escaped" field name']
@@ -125,48 +106,31 @@ class ForyTokenSpec extends Specification {
         given:
         def outer = Keys.create(['child', 'last'])
         def inner = Keys.create(['value'])
-        def reader = reader('{"unknown":0,"child":{"value":1},"last":2}')
-        def decoder = new ForyDecoder(reader)
-        decoder.decodeObject()
-
-        expect:
-        decoder.decodeKey(outer) == KeysAwareDecoder.MATCH_UNKNOWN_NAME
-        decoder.decodeKey() == 'unknown'
-        decoder.decodeInt() == 0
-        decoder.decodeKey(outer) == 0
 
         when:
-        decoder.decodeObject()
+        def result = read('{"unknown":0,"child":{"value":1},"last":2}') { ForyDecoder decoder ->
+            decoder.decodeObject()
+            def r = [decoder.decodeKey(outer), decoder.decodeKey(), decoder.decodeInt(), decoder.decodeKey(outer)]
+            decoder.decodeObject()
+            r += [decoder.decodeKey(inner), decoder.decodeInt(), decoder.decodeKey(inner)]
+            decoder.finishStructure()
+            r += [decoder.decodeKey(outer), decoder.decodeInt(), decoder.decodeKey(outer)]
+            decoder.finishStructure()
+            r
+        }
 
         then:
-        decoder.decodeKey(inner) == 0
-        decoder.decodeInt() == 1
-        decoder.decodeKey(inner) == KeysAwareDecoder.MATCH_END_OBJECT
-
-        when:
-        decoder.finishStructure()
-
-        then:
-        decoder.decodeKey(outer) == 1
-        decoder.decodeInt() == 2
-        decoder.decodeKey(outer) == KeysAwareDecoder.MATCH_END_OBJECT
-
-        when:
-        decoder.finishStructure()
-        reader.finish()
-
-        then:
-        noExceptionThrown()
+        result == [KeysAwareDecoder.MATCH_UNKNOWN_NAME, 'unknown', 0, 0,
+                   0, 1, KeysAwareDecoder.MATCH_END_OBJECT,
+                   1, 2, KeysAwareDecoder.MATCH_END_OBJECT]
     }
 
-    private static Utf8JsonWriter writer() {
-        def config = ForyJsonAccess.config(ForyJson.builder().build())
-        new Utf8JsonWriter(config, new JsonTypeResolver(new JsonSharedRegistry(config)), new byte[16])
+    private static String write(Closure<?> body) {
+        new String(FORY.writeUtf8 { writer -> body.call(new ForyEncoder(writer)) }, StandardCharsets.UTF_8)
     }
 
-    private static Utf8JsonReader reader(String json) {
-        def config = ForyJsonAccess.config(ForyJson.builder().build())
-        new Utf8JsonReader(config, new JsonTypeResolver(new JsonSharedRegistry(config)))
-            .reset(json.getBytes(StandardCharsets.UTF_8), new byte[64])
+    private static <T> T read(String json, Closure<T> body) {
+        byte[] bytes = json.getBytes(StandardCharsets.UTF_8)
+        FORY.readUtf8(bytes, 0, bytes.length) { reader -> body.call(new ForyDecoder(reader)) }
     }
 }

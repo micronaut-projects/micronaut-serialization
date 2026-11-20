@@ -20,11 +20,6 @@ import io.micronaut.serde.Keys;
 import io.micronaut.serde.KeysProvider;
 import io.micronaut.serde.KeysSupport;
 import org.apache.fory.json.ForyJson;
-import org.apache.fory.json.ForyJsonAccess;
-import org.apache.fory.json.JsonConfig;
-import org.apache.fory.json.resolver.JsonSharedRegistry;
-import org.apache.fory.json.resolver.JsonTypeResolver;
-import org.apache.fory.json.writer.Utf8JsonWriter;
 
 import java.util.List;
 
@@ -87,11 +82,9 @@ public final class ForyKeysProvider implements KeysProvider {
             readWord = new long[size];
             readSuffix = new long[size];
             readMask = new long[size];
-            Utf8JsonWriter writer = new Utf8JsonWriter(Holder.CONFIG, Holder.RESOLVER, new byte[64]);
             for (int i = 0; i < size; i++) {
-                writer.reset();
-                writer.writeFieldName(keys.get(i));
-                byte[] name = writer.toJsonBytes();
+                String key = keys.get(i);
+                byte[] name = Holder.FORY.writeUtf8(writer -> writer.writeFieldName(key));
                 byte[] comma = new byte[name.length + 1];
                 comma[0] = ',';
                 System.arraycopy(name, 0, comma, 1, name.length);
@@ -138,7 +131,6 @@ public final class ForyKeysProvider implements KeysProvider {
     }
 
     private static final class Holder {
-        static final JsonConfig CONFIG = ForyJsonAccess.config(ForyJson.builder().build());
-        static final JsonTypeResolver RESOLVER = new JsonTypeResolver(new JsonSharedRegistry(CONFIG));
+        static final ForyJson FORY = ForyJson.builder().build();
     }
 }
