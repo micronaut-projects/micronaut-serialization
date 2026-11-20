@@ -84,9 +84,9 @@ class GeneratedWildcardNestedCollectionsParitySpec extends JsonCompileSpec {
         ])
         def registry = generatedContext.getBean(SerdeRegistry)
         Argument argument = Argument.of(SourceGenWildcardRecursiveBean)
-        def leaf = new SourceGenWildcardRecursiveBean('leaf', [:])
+        def leaf = new SourceGenWildcardRecursiveBean('leaf', null)
         def bean = new SourceGenWildcardRecursiveBean('root', [kids: [leaf, new SourceGenWildcardRecursiveBean('other', [more: [leaf]])]])
-        String json = '{"name":"root","children":{"kids":[{"name":"leaf","children":{}},{"name":"other","children":{"more":[{"name":"leaf","children":{}}]}}]}}'
+        String json = '{"name":"root","children":{"kids":[{"name":"leaf"},{"name":"other","children":{"more":[{"name":"leaf"}]}}]}}'
 
         expect:
         registry.findSerializer(argument).createSpecific(registry.newEncoderContext(Object), argument).class.name == 'io.micronaut.serde.jackson.compiletime.SerdeSourceGenWildcardRecursiveBeanSerializer'
