@@ -48,6 +48,35 @@ class SpecificJsonMapperSpec extends Specification {
             mapper.@deserializers.size() == 1
     }
 
+    void "untyped maps reuse the serializers of their values"() {
+        given:
+            def mapper = jacksonJsonMapper.cloneWithConfiguration(null, null, null)
+            def type = Argument.mapOf(String, Object)
+            Map<String, Object> value = [id: 1, owner: [name: 'Fred'], items: [[sku: 'a'], 'b']]
+            def valueSerializer = { ->
+                def field = Class.forName('io.micronaut.serde.support.serializers.AbstractMapObjectSerializer').getDeclaredField('valueSerializer')
+                field.accessible = true
+                field.get(mapper.@serializers.get(type))
+            }
+            def inners = { serializer ->
+                def field = serializer.class.getDeclaredField('inners')
+                field.accessible = true
+                new HashMap(field.get(serializer)).collectEntries { k, v -> [k, v.serializer()] }
+            }
+
+        when:
+            def first = mapper.writeValueAsString(type, value)
+            def firstInners = inners(valueSerializer())
+            def second = mapper.writeValueAsString(type, value)
+            def secondInners = inners(valueSerializer())
+
+        then:
+            first == '{"id":1,"owner":{"name":"Fred"},"items":[{"sku":"a"},"b"]}'
+            second == first
+            firstInners.keySet() == [Integer, LinkedHashMap, ArrayList] as Set
+            firstInners.every { k, v -> secondInners[k].is(v) }
+    }
+
     void "derived mappers share the JSON factory and its buffer pool"() {
         when:
             def factory = jacksonJsonMapper.@jsonFactory

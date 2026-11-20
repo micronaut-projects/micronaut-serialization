@@ -119,7 +119,7 @@ final class FeatureDecoderContext implements Deserializer.DecoderContext, Docume
     }
 
     @Override
-    public boolean isDocumentBound() {
-        return DocumentContextTracker.isDocumentBound(delegate);
+    public int documentBindings() {
+        return DocumentContextTracker.documentBindings(delegate);
     }
 }

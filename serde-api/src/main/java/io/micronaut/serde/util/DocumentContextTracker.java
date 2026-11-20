@@ -37,9 +37,10 @@ public interface DocumentContextTracker {
     void markDocumentBound();
 
     /**
-     * @return Whether the serdes created with this context are bound to the document
+     * @return How many times the serdes created with this context were bound to the document, so that a
+     * serde can tell whether creating another serde bound it
      */
-    boolean isDocumentBound();
+    int documentBindings();
 
     /**
      * Marks the serdes created with the given context as bound to the document.
@@ -58,6 +59,15 @@ public interface DocumentContextTracker {
      * context does not track it
      */
     static boolean isDocumentBound(Object context) {
-        return !(context instanceof DocumentContextTracker tracker) || tracker.isDocumentBound();
+        return !(context instanceof DocumentContextTracker tracker) || tracker.documentBindings() > 0;
+    }
+
+    /**
+     * @param context The encoder or decoder context
+     * @return How many times the serdes created with the context were bound to the document, -1 when
+     * the context does not track it
+     */
+    static int documentBindings(Object context) {
+        return context instanceof DocumentContextTracker tracker ? tracker.documentBindings() : -1;
     }
 }
