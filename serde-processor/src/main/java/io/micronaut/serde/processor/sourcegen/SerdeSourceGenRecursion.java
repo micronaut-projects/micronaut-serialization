@@ -96,11 +96,20 @@ public final class SerdeSourceGenRecursion {
         if (type instanceof WildcardElement wildcardElement) {
             return boundsReach(wildcardElement, visited);
         }
-        // Only an unresolved type variable stops the search. A type argument resolved from a type
-        // variable, such as the bound of ? extends List<Self>, also reports isTypeVariable() and
-        // has to be followed
-        if (type.isPrimitive() || type instanceof GenericPlaceholderElement) {
+        if (type.isPrimitive()) {
             return false;
+        }
+        // An unresolved type variable is described by its first bound, as SerdeSourceGenArgumentTypes.normalize
+        // does, so the bound is what the property can hold: Iterable<T extends Self> used raw holds Self. A type
+        // argument resolved from a type variable, such as the bound of ? extends List<Self>, also reports
+        // isTypeVariable() and is followed below as a regular type
+        if (type instanceof GenericPlaceholderElement placeholderElement) {
+            List<? extends ClassElement> bounds = placeholderElement.getBounds();
+            // a bound such as T extends Comparable<T> refers to the variable again
+            if (bounds.isEmpty() || !visited.add("<" + placeholderElement.getVariableName() + ">")) {
+                return false;
+            }
+            return reaches(bounds.get(0), visited);
         }
         if (type.isArray()) {
             return reaches(type.fromArray(), visited);

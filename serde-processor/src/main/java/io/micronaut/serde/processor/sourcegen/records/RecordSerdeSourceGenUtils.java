@@ -142,7 +142,7 @@ final class RecordSerdeSourceGenUtils {
         List<? extends ClassElement> typeArguments = SerdeSourceGenArgumentTypes.typeArguments(argumentType);
         if (typeArguments.isEmpty()) {
             return ClassTypeDef.of(Argument.class)
-                .invokeStatic(ARGUMENT_OF_TYPE_VARIABLE_METHOD, ExpressionDef.constant(TypeDef.erasure(argumentType)), ExpressionDef.constant(variableName));
+                .invokeStatic(ARGUMENT_OF_TYPE_VARIABLE_METHOD, classExpression(argumentType), ExpressionDef.constant(variableName));
         }
         List<ExpressionDef> typeArgumentExpressions = new ArrayList<>(typeArguments.size());
         if (typeArgumentsByName.size() == typeArguments.size()) {
@@ -157,7 +157,7 @@ final class RecordSerdeSourceGenUtils {
         return ClassTypeDef.of(Argument.class)
             .invokeStatic(
                 ARGUMENT_OF_TYPE_VARIABLE_WITH_TYPE_PARAMETERS_METHOD,
-                ExpressionDef.constant(TypeDef.erasure(argumentType)),
+                classExpression(argumentType),
                 ExpressionDef.constant(variableName),
                 ExpressionDef.constant(variableName),
                 ClassTypeDef.of(AnnotationMetadata.class).getStaticField(EMPTY_ANNOTATION_METADATA_FIELD),
