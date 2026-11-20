@@ -40,7 +40,13 @@ import java.util.WeakHashMap;
 @Internal
 public final class ContextBoundSerdes {
 
-    private static final ThreadLocal<int[]> CREATED = ThreadLocal.withInitial(() -> new int[1]);
+    /**
+     * Per thread while a specialization is tracked: the number of serde beans created with a context, and the depth
+     * of the nested specializations. It is removed once the outermost specialization ends.
+     */
+    private static final ThreadLocal<int[]> TRACKING = new ThreadLocal<>();
+    private static final int CREATED = 0;
+    private static final int DEPTH = 1;
 
     private ContextBoundSerdes() {
     }
@@ -49,15 +55,72 @@ public final class ContextBoundSerdes {
      * Records that a serde bean was created with the context of the current specialization.
      */
     public static void created() {
-        CREATED.get()[0]++;
+        int[] tracking = TRACKING.get();
+        if (tracking != null) {
+            tracking[CREATED]++;
+        }
     }
 
     /**
-     * @return The number of serde beans created with a context on this thread, to compare before and after a
-     * specialization
+     * Specializes a serializer that a bean keeps between documents. If specializing it creates a serde bean bound to
+     * the context, the serializer is specialized again for the context of each document.
+     *
+     * @param factory The factory of the specific serializer
+     * @param context The context of the current document
+     * @param <T>     The type
+     * @return The serializer to keep
+     * @throws SerdeException If it cannot be created
      */
-    public static int count() {
-        return CREATED.get()[0];
+    public static <T> Serializer<T> specialize(SerializerFactory<T> factory, Serializer.EncoderContext context) throws SerdeException {
+        int created = enter();
+        try {
+            Serializer<T> specific = factory.create(context);
+            return createdSince(created) ? new PerContextSerializer<>(factory, context, specific) : specific;
+        } finally {
+            exit();
+        }
+    }
+
+    /**
+     * Specializes a deserializer that a bean keeps between documents. If specializing it creates a serde bean bound to
+     * the context, the deserializer is specialized again for the context of each document.
+     *
+     * @param factory The factory of the specific deserializer
+     * @param context The context of the current document
+     * @param <T>     The type
+     * @return The deserializer to keep
+     * @throws SerdeException If it cannot be created
+     */
+    public static <T> Deserializer<T> specialize(DeserializerFactory<T> factory, Deserializer.DecoderContext context) throws SerdeException {
+        int created = enter();
+        try {
+            Deserializer<T> specific = factory.create(context);
+            return createdSince(created) ? new PerContextDeserializer<>(factory, context, specific) : specific;
+        } finally {
+            exit();
+        }
+    }
+
+    private static int enter() {
+        int[] tracking = TRACKING.get();
+        if (tracking == null) {
+            tracking = new int[2];
+            TRACKING.set(tracking);
+        }
+        tracking[DEPTH]++;
+        return tracking[CREATED];
+    }
+
+    private static boolean createdSince(int created) {
+        int[] tracking = TRACKING.get();
+        return tracking != null && tracking[CREATED] != created;
+    }
+
+    private static void exit() {
+        int[] tracking = TRACKING.get();
+        if (tracking != null && --tracking[DEPTH] == 0) {
+            TRACKING.remove();
+        }
     }
 
     /**
