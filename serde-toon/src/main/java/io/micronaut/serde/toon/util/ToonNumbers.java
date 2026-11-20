@@ -17,6 +17,8 @@ package io.micronaut.serde.toon.util;
 
 import io.micronaut.core.annotation.Internal;
 
+import org.jspecify.annotations.Nullable;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
@@ -56,7 +58,10 @@ public final class ToonNumbers {
                 if (d.isNaN() || d.isInfinite()) {
                     return "null";
                 }
-
+                String plain = plainDouble(d);
+                if (plain != null) {
+                    return plain;
+                }
                 return canonicalDecimal(new BigDecimal(d.toString()));
             }
 
@@ -86,6 +91,33 @@ public final class ToonNumbers {
         // window and never fractional, so the JDK's own decimal form is
         // already canonical.
         return number.toString();
+    }
+
+    /**
+     * The canonical form of a double that {@link Double#toString(double)} writes without an
+     * exponent, from 10<sup>-3</sup> to 10<sup>7</sup>, which is inside the plain-form magnitude
+     * window: its digits with the trailing fractional zeros removed.
+     *
+     * @param d The value
+     * @return The canonical form, or {@code null} if the value is written with an exponent or is zero
+     */
+    private static @Nullable String plainDouble(double d) {
+        if (d == 0) {
+            return null;
+        }
+        String s = Double.toString(d);
+        int end = s.length();
+        int dot = s.indexOf('.');
+        if (dot < 0 || s.indexOf('E', dot) >= 0) {
+            return null;
+        }
+        while (s.charAt(end - 1) == '0') {
+            end--;
+        }
+        if (end - 1 == dot) {
+            end--;
+        }
+        return end == s.length() ? s : s.substring(0, end);
     }
 
     private static String canonicalDecimal(BigDecimal value) {
