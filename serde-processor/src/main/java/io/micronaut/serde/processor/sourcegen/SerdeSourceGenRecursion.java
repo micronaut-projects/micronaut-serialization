@@ -17,7 +17,9 @@ package io.micronaut.serde.processor.sourcegen;
 
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.inject.ast.ClassElement;
+import io.micronaut.inject.ast.GenericPlaceholderElement;
 import io.micronaut.inject.ast.PropertyElement;
+import io.micronaut.inject.ast.WildcardElement;
 
 import java.util.HashSet;
 import java.util.List;
@@ -82,7 +84,25 @@ public final class SerdeSourceGenRecursion {
     }
 
     private boolean reaches(ClassElement type, Set<String> visited) {
-        if (type.isPrimitive() || type.isTypeVariable()) {
+        if (type instanceof WildcardElement wildcardElement) {
+            // Kotlin declares List<Self> inside a collection as ? extends List<Self>, the bounds
+            // are what the property can hold
+            for (ClassElement bound : wildcardElement.getUpperBounds()) {
+                if (reaches(bound, visited)) {
+                    return true;
+                }
+            }
+            for (ClassElement bound : wildcardElement.getLowerBounds()) {
+                if (reaches(bound, visited)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        // Only an unresolved type variable stops the search. A type argument resolved from a type
+        // variable, such as the bound of ? extends List<Self>, also reports isTypeVariable() and
+        // has to be followed
+        if (type.isPrimitive() || type instanceof GenericPlaceholderElement) {
             return false;
         }
         if (type.isArray()) {
