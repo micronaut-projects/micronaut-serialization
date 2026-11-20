@@ -29,6 +29,8 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.UUID;
+import java.util.function.Function;
 
 /**
  * Deserializer of {@link Map}.
@@ -45,6 +47,9 @@ abstract class MapDeserializer<K, V, M extends Map<K, @Nullable V>> implements D
     private final Deserializer<? extends V> valueDeser;
     private final Argument<K> keyArgument;
     private final Argument<V> valueArgument;
+    // Parses the keys of the common non-string key types without the conversion service, or null
+    @Nullable
+    private final Function<String, ?> directKeyParser;
 
     MapDeserializer(@Nullable Deserializer<? extends V> valueDeser,
                     Argument<K> keyArgument,
@@ -52,6 +57,37 @@ abstract class MapDeserializer<K, V, M extends Map<K, @Nullable V>> implements D
         this.valueDeser = valueDeser;
         this.keyArgument = keyArgument;
         this.valueArgument = valueArgument;
+        // Annotations on the key, such as a format, are only understood by the conversion service
+        this.directKeyParser = keyArgument.getAnnotationMetadata().isEmpty() ? directKeyParser(keyArgument.getType()) : null;
+    }
+
+    private static @Nullable Function<String, ?> directKeyParser(Class<?> keyType) {
+        if (keyType == Integer.class) {
+            return Integer::valueOf;
+        }
+        if (keyType == Long.class) {
+            return Long::valueOf;
+        }
+        if (keyType == UUID.class) {
+            return UUID::fromString;
+        }
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    private K convertKey(String key, ConversionService conversionService) throws SerdeException {
+        if (directKeyParser != null && !key.isEmpty()) {
+            try {
+                return (K) directKeyParser.apply(key);
+            } catch (IllegalArgumentException e) {
+                // Not the plain form: the conversion service decides and reports
+            }
+        }
+        try {
+            return conversionService.convertRequired(key, keyArgument);
+        } catch (ConversionErrorException e) {
+            throw new SerdeException("Error converting Map key [" + key + "] to target type [" + keyArgument + "]: " + e.getMessage(), e);
+        }
     }
 
     protected final void doDeserialize(Decoder decoder,
@@ -77,11 +113,7 @@ abstract class MapDeserializer<K, V, M extends Map<K, @Nullable V>> implements D
                 if (keyArgument.isInstance(key)) {
                     k = (K) key;
                 } else {
-                    try {
-                        k = conversionService.convertRequired(key, keyArgument);
-                    } catch (ConversionErrorException e) {
-                        throw new SerdeException("Error converting Map key [" + key + "] to target type [" + keyArgument + "]: " + e.getMessage(), e);
-                    }
+                    k = convertKey(key, conversionService);
                 }
                 if (valueDeser == null) {
                     map.put(k, (V) objectDecoder.decodeArbitrary());
