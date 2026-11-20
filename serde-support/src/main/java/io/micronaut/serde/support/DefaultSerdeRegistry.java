@@ -61,6 +61,8 @@ import io.micronaut.serde.support.serializers.ObjectSerializer;
 import io.micronaut.serde.support.util.TypeKey;
 import io.micronaut.serde.util.CustomizableDeserializer;
 import io.micronaut.serde.util.CustomizableSerializer;
+import io.micronaut.serde.util.DocumentContextTracker;
+import io.micronaut.serde.util.GeneratedSerde;
 import jakarta.inject.Singleton;
 import org.jspecify.annotations.Nullable;
 
@@ -615,6 +617,10 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                                           boolean createdByDefinition) {
 
         T create(Object context, Argument<?> type) {
+            if (!GeneratedSerde.class.isAssignableFrom(beanDefinition.getBeanType())) {
+                // A user serde can keep the context it is created with
+                DocumentContextTracker.markDocumentBound(context);
+            }
             if (!createdByDefinition) {
                 return beanContext.createBean(beanDefinition.getBeanType(), context, type);
             }

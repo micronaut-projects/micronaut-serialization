@@ -30,6 +30,7 @@ import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
 import io.micronaut.serde.util.GeneratedSerdeFallbackUtil;
+import io.micronaut.serde.util.GeneratedSerde;
 import io.micronaut.sourcegen.model.AnnotationDef;
 import io.micronaut.sourcegen.model.ClassDef;
 import io.micronaut.sourcegen.model.ClassTypeDef;
@@ -104,6 +105,7 @@ public final class EnumSerializerSourceGen {
                 .build())
             .addSuperinterface(TypeDef.parameterized(FormattedSerializer.class, enumTypeDef))
             .addSuperinterface(TypeDef.parameterized(ObjectSerializer.class, enumTypeDef))
+            .addSuperinterface(TypeDef.of(GeneratedSerde.class))
             .addFields(valuesField(enumSerdeShape))
             .addMethod(generateCreateSpecificMethod(enumTypeDef))
             .addMethod(generateCreateSpecificWithFormatMethod(enumTypeDef))

@@ -28,6 +28,7 @@ import io.micronaut.serde.reference.AbstractPropertyReferenceManager;
 import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.support.reference.DocumentIdReference;
 import io.micronaut.serde.support.reference.PendingDocumentIdReference;
+import io.micronaut.serde.util.DocumentContextTracker;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -45,8 +46,9 @@ import java.util.Optional;
  * @since 1.0.0
  */
 @Internal
-class DefaultDecoderContext extends AbstractPropertyReferenceManager implements Deserializer.DecoderContext {
+class DefaultDecoderContext extends AbstractPropertyReferenceManager implements Deserializer.DecoderContext, DocumentContextTracker {
     private final DefaultSerdeRegistry registry;
+    private boolean documentBound;
     // Document-scoped identifier state, allocated only when a document uses identifiers and released on close
     @Nullable
     private Map<String, Object> documentIds;
@@ -175,5 +177,15 @@ class DefaultDecoderContext extends AbstractPropertyReferenceManager implements 
     @Override
     public Optional<DeserializationConfiguration> getDeserializationConfiguration() {
         return Optional.of(registry.getDeserializationConfiguration());
+    }
+
+    @Override
+    public void markDocumentBound() {
+        documentBound = true;
+    }
+
+    @Override
+    public boolean isDocumentBound() {
+        return documentBound;
     }
 }

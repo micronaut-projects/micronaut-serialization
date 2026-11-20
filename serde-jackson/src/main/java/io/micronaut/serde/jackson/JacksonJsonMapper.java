@@ -42,6 +42,7 @@ import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.support.util.JsonViewUtil;
+import io.micronaut.serde.util.DocumentContextTracker;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jspecify.annotations.Nullable;
@@ -71,6 +72,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 /**
@@ -90,6 +92,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
 
     private static final String VALUE_TO_UPDATE_NULL_MSG = "Value to update cannot be null";
     private static final String TYPE_NULL_MSG = "Type cannot be null";
+    private static final int MAX_CACHED_SERDES = 256;
 
     /**
      * Adaptive first-block size for {@link #writeValueAsBytes}. Plain int with benign
@@ -116,6 +119,12 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
     private final Deserializer<?> specificDeserializer;
     @Nullable
     private final Serializer<?> specificSerializer;
+    /**
+     * The serializers and deserializers of the types read and written without a specific mapper,
+     * which a call created without binding them to its document.
+     */
+    private final Map<Argument<?>, Serializer<?>> serializers = new ConcurrentHashMap<>();
+    private final Map<Argument<?>, Deserializer<?>> deserializers = new ConcurrentHashMap<>();
 
     @Inject
     @Internal
@@ -259,7 +268,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
             if (isSpecificType(argument)) {
                 serializer = (Serializer<? super T>) Objects.requireNonNull(specificSerializer);
             } else {
-                serializer = context.findSerializer(argument).createSpecific(context, argument);
+                serializer = (Serializer<? super T>) findSerializer(context, argument);
             }
             final Encoder encoder = JacksonEncoder.create(gen, streamLimits);
             serializer.serialize(encoder, context, argument, value);
@@ -278,7 +287,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
             if (isSpecificType(type)) {
                 deserializer = Objects.requireNonNull(specificDeserializer);
             } else {
-                deserializer = context.findDeserializer(type).createSpecific(context, (Argument) type);
+                deserializer = findDeserializer(context, type);
             }
             final Decoder decoder = createDecoder(parser);
             return (T) deserializer.deserializeNullable(decoder, context, type);
@@ -540,6 +549,57 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
 
     private Decoder createDecoder(JsonParser parser) throws IOException {
         return JacksonDecoder.create(parser, streamLimits, coercionPolicy);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private Serializer<?> findSerializer(Serializer.EncoderContext context, Argument<?> type) throws IOException {
+        boolean cacheable = isCacheable(type);
+        if (cacheable) {
+            Serializer<?> serializer = serializers.get(type);
+            if (serializer != null) {
+                return serializer;
+            }
+        }
+        Serializer<?> serializer = context.findSerializer(type).createSpecific(context, (Argument) type);
+        if (cacheable && !DocumentContextTracker.isDocumentBound(context) && serializers.size() < MAX_CACHED_SERDES) {
+            serializers.putIfAbsent(type, serializer);
+        }
+        return serializer;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private Deserializer<?> findDeserializer(Deserializer.DecoderContext context, Argument<?> type) throws IOException {
+        boolean cacheable = isCacheable(type);
+        if (cacheable) {
+            Deserializer<?> deserializer = deserializers.get(type);
+            if (deserializer != null) {
+                return deserializer;
+            }
+        }
+        Deserializer<?> deserializer = context.findDeserializer(type).createSpecific(context, (Argument) type);
+        if (cacheable && !DocumentContextTracker.isDocumentBound(context) && deserializers.size() < MAX_CACHED_SERDES) {
+            deserializers.putIfAbsent(type, deserializer);
+        }
+        return deserializer;
+    }
+
+    /**
+     * The equality of arguments ignores their annotations, which can change the serde, so only
+     * types without annotations are cached.
+     *
+     * @param type The type
+     * @return Whether the serde of the type can be cached by the type
+     */
+    private static boolean isCacheable(Argument<?> type) {
+        if (!type.getAnnotationMetadata().isEmpty()) {
+            return false;
+        }
+        for (Argument<?> typeParameter : type.getTypeParameters()) {
+            if (!isCacheable(typeParameter)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private boolean isSpecificType(Argument<?> type) {

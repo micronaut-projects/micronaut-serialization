@@ -24,6 +24,30 @@ class SpecificJsonMapperSpec extends Specification {
 
     }
 
+    void "the serdes of types without annotations are created once"() {
+        given:
+            def mapper = jacksonJsonMapper.cloneWithConfiguration(null, null, null)
+            def annotated = Argument.of(TestX, 'x', new io.micronaut.inject.annotation.MutableAnnotationMetadata().tap {
+                addAnnotation('com.fasterxml.jackson.annotation.JsonView', [value: Object])
+            })
+
+        when:
+            def first = mapper.writeValueAsString(new TestX(name: "Fred"))
+            def second = mapper.writeValueAsString(Argument.of(TestX), new TestX(name: "Bob"))
+            def read = mapper.readValue('{"name":"Fred"}', TestX)
+            def readAgain = mapper.readValue('{"name":"Bob"}', Argument.of(TestX))
+            mapper.readValue('{"name":"Ann"}', annotated)
+            mapper.writeValueAsString(annotated, new TestX(name: "Ann"))
+
+        then:
+            first == '{"name":"Fred"}'
+            second == '{"name":"Bob"}'
+            read.name == 'Fred'
+            readAgain.name == 'Bob'
+            mapper.@serializers.size() == 1
+            mapper.@deserializers.size() == 1
+    }
+
     void "derived mappers share the JSON factory and its buffer pool"() {
         when:
             def factory = jacksonJsonMapper.@jsonFactory

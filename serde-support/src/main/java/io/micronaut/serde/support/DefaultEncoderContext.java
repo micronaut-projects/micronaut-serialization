@@ -27,6 +27,7 @@ import io.micronaut.serde.reference.AbstractPropertyReferenceManager;
 import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.reference.SerializationReference;
 import io.micronaut.serde.support.reference.DocumentIdSerializationReference;
+import io.micronaut.serde.util.DocumentContextTracker;
 import org.jspecify.annotations.Nullable;
 
 import java.util.IdentityHashMap;
@@ -38,8 +39,9 @@ import java.util.Optional;
  * @since 1.0.0
  */
 @Internal
-class DefaultEncoderContext extends AbstractPropertyReferenceManager implements Serializer.EncoderContext {
+class DefaultEncoderContext extends AbstractPropertyReferenceManager implements Serializer.EncoderContext, DocumentContextTracker {
     private final DefaultSerdeRegistry registry;
+    private boolean documentBound;
     // Beans written in full in the current document, allocated only when a document uses object identity
     @Nullable
     private IdentityHashMap<Object, Object> writtenBeans;
@@ -107,6 +109,16 @@ class DefaultEncoderContext extends AbstractPropertyReferenceManager implements 
     @Override
     public void close() {
         writtenBeans = null;
+    }
+
+    @Override
+    public void markDocumentBound() {
+        documentBound = true;
+    }
+
+    @Override
+    public boolean isDocumentBound() {
+        return documentBound;
     }
 
     @Override
