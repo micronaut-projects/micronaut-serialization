@@ -921,20 +921,20 @@ public final class SimpleSerdeShapeAnalyzer {
     }
 
     private boolean hasPropertyLevelSerializableOverride(ClassElement element) {
-        if (beanProperties(element).stream().anyMatch(p -> p.hasAnnotation(SERDEABLE_SERIALIZABLE))) {
+        if (beanProperties(element).stream().anyMatch(p -> p.hasDeclaredAnnotation(SERDEABLE_SERIALIZABLE))) {
             return true;
         }
         if (!element.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyInstance().onlyDeclared()
-            .annotated(a -> a.hasAnnotation(SERDEABLE_SERIALIZABLE))).isEmpty()) {
+            .annotated(a -> a.hasDeclaredAnnotation(SERDEABLE_SERIALIZABLE))).isEmpty()) {
             return true;
         }
         if (!element.getEnclosedElements(ElementQuery.ALL_METHODS.onlyInstance().onlyDeclared()
-            .annotated(a -> a.hasAnnotation(SERDEABLE_SERIALIZABLE))).isEmpty()) {
+            .annotated(a -> a.hasDeclaredAnnotation(SERDEABLE_SERIALIZABLE))).isEmpty()) {
             return true;
         }
         return element.getPrimaryConstructor().map(c -> {
             for (ParameterElement parameter : c.getParameters()) {
-                if (parameter.hasAnnotation(SERDEABLE_SERIALIZABLE)) {
+                if (parameter.hasDeclaredAnnotation(SERDEABLE_SERIALIZABLE)) {
                     return true;
                 }
             }
@@ -943,20 +943,20 @@ public final class SimpleSerdeShapeAnalyzer {
     }
 
     private boolean hasPropertyLevelDeserializableOverride(ClassElement element) {
-        if (beanProperties(element).stream().anyMatch(p -> p.hasAnnotation(SERDEABLE_DESERIALIZABLE))) {
+        if (beanProperties(element).stream().anyMatch(p -> p.hasDeclaredAnnotation(SERDEABLE_DESERIALIZABLE))) {
             return true;
         }
         if (!element.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyInstance().onlyDeclared()
-            .annotated(a -> a.hasAnnotation(SERDEABLE_DESERIALIZABLE))).isEmpty()) {
+            .annotated(a -> a.hasDeclaredAnnotation(SERDEABLE_DESERIALIZABLE))).isEmpty()) {
             return true;
         }
         if (!element.getEnclosedElements(ElementQuery.ALL_METHODS.onlyInstance().onlyDeclared()
-            .annotated(a -> a.hasAnnotation(SERDEABLE_DESERIALIZABLE))).isEmpty()) {
+            .annotated(a -> a.hasDeclaredAnnotation(SERDEABLE_DESERIALIZABLE))).isEmpty()) {
             return true;
         }
         return element.getPrimaryConstructor().map(c -> {
             for (ParameterElement parameter : c.getParameters()) {
-                if (parameter.hasAnnotation(SERDEABLE_DESERIALIZABLE)) {
+                if (parameter.hasDeclaredAnnotation(SERDEABLE_DESERIALIZABLE)) {
                     return true;
                 }
             }
@@ -1056,7 +1056,9 @@ public final class SimpleSerdeShapeAnalyzer {
      * generated serdes use. Only a strategy that has to be looked up at runtime needs the runtime serde.
      */
     private boolean hasCustomNaming(AnnotationMetadata annotationMetadata) {
-        return annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.RUNTIME_NAMING).isPresent();
+        return annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.RUNTIME_NAMING).isPresent()
+            || annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.SERIALIZE_RUNTIME_NAMING).isPresent()
+            || annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.DESERIALIZE_RUNTIME_NAMING).isPresent();
     }
 
     private boolean hasAnnotation(MethodElement methodElement, Class<? extends Annotation> annotation) {
