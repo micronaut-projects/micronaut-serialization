@@ -32,6 +32,7 @@ import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
 import io.micronaut.serde.util.GeneratedSerdeEnumUtil;
 import io.micronaut.serde.util.GeneratedSerdeExceptionUtil;
 import io.micronaut.serde.util.GeneratedSerdeFallbackUtil;
+import io.micronaut.serde.util.GeneratedSerde;
 import io.micronaut.sourcegen.model.AnnotationDef;
 import io.micronaut.sourcegen.model.ClassDef;
 import io.micronaut.sourcegen.model.ClassTypeDef;
@@ -134,6 +135,7 @@ public final class EnumDeserializerSourceGen {
                 .addMember(GENERATED_VALUE_MEMBER, NULLAWAY_WARNING)
                 .build())
             .addSuperinterface(TypeDef.parameterized(FormattedDeserializer.class, enumTypeDef))
+            .addSuperinterface(TypeDef.of(GeneratedSerde.class))
             .addField(FieldDef.builder(ARGUMENT_STRING_FIELD, ARGUMENT_TYPE)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
                 .initializer(EnumSerdeSourceGenUtils.stringArgumentExpression())

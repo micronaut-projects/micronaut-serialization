@@ -55,6 +55,8 @@ public final class GeneratedSerdeLazyUtil {
      * @return The lazy serializer
      */
     public static <T> Serializer<T> lazySerializer(Serializer.EncoderContext context, Argument<T> type) {
+        // The lazy serializer resolves the serializer later with this context
+        DocumentContextTracker.markDocumentBound(context);
         return new LazySerializer<>(context, type);
     }
 
@@ -67,6 +69,8 @@ public final class GeneratedSerdeLazyUtil {
      * @return The lazy deserializer
      */
     public static <T> Deserializer<T> lazyDeserializer(Deserializer.DecoderContext context, Argument<T> type) {
+        // The lazy deserializer resolves the deserializer later with this context
+        DocumentContextTracker.markDocumentBound(context);
         return new LazyDeserializer<>(context, type);
     }
 

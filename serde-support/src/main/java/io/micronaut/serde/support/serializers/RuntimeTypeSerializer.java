@@ -22,6 +22,7 @@ import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.util.DocumentContextTracker;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -48,6 +49,8 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
                                  IntrospectionException introspectionException,
                                  Argument<?> outerType) {
         this.encoderContext = encoderContext;
+        // The serializers of the runtime types are created later, and kept
+        DocumentContextTracker.markDocumentBound(encoderContext);
         this.outer = outer;
         this.introspectionException = introspectionException;
         this.outerType = outerType;
