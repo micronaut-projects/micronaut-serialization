@@ -17,15 +17,19 @@ package io.micronaut.serde.support.deserializers;
 
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
+import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.DelegatingDecoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Keys;
 import io.micronaut.serde.KeysAwareDecoder;
+import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.config.annotation.SerdeConfig;
+import io.micronaut.serde.support.util.JsonNodeDecoder;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * Subtyped property deserializer.
@@ -38,6 +42,7 @@ final class SubtypedPropertyObjectDeserializer implements Deserializer<Object> {
 
     private final DeserializerSubtypeInfo<? super Object> subtypeInfo;
     private final Keys discriminatorKeys;
+    private final boolean discriminatorVisible;
 
     public SubtypedPropertyObjectDeserializer(DeserializerSubtypeInfo<? super Object> subtypeInfo) {
         this.subtypeInfo = subtypeInfo;
@@ -47,33 +52,46 @@ final class SubtypedPropertyObjectDeserializer implements Deserializer<Object> {
             throw new IllegalStateException("Unsupported discriminator type: " + discriminatorType);
         }
         this.discriminatorKeys = Keys.create(subtypeInfo.parent().info().discriminatorName());
+        this.discriminatorVisible = subtypeInfo.parent().info().discriminatorVisible();
     }
 
     @Override
     public Object deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type)
         throws IOException {
-        if (!subtypeInfo.parent().info().discriminatorVisible()) {
+        if (!discriminatorVisible) {
             // Serialization writes the discriminator first. When it comes first, the subtype can read the rest of the
             // object directly, without buffering it through the demuxing decoder.
             Decoder objectDecoder = decoder.decodeObject(type);
-            Decoder opened = new OpenedObjectDecoder(objectDecoder);
-            // a keys-aware decoder leaves an unmatched name or the end of the object to be read again
-            if (objectDecoder instanceof KeysAwareDecoder keysAware && keysAware.decodeKey(discriminatorKeys) == 0) {
-                Deserializer<? super Object> deserializer = keysAware.decodeNull()
-                    ? subtypeInfo.findDeserializer(null)
-                    : subtypeInfo.findDeserializer(keysAware.decodeString());
-                return deserializer.deserialize(opened, decoderContext, type);
+            if (objectDecoder instanceof KeysAwareDecoder keysAware) {
+                int keyIndex = keysAware.decodeKey(discriminatorKeys);
+                if (keyIndex == 0) {
+                    return findDeserializerForValue(keysAware).deserialize(new OpenedObjectDecoder(objectDecoder), decoderContext, type);
+                }
+                if (keyIndex == KeysAwareDecoder.MATCH_END_OBJECT) {
+                    // an empty object, which the subtype reads as one
+                    objectDecoder.finishStructure();
+                    Decoder empty = JsonNodeDecoder.create(JsonNode.createObjectNode(Map.of()), LimitingStream.DEFAULT_LIMITS);
+                    return subtypeInfo.findDeserializer(null).deserialize(empty, decoderContext, type);
+                }
+                // MATCH_UNKNOWN_NAME: decodeKey() returns the same name again, so the demuxing decoder sees every key
             }
-            return deserializeDemuxed(opened, decoderContext, type);
+            return deserializeDemuxed(new OpenedObjectDecoder(objectDecoder), decoderContext, type);
         }
         return deserializeDemuxed(decoder, decoderContext, type);
+    }
+
+    private Deserializer<? super Object> findDeserializerForValue(Decoder decoder) throws IOException {
+        if (decoder.decodeNull()) {
+            return subtypeInfo.findDeserializer(null);
+        }
+        return subtypeInfo.findDeserializer(decoder.decodeString());
     }
 
     private Object deserializeDemuxed(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type)
         throws IOException {
         try (DemuxingObjectDecoder.PrimedDecoder primed = DemuxingObjectDecoder.prime(decoder)) {
             Decoder typeFinder;
-            if (subtypeInfo.parent().info().discriminatorVisible()) {
+            if (discriminatorVisible) {
                 typeFinder = primed.decodeObjectNonConsuming(type);
             } else {
                 typeFinder = primed.decodeObject(type);
@@ -99,11 +117,7 @@ final class SubtypedPropertyObjectDeserializer implements Deserializer<Object> {
             }
 
             if (keyIndex == 0) {
-                if (objectDecoder.decodeNull()) {
-                    return subtypeInfo.findDeserializer(null);
-                }
-                String discriminatorValue = objectDecoder.decodeString();
-                return subtypeInfo.findDeserializer(discriminatorValue);
+                return findDeserializerForValue(objectDecoder);
             } else {
                 objectDecoder.decodeKey();
                 objectDecoder.skipValue();

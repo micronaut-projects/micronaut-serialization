@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.core.annotation.Introspected;
 import io.micronaut.core.type.Argument;
+import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.ObjectMapper;
 import io.micronaut.serde.annotation.Serdeable;
 import org.junit.jupiter.api.AfterAll;
@@ -123,6 +124,23 @@ class DiscriminatorPositionTest {
         Group read = assertInstanceOf(Group.class, read(mapper.writeValueAsString(Argument.of(Shape.class), group)));
         assertEquals(7, assertInstanceOf(Square.class, read.first).side);
         assertEquals(List.of("t"), assertInstanceOf(Square.class, read.members.get(0)).tags);
+    }
+
+    @Test
+    void treeDecoder() throws IOException {
+        // the tree decoder is another keys-aware decoder, which keeps an unmatched name in its own state
+        for (String json : List.of(
+            """
+                {"type":"square","id":"s","side":3,"tags":["a"]}""",
+            """
+                {"id":"s","side":3,"tags":["a"],"type":"square"}""",
+            """
+                {"type":"group","id":"g","members":[{"side":1,"type":"square","id":"m"}],"first":{"type":"circle","id":"c","radius":1}}""")) {
+            Shape fromJson = read(json);
+            Shape fromTree = mapper.readValueFromTree(mapper.readValue(json, JsonNode.class), Argument.of(Shape.class));
+            assertEquals(mapper.writeValueAsString(Argument.of(Shape.class), fromJson), mapper.writeValueAsString(Argument.of(Shape.class), fromTree));
+        }
+        assertThrows(IOException.class, () -> mapper.readValueFromTree(mapper.readValue("{}", JsonNode.class), Argument.of(Shape.class)));
     }
 
     private static Shape read(String json) throws IOException {
