@@ -63,10 +63,13 @@ public final class RecordSerdeShapeResolver {
             }
             String serializedName = stringValue(propertyElement, SerdeConfig.PROPERTY).orElse(parameter.getName());
             String parameterName = parameter.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(serializedName);
-            if (!parameterName.equals(serializedName)) {
-                // The runtime reads the argument with the explicit name of the parameter and writes the property
-                // with its own name, such as one a naming strategy derives. A component has one name for both.
-                return Optional.empty();
+            List<String> aliases = aliases(propertyElement, parameter);
+            if (!parameterName.equals(serializedName) && !aliases.contains(parameterName)) {
+                // The property is written with its own name, such as one a naming strategy derives, and read with the
+                // explicit name of its creator parameter as well, like the runtime deserializer
+                aliases = new ArrayList<>(aliases);
+                aliases.add(parameterName);
+                aliases = List.copyOf(aliases);
             }
             Map<String, String> keyMetadata = resolveKeyMetadata(propertyElement);
             components.add(new RecordSerdeShape.RecordComponent(
@@ -76,7 +79,7 @@ public final class RecordSerdeShapeResolver {
                 keyMetadata,
                 SerdeInclusionSourceGen.resolvePropertyInclude(element, propertyElement, keyMetadata),
                 booleanValue(propertyElement, SerdeConfig.REQUIRED).orElse(parameter.booleanValue(SerdeConfig.class, SerdeConfig.REQUIRED).orElse(false)),
-                aliases(propertyElement, parameter),
+                aliases,
                 // The runtime merges the parameter and the property metadata for a constructor argument,
                 // and an explicit nullable declaration wins over a non-null one
                 !(parameter.isNullable() || propertyElement.isNullable()) && (parameter.isNonNull() || propertyElement.isNonNull()),

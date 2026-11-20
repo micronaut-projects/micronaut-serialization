@@ -1338,7 +1338,13 @@ final class DeserBean<T> {
             this.unwrapped = unwrapped;
             this.unwrappedProperty = unwrappedProperty;
             this.isAnySetter = annotationMetadata.isAnnotationPresent(SerdeConfig.SerAnySetter.class);
-            final String[] aliases = annotationMetadata.stringValues(SerdeConfig.class, SerdeConfig.ALIASES);
+            String[] aliases = annotationMetadata.stringValues(SerdeConfig.class, SerdeConfig.ALIASES);
+            // A creator argument named apart from its property is also read with the names of the property, which
+            // is written with its own name, such as one a naming strategy derives
+            String[] propertyNames = renamedPropertyNames(introspection, argument, argumentMetadata);
+            if (propertyNames != null) {
+                aliases = ArrayUtils.concat(aliases, propertyNames);
+            }
             if (ArrayUtils.isNotEmpty(aliases)) {
                 this.aliases = ArrayUtils.concat(aliases, property);
             } else {
@@ -1940,6 +1946,17 @@ final class DeserBean<T> {
             .filter(metadata -> !hasDifferentExplicitName(annotationMetadata, metadata))
             .orElse(AnnotationMetadata.EMPTY_METADATA);
         return new AnnotationMetadataHierarchy(propertyMetadata, annotationMetadata);
+    }
+
+    private static <B, P> String @Nullable [] renamedPropertyNames(BeanIntrospection<B> introspection, Argument<P> argument, AnnotationMetadata argumentMetadata) {
+        AnnotationMetadata propertyMetadata = introspection.getProperty(argument.getName(), argument.getType())
+            .map(BeanProperty::getAnnotationMetadata)
+            .orElse(AnnotationMetadata.EMPTY_METADATA);
+        String propertyName = findExplicitName(propertyMetadata);
+        if (propertyName == null || !hasDifferentExplicitName(argumentMetadata, propertyMetadata)) {
+            return null;
+        }
+        return ArrayUtils.concat(propertyMetadata.stringValues(SerdeConfig.class, SerdeConfig.ALIASES), propertyName);
     }
 
     private static boolean hasDifferentExplicitName(AnnotationMetadata argumentMetadata, AnnotationMetadata propertyMetadata) {

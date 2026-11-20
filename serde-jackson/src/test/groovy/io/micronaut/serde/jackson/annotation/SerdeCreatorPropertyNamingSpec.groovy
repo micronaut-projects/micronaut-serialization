@@ -1,5 +1,6 @@
 package io.micronaut.serde.jackson.annotation
 
+import io.micronaut.serde.SerdeRegistry
 import io.micronaut.serde.jackson.JsonCompileSpec
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -8,7 +9,7 @@ import spock.lang.Unroll
 class SerdeCreatorPropertyNamingSpec extends JsonCompileSpec {
 
     @Unroll
-    void "an explicit @JsonProperty on a #kind creator parameter wins over the naming strategy (generated: #generated)"() {
+    void "a #kind creator parameter named apart from its property is read with both names (generated: #generated)"() {
         given:
         def context = buildContext('test.Person', source, true, generated ? [:] : [
             'micronaut.serde.serialization.disable-generated-serializer': true,
@@ -16,27 +17,46 @@ class SerdeCreatorPropertyNamingSpec extends JsonCompileSpec {
         ])
         def type = argumentOf(context, 'test.Person')
 
-        when:
+        when: 'the explicit name of the parameter'
         def bean = jsonMapper.readValue('{"legacy":"Jane","last_name":"Smith"}', type)
 
         then:
         bean.firstName == 'Jane'
         bean.lastName == 'Smith'
 
+        when: 'what it writes'
+        def json = jsonMapper.writeValueAsString(bean)
+
+        then:
+        json == written
+        jsonMapper.readValue(json, type).firstName == 'Jane'
+
+        when: 'an alias of the property'
+        def aliased = jsonMapper.readValue('{"nickname":"Jo","last_name":"Smith"}', type)
+
+        then:
+        aliased.firstName == 'Jo'
+
+        and: 'the generated serdes are still used when generation is enabled'
+        def registry = context.getBean(SerdeRegistry)
+        registry.findSerializer(type).createSpecific(registry.newEncoderContext(Object), type).class.name.contains('SerdePerson') == generated
+        registry.findDeserializer(type).createSpecific(registry.newDecoderContext(Object), type).class.name.contains('SerdePerson') == generated
+
         cleanup:
         context.close()
 
         where:
-        kind          | generated | source
-        'constructor' | true      | CONSTRUCTOR
-        'constructor' | false     | CONSTRUCTOR
-        'record'      | true      | RECORD
-        'record'      | false     | RECORD
+        kind          | generated | source      | written
+        'constructor' | true      | CONSTRUCTOR | '{"first_name":"Jane","last_name":"Smith"}'
+        'constructor' | false     | CONSTRUCTOR | '{"first_name":"Jane","last_name":"Smith"}'
+        'record'      | true      | RECORD      | '{"legacy":"Jane","last_name":"Smith"}'
+        'record'      | false     | RECORD      | '{"legacy":"Jane","last_name":"Smith"}'
     }
 
     private static final String CONSTRUCTOR = '''
 package test;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.micronaut.serde.annotation.Serdeable;
@@ -53,6 +73,7 @@ class Person {
         this.lastName = lastName;
     }
 
+    @JsonAlias("nickname")
     public String getFirstName() { return firstName; }
     public String getLastName() { return lastName; }
 }
@@ -61,12 +82,13 @@ class Person {
     private static final String RECORD = '''
 package test;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.serde.config.naming.SnakeCaseStrategy;
 
 @Serdeable(naming = SnakeCaseStrategy.class)
-record Person(@JsonProperty("legacy") String firstName, String lastName) {
+record Person(@JsonProperty("legacy") @JsonAlias("nickname") String firstName, String lastName) {
 }
 '''
 }
