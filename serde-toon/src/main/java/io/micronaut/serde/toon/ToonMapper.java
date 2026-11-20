@@ -36,6 +36,7 @@ import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
 import io.micronaut.serde.support.util.JsonNodeEncoder;
 import io.micronaut.serde.support.util.JsonViewUtil;
+import io.micronaut.serde.support.util.SpecificSerdeCache;
 import io.micronaut.serde.toon.util.ToonDecoder;
 import io.micronaut.serde.toon.util.ToonEncoder;
 import jakarta.inject.Inject;
@@ -87,6 +88,10 @@ public final class ToonMapper implements ObjectMapper {
     private final LimitingStream.RemainingLimits streamLimits;
 
     private final CoercionPolicy coercionPolicy;
+    /**
+     * The serializers and deserializers that a call created without binding them to its document.
+     */
+    private final SpecificSerdeCache serdeCache = new SpecificSerdeCache();
 
     /**
      * Creates a TOON-backed {@link ObjectMapper}.
@@ -196,7 +201,7 @@ public final class ToonMapper implements ObjectMapper {
 
     private <T> @Nullable T readValue(Decoder decoder, Argument<T> type) throws IOException {
         try (Deserializer.DecoderContext context = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view))) {
-            Deserializer<? extends T> deserializer = context.findDeserializer(type).createSpecific(context, type);
+            Deserializer<? extends T> deserializer = serdeCache.findDeserializer(context, type);
             return deserializer.deserializeNullable(decoder, context, type);
         }
     }
@@ -354,7 +359,7 @@ public final class ToonMapper implements ObjectMapper {
 
     private <T> void serialize(Encoder encoder, T object, Argument<T> type) throws IOException {
         try (var context = registry.newEncoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view))) {
-            Serializer<? super T> serializer = context.findSerializer(type).createSpecific(context, type);
+            Serializer<? super T> serializer = serdeCache.findSerializer(context, type);
             serializer.serialize(encoder, context, type, object);
         }
     }

@@ -37,6 +37,7 @@ import io.micronaut.serde.support.util.BufferingJsonNodeProcessor;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
 import io.micronaut.serde.support.util.JsonNodeEncoder;
 import io.micronaut.serde.support.util.JsonViewUtil;
+import io.micronaut.serde.support.util.SpecificSerdeCache;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import jakarta.json.Json;
@@ -59,6 +60,11 @@ import java.util.function.Consumer;
 @Singleton
 @BootstrapContextCompatible
 public class JsonStreamMapper implements ObjectMapper {
+
+    /**
+     * The serializers and deserializers that a call created without binding them to its document.
+     */
+    private final SpecificSerdeCache serdeCache = new SpecificSerdeCache();
     private final SerdeRegistry registry;
     @Nullable
     private final SerdeConfiguration serdeConfiguration;
@@ -141,7 +147,7 @@ public class JsonStreamMapper implements ObjectMapper {
     private <T> @Nullable T readValue(JsonParser parser, Argument<T> type) throws IOException {
         Decoder decoder = new JsonParserDecoder(parser, limits(), coercionPolicy());
         try (var context = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view))) {
-            final Deserializer<? extends T> deserializer = context.findDeserializer(type).createSpecific(context, type);
+            final Deserializer<? extends T> deserializer = serdeCache.findDeserializer(context, type);
             return deserializer.deserialize(
                     decoder,
                     context,
@@ -225,7 +231,7 @@ public class JsonStreamMapper implements ObjectMapper {
 
     private void serialize(Encoder encoder, Object object, Argument type) throws IOException {
         try (var context = registry.newEncoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view))) {
-            final Serializer<Object> serializer = context.findSerializer(type).createSpecific(context, type);
+            final Serializer<Object> serializer = serdeCache.findSerializer(context, type);
             serializer.serialize(
                     encoder,
                     context,
