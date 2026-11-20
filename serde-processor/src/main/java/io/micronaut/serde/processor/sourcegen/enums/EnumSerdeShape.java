@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.processor.sourcegen.enums;
 
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -29,6 +30,17 @@ public record EnumSerdeShape(
     boolean hasPropertyOverrides,
     List<String> serializedValues
 ) {
+
+    /**
+     * Whether every constant has its own serialized value, which then identifies the constant in
+     * both directions.
+     *
+     * @return Whether the serialized values are unique
+     */
+    public boolean hasUniqueSerializedValues() {
+        return !serializedValues.isEmpty() && new HashSet<>(serializedValues).size() == serializedValues.size();
+    }
+
     /**
      * Enum constant metadata used by source generation.
      *

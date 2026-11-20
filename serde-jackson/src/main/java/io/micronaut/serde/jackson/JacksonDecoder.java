@@ -96,6 +96,10 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
     private boolean sequentialKeyMatching;
     private int sequentialKeyIndex;
     private boolean currentlyUnwrappingArray;
+    @Nullable
+    private Keys currentValues;
+    @Nullable
+    private StringValueMatcher currentValueMatcher;
 
     private JacksonDecoder(JsonParser parser, RemainingLimits remainingLimits, CoercionPolicy coercionPolicy) throws IOException {
         super(remainingLimits);
@@ -207,6 +211,43 @@ public final class JacksonDecoder extends LimitingStream implements KeysAwareDec
             sequentialKeyMatching = false;
         }
         return parser.currentNameMatch(currentPropertyNameMatcher);
+    }
+
+    @Override
+    public int decodeStringValue(Keys values) throws IOException {
+        if (peekToken() != JsonToken.VALUE_STRING) {
+            return MATCH_UNKNOWN_NAME;
+        }
+        StringValueMatcher matcher = currentValueMatcher;
+        if (values != currentValues || matcher == null) {
+            matcher = valueMatcher(values);
+            currentValues = values;
+            currentValueMatcher = matcher;
+        }
+        // The value is matched in the buffer of the parser, without creating a string
+        int index = matcher.match(parser.getTextCharacters(), parser.getTextOffset(), parser.getTextLength());
+        if (index < 0) {
+            // The peeked string stays for the caller to decode
+            return MATCH_UNKNOWN_NAME;
+        }
+        peekedToken = null;
+        return index;
+    }
+
+    private static StringValueMatcher valueMatcher(Keys values) {
+        Object[] jacksonKeys = KeysSupport.get(values, JACKSON_KEYS_INDEX);
+        if (jacksonKeys[JacksonKeysProvider.VALUE_MATCHER_INDEX] instanceof StringValueMatcher matcher) {
+            return matcher;
+        }
+        SerializableString[] serializableKeys = (SerializableString[]) jacksonKeys[JacksonKeysProvider.SERIALIZABLE_KEYS_INDEX];
+        List<String> strings = new ArrayList<>(serializableKeys.length);
+        for (SerializableString serializableKey : serializableKeys) {
+            strings.add(serializableKey.getValue());
+        }
+        StringValueMatcher matcher = new StringValueMatcher(strings);
+        // Racing threads build equal matchers
+        jacksonKeys[JacksonKeysProvider.VALUE_MATCHER_INDEX] = matcher;
+        return matcher;
     }
 
     private void jacksonKeys(Keys keys) {

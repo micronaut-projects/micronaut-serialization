@@ -39,6 +39,10 @@ public final class JacksonKeysProvider implements KeysProvider {
 
     static final int PROPERTY_NAME_MATCHER_INDEX = 0;
     static final int SERIALIZABLE_KEYS_INDEX = 1;
+    /**
+     * The matcher of string values, created when a decoder first matches a value against the keys.
+     */
+    static final int VALUE_MATCHER_INDEX = 2;
 
     private static final JsonFactory JSON_FACTORY = new JsonFactory();
 
@@ -83,7 +87,7 @@ public final class JacksonKeysProvider implements KeysProvider {
         PropertyNameMatcher propertyNameMatcher = caseInsensitive
             ? JSON_FACTORY.constructCINameMatcher(names, false, Locale.ROOT)
             : JSON_FACTORY.constructNameMatcher(names, false);
-        Object[] jacksonKeys = new Object[SERIALIZABLE_KEYS_INDEX + 1];
+        Object[] jacksonKeys = new Object[VALUE_MATCHER_INDEX + 1];
         jacksonKeys[PROPERTY_NAME_MATCHER_INDEX] = propertyNameMatcher;
         jacksonKeys[SERIALIZABLE_KEYS_INDEX] = serializableKeys;
         return jacksonKeys;

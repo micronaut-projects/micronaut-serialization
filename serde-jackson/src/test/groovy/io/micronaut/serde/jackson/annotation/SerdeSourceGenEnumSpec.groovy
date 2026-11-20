@@ -69,6 +69,14 @@ public enum UnicodeEnum {
         values.collect { jsonMapper.writeValueToTree(it).getValue() } == ['FIRST', '\u00c9T\u00c9', '\u65e5\u672c']
         jsonMapper.writeValueAsString(values) == '["FIRST","\u00c9T\u00c9","\u65e5\u672c"]'
         values.collect { jsonMapper.readValue(jsonMapper.writeValueAsString(it), type) } == values
+        assertGeneratedDeserializer(registry, type)
+        jsonMapper.readValue('["\\u00c9T\\u00c9","FIRST","\u65e5\u672c"]', Argument.listOf(enumType)) == [values[1], values[0], values[2]]
+
+        when:
+        jsonMapper.readValue('"SECOND"', type)
+
+        then:
+        thrown(Exception)
 
         cleanup:
         context.close()

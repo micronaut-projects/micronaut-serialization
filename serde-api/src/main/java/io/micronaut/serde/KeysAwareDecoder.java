@@ -64,4 +64,37 @@ public interface KeysAwareDecoder extends Decoder {
      * @throws IOException If an unrecoverable error occurs
      */
     int decodeKey(Keys keys) throws IOException;
+
+    /**
+     * Decode the next value if it is a string that is one of the supplied constant values, such as
+     * the serialized names of the constants of an enum. A non-negative result is the index of the
+     * matched value, which is then consumed. {@link #MATCH_UNKNOWN_NAME} means the value was not
+     * consumed: it is not a string, is not one of the values, or the decoder does not match values,
+     * and the caller decodes it as usual.
+     *
+     * @param values The values
+     * @return The matched value index or {@link #MATCH_UNKNOWN_NAME}
+     * @throws IOException If an unrecoverable error occurs
+     * @since 3.3
+     */
+    default int decodeStringValue(Keys values) throws IOException {
+        return MATCH_UNKNOWN_NAME;
+    }
+
+    /**
+     * Decode the next value with any decoder if it is a string that is one of the supplied constant
+     * values, see {@link #decodeStringValue(Keys)}.
+     *
+     * @param decoder The decoder
+     * @param values The values
+     * @return The matched value index or {@link #MATCH_UNKNOWN_NAME}
+     * @throws IOException If an unrecoverable error occurs
+     * @since 3.3
+     */
+    static int decodeStringValue(Decoder decoder, Keys values) throws IOException {
+        if (decoder instanceof KeysAwareDecoder keysAwareDecoder) {
+            return keysAwareDecoder.decodeStringValue(values);
+        }
+        return MATCH_UNKNOWN_NAME;
+    }
 }
