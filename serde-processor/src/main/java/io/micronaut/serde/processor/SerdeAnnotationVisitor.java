@@ -1824,14 +1824,13 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                         builder.member(SerdeConfig.SERIALIZE_PROPERTY_NAME, serName)
                     );
                 }
-                if (creatorNamesProperty) {
-                    // the creator parameter keeps its explicit name
-                } else if (resolvedPerPropDeserNaming != null) {
+                // a creator parameter keeps its explicit name
+                if (!creatorNamesProperty && resolvedPerPropDeserNaming != null) {
                     String deserName = resolvedPerPropDeserNaming.translate(beanProperty);
                     beanProperty.annotate(SerdeConfig.class, (builder) ->
                         builder.member(SerdeConfig.DESERIALIZE_PROPERTY_NAME, deserName)
                     );
-                } else if (!resolvedHasPropDeserNaming && deserializeNamingStrategy != null) {
+                } else if (!creatorNamesProperty && !resolvedHasPropDeserNaming && deserializeNamingStrategy != null) {
                     String deserName = deserializeNamingStrategy.translate(beanProperty);
                     beanProperty.annotate(SerdeConfig.class, (builder) ->
                         builder.member(SerdeConfig.DESERIALIZE_PROPERTY_NAME, deserName)
