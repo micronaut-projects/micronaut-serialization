@@ -18,10 +18,12 @@ package io.micronaut.serde.support.deserializers;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.DelegatingDecoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Keys;
 import io.micronaut.serde.KeysAwareDecoder;
 import io.micronaut.serde.config.annotation.SerdeConfig;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 
@@ -49,6 +51,25 @@ final class SubtypedPropertyObjectDeserializer implements Deserializer<Object> {
 
     @Override
     public Object deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type)
+        throws IOException {
+        if (!subtypeInfo.parent().info().discriminatorVisible()) {
+            // Serialization writes the discriminator first. When it comes first, the subtype can read the rest of the
+            // object directly, without buffering it through the demuxing decoder.
+            Decoder objectDecoder = decoder.decodeObject(type);
+            Decoder opened = new OpenedObjectDecoder(objectDecoder);
+            // a keys-aware decoder leaves an unmatched name or the end of the object to be read again
+            if (objectDecoder instanceof KeysAwareDecoder keysAware && keysAware.decodeKey(discriminatorKeys) == 0) {
+                Deserializer<? super Object> deserializer = keysAware.decodeNull()
+                    ? subtypeInfo.findDeserializer(null)
+                    : subtypeInfo.findDeserializer(keysAware.decodeString());
+                return deserializer.deserialize(opened, decoderContext, type);
+            }
+            return deserializeDemuxed(opened, decoderContext, type);
+        }
+        return deserializeDemuxed(decoder, decoderContext, type);
+    }
+
+    private Object deserializeDemuxed(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type)
         throws IOException {
         try (DemuxingObjectDecoder.PrimedDecoder primed = DemuxingObjectDecoder.prime(decoder)) {
             Decoder typeFinder;
@@ -89,6 +110,48 @@ final class SubtypedPropertyObjectDeserializer implements Deserializer<Object> {
             }
         }
         return subtypeInfo.findDeserializer(null);
+    }
+
+    /**
+     * A decoder over an object whose start was already read. Like {@link DemuxingObjectDecoder.PrimedDecoder},
+     * it only supports opening the object, which returns the decoder of the opened object.
+     */
+    private static final class OpenedObjectDecoder extends DelegatingDecoder {
+        private final Decoder objectDecoder;
+
+        private OpenedObjectDecoder(Decoder objectDecoder) {
+            this.objectDecoder = objectDecoder;
+        }
+
+        @Override
+        public Decoder decodeObject() {
+            return objectDecoder;
+        }
+
+        @Override
+        public Decoder decodeObject(Argument<?> type) {
+            return objectDecoder;
+        }
+
+        @Override
+        public boolean decodeNull() {
+            return false;
+        }
+
+        @Override
+        protected Decoder delegate() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public IOException createDeserializationException(String message, @Nullable Object invalidValue) {
+            return objectDecoder.createDeserializationException(message, invalidValue);
+        }
+
+        @Override
+        public void close() {
+            // the subtype deserializer finishes the object
+        }
     }
 
 }
