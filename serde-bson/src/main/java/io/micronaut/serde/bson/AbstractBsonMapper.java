@@ -97,13 +97,29 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
     @Override
     public <T> void writeValue(OutputStream outputStream, Argument<T> type, @Nullable T object) throws IOException {
         try (AbstractBsonWriter bsonWriter = createBsonWriter(outputStream)) {
-            if (object == null) {
-                bsonWriter.writeNull();
+            encodeValue(bsonWriter, type, object);
+            bsonWriter.flush();
+        }
+    }
+
+    /**
+     * Encodes a value with the given writer, without flushing or closing it.
+     *
+     * @param bsonWriter The writer
+     * @param type       The type of the value, or {@code null} to use its class
+     * @param object     The value
+     * @throws IOException If an unrecoverable error occurs
+     */
+    protected final void encodeValue(AbstractBsonWriter bsonWriter, @Nullable Argument<?> type, @Nullable Object object) throws IOException {
+        if (object == null) {
+            bsonWriter.writeNull();
+        } else {
+            BsonWriterEncoder encoder = new BsonWriterEncoder(bsonWriter, limits());
+            if (type == null) {
+                serialize(encoder, object);
             } else {
-                BsonWriterEncoder encoder = new BsonWriterEncoder(bsonWriter, limits());
                 serialize(encoder, object, type);
             }
-            bsonWriter.flush();
         }
     }
 
@@ -185,12 +201,7 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
     @Override
     public void writeValue(OutputStream outputStream, @Nullable Object object) throws IOException {
         try (AbstractBsonWriter bsonWriter = createBsonWriter(outputStream)) {
-            if (object == null) {
-                bsonWriter.writeNull();
-            } else {
-                BsonWriterEncoder encoder = new BsonWriterEncoder(bsonWriter, limits());
-                serialize(encoder, object);
-            }
+            encodeValue(bsonWriter, null, object);
             bsonWriter.flush();
         }
     }
