@@ -555,7 +555,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private Serializer<?> findSerializer(Serializer.EncoderContext context, Argument<?> type) throws IOException {
-        boolean cacheable = isCacheable(type);
+        boolean cacheable = !type.isTypeVariable() && isCacheable(type);
         if (cacheable) {
             Serializer<?> serializer = serializers.get(type);
             if (serializer != null) {
@@ -571,7 +571,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private Deserializer<?> findDeserializer(Deserializer.DecoderContext context, Argument<?> type) throws IOException {
-        boolean cacheable = isCacheable(type);
+        boolean cacheable = !type.isTypeVariable() && isCacheable(type);
         if (cacheable) {
             Deserializer<?> deserializer = deserializers.get(type);
             if (deserializer != null) {
@@ -593,8 +593,10 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
      * @return Whether the serde of the type can be cached by the type
      */
     private static boolean isCacheable(Argument<?> type) {
-        // a type variable equals the concrete argument of its type, but is serialized by runtime type
-        if (type.isTypeVariable() || !type.getAnnotationMetadata().isEmpty()) {
+        // A type variable equals the concrete argument of its type, but is serialized by runtime type, so the root
+        // argument of a call is not cached when it is one (see the callers). The type parameters of an argument such as
+        // Argument.of(ArrayList.class, Integer.class) are type variables bound to concrete types, and stay cacheable.
+        if (!type.getAnnotationMetadata().isEmpty()) {
             return false;
         }
         for (Argument<?> typeParameter : type.getTypeParameters()) {
