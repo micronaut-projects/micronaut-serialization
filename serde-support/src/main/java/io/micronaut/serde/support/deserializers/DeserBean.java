@@ -58,6 +58,7 @@ import io.micronaut.serde.support.util.SerdeArgumentConf;
 import io.micronaut.serde.support.util.SerdeFeatures;
 import io.micronaut.serde.support.util.SubtypeInfo;
 import io.micronaut.serde.util.GeneratedSerdeExceptionUtil;
+import io.micronaut.serde.util.DocumentContextTracker;
 import io.micronaut.serde.util.SerdePropertyAccess;
 import org.jspecify.annotations.Nullable;
 
@@ -147,6 +148,11 @@ final class DeserBean<T> {
     private final Set<DeserializationConfiguration.Feature> beanFeaturesWithout;
     private volatile boolean initialized;
     private volatile boolean initializing;
+    /**
+     * Whether initializing the property deserializers bound them to the document, such as with a user serde keeping
+     * the context. The bean is kept between documents, so each document that uses it is marked bound as well.
+     */
+    private volatile boolean documentBound;
 
     // CHECKSTYLE:ON
 
@@ -660,7 +666,9 @@ final class DeserBean<T> {
                     initializing = true;
                     decoderContext = decoderContext.withFeatures(beanFeaturesWith, beanFeaturesWithout);
                     try {
+                        int bindings = DocumentContextTracker.documentBindings(decoderContext);
                         initializeInternal(decoderContext);
+                        documentBound = DocumentContextTracker.documentBindings(decoderContext) != bindings;
                         initialized = true;
                     } finally {
                         initializing = false;
@@ -669,6 +677,9 @@ final class DeserBean<T> {
             } finally {
                 lock.unlock();
             }
+        }
+        if (documentBound) {
+            DocumentContextTracker.markDocumentBound(decoderContext);
         }
     }
 
