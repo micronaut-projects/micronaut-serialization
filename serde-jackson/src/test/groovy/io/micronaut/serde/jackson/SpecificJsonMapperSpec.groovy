@@ -48,6 +48,27 @@ class SpecificJsonMapperSpec extends Specification {
             mapper.@serdeCache.@deserializers.size() == 1
     }
 
+    void "the serdes are cached by type, whatever the names of the arguments"() {
+        given:
+            def mapper = jacksonJsonMapper.cloneWithConfiguration(null, null, null)
+
+        when:
+            mapper.writeValueAsString(Argument.of(TestX, 'first'), new TestX(name: "Fred"))
+            mapper.writeValueAsString(Argument.of(TestX, 'second'), new TestX(name: "Bob"))
+            def strings = mapper.writeValueAsString(Argument.listOf(String), ['a'])
+            def numbers = mapper.writeValueAsString(Argument.listOf(Integer), [1])
+            def readStrings = mapper.readValue('["1"]', Argument.listOf(String))
+            def readNumbers = mapper.readValue('["1"]', Argument.listOf(Integer))
+
+        then:
+            strings == '["a"]'
+            numbers == '[1]'
+            readStrings == ['1']
+            readNumbers == [1]
+            mapper.@serdeCache.@serializers.size() == 3
+            mapper.@serdeCache.@deserializers.size() == 2
+    }
+
     void "untyped maps reuse the serializers of their values"() {
         given:
             def mapper = jacksonJsonMapper.cloneWithConfiguration(null, null, null)
@@ -56,7 +77,7 @@ class SpecificJsonMapperSpec extends Specification {
             def valueSerializer = { ->
                 def field = Class.forName('io.micronaut.serde.support.serializers.AbstractMapObjectSerializer').getDeclaredField('valueSerializer')
                 field.accessible = true
-                field.get(mapper.@serdeCache.@serializers.get(type))
+                field.get(mapper.@serdeCache.@serializers.values().first())
             }
             def inners = { serializer ->
                 def field = serializer.class.getDeclaredField('inners')
