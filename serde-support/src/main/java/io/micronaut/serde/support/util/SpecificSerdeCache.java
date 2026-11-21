@@ -18,7 +18,9 @@ package io.micronaut.serde.support.util;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.DeserializerLocator;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.SerializerLocator;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.util.DocumentContextTracker;
 
@@ -48,8 +50,23 @@ public final class SpecificSerdeCache {
      * @return The specific serializer
      * @throws SerdeException If no serializer is found
      */
-    @SuppressWarnings({"unchecked", "rawtypes"})
     public <T> Serializer<T> findSerializer(Serializer.EncoderContext context, Argument<T> type) throws SerdeException {
+        return findSerializer(context, context, type);
+    }
+
+    /**
+     * Finds the specific serializer of a type, looked up in the given locator, such as the registry of
+     * the mapper, when it is not cached.
+     *
+     * @param locator The locator of the serializer
+     * @param context The context of the document
+     * @param type    The type
+     * @param <T>     The type
+     * @return The specific serializer
+     * @throws SerdeException If no serializer is found
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public <T> Serializer<T> findSerializer(SerializerLocator locator, Serializer.EncoderContext context, Argument<T> type) throws SerdeException {
         boolean cacheable = isCacheable(type);
         if (cacheable) {
             Serializer<?> serializer = serializers.get(type);
@@ -57,7 +74,11 @@ public final class SpecificSerdeCache {
                 return (Serializer<T>) serializer;
             }
         }
-        Serializer<T> serializer = (Serializer<T>) context.findSerializer(type).createSpecific(context, (Argument) type);
+        Serializer<? super T> found = locator.findSerializer(type);
+        // A locator other than the context, such as a registry that overrides some serdes, is cached only
+        // when the context finds the same serde, so that the context could tell whether it is bound
+        cacheable = cacheable && (locator == context || context.findSerializer(type) == found);
+        Serializer<T> serializer = (Serializer<T>) found.createSpecific(context, (Argument) type);
         if (cacheable && !DocumentContextTracker.isDocumentBound(context) && serializers.size() < MAX_CACHED_SERDES) {
             serializers.putIfAbsent(type, serializer);
         }
@@ -73,8 +94,23 @@ public final class SpecificSerdeCache {
      * @return The specific deserializer
      * @throws SerdeException If no deserializer is found
      */
-    @SuppressWarnings({"unchecked", "rawtypes"})
     public <T> Deserializer<? extends T> findDeserializer(Deserializer.DecoderContext context, Argument<T> type) throws SerdeException {
+        return findDeserializer(context, context, type);
+    }
+
+    /**
+     * Finds the specific deserializer of a type, looked up in the given locator, such as the registry of
+     * the mapper, when it is not cached.
+     *
+     * @param locator The locator of the deserializer
+     * @param context The context of the document
+     * @param type    The type
+     * @param <T>     The type
+     * @return The specific deserializer
+     * @throws SerdeException If no deserializer is found
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public <T> Deserializer<? extends T> findDeserializer(DeserializerLocator locator, Deserializer.DecoderContext context, Argument<T> type) throws SerdeException {
         boolean cacheable = isCacheable(type);
         if (cacheable) {
             Deserializer<?> deserializer = deserializers.get(type);
@@ -82,7 +118,11 @@ public final class SpecificSerdeCache {
                 return (Deserializer<? extends T>) deserializer;
             }
         }
-        Deserializer<? extends T> deserializer = (Deserializer<? extends T>) context.findDeserializer(type).createSpecific(context, (Argument) type);
+        Deserializer<? extends T> found = locator.findDeserializer(type);
+        // A locator other than the context, such as a registry that overrides some serdes, is cached only
+        // when the context finds the same serde, so that the context could tell whether it is bound
+        cacheable = cacheable && (locator == context || context.findDeserializer(type) == found);
+        Deserializer<? extends T> deserializer = (Deserializer<? extends T>) found.createSpecific(context, (Argument) type);
         if (cacheable && !DocumentContextTracker.isDocumentBound(context) && deserializers.size() < MAX_CACHED_SERDES) {
             deserializers.putIfAbsent(type, deserializer);
         }
