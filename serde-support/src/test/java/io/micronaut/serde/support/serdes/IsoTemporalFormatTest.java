@@ -15,9 +15,15 @@
  */
 package io.micronaut.serde.support.serdes;
 
+import io.micronaut.core.type.Argument;
+import io.micronaut.json.tree.JsonNode;
+import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.config.SerdeConfiguration;
+import io.micronaut.serde.support.util.JsonNodeDecoder;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.time.DateTimeException;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -28,8 +34,12 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalQuery;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 import java.util.Random;
+import java.util.TimeZone;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -211,6 +221,46 @@ class IsoTemporalFormatTest {
     }
 
     @Test
+    void readsEpochDaysLikeTheFallback() {
+        LocalDateSerde serde = new LocalDateSerde(new DefaultConfiguration());
+        Random random = new Random(5);
+        List<String> numbers = new ArrayList<>(List.of("0", "-0", "18000", "-1", "1", "365243219162", "-365243219162",
+            "365243219163", "999999999999999999", "-999999999999999999", "1234567890123456789", "-1234567890123456789",
+            "12345678901234567890"));
+        for (int i = 0; i < 2_000; i++) {
+            numbers.add(Long.toString(random.nextLong() >> random.nextInt(64)));
+        }
+        for (String number : numbers) {
+            Object expected = dateTimeErrors(outcome(() -> serde.deserializeFallback(new DateTimeException("not a date"), number)));
+            assertEquals(expected, dateTimeErrors(outcome(() -> read(serde, number))), number);
+            Object direct = dateTimeErrors(outcome(() -> serde.parseNumber(number)));
+            if (direct != null) {
+                // the numbers the serde reads without the formatter
+                assertEquals(expected, direct, number);
+            }
+        }
+        assertEquals(LocalDate.ofEpochDay(18000), serde.parseNumber("18000"));
+        assertNull(serde.parseNumber("1234567890123456789"), "longer numbers keep the fallback");
+    }
+
+    /**
+     * The fallback rethrows the parse error of the formatter for a text that isn't a long, so any date-time error
+     * counts as the same outcome.
+     */
+    private static Object dateTimeErrors(Object outcome) {
+        return outcome instanceof Class<?> type && DateTimeException.class.isAssignableFrom(type) ? DateTimeException.class : outcome;
+    }
+
+    private static LocalDate read(LocalDateSerde serde, String text) {
+        try {
+            return serde.deserialize(JsonNodeDecoder.create(JsonNode.createStringNode(text), LimitingStream.DEFAULT_LIMITS),
+                null, Argument.of(LocalDate.class));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    @Test
     void readsPlainNumbersLikeTheFallback() {
         Random random = new Random(3);
         List<String> numbers = new ArrayList<>(List.of("0", "-0", "1", "-1", "999", "-999", "1000", "-1001", "999999999999999999",
@@ -228,11 +278,56 @@ class IsoTemporalFormatTest {
         }
     }
 
-    private static Object outcome(java.util.function.Supplier<Object> read) {
+    private static Object outcome(Supplier<Object> read) {
         try {
             return read.get();
         } catch (ArithmeticException | DateTimeException e) {
             return e.getClass();
+        }
+    }
+
+    /**
+     * The defaults of the serde configuration.
+     */
+    private static final class DefaultConfiguration implements SerdeConfiguration {
+        @Override
+        public Optional<String> getDateFormat() {
+            return Optional.empty();
+        }
+
+        @Override
+        public TimeShape getTimeWriteShape() {
+            return TimeShape.STRING;
+        }
+
+        @Override
+        public NumericTimeUnit getNumericTimeUnit() {
+            return NumericTimeUnit.SECONDS;
+        }
+
+        @Override
+        public boolean isWriteBinaryAsArray() {
+            return true;
+        }
+
+        @Override
+        public Optional<Locale> getLocale() {
+            return Optional.empty();
+        }
+
+        @Override
+        public Optional<TimeZone> getTimeZone() {
+            return Optional.empty();
+        }
+
+        @Override
+        public List<String> getIncludedIntrospectionPackages() {
+            return List.of("io.micronaut");
+        }
+
+        @Override
+        public int getMaximumNestingDepth() {
+            return 1024;
         }
     }
 
