@@ -27,7 +27,6 @@ import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerdeRegistrar;
 import io.micronaut.serde.support.util.SerdeFeatures;
-import io.micronaut.serde.util.DocumentContextTracker;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -44,6 +43,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Optional;
+import java.util.TimeZone;
 
 /**
  * Serde for dates.
@@ -81,7 +81,7 @@ final class DateSerde implements FormattedSerde<Date>, SerdeRegistrar<Date> {
         }
         Optional<SimpleDateFormat> dateFormat = createDateFormat(format);
         if (dateFormat.isPresent()) {
-            return new FormattedDateSerde<>(dateFormat.get());
+            return new FormattedDateSerde<>(dateFormat.get(), false);
         }
         if (format.shape() == FormatConfiguration.Shape.ARRAY) {
             final Serializer<Instant> specific = instantSerde.createSpecific(encoderContext, INSTANT_ARGUMENT);
@@ -109,7 +109,7 @@ final class DateSerde implements FormattedSerde<Date>, SerdeRegistrar<Date> {
         }
         Optional<SimpleDateFormat> dateFormat = createDateFormat(format);
         if (dateFormat.isPresent()) {
-            return new FormattedDateSerde<>(dateFormat.get());
+            return new FormattedDateSerde<>(dateFormat.get(), false);
         }
         if (format.shape() == FormatConfiguration.Shape.ARRAY) {
             final Deserializer<Instant> specific = instantSerde.createSpecific(decoderContext, INSTANT_ARGUMENT);
@@ -125,8 +125,7 @@ final class DateSerde implements FormattedSerde<Date>, SerdeRegistrar<Date> {
         Optional<SerdeConfiguration> serdeConfiguration = encoderContext.getSerdeConfiguration();
         Optional<SimpleDateFormat> configuredDateFormat = configuredDateFormat(serdeConfiguration);
         if (configuredDateFormat.isPresent()) {
-            bindToJvmTimeZone(encoderContext, serdeConfiguration);
-            return new FormattedDateSerde<>(configuredDateFormat.get());
+            return new FormattedDateSerde<>(configuredDateFormat.get(), hasNoTimeZone(serdeConfiguration));
         }
         if (serdeConfiguration.map(SerdeConfiguration::isWriteDateTimesAsStrictIJson).orElse(false)) {
             return new StrictIJsonDateSerde<>();
@@ -144,8 +143,7 @@ final class DateSerde implements FormattedSerde<Date>, SerdeRegistrar<Date> {
         Optional<SerdeConfiguration> serdeConfiguration = decoderContext.getSerdeConfiguration();
         Optional<SimpleDateFormat> configuredDateFormat = configuredDateFormat(serdeConfiguration);
         if (configuredDateFormat.isPresent()) {
-            bindToJvmTimeZone(decoderContext, serdeConfiguration);
-            return new FormattedDateSerde<>(configuredDateFormat.get());
+            return new FormattedDateSerde<>(configuredDateFormat.get(), hasNoTimeZone(serdeConfiguration));
         }
         if (serdeConfiguration.map(SerdeConfiguration::isWriteDateTimesAsStrictIJson).orElse(false)) {
             return new StrictIJsonDateSerde<>();
@@ -158,17 +156,8 @@ final class DateSerde implements FormattedSerde<Date>, SerdeRegistrar<Date> {
         return createSpecificDeserializer(argument, specific);
     }
 
-    /**
-     * A configured date format without a time zone formats in the default time zone of the JVM at the time it is
-     * created, which can change, so the serde created with it is not reused by the next documents.
-     *
-     * @param context             The encoder or decoder context
-     * @param serdeConfiguration The configuration
-     */
-    private static void bindToJvmTimeZone(Object context, Optional<SerdeConfiguration> serdeConfiguration) {
-        if (serdeConfiguration.flatMap(SerdeConfiguration::getTimeZone).isEmpty()) {
-            DocumentContextTracker.markDocumentBound(context);
-        }
+    private static boolean hasNoTimeZone(Optional<SerdeConfiguration> serdeConfiguration) {
+        return serdeConfiguration.flatMap(SerdeConfiguration::getTimeZone).isEmpty();
     }
 
     private static Optional<SimpleDateFormat> configuredDateFormat(Optional<SerdeConfiguration> serdeConfiguration) {
@@ -312,10 +301,13 @@ final class DateSerde implements FormattedSerde<Date>, SerdeRegistrar<Date> {
     private static final class FormattedDateSerde<T extends Date> implements Serializer<T>, Deserializer<T> {
         private final SimpleDateFormat dateFormat;
         private final String pattern;
+        // A format without a configured time zone follows the default time zone of the JVM, which can change
+        private final boolean defaultTimeZone;
 
-        private FormattedDateSerde(SimpleDateFormat dateFormat) {
+        private FormattedDateSerde(SimpleDateFormat dateFormat, boolean defaultTimeZone) {
             this.dateFormat = dateFormat;
             this.pattern = dateFormat.toPattern();
+            this.defaultTimeZone = defaultTimeZone;
         }
 
         private static Date deserializeNumericFallback(String value, DecoderContext decoderContext) {
@@ -342,6 +334,9 @@ final class DateSerde implements FormattedSerde<Date>, SerdeRegistrar<Date> {
                               Argument<? extends T> type,
                               T value) throws IOException {
             synchronized (dateFormat) {
+                if (defaultTimeZone) {
+                    dateFormat.setTimeZone(TimeZone.getDefault());
+                }
                 encoder.encodeString(dateFormat.format(value));
             }
         }
@@ -353,6 +348,9 @@ final class DateSerde implements FormattedSerde<Date>, SerdeRegistrar<Date> {
             String value = decoder.decodeString();
             try {
                 synchronized (dateFormat) {
+                    if (defaultTimeZone) {
+                        dateFormat.setTimeZone(TimeZone.getDefault());
+                    }
                     return (T) dateFormat.parse(value);
                 }
             } catch (ParseException e) {

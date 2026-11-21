@@ -122,4 +122,14 @@ final class FeatureDecoderContext implements Deserializer.DecoderContext, Docume
     public int documentBindings() {
         return DocumentContextTracker.documentBindings(delegate);
     }
+
+    @Override
+    public @Nullable Object getDocumentValue(Object key) {
+        return DocumentContextTracker.getDocumentValue(delegate, key);
+    }
+
+    @Override
+    public boolean putDocumentValue(Object key, Object value) {
+        return DocumentContextTracker.putDocumentValue(delegate, key, value);
+    }
 }

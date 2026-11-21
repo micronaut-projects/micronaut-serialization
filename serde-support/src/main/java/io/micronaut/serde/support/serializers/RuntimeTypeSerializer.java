@@ -125,7 +125,7 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
 
     private Inner getInner(EncoderContext context, Class<?> type) throws SerdeException {
         Inner inner = inners.get(type);
-        if (inner != null) {
+        if (inner != null && (inner.document() == null || inner.document() == context)) {
             return inner;
         }
         Map<Class<?>, Inner> documentInners = (Map<Class<?>, Inner>) DocumentContextTracker.getDocumentValue(context, this);
@@ -137,20 +137,25 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
         }
         int bindings = DocumentContextTracker.documentBindings(context);
         Serializer<Object> serializer = createSerializer(context, type);
-        inner = new Inner(Argument.of((Class<Object>) type), serializer);
+        Argument<Object> argument = Argument.of((Class<Object>) type);
         // This serializer can serve several documents (a mapper caches the serializers that are not bound to a
         // document), so a serializer that the creation bound to the document is kept by the document, which
         // releases it with the values it holds when the document is finished.
         if (bindings >= 0 && DocumentContextTracker.documentBindings(context) == bindings) {
+            inner = new Inner(argument, serializer, null);
             inners.put(type, inner);
-        } else if (documentInners != null) {
-            documentInners.put(type, inner);
-        } else {
+            return inner;
+        }
+        inner = new Inner(argument, serializer, context);
+        if (documentInners == null) {
             documentInners = new HashMap<>(4);
-            if (DocumentContextTracker.putDocumentValue(context, this, documentInners)) {
-                documentInners.put(type, inner);
+            if (!DocumentContextTracker.putDocumentValue(context, this, documentInners)) {
+                // a context that does not keep values: the serializer is reused only with this context
+                inners.put(type, inner);
+                return inner;
             }
         }
+        documentInners.put(type, inner);
         return inner;
     }
 
@@ -177,7 +182,8 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
      *
      * @param type       The runtime type
      * @param serializer The serializer
+     * @param document   The context the serializer is bound to, null if it is not bound
      */
-    private record Inner(Argument<Object> type, Serializer<Object> serializer) {
+    private record Inner(Argument<Object> type, Serializer<Object> serializer, @Nullable Object document) {
     }
 }

@@ -126,6 +126,23 @@ class SpecificJsonMapperSpec extends Specification {
             inners(valueSerializer()).keySet() == [Integer] as Set
     }
 
+    void "a property with feature overrides reuses the serializers bound to its document"() {
+        given:
+            def mapper = jacksonJsonMapper.cloneWithConfiguration(null, null, null)
+            example.retain.RetainingSerializer.SPECIFICS.set(0)
+            def holder = new FeatureMapHolder(values: [b: new example.retain.Retained(name: 'y'), a: new example.retain.Retained(name: 'x'), c: new example.retain.Retained(name: 'z')])
+
+        when:
+            def first = mapper.writeValueAsString(holder)
+            def second = mapper.writeValueAsString(holder)
+
+        then:
+            first == '{"values":{"a":"x","b":"y","c":"z"}}'
+            second == first
+            // created once for each document, not once for each value
+            example.retain.RetainingSerializer.SPECIFICS.get() == 2
+    }
+
     void "derived mappers share the JSON factory and its buffer pool"() {
         when:
             def factory = jacksonJsonMapper.@jsonFactory
@@ -192,6 +209,12 @@ class SpecificJsonMapperSpec extends Specification {
             value.name == "Fred"
             recyclerPool instanceof VirtualThreadAwareRecyclerPool
             recyclerPool.pooledCount() == 0
+    }
+
+    @Serdeable
+    static class FeatureMapHolder {
+        @com.fasterxml.jackson.annotation.JsonFormat(with = com.fasterxml.jackson.annotation.JsonFormat.Feature.WRITE_SORTED_MAP_ENTRIES)
+        Map<String, Object> values
     }
 
     @Serdeable
