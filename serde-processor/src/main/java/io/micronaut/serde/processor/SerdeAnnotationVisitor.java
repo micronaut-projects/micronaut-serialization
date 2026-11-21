@@ -1226,7 +1226,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         PropertyNamingStrategy deserializeNamingStrategy = hasExplicitDeserializeNaming
             ? getPropertyNamingStrategy(classElement, propertyNamingStrategy, SerdeConfig.DESERIALIZE_NAMING, SerdeConfig.DESERIALIZE_RUNTIME_NAMING)
             : propertyNamingStrategy;
-        Map<String, String> creatorNames = explicitCreatorNames(classElement);
+        Map<String, ParameterElement> creatorNames = explicitCreatorNames(classElement);
         processProperties(
             context,
                 beanProperties,
@@ -1752,7 +1752,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                                    boolean hasDirectionalNaming,
                                    @Nullable PropertyNamingStrategy serializeNamingStrategy,
                                    @Nullable PropertyNamingStrategy deserializeNamingStrategy,
-                                   Map<String, String> creatorNames) {
+                                   Map<String, ParameterElement> creatorNames) {
         final Set<String> ignoredSet = CollectionUtils.setOf(ignoresProperties);
         final Set<String> includeSet = CollectionUtils.setOf(includeProperties);
         final List<String> order = new ArrayList<>(orderDef);
@@ -1804,7 +1804,11 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             }
             boolean hasExplicitProperty = beanProperty.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).isPresent();
             // An explicit name on the creator parameter of the property is the name it is read with
-            final String creatorName = creatorNames.get(beanProperty.getName());
+            final ParameterElement creatorParameter = creatorNames.get(beanProperty.getName());
+            // the parameter binds this property only when it has a type the property can hold
+            final String creatorName = creatorParameter != null && isCreatorParameterOf(creatorParameter, beanProperty)
+                ? creatorParameter.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(null)
+                : null;
             if (hasPerPropertyDirectionalNaming && !hasExplicitProperty) {
                 if (resolvedPerPropSerNaming != null) {
                     String serName = resolvedPerPropSerNaming.translate(beanProperty);
@@ -1977,18 +1981,36 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
     /**
      * @param classElement The class whose properties are processed
-     * @return The explicit names, such as with {@code @JsonProperty}, of the parameters of its creator, by parameter name
+     * @return The parameters of its creator named explicitly, such as with {@code @JsonProperty}, by parameter name. A
+     * type deserialized through a builder reads the names of the builder, so its constructor names nothing.
      */
-    private static Map<String, String> explicitCreatorNames(ClassElement classElement) {
+    private static Map<String, ParameterElement> explicitCreatorNames(ClassElement classElement) {
         MethodElement creator = classElement.getPrimaryConstructor().orElse(null);
-        if (creator == null) {
+        if (creator == null || (!classElement.isRecord() && hasIntrospectionBuilder(classElement))) {
             return Map.of();
         }
-        Map<String, String> names = new HashMap<>();
+        Map<String, ParameterElement> parameters = new HashMap<>();
         for (ParameterElement parameter : creator.getParameters()) {
-            parameter.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).ifPresent(name -> names.put(parameter.getName(), name));
+            if (parameter.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).isPresent()) {
+                parameters.put(parameter.getName(), parameter);
+            }
         }
-        return names;
+        return parameters;
+    }
+
+    private static boolean hasIntrospectionBuilder(ClassElement element) {
+        AnnotationValue<Introspected> introspected = element.getAnnotation(Introspected.class);
+        return introspected != null && (introspected.annotationClassValue("builderClass").isPresent()
+            || introspected.getAnnotation("builder", Introspected.IntrospectionBuilder.class)
+                .flatMap(builder -> builder.annotationClassValue("builderClass"))
+                .isPresent());
+    }
+
+    private static boolean isCreatorParameterOf(ParameterElement parameter, TypedElement beanProperty) {
+        ClassElement parameterType = parameter.getType();
+        ClassElement propertyType = beanProperty.getType();
+        return parameterType.getName().equals(propertyType.getName())
+            || parameterType.isAssignable(propertyType) || propertyType.isAssignable(parameterType);
     }
 
     private SerdeConfig.SerSubtyped.DiscriminatorValueKind getDiscriminatorValueKind(Element typeInfo) {
