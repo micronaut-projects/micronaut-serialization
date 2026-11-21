@@ -603,18 +603,6 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     }
 
     /**
-     * Marks the serdes created with the context as bound to the document when a lookup returns a user serde. A
-     * user serde's {@code createSpecific} can return an instance that keeps the context, or state of one document,
-     * so the serdes created with it must not be cached across documents. A user serde is one the registry resolved
-     * from a bean of the application, see {@link #markUserSerde}; the serdes Micronaut Serialization registers and
-     * the generated serdes are not.
-     *
-     * @param context The encoder or decoder context of the lookup
-     * @param serde   The serde found
-     * @param <S>     The serde type
-     * @return The serde
-     */
-    /**
      * Records a serde resolved from a bean of the application as a user serde. A serde bean declared {@code @Internal}
      * belongs to a Micronaut module, as the serdes of Micronaut Serialization and the generated serdes do.
      *
@@ -627,6 +615,18 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
     }
 
+    /**
+     * Marks the serdes created with the context as bound to the document when a lookup returns a user serde. A
+     * user serde's {@code createSpecific} can return an instance that keeps the context, or state of one document,
+     * so the serdes created with it must not be cached across documents. A user serde is one the registry resolved
+     * from a bean of the application, see {@link #markUserSerde}; the serdes Micronaut Serialization registers and
+     * the generated serdes are not.
+     *
+     * @param context The encoder or decoder context of the lookup
+     * @param serde   The serde found
+     * @param <S>     The serde type
+     * @return The serde
+     */
     static <S> S trackUserSerde(Object context, S serde) {
         if (UserSerdes.isUser(serde.getClass())) {
             DocumentContextTracker.markDocumentBound(context);

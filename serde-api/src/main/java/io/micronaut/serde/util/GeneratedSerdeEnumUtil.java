@@ -43,15 +43,15 @@ public final class GeneratedSerdeEnumUtil {
     }
 
     /**
-     * Whether the string deserializer of a generated enum deserializer is not a user serde, see {@link UserSerdes}.
-     * The generated deserializer matches the constant names directly only then, so that a user string deserializer
-     * still sees every value.
+     * Whether the string deserializer of a generated enum deserializer is the built-in one, see
+     * {@link BuiltInStringDeserializer}. The generated deserializer decides this once, when it is created, and matches
+     * the constant names directly only then, so that any other string deserializer still sees every value.
      *
      * @param stringDeserializer The string deserializer
      * @return Whether it is built in
      */
     public static boolean isBuiltInStringDeserializer(Deserializer<?> stringDeserializer) {
-        return !UserSerdes.isUser(stringDeserializer.getClass());
+        return stringDeserializer instanceof BuiltInStringDeserializer;
     }
 
     /**

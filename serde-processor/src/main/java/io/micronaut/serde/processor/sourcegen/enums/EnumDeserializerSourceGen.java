@@ -65,6 +65,7 @@ public final class EnumDeserializerSourceGen {
     private static final String ARGUMENT_STRING_FIELD = "ARGUMENT_STRING";
     private static final String STRING_DESERIALIZER_FIELD = "stringDeserializer";
     private static final String STRING_DESERIALIZER_LOCAL = "stringDeserializer";
+    private static final String DIRECT_VALUES_FIELD = "directValues";
     private static final String VALUES_FIELD = "VALUES";
     private static final String CONSTANTS_FIELD = "CONSTANTS";
     private static final TypeDef KEYS_TYPE = TypeDef.of(Keys.class);
@@ -149,7 +150,7 @@ public final class EnumDeserializerSourceGen {
                 .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
                 .build())
             .addFields(valuesFields(element, enumTypeDef, enumSerdeShape))
-            .addMethod(generateConstructor(enumTypeDef, deserializerClassTypeDef))
+            .addMethod(generateConstructor(enumTypeDef, deserializerClassTypeDef, enumSerdeShape))
             .addMethod(generateCreateSpecificMethod(enumTypeDef))
             .addMethod(generateCreateSpecificWithFormatMethod(enumTypeDef))
             .addMethod(generateDeserializeMethod(element, enumTypeDef, enumSerdeShape, deserializerClassTypeDef))
@@ -169,6 +170,10 @@ public final class EnumDeserializerSourceGen {
             .map(v -> (ExpressionDef) ExpressionDef.constant(v))
             .toList();
         return List.of(
+            // whether the constant names are matched directly, decided once with the string deserializer
+            FieldDef.builder(DIRECT_VALUES_FIELD, TypeDef.Primitive.BOOLEAN)
+                .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
+                .build(),
             FieldDef.builder(VALUES_FIELD, KEYS_TYPE)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
                 .initializer(ClassTypeDef.of(Keys.class).invokeStatic(KEYS_CREATE_METHOD, TypeDef.STRING.array().instantiate(values)))
@@ -181,7 +186,8 @@ public final class EnumDeserializerSourceGen {
     }
 
     private MethodDef generateConstructor(TypeDef enumTypeDef,
-                                          ClassTypeDef deserializerClassTypeDef) {
+                                          ClassTypeDef deserializerClassTypeDef,
+                                          EnumSerdeShape enumSerdeShape) {
         return MethodDef.constructor()
             .addModifiers(Modifier.PUBLIC)
             .addParameter(parameter(CONTEXT_PARAMETER, TypeDef.of(Deserializer.DecoderContext.class)))
@@ -190,9 +196,22 @@ public final class EnumDeserializerSourceGen {
             .build((aThis, methodParameters) -> {
                 VariableDef.MethodParameter context = methodParameters.get(0);
                 ExpressionDef stringArgument = deserializerClassTypeDef.getStaticField(ARGUMENT_STRING_FIELD, ARGUMENT_TYPE);
-                return aThis.field(STRING_DESERIALIZER_FIELD, DESERIALIZER_TYPE).put(
+                StatementDef assignDeserializer = aThis.field(STRING_DESERIALIZER_FIELD, DESERIALIZER_TYPE).put(
                     context.invoke(FIND_DESERIALIZER_METHOD, stringArgument)
                         .invoke(CREATE_SPECIFIC_DESERIALIZER_METHOD, context, stringArgument)
+                );
+                if (!enumSerdeShape.hasUniqueSerializedValues()) {
+                    return assignDeserializer;
+                }
+                // only the built-in string deserializer lets the constant names be matched directly
+                return StatementDef.multi(
+                    assignDeserializer,
+                    aThis.field(DIRECT_VALUES_FIELD, TypeDef.Primitive.BOOLEAN).put(
+                        ClassTypeDef.of(GeneratedSerdeEnumUtil.class).invokeStatic(
+                            IS_BUILT_IN_STRING_DESERIALIZER_METHOD,
+                            aThis.field(STRING_DESERIALIZER_FIELD, DESERIALIZER_TYPE)
+                        )
+                    )
                 );
             });
     }
@@ -265,13 +284,12 @@ public final class EnumDeserializerSourceGen {
                 VariableDef deserializerVariable = deserializerDef.variable();
 
                 if (enumSerdeShape.hasUniqueSerializedValues()) {
-                    // the constant names are matched directly only with a built-in string deserializer, so that a
-                    // user string deserializer still sees every value
+                    // the constant names are matched directly only with the built-in string deserializer, so that
+                    // any other string deserializer still sees every value
                     StatementDef.DefineAndAssign indexDef = ClassTypeDef.of(KeysAwareDecoder.class)
                         .invokeStatic(DECODE_STRING_VALUE_METHOD, decoder, deserializerClassTypeDef.getStaticField(VALUES_FIELD, KEYS_TYPE))
                         .newLocal("valueIndex");
-                    statements.add(ClassTypeDef.of(GeneratedSerdeEnumUtil.class)
-                        .invokeStatic(IS_BUILT_IN_STRING_DESERIALIZER_METHOD, deserializerVariable)
+                    statements.add(aThis.field(DIRECT_VALUES_FIELD, TypeDef.Primitive.BOOLEAN)
                         .ifTrue(StatementDef.multi(
                             indexDef,
                             indexDef.variable()
