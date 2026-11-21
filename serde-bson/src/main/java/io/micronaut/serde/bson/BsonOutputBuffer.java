@@ -43,9 +43,10 @@ import java.util.List;
 @Internal
 final class BsonOutputBuffer extends OutputBuffer {
 
+    static final int INITIAL_SIZE = 1024;
+
     private static final VarHandle INT_HANDLE = MethodHandles.byteArrayViewVarHandle(int[].class, ByteOrder.LITTLE_ENDIAN);
     private static final VarHandle LONG_HANDLE = MethodHandles.byteArrayViewVarHandle(long[].class, ByteOrder.LITTLE_ENDIAN);
-    static final int INITIAL_SIZE = 1024;
 
     private byte[] buffer;
     private int position;
