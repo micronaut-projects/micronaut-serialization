@@ -63,6 +63,7 @@ import io.micronaut.serde.util.CustomizableDeserializer;
 import io.micronaut.serde.util.CustomizableSerializer;
 import io.micronaut.serde.util.DocumentContextTracker;
 import io.micronaut.serde.util.GeneratedSerde;
+import io.micronaut.serde.util.UserSerdes;
 import jakarta.inject.Singleton;
 import org.jspecify.annotations.Nullable;
 
@@ -247,13 +248,17 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     @Override
     public <T, D extends Serializer<? extends T>> D findCustomSerializer(Class<? extends D> serializerClass) throws SerdeException {
         checkBeanContext();
-        return beanContext().findBean(serializerClass).orElseThrow(() -> new SerdeException("Cannot find serializer: " + serializerClass));
+        D serializer = beanContext().findBean(serializerClass).orElseThrow(() -> new SerdeException("Cannot find serializer: " + serializerClass));
+        beanContext().findBeanDefinition(serializerClass).ifPresent(definition -> markUserSerde(definition, serializer));
+        return serializer;
     }
 
     @Override
     public <T, D extends Deserializer<? extends T>> D findCustomDeserializer(Class<? extends D> deserializerClass) throws SerdeException {
         checkBeanContext();
-        return beanContext().findBean(deserializerClass).orElseThrow(() -> new SerdeException("Cannot find deserializer: " + deserializerClass));
+        D deserializer = beanContext().findBean(deserializerClass).orElseThrow(() -> new SerdeException("Cannot find deserializer: " + deserializerClass));
+        beanContext().findBeanDefinition(deserializerClass).ifPresent(definition -> markUserSerde(definition, deserializer));
+        return deserializer;
     }
 
     @Override
@@ -310,6 +315,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                 deser = new SpecificBeanDeserializer(specificBeanFactory(deserBeanDefinition));
             } else {
                 deser = beanContext.getBean(deserBeanDefinition);
+                markUserSerde(deserBeanDefinition, deser);
             }
             deserializerMap.put(key, deser);
             return (Deserializer<? extends T>) deser;
@@ -362,6 +368,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                 ser = new SpecificBeanSerializer(specificBeanFactory(serializerBeanDefinition));
             } else {
                 ser = beanContext.getBean(serializerBeanDefinition);
+                markUserSerde(serializerBeanDefinition, ser);
             }
             serializerMap.put(key, new SerializerWrapper(ser));
             return (Serializer<? super T>) ser;
@@ -598,16 +605,30 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     /**
      * Marks the serdes created with the context as bound to the document when a lookup returns a user serde. A
      * user serde's {@code createSpecific} can return an instance that keeps the context, or state of one document,
-     * so the serdes created with it must not be cached across documents. The serdes of Micronaut Serialization and
-     * the generated serdes are known not to.
+     * so the serdes created with it must not be cached across documents. A user serde is one the registry resolved
+     * from a bean of the application, see {@link #markUserSerde}; the serdes Micronaut Serialization registers and
+     * the generated serdes are not.
      *
      * @param context The encoder or decoder context of the lookup
      * @param serde   The serde found
      * @param <S>     The serde type
      * @return The serde
      */
+    /**
+     * Records a serde resolved from a bean of the application as a user serde. A serde bean declared {@code @Internal}
+     * belongs to a Micronaut module, as the serdes of Micronaut Serialization and the generated serdes do.
+     *
+     * @param definition The bean definition the serde was resolved from
+     * @param serde      The serde
+     */
+    private static void markUserSerde(BeanDefinition<?> definition, Object serde) {
+        if (!definition.hasDeclaredAnnotation(Internal.class)) {
+            UserSerdes.mark(serde.getClass());
+        }
+    }
+
     static <S> S trackUserSerde(Object context, S serde) {
-        if (!(serde instanceof GeneratedSerde) && !serde.getClass().getName().startsWith("io.micronaut.serde.")) {
+        if (UserSerdes.isUser(serde.getClass())) {
             DocumentContextTracker.markDocumentBound(context);
         }
         return serde;
