@@ -64,6 +64,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -119,6 +120,9 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     private @Nullable FieldElement jsonKeyField;
     private final Set<MethodElement> readMethods = new HashSet<>(20);
     private final Set<MethodElement> writeMethods = new HashSet<>(20);
+    // The member state of the types imported by the current class, by type name
+    private final Map<String, MemberState> importedMemberStates = new HashMap<>();
+    private boolean currentClassImported;
     private final Set<String> elementVisitedAsSubtype = new HashSet<>(10);
     private final SimpleSerdeShapeAnalyzer sourceGenShapeAnalyzer = new SimpleSerdeShapeAnalyzer();
     private SerdeConfig.SerCreatorMode creatorMode = SerdeConfig.SerCreatorMode.PROPERTIES;
@@ -266,7 +270,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         } else if (methodMetadata.hasDeclaredAnnotation(SerdeConfig.SerAnyGetter.class)) {
             if (this.anyGetterMethod == null) {
                 this.anyGetterMethod = element;
-            } else {
+            } else if (!this.anyGetterMethod.equals(element)) {
+                // two mixins of a type imported twice may annotate the same method
                 throw new ProcessingException(element, "Type already defines a method annotated with JsonAnyGetter: " + anyGetterMethod.getDescription(true));
             }
 
@@ -282,7 +287,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         } else if (methodMetadata.hasDeclaredAnnotation(SerdeConfig.SerAnySetter.class)) {
             if (this.anySetterMethod == null) {
                 this.anySetterMethod = element;
-            } else {
+            } else if (!this.anySetterMethod.equals(element)) {
+                // two mixins of a type imported twice may annotate the same method
                 throw new ProcessingException(element, "Type already defines a method annotated with JsonAnySetter: " + anySetterMethod.getDescription(true));
             }
             if (methodMetadata.hasDeclaredAnnotation(SerdeConfig.SerUnwrapped.class)) {
@@ -405,7 +411,10 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             if (isBasicType(propertyType)) {
                 throw new ProcessingException(element, "Unwrapped cannot be declared on basic types");
             }
-            final List<String> thatProperties = resolvePropertyNames(context, propertyType, element);
+            // the unwrapped properties appear in the outer object with the prefix and suffix of the unwrapped property
+            final String unwrappedPrefix = element.stringValue(SerdeConfig.SerUnwrapped.class, SerdeConfig.SerUnwrapped.PREFIX).orElse("");
+            final String unwrappedSuffix = element.stringValue(SerdeConfig.SerUnwrapped.class, SerdeConfig.SerUnwrapped.SUFFIX).orElse("");
+            final List<String> thatProperties = unwrappedPropertyNames(context, propertyType, element, unwrappedPrefix, unwrappedSuffix, new HashSet<>());
             final List<String> thisProperties = resolvePropertyNames(context, currentClass(), null);
             String currentUnwrappedName = null;
             if (element instanceof TypedElement te) {
@@ -424,6 +433,37 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 }
             }
         }
+    }
+
+    /**
+     * The JSON names the properties of an unwrapped type appear under in the outer object. A property that is itself
+     * unwrapped does not appear under its own name: its properties do, with the prefixes and suffixes composed.
+     */
+    private List<String> unwrappedPropertyNames(VisitorContext context,
+                                                ClassElement type,
+                                                @Nullable Element annotationSource,
+                                                String prefix,
+                                                String suffix,
+                                                Set<String> visiting) {
+        Map<String, PropertyElement> nestedUnwrapped = new HashMap<>();
+        for (PropertyElement property : type.getBeanProperties()) {
+            if (property.hasAnnotation(SerdeConfig.SerUnwrapped.class)) {
+                nestedUnwrapped.putIfAbsent(resolvePropertyName(property), property);
+            }
+        }
+        List<String> names = new ArrayList<>();
+        for (String name : resolvePropertyNames(context, type, annotationSource)) {
+            PropertyElement nested = nestedUnwrapped.get(name);
+            if (nested == null) {
+                names.add(prefix + name + suffix);
+            } else if (visiting.add(nested.getGenericType().getName())) {
+                names.addAll(unwrappedPropertyNames(context, nested.getGenericType(), nested,
+                    prefix + nested.stringValue(SerdeConfig.SerUnwrapped.class, SerdeConfig.SerUnwrapped.PREFIX).orElse(""),
+                    nested.stringValue(SerdeConfig.SerUnwrapped.class, SerdeConfig.SerUnwrapped.SUFFIX).orElse("") + suffix,
+                    visiting));
+            }
+        }
+        return names;
     }
 
     private void validateJaxbAnnotations(Element element, VisitorContext context) {
@@ -1030,6 +1070,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             element.annotate(Introspected.class, builder ->
                 builder.member("classes", classValues.toArray(new AnnotationClassValue[0]))
             );
+            // the members of the importing class are visited next, they must not see the state of the last import
+            resetForNewClass(element);
         } else if (isSerdeAnnotated(element) || isImport) {
             if (!element.hasStereotype(Serdeable.Serializable.class) &&
                     !element.hasStereotype(Serdeable.Deserializable.class) && !isImport) {
@@ -1486,6 +1528,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                                    ClassElement type,
                                    List<AnnotationClassValue<?>> classValues) {
         classValues.add(new AnnotationClassValue<>(type.getName()));
+        // each imported type is processed independently of the previously imported one
+        resetForImportedClass(type);
         final ClassElement mixinType = value.stringValue("mixin").flatMap(context::getClassElement)
                 .orElse(null);
         if (value.booleanValue("serializable").orElse(true)) {
@@ -1619,6 +1663,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             if (CollectionUtils.isNotEmpty(serdeMethods)) {
                 final MethodElement readMethod = beanProperty.getReadMethod().orElse(null);
                 final MethodElement writeMethod = beanProperty.getWriteMethod().orElse(null);
+                boolean replicated = false;
                 final Iterator<MethodElement> i = serdeMethods.iterator();
                 while (i.hasNext()) {
                     MethodElement serdeMethod = i.next();
@@ -1627,6 +1672,9 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                             if (argumentsMatch(serdeMethod, readMethod)) {
                                 i.remove();
                                 replicateAnnotations(serdeMethod, readMethod);
+                                // the accessor stays part of its bean property
+                                readMethods.add(readMethod);
+                                replicated = true;
                                 visitMethod(readMethod, context);
                             }
                         }
@@ -1636,10 +1684,16 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                             if (argumentsMatch(serdeMethod, writeMethod)) {
                                 i.remove();
                                 replicateAnnotations(serdeMethod, writeMethod);
+                                writeMethods.add(writeMethod);
+                                replicated = true;
                                 visitMethod(writeMethod, context);
                             }
                         }
                     }
+                }
+                if (replicated) {
+                    // the bean property is validated with the annotations its accessors received
+                    checkForErrors(beanProperty, context);
                 }
             }
         }
@@ -1835,12 +1889,52 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     }
 
     private void resetForNewClass(ClassElement element) {
-        this.currentClass = element;
         // NOTE: `AliasFor` does not apply here; read directly from both annotations.
         this.failOnError = element.booleanValue(SerdeConfig.class, SerdeConfig.VALIDATE)
             .or(() -> element.booleanValue(Serdeable.class, SerdeConfig.VALIDATE))
             .orElse(true);
+        importedMemberStates.clear();
+        currentClassImported = false;
+        this.currentClass = element;
         this.creatorMode = SerdeConfig.SerCreatorMode.PROPERTIES;
+        resetMemberState();
+    }
+
+    /**
+     * Resets the per-type state for a type imported with {@code @SerdeImport}. The validation
+     * setting of the importing class is kept, and the state collected for the previous type is put
+     * aside. A type imported again, such as with another mixin, continues from its own state, so
+     * that its mixins are still validated together (two any setters, for example).
+     *
+     * @param element The type that is processed next
+     */
+    private void resetForImportedClass(ClassElement element) {
+        if (currentClassImported && currentClass != null) {
+            importedMemberStates.put(currentClass.getName(), new MemberState(anyGetterMethod, anySetterMethod,
+                anyGetterField, anySetterField, jsonValueMethod, jsonValueField, jsonKeyMethod, jsonKeyField));
+        }
+        currentClassImported = true;
+        this.currentClass = element;
+        this.creatorMode = SerdeConfig.SerCreatorMode.PROPERTIES;
+        resetMemberState();
+        MemberState saved = importedMemberStates.get(element.getName());
+        if (saved != null) {
+            anyGetterMethod = saved.anyGetterMethod();
+            anySetterMethod = saved.anySetterMethod();
+            anyGetterField = saved.anyGetterField();
+            anySetterField = saved.anySetterField();
+            jsonValueMethod = saved.jsonValueMethod();
+            jsonValueField = saved.jsonValueField();
+            jsonKeyMethod = saved.jsonKeyMethod();
+            jsonKeyField = saved.jsonKeyField();
+        }
+    }
+
+    /**
+     * Resets the per-type state collected while visiting members, so that state from one type
+     * (for example the any getter of a previous {@code @SerdeImport}) does not leak into the next.
+     */
+    private void resetMemberState() {
         this.anyGetterMethod = null;
         this.anySetterMethod = null;
         this.anyGetterField = null;
@@ -1981,5 +2075,27 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     }
 
     private record TypePropertyDescriptor(String propertyName, String propertyValue) {
+    }
+
+    /**
+     * The member state collected for an imported type.
+     *
+     * @param anyGetterMethod The any getter method
+     * @param anySetterMethod The any setter method
+     * @param anyGetterField The any getter field
+     * @param anySetterField The any setter field
+     * @param jsonValueMethod The JSON value method
+     * @param jsonValueField The JSON value field
+     * @param jsonKeyMethod The JSON key method
+     * @param jsonKeyField The JSON key field
+     */
+    private record MemberState(@Nullable MethodElement anyGetterMethod,
+                               @Nullable MethodElement anySetterMethod,
+                               @Nullable FieldElement anyGetterField,
+                               @Nullable FieldElement anySetterField,
+                               @Nullable MethodElement jsonValueMethod,
+                               @Nullable FieldElement jsonValueField,
+                               @Nullable MethodElement jsonKeyMethod,
+                               @Nullable FieldElement jsonKeyField) {
     }
 }
