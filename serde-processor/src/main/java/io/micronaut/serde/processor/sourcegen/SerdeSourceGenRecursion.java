@@ -17,10 +17,14 @@ package io.micronaut.serde.processor.sourcegen;
 
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.inject.ast.ClassElement;
+import io.micronaut.inject.ast.GenericPlaceholderElement;
 import io.micronaut.inject.ast.PropertyElement;
+import io.micronaut.inject.ast.WildcardElement;
+import org.jspecify.annotations.Nullable;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -81,9 +85,45 @@ public final class SerdeSourceGenRecursion {
         return false;
     }
 
-    private boolean reaches(ClassElement type, Set<String> visited) {
-        if (type.isPrimitive() || type.isTypeVariable()) {
+    /**
+     * Kotlin declares {@code List<Self>} inside a collection as {@code ? extends List<Self>}, so the
+     * bounds are what the property can hold.
+     */
+    private boolean boundsReach(WildcardElement wildcardElement, Set<String> visited) {
+        return wildcardElement.getUpperBounds().stream().anyMatch(bound -> reaches(bound, visited))
+            || wildcardElement.getLowerBounds().stream().anyMatch(bound -> reaches(bound, visited));
+    }
+
+    /**
+     * An unresolved type variable is described by its first bound, as SerdeSourceGenArgumentTypes.normalize
+     * does, so the bound is what the property can hold: {@code Iterable<T extends Self>} used raw holds Self.
+     * A type argument resolved from a type variable, such as the bound of {@code ? extends List<Self>}, also
+     * reports isTypeVariable() and is followed as a regular type.
+     */
+    private boolean boundReaches(GenericPlaceholderElement placeholderElement, @Nullable String declaredVariable, Set<String> visited) {
+        List<? extends ClassElement> bounds = placeholderElement.getBounds();
+        if (bounds.isEmpty()) {
             return false;
+        }
+        ClassElement bound = bounds.get(0);
+        // a bound such as T extends Comparable<T> refers to the variable again, so a variable is followed once. Two
+        // types commonly name their variables the same, and their bounds can share an erasure, so a variable of a
+        // type argument is identified with the type declaring it, and any other with its bound
+        if (!visited.add(declaredVariable != null ? declaredVariable : "<" + placeholderElement.getVariableName() + " extends " + bound.getName() + ">")) {
+            return false;
+        }
+        return reaches(bound, visited);
+    }
+
+    private boolean reaches(ClassElement type, Set<String> visited) {
+        if (type instanceof WildcardElement wildcardElement) {
+            return boundsReach(wildcardElement, visited);
+        }
+        if (type.isPrimitive()) {
+            return false;
+        }
+        if (type instanceof GenericPlaceholderElement placeholderElement) {
+            return boundReaches(placeholderElement, null, visited);
         }
         if (type.isArray()) {
             return reaches(type.fromArray(), visited);
@@ -92,10 +132,8 @@ public final class SerdeSourceGenRecursion {
         if (name.equals(owner.getName())) {
             return true;
         }
-        for (ClassElement typeArgument : type.getTypeArguments().values()) {
-            if (reaches(typeArgument, visited)) {
-                return true;
-            }
+        if (typeArgumentsReach(type, name, visited)) {
+            return true;
         }
         if (type.isEnum() || isPlatformType(name) || notRecursive.contains(name) || !visited.add(name)) {
             return false;
@@ -112,6 +150,19 @@ public final class SerdeSourceGenRecursion {
         }
         for (PropertyElement property : properties) {
             if (reaches(property.getType(), visited)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean typeArgumentsReach(ClassElement type, String name, Set<String> visited) {
+        for (Map.Entry<String, ClassElement> typeArgument : type.getTypeArguments().entrySet()) {
+            // an unresolved variable of a raw type is identified with the type and the variable it declares
+            boolean reached = typeArgument.getValue() instanceof GenericPlaceholderElement placeholderElement
+                ? boundReaches(placeholderElement, "<" + name + "." + typeArgument.getKey() + ">", visited)
+                : reaches(typeArgument.getValue(), visited);
+            if (reached) {
                 return true;
             }
         }
