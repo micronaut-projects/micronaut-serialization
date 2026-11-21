@@ -24,6 +24,75 @@ class SpecificJsonMapperSpec extends Specification {
 
     }
 
+    void "the serdes of types without annotations are created once"() {
+        given:
+            def mapper = jacksonJsonMapper.cloneWithConfiguration(null, null, null)
+            def annotated = Argument.of(TestX, 'x', new io.micronaut.inject.annotation.MutableAnnotationMetadata().tap {
+                addAnnotation('com.fasterxml.jackson.annotation.JsonView', [value: Object])
+            })
+
+        when:
+            def first = mapper.writeValueAsString(new TestX(name: "Fred"))
+            def second = mapper.writeValueAsString(Argument.of(TestX), new TestX(name: "Bob"))
+            def read = mapper.readValue('{"name":"Fred"}', TestX)
+            def readAgain = mapper.readValue('{"name":"Bob"}', Argument.of(TestX))
+            mapper.readValue('{"name":"Ann"}', annotated)
+            mapper.writeValueAsString(annotated, new TestX(name: "Ann"))
+
+        then:
+            first == '{"name":"Fred"}'
+            second == '{"name":"Bob"}'
+            read.name == 'Fred'
+            readAgain.name == 'Bob'
+            mapper.@serializers.size() == 1
+            mapper.@deserializers.size() == 1
+    }
+
+    void "untyped maps reuse the serializers of their values"() {
+        given:
+            def mapper = jacksonJsonMapper.cloneWithConfiguration(null, null, null)
+            def type = Argument.mapOf(String, Object)
+            Map<String, Object> value = [id: 1, owner: [name: 'Fred'], items: [[sku: 'a'], 'b']]
+            def valueSerializer = { ->
+                def field = Class.forName('io.micronaut.serde.support.serializers.AbstractMapObjectSerializer').getDeclaredField('valueSerializer')
+                field.accessible = true
+                field.get(mapper.@serializers.get(type))
+            }
+            def inners = { serializer ->
+                def field = serializer.class.getDeclaredField('inners')
+                field.accessible = true
+                new HashMap(field.get(serializer)).collectEntries { k, v -> [k, v.serializer()] }
+            }
+
+        when:
+            def first = mapper.writeValueAsString(type, value)
+            def firstInners = inners(valueSerializer())
+            def second = mapper.writeValueAsString(type, value)
+            def secondInners = inners(valueSerializer())
+
+        then:
+            first == '{"id":1,"owner":{"name":"Fred"},"items":[{"sku":"a"},"b"]}'
+            second == first
+            firstInners.keySet() == [Integer, LinkedHashMap, ArrayList] as Set
+            firstInners.every { k, v -> secondInners[k].is(v) }
+    }
+
+    void "derived mappers share the JSON factory and its buffer pool"() {
+        when:
+            def factory = jacksonJsonMapper.@jsonFactory
+            def specific = jacksonJsonMapper.createSpecific(Argument.of(TestX))
+            def withView = jacksonJsonMapper.cloneWithViewClass(Object)
+            def withSerdeConfiguration = jacksonJsonMapper.cloneWithConfiguration(null, null, null)
+            def withJacksonConfiguration = jacksonJsonMapper.cloneWithConfiguration(jacksonJsonMapper.@jacksonConfiguration)
+
+        then:
+            specific.@jsonFactory.is(factory)
+            withView.@jsonFactory.is(factory)
+            withSerdeConfiguration.@jsonFactory.is(factory)
+            !withJacksonConfiguration.@jsonFactory.is(factory)
+            specific.writeValueAsString(new TestX(name: "Fred")) == '{"name":"Fred"}'
+    }
+
     void "write value as bytes uses the thread local buffer recycler on platform threads"() {
         given:
             def recyclerPool = jacksonJsonMapper.@jsonFactory._getRecyclerPool()

@@ -25,11 +25,14 @@ import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.FormattedDeserializer;
+import io.micronaut.serde.Keys;
+import io.micronaut.serde.KeysAwareDecoder;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
 import io.micronaut.serde.util.GeneratedSerdeEnumUtil;
 import io.micronaut.serde.util.GeneratedSerdeExceptionUtil;
 import io.micronaut.serde.util.GeneratedSerdeFallbackUtil;
+import io.micronaut.serde.util.GeneratedSerde;
 import io.micronaut.sourcegen.model.AnnotationDef;
 import io.micronaut.sourcegen.model.ClassDef;
 import io.micronaut.sourcegen.model.ClassTypeDef;
@@ -62,6 +65,16 @@ public final class EnumDeserializerSourceGen {
     private static final String ARGUMENT_STRING_FIELD = "ARGUMENT_STRING";
     private static final String STRING_DESERIALIZER_FIELD = "stringDeserializer";
     private static final String STRING_DESERIALIZER_LOCAL = "stringDeserializer";
+    private static final String VALUES_FIELD = "VALUES";
+    private static final String CONSTANTS_FIELD = "CONSTANTS";
+    private static final TypeDef KEYS_TYPE = TypeDef.of(Keys.class);
+    private static final Method KEYS_CREATE_METHOD = ReflectionUtils.getRequiredMethod(Keys.class, "create", String[].class);
+    private static final Method DECODE_STRING_VALUE_METHOD = ReflectionUtils.getRequiredMethod(
+        KeysAwareDecoder.class,
+        "decodeStringValue",
+        Decoder.class,
+        Keys.class
+    );
 
     private static final Method FIND_DESERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(Deserializer.DecoderContext.class, "findDeserializer", Argument.class);
     private static final Method CREATE_SPECIFIC_DESERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
@@ -76,6 +89,11 @@ public final class EnumDeserializerSourceGen {
         Decoder.class,
         Deserializer.DecoderContext.class,
         Argument.class
+    );
+    private static final Method IS_BUILT_IN_STRING_DESERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
+        GeneratedSerdeEnumUtil.class,
+        "isBuiltInStringDeserializer",
+        Deserializer.class
     );
     private static final Method ENUM_VALUE_OF_METHOD = ReflectionUtils.getRequiredMethod(
         GeneratedSerdeEnumUtil.class,
@@ -122,6 +140,7 @@ public final class EnumDeserializerSourceGen {
                 .addMember(GENERATED_VALUE_MEMBER, NULLAWAY_WARNING)
                 .build())
             .addSuperinterface(TypeDef.parameterized(FormattedDeserializer.class, enumTypeDef))
+            .addSuperinterface(TypeDef.of(GeneratedSerde.class))
             .addField(FieldDef.builder(ARGUMENT_STRING_FIELD, ARGUMENT_TYPE)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
                 .initializer(EnumSerdeSourceGenUtils.stringArgumentExpression())
@@ -129,11 +148,36 @@ public final class EnumDeserializerSourceGen {
             .addField(FieldDef.builder(STRING_DESERIALIZER_FIELD, DESERIALIZER_TYPE)
                 .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
                 .build())
+            .addFields(valuesFields(element, enumTypeDef, enumSerdeShape))
             .addMethod(generateConstructor(enumTypeDef, deserializerClassTypeDef))
             .addMethod(generateCreateSpecificMethod(enumTypeDef))
             .addMethod(generateCreateSpecificWithFormatMethod(enumTypeDef))
             .addMethod(generateDeserializeMethod(element, enumTypeDef, enumSerdeShape, deserializerClassTypeDef))
             .build();
+    }
+
+    /**
+     * The serialized values of the constants and the constants by ordinal, which let a decoder match
+     * the value in its input without creating a string. Values that are not unique keep the string
+     * path.
+     */
+    private static List<FieldDef> valuesFields(ClassElement element, TypeDef enumTypeDef, EnumSerdeShape enumSerdeShape) {
+        if (!enumSerdeShape.hasUniqueSerializedValues()) {
+            return List.of();
+        }
+        List<ExpressionDef> values = enumSerdeShape.serializedValues().stream()
+            .map(v -> (ExpressionDef) ExpressionDef.constant(v))
+            .toList();
+        return List.of(
+            FieldDef.builder(VALUES_FIELD, KEYS_TYPE)
+                .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                .initializer(ClassTypeDef.of(Keys.class).invokeStatic(KEYS_CREATE_METHOD, TypeDef.STRING.array().instantiate(values)))
+                .build(),
+            FieldDef.builder(CONSTANTS_FIELD, enumTypeDef.array())
+                .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                .initializer(ClassTypeDef.of(element).invokeStatic("values", enumTypeDef.array()))
+                .build()
+        );
     }
 
     private MethodDef generateConstructor(TypeDef enumTypeDef,
@@ -219,6 +263,24 @@ public final class EnumDeserializerSourceGen {
                     .newLocal(STRING_DESERIALIZER_LOCAL);
                 statements.add(deserializerDef);
                 VariableDef deserializerVariable = deserializerDef.variable();
+
+                if (enumSerdeShape.hasUniqueSerializedValues()) {
+                    // the constant names are matched directly only with a built-in string deserializer, so that a
+                    // user string deserializer still sees every value
+                    StatementDef.DefineAndAssign indexDef = ClassTypeDef.of(KeysAwareDecoder.class)
+                        .invokeStatic(DECODE_STRING_VALUE_METHOD, decoder, deserializerClassTypeDef.getStaticField(VALUES_FIELD, KEYS_TYPE))
+                        .newLocal("valueIndex");
+                    statements.add(ClassTypeDef.of(GeneratedSerdeEnumUtil.class)
+                        .invokeStatic(IS_BUILT_IN_STRING_DESERIALIZER_METHOD, deserializerVariable)
+                        .ifTrue(StatementDef.multi(
+                            indexDef,
+                            indexDef.variable()
+                                .compare(ExpressionDef.ComparisonOperation.OpType.GREATER_THAN_OR_EQUAL, ExpressionDef.constant(0))
+                                .ifTrue(deserializerClassTypeDef.getStaticField(CONSTANTS_FIELD, enumTypeDef.array())
+                                    .arrayElement(indexDef.variable())
+                                    .returning())
+                        )));
+                }
 
                 StatementDef.DefineAndAssign decodedValueDef = deserializerVariable.invoke(
                     DESERIALIZE_METHOD,

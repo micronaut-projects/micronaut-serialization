@@ -44,6 +44,100 @@ public enum TestEnum {
         context.close()
     }
 
+    void 'test enum generated serializer writes pre-encoded names with any encoder'() {
+        given:
+        def context = buildContext('test.UnicodeEnum', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+public enum UnicodeEnum {
+    FIRST,
+    \u00c9T\u00c9,
+    \u65e5\u672c
+}
+''')
+        Class<?> enumType = context.classLoader.loadClass('test.UnicodeEnum')
+        def registry = context.getBean(SerdeRegistry)
+        def type = Argument.of(enumType)
+        def values = enumType.enumConstants as List
+
+        expect:
+        assertGeneratedSerializer(registry, type)
+        values.collect { jsonMapper.writeValueAsString(it) } == ['"FIRST"', '"\u00c9T\u00c9"', '"\u65e5\u672c"']
+        values.collect { jsonMapper.writeValueToTree(it).getValue() } == ['FIRST', '\u00c9T\u00c9', '\u65e5\u672c']
+        jsonMapper.writeValueAsString(values) == '["FIRST","\u00c9T\u00c9","\u65e5\u672c"]'
+        values.collect { jsonMapper.readValue(jsonMapper.writeValueAsString(it), type) } == values
+        assertGeneratedDeserializer(registry, type)
+        jsonMapper.readValue('["\\u00c9T\\u00c9","FIRST","\u65e5\u672c"]', Argument.listOf(enumType)) == [values[1], values[0], values[2]]
+
+        when:
+        jsonMapper.readValue('"SECOND"', type)
+
+        then:
+        thrown(Exception)
+
+        cleanup:
+        context.close()
+    }
+
+    void 'test enum overridden wire names with escaped characters'() {
+        given:
+        def context = buildContext('test.WireEnum', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+public enum WireEnum {
+    FIRST,
+    @JsonProperty("second-wire")
+    SECOND,
+    @JsonProperty("\\u00e9t\\u00e9 \\"q\\"")
+    THIRD
+}
+""")
+        Class<?> enumType = context.classLoader.loadClass('test.WireEnum')
+        def type = Argument.of(enumType)
+        def values = enumType.enumConstants as List
+
+        expect:
+        values.collect { jsonMapper.writeValueAsString(it) } == ['"FIRST"', '"second-wire"', '"\u00e9t\u00e9 \\"q\\""']
+        values.collect { jsonMapper.writeValueToTree(it).getValue() } == ['FIRST', 'second-wire', '\u00e9t\u00e9 "q"']
+        jsonMapper.writeValueAsString(values) == '["FIRST","second-wire","\u00e9t\u00e9 \\"q\\""]'
+        values.collect { jsonMapper.readValue(jsonMapper.writeValueAsString(it), type) } == values
+
+        cleanup:
+        context.close()
+    }
+
+    void 'test enum generated serializer keeps duplicate wire names'() {
+        given:
+        def context = buildContext('test.DuplicateWireEnum', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+public enum DuplicateWireEnum {
+    @JsonProperty("same")
+    ONE,
+    @JsonProperty("same")
+    TWO
+}
+""")
+        Class<?> enumType = context.classLoader.loadClass('test.DuplicateWireEnum')
+
+        expect:
+        (enumType.enumConstants as List).collect { jsonMapper.writeValueAsString(it) } == ['"same"', '"same"']
+
+        cleanup:
+        context.close()
+    }
+
     void 'test enum generated deserializer is selected and functional'() {
         given:
         def context = buildContext('test.ParityEnum', '''
