@@ -58,11 +58,15 @@ public final class ToonNumbers {
                 if (d.isNaN() || d.isInfinite()) {
                     return "null";
                 }
-                String plain = plainDouble(d);
+                if (d == 0) {
+                    return "0";
+                }
+                String text = d.toString();
+                String plain = plainDouble(text);
                 if (plain != null) {
                     return plain;
                 }
-                return canonicalDecimal(new BigDecimal(d.toString()));
+                return canonicalDecimal(new BigDecimal(text));
             }
 
             case Float f -> {
@@ -98,14 +102,10 @@ public final class ToonNumbers {
      * exponent, from 10<sup>-3</sup> to 10<sup>7</sup>, which is inside the plain-form magnitude
      * window: its digits with the trailing fractional zeros removed.
      *
-     * @param d The value
-     * @return The canonical form, or {@code null} if the value is written with an exponent or is zero
+     * @param s The value as {@link Double#toString(double)} writes it, not zero
+     * @return The canonical form, or {@code null} if the value is written with an exponent
      */
-    private static @Nullable String plainDouble(double d) {
-        if (d == 0) {
-            return null;
-        }
-        String s = Double.toString(d);
+    private static @Nullable String plainDouble(String s) {
         int end = s.length();
         int dot = s.indexOf('.');
         if (dot < 0 || s.indexOf('E', dot) >= 0) {

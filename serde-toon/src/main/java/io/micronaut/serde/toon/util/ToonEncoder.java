@@ -53,6 +53,7 @@ import java.util.Set;
 public final class ToonEncoder {
 
     private static final int DOCUMENT_INITIAL_SIZE = 256;
+    private static final int BLOCK_SIZE = 8192;
     private static final int CACHED_INDENTS = 16;
 
     private final char delimiter;
@@ -82,19 +83,25 @@ public final class ToonEncoder {
     public void write(OutputStream outputStream, JsonNode tree) throws IOException {
         Objects.requireNonNull(outputStream, "Output stream cannot be null");
 
-        // the document is built in memory, as is the tree it is written from, and encoded at once
-        StringBuilder document = new StringBuilder(DOCUMENT_INITIAL_SIZE);
-        boolean[] firstLine = {true};
-        writeRoot(line -> {
-            if (!firstLine[0]) {
-                document.append('\n');
-            } else {
-                firstLine[0] = false;
-            }
-            document.append(line);
-        }, tree);
         try (outputStream) {
-            outputStream.write(document.toString().getBytes(StandardCharsets.UTF_8));
+            // the lines are collected and encoded in blocks, so that a large document is not held twice in memory
+            StringBuilder block = new StringBuilder(DOCUMENT_INITIAL_SIZE);
+            boolean[] firstLine = {true};
+            writeRoot(line -> {
+                if (!firstLine[0]) {
+                    block.append('\n');
+                } else {
+                    firstLine[0] = false;
+                }
+                block.append(line);
+                if (block.length() >= BLOCK_SIZE) {
+                    outputStream.write(block.toString().getBytes(StandardCharsets.UTF_8));
+                    block.setLength(0);
+                }
+            }, tree);
+            if (!block.isEmpty()) {
+                outputStream.write(block.toString().getBytes(StandardCharsets.UTF_8));
+            }
             outputStream.flush();
         }
     }

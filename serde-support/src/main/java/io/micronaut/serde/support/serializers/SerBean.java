@@ -39,6 +39,7 @@ import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.FormattedSerializer;
 import io.micronaut.serde.KeyDescriptor;
 import io.micronaut.serde.Keys;
+import io.micronaut.serde.KeysAwareEncoder;
 import io.micronaut.serde.PropertyFilter;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
@@ -1056,19 +1057,52 @@ final class SerBean<T> {
         }
 
         @Override
-        public boolean serializeDirectPrimitive(Encoder encoder, B bean, byte valueKind) throws IOException {
+        public boolean serializeDirectPrimitive(KeysAwareEncoder encoder, Keys keys, int index, B bean, byte valueKind) throws IOException {
             if (!primitive) {
                 return false;
             }
+            // the value is read before the key is written, so that a failing getter leaves no key without a value
             switch (valueKind) {
-                case DecoderValueKind.BOOLEAN_CODE -> encoder.encodeBoolean(beanProperty.getBooleanUnsafe(bean));
-                case DecoderValueKind.BYTE_CODE -> encoder.encodeByte(beanProperty.getByteUnsafe(bean));
-                case DecoderValueKind.SHORT_CODE -> encoder.encodeShort(beanProperty.getShortUnsafe(bean));
-                case DecoderValueKind.CHAR_CODE -> encoder.encodeChar(beanProperty.getCharUnsafe(bean));
-                case DecoderValueKind.INT_CODE -> encoder.encodeInt(beanProperty.getIntUnsafe(bean));
-                case DecoderValueKind.LONG_CODE -> encoder.encodeLong(beanProperty.getLongUnsafe(bean));
-                case DecoderValueKind.FLOAT_CODE -> encoder.encodeFloat(beanProperty.getFloatUnsafe(bean));
-                case DecoderValueKind.DOUBLE_CODE -> encoder.encodeDouble(beanProperty.getDoubleUnsafe(bean));
+                case DecoderValueKind.BOOLEAN_CODE -> {
+                    boolean v = beanProperty.getBooleanUnsafe(bean);
+                    encoder.encodeKey(keys, index);
+                    encoder.encodeBoolean(v);
+                }
+                case DecoderValueKind.BYTE_CODE -> {
+                    byte v = beanProperty.getByteUnsafe(bean);
+                    encoder.encodeKey(keys, index);
+                    encoder.encodeByte(v);
+                }
+                case DecoderValueKind.SHORT_CODE -> {
+                    short v = beanProperty.getShortUnsafe(bean);
+                    encoder.encodeKey(keys, index);
+                    encoder.encodeShort(v);
+                }
+                case DecoderValueKind.CHAR_CODE -> {
+                    char v = beanProperty.getCharUnsafe(bean);
+                    encoder.encodeKey(keys, index);
+                    encoder.encodeChar(v);
+                }
+                case DecoderValueKind.INT_CODE -> {
+                    int v = beanProperty.getIntUnsafe(bean);
+                    encoder.encodeKey(keys, index);
+                    encoder.encodeInt(v);
+                }
+                case DecoderValueKind.LONG_CODE -> {
+                    long v = beanProperty.getLongUnsafe(bean);
+                    encoder.encodeKey(keys, index);
+                    encoder.encodeLong(v);
+                }
+                case DecoderValueKind.FLOAT_CODE -> {
+                    float v = beanProperty.getFloatUnsafe(bean);
+                    encoder.encodeKey(keys, index);
+                    encoder.encodeFloat(v);
+                }
+                case DecoderValueKind.DOUBLE_CODE -> {
+                    double v = beanProperty.getDoubleUnsafe(bean);
+                    encoder.encodeKey(keys, index);
+                    encoder.encodeDouble(v);
+                }
                 default -> {
                     return false;
                 }
@@ -1263,7 +1297,18 @@ final class SerBean<T> {
 
         public abstract @Nullable P get(B bean);
 
-        public boolean serializeDirectPrimitive(Encoder encoder, B bean, byte valueKind) throws IOException {
+        /**
+         * Writes the key and the value of a primitive property without boxing the value.
+         *
+         * @param encoder   The encoder
+         * @param keys      The keys of the properties
+         * @param index     The index of the key of the property
+         * @param bean      The bean
+         * @param valueKind The kind of the value
+         * @return Whether the key and the value are written, nothing is written otherwise
+         * @throws IOException If the value cannot be written
+         */
+        public boolean serializeDirectPrimitive(KeysAwareEncoder encoder, Keys keys, int index, B bean, byte valueKind) throws IOException {
             return false;
         }
 

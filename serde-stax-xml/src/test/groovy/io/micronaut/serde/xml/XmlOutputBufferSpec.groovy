@@ -78,4 +78,80 @@ class XmlOutputBufferSpec extends Specification {
         xmlMapper.writeValueAsString(Argument.of(String, 'other_name'), 'hi') == '<OtherName>hi</OtherName>'
         xmlMapper.writeValueAsString('hi') == '<String>hi</String>'
     }
+
+    def "a buffer writes nothing more once its target failed"() {
+        given:
+        def target = new FailOnceStream(10)
+        def buffer = new XmlOutputBuffer(target)
+        def large = new byte[XmlOutputBuffer.TARGET_BUFFER_SIZE + 1]
+
+        when:
+        (0..<100).each { buffer.write(1) }
+        buffer.flush()
+
+        then:
+        thrown(IOException)
+
+        when:
+        buffer.write(2)
+        buffer.flush()
+
+        then:
+        thrown(IOException)
+
+        when:
+        buffer.write(large, 0, large.length)
+
+        then:
+        thrown(IOException)
+        target.beforeFailure.size() == 10
+        target.afterFailure.size() == 0
+    }
+
+    def "a failed write of a large scalar is not written again when the writer is closed"() {
+        given:
+        def target = new FailOnceStream(100)
+
+        when:
+        xmlMapper.writeValue(target, Argument.of(String, 'greeting'), 'x' * (XmlOutputBuffer.TARGET_BUFFER_SIZE * 2))
+
+        then:
+        thrown(IOException)
+        target.afterFailure.size() == 0
+    }
+
+    /**
+     * Takes the first bytes of the write that fails, fails once, then records what is written after the failure.
+     */
+    static class FailOnceStream extends OutputStream {
+        final int failAt
+        final ByteArrayOutputStream beforeFailure = new ByteArrayOutputStream()
+        final ByteArrayOutputStream afterFailure = new ByteArrayOutputStream()
+        boolean failed
+
+        FailOnceStream(int failAt) {
+            this.failAt = failAt
+        }
+
+        @Override
+        void write(int b) throws IOException {
+            write([(byte) b] as byte[], 0, 1)
+        }
+
+        @Override
+        void write(byte[] b, int off, int len) throws IOException {
+            if (failed) {
+                afterFailure.write(b, off, len)
+                return
+            }
+            int room = failAt - beforeFailure.size()
+            if (len <= room) {
+                beforeFailure.write(b, off, len)
+                return
+            }
+            beforeFailure.write(b, off, room)
+            failed = true
+            throw new IOException('broken')
+        }
+    }
 }
