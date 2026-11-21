@@ -414,15 +414,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             // the unwrapped properties appear in the outer object with the prefix and suffix of the unwrapped property
             final String unwrappedPrefix = element.stringValue(SerdeConfig.SerUnwrapped.class, SerdeConfig.SerUnwrapped.PREFIX).orElse("");
             final String unwrappedSuffix = element.stringValue(SerdeConfig.SerUnwrapped.class, SerdeConfig.SerUnwrapped.SUFFIX).orElse("");
-            // a property that is itself unwrapped does not appear under its own name, its properties do
-            final Set<String> nestedUnwrapped = propertyType.getBeanProperties().stream()
-                .filter(p -> p.hasAnnotation(SerdeConfig.SerUnwrapped.class))
-                .map(this::resolvePropertyName)
-                .collect(Collectors.toSet());
-            final List<String> thatProperties = resolvePropertyNames(context, propertyType, element).stream()
-                .filter(name -> !nestedUnwrapped.contains(name))
-                .map(name -> unwrappedPrefix + name + unwrappedSuffix)
-                .toList();
+            final List<String> thatProperties = unwrappedPropertyNames(context, propertyType, element, unwrappedPrefix, unwrappedSuffix, new HashSet<>());
             final List<String> thisProperties = resolvePropertyNames(context, currentClass(), null);
             String currentUnwrappedName = null;
             if (element instanceof TypedElement te) {
@@ -441,6 +433,37 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 }
             }
         }
+    }
+
+    /**
+     * The JSON names the properties of an unwrapped type appear under in the outer object. A property that is itself
+     * unwrapped does not appear under its own name: its properties do, with the prefixes and suffixes composed.
+     */
+    private List<String> unwrappedPropertyNames(VisitorContext context,
+                                                ClassElement type,
+                                                @Nullable Element annotationSource,
+                                                String prefix,
+                                                String suffix,
+                                                Set<String> visiting) {
+        Map<String, PropertyElement> nestedUnwrapped = new HashMap<>();
+        for (PropertyElement property : type.getBeanProperties()) {
+            if (property.hasAnnotation(SerdeConfig.SerUnwrapped.class)) {
+                nestedUnwrapped.putIfAbsent(resolvePropertyName(property), property);
+            }
+        }
+        List<String> names = new ArrayList<>();
+        for (String name : resolvePropertyNames(context, type, annotationSource)) {
+            PropertyElement nested = nestedUnwrapped.get(name);
+            if (nested == null) {
+                names.add(prefix + name + suffix);
+            } else if (visiting.add(nested.getGenericType().getName())) {
+                names.addAll(unwrappedPropertyNames(context, nested.getGenericType(), nested,
+                    prefix + nested.stringValue(SerdeConfig.SerUnwrapped.class, SerdeConfig.SerUnwrapped.PREFIX).orElse(""),
+                    nested.stringValue(SerdeConfig.SerUnwrapped.class, SerdeConfig.SerUnwrapped.SUFFIX).orElse("") + suffix,
+                    visiting));
+            }
+        }
+        return names;
     }
 
     private void validateJaxbAnnotations(Element element, VisitorContext context) {
@@ -1640,6 +1663,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             if (CollectionUtils.isNotEmpty(serdeMethods)) {
                 final MethodElement readMethod = beanProperty.getReadMethod().orElse(null);
                 final MethodElement writeMethod = beanProperty.getWriteMethod().orElse(null);
+                boolean replicated = false;
                 final Iterator<MethodElement> i = serdeMethods.iterator();
                 while (i.hasNext()) {
                     MethodElement serdeMethod = i.next();
@@ -1648,6 +1672,9 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                             if (argumentsMatch(serdeMethod, readMethod)) {
                                 i.remove();
                                 replicateAnnotations(serdeMethod, readMethod);
+                                // the accessor stays part of its bean property
+                                readMethods.add(readMethod);
+                                replicated = true;
                                 visitMethod(readMethod, context);
                             }
                         }
@@ -1657,10 +1684,16 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                             if (argumentsMatch(serdeMethod, writeMethod)) {
                                 i.remove();
                                 replicateAnnotations(serdeMethod, writeMethod);
+                                writeMethods.add(writeMethod);
+                                replicated = true;
                                 visitMethod(writeMethod, context);
                             }
                         }
                     }
+                }
+                if (replicated) {
+                    // the bean property is validated with the annotations its accessors received
+                    checkForErrors(beanProperty, context);
                 }
             }
         }

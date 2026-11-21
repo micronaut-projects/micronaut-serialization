@@ -377,4 +377,113 @@ class CityData {
         cleanup:
         context.close()
     }
+
+    void "a property renamed by a later mixin on its setter keeps the value read and its default"() {
+        given:
+        def context = buildContext('mixintest.Imports', '''
+package mixintest;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.SerdeImport;
+
+@SerdeImport(Imports.Target.class)
+@SerdeImport(value = Imports.Target.class, mixin = Imports.WireMixin.class)
+final class Imports {
+    public static class Target {
+        @JsonProperty(value = "wire", defaultValue = "fallback")
+        private String value;
+        public String getValue() { return value; }
+        public void setValue(String value) { this.value = value; }
+    }
+    abstract static class WireMixin {
+        @JsonProperty("wire") public abstract void setValue(String value);
+    }
+}
+''')
+        def target = context.classLoader.loadClass('mixintest.Imports$Target')
+
+        expect:
+        jsonMapper.readValue('{"wire":"actual"}', target).value == 'actual'
+        jsonMapper.readValue('{}', target).value == 'fallback'
+
+        cleanup:
+        context.close()
+    }
+
+    void "a setter unwrapped by a later mixin is checked under its property name"() {
+        given:
+        def context = buildContext('mixintest.Imports', '''
+package mixintest;
+
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.serde.annotation.SerdeImport;
+
+@SerdeImport(Imports.Target.class)
+@SerdeImport(Imports.Details.class)
+@SerdeImport(value = Imports.Target.class, mixin = Imports.UnwrapMixin.class)
+final class Imports {
+    public static class Target {
+        private Details details;
+        public Details getDetails() { return details; }
+        public void setDetails(Details details) { this.details = details; }
+    }
+    public static class Details {
+        private String details;
+        public String getDetails() { return details; }
+        public void setDetails(String details) { this.details = details; }
+    }
+    abstract static class UnwrapMixin {
+        @JsonUnwrapped public abstract void setDetails(Details details);
+    }
+}
+''')
+        expect: 'the unwrapped bean property has no JSON name of its own, so the inner details property does not collide'
+        context.classLoader.loadClass('mixintest.Imports$Target')
+
+        cleanup:
+        context.close()
+    }
+
+    void "a property of a nested unwrapped type collides under its composed name"() {
+        when:
+        buildContext('mixintest.Outer', '''
+package mixintest;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Outer {
+    private Address address;
+    private String note;
+    @JsonUnwrapped(prefix = "addr_")
+    public Address getAddress() { return address; }
+    public void setAddress(Address address) { this.address = address; }
+    @JsonProperty("addr_cityData")
+    public String getNote() { return note; }
+    public void setNote(String note) { this.note = note; }
+}
+
+@Serdeable
+class Address {
+    private CityData cityData;
+    @JsonUnwrapped
+    public CityData getCityData() { return cityData; }
+    public void setCityData(CityData cityData) { this.cityData = cityData; }
+}
+
+@Serdeable
+class CityData {
+    private String cityData;
+    public String getCityData() { return cityData; }
+    public void setCityData(String cityData) { this.cityData = cityData; }
+}
+''')
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message.contains('conflicts with an existing property')
+        e.message.contains('addr_cityData')
+    }
 }
