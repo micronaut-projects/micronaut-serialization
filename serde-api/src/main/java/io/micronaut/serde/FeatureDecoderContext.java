@@ -39,7 +39,7 @@ import java.util.Set;
  * @since 3.0
  */
 @Internal
-final class FeatureDecoderContext implements Deserializer.DecoderContext, DocumentSerdes {
+final class FeatureDecoderContext implements Deserializer.DecoderContext, DocumentSerdes.Delegating {
     private final Deserializer.DecoderContext delegate;
     private final Set<DeserializationConfiguration.Feature> features;
 
@@ -110,13 +110,8 @@ final class FeatureDecoderContext implements Deserializer.DecoderContext, Docume
     }
 
     @Override
-    public @Nullable Object getDocumentSerde(Object owner) {
-        return DocumentSerdes.get(delegate, owner);
-    }
-
-    @Override
-    public void putDocumentSerde(Object owner, Object value) {
-        DocumentSerdes.put(delegate, owner, value);
+    public Object documentSerdesOwner() {
+        return delegate;
     }
 
     @Override

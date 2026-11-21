@@ -64,4 +64,25 @@ public interface DocumentSerdes {
             documentSerdes.putDocumentSerde(owner, value);
         }
     }
+
+    /**
+     * Document serdes kept by another context, such as the context a derived context delegates to.
+     */
+    interface Delegating extends DocumentSerdes {
+
+        /**
+         * @return The context that keeps the document serdes
+         */
+        Object documentSerdesOwner();
+
+        @Override
+        default @Nullable Object getDocumentSerde(Object owner) {
+            return DocumentSerdes.get(documentSerdesOwner(), owner);
+        }
+
+        @Override
+        default void putDocumentSerde(Object owner, Object value) {
+            DocumentSerdes.put(documentSerdesOwner(), owner, value);
+        }
+    }
 }

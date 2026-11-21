@@ -38,7 +38,7 @@ import java.util.Set;
  * @since 3.0
  */
 @Internal
-final class FeatureEncoderContext implements Serializer.EncoderContext, DocumentSerdes {
+final class FeatureEncoderContext implements Serializer.EncoderContext, DocumentSerdes.Delegating {
     private final Serializer.EncoderContext delegate;
     private final Set<SerializationConfiguration.Feature> features;
 
@@ -69,13 +69,8 @@ final class FeatureEncoderContext implements Serializer.EncoderContext, Document
     }
 
     @Override
-    public @Nullable Object getDocumentSerde(Object owner) {
-        return DocumentSerdes.get(delegate, owner);
-    }
-
-    @Override
-    public void putDocumentSerde(Object owner, Object value) {
-        DocumentSerdes.put(delegate, owner, value);
+    public Object documentSerdesOwner() {
+        return delegate;
     }
 
     @Override
