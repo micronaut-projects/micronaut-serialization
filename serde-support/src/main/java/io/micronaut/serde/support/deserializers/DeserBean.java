@@ -79,6 +79,7 @@ import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 /**
  * Holder for data about a deserializable bean.
@@ -1338,7 +1339,13 @@ final class DeserBean<T> {
             this.unwrapped = unwrapped;
             this.unwrappedProperty = unwrappedProperty;
             this.isAnySetter = annotationMetadata.isAnnotationPresent(SerdeConfig.SerAnySetter.class);
-            final String[] aliases = annotationMetadata.stringValues(SerdeConfig.class, SerdeConfig.ALIASES);
+            String[] aliases = annotationMetadata.stringValues(SerdeConfig.class, SerdeConfig.ALIASES);
+            // A creator argument named apart from its property is also read with the names of the property, which
+            // is written with its own name, such as one a naming strategy derives
+            String[] propertyNames = renamedPropertyNames(introspection, argument, argumentMetadata);
+            if (propertyNames != null) {
+                aliases = ArrayUtils.concat(aliases, propertyNames);
+            }
             if (ArrayUtils.isNotEmpty(aliases)) {
                 this.aliases = ArrayUtils.concat(aliases, property);
             } else {
@@ -1940,6 +1947,36 @@ final class DeserBean<T> {
             .filter(metadata -> !hasDifferentExplicitName(annotationMetadata, metadata))
             .orElse(AnnotationMetadata.EMPTY_METADATA);
         return new AnnotationMetadataHierarchy(propertyMetadata, annotationMetadata);
+    }
+
+    private static <B, P> String @Nullable [] renamedPropertyNames(BeanIntrospection<B> introspection, Argument<P> argument, AnnotationMetadata argumentMetadata) {
+        String argumentName = findExplicitName(argumentMetadata);
+        BeanProperty<B, Object> property = (BeanProperty<B, Object>) introspection.getProperty(argument.getName(), argument.getType()).orElse(null);
+        if (argumentName == null || property == null) {
+            return null;
+        }
+        AnnotationMetadata propertyMetadata = property.getAnnotationMetadata();
+        // the name the property is written with: explicit, from a naming strategy, or its Java name
+        String explicitPropertyName = findExplicitName(propertyMetadata);
+        String propertyName = explicitPropertyName == null ? property.getName() : explicitPropertyName;
+        if (propertyName.equals(argumentName)
+            || !SerdePropertyAccess.canDeserialize(propertyMetadata)
+            || propertyMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false)
+            || propertyMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED_DESERIALIZATION).orElse(false)) {
+            return null;
+        }
+        // a name another creator argument is read with stays that argument's
+        Set<String> otherArgumentNames = new HashSet<>();
+        for (Argument<?> other : introspection.getConstructorArguments()) {
+            if (!other.getName().equals(argument.getName())) {
+                String otherName = findExplicitName(other.getAnnotationMetadata());
+                otherArgumentNames.add(otherName == null ? other.getName() : otherName);
+            }
+        }
+        return Stream.concat(Arrays.stream(propertyMetadata.stringValues(SerdeConfig.class, SerdeConfig.ALIASES)), Stream.of(propertyName))
+            .filter(name -> !otherArgumentNames.contains(name))
+            .distinct()
+            .toArray(String[]::new);
     }
 
     private static boolean hasDifferentExplicitName(AnnotationMetadata argumentMetadata, AnnotationMetadata propertyMetadata) {
