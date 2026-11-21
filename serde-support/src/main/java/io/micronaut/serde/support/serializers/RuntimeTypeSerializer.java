@@ -22,11 +22,12 @@ import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.util.DocumentSerdes;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The runtime type serializer.
@@ -34,7 +35,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @Internal
 final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
     private final EncoderContext encoderContext;
-    private final Map<Class<?>, Serializer<Object>> inners = new ConcurrentHashMap<>(10);
     @Nullable
     private final Serializer<Object> outer;
     @Nullable
@@ -122,37 +122,48 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
         return ObjectSerializer.super.isAbsent(context, value);
     }
 
-    private Serializer<Object> getSerializer(EncoderContext context, Object value) throws SerdeException {
-        try {
-            return inners.computeIfAbsent(value.getClass(), t -> {
-                try {
-                    if (value.getClass().equals(outerType.getType())) {
-                        if (outer == null) {
-                            if (introspectionException != null) {
-                                String message = introspectionException.getMessage();
-                                if (message == null) {
-                                    message = "No serializer found for type: " + value.getClass();
-                                }
-                                throw new SerdeException(message, introspectionException);
-                            }
-                            throw new SerdeException("No serializer found for type: " + value.getClass());
-                        }
-                        return outer;
-                    } else {
-                        Argument<Object> arg = Argument.of((Class) value.getClass(), outerType.getAnnotationMetadata());
-                        return encoderContext.findSerializer(arg).createSpecific(context, arg);
-                    }
-                } catch (SerdeException ex) {
-                    throw new IntrospectionException("No serializer found for type: " + value.getClass(), ex);
-                }
-            });
-        } catch (IntrospectionException e) {
-            if (e.getCause() instanceof SerdeException serdeException) {
-                throw serdeException;
-            } else {
-                throw e;
-            }
+    /**
+     * The serializers of the runtime types of one document. A serializer may be bound to the context it was created
+     * with (a serde bean taking the context as a constructor argument), and this serializer can outlive a document,
+     * as the property serializer of a bean, so the serializers are kept by the document context and released with
+     * it. A context that keeps no document serdes gets new serializers for each value.
+     */
+    @SuppressWarnings("unchecked")
+    private Map<Class<?>, Serializer<Object>> documentSerializers(EncoderContext context) {
+        if (DocumentSerdes.get(context, this) instanceof Map<?, ?> serializers) {
+            return (Map<Class<?>, Serializer<Object>>) serializers;
         }
+        Map<Class<?>, Serializer<Object>> serializers = new HashMap<>(4);
+        DocumentSerdes.put(context, this, serializers);
+        return serializers;
+    }
+
+    private Serializer<Object> getSerializer(EncoderContext context, Object value) throws SerdeException {
+        Map<Class<?>, Serializer<Object>> serializers = documentSerializers(context);
+        Class<?> type = value.getClass();
+        Serializer<Object> serializer = serializers.get(type);
+        if (serializer == null) {
+            // not computeIfAbsent: creating a serializer may look up the serializer of another runtime type
+            serializer = createSerializer(context, type);
+            serializers.put(type, serializer);
+        }
+        return serializer;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private Serializer<Object> createSerializer(EncoderContext context, Class<?> type) throws SerdeException {
+        if (type.equals(outerType.getType())) {
+            if (outer != null) {
+                return outer;
+            }
+            if (introspectionException != null) {
+                String message = introspectionException.getMessage();
+                throw new SerdeException(message == null ? "No serializer found for type: " + type : message, introspectionException);
+            }
+            throw new SerdeException("No serializer found for type: " + type);
+        }
+        Argument<Object> arg = Argument.of((Class) type, outerType.getAnnotationMetadata());
+        return encoderContext.findSerializer(arg).createSpecific(context, arg);
     }
 
 }
