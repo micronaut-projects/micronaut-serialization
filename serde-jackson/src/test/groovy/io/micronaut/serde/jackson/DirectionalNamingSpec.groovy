@@ -825,4 +825,42 @@ class UserDto {
         cleanup:
         context.close()
     }
+
+    void "a property sharing only its Java name with a named creator parameter of another type keeps its own key"() {
+        given:
+        def context = buildContext('test.Person', '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+
+@Serdeable.Serializable
+@Serdeable.Deserializable(naming = SnakeCaseStrategy.class)
+class Person {
+    private final int id;
+    private String name;
+
+    @JsonCreator
+    Person(@JsonProperty("id") int name) {
+        this.id = name;
+    }
+
+    public int getId() { return id; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+}
+''', true, [:])
+
+        when:
+        def bean = jsonMapper.readValue('{"id":7,"name":"Jane"}', argumentOf(context, 'test.Person'))
+
+        then:
+        bean.id == 7
+        bean.name == 'Jane'
+
+        cleanup:
+        context.close()
+    }
 }
