@@ -44,9 +44,24 @@ public interface DocumentSerdes {
 
     /**
      * @param context The encoder or decoder context
-     * @return The document serdes of the context, or {@code null} when the context does not keep any
+     * @param owner   The serde that stored the value
+     * @return The value stored by the owner for the document of the context, or {@code null} when there is none or
+     * the context keeps no document serdes
      */
-    static @Nullable DocumentSerdes of(Object context) {
-        return context instanceof DocumentSerdes documentSerdes ? documentSerdes : null;
+    static @Nullable Object get(Object context, Object owner) {
+        return context instanceof DocumentSerdes documentSerdes ? documentSerdes.getDocumentSerde(owner) : null;
+    }
+
+    /**
+     * Stores a value for the rest of the document of the context, when the context keeps document serdes.
+     *
+     * @param context The encoder or decoder context
+     * @param owner   The serde that stores the value
+     * @param value   The value
+     */
+    static void put(Object context, Object owner, Object value) {
+        if (context instanceof DocumentSerdes documentSerdes) {
+            documentSerdes.putDocumentSerde(owner, value);
+        }
     }
 }

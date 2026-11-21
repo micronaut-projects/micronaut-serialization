@@ -111,18 +111,12 @@ class DefaultEncoderContext extends AbstractPropertyReferenceManager implements 
 
     @Override
     public @Nullable Object getDocumentSerde(Object owner) {
-        IdentityHashMap<Object, Object> serdes = documentSerdes;
-        return serdes == null ? null : serdes.get(owner);
+        return DocumentSerdeMaps.get(documentSerdes, owner);
     }
 
     @Override
     public void putDocumentSerde(Object owner, Object value) {
-        IdentityHashMap<Object, Object> serdes = documentSerdes;
-        if (serdes == null) {
-            serdes = new IdentityHashMap<>(4);
-            documentSerdes = serdes;
-        }
-        serdes.put(owner, value);
+        documentSerdes = DocumentSerdeMaps.put(documentSerdes, owner, value);
     }
 
     @Override
