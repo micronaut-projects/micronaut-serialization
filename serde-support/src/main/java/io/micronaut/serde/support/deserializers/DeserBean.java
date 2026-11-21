@@ -685,7 +685,10 @@ final class DeserBean<T> {
             }
         }
         if (anySetter != null) {
-            anySetter.deserializer = anySetter.valueType.equalsType(Argument.OBJECT_ARGUMENT) ? null : findDeserializer(decoderContext, anySetter.valueType);
+            Argument<Object> anySetterValueType = (Argument<Object>) anySetter.valueType;
+            anySetter.deserializer = anySetterValueType.equalsType(Argument.OBJECT_ARGUMENT)
+                ? null
+                : ContextBoundSerdes.specialize(context -> findDeserializer(context, anySetterValueType), decoderContext);
         }
         if (unwrappedProperties != null) {
             for (DerProperty<T, Object> unwrappedProperty : unwrappedProperties) {
@@ -720,7 +723,9 @@ final class DeserBean<T> {
             ? (Argument<Object>) property.argument.getTypeVariable("V").orElse(Argument.OBJECT_ARGUMENT)
             : Argument.OBJECT_ARGUMENT;
         property.unwrappedValueType = valueType;
-        property.unwrappedValueDeserializer = valueType.equalsType(Argument.OBJECT_ARGUMENT) ? null : findDeserializer(decoderContext, valueType);
+        property.unwrappedValueDeserializer = valueType.equalsType(Argument.OBJECT_ARGUMENT)
+            ? null
+            : ContextBoundSerdes.specialize(context -> findDeserializer(context, valueType), decoderContext);
     }
 
     private boolean isSimpleBean() {

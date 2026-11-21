@@ -923,7 +923,9 @@ final class SerBean<T> {
         final Serializer<Z> resolved = serializer;
         final Argument<Z> resolvedArgument = argument;
         ContextBoundSerdes.SerializerFactory<Z> factory = context -> {
-            Serializer.EncoderContext propertyContext = context.withFeatures(prop.featuresWith, prop.featuresWithout);
+            // the features of the bean argument apply to a document context as they did to the first
+            Serializer.EncoderContext beanContext = serdeArgumentConf == null ? context : serdeArgumentConf.withFeatures(context);
+            Serializer.EncoderContext propertyContext = beanContext.withFeatures(prop.featuresWith, prop.featuresWithout);
             return prop.format == null
                 ? (Serializer<Z>) resolved.createSpecific(propertyContext, resolvedArgument)
                 : createSpecific(prop.format, resolved, propertyContext, resolvedArgument);
