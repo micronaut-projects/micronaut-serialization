@@ -70,16 +70,12 @@ final class FeatureEncoderContext implements Serializer.EncoderContext, Document
 
     @Override
     public @Nullable Object getDocumentSerde(Object owner) {
-        DocumentSerdes documentSerdes = DocumentSerdes.of(delegate);
-        return documentSerdes == null ? null : documentSerdes.getDocumentSerde(owner);
+        return DocumentSerdes.get(delegate, owner);
     }
 
     @Override
     public void putDocumentSerde(Object owner, Object value) {
-        DocumentSerdes documentSerdes = DocumentSerdes.of(delegate);
-        if (documentSerdes != null) {
-            documentSerdes.putDocumentSerde(owner, value);
-        }
+        DocumentSerdes.put(delegate, owner, value);
     }
 
     @Override

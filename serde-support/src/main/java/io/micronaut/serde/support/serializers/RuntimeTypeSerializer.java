@@ -130,15 +130,11 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
      */
     @SuppressWarnings("unchecked")
     private Map<Class<?>, Serializer<Object>> documentSerializers(EncoderContext context) {
-        DocumentSerdes documentSerdes = DocumentSerdes.of(context);
-        if (documentSerdes == null) {
-            return new HashMap<>(4);
-        }
-        if (documentSerdes.getDocumentSerde(this) instanceof Map<?, ?> serializers) {
+        if (DocumentSerdes.get(context, this) instanceof Map<?, ?> serializers) {
             return (Map<Class<?>, Serializer<Object>>) serializers;
         }
         Map<Class<?>, Serializer<Object>> serializers = new HashMap<>(4);
-        documentSerdes.putDocumentSerde(this, serializers);
+        DocumentSerdes.put(context, this, serializers);
         return serializers;
     }
 
