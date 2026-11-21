@@ -64,6 +64,20 @@ class BsonOutputBufferSpec extends Specification {
         buffer.byteBuffers[0].remaining() == basic.size
     }
 
+    void "the buffer size of writeValueAsBytes shrinks back after a large document"() {
+        given:
+        def mapper = (BsonBinaryMapper) bsonBinaryMapper.cloneWithViewClass(Object)
+
+        when:
+        mapper.writeValueAsBytes([value: 'x' * 100_000])
+        def afterLarge = mapper.@outputSizeHint
+        10.times { mapper.writeValueAsBytes([value: 'small']) }
+
+        then:
+        afterLarge == 64 * 1024
+        mapper.@outputSizeHint == BsonOutputBuffer.INITIAL_SIZE
+    }
+
     void "writeValueAsBytes writes the same document as the stream API"() {
         given:
         def users = [name: 'caf\u00e9', count: 3, friends: (1..200).collect { [id: it, name: "friend $it".toString(), tags: ['a', '\u65e5']] }]

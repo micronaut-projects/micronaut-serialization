@@ -27,6 +27,7 @@ import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerdeRegistrar;
 import io.micronaut.serde.support.util.SerdeFeatures;
+import io.micronaut.serde.util.DocumentContextTracker;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -124,6 +125,7 @@ final class DateSerde implements FormattedSerde<Date>, SerdeRegistrar<Date> {
         Optional<SerdeConfiguration> serdeConfiguration = encoderContext.getSerdeConfiguration();
         Optional<SimpleDateFormat> configuredDateFormat = configuredDateFormat(serdeConfiguration);
         if (configuredDateFormat.isPresent()) {
+            bindToJvmTimeZone(encoderContext, serdeConfiguration);
             return new FormattedDateSerde<>(configuredDateFormat.get());
         }
         if (serdeConfiguration.map(SerdeConfiguration::isWriteDateTimesAsStrictIJson).orElse(false)) {
@@ -142,6 +144,7 @@ final class DateSerde implements FormattedSerde<Date>, SerdeRegistrar<Date> {
         Optional<SerdeConfiguration> serdeConfiguration = decoderContext.getSerdeConfiguration();
         Optional<SimpleDateFormat> configuredDateFormat = configuredDateFormat(serdeConfiguration);
         if (configuredDateFormat.isPresent()) {
+            bindToJvmTimeZone(decoderContext, serdeConfiguration);
             return new FormattedDateSerde<>(configuredDateFormat.get());
         }
         if (serdeConfiguration.map(SerdeConfiguration::isWriteDateTimesAsStrictIJson).orElse(false)) {
@@ -153,6 +156,19 @@ final class DateSerde implements FormattedSerde<Date>, SerdeRegistrar<Date> {
         final Argument<Instant> argument = Argument.of(Instant.class, context.getAnnotationMetadata());
         final Deserializer<Instant> specific = instantSerde.createSpecific(decoderContext, argument);
         return createSpecificDeserializer(argument, specific);
+    }
+
+    /**
+     * A configured date format without a time zone formats in the default time zone of the JVM at the time it is
+     * created, which can change, so the serde created with it is not reused by the next documents.
+     *
+     * @param context             The encoder or decoder context
+     * @param serdeConfiguration The configuration
+     */
+    private static void bindToJvmTimeZone(Object context, Optional<SerdeConfiguration> serdeConfiguration) {
+        if (serdeConfiguration.flatMap(SerdeConfiguration::getTimeZone).isEmpty()) {
+            DocumentContextTracker.markDocumentBound(context);
+        }
     }
 
     private static Optional<SimpleDateFormat> configuredDateFormat(Optional<SerdeConfiguration> serdeConfiguration) {

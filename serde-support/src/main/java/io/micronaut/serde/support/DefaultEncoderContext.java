@@ -45,6 +45,9 @@ class DefaultEncoderContext extends AbstractPropertyReferenceManager implements 
     // Beans written in full in the current document, allocated only when a document uses object identity
     @Nullable
     private IdentityHashMap<Object, Object> writtenBeans;
+    // Values that shared serdes keep for the current document only, allocated on first use
+    @Nullable
+    private IdentityHashMap<Object, Object> documentValues;
 
     DefaultEncoderContext(DefaultSerdeRegistry registry) {
         this.registry = registry;
@@ -109,6 +112,24 @@ class DefaultEncoderContext extends AbstractPropertyReferenceManager implements 
     @Override
     public void close() {
         writtenBeans = null;
+        documentValues = null;
+    }
+
+    @Override
+    public @Nullable Object getDocumentValue(Object key) {
+        IdentityHashMap<Object, Object> values = documentValues;
+        return values == null ? null : values.get(key);
+    }
+
+    @Override
+    public boolean putDocumentValue(Object key, Object value) {
+        IdentityHashMap<Object, Object> values = documentValues;
+        if (values == null) {
+            values = new IdentityHashMap<>(4);
+            documentValues = values;
+        }
+        values.put(key, value);
+        return true;
     }
 
     @Override

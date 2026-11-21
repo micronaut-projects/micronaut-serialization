@@ -104,9 +104,13 @@ public final class BsonBinaryMapper extends AbstractBsonMapper {
             encodeValue(bsonWriter, type, object);
         }
         int size = buffer.getSize();
-        if (size > outputSizeHint) {
+        int hint = outputSizeHint;
+        if (size > hint) {
             // A racy hint is fine: it only sizes the next buffers
             outputSizeHint = Math.min(size + (size >> 1), MAX_OUTPUT_SIZE_HINT);
+        } else if (size < hint >> 2) {
+            // Shrinks after a few smaller documents, so that one large document does not size all the next ones
+            outputSizeHint = Math.max(hint >> 1, BsonOutputBuffer.INITIAL_SIZE);
         }
         return buffer.toByteArray();
     }

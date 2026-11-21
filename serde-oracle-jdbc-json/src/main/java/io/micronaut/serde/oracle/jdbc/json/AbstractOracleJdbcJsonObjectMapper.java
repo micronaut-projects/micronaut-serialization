@@ -148,7 +148,7 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
             return (T) parser.getArray();
         }
         try (var context = registry.newDecoderContext(view)) {
-            final Deserializer<? extends T> deserializer = serdeCache.findDeserializer(context, type);
+            final Deserializer<? extends T> deserializer = serdeCache.findDeserializer(registry, context, type);
             return deserializer.deserialize(
                 new OracleJdbcJsonParserDecoder(parser, limits(), coercionPolicy()),
                 context,
@@ -249,7 +249,7 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
 
     private void serialize(Encoder encoder, Object object, Argument type) throws IOException {
         try (var context = registry.newEncoderContext(view)) {
-            final Serializer<Object> serializer = serdeCache.findSerializer(context, (Argument<Object>) type);
+            final Serializer<Object> serializer = serdeCache.findSerializer(registry, context, (Argument<Object>) type);
             serializer.serialize(
                 encoder,
                 context,
