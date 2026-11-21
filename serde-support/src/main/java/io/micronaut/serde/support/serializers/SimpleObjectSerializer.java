@@ -269,11 +269,9 @@ final class SimpleObjectSerializer<T> implements ObjectSerializer<T> {
             valueKind = directValueKind(property, serializer);
             primitiveValueKind = valueKind;
         }
-        if (primitiveValueKind != DecoderValueKind.NONE_CODE) {
-            encoder.encodeKey(keys, index);
-            if (property.serializeDirectPrimitive(encoder, value, primitiveValueKind)) {
-                return;
-            }
+        if (primitiveValueKind != DecoderValueKind.NONE_CODE
+            && property.serializeDirectPrimitive(encoder, keys, index, value, primitiveValueKind)) {
+            return;
         }
         Object v = property.get(value);
         byte inclusion = inclusions[index];
@@ -286,9 +284,7 @@ final class SimpleObjectSerializer<T> implements ObjectSerializer<T> {
                 return;
             }
         }
-        if (primitiveValueKind == DecoderValueKind.NONE_CODE) {
-            encoder.encodeKey(keys, index);
-        }
+        encoder.encodeKey(keys, index);
         if (v == null) {
             encoder.encodeNull();
         } else {
@@ -310,11 +306,11 @@ final class SimpleObjectSerializer<T> implements ObjectSerializer<T> {
         byte primitiveValueKind = primitiveValueKinds[index];
         Object v;
         if (primitiveValueKind != DecoderValueKind.NONE_CODE) {
-            encoder.encodeKey(keys, index);
-            if (property.serializeDirectPrimitive(encoder, value, primitiveValueKind)) {
+            if (property.serializeDirectPrimitive(encoder, keys, index, value, primitiveValueKind)) {
                 return;
             }
             v = property.get(value);
+            encoder.encodeKey(keys, index);
         } else {
             v = property.get(value);
             byte inclusion = inclusions[index];

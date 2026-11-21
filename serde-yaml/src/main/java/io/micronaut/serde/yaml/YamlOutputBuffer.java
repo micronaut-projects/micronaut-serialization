@@ -27,7 +27,8 @@ import java.nio.charset.StandardCharsets;
  * The output of the YAML emitter. The emitter writes a document in many small pieces, which an
  * {@link java.io.OutputStreamWriter} encodes one by one, each through a new {@link java.nio.CharBuffer}.
  * This writer collects the pieces and encodes them in blocks, when it holds
- * {@value #BLOCK_SIZE} characters and when it is flushed. Like the writer of the emitter, it reports
+ * {@value #BLOCK_SIZE} characters and when it is flushed; a larger piece is encoded in blocks of
+ * that size. Like the writer of the emitter, it reports
  * a failure of the stream as an {@link UncheckedIOException}.
  *
  * @since 3.3
@@ -40,6 +41,7 @@ final class YamlOutputBuffer implements StreamDataWriter {
 
     private final OutputStream outputStream;
     private final StringBuilder pending = new StringBuilder(INITIAL_SIZE);
+    private boolean failed;
 
     /**
      * @param outputStream The stream the document is written to
@@ -50,14 +52,25 @@ final class YamlOutputBuffer implements StreamDataWriter {
 
     @Override
     public void write(String str) {
-        pending.append(str);
-        drainIfFull();
+        write(str, 0, str.length());
     }
 
     @Override
     public void write(String str, int off, int len) {
-        pending.append(str, off, off + len);
-        drainIfFull();
+        try {
+            if (len >= BLOCK_SIZE) {
+                // a large piece, such as a long scalar, is encoded in blocks instead of being copied whole
+                drain();
+                writeBlocks(str, off, off + len);
+                return;
+            }
+            pending.append(str, off, off + len);
+            if (pending.length() >= BLOCK_SIZE) {
+                drain();
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     @Override
@@ -66,24 +79,52 @@ final class YamlOutputBuffer implements StreamDataWriter {
             drain();
             outputStream.flush();
         } catch (IOException e) {
+            failed = true;
             throw new UncheckedIOException(e);
+        } catch (RuntimeException e) {
+            failed = true;
+            throw e;
         }
     }
 
-    private void drainIfFull() {
-        if (pending.length() >= BLOCK_SIZE) {
-            try {
-                drain();
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
+    private void writeBlocks(String str, int start, int end) throws IOException {
+        int from = start;
+        while (from < end) {
+            int to = Math.min(from + BLOCK_SIZE, end);
+            if (to < end && Character.isHighSurrogate(str.charAt(to - 1))) {
+                // keeps a surrogate pair in one block, so that it is encoded as one character
+                to--;
             }
+            writeOut(str.substring(from, to));
+            from = to;
         }
     }
 
     private void drain() throws IOException {
-        if (!pending.isEmpty()) {
-            outputStream.write(pending.toString().getBytes(StandardCharsets.UTF_8));
+        if (!pending.isEmpty() || failed) {
+            String text = pending.toString();
+            // dropped before writing, so that text that the stream failed to take is not written again
             pending.setLength(0);
+            writeOut(text);
+        }
+    }
+
+    /**
+     * Writes text to the stream. Once writing fails, nothing more is written, so that the emitter
+     * finishing the document after the failure does not write the same bytes again.
+     *
+     * @param text The text
+     * @throws IOException If the stream fails, or failed before
+     */
+    private void writeOut(String text) throws IOException {
+        if (failed) {
+            throw new IOException("A previous write to the output failed");
+        }
+        try {
+            outputStream.write(text.getBytes(StandardCharsets.UTF_8));
+        } catch (IOException | RuntimeException e) {
+            failed = true;
+            throw e;
         }
     }
 }

@@ -26,7 +26,9 @@ import java.util.Arrays;
  * The output of an XML writer. The JDK writer encodes text one byte at a time, which a
  * {@link java.io.ByteArrayOutputStream} serves with a lock and a capacity check per byte. This
  * buffer is not synchronized; without a target it grows to hold the document, with a target it
- * passes its content on whenever it is full and when it is flushed.
+ * passes its content on whenever it is full and when it is flushed. Once writing to the target
+ * fails, the buffer drops its content and writes nothing more, so that closing the writer after the
+ * failure does not write the same bytes again.
  *
  * @since 3.3
  */
@@ -40,6 +42,7 @@ final class XmlOutputBuffer extends OutputStream {
     private final OutputStream target;
     private byte[] buffer;
     private int count;
+    private boolean failed;
 
     /**
      * A buffer that holds the whole document.
@@ -73,7 +76,7 @@ final class XmlOutputBuffer extends OutputStream {
             makeRoom(length);
             OutputStream out = target;
             if (out != null && length > buffer.length) {
-                out.write(bytes, offset, length);
+                writeOut(out, bytes, offset, length);
                 return;
             }
         }
@@ -86,7 +89,12 @@ final class XmlOutputBuffer extends OutputStream {
         OutputStream out = target;
         if (out != null) {
             drain(out);
-            out.flush();
+            try {
+                out.flush();
+            } catch (IOException | RuntimeException e) {
+                failed = true;
+                throw e;
+            }
         }
     }
 
@@ -107,9 +115,23 @@ final class XmlOutputBuffer extends OutputStream {
     }
 
     private void drain(OutputStream out) throws IOException {
-        if (count > 0) {
-            out.write(buffer, 0, count);
-            count = 0;
+        int length = count;
+        // dropped before writing, so that bytes that the target failed to take are not written again
+        count = 0;
+        if (length > 0 || failed) {
+            writeOut(out, buffer, 0, length);
+        }
+    }
+
+    private void writeOut(OutputStream out, byte[] bytes, int offset, int length) throws IOException {
+        if (failed) {
+            throw new IOException("A previous write to the output failed");
+        }
+        try {
+            out.write(bytes, offset, length);
+        } catch (IOException | RuntimeException e) {
+            failed = true;
+            throw e;
         }
     }
 }

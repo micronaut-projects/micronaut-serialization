@@ -50,6 +50,11 @@ class Nested {
 class Failing {
     public String getValue() { throw new IllegalStateException("broken getter"); }
 }
+
+@Serdeable
+class FailingCount {
+    public int getCount() { throw new IllegalStateException("broken getter"); }
+}
 '''
 
     @Unroll
@@ -94,6 +99,26 @@ class Failing {
         def e = thrown(SerdeException)
         e.message.contains('Error getting property')
         e.message.contains('broken getter')
+
+        cleanup:
+        context.close()
+    }
+
+    void "a failing primitive getter leaves no key without a value in the output stream"() {
+        given:
+        def context = buildContext('test.Bean', SOURCE, true, [
+            'micronaut.serde.serialization.disable-generated-serializer': 'true'
+        ])
+        def type = argumentOf(context, 'test.FailingCount')
+        def out = new ByteArrayOutputStream()
+
+        when:
+        jsonMapper.writeValue(out, type, newInstance(context, 'test.FailingCount', [:]))
+
+        then:
+        def e = thrown(SerdeException)
+        e.message.contains('broken getter')
+        !out.toString().contains('count')
 
         cleanup:
         context.close()
