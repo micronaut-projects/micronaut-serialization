@@ -52,6 +52,34 @@ class Failing {
 }
 
 @Serdeable
+@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+class ClassNonNull {
+    private String text;
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.ALWAYS)
+    private String always;
+    private List<String> list;
+
+    public String getText() { return text; }
+    public void setText(String text) { this.text = text; }
+    public String getAlways() { return always; }
+    public void setAlways(String always) { this.always = always; }
+    public List<String> getList() { return list; }
+    public void setList(List<String> list) { this.list = list; }
+}
+
+@Serdeable
+class WithNonDefault {
+    private String text;
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT)
+    private int count;
+
+    public String getText() { return text; }
+    public void setText(String text) { this.text = text; }
+    public int getCount() { return count; }
+    public void setCount(int count) { this.count = count; }
+}
+
+@Serdeable
 class FailingCount {
     public int getCount() { throw new IllegalStateException("broken getter"); }
 }
@@ -122,6 +150,33 @@ class FailingCount {
 
         cleanup:
         context.close()
+    }
+
+    @Unroll
+    void "the inclusions of #name annotations are written like the generated serializer, by the #serializerName"() {
+        given:
+        def generatedContext = buildContext('test.Bean', SOURCE, true, [:])
+        def generatedMapper = jsonMapper
+        def context = buildContext('test.Bean', SOURCE, true, [
+            'micronaut.serde.serialization.disable-generated-serializer': 'true'
+        ])
+        def type = argumentOf(context, beanName)
+        def values = valuesOf.collect { newInstance(context, beanName, it) }
+        def generatedValues = valuesOf.collect { newInstance(generatedContext, beanName, it) }
+
+        expect:
+        serializerOf(context, type).class.simpleName == serializerName
+        values.collect { jsonMapper.writeValueAsString(type, it) } == expected
+        generatedValues.collect { generatedMapper.writeValueAsString(argumentOf(generatedContext, beanName), it) } == expected
+
+        cleanup:
+        context.close()
+        generatedContext.close()
+
+        where:
+        name                                    | beanName            | serializerName               | valuesOf                                              | expected
+        'class NON_NULL and property ALWAYS'    | 'test.ClassNonNull' | 'SimpleObjectSerializer'     | [[:], [text: 'a', always: 'b', list: []]]             | ['{"always":null}', '{"text":"a","always":"b","list":[]}']
+        'a property NON_DEFAULT'                | 'test.WithNonDefault' | 'CustomizedObjectSerializer' | [[:], [text: 'a', count: 2]]                        | ['{}', '{"text":"a","count":2}']
     }
 
     private static Object serializerOf(context, Argument<?> type) {

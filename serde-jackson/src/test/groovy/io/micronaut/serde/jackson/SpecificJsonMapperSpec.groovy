@@ -143,6 +143,24 @@ class SpecificJsonMapperSpec extends Specification {
             example.retain.RetainingSerializer.SPECIFICS.get() == 2
     }
 
+    void "lists of placeholder and plain elements are cached apart when the #first list goes first"() {
+        given:
+            def mapper = jacksonJsonMapper.cloneWithConfiguration(null, null, null)
+            // the elements of the first are type variables, written by their runtime type; those of the second are not
+            def types = [placeholder: Argument.of(List, Animal), plain: Argument.listOf(Animal)]
+            def expected = [placeholder: '[{"name":"Rex","barks":true}]', plain: '[{"name":"Rex"}]']
+            List<Animal> dogs = [new Dog(name: 'Rex', barks: true)]
+            def order = first == 'placeholder' ? ['placeholder', 'plain'] : ['plain', 'placeholder']
+
+        expect:
+            order.collect { mapper.writeValueAsString(types[it], dogs) } == order.collect { expected[it] }
+            order.collect { mapper.writeValueAsString(types[it], dogs) } == order.collect { expected[it] }
+            mapper.@serdeCache.@serializers.size() == 2
+
+        where:
+            first << ['placeholder', 'plain']
+    }
+
     void "derived mappers share the JSON factory and its buffer pool"() {
         when:
             def factory = jacksonJsonMapper.@jsonFactory
@@ -215,6 +233,16 @@ class SpecificJsonMapperSpec extends Specification {
     static class FeatureMapHolder {
         @com.fasterxml.jackson.annotation.JsonFormat(with = com.fasterxml.jackson.annotation.JsonFormat.Feature.WRITE_SORTED_MAP_ENTRIES)
         Map<String, Object> values
+    }
+
+    @Serdeable
+    static class Animal {
+        String name
+    }
+
+    @Serdeable
+    static class Dog extends Animal {
+        boolean barks
     }
 
     @Serdeable

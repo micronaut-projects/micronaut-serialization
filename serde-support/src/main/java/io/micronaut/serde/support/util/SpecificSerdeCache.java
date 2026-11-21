@@ -17,6 +17,7 @@ package io.micronaut.serde.support.util;
 
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
+import io.micronaut.core.type.GenericPlaceholder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.DeserializerLocator;
 import io.micronaut.serde.Serializer;
@@ -184,7 +185,7 @@ public final class SpecificSerdeCache {
                 if (entry == null) {
                     return null;
                 }
-                if (entry.type == type || entry.type.equalsType(type)) {
+                if (entry.type == type || entry.type.equalsType(type) && samePlaceholders(entry.type, type)) {
                     return entry.value;
                 }
             }
@@ -224,6 +225,33 @@ public final class SpecificSerdeCache {
                 }
             }
             return values;
+        }
+
+        /**
+         * Whether the type parameters of two arguments that are equal by type are generic placeholders in both
+         * or in neither. {@link Argument#equalsType(Argument)} ignores it, but the element of a placeholder,
+         * such as the type variable of {@code Argument.of(List.class, Animal.class)} or a wildcard, is written
+         * by its runtime type, and the element of {@code Argument.listOf(Animal.class)} by its declared type.
+         *
+         * @param a An argument
+         * @param b An argument equal to it by type
+         * @return Whether their type parameters are placeholders alike
+         */
+        private static boolean samePlaceholders(Argument<?> a, Argument<?> b) {
+            Argument<?>[] parametersA = a.getTypeParameters();
+            Argument<?>[] parametersB = b.getTypeParameters();
+            if (parametersA.length != parametersB.length) {
+                return false;
+            }
+            for (int i = 0; i < parametersA.length; i++) {
+                Argument<?> parameterA = parametersA[i];
+                Argument<?> parameterB = parametersB[i];
+                if (parameterA instanceof GenericPlaceholder<?> != parameterB instanceof GenericPlaceholder<?>
+                    || !samePlaceholders(parameterA, parameterB)) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         @SuppressWarnings("unchecked")
