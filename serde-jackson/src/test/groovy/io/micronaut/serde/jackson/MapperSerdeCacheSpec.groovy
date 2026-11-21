@@ -243,6 +243,185 @@ class RenamingStringDeserializer implements Deserializer<String> {
         context.close()
     }
 
+    void "a generated enum deserializer uses a user string deserializer whose specific deserializer is another class"() {
+        given:
+        def context = buildContext('test.Status', '''
+package test;
+
+import io.micronaut.context.annotation.Primary;
+import io.micronaut.core.type.Argument;
+import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.annotation.Serdeable;
+import jakarta.inject.Singleton;
+import java.io.IOException;
+
+@Serdeable
+public enum Status {
+    NEW, OLD
+}
+
+@Singleton
+@Primary
+class CustomizableStringDeserializer implements Deserializer<String> {
+    @Override
+    public Deserializer<String> createSpecific(DecoderContext context, Argument<? super String> type) {
+        return new RenamingStringDeserializer();
+    }
+
+    @Override
+    public String deserialize(Decoder decoder, DecoderContext context, Argument<? super String> type) throws IOException {
+        throw new IOException("Specific deserializer expected");
+    }
+}
+
+class RenamingStringDeserializer implements Deserializer<String> {
+    @Override
+    public String deserialize(Decoder decoder, DecoderContext context, Argument<? super String> type) throws IOException {
+        String value = decoder.decodeString();
+        return "NEW".equals(value) ? "OLD" : value;
+    }
+}
+''', true, [:])
+        def type = argumentOf(context, 'test.Status')
+
+        expect:
+        jsonMapper.readValue('"NEW"', type).name() == 'OLD'
+
+        cleanup:
+        context.close()
+    }
+
+    void "a generated enum deserializer uses a user string deserializer created with the context"() {
+        given:
+        def context = buildContext('test.Status', '''
+package test;
+
+import io.micronaut.context.annotation.Parameter;
+import io.micronaut.context.annotation.Primary;
+import io.micronaut.context.annotation.Prototype;
+import io.micronaut.core.type.Argument;
+import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.annotation.Serdeable;
+import java.io.IOException;
+
+@Serdeable
+public enum Status {
+    NEW, OLD
+}
+
+@Prototype
+@Primary
+class RenamingStringDeserializer implements Deserializer<String> {
+    RenamingStringDeserializer(@Parameter DecoderContext context, @Parameter Argument<?> type) {
+    }
+
+    @Override
+    public String deserialize(Decoder decoder, DecoderContext context, Argument<? super String> type) throws IOException {
+        String value = decoder.decodeString();
+        return "NEW".equals(value) ? "OLD" : value;
+    }
+}
+''', true, [:])
+        def type = argumentOf(context, 'test.Status')
+
+        expect:
+        // the registry resolves the built-in string serde over a string deserializer created with the context, as on
+        // 3.3.x, and the enum reads its values with the same string deserializer as a string property
+        jsonMapper.readValue('"NEW"', type).name() == jsonMapper.readValue('"NEW"', String)
+
+        cleanup:
+        context.close()
+    }
+
+    @spock.lang.Unroll
+    void "a runtime bean holding a user serde that keeps the context stays bound when it is reused (#direction)"() {
+        given:
+        def context = buildContext('test.Holder', '''
+package test;
+
+import io.micronaut.core.type.Argument;
+import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.Encoder;
+import io.micronaut.serde.Serializer;
+import io.micronaut.serde.annotation.Serdeable;
+import jakarta.inject.Singleton;
+import java.io.IOException;
+
+@Serdeable
+public class Holder {
+    private Token token;
+    public Token getToken() { return token; }
+    public void setToken(Token token) { this.token = token; }
+}
+
+record Token(String value) {
+}
+
+@Singleton
+class TokenSerde implements Serializer<Token>, Deserializer<Token> {
+    @Override
+    public Serializer<Token> createSpecific(EncoderContext context, Argument<? extends Token> type) {
+        return new Specific(context);
+    }
+
+    @Override
+    public Deserializer<Token> createSpecific(DecoderContext context, Argument<? super Token> type) {
+        return new SpecificDeserializer(context);
+    }
+
+    @Override
+    public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Token> type, Token value) throws IOException {
+        throw new IOException("Specific serializer expected");
+    }
+
+    @Override
+    public Token deserialize(Decoder decoder, DecoderContext context, Argument<? super Token> type) throws IOException {
+        throw new IOException("Specific deserializer expected");
+    }
+
+    private record Specific(EncoderContext createdWith) implements Serializer<Token> {
+        @Override
+        public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Token> type, Token value) throws IOException {
+            encoder.encodeString(value.value());
+        }
+    }
+
+    private record SpecificDeserializer(DecoderContext createdWith) implements Deserializer<Token> {
+        @Override
+        public Token deserialize(Decoder decoder, DecoderContext context, Argument<? super Token> type) throws IOException {
+            return new Token(decoder.decodeString());
+        }
+    }
+}
+''', true, [
+            'micronaut.serde.serialization.disable-generated-serializer': true,
+            'micronaut.serde.deserialization.disable-generated-deserializer': true
+        ])
+        def registry = context.getBean(io.micronaut.serde.SerdeRegistry)
+        def type = argumentOf(context, 'test.Holder')
+
+        expect: 'the second document reuses the cached bean, and is still marked bound so that a mapper does not cache it'
+        (1..2).every {
+            def documentContext = direction == 'serialize' ? registry.newEncoderContext(null) : registry.newDecoderContext(null)
+            // the runtime bean serdes, which keep the bean of a type between documents
+            if (direction == 'serialize') {
+                context.getBean(io.micronaut.serde.support.serializers.ObjectSerializer).createSpecific(documentContext, type)
+            } else {
+                context.getBean(io.micronaut.serde.support.deserializers.ObjectDeserializer).createSpecific(documentContext, type)
+            }
+            io.micronaut.serde.util.DocumentContextTracker.isDocumentBound(documentContext)
+        }
+
+        cleanup:
+        context.close()
+
+        where:
+        direction << ['serialize', 'deserialize']
+    }
+
     void "a specific mapper cloned with another configuration resolves its serdes again"() {
         given:
         def context = ApplicationContext.run()

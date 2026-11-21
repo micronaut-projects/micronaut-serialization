@@ -25,7 +25,12 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>A serde is bound to the document when the graph of serdes created with the context holds a
  * user serde that takes the context as a constructor argument, or a serde that resolves other serdes
- * later with the context.</p>
+ * later with the context. A serde that keeps the serdes it created between documents, such as the runtime bean
+ * serdes, which keep the bean of each type, marks every later document it serves as bound when creating those serdes
+ * bound the first one, since the later documents do not look them up again.</p>
+ *
+ * <p>This only keeps a mapper from caching such serdes. The property serdes a runtime bean keeps are still the ones
+ * created with the context of the first document; specializing them for each document is a separate change.</p>
  *
  * @since 3.3
  */
