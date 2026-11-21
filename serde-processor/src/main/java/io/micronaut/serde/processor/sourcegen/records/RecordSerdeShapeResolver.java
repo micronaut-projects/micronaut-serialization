@@ -27,9 +27,13 @@ import io.micronaut.serde.processor.sourcegen.SerdeSourceGenGetterMethods;
 import io.micronaut.serde.processor.sourcegen.beans.BeanSerdeShapeResolver;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -53,6 +57,10 @@ public final class RecordSerdeShapeResolver {
         Map<String, PropertyElement> propertiesByName = properties.stream()
             .collect(Collectors.toMap(PropertyElement::getName, Function.identity()));
         List<RecordSerdeShape.RecordComponent> components = new ArrayList<>();
+        if (propertyNameOfAnotherParameter(canonicalConstructor, propertiesByName)) {
+            // A component has one name for reading and writing; the runtime reads such a name as the other argument
+            return Optional.empty();
+        }
         for (ParameterElement parameter : canonicalConstructor.getParameters()) {
             if (parameter.getType().isTypeVariable()) {
                 return Optional.empty();
@@ -70,7 +78,7 @@ public final class RecordSerdeShapeResolver {
                 parameter.getType(),
                 keyMetadata,
                 SerdeInclusionSourceGen.resolvePropertyInclude(element, propertyElement, keyMetadata),
-                booleanValue(propertyElement, SerdeConfig.REQUIRED).orElse(parameter.booleanValue(SerdeConfig.class, SerdeConfig.REQUIRED).orElse(false)),
+                required(propertyElement, parameter, serializedName),
                 aliases,
                 // The runtime merges the parameter and the property metadata for a constructor argument,
                 // and an explicit nullable declaration wins over a non-null one
@@ -91,15 +99,54 @@ public final class RecordSerdeShapeResolver {
      * strategy derives, and read with the explicit name of its creator parameter as well, like the runtime
      * deserializer.
      */
+    /**
+     * Whether a parameter is named apart from its property with the explicit name of another parameter, so that the
+     * property name of one component is the input name of another.
+     */
+    private static boolean propertyNameOfAnotherParameter(MethodElement constructor, Map<String, PropertyElement> propertiesByName) {
+        Map<String, String> explicitNames = new HashMap<>();
+        for (ParameterElement parameter : constructor.getParameters()) {
+            parameter.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).ifPresent(name -> explicitNames.put(name, parameter.getName()));
+        }
+        for (ParameterElement parameter : constructor.getParameters()) {
+            PropertyElement property = propertiesByName.get(parameter.getName());
+            if (property == null) {
+                continue;
+            }
+            String propertyName = stringValue(property, SerdeConfig.PROPERTY).orElse(parameter.getName());
+            String owner = explicitNames.get(propertyName);
+            if (owner != null && !owner.equals(parameter.getName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static List<String> componentAliases(PropertyElement propertyElement, ParameterElement parameter, String serializedName) {
         String parameterName = parameter.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(serializedName);
-        List<String> aliases = aliases(propertyElement, parameter);
-        if (parameterName.equals(serializedName) || aliases.contains(parameterName)) {
-            return aliases;
+        if (parameterName.equals(serializedName)) {
+            return aliases(propertyElement, parameter);
         }
-        List<String> withParameterName = new ArrayList<>(aliases);
-        withParameterName.add(parameterName);
-        return List.copyOf(withParameterName);
+        // The parameter is named apart from its property: like the runtime deserializer, it is read with its own name
+        // and aliases as well as with the names of the property
+        Set<String> merged = new LinkedHashSet<>(aliases(propertyElement, parameter));
+        merged.addAll(Arrays.asList(parameter.stringValues(SerdeConfig.class, SerdeConfig.ALIASES)));
+        merged.add(parameterName);
+        merged.remove(serializedName);
+        return List.copyOf(merged);
+    }
+
+    /**
+     * A parameter named apart from its property takes its requirement from itself, as the runtime deserializer reads
+     * it without the metadata of the property.
+     */
+    private static boolean required(PropertyElement propertyElement, ParameterElement parameter, String serializedName) {
+        boolean parameterRequired = parameter.booleanValue(SerdeConfig.class, SerdeConfig.REQUIRED).orElse(false);
+        String parameterName = parameter.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(serializedName);
+        if (!parameterName.equals(serializedName)) {
+            return parameterRequired;
+        }
+        return booleanValue(propertyElement, SerdeConfig.REQUIRED).orElse(parameterRequired);
     }
 
     /**
