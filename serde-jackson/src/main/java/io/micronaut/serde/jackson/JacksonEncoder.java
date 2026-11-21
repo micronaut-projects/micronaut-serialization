@@ -28,6 +28,7 @@ import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.SerializableString;
 import tools.jackson.core.TokenStreamContext;
 import tools.jackson.core.json.JsonGeneratorBase;
+import tools.jackson.core.json.JsonWriteFeature;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -65,8 +66,25 @@ public abstract class JacksonEncoder extends LimitingStream implements KeysAware
         super(remainingLimits);
         this.generator = generator;
         this.parent = null;
-        this.preEncodedValues = !(generator instanceof JsonGeneratorBase jsonGenerator)
-            || (jsonGenerator.getHighestNonEscapedChar() == 0 && jsonGenerator.getCharacterEscapes() == null);
+        this.preEncodedValues = !(generator instanceof JsonGeneratorBase jsonGenerator) || hasStandardEscaping(jsonGenerator);
+    }
+
+    /**
+     * @param generator The generator
+     * @return Whether the generator escapes strings as the pre-encoded values are: no custom escapes, no further
+     * characters escaped, and the escaping features at their defaults
+     */
+    private static boolean hasStandardEscaping(JsonGeneratorBase generator) {
+        return generator.getHighestNonEscapedChar() == 0
+            && generator.getCharacterEscapes() == null
+            && isDefault(generator, JsonWriteFeature.ESCAPE_NON_ASCII)
+            && isDefault(generator, JsonWriteFeature.ESCAPE_FORWARD_SLASHES)
+            && isDefault(generator, JsonWriteFeature.WRITE_HEX_UPPER_CASE)
+            && isDefault(generator, JsonWriteFeature.COMBINE_UNICODE_SURROGATES_IN_UTF8);
+    }
+
+    private static boolean isDefault(JsonGeneratorBase generator, JsonWriteFeature feature) {
+        return generator.isEnabled(feature) == feature.enabledByDefault();
     }
 
     public static Encoder create(JsonGenerator generator) {
