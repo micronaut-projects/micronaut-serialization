@@ -132,14 +132,8 @@ public final class SerdeSourceGenRecursion {
         if (name.equals(owner.getName())) {
             return true;
         }
-        for (Map.Entry<String, ClassElement> typeArgument : type.getTypeArguments().entrySet()) {
-            // an unresolved variable of a raw type is identified with the type and the variable it declares
-            boolean reached = typeArgument.getValue() instanceof GenericPlaceholderElement placeholderElement
-                ? boundReaches(placeholderElement, "<" + name + "." + typeArgument.getKey() + ">", visited)
-                : reaches(typeArgument.getValue(), visited);
-            if (reached) {
-                return true;
-            }
+        if (typeArgumentsReach(type, name, visited)) {
+            return true;
         }
         if (type.isEnum() || isPlatformType(name) || notRecursive.contains(name) || !visited.add(name)) {
             return false;
@@ -156,6 +150,19 @@ public final class SerdeSourceGenRecursion {
         }
         for (PropertyElement property : properties) {
             if (reaches(property.getType(), visited)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean typeArgumentsReach(ClassElement type, String name, Set<String> visited) {
+        for (Map.Entry<String, ClassElement> typeArgument : type.getTypeArguments().entrySet()) {
+            // an unresolved variable of a raw type is identified with the type and the variable it declares
+            boolean reached = typeArgument.getValue() instanceof GenericPlaceholderElement placeholderElement
+                ? boundReaches(placeholderElement, "<" + name + "." + typeArgument.getKey() + ">", visited)
+                : reaches(typeArgument.getValue(), visited);
+            if (reached) {
                 return true;
             }
         }
