@@ -295,13 +295,122 @@ class Child extends Base {
         child.name = 'n'
         child.age = 3
         Argument variable = Argument.ofTypeVariable(base, 'x')
-        def expected = context.getBean(JsonMapper).cloneWithViewClass(Object).writeValueAsString(variable, child)
 
         when:
-        jsonMapper.writeValueAsString(Argument.of(base, 'x'), child)
+        def concrete = jsonMapper.writeValueAsString(Argument.of(base, 'x'), child)
+        def runtime = jsonMapper.writeValueAsString(variable, child)
+
+        then: 'the declared type writes its own properties, the type variable the properties of the runtime type'
+        !concrete.contains('"age"')
+        runtime.contains('"age":3')
+        runtime.contains('"name":"n"')
+
+        cleanup:
+        context.close()
+    }
+
+    void "a user serde in a package of Micronaut Serialization is still a user serde"() {
+        given:
+        def context = buildContext('io.micronaut.serde.extensions.Token', '''
+package io.micronaut.serde.extensions;
+
+import io.micronaut.context.annotation.Primary;
+import io.micronaut.core.type.Argument;
+import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.Encoder;
+import io.micronaut.serde.Serializer;
+import io.micronaut.serde.annotation.Serdeable;
+import jakarta.inject.Singleton;
+import java.io.IOException;
+
+public record Token(String value) {
+}
+
+@Serdeable
+enum Status {
+    NEW, OLD
+}
+
+@Singleton
+class TokenSerializer implements Serializer<Token> {
+    @Override
+    public Serializer<Token> createSpecific(EncoderContext context, Argument<? extends Token> type) {
+        return new Specific(context);
+    }
+
+    @Override
+    public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Token> type, Token value) throws IOException {
+        throw new IOException("Specific serializer expected");
+    }
+
+    private record Specific(EncoderContext createdWith) implements Serializer<Token> {
+        @Override
+        public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Token> type, Token value) throws IOException {
+            if (createdWith != context) {
+                throw new IOException("Used with the context of another document");
+            }
+            encoder.encodeString(value.value());
+        }
+    }
+}
+
+@Singleton
+@Primary
+class RenamingStringDeserializer implements Deserializer<String> {
+    @Override
+    public String deserialize(Decoder decoder, DecoderContext context, Argument<? super String> type) throws IOException {
+        String value = decoder.decodeString();
+        return "NEW".equals(value) ? "OLD" : value;
+    }
+}
+''', true, [:])
+        def token = context.classLoader.loadClass('io.micronaut.serde.extensions.Token').newInstance('a')
+        def status = argumentOf(context, 'io.micronaut.serde.extensions.Status')
+
+        expect:
+        jsonMapper.writeValueAsString(token) == '"a"'
+        jsonMapper.writeValueAsString(token) == '"a"'
+        jsonMapper.readValue('"NEW"', status).name() == 'OLD'
+
+        cleanup:
+        context.close()
+    }
+
+    void "enum values honour every escaping feature of the generator"() {
+        given:
+        def context = buildContext('test.Path', '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+public enum Path {
+    @JsonProperty("a/b") SLASHED
+}
+''', true, ['micronaut.serde.jackson.json-write-features.ESCAPE_FORWARD_SLASHES': 'true'])
+        def path = context.classLoader.loadClass('test.Path').getEnumConstants()[0]
+
+        expect:
+        jsonMapper.writeValueAsString(path) == '"a\\/b"'
+
+        cleanup:
+        context.close()
+    }
+
+    void "a typed collection is read with a cached deserializer"() {
+        given:
+        def context = ApplicationContext.run()
+        def mapper = context.getBean(JsonMapper)
+        def type = Argument.of(ArrayList, Integer)
+
+        when:
+        mapper.readValue('[1]', type)
 
         then:
-        jsonMapper.writeValueAsString(variable, child) == expected
+        mapper.@serdeCache.@deserializers.get(type) != null
+        mapper.readValue('[1,2]', type) == [1, 2]
 
         cleanup:
         context.close()

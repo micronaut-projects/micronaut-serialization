@@ -38,26 +38,20 @@ import java.util.concurrent.ConcurrentMap;
 public final class GeneratedSerdeEnumUtil {
 
     private static final ConcurrentMap<Class<?>, EnumLookup<?>> ENUM_LOOKUPS = new ConcurrentHashMap<>();
-    private static final ClassValue<Boolean> BUILT_IN = new ClassValue<>() {
-        @Override
-        protected Boolean computeValue(Class<?> type) {
-            return type.getName().startsWith("io.micronaut.serde.");
-        }
-    };
 
     private GeneratedSerdeEnumUtil() {
     }
 
     /**
-     * Whether the string deserializer of a generated enum deserializer is one of Micronaut Serialization. The
-     * generated deserializer matches the constant names directly only then, so that a user string deserializer
+     * Whether the string deserializer of a generated enum deserializer is not a user serde, see {@link UserSerdes}.
+     * The generated deserializer matches the constant names directly only then, so that a user string deserializer
      * still sees every value.
      *
      * @param stringDeserializer The string deserializer
      * @return Whether it is built in
      */
     public static boolean isBuiltInStringDeserializer(Deserializer<?> stringDeserializer) {
-        return BUILT_IN.get(stringDeserializer.getClass());
+        return !UserSerdes.isUser(stringDeserializer.getClass());
     }
 
     /**
