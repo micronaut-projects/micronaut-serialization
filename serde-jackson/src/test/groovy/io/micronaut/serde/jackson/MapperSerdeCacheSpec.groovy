@@ -409,7 +409,7 @@ public enum Path {
         mapper.readValue('[1]', type)
 
         then:
-        mapper.@deserializers.containsKey(type)
+        mapper.@serdeCache.@deserializers.get(type) != null
         mapper.readValue('[1,2]', type) == [1, 2]
 
         cleanup:

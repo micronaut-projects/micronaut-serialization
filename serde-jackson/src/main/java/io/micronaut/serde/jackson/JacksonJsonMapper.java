@@ -42,7 +42,7 @@ import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.support.util.JsonViewUtil;
-import io.micronaut.serde.util.DocumentContextTracker;
+import io.micronaut.serde.support.util.SpecificSerdeCache;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jspecify.annotations.Nullable;
@@ -72,7 +72,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 /**
@@ -92,7 +91,6 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
 
     private static final String VALUE_TO_UPDATE_NULL_MSG = "Value to update cannot be null";
     private static final String TYPE_NULL_MSG = "Type cannot be null";
-    private static final int MAX_CACHED_SERDES = 256;
 
     /**
      * Adaptive first-block size for {@link #writeValueAsBytes}. Plain int with benign
@@ -123,8 +121,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
      * The serializers and deserializers of the types read and written without a specific mapper,
      * which a call created without binding them to its document.
      */
-    private final Map<Argument<?>, Serializer<?>> serializers = new ConcurrentHashMap<>();
-    private final Map<Argument<?>, Deserializer<?>> deserializers = new ConcurrentHashMap<>();
+    private final SpecificSerdeCache serdeCache = new SpecificSerdeCache();
 
     @Inject
     @Internal
@@ -553,58 +550,12 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
         return JacksonDecoder.create(parser, streamLimits, coercionPolicy);
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     private Serializer<?> findSerializer(Serializer.EncoderContext context, Argument<?> type) throws IOException {
-        boolean cacheable = !type.isTypeVariable() && isCacheable(type);
-        if (cacheable) {
-            Serializer<?> serializer = serializers.get(type);
-            if (serializer != null) {
-                return serializer;
-            }
-        }
-        Serializer<?> serializer = context.findSerializer(type).createSpecific(context, (Argument) type);
-        if (cacheable && !DocumentContextTracker.isDocumentBound(context) && serializers.size() < MAX_CACHED_SERDES) {
-            serializers.putIfAbsent(type, serializer);
-        }
-        return serializer;
+        return serdeCache.findSerializer(context, type);
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     private Deserializer<?> findDeserializer(Deserializer.DecoderContext context, Argument<?> type) throws IOException {
-        boolean cacheable = !type.isTypeVariable() && isCacheable(type);
-        if (cacheable) {
-            Deserializer<?> deserializer = deserializers.get(type);
-            if (deserializer != null) {
-                return deserializer;
-            }
-        }
-        Deserializer<?> deserializer = context.findDeserializer(type).createSpecific(context, (Argument) type);
-        if (cacheable && !DocumentContextTracker.isDocumentBound(context) && deserializers.size() < MAX_CACHED_SERDES) {
-            deserializers.putIfAbsent(type, deserializer);
-        }
-        return deserializer;
-    }
-
-    /**
-     * The equality of arguments ignores their annotations, which can change the serde, so only
-     * types without annotations are cached.
-     *
-     * @param type The type
-     * @return Whether the serde of the type can be cached by the type
-     */
-    private static boolean isCacheable(Argument<?> type) {
-        // A type variable equals the concrete argument of its type, but is serialized by runtime type, so the root
-        // argument of a call is not cached when it is one (see the callers). The type parameters of an argument such as
-        // Argument.of(ArrayList.class, Integer.class) are type variables bound to concrete types, and stay cacheable.
-        if (!type.getAnnotationMetadata().isEmpty()) {
-            return false;
-        }
-        for (Argument<?> typeParameter : type.getTypeParameters()) {
-            if (!isCacheable(typeParameter)) {
-                return false;
-            }
-        }
-        return true;
+        return serdeCache.findDeserializer(context, type);
     }
 
     private boolean isSpecificType(Argument<?> type) {
