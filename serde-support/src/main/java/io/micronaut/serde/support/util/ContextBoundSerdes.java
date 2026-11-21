@@ -22,13 +22,12 @@ import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.UpdatingDeserializer;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.util.DocumentSerdes;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Map;
-import java.util.WeakHashMap;
 
 /**
  * Tracks the serde beans created with the context of a document, such as a user serde taking
@@ -75,7 +74,7 @@ public final class ContextBoundSerdes {
         int created = enter();
         try {
             Serializer<T> specific = factory.create(context);
-            return createdSince(created) ? new PerContextSerializer<>(factory, context, specific) : specific;
+            return createdSince(created) ? perDocument(factory, context, specific) : specific;
         } finally {
             exit();
         }
@@ -95,7 +94,7 @@ public final class ContextBoundSerdes {
         int created = enter();
         try {
             Deserializer<T> specific = factory.create(context);
-            return createdSince(created) ? new PerContextDeserializer<>(factory, context, specific) : specific;
+            return createdSince(created) ? perDocument(factory, context, specific) : specific;
         } finally {
             exit();
         }
@@ -121,6 +120,24 @@ public final class ContextBoundSerdes {
         if (tracking != null && --tracking[DEPTH] == 0) {
             TRACKING.remove();
         }
+    }
+
+    private static <T> Serializer<T> perDocument(SerializerFactory<T> factory, Serializer.EncoderContext context, Serializer<T> first) {
+        // A serializer that cannot serialize into an object keeps that capability hidden, so callers keep their fallback
+        PerDocumentSerializer<T> serializer = first instanceof ObjectSerializer<T>
+            ? new PerDocumentObjectSerializer<>(factory)
+            : new PerDocumentSerializer<>(factory);
+        serializer.store(context, first);
+        return serializer;
+    }
+
+    private static <T> Deserializer<T> perDocument(DeserializerFactory<T> factory, Deserializer.DecoderContext context, Deserializer<T> first) {
+        // A deserializer that updates existing values keeps doing so, so that merging is not turned into replacing
+        PerDocumentDeserializer<T> deserializer = first instanceof UpdatingDeserializer<T>
+            ? new PerDocumentUpdatingDeserializer<>(factory)
+            : new PerDocumentDeserializer<>(factory);
+        deserializer.store(context, first);
+        return deserializer;
     }
 
     /**
@@ -154,36 +171,78 @@ public final class ContextBoundSerdes {
     }
 
     /**
-     * A serializer specialized again for each context it serves, starting from the one specialized with the first.
+     * A serializer specialized again for the context of each document. The specializations are kept by the document
+     * context, not by this serializer, since a specialization can keep its context.
      *
      * @param <T> The type
      */
-    public static final class PerContextSerializer<T> implements ObjectSerializer<T> {
+    private static class PerDocumentSerializer<T> implements Serializer<T> {
         private final SerializerFactory<T> factory;
-        private final Map<Serializer.EncoderContext, Serializer<T>> specifics = Collections.synchronizedMap(new WeakHashMap<>());
 
-        /**
-         * @param factory The factory of the specific serializer
-         * @param context The context the first specific serializer was created with
-         * @param first   The first specific serializer
-         */
-        public PerContextSerializer(SerializerFactory<T> factory, Serializer.EncoderContext context, Serializer<T> first) {
+        PerDocumentSerializer(SerializerFactory<T> factory) {
             this.factory = factory;
-            specifics.put(context, first);
         }
 
-        private Serializer<T> specific(Serializer.EncoderContext context) throws SerdeException {
-            Serializer<T> specific = specifics.get(context);
-            if (specific == null) {
-                specific = factory.create(context);
-                specifics.put(context, specific);
+        final void store(Serializer.EncoderContext context, Serializer<T> specific) {
+            DocumentSerdes documentSerdes = DocumentSerdes.of(context);
+            if (documentSerdes != null) {
+                documentSerdes.putDocumentSerde(this, specific);
             }
+        }
+
+        @SuppressWarnings("unchecked")
+        final Serializer<T> specific(Serializer.EncoderContext context) throws SerdeException {
+            DocumentSerdes documentSerdes = DocumentSerdes.of(context);
+            if (documentSerdes != null && documentSerdes.getDocumentSerde(this) instanceof Serializer<?> specific) {
+                return (Serializer<T>) specific;
+            }
+            // a context that keeps no document serdes gets a new specialization for each use
+            Serializer<T> specific = factory.create(context);
+            store(context, specific);
             return specific;
         }
 
         @Override
-        public void serialize(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
+        public final void serialize(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
             specific(context).serialize(encoder, context, type, value);
+        }
+
+        @Override
+        public final boolean isEmpty(EncoderContext context, @Nullable T value) {
+            try {
+                return specific(context).isEmpty(context, value);
+            } catch (SerdeException e) {
+                return Serializer.super.isEmpty(context, value);
+            }
+        }
+
+        @Override
+        public final boolean isAbsent(EncoderContext context, @Nullable T value) {
+            try {
+                return specific(context).isAbsent(context, value);
+            } catch (SerdeException e) {
+                return Serializer.super.isAbsent(context, value);
+            }
+        }
+
+        @Override
+        public final boolean isDefault(EncoderContext context, T value) {
+            try {
+                return specific(context).isDefault(context, value);
+            } catch (SerdeException e) {
+                return Serializer.super.isDefault(context, value);
+            }
+        }
+    }
+
+    /**
+     * A per-document serializer of a type that can be serialized into an existing object.
+     *
+     * @param <T> The type
+     */
+    private static final class PerDocumentObjectSerializer<T> extends PerDocumentSerializer<T> implements ObjectSerializer<T> {
+        PerDocumentObjectSerializer(SerializerFactory<T> factory) {
+            super(factory);
         }
 
         @Override
@@ -194,69 +253,79 @@ public final class ContextBoundSerdes {
                 throw new SerdeException("Serializer for type: " + type + " doesn't support serializing into an existing object");
             }
         }
-
-        @Override
-        public boolean isEmpty(EncoderContext context, @Nullable T value) {
-            try {
-                return specific(context).isEmpty(context, value);
-            } catch (SerdeException e) {
-                return ObjectSerializer.super.isEmpty(context, value);
-            }
-        }
-
-        @Override
-        public boolean isAbsent(EncoderContext context, @Nullable T value) {
-            try {
-                return specific(context).isAbsent(context, value);
-            } catch (SerdeException e) {
-                return ObjectSerializer.super.isAbsent(context, value);
-            }
-        }
     }
 
     /**
-     * A deserializer specialized again for each context it serves, starting from the one specialized with the first.
+     * A deserializer specialized again for the context of each document. The specializations are kept by the
+     * document context, not by this deserializer, since a specialization can keep its context.
      *
      * @param <T> The type
      */
-    public static final class PerContextDeserializer<T> implements Deserializer<T> {
+    private static class PerDocumentDeserializer<T> implements Deserializer<T> {
         private final DeserializerFactory<T> factory;
-        private final Deserializer<T> first;
-        private final Map<Deserializer.DecoderContext, Deserializer<T>> specifics = Collections.synchronizedMap(new WeakHashMap<>());
 
-        /**
-         * @param factory The factory of the specific deserializer
-         * @param context The context the first specific deserializer was created with
-         * @param first   The first specific deserializer
-         */
-        public PerContextDeserializer(DeserializerFactory<T> factory, Deserializer.DecoderContext context, Deserializer<T> first) {
+        PerDocumentDeserializer(DeserializerFactory<T> factory) {
             this.factory = factory;
-            this.first = first;
-            specifics.put(context, first);
         }
 
-        private Deserializer<T> specific(Deserializer.DecoderContext context) throws SerdeException {
-            Deserializer<T> specific = specifics.get(context);
-            if (specific == null) {
-                specific = factory.create(context);
-                specifics.put(context, specific);
+        final void store(Deserializer.DecoderContext context, Deserializer<T> specific) {
+            DocumentSerdes documentSerdes = DocumentSerdes.of(context);
+            if (documentSerdes != null) {
+                documentSerdes.putDocumentSerde(this, specific);
             }
+        }
+
+        @SuppressWarnings("unchecked")
+        final Deserializer<T> specific(Deserializer.DecoderContext context) throws SerdeException {
+            DocumentSerdes documentSerdes = DocumentSerdes.of(context);
+            if (documentSerdes != null && documentSerdes.getDocumentSerde(this) instanceof Deserializer<?> specific) {
+                return (Deserializer<T>) specific;
+            }
+            // a context that keeps no document serdes gets a new specialization for each use
+            Deserializer<T> specific = factory.create(context);
+            store(context, specific);
             return specific;
         }
 
         @Override
-        public T deserialize(Decoder decoder, DecoderContext context, Argument<? super T> type) throws IOException {
+        public final T deserialize(Decoder decoder, DecoderContext context, Argument<? super T> type) throws IOException {
             return specific(context).deserialize(decoder, context, type);
         }
 
         @Override
-        public @Nullable T deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super T> type) throws IOException {
+        public final @Nullable T deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super T> type) throws IOException {
             return specific(context).deserializeNullable(decoder, context, type);
         }
 
         @Override
-        public @Nullable T getDefaultValue(DecoderContext context, Argument<? super T> type) {
-            return first.getDefaultValue(context, type);
+        public final @Nullable T getDefaultValue(DecoderContext context, Argument<? super T> type) {
+            Deserializer<T> specific;
+            try {
+                specific = specific(context);
+            } catch (SerdeException e) {
+                throw new IllegalStateException(e.getMessage(), e);
+            }
+            return specific.getDefaultValue(context, type);
+        }
+    }
+
+    /**
+     * A per-document deserializer of a type whose values can be updated in place, such as with {@code @JsonMerge}.
+     *
+     * @param <T> The type
+     */
+    private static final class PerDocumentUpdatingDeserializer<T> extends PerDocumentDeserializer<T> implements UpdatingDeserializer<T> {
+        PerDocumentUpdatingDeserializer(DeserializerFactory<T> factory) {
+            super(factory);
+        }
+
+        @Override
+        public void deserializeInto(Decoder decoder, DecoderContext context, Argument<? super T> type, T value) throws IOException {
+            if (specific(context) instanceof UpdatingDeserializer<T> updatingDeserializer) {
+                updatingDeserializer.deserializeInto(decoder, context, type, value);
+            } else {
+                throw new SerdeException("Deserializer for type: " + type + " doesn't support updating an existing value");
+            }
         }
     }
 }

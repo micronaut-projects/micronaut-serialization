@@ -463,8 +463,9 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         boolean createdByDefinition = !beanDefinition.isProxy()
             && !beanDefinition.hasAnnotation(DependsOn.class)
             && !hasBeanCreatedEventListener(beanDefinition.getBeanType());
-        // A generated serde passes the context of each document on; a user serde may keep the one it is created with
-        boolean contextBound = !beanDefinition.hasDeclaredAnnotation("javax.annotation.processing.Generated");
+        // A generated serde passes the context of each document on; a user serde may keep the one it is created with.
+        // The generated serdes are declared @Internal (the javax Generated annotation is not kept at runtime)
+        boolean contextBound = !beanDefinition.hasDeclaredAnnotation(Internal.class);
         return new SpecificBeanFactory<>(beanContext, parametrizedBeanDefinition, arguments[0].getName(), arguments[1].getName(), createdByDefinition, contextBound);
     }
 
