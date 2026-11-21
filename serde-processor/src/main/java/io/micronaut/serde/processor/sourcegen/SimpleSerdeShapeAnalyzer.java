@@ -1056,7 +1056,9 @@ public final class SimpleSerdeShapeAnalyzer {
      * generated serdes use. Only a strategy that has to be looked up at runtime needs the runtime serde.
      */
     private boolean hasCustomNaming(AnnotationMetadata annotationMetadata) {
-        return annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.RUNTIME_NAMING).isPresent();
+        return annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.RUNTIME_NAMING).isPresent()
+            || annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.SERIALIZE_RUNTIME_NAMING).isPresent()
+            || annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.DESERIALIZE_RUNTIME_NAMING).isPresent();
     }
 
     private boolean hasAnnotation(MethodElement methodElement, Class<? extends Annotation> annotation) {

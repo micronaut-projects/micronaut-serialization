@@ -64,7 +64,8 @@ public final class RecordSerdeShapeResolver {
             Map<String, String> keyMetadata = resolveKeyMetadata(propertyElement);
             components.add(new RecordSerdeShape.RecordComponent(
                 parameter.getName(),
-                stringValue(propertyElement, SerdeConfig.PROPERTY).orElse(parameter.getName()),
+                BeanSerdeShapeResolver.serializedName(propertyElement),
+                BeanSerdeShapeResolver.deserializedName(propertyElement),
                 parameter.getType(),
                 keyMetadata,
                 SerdeInclusionSourceGen.resolvePropertyInclude(element, propertyElement, keyMetadata),
@@ -91,6 +92,7 @@ public final class RecordSerdeShapeResolver {
         MethodElement method = getterMethod.method();
         return new RecordSerdeShape.RecordComponent(
             getterMethod.originalName(),
+            getterMethod.serializedName(),
             getterMethod.serializedName(),
             getterMethod.type(),
             getterMethod.keyMetadata(),

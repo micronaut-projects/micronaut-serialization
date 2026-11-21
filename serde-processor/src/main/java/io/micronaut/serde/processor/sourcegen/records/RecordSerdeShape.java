@@ -51,7 +51,8 @@ public record RecordSerdeShape(
      * Record component metadata used by source generation.
      *
      * @param name The component name.
-     * @param serializedName The serialized component name.
+     * @param serializedName The name the component is written with.
+     * @param deserializedName The name the component is read from.
      * @param type The component type.
      * @param keyMetadata Pre-resolved metadata contributed with the component key.
      * @param include The inclusion resolved at build time, or {@code null} when the configuration decides.
@@ -65,6 +66,7 @@ public record RecordSerdeShape(
     public record RecordComponent(
         String name,
         String serializedName,
+        String deserializedName,
         ClassElement type,
         Map<String, String> keyMetadata,
         SerdeConfig.@Nullable SerInclude include,
@@ -75,6 +77,36 @@ public record RecordSerdeShape(
         @Nullable PropertyElement propertyElement,
         @Nullable MethodElement getterMethod
     ) {
+        /**
+         * Creates a component that is written and read with the same name.
+         *
+         * @param name The component name.
+         * @param serializedName The name the component is written and read with.
+         * @param type The component type.
+         * @param keyMetadata Pre-resolved metadata contributed with the component key.
+         * @param include The inclusion resolved at build time, or {@code null} when the configuration decides.
+         * @param required Whether the component has to be present in the input.
+         * @param aliases Additional names the component is read from.
+         * @param nonNull Whether the component rejects null, declared on the parameter or the property.
+         * @param nullable Whether the component accepts null, declared on the parameter or the property.
+         * @param propertyElement The associated bean property element, or {@code null} for a getter method.
+         * @param getterMethod The getter method returning the value, or {@code null} for a component.
+         */
+        @SuppressWarnings("java:S107")
+        public RecordComponent(String name,
+                               String serializedName,
+                               ClassElement type,
+                               Map<String, String> keyMetadata,
+                               SerdeConfig.@Nullable SerInclude include,
+                               boolean required,
+                               List<String> aliases,
+                               boolean nonNull,
+                               boolean nullable,
+                               @Nullable PropertyElement propertyElement,
+                               @Nullable MethodElement getterMethod) {
+            this(name, serializedName, serializedName, type, keyMetadata, include, required, aliases, nonNull, nullable, propertyElement, getterMethod);
+        }
+
         /**
          * Creates a component bound to a bean property.
          *
@@ -100,7 +132,37 @@ public record RecordSerdeShape(
                                boolean nonNull,
                                boolean nullable,
                                PropertyElement propertyElement) {
-            this(name, serializedName, type, keyMetadata, include, required, aliases, nonNull, nullable, propertyElement, null);
+            this(name, serializedName, serializedName, type, keyMetadata, include, required, aliases, nonNull, nullable, propertyElement, null);
+        }
+
+        /**
+         * Creates a component bound to a bean property that is written and read with different names.
+         *
+         * @param name The component name.
+         * @param serializedName The name the component is written with.
+         * @param deserializedName The name the component is read from.
+         * @param type The component type.
+         * @param keyMetadata Pre-resolved metadata contributed with the component key.
+         * @param include The inclusion resolved at build time, or {@code null} when the configuration decides.
+         * @param required Whether the component has to be present in the input.
+         * @param aliases Additional names the component is read from.
+         * @param nonNull Whether the component rejects null, declared on the parameter or the property.
+         * @param nullable Whether the component accepts null, declared on the parameter or the property.
+         * @param propertyElement The associated bean property element.
+         */
+        @SuppressWarnings("java:S107")
+        public RecordComponent(String name,
+                               String serializedName,
+                               String deserializedName,
+                               ClassElement type,
+                               Map<String, String> keyMetadata,
+                               SerdeConfig.@Nullable SerInclude include,
+                               boolean required,
+                               List<String> aliases,
+                               boolean nonNull,
+                               boolean nullable,
+                               PropertyElement propertyElement) {
+            this(name, serializedName, deserializedName, type, keyMetadata, include, required, aliases, nonNull, nullable, propertyElement, null);
         }
 
         /**
