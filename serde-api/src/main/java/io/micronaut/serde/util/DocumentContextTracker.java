@@ -55,7 +55,9 @@ public interface DocumentContextTracker {
     }
 
     /**
-     * Keeps a value for the current document only, released when the document is finished.
+     * Keeps a value for the current document only, released when the document is finished. Only a
+     * context that serves one document and is closed at its end keeps values; a context shared by
+     * several documents or threads returns false.
      *
      * @param key   The key, usually the serde itself
      * @param value The value

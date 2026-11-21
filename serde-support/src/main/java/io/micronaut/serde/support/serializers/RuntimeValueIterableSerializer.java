@@ -63,7 +63,7 @@ final class RuntimeValueIterableSerializer<T> extends AbstractIterableSerializer
 
     private Component<T> findComponent(EncoderContext context, Class<?> valueClass) throws SerdeException {
         Component<T> component = components.get(valueClass);
-        if (component != null) {
+        if (component != null && (component.document() == null || component.document() == context)) {
             return component;
         }
         Map<Class<?>, Component<T>> documentComponents = (Map<Class<?>, Component<T>>) DocumentContextTracker.getDocumentValue(context, this);
@@ -76,20 +76,24 @@ final class RuntimeValueIterableSerializer<T> extends AbstractIterableSerializer
         Argument<T> generic = (Argument<T>) Argument.of(valueClass);
         int bindings = DocumentContextTracker.documentBindings(context);
         Serializer<? super T> serializer = context.findSerializer(generic).createSpecific(context, generic);
-        component = new Component<>(generic, serializer);
         // This serializer can serve several documents (a mapper caches the serializers that are not bound to a
         // document), so a serializer that the creation bound to the document is kept by the document, which
         // releases it with the values it holds when the document is finished.
         if (bindings >= 0 && DocumentContextTracker.documentBindings(context) == bindings) {
+            component = new Component<>(generic, serializer, null);
             components.put(valueClass, component);
-        } else if (documentComponents != null) {
-            documentComponents.put(valueClass, component);
-        } else {
+            return component;
+        }
+        component = new Component<>(generic, serializer, context);
+        if (documentComponents == null) {
             documentComponents = new HashMap<>(4);
-            if (DocumentContextTracker.putDocumentValue(context, this, documentComponents)) {
-                documentComponents.put(valueClass, component);
+            if (!DocumentContextTracker.putDocumentValue(context, this, documentComponents)) {
+                // a context that does not keep values: the serializer is reused only with this context
+                components.put(valueClass, component);
+                return component;
             }
         }
+        documentComponents.put(valueClass, component);
         return component;
     }
 
@@ -115,8 +119,9 @@ final class RuntimeValueIterableSerializer<T> extends AbstractIterableSerializer
      *
      * @param type       The element type
      * @param serializer The serializer
+     * @param document   The context the serializer is bound to, null if it is not bound
      * @param <T>        The element type
      */
-    private record Component<T>(Argument<T> type, Serializer<? super T> serializer) {
+    private record Component<T>(Argument<T> type, Serializer<? super T> serializer, @Nullable Object document) {
     }
 }
