@@ -27,6 +27,7 @@ import io.micronaut.serde.reference.AbstractPropertyReferenceManager;
 import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.reference.SerializationReference;
 import io.micronaut.serde.support.reference.DocumentIdSerializationReference;
+import io.micronaut.serde.util.DocumentSerdes;
 import org.jspecify.annotations.Nullable;
 
 import java.util.IdentityHashMap;
@@ -38,7 +39,11 @@ import java.util.Optional;
  * @since 1.0.0
  */
 @Internal
-class DefaultEncoderContext extends AbstractPropertyReferenceManager implements Serializer.EncoderContext {
+class DefaultEncoderContext extends AbstractPropertyReferenceManager implements Serializer.EncoderContext, DocumentSerdes {
+    // The serdes specialized for this document by serdes kept between documents, created on first use
+    @Nullable
+    private IdentityHashMap<Object, Object> documentSerdes;
+
     private final DefaultSerdeRegistry registry;
     // Beans written in full in the current document, allocated only when a document uses object identity
     @Nullable
@@ -105,7 +110,24 @@ class DefaultEncoderContext extends AbstractPropertyReferenceManager implements 
     }
 
     @Override
+    public @Nullable Object getDocumentSerde(Object owner) {
+        IdentityHashMap<Object, Object> serdes = documentSerdes;
+        return serdes == null ? null : serdes.get(owner);
+    }
+
+    @Override
+    public void putDocumentSerde(Object owner, Object value) {
+        IdentityHashMap<Object, Object> serdes = documentSerdes;
+        if (serdes == null) {
+            serdes = new IdentityHashMap<>(4);
+            documentSerdes = serdes;
+        }
+        serdes.put(owner, value);
+    }
+
+    @Override
     public void close() {
+        documentSerdes = null;
         writtenBeans = null;
     }
 
