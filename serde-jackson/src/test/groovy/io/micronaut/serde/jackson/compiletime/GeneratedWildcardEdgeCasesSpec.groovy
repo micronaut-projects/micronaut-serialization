@@ -138,4 +138,48 @@ class Children<T extends Node> implements Iterable<T> {
         cleanup:
         context.close()
     }
+
+    void 'test two raw iterables whose type variables share a name and an erased bound and lead back to the owning type'() {
+        given:
+        def context = buildContext('test.Node', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+@Serdeable
+record Node(String name, Outer children) {
+}
+
+class Outer<T extends List<? extends Children>> implements Iterable<T> {
+    final List<T> items = new ArrayList<>();
+
+    @Override
+    public Iterator<T> iterator() {
+        return items.iterator();
+    }
+}
+
+class Children<T extends List<? extends Node>> implements Iterable<T> {
+    final List<T> items = new ArrayList<>();
+
+    @Override
+    public Iterator<T> iterator() {
+        return items.iterator();
+    }
+}
+''')
+        def nodeClass = context.classLoader.loadClass('test.Node')
+
+        when:
+        def json = jsonMapper.writeValueAsString(nodeClass.newInstance('root', null))
+
+        then:
+        json == '{"name":"root"}'
+
+        cleanup:
+        context.close()
+    }
 }
