@@ -8,6 +8,153 @@ import spock.lang.Unroll
 @Issue("https://github.com/micronaut-projects/micronaut-serialization/issues/1517")
 class SerdeCreatorPropertyNamingSpec extends JsonCompileSpec {
 
+    private static final Map<String, Object> RUNTIME = [
+        'micronaut.serde.serialization.disable-generated-serializer'    : true,
+        'micronaut.serde.deserialization.disable-generated-deserializer': true
+    ]
+
+    private Object read(String source, String json, boolean generated) {
+        def context = buildContext('test.Person', source, true, generated ? [:] : RUNTIME)
+        try {
+            return jsonMapper.readValue(json, argumentOf(context, 'test.Person'))
+        } finally {
+            context.close()
+        }
+    }
+
+    private String roundTrip(String source, Closure<Object> create, boolean generated) {
+        def context = buildContext('test.Person', source, true, generated ? [:] : RUNTIME)
+        try {
+            def json = jsonMapper.writeValueAsString(create(context.classLoader.loadClass('test.Person')))
+            return json + ' -> ' + jsonMapper.readValue(json, argumentOf(context, 'test.Person')).firstName
+        } finally {
+            context.close()
+        }
+    }
+
+    @Unroll
+    void "the name of the property does not take the name of another creator parameter (generated: #generated)"() {
+        when:
+        def bean = read('''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+
+@Serdeable(naming = SnakeCaseStrategy.class)
+class Person {
+    private final String firstName;
+    private final String lastName;
+
+    @JsonCreator
+    Person(@JsonProperty("first_name") String lastName, @JsonProperty("legacy") String firstName) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
+
+    public String getFirstName() { return firstName; }
+    public String getLastName() { return lastName; }
+}
+''', '{"first_name":"Smith","legacy":"Jane"}', generated)
+
+        then:
+        bean.lastName == 'Smith'
+        bean.firstName == 'Jane'
+
+        where:
+        generated << [true, false]
+    }
+
+    void "a read-only name of the property is not a name of the creator parameter"() {
+        expect:
+        read('''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Person {
+    private final String firstName;
+
+    @JsonCreator
+    Person(@JsonProperty("legacy") String firstName) {
+        this.firstName = firstName;
+    }
+
+    @JsonProperty(value = "current", access = JsonProperty.Access.READ_ONLY)
+    public String getFirstName() { return firstName; }
+}
+''', '{"current":"Jane"}', false).firstName == null
+    }
+
+    @Unroll
+    void "a property written with its Java name reads back (generated: #generated)"() {
+        expect:
+        roundTrip('''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Person {
+    private final String firstName;
+
+    @JsonCreator
+    Person(@JsonProperty("legacy") String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getFirstName() { return firstName; }
+}
+''', { type -> type.newInstance('Jane') }, generated).endsWith(' -> Jane')
+
+        where:
+        generated << [true, false]
+    }
+
+    @Unroll
+    void "a creator parameter named apart takes its requirement and aliases from itself and the property (generated: #generated)"() {
+        given:
+        def source = '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Person {
+    private final String firstName;
+
+    @JsonCreator
+    Person(@JsonProperty("legacy") @JsonAlias("oldest") String firstName) {
+        this.firstName = firstName;
+    }
+
+    @JsonProperty(value = "current", required = true)
+    @JsonAlias("nickname")
+    public String getFirstName() { return firstName; }
+}
+'''
+
+        expect:
+        read(source, '{}', generated).firstName == null
+        read(source, '{"oldest":"A"}', generated).firstName == 'A'
+        read(source, '{"nickname":"B"}', generated).firstName == 'B'
+        read(source, '{"current":"C"}', generated).firstName == 'C'
+        read(source, '{"legacy":"D"}', generated).firstName == 'D'
+
+        where:
+        generated << [true, false]
+    }
+
     @Unroll
     void "a #kind creator parameter named apart from its property is read with both names (generated: #generated)"() {
         given:
