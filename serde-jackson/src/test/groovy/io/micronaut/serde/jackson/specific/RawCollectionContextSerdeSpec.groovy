@@ -91,6 +91,30 @@ class RawCollectionContextSerdeSpec extends Specification {
         }
     }
 
+    void "the serializers of finished documents are not kept by a serializer of runtime types"() {
+        given:
+        def context = ApplicationContext.run(['spec.name': 'RawCollectionContextSerdeSpec',
+            'micronaut.serde.serialization.disable-generated-serializer': true])
+        def mapper = context.getBean(ObjectMapper)
+        CountingTokenSerializer.INSTANCES.clear()
+
+        when:
+        (1..50).each { assert mapper.writeValueAsString(new ObjectListHolder(values: [new Token("t$it")])) == "{\"values\":[\"t$it\"]}" }
+        def alive = 50
+        for (int i = 0; i < 20 && alive > 1; i++) {
+            System.gc()
+            Thread.sleep(20)
+            alive = CountingTokenSerializer.INSTANCES.count { it.get() != null }
+        }
+
+        then:
+        CountingTokenSerializer.INSTANCES.size() == 50
+        alive <= 1
+
+        cleanup:
+        context.close()
+    }
+
     @Unroll
     void "the serializer of a runtime type is created once per document (generated: #generated)"() {
         given:
@@ -127,11 +151,13 @@ class RawCollectionContextSerdeSpec extends Specification {
     @Requires(property = 'spec.name', value = 'RawCollectionContextSerdeSpec')
     static class CountingTokenSerializer implements Serializer<Token> {
         static final AtomicInteger CREATED = new AtomicInteger()
+        static final List<java.lang.ref.WeakReference<CountingTokenSerializer>> INSTANCES = Collections.synchronizedList([])
         private final Serializer.EncoderContext constructorContext
 
         CountingTokenSerializer(@Parameter Serializer.EncoderContext context, @Parameter Argument<?> type) {
             this.constructorContext = context
             CREATED.incrementAndGet()
+            INSTANCES << new java.lang.ref.WeakReference<>(this)
         }
 
         @Override

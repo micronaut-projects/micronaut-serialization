@@ -28,10 +28,12 @@ import io.micronaut.serde.reference.AbstractPropertyReferenceManager;
 import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.support.reference.DocumentIdReference;
 import io.micronaut.serde.support.reference.PendingDocumentIdReference;
+import io.micronaut.serde.util.DocumentSerdes;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.IdentityHashMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -45,7 +47,11 @@ import java.util.Optional;
  * @since 1.0.0
  */
 @Internal
-class DefaultDecoderContext extends AbstractPropertyReferenceManager implements Deserializer.DecoderContext {
+class DefaultDecoderContext extends AbstractPropertyReferenceManager implements Deserializer.DecoderContext, DocumentSerdes {
+    // The serdes specialized for this document by serdes kept between documents, created on first use
+    @Nullable
+    private IdentityHashMap<Object, Object> documentSerdes;
+
     private final DefaultSerdeRegistry registry;
     // Document-scoped identifier state, allocated only when a document uses identifiers and released on close
     @Nullable
@@ -158,7 +164,24 @@ class DefaultDecoderContext extends AbstractPropertyReferenceManager implements 
     }
 
     @Override
+    public @Nullable Object getDocumentSerde(Object owner) {
+        IdentityHashMap<Object, Object> serdes = documentSerdes;
+        return serdes == null ? null : serdes.get(owner);
+    }
+
+    @Override
+    public void putDocumentSerde(Object owner, Object value) {
+        IdentityHashMap<Object, Object> serdes = documentSerdes;
+        if (serdes == null) {
+            serdes = new IdentityHashMap<>(4);
+            documentSerdes = serdes;
+        }
+        serdes.put(owner, value);
+    }
+
+    @Override
     public void close() throws IOException {
+        documentSerdes = null;
         Map<String, List<PendingDocumentIdReference>> pending = pendingDocumentIds;
         documentIds = null;
         pendingDocumentIds = null;
