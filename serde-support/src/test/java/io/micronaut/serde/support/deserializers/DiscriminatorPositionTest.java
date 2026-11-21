@@ -21,8 +21,12 @@ import io.micronaut.context.ApplicationContext;
 import io.micronaut.core.annotation.Introspected;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
+import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.ObjectMapper;
+import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.support.util.JsonNodeDecoder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -121,6 +125,24 @@ class DiscriminatorPositionTest {
             assertEquals(5, assertInstanceOf(Ring.class, marks.get(5)).x);
             assertEquals(6, assertInstanceOf(Ring.class, marks.get(6)).x);
         }
+    }
+
+    @Test
+    void treeDecoderReplaysTheKeysBeforeTheDiscriminator() throws IOException {
+        SerdeRegistry registry = context.getBean(SerdeRegistry.class);
+        Deserializer.DecoderContext decoderContext = registry.newDecoderContext(null);
+        Argument<Mark> type = Argument.of(Mark.class);
+        Deserializer<? extends Mark> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, type);
+        JsonNode ring = mapper.readValue("""
+            {"x":6,"type":"ring"}""", JsonNode.class);
+        JsonNode dot = mapper.readValue("""
+            {"x":7}""", JsonNode.class);
+
+        Mark first = deserializer.deserialize(JsonNodeDecoder.create(ring, LimitingStream.DEFAULT_LIMITS), decoderContext, type);
+        Mark second = deserializer.deserialize(JsonNodeDecoder.create(dot, LimitingStream.DEFAULT_LIMITS), decoderContext, type);
+
+        assertEquals(6, assertInstanceOf(Ring.class, first).x);
+        assertEquals(7, assertInstanceOf(Dot.class, second).x);
     }
 
     @Test
