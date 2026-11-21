@@ -184,16 +184,12 @@ public final class ContextBoundSerdes {
         }
 
         final void store(Serializer.EncoderContext context, Serializer<T> specific) {
-            DocumentSerdes documentSerdes = DocumentSerdes.of(context);
-            if (documentSerdes != null) {
-                documentSerdes.putDocumentSerde(this, specific);
-            }
+            DocumentSerdes.put(context, this, specific);
         }
 
         @SuppressWarnings("unchecked")
         final Serializer<T> specific(Serializer.EncoderContext context) throws SerdeException {
-            DocumentSerdes documentSerdes = DocumentSerdes.of(context);
-            if (documentSerdes != null && documentSerdes.getDocumentSerde(this) instanceof Serializer<?> specific) {
+            if (DocumentSerdes.get(context, this) instanceof Serializer<?> specific) {
                 return (Serializer<T>) specific;
             }
             // a context that keeps no document serdes gets a new specialization for each use
@@ -269,16 +265,12 @@ public final class ContextBoundSerdes {
         }
 
         final void store(Deserializer.DecoderContext context, Deserializer<T> specific) {
-            DocumentSerdes documentSerdes = DocumentSerdes.of(context);
-            if (documentSerdes != null) {
-                documentSerdes.putDocumentSerde(this, specific);
-            }
+            DocumentSerdes.put(context, this, specific);
         }
 
         @SuppressWarnings("unchecked")
         final Deserializer<T> specific(Deserializer.DecoderContext context) throws SerdeException {
-            DocumentSerdes documentSerdes = DocumentSerdes.of(context);
-            if (documentSerdes != null && documentSerdes.getDocumentSerde(this) instanceof Deserializer<?> specific) {
+            if (DocumentSerdes.get(context, this) instanceof Deserializer<?> specific) {
                 return (Deserializer<T>) specific;
             }
             // a context that keeps no document serdes gets a new specialization for each use
