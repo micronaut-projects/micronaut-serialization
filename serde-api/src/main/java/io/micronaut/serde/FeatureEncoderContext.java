@@ -24,7 +24,9 @@ import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.reference.SerializationReference;
+import io.micronaut.serde.util.DocumentSerdes;
 import org.jspecify.annotations.Nullable;
+
 
 import java.io.IOException;
 import java.util.Optional;
@@ -36,7 +38,7 @@ import java.util.Set;
  * @since 3.0
  */
 @Internal
-final class FeatureEncoderContext implements Serializer.EncoderContext {
+final class FeatureEncoderContext implements Serializer.EncoderContext, DocumentSerdes.Delegating {
     private final Serializer.EncoderContext delegate;
     private final Set<SerializationConfiguration.Feature> features;
 
@@ -64,6 +66,11 @@ final class FeatureEncoderContext implements Serializer.EncoderContext {
     @Override
     public void close() throws IOException {
         delegate.close();
+    }
+
+    @Override
+    public Object documentSerdesOwner() {
+        return delegate;
     }
 
     @Override

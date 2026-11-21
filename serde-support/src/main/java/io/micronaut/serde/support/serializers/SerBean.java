@@ -48,6 +48,7 @@ import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
+import io.micronaut.serde.support.util.ContextBoundSerdes;
 import io.micronaut.serde.support.util.DecoderValueKind;
 import io.micronaut.serde.support.util.DocumentIdUtil;
 import io.micronaut.serde.support.util.ObjectShapeSerdeHelper;
@@ -919,10 +920,19 @@ final class SerBean<T> {
         } else {
             serializer = (Serializer<Z>) encoderContext.findSerializer(argument);
         }
-        Serializer.EncoderContext propertyContext = encoderContext.withFeatures(prop.featuresWith, prop.featuresWithout);
-        prop.serializer = prop.format == null
-            ? serializer.createSpecific(propertyContext, argument)
-            : createSpecific(prop.format, serializer, propertyContext, argument);
+        final Serializer<Z> resolved = serializer;
+        final Argument<Z> resolvedArgument = argument;
+        ContextBoundSerdes.SerializerFactory<Z> factory = context -> {
+            // the features of the bean argument apply to a document context as they did to the first
+            Serializer.EncoderContext beanContext = serdeArgumentConf == null ? context : serdeArgumentConf.withFeatures(context);
+            Serializer.EncoderContext propertyContext = beanContext.withFeatures(prop.featuresWith, prop.featuresWithout);
+            return prop.format == null
+                ? (Serializer<Z>) resolved.createSpecific(propertyContext, resolvedArgument)
+                : createSpecific(prop.format, resolved, propertyContext, resolvedArgument);
+        };
+        // The bean keeps its property serializers between documents: one that a serde bean bound to the context
+        // of this document is specialized again for the context of each document
+        prop.serializer = ContextBoundSerdes.specialize(factory, encoderContext);
 
         if (prop.serializableInto) {
             if (prop.serializer instanceof io.micronaut.serde.ObjectSerializer<Z> objectSerializer) {
