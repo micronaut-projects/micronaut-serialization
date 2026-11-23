@@ -23,6 +23,9 @@ import org.jspecify.annotations.Nullable;
  * kept between documents stores the serdes it specialized for a document here, under itself, instead of holding
  * them: such a serde can keep its context, so holding it would keep the document.
  *
+ * <p>A context that keeps document serdes must be confined to a single document and thread, and closed at the end
+ * of the document, as the contexts the mappers open for each call are. The values are not synchronized.</p>
+ *
  * @since 3.3.0
  */
 @Internal
@@ -63,6 +66,17 @@ public interface DocumentSerdes {
         if (context instanceof DocumentSerdes documentSerdes) {
             documentSerdes.putDocumentSerde(owner, value);
         }
+    }
+
+    /**
+     * @param context The encoder or decoder context
+     * @return Whether the context, or the context it delegates to, keeps document serdes
+     */
+    static boolean keeps(Object context) {
+        if (context instanceof Delegating delegating) {
+            return keeps(delegating.documentSerdesOwner());
+        }
+        return context instanceof DocumentSerdes;
     }
 
     /**
