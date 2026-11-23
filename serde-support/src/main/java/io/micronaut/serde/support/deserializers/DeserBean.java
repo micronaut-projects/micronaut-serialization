@@ -89,7 +89,7 @@ import java.util.function.Predicate;
  */
 @Internal
 final class DeserBean<T> {
-    private static final BeanInitializations<DeserBean<?>> INITIALIZING = new BeanInitializations<>();
+    private static final BeanInitializations<DeserBean<?>> INITIALIZATIONS = new BeanInitializations<>();
     private static final String JK_PROP = "com.fasterxml.jackson.annotation.JsonProperty";
 
     // CHECKSTYLE:OFF
@@ -675,33 +675,21 @@ final class DeserBean<T> {
                 if (!initialized && !initializing) {
                     initializing = true;
                     decoderContext = decoderContext.withFeatures(beanFeaturesWith, beanFeaturesWithout);
-                    INITIALIZING.enter(this);
+                    INITIALIZATIONS.enter(this);
                     try {
                         int bindings = DocumentContextTracker.documentBindings(decoderContext);
                         initializeInternal(decoderContext);
                         // the subtypes and the unwrapped creator parameters were resolved by the constructor
-                        documentBound |= DocumentContextTracker.documentBindings(decoderContext) != bindings;
+                        boolean bound = documentBound || DocumentContextTracker.documentBindings(decoderContext) != bindings;
+                        documentBound = bound;
                         initialized = true;
                     } finally {
-                        INITIALIZING.exit();
+                        INITIALIZATIONS.exit();
                         initializing = false;
                     }
-                    List<DeserBean<?>> dependents = cycleDependents;
-                    cycleDependents = null;
-                    if (documentBound && dependents != null) {
-                        for (DeserBean<?> dependent : dependents) {
-                            dependent.documentBound = true;
-                        }
-                    }
+                    bindCycleDependents();
                 } else if (initializing) {
-                    // reached again through a cycle: the beans initialized since hold the deserializers of this one
-                    List<DeserBean<?>> within = INITIALIZING.initializingWithin(this);
-                    if (!within.isEmpty()) {
-                        if (cycleDependents == null) {
-                            cycleDependents = new ArrayList<>();
-                        }
-                        cycleDependents.addAll(within);
-                    }
+                    addCycleDependents();
                 }
             } finally {
                 lock.unlock();
@@ -709,6 +697,33 @@ final class DeserBean<T> {
         }
         if (documentBound) {
             DocumentContextTracker.markDocumentBound(decoderContext);
+        }
+    }
+
+    /**
+     * Reached again through a cycle while initializing: the beans initialized since hold the deserializers of this
+     * one.
+     */
+    private void addCycleDependents() {
+        List<DeserBean<?>> within = INITIALIZATIONS.initializingWithin(this);
+        if (!within.isEmpty()) {
+            if (cycleDependents == null) {
+                cycleDependents = new ArrayList<>();
+            }
+            cycleDependents.addAll(within);
+        }
+    }
+
+    /**
+     * The beans that reached this one through a cycle are bound whenever this one is.
+     */
+    private void bindCycleDependents() {
+        List<DeserBean<?>> dependents = cycleDependents;
+        cycleDependents = null;
+        if (documentBound && dependents != null) {
+            for (DeserBean<?> dependent : dependents) {
+                dependent.documentBound = true;
+            }
         }
     }
 
