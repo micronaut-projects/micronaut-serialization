@@ -95,7 +95,7 @@ final class SerBean<T> {
                 }
             }
     );
-    private static final BeanInitializations<SerBean<?>> INITIALIZING = new BeanInitializations<>();
+    private static final BeanInitializations<SerBean<?>> INITIALIZATIONS = new BeanInitializations<>();
     private static final String JK_PROP = "com.fasterxml.jackson.annotation.JsonProperty";
     private static final String JACKSON_VALUE = "com.fasterxml.jackson.annotation.JsonValue";
     private static final String JACKSON_KEY = "com.fasterxml.jackson.annotation.JsonKey";
@@ -899,34 +899,21 @@ final class SerBean<T> {
                     initializing = true;
                     encoderContext = encoderContext.withFeatures(beanFeaturesWith, beanFeaturesWithout);
                     int bindings = DocumentContextTracker.documentBindings(encoderContext);
-                    INITIALIZING.enter(this);
+                    INITIALIZATIONS.enter(this);
                     try {
                         for (Initializer initializer : Objects.requireNonNull(initializers)) {
                             initializer.initialize(encoderContext);
                         }
                     } finally {
-                        INITIALIZING.exit();
+                        INITIALIZATIONS.exit();
                     }
                     documentBound = DocumentContextTracker.documentBindings(encoderContext) != bindings;
                     initializers = null;
                     initialized = true;
                     initializing = false;
-                    List<SerBean<?>> dependents = cycleDependents;
-                    cycleDependents = null;
-                    if (documentBound && dependents != null) {
-                        for (SerBean<?> dependent : dependents) {
-                            dependent.documentBound = true;
-                        }
-                    }
+                    bindCycleDependents();
                 } else if (initializing) {
-                    // reached again through a cycle: the beans initialized since hold the serdes of this one
-                    List<SerBean<?>> within = INITIALIZING.initializingWithin(this);
-                    if (!within.isEmpty()) {
-                        if (cycleDependents == null) {
-                            cycleDependents = new ArrayList<>();
-                        }
-                        cycleDependents.addAll(within);
-                    }
+                    addCycleDependents();
                 }
             } finally {
                 lock.unlock();
@@ -934,6 +921,32 @@ final class SerBean<T> {
         }
         if (documentBound) {
             DocumentContextTracker.markDocumentBound(encoderContext);
+        }
+    }
+
+    /**
+     * Reached again through a cycle while initializing: the beans initialized since hold the serdes of this one.
+     */
+    private void addCycleDependents() {
+        List<SerBean<?>> within = INITIALIZATIONS.initializingWithin(this);
+        if (!within.isEmpty()) {
+            if (cycleDependents == null) {
+                cycleDependents = new ArrayList<>();
+            }
+            cycleDependents.addAll(within);
+        }
+    }
+
+    /**
+     * The beans that reached this one through a cycle are bound whenever this one is.
+     */
+    private void bindCycleDependents() {
+        List<SerBean<?>> dependents = cycleDependents;
+        cycleDependents = null;
+        if (documentBound && dependents != null) {
+            for (SerBean<?> dependent : dependents) {
+                dependent.documentBound = true;
+            }
         }
     }
 

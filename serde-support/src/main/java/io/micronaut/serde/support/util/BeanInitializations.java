@@ -45,10 +45,15 @@ public final class BeanInitializations<B> {
     }
 
     /**
-     * Records that the innermost bean completed its initialization.
+     * Records that the innermost bean completed its initialization. The beans are initialized once, so the thread
+     * keeps nothing once the outermost one completes.
      */
     public void exit() {
-        initializing.get().removeLast();
+        ArrayDeque<B> beans = initializing.get();
+        beans.removeLast();
+        if (beans.isEmpty()) {
+            initializing.remove();
+        }
     }
 
     /**
