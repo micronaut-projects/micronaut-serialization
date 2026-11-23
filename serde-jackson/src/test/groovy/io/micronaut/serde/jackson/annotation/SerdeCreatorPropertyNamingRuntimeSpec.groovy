@@ -32,10 +32,14 @@ class SerdeCreatorPropertyNamingRuntimeSpec extends Specification {
         given:
         def databind = DatabindJsonMapper.builder().propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE).build()
         def bean = new CreatorPropertyNamingTypes.ConstructorNamed('Jane')
+        // Databind links the creator parameter to its property only when the parameter names are compiled in (-parameters)
+        boolean parameterNamesCompiled = CreatorPropertyNamingTypes.ConstructorNamed.getConstructor(String).parameters[0].namePresent
 
-        expect: 'Serde writes the name of the property, Databind renames the property after the creator parameter'
+        expect: 'Serde always writes the name of the property, whether or not the parameter names are compiled in'
         jsonMapper.writeValueAsString(bean) == '{"first_name":"Jane"}'
-        databind.writeValueAsString(bean) == '{"legacy":"Jane"}'
+
+        and: 'Databind renames the property after the creator parameter when it can link the two'
+        databind.writeValueAsString(bean) == (parameterNamesCompiled ? '{"legacy":"Jane"}' : '{"first_name":"Jane"}')
 
         and: 'both read the name of the parameter, and Serde also reads the name it writes'
         jsonMapper.readValue('{"legacy":"Jane"}', CreatorPropertyNamingTypes.ConstructorNamed).firstName == 'Jane'
