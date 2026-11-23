@@ -67,19 +67,19 @@ final class SubtypedPropertyObjectDeserializer implements Deserializer<Object> {
         if (!discriminatorVisible) {
             // Serialization writes the discriminator first. When it comes first, the subtype can read the rest of the
             // object directly, without buffering it through the demuxing decoder.
-            Decoder objectDecoder = decoder.decodeObject(type);
-            if (objectDecoder instanceof KeysAwareDecoder keysAware) {
-                int keyIndex = keysAware.decodeKey(discriminatorKeys);
-                if (keyIndex == 0) {
-                    return findDeserializerForValue(keysAware).deserialize(new OpenedObjectDecoder(objectDecoder), decoderContext, type);
-                }
-                if (keyIndex == KeysAwareDecoder.MATCH_END_OBJECT) {
-                    // an empty object, which the subtype reads as one
-                    objectDecoder.finishStructure();
-                    return subtypeInfo.findDeserializer(null).deserialize(emptyObjectDecoder(), decoderContext, type);
-                }
-                // MATCH_UNKNOWN_NAME: decodeKey() returns the same name again, so the demuxing decoder sees every key
+            // A decoder that doesn't match keys itself, such as JSON-P or Oracle, is adapted. The adapter keeps an
+            // unmatched name pending like the native decoders, and the subtype deserializers get the same adapter back
+            KeysAwareDecoder objectDecoder = KeysAwareDecoder.of(decoder.decodeObject(type));
+            int keyIndex = objectDecoder.decodeKey(discriminatorKeys);
+            if (keyIndex == 0) {
+                return findDeserializerForValue(objectDecoder).deserialize(new OpenedObjectDecoder(objectDecoder), decoderContext, type);
             }
+            if (keyIndex == KeysAwareDecoder.MATCH_END_OBJECT) {
+                // an empty object, which the subtype reads as one
+                objectDecoder.finishStructure();
+                return subtypeInfo.findDeserializer(null).deserialize(emptyObjectDecoder(), decoderContext, type);
+            }
+            // MATCH_UNKNOWN_NAME: decodeKey() returns the same name again, so the demuxing decoder sees every key
             return deserializeDemuxed(new OpenedObjectDecoder(objectDecoder), decoderContext, type);
         }
         return deserializeDemuxed(decoder, decoderContext, type);
