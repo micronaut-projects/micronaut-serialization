@@ -74,7 +74,7 @@ public final class ContextBoundSerdes {
         int created = enter();
         try {
             Serializer<T> specific = factory.create(context);
-            return createdSince(created) ? perDocument(factory, context, specific) : specific;
+            return wrapsPerDocument(created, context) ? perDocument(factory, context, specific) : specific;
         } finally {
             exit();
         }
@@ -94,7 +94,7 @@ public final class ContextBoundSerdes {
         int created = enter();
         try {
             Deserializer<T> specific = factory.create(context);
-            return createdSince(created) ? perDocument(factory, context, specific) : specific;
+            return wrapsPerDocument(created, context) ? perDocument(factory, context, specific) : specific;
         } finally {
             exit();
         }
@@ -110,9 +110,19 @@ public final class ContextBoundSerdes {
         return tracking[CREATED];
     }
 
-    private static boolean createdSince(int created) {
+    /**
+     * Whether the serde specialized since {@code created} is specialized again for each document. Only a context that
+     * keeps document serdes can hold the specializations: with any other context the serde stays shared, as before.
+     * The per-document serde isolates the context, so the serde beans it created no longer count for the enclosing
+     * specializations, which keep their shared serde.
+     */
+    private static boolean wrapsPerDocument(int created, Object context) {
         int[] tracking = TRACKING.get();
-        return tracking != null && tracking[CREATED] != created;
+        if (tracking == null || tracking[CREATED] == created || !DocumentSerdes.keeps(context)) {
+            return false;
+        }
+        tracking[CREATED] = created;
+        return true;
     }
 
     private static void exit() {
@@ -178,6 +188,8 @@ public final class ContextBoundSerdes {
      */
     private static class PerDocumentSerializer<T> implements Serializer<T> {
         private final SerializerFactory<T> factory;
+        @Nullable
+        private volatile Serializer<T> shared;
 
         PerDocumentSerializer(SerializerFactory<T> factory) {
             this.factory = factory;
@@ -187,12 +199,27 @@ public final class ContextBoundSerdes {
             DocumentSerdes.put(context, this, specific);
         }
 
+        /**
+         * A context that keeps no document serdes, such as a context of another module delegating to a document
+         * context, gets one specialization shared by all such contexts, as every context did before.
+         */
+        private Serializer<T> shared(Serializer.EncoderContext context) throws SerdeException {
+            Serializer<T> specific = shared;
+            if (specific == null) {
+                specific = factory.create(context);
+                shared = specific;
+            }
+            return specific;
+        }
+
         @SuppressWarnings("unchecked")
         final Serializer<T> specific(Serializer.EncoderContext context) throws SerdeException {
             if (DocumentSerdes.get(context, this) instanceof Serializer<?> specific) {
                 return (Serializer<T>) specific;
             }
-            // a context that keeps no document serdes gets a new specialization for each use
+            if (!DocumentSerdes.keeps(context)) {
+                return shared(context);
+            }
             Serializer<T> specific = factory.create(context);
             store(context, specific);
             return specific;
@@ -259,6 +286,8 @@ public final class ContextBoundSerdes {
      */
     private static class PerDocumentDeserializer<T> implements Deserializer<T> {
         private final DeserializerFactory<T> factory;
+        @Nullable
+        private volatile Deserializer<T> shared;
 
         PerDocumentDeserializer(DeserializerFactory<T> factory) {
             this.factory = factory;
@@ -268,12 +297,27 @@ public final class ContextBoundSerdes {
             DocumentSerdes.put(context, this, specific);
         }
 
+        /**
+         * A context that keeps no document serdes, such as a context of another module delegating to a document
+         * context, gets one specialization shared by all such contexts, as every context did before.
+         */
+        private Deserializer<T> shared(Deserializer.DecoderContext context) throws SerdeException {
+            Deserializer<T> specific = shared;
+            if (specific == null) {
+                specific = factory.create(context);
+                shared = specific;
+            }
+            return specific;
+        }
+
         @SuppressWarnings("unchecked")
         final Deserializer<T> specific(Deserializer.DecoderContext context) throws SerdeException {
             if (DocumentSerdes.get(context, this) instanceof Deserializer<?> specific) {
                 return (Deserializer<T>) specific;
             }
-            // a context that keeps no document serdes gets a new specialization for each use
+            if (!DocumentSerdes.keeps(context)) {
+                return shared(context);
+            }
             Deserializer<T> specific = factory.create(context);
             store(context, specific);
             return specific;

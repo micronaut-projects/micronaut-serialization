@@ -148,6 +148,8 @@ final class DeserBean<T> {
     private final Set<DeserializationConfiguration.Feature> beanFeaturesWithout;
     private volatile boolean initialized;
     private volatile boolean initializing;
+    @Nullable
+    private final SerdeArgumentConf serdeArgumentConf;
 
     // CHECKSTYLE:ON
 
@@ -169,6 +171,7 @@ final class DeserBean<T> {
         throws SerdeException {
 
         this.typeArguments = typeArguments;
+        this.serdeArgumentConf = serdeArgumentConf;
         AnnotationMetadata beanAnnotationMetadata = introspection.getAnnotationMetadata();
         this.beanFeaturesWith = SerdeFeatures.deserializationFeaturesWith(beanAnnotationMetadata);
         this.beanFeaturesWithout = SerdeFeatures.deserializationFeaturesWithout(beanAnnotationMetadata);
@@ -688,7 +691,7 @@ final class DeserBean<T> {
             Argument<Object> anySetterValueType = (Argument<Object>) anySetter.valueType;
             anySetter.deserializer = anySetterValueType.equalsType(Argument.OBJECT_ARGUMENT)
                 ? null
-                : ContextBoundSerdes.specialize(context -> findDeserializer(context, anySetterValueType), decoderContext);
+                : ContextBoundSerdes.specialize(context -> findDeserializer(documentContext(context), anySetterValueType), decoderContext);
         }
         if (unwrappedProperties != null) {
             for (DerProperty<T, Object> unwrappedProperty : unwrappedProperties) {
@@ -725,7 +728,7 @@ final class DeserBean<T> {
         property.unwrappedValueType = valueType;
         property.unwrappedValueDeserializer = valueType.equalsType(Argument.OBJECT_ARGUMENT)
             ? null
-            : ContextBoundSerdes.specialize(context -> findDeserializer(context, valueType), decoderContext);
+            : ContextBoundSerdes.specialize(context -> findDeserializer(documentContext(context), valueType), decoderContext);
     }
 
     private boolean isSimpleBean() {
@@ -762,12 +765,21 @@ final class DeserBean<T> {
         return true;
     }
 
+    /**
+     * The context a deserializer specialized again for a document is created with: the features of the bean argument
+     * and of the bean apply to it as they did to the context the bean was initialized with.
+     */
+    private Deserializer.DecoderContext documentContext(Deserializer.DecoderContext context) {
+        Deserializer.DecoderContext argumentContext = serdeArgumentConf == null ? context : serdeArgumentConf.withFeatures(context);
+        return argumentContext.withFeatures(beanFeaturesWith, beanFeaturesWithout);
+    }
+
     private void initProperty(DerProperty<T, Object> property, Deserializer.DecoderContext decoderContext) throws SerdeException {
         if (property.ignored) {
             return;
         }
         ContextBoundSerdes.DeserializerFactory<Object> factory = context -> {
-            Deserializer.DecoderContext propertyContext = context.withFeatures(property.featuresWith, property.featuresWithout);
+            Deserializer.DecoderContext propertyContext = documentContext(context).withFeatures(property.featuresWith, property.featuresWithout);
             return unwrapErrorCatching(property.format == null
                 ? findDeserializerWithoutFormat(propertyContext, property.argument)
                 : findDeserializer(propertyContext, property.argument, property.format));

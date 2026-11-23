@@ -71,13 +71,16 @@ class ContextBoundSerdesTest {
     }
 
     @Test
-    void nestedCreationMakesTheOuterSerializerPerDocument() throws Exception {
+    void nestedPerDocumentSerializerKeepsTheEnclosingOneShared() throws Exception {
         Serializer.EncoderContext context = registry.newEncoderContext(null);
+        List<Serializer<String>> inner = new ArrayList<>();
         Serializer<String> outer = ContextBoundSerdes.specialize(
-            c -> ContextBoundSerdes.specialize(bound(TokenSerializer::new), c),
+            c -> record(inner, ContextBoundSerdes.specialize(bound(TokenSerializer::new), c)),
             context
         );
-        assertFalse(outer instanceof TokenSerializer);
+        // the nested serializer is specialized per document, so the enclosing one is not wrapped again
+        assertFalse(inner.get(0) instanceof TokenSerializer);
+        assertSame(inner.get(0), outer);
         // the tracking ended with the outermost specialization
         TokenSerializer plain = new TokenSerializer(context);
         assertSame(plain, ContextBoundSerdes.specialize(c -> plain, context));
@@ -116,20 +119,26 @@ class ContextBoundSerdesTest {
     }
 
     @Test
-    void contextWithoutDocumentSerdesSpecializesForEachUse() throws Exception {
-        Serializer.EncoderContext documentContext = registry.newEncoderContext(null);
-        Serializer.EncoderContext context = proxy(Serializer.EncoderContext.class, documentContext);
+    void contextWithoutDocumentSerdesKeepsOneSharedSerializer() throws Exception {
+        Serializer.EncoderContext foreign = proxy(Serializer.EncoderContext.class, registry.newEncoderContext(null));
         List<TokenSerializer> created = new ArrayList<>();
-        Serializer<String> serializer = ContextBoundSerdes.specialize(bound(c -> record(created, new TokenSerializer(c))), context);
-        serializer.serialize(ENCODER, context, STRING, "a");
-        serializer.serialize(ENCODER, context, STRING, "b");
+        // specialized with a context that keeps no document serdes, the serializer stays shared
+        Serializer<String> shared = ContextBoundSerdes.specialize(bound(c -> record(created, new TokenSerializer(c))), foreign);
+        assertSame(created.get(0), shared);
+
+        // a per-document serializer used with such contexts creates one more specialization, shared by them
+        Serializer<String> serializer = ContextBoundSerdes.specialize(bound(c -> record(created, new TokenSerializer(c))), registry.newEncoderContext(null));
+        serializer.serialize(ENCODER, foreign, STRING, "a");
+        serializer.serialize(ENCODER, proxy(Serializer.EncoderContext.class, registry.newEncoderContext(null)), STRING, "b");
+        serializer.serialize(ENCODER, foreign, STRING, "c");
         assertEquals(3, created.size());
+        assertEquals(List.of("a", "b", "c"), created.get(2).values);
     }
 
     @Test
     void valueChecksFallBackWhenTheSerializerCannotBeCreated() throws Exception {
-        Serializer.EncoderContext context = proxy(Serializer.EncoderContext.class, registry.newEncoderContext(null));
-        Serializer<String> serializer = ContextBoundSerdes.specialize(failingAfterFirst(TokenSerializer::new), context);
+        Serializer<String> serializer = ContextBoundSerdes.specialize(failingAfterFirst(TokenSerializer::new), registry.newEncoderContext(null));
+        Serializer.EncoderContext context = registry.newEncoderContext(null);
         assertFalse(serializer.isEmpty(context, ""));
         assertTrue(serializer.isEmpty(context, null));
         assertFalse(serializer.isAbsent(context, "absent"));
@@ -173,8 +182,10 @@ class ContextBoundSerdesTest {
 
     @Test
     void deserializerReportsAFailedCreation() throws Exception {
-        Deserializer.DecoderContext context = proxy(Deserializer.DecoderContext.class, registry.newDecoderContext(null));
-        Deserializer<String> deserializer = ContextBoundSerdes.specialize(failingDeserializerAfterFirst(TokenDeserializer::new), context);
+        Deserializer<String> deserializer = ContextBoundSerdes.specialize(failingDeserializerAfterFirst(TokenDeserializer::new), registry.newDecoderContext(null));
+        Deserializer.DecoderContext context = registry.newDecoderContext(null);
+        Deserializer.DecoderContext foreign = proxy(Deserializer.DecoderContext.class, registry.newDecoderContext(null));
+        assertThrows(IllegalStateException.class, () -> deserializer.getDefaultValue(foreign, STRING));
         assertThrows(IllegalStateException.class, () -> deserializer.getDefaultValue(context, STRING));
         assertThrows(SerdeException.class, () -> deserializer.deserialize(DECODER, context, STRING));
     }

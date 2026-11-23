@@ -923,8 +923,9 @@ final class SerBean<T> {
         final Serializer<Z> resolved = serializer;
         final Argument<Z> resolvedArgument = argument;
         ContextBoundSerdes.SerializerFactory<Z> factory = context -> {
-            // the features of the bean argument apply to a document context as they did to the first
-            Serializer.EncoderContext beanContext = serdeArgumentConf == null ? context : serdeArgumentConf.withFeatures(context);
+            // the features of the bean argument and of the bean apply to a document context as they did to the first
+            Serializer.EncoderContext argumentContext = serdeArgumentConf == null ? context : serdeArgumentConf.withFeatures(context);
+            Serializer.EncoderContext beanContext = argumentContext.withFeatures(prop.beanFeaturesWith, prop.beanFeaturesWithout);
             Serializer.EncoderContext propertyContext = beanContext.withFeatures(prop.featuresWith, prop.featuresWithout);
             return prop.format == null
                 ? (Serializer<Z>) resolved.createSpecific(propertyContext, resolvedArgument)
@@ -1193,6 +1194,9 @@ final class SerBean<T> {
         public final FormatConfiguration format;
         public final Set<SerializationConfiguration.Feature> featuresWith;
         public final Set<SerializationConfiguration.Feature> featuresWithout;
+        // the features of the bean, which a property serializer specialized again for a document applies as well
+        final Set<SerializationConfiguration.Feature> beanFeaturesWith;
+        final Set<SerializationConfiguration.Feature> beanFeaturesWithout;
         // CHECKSTYLE:ON
 
         public SerProperty(
@@ -1210,6 +1214,8 @@ final class SerBean<T> {
                 Argument<P> argument,
                 AnnotationMetadata annotationMetadata) {
             this.beanType = bean.introspection.getBeanType();
+            this.beanFeaturesWith = bean.beanFeaturesWith;
+            this.beanFeaturesWithout = bean.beanFeaturesWithout;
             this.name = name;
             this.originalName = originalName;
             this.argument = annotationMetadata.isEmpty() ? argument : argument.withAnnotationMetadata(annotationMetadata);

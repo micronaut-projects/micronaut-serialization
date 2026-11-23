@@ -127,6 +127,99 @@ class RuntimeBeanContextSerdeSpec extends Specification {
         }
     }
 
+    void "a contextual serde under a bean with class-level features sees them in every document"() {
+        given:
+        def context = ApplicationContext.run(RUNTIME + ['spec.name': 'RuntimeBeanFeatures'])
+        def mapper = context.getBean(ObjectMapper)
+
+        expect:
+        (1..3).every {
+            mapper.writeValueAsString(new FeatureHolder(token: new FeatureToken(value: "a$it"))) == '{"token":"sorted"}' &&
+                mapper.readValue("{\"token\":\"x$it\"}", FeatureHolder).token.value == "x$it:single"
+        }
+
+        cleanup:
+        context.close()
+    }
+
+    void "a bean holding a bean with a contextual serde keeps its own property serializer shared"() {
+        given:
+        def context = ApplicationContext.run(RUNTIME + ['spec.name': 'RuntimeBeanContextSerdeSpec'])
+        def mapper = context.getBean(ObjectMapper)
+
+        expect:
+        (1..3).every {
+            mapper.writeValueAsString(new OuterHolder(inner: new TokenHolder(token: new Token(value: "t$it")))) == "{\"inner\":{\"token\":\"t$it\"}}"
+        }
+
+        when: 'the property serializers the runtime bean serializers keep'
+        def beans = context.getBean(io.micronaut.serde.SerdeRegistry).@objectSerializer.@serBeanMap.values()*.get()
+        def serializerOf = { Class type, String property ->
+            beans.find { it.@introspection.beanType == type }.@writeProperties.find { it.name == property }.serializer.getClass().simpleName
+        }
+
+        then: 'only the property with the contextual serde is specialized per document'
+        serializerOf(TokenHolder, 'token').startsWith('PerDocument')
+        !serializerOf(OuterHolder, 'inner').startsWith('PerDocument')
+
+        cleanup:
+        context.close()
+    }
+
+    @io.micronaut.serde.annotation.Serdeable
+    static class OuterHolder {
+        TokenHolder inner
+    }
+
+    @io.micronaut.serde.annotation.Serdeable
+    @com.fasterxml.jackson.annotation.JsonFormat(with = [
+        com.fasterxml.jackson.annotation.JsonFormat.Feature.WRITE_SORTED_MAP_ENTRIES,
+        com.fasterxml.jackson.annotation.JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY
+    ])
+    static class FeatureHolder {
+        FeatureToken token
+    }
+
+    static class FeatureToken {
+        String value
+    }
+
+    @io.micronaut.context.annotation.Prototype
+    @io.micronaut.context.annotation.Requires(property = 'spec.name', value = 'RuntimeBeanFeatures')
+    static class FeatureTokenSerializer implements io.micronaut.serde.Serializer<FeatureToken> {
+        private final io.micronaut.serde.Serializer.EncoderContext constructorContext
+
+        FeatureTokenSerializer(@io.micronaut.context.annotation.Parameter io.micronaut.serde.Serializer.EncoderContext context,
+                               @io.micronaut.context.annotation.Parameter io.micronaut.core.type.Argument<?> type) {
+            this.constructorContext = context
+        }
+
+        @Override
+        void serialize(io.micronaut.serde.Encoder encoder, io.micronaut.serde.Serializer.EncoderContext context,
+                       io.micronaut.core.type.Argument<? extends FeatureToken> type, FeatureToken value) throws IOException {
+            boolean sorted = constructorContext.features.contains(io.micronaut.serde.config.SerializationConfiguration.Feature.WRITE_SORTED_MAP_ENTRIES)
+            encoder.encodeString(sorted ? 'sorted' : 'unsorted')
+        }
+    }
+
+    @io.micronaut.context.annotation.Prototype
+    @io.micronaut.context.annotation.Requires(property = 'spec.name', value = 'RuntimeBeanFeatures')
+    static class FeatureTokenDeserializer implements io.micronaut.serde.Deserializer<FeatureToken> {
+        private final io.micronaut.serde.Deserializer.DecoderContext constructorContext
+
+        FeatureTokenDeserializer(@io.micronaut.context.annotation.Parameter io.micronaut.serde.Deserializer.DecoderContext context,
+                                 @io.micronaut.context.annotation.Parameter io.micronaut.core.type.Argument<?> type) {
+            this.constructorContext = context
+        }
+
+        @Override
+        FeatureToken deserialize(io.micronaut.serde.Decoder decoder, io.micronaut.serde.Deserializer.DecoderContext context,
+                                 io.micronaut.core.type.Argument<? super FeatureToken> type) throws IOException {
+            boolean single = constructorContext.features.contains(io.micronaut.serde.config.DeserializationConfiguration.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
+            return new FeatureToken(value: decoder.decodeString() + (single ? ':single' : ':plain'))
+        }
+    }
+
     void "a property with a contextual serde is written with the context of each document by the runtime serializer"() {
         given:
         def context = ApplicationContext.run(RUNTIME)
