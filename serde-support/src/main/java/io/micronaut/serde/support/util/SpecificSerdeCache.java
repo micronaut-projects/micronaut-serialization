@@ -17,6 +17,7 @@ package io.micronaut.serde.support.util;
 
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
+import io.micronaut.core.type.GenericPlaceholder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.DeserializerLocator;
 import io.micronaut.serde.Serializer;
@@ -38,8 +39,8 @@ public final class SpecificSerdeCache {
 
     private static final int MAX_CACHED_SERDES = 256;
 
-    private final Map<Argument<?>, Serializer<?>> serializers = new ConcurrentHashMap<>();
-    private final Map<Argument<?>, Deserializer<?>> deserializers = new ConcurrentHashMap<>();
+    private final Map<Argument<?>, Cached<Serializer<?>>> serializers = new ConcurrentHashMap<>();
+    private final Map<Argument<?>, Cached<Deserializer<?>>> deserializers = new ConcurrentHashMap<>();
 
     /**
      * Finds the specific serializer of a type.
@@ -69,9 +70,13 @@ public final class SpecificSerdeCache {
     public <T> Serializer<T> findSerializer(SerializerLocator locator, Serializer.EncoderContext context, Argument<T> type) throws SerdeException {
         boolean cacheable = !type.isTypeVariable() && isCacheable(type);
         if (cacheable) {
-            Serializer<?> serializer = serializers.get(type);
-            if (serializer != null) {
-                return (Serializer<T>) serializer;
+            Cached<Serializer<?>> cached = serializers.get(type);
+            if (cached != null) {
+                if (cached.matches(type)) {
+                    return (Serializer<T>) cached.serde();
+                }
+                // an equal argument whose type parameters are placeholders in other places is not cached
+                cacheable = false;
             }
         }
         Serializer<? super T> found = locator.findSerializer(type);
@@ -80,7 +85,7 @@ public final class SpecificSerdeCache {
         cacheable = cacheable && (locator == context || context.findSerializer(type) == found);
         Serializer<T> serializer = (Serializer<T>) found.createSpecific(context, (Argument) type);
         if (cacheable && !DocumentContextTracker.isDocumentBound(context) && serializers.size() < MAX_CACHED_SERDES) {
-            serializers.putIfAbsent(type, serializer);
+            serializers.putIfAbsent(type, new Cached<>(type, serializer));
         }
         return serializer;
     }
@@ -113,9 +118,12 @@ public final class SpecificSerdeCache {
     public <T> Deserializer<? extends T> findDeserializer(DeserializerLocator locator, Deserializer.DecoderContext context, Argument<T> type) throws SerdeException {
         boolean cacheable = !type.isTypeVariable() && isCacheable(type);
         if (cacheable) {
-            Deserializer<?> deserializer = deserializers.get(type);
-            if (deserializer != null) {
-                return (Deserializer<? extends T>) deserializer;
+            Cached<Deserializer<?>> cached = deserializers.get(type);
+            if (cached != null) {
+                if (cached.matches(type)) {
+                    return (Deserializer<? extends T>) cached.serde();
+                }
+                cacheable = false;
             }
         }
         Deserializer<? extends T> found = locator.findDeserializer(type);
@@ -124,7 +132,7 @@ public final class SpecificSerdeCache {
         cacheable = cacheable && (locator == context || context.findDeserializer(type) == found);
         Deserializer<? extends T> deserializer = (Deserializer<? extends T>) found.createSpecific(context, (Argument) type);
         if (cacheable && !DocumentContextTracker.isDocumentBound(context) && deserializers.size() < MAX_CACHED_SERDES) {
-            deserializers.putIfAbsent(type, deserializer);
+            deserializers.putIfAbsent(type, new Cached<>(type, deserializer));
         }
         return deserializer;
     }
@@ -158,5 +166,42 @@ public final class SpecificSerdeCache {
             }
         }
         return true;
+    }
+
+    /**
+     * A cached serde with the argument it was created for.
+     *
+     * @param type  The argument
+     * @param serde The serde
+     * @param <S>   The serde type
+     */
+    private record Cached<S>(Argument<?> type, S serde) {
+
+        /**
+         * {@link Argument#equals(Object)} ignores whether a type parameter is a generic placeholder, but the element
+         * of a placeholder, such as the type variable of {@code Argument.of(List.class, Base.class)} or a wildcard,
+         * is written by its runtime type, and the element of {@code Argument.listOf(Base.class)} by its declared type.
+         *
+         * @param other An argument equal to the cached one
+         * @return Whether the cached serde serves it
+         */
+        boolean matches(Argument<?> other) {
+            return other == type || samePlaceholders(type, other);
+        }
+
+        private static boolean samePlaceholders(Argument<?> a, Argument<?> b) {
+            Argument<?>[] parametersA = a.getTypeParameters();
+            Argument<?>[] parametersB = b.getTypeParameters();
+            if (parametersA.length != parametersB.length) {
+                return false;
+            }
+            for (int i = 0; i < parametersA.length; i++) {
+                if (parametersA[i] instanceof GenericPlaceholder<?> != parametersB[i] instanceof GenericPlaceholder<?>
+                    || !samePlaceholders(parametersA[i], parametersB[i])) {
+                    return false;
+                }
+            }
+            return true;
+        }
     }
 }

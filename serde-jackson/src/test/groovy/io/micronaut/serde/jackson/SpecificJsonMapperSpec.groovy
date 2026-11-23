@@ -56,7 +56,7 @@ class SpecificJsonMapperSpec extends Specification {
             def valueSerializer = { ->
                 def field = Class.forName('io.micronaut.serde.support.serializers.AbstractMapObjectSerializer').getDeclaredField('valueSerializer')
                 field.accessible = true
-                field.get(mapper.@serdeCache.@serializers.get(type))
+                field.get(mapper.@serdeCache.@serializers.get(type).serde())
             }
             def inners = { serializer ->
                 def field = serializer.class.getDeclaredField('inners')
@@ -84,7 +84,7 @@ class SpecificJsonMapperSpec extends Specification {
             def valueSerializer = { ->
                 def field = Class.forName('io.micronaut.serde.support.serializers.AbstractMapObjectSerializer').getDeclaredField('valueSerializer')
                 field.accessible = true
-                field.get(mapper.@serdeCache.@serializers.get(type))
+                field.get(mapper.@serdeCache.@serializers.get(type).serde())
             }
             def inners = { serializer ->
                 def field = serializer.class.getDeclaredField('inners')
