@@ -48,6 +48,13 @@ class RawCollectionContextSerdeSpec extends Specification {
         'raw Map'     | true      | new RawMapHolder(values: [k: new Secret("d")])               | '{"values":{"k":"d"}}'
         'raw Map'     | false     | new RawMapHolder(values: [k: new Secret("d")])               | '{"values":{"k":"d"}}'
         'nested bean' | true      | new ObjectHolder(value: new SecretHolder(new Secret("e")))   | '{"value":{"secret":"e"}}'
+        'nested bean' | false     | new ObjectHolder(value: new SecretHolder(new Secret("e")))   | '{"value":{"secret":"e"}}'
+        'subtype'     | true      | new ShapeHolder(shape: new SecretShape(secret: new Secret("f"))) | '{"shape":{"type":"secret","secret":"f"}}'
+        'subtype'     | false     | new ShapeHolder(shape: new SecretShape(secret: new Secret("f"))) | '{"shape":{"type":"secret","secret":"f"}}'
+        'Object[]'    | true      | new ObjectArrayHolder(values: [new Secret("g"), "x"] as Object[]) | '{"values":["g","x"]}'
+        'Object[]'    | false     | new ObjectArrayHolder(values: [new Secret("g"), "x"] as Object[]) | '{"values":["g","x"]}'
+        'Optional<Object>' | true  | new OptionalHolder(value: Optional.of(new Secret("h")))     | '{"value":"h"}'
+        'Optional<Object>' | false | new OptionalHolder(value: Optional.of(new Secret("h")))     | '{"value":"h"}'
     }
 
     @Unroll
@@ -187,5 +194,39 @@ class RawCollectionContextSerdeSpec extends Specification {
     @Serdeable
     static class RawMapHolder {
         Map values
+    }
+
+    @Serdeable
+    static class ObjectArrayHolder {
+        Object[] values
+    }
+
+    @Serdeable
+    static class OptionalHolder {
+        Optional<Object> value
+    }
+
+    @Serdeable
+    static class ShapeHolder {
+        Shape shape
+    }
+
+    @Serdeable
+    @com.fasterxml.jackson.annotation.JsonTypeInfo(use = com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME, property = 'type')
+    @com.fasterxml.jackson.annotation.JsonSubTypes([
+        @com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = PlainShape, name = 'plain'),
+        @com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = SecretShape, name = 'secret')
+    ])
+    static abstract class Shape {
+    }
+
+    @Serdeable
+    static class PlainShape extends Shape {
+        String side
+    }
+
+    @Serdeable
+    static class SecretShape extends Shape {
+        Secret secret
     }
 }

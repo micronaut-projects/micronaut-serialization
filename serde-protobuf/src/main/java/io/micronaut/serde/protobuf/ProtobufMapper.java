@@ -60,8 +60,7 @@ public final class ProtobufMapper implements ObjectMapper {
 
     private final SerdeRegistry registry;
     private final @Nullable SerdeConfiguration serdeConfiguration;
-    private final Serializer.EncoderContext encoderContext;
-    private final Deserializer.DecoderContext decoderContext;
+    private final @Nullable Class<?> view;
 
     /**
      * Default constructor.
@@ -79,8 +78,7 @@ public final class ProtobufMapper implements ObjectMapper {
                            @Nullable Class<?> view) {
         this.registry = registry;
         this.serdeConfiguration = serdeConfiguration;
-        this.encoderContext = registry.newEncoderContext(view);
-        this.decoderContext = registry.newDecoderContext(view);
+        this.view = view;
     }
 
     @Override
@@ -128,10 +126,13 @@ public final class ProtobufMapper implements ObjectMapper {
 
     @Override
     public <T> @Nullable T readValue(byte[] byteArray, Argument<T> type) throws IOException {
-        ProtobufDecoder decoder = new ProtobufDecoder(byteArray, limits(), decoderContext);
-        return decoderContext.findDeserializer(type)
-            .createSpecific(decoderContext, type)
-            .deserialize(decoder, decoderContext, type);
+        // a context serves one document, and is closed at its end
+        try (Deserializer.DecoderContext decoderContext = registry.newDecoderContext(view)) {
+            ProtobufDecoder decoder = new ProtobufDecoder(byteArray, limits(), decoderContext);
+            return decoderContext.findDeserializer(type)
+                .createSpecific(decoderContext, type)
+                .deserialize(decoder, decoderContext, type);
+        }
     }
 
     @Override
@@ -156,9 +157,11 @@ public final class ProtobufMapper implements ObjectMapper {
 
     @Override
     public <T> @Nullable T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
-        return decoderContext.findDeserializer(type)
-            .createSpecific(decoderContext, type)
-            .deserialize(JsonNodeDecoder.create(tree, limits()), decoderContext, type);
+        try (Deserializer.DecoderContext decoderContext = registry.newDecoderContext(view)) {
+            return decoderContext.findDeserializer(type)
+                .createSpecific(decoderContext, type)
+                .deserialize(JsonNodeDecoder.create(tree, limits()), decoderContext, type);
+        }
     }
 
     @Override
@@ -175,8 +178,11 @@ public final class ProtobufMapper implements ObjectMapper {
     }
 
     private <T> void serialize(io.micronaut.serde.Encoder encoder, Argument<T> type, T value) throws IOException {
-        Serializer<? super T> serializer = encoderContext.findSerializer(type).createSpecific(encoderContext, type);
-        serializer.serialize(encoder, encoderContext, type, value);
+        // a context serves one document, and is closed at its end
+        try (Serializer.EncoderContext encoderContext = registry.newEncoderContext(view)) {
+            Serializer<? super T> serializer = encoderContext.findSerializer(type).createSpecific(encoderContext, type);
+            serializer.serialize(encoder, encoderContext, type, value);
+        }
     }
 
     private LimitingStream.RemainingLimits limits() {

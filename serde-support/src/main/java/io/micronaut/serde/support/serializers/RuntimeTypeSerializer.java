@@ -22,12 +22,12 @@ import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
-import io.micronaut.serde.util.DocumentSerdes;
+import io.micronaut.serde.support.util.ContextBoundSerdes;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The runtime type serializer.
@@ -35,6 +35,12 @@ import java.util.Map;
 @Internal
 final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
     private final EncoderContext encoderContext;
+    /**
+     * The serializers of the runtime types. A serializer whose creation bound it to the context of the document, such as
+     * one holding a serde bean that takes the context as a constructor argument, is specialized again for each
+     * document by {@link ContextBoundSerdes}, which keeps the specializations in the document context.
+     */
+    private final Map<Class<?>, Serializer<Object>> serializers = new ConcurrentHashMap<>(4);
     @Nullable
     private final Serializer<Object> outer;
     @Nullable
@@ -122,30 +128,16 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
         return ObjectSerializer.super.isAbsent(context, value);
     }
 
-    /**
-     * The serializers of the runtime types of one document. A serializer may be bound to the context it was created
-     * with (a serde bean taking the context as a constructor argument), and this serializer can outlive a document,
-     * as the property serializer of a bean, so the serializers are kept by the document context and released with
-     * it. A context that keeps no document serdes gets new serializers for each value.
-     */
-    @SuppressWarnings("unchecked")
-    private Map<Class<?>, Serializer<Object>> documentSerializers(EncoderContext context) {
-        if (DocumentSerdes.get(context, this) instanceof Map<?, ?> serializers) {
-            return (Map<Class<?>, Serializer<Object>>) serializers;
-        }
-        Map<Class<?>, Serializer<Object>> serializers = new HashMap<>(4);
-        DocumentSerdes.put(context, this, serializers);
-        return serializers;
-    }
-
     private Serializer<Object> getSerializer(EncoderContext context, Object value) throws SerdeException {
-        Map<Class<?>, Serializer<Object>> serializers = documentSerializers(context);
         Class<?> type = value.getClass();
         Serializer<Object> serializer = serializers.get(type);
         if (serializer == null) {
             // not computeIfAbsent: creating a serializer may look up the serializer of another runtime type
-            serializer = createSerializer(context, type);
-            serializers.put(type, serializer);
+            serializer = ContextBoundSerdes.specialize(c -> createSerializer(c, type), context);
+            Serializer<Object> existing = serializers.putIfAbsent(type, serializer);
+            if (existing != null) {
+                serializer = existing;
+            }
         }
         return serializer;
     }

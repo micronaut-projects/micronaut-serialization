@@ -72,19 +72,20 @@ class RuntimeTypeSerializerDocumentTest {
     }
 
     @Test
-    void runtimeTypeSerializersAreKeptByTheDocument() throws Exception {
+    void serializersOfRuntimeTypesWithoutContextualSerdesAreSharedByDocuments() throws Exception {
         Serializer.EncoderContext context = registry.newEncoderContext(null);
         RuntimeTypeSerializer serializer = new RuntimeTypeSerializer(context, null, null, Argument.OBJECT_ARGUMENT);
         assertFalse(serializer.isEmpty(context, "value"));
         assertFalse(serializer.isAbsent(context, "value"));
-        Map<?, ?> serializers = assertInstanceOf(Map.class, DocumentSerdes.get(context, serializer));
+        java.lang.reflect.Field field = RuntimeTypeSerializer.class.getDeclaredField("serializers");
+        field.setAccessible(true);
+        Map<?, ?> serializers = (Map<?, ?>) field.get(serializer);
         Object stringSerializer = serializers.get(String.class);
-        serializer.isEmpty(context, "other");
-        assertSame(stringSerializer, ((Map<?, ?>) DocumentSerdes.get(context, serializer)).get(String.class));
 
         Serializer.EncoderContext nextDocument = registry.newEncoderContext(null);
-        serializer.isEmpty(nextDocument, "value");
-        assertInstanceOf(Map.class, DocumentSerdes.get(nextDocument, serializer));
+        serializer.isEmpty(nextDocument, "other");
+        assertSame(stringSerializer, serializers.get(String.class));
+        assertNull(DocumentSerdes.get(nextDocument, serializer));
     }
 
     @Test
@@ -93,7 +94,6 @@ class RuntimeTypeSerializerDocumentTest {
         RuntimeTypeSerializer serializer = new RuntimeTypeSerializer(context, null, null, Argument.OBJECT_ARGUMENT);
         assertFalse(serializer.isEmpty(context, "value"));
         assertTrue(serializer.isEmpty(context, null));
-        assertNull(DocumentSerdes.get(context, serializer));
     }
 
     @Test
