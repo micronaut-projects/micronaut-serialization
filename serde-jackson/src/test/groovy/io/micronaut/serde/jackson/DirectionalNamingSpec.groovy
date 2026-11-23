@@ -43,15 +43,22 @@ class Person {
         bean.firstName == 'Jane'
         bean.lastName == 'Smith'
 
+        and: 'a property written and read with different names is handled by the runtime serdes'
+        def type = argumentOf(context, 'test.Person')
+        def registry = context.getBean(io.micronaut.serde.SerdeRegistry)
+        !registry.findSerializer(type).createSpecific(registry.newEncoderContext(Object), type).class.name.contains('SerdePerson')
+        !registry.findDeserializer(type).createSpecific(registry.newDecoderContext(Object), type).class.name.contains('SerdePerson')
+
         cleanup:
         context.close()
 
         where:
         // shared naming with generated serdes reads first_name instead, on 3.3.x too: a separate issue
-        naming                                                                          | generated
-        '@Serdeable(naming = SnakeCaseStrategy.class)'                                  | false
-        '@Serdeable.Serializable @Serdeable.Deserializable(naming = SnakeCaseStrategy.class)' | true
-        '@Serdeable.Serializable @Serdeable.Deserializable(naming = SnakeCaseStrategy.class)' | false
+        naming                                                                                                  | generated
+        '@Serdeable(naming = SnakeCaseStrategy.class)'                                                          | false
+        '@Serdeable.Serializable @Serdeable.Deserializable(naming = SnakeCaseStrategy.class)'                   | false
+        '@Serdeable.Serializable(naming = SnakeCaseStrategy.class) @Serdeable.Deserializable(naming = SnakeCaseStrategy.class)' | true
+        '@Serdeable.Serializable(naming = SnakeCaseStrategy.class) @Serdeable.Deserializable(naming = SnakeCaseStrategy.class)' | false
     }
 
     void "a setter of a property bound through a named creator parameter does not read another key"() {
@@ -62,9 +69,10 @@ package test;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.IdentityStrategy;
 import io.micronaut.serde.config.naming.SnakeCaseStrategy;
 
-@Serdeable.Serializable
+@Serdeable.Serializable(naming = IdentityStrategy.class)
 @Serdeable.Deserializable(naming = SnakeCaseStrategy.class)
 class Person {
     private String firstName;
@@ -98,6 +106,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.micronaut.serde.annotation.SerdeImport;
 import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.IdentityStrategy;
 import io.micronaut.serde.config.naming.SnakeCaseStrategy;
 
 @Serdeable
@@ -112,7 +121,7 @@ class Holder {
 
     public String getFirstName() { return firstName; }
 
-    @Serdeable.Serializable
+    @Serdeable.Serializable(naming = IdentityStrategy.class)
     @Serdeable.Deserializable(naming = SnakeCaseStrategy.class)
     public static class Target {
         private String firstName;
@@ -132,7 +141,7 @@ class Holder {
         context.close()
     }
 
-    void "test serializeNaming only - serialized output uses snake_case, deserialization uses identity"() {
+    void "naming on @Serdeable.Serializable alone names both directions, as before directional naming"() {
         given:
         def context = buildContext('test.UserDto', '''
 package test;
@@ -159,17 +168,51 @@ class UserDto {
         result == '{"first_name":"John","last_name":"Doe"}'
 
         when:
-        def bean = jsonMapper.readValue('{"firstName":"Jane","lastName":"Smith"}', typeUnderTest)
+        def bean = jsonMapper.readValue('{"first_name":"Jane","last_name":"Smith"}', typeUnderTest)
 
         then:
         bean.firstName == 'Jane'
         bean.lastName == 'Smith'
 
+        when: 'the Java names are not the names of the properties'
+        def javaNamed = jsonMapper.readValue('{"firstName":"Jane","lastName":"Smith"}', typeUnderTest)
+
+        then:
+        javaNamed.firstName == null
+        javaNamed.lastName == null
+
         cleanup:
         context.close()
     }
 
-    void "test deserializeNaming only - deserialization accepts snake_case, serialization uses identity"() {
+    void "an explicit identity naming on the other annotation makes a single naming directional"() {
+        given:
+        def context = buildContext('test.UserDto', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.IdentityStrategy;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+
+@Serdeable.Serializable(naming = SnakeCaseStrategy.class)
+@Serdeable.Deserializable(naming = IdentityStrategy.class)
+class UserDto {
+    private String firstName;
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+}
+''', [firstName: 'John'])
+
+        expect:
+        writeJson(jsonMapper, beanUnderTest) == '{"first_name":"John"}'
+        jsonMapper.readValue('{"firstName":"Jane"}', typeUnderTest).firstName == 'Jane'
+        jsonMapper.readValue('{"first_name":"Jane"}', typeUnderTest).firstName == null
+
+        cleanup:
+        context.close()
+    }
+
+    void "naming on @Serdeable.Deserializable alone names both directions, as before directional naming"() {
         given:
         def context = buildContext('test.UserDto', '''
 package test;
@@ -193,7 +236,7 @@ class UserDto {
         def result = writeJson(jsonMapper, beanUnderTest)
 
         then:
-        result == '{"firstName":"John","lastName":"Doe"}'
+        result == '{"first_name":"John","last_name":"Doe"}'
 
         when:
         def bean = jsonMapper.readValue('{"first_name":"Jane","last_name":"Smith"}', typeUnderTest)
@@ -201,6 +244,12 @@ class UserDto {
         then:
         bean.firstName == 'Jane'
         bean.lastName == 'Smith'
+
+        when: 'the Java names are not the names of the properties'
+        def javaNamed = jsonMapper.readValue('{"firstName":"Jane","lastName":"Smith"}', typeUnderTest)
+
+        then:
+        javaNamed.firstName == null
 
         cleanup:
         context.close()
@@ -748,17 +797,20 @@ class UserDto {
         then:
         result == '{"first_name":"John"}'
 
-        when: "deserialization SHOULD use the Deserializable strategy (UpperCamel)"
+        when: "deserialization uses the Deserializable strategy (UpperCamel)"
         def bean = jsonMapper.readValue('{"FirstName":"Jane"}', typeUnderTest)
 
         then:
         bean.firstName == 'Jane'
 
+        and: 'the serialized name is not read'
+        jsonMapper.readValue('{"first_name":"Jane"}', typeUnderTest).firstName == null
+
         cleanup:
         context.close()
     }
 
-    void "Per-property Deserializable-only naming must NOT affect serialization"() {
+    void "per-property naming on @Serdeable.Deserializable alone names both directions"() {
         given:
         def context = buildContext('test.UserDto', '''
 package test;
@@ -776,23 +828,26 @@ class UserDto {
 }
 ''', [firstName: 'John'])
 
-        when: "serialization ignores the Deserializable-only strategy"
+        when:
         def result = writeJson(jsonMapper, beanUnderTest)
 
         then:
-        result == '{"firstName":"John"}'
+        result == '{"FirstName":"John"}'
 
-        when: "deserialization SHOULD use the Deserializable strategy (UpperCamel)"
+        when:
         def bean = jsonMapper.readValue('{"FirstName":"Jane"}', typeUnderTest)
 
-        then: "today this fails: deser only listens to 'first_name'"
+        then:
         bean.firstName == 'Jane'
+
+        and: 'the Java name is not the name of the property'
+        jsonMapper.readValue('{"firstName":"Jane"}', typeUnderTest).firstName == null
 
         cleanup:
         context.close()
     }
 
-    void "Per-property Serializable-only naming must NOT affect deserialization"() {
+    void "per-property naming on @Serdeable.Serializable alone names both directions, like a type"() {
         given:
         def context = buildContext('test.UserDto', '''
 package test;
@@ -810,17 +865,20 @@ class UserDto {
 }
 ''', [firstName: 'John'])
 
-        when: "serialization uses the Serializable strategy"
+        when:
         def result = writeJson(jsonMapper, beanUnderTest)
 
         then:
         result == '{"first_name":"John"}'
 
-        when: "deserialization ignores the Serializable-only strategy"
-        def bean = jsonMapper.readValue('{"firstName":"Jane"}', typeUnderTest)
+        when:
+        def bean = jsonMapper.readValue('{"first_name":"Jane"}', typeUnderTest)
 
         then:
         bean.firstName == 'Jane'
+
+        and: 'the Java name is not the name of the property'
+        jsonMapper.readValue('{"firstName":"Jane"}', typeUnderTest).firstName == null
 
         cleanup:
         context.close()
@@ -834,9 +892,10 @@ package test;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.IdentityStrategy;
 import io.micronaut.serde.config.naming.SnakeCaseStrategy;
 
-@Serdeable.Serializable
+@Serdeable.Serializable(naming = IdentityStrategy.class)
 @Serdeable.Deserializable(naming = SnakeCaseStrategy.class)
 class Person {
     private final int id;

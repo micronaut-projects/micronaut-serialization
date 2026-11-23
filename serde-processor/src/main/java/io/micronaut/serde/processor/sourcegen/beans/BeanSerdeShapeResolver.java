@@ -97,17 +97,16 @@ public final class BeanSerdeShapeResolver {
                                     List<BeanSerdeShape.BeanProperty> deserializationProperties,
                                     List<String> ignoredDeserializationNames) {
         PropertyAccess propertyAccess = resolvePropertyAccess(element, property);
-        String serializedName = serializedName(property);
-        String deserializedName = deserializedName(property);
+        String name = stringValue(property, SerdeConfig.PROPERTY).orElse(property.getName());
         boolean serialized = propertyAccess.readable() && isSerialized(property);
         boolean deserialized = propertyAccess.writable() && isDeserialized(property);
         if (propertyAccess.writable() && !deserialized) {
-            ignoredDeserializationNames.add(deserializedName);
+            ignoredDeserializationNames.add(name);
         }
         if (!serialized && !deserialized) {
             return true;
         }
-        BeanSerdeShape.BeanProperty beanProperty = resolveProperty(element, serializedName, property, propertyAccess).orElse(null);
+        BeanSerdeShape.BeanProperty beanProperty = resolveProperty(element, name, property, propertyAccess).orElse(null);
         if (beanProperty == null) {
             return false;
         }
@@ -115,37 +114,9 @@ public final class BeanSerdeShapeResolver {
             serializationProperties.add(new NamedProperty(property.getName(), beanProperty));
         }
         if (deserialized) {
-            deserializationProperties.add(serializedName.equals(deserializedName)
-                ? beanProperty
-                : resolveProperty(element, deserializedName, property, propertyAccess).orElseThrow());
+            deserializationProperties.add(beanProperty);
         }
         return true;
-    }
-
-    /**
-     * The name the property is written with: a directional naming strategy resolved at build time wins
-     * over the name shared by both directions.
-     *
-     * @param property The property
-     * @return The serialized name
-     */
-    public static String serializedName(PropertyElement property) {
-        return stringValue(property, SerdeConfig.SERIALIZE_PROPERTY_NAME)
-            .or(() -> stringValue(property, SerdeConfig.PROPERTY))
-            .orElse(property.getName());
-    }
-
-    /**
-     * The name the property is read from: a directional naming strategy resolved at build time wins
-     * over the name shared by both directions.
-     *
-     * @param property The property
-     * @return The deserialized name
-     */
-    public static String deserializedName(PropertyElement property) {
-        return stringValue(property, SerdeConfig.DESERIALIZE_PROPERTY_NAME)
-            .or(() -> stringValue(property, SerdeConfig.PROPERTY))
-            .orElse(property.getName());
     }
 
     /**

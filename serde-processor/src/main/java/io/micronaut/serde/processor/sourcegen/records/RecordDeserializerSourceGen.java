@@ -260,7 +260,7 @@ public final class RecordDeserializerSourceGen {
             ClassElement lookupType = resolveLookupType(component.type());
             fields.add(FieldDef.builder(keyFieldName, STRING_TYPE)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                .initializer(ExpressionDef.constant(component.deserializedName()))
+                .initializer(ExpressionDef.constant(component.serializedName()))
                 .build());
             fields.add(FieldDef.builder(argumentFieldName, ARGUMENT_TYPE)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
@@ -823,7 +823,7 @@ public final class RecordDeserializerSourceGen {
             RecordSerdeShape.RecordComponent component = components.get(i);
             StatementDef.DefineAndAssign dispatchResultDef = dispatchResult(HANDLED_DISPATCH_RESULT).newLocal("dispatchResult");
             VariableDef.Local dispatchResultVariable = dispatchResultDef.variable();
-            switchCases.put(ExpressionDef.constant(component.deserializedName()),
+            switchCases.put(ExpressionDef.constant(component.serializedName()),
                 new ExpressionDef.SwitchYieldCase(
                     DISPATCH_RESULT_TYPE,
                     StatementDef.multi(

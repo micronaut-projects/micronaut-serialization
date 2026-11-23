@@ -354,6 +354,10 @@ public final class SimpleSerdeShapeAnalyzer {
         if (analysis.open() && hasDuplicateSerializedNames(element) && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE)) {
             return true;
         }
+        // A property written and read with different names is handled by the runtime serdes
+        if (analysis.open() && hasDirectionalNames(element) && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE)) {
+            return true;
+        }
         if (analysis.open()
             && hasUnsupportedPropertySerdeConfig(element, analysis.propertyExclusionSupported(), analysis.shapeKind == ShapeKind.CONSTRUCTOR_BEAN)
             && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE)) {
@@ -697,7 +701,17 @@ public final class SimpleSerdeShapeAnalyzer {
         return false;
     }
 
-    private boolean hasDuplicateSerializedNames(ClassElement element) {
+    private boolean hasDirectionalNames(ClassElement element) {
+        for (PropertyElement property : beanProperties(element)) {
+            if (property.stringValue(SerdeConfig.class, SerdeConfig.SERIALIZE_PROPERTY_NAME).isPresent()
+                || property.stringValue(SerdeConfig.class, SerdeConfig.DESERIALIZE_PROPERTY_NAME).isPresent()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+        private boolean hasDuplicateSerializedNames(ClassElement element) {
         Set<String> serializedNames = new HashSet<>();
         for (PropertyElement property : beanProperties(element)) {
             String serializedName = property.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(property.getName());

@@ -25,6 +25,8 @@ The following executable example verifies both directions:
 
 snippet::example.DirectionalNamingTest[project-base="doc-examples/example"]
 
-Directional naming can be declared on a type or on an individual property. If only one direction declares a naming strategy, the other direction keeps its own configured naming behavior. Explicit property names take precedence over naming strategies.
+Directional naming can be declared on a type or on an individual property, with the same rules at both levels. Explicit property names take precedence over naming strategies.
 
-Use `@Serdeable(naming = ...)` when the same naming strategy should apply in both directions. Directional naming is supported by both source-generated serdes and the runtime introspection fallback.
+IMPORTANT: For backward compatibility, a naming strategy declared on only one of `@Serdeable.Serializable` and `@Serdeable.Deserializable` still applies to both directions, as it did before directional naming was introduced. Naming is directional when both annotations declare a strategy, or when one of them overrides a shared naming strategy such as `@Serdeable(naming = ...)` or `@JsonNaming`. To change the names in one direction only, declare `IdentityStrategy` on the other annotation, for example `@Serdeable.Serializable(naming = SnakeCaseStrategy.class) @Serdeable.Deserializable(naming = IdentityStrategy.class)`.
+
+Use `@Serdeable(naming = ...)` when the same naming strategy should apply in both directions. A type whose properties are written and read with different names is handled by the runtime serializers and deserializers rather than the source-generated ones.
