@@ -41,25 +41,6 @@ list.
   -Pjmh.profilers=gc
 ```
 
-### Value shapes (`ValueShapeBenchmark`)
-
-Shapes the user bean benchmarks do not cover, with the default configuration:
-`java.time` values, epoch timestamps, polymorphic reads and writes, `Long` map
-keys, and lists written with and without a declared type. The beans use
-generated serdes, except the polymorphic ones, which the shape analyzer leaves
-to the runtime serdes. Not part of the default JMH includes list.
-
-```bash
-./gradlew :micronaut-benchmarks:jmh \
-  -Pjmh.includes='.*ValueShapeBenchmark.*' \
-  -Pjmh.forks=3 \
-  -Pjmh.warmupIterations=3 \
-  -Pjmh.iterations=5 \
-  -Pjmh.warmup=1s \
-  -Pjmh.timeOnIteration=1s \
-  -Pjmh.profilers=gc
-```
-
 ### Format comparison: JSON vs BSON vs CBOR (`FormatComparisonBenchmark`)
 
 Same `Users` payload (java-json-benchmark style) across Micronaut Serde format
