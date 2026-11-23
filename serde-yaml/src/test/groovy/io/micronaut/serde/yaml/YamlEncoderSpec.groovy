@@ -71,6 +71,70 @@ class YamlEncoderSpec extends Specification {
         out.toString("UTF-8") == "nested:\n  list:\n  - a\n  after: 1\ntype: x\n"
     }
 
+    def "a child encoder writes every value type and finishes its structure only once"() {
+        given:
+        def out = new ByteArrayOutputStream()
+        def encoder = new YamlEncoder(out, LimitingStream.DEFAULT_LIMITS)
+
+        when:
+        def root = encoder.encodeObject(Argument.OBJECT_ARGUMENT)
+        root.encodeKey("byte")
+        root.encodeByte((byte) 1)
+        root.encodeKey("short")
+        root.encodeShort((short) 2)
+        root.encodeKey("char")
+        root.encodeChar('c' as char)
+        root.encodeKey("int")
+        root.encodeInt(3)
+        root.encodeKey("long")
+        root.encodeLong(4L)
+        root.encodeKey("float")
+        root.encodeFloat(1.5f)
+        root.encodeKey("double")
+        root.encodeDouble(2.5d)
+        root.encodeKey("bigInteger")
+        root.encodeBigInteger(BigInteger.valueOf(5))
+        root.encodeKey("bigDecimal")
+        root.encodeBigDecimal(new BigDecimal("6.5"))
+        root.encodeKey("boolean")
+        root.encodeBoolean(true)
+        root.encodeKey("null")
+        root.encodeNull()
+        root.encodeKey("binary")
+        root.encodeBinary([7, 8] as byte[])
+        def path = root.currentPath()
+        root.finishStructure()
+        encoder.close()
+        Map<String, Object> read = mapper.readValue(out.toString("UTF-8"), Argument.mapOf(String, Object))
+
+        then:
+        path != null
+        read['byte'] == 1
+        read['short'] == 2
+        read['char'] == 'c'
+        read['int'] == 3
+        read['long'] == 4
+        read['float'] == 1.5d
+        read['double'] == 2.5d
+        read['bigInteger'] == 5
+        read['bigDecimal'] == 6.5d
+        read['boolean'] == true
+        read.containsKey("null") && read['null'] == null
+        read['binary'] != null
+
+        when: 'the structure is finished again'
+        root.finishStructure()
+
+        then:
+        thrown(IllegalStateException)
+
+        when: 'closing it after finishing does nothing'
+        root.close()
+
+        then:
+        noExceptionThrown()
+    }
+
     def "closing the root encoder completes structures a serializer left open"() {
         given:
         def out = new ByteArrayOutputStream()
