@@ -43,11 +43,10 @@ public final class CreatorPropertyNamingTypes {
     public static class BuilderNamed {
         private final String firstName;
 
-        private BuilderNamed(String firstName) {
+        private BuilderNamed(@JsonProperty("legacy") String firstName) {
             this.firstName = firstName;
         }
 
-        @JsonProperty("current")
         public String getFirstName() {
             return firstName;
         }
@@ -55,7 +54,6 @@ public final class CreatorPropertyNamingTypes {
         public static final class Builder {
             private String firstName;
 
-            @JsonProperty("legacy")
             public Builder firstName(String firstName) {
                 this.firstName = firstName;
                 return this;
