@@ -285,19 +285,31 @@ final class SimpleObjectSerializer<T> implements ObjectSerializer<T> {
             }
         }
         encoder.encodeKey(keys, index);
+        serializePropertyValue(encoder, context, index, v, serializer, valueKind);
+    }
+
+    private void serializePropertyValue(KeysAwareEncoder encoder,
+                                        EncoderContext context,
+                                        int index,
+                                        @Nullable Object v,
+                                        @Nullable Serializer<Object> resolvedSerializer,
+                                        byte resolvedValueKind) throws IOException {
         if (v == null) {
             encoder.encodeNull();
-        } else {
-            if (serializer == null) {
-                serializer = Objects.requireNonNull(property.serializer);
-                valueKind = directValueKind(property, serializer);
-            }
-            if (valueKind != DecoderValueKind.NONE_CODE) {
-                serializeDirectValue(encoder, v, valueKind);
-                return;
-            }
-            serializer.serialize(encoder, context, arguments[index], v);
+            return;
         }
+        Serializer<Object> serializer = resolvedSerializer;
+        byte valueKind = resolvedValueKind;
+        if (serializer == null) {
+            SerBean.SerProperty<T, Object> property = writeProperties[index];
+            serializer = Objects.requireNonNull(property.serializer);
+            valueKind = directValueKind(property, serializer);
+        }
+        if (valueKind != DecoderValueKind.NONE_CODE) {
+            serializeDirectValue(encoder, v, valueKind);
+            return;
+        }
+        serializer.serialize(encoder, context, arguments[index], v);
     }
 
     @SuppressWarnings("NullAway")

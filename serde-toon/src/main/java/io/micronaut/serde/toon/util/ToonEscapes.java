@@ -150,25 +150,39 @@ public final class ToonEscapes {
         if (i == integerStart || !lenient && i - integerStart > 1 && value.charAt(integerStart) == '0') {
             return false;
         }
-        if (i < length && value.charAt(i) == '.') {
-            int fractionStart = ++i;
-            i = skipDigits(value, i);
-            if (i == fractionStart) {
-                return false;
-            }
+        i = skipFraction(value, i);
+        if (i < 0) {
+            return false;
         }
-        if (i < length && (value.charAt(i) == 'e' || value.charAt(i) == 'E')) {
-            i++;
-            if (i < length && (value.charAt(i) == '+' || value.charAt(i) == '-')) {
-                i++;
-            }
-            int exponentStart = i;
-            i = skipDigits(value, i);
-            if (i == exponentStart) {
-                return false;
-            }
-        }
+        i = skipExponent(value, i);
         return i == length;
+    }
+
+    /**
+     * @return The index after an optional fraction, or -1 if it has no digits
+     */
+    private static int skipFraction(String value, int index) {
+        if (index >= value.length() || value.charAt(index) != '.') {
+            return index;
+        }
+        int end = skipDigits(value, index + 1);
+        return end == index + 1 ? -1 : end;
+    }
+
+    /**
+     * @return The index after an optional exponent, or -1 if it has no digits
+     */
+    private static int skipExponent(String value, int index) {
+        int length = value.length();
+        if (index >= length || value.charAt(index) != 'e' && value.charAt(index) != 'E') {
+            return index;
+        }
+        int i = index + 1;
+        if (i < length && (value.charAt(i) == '+' || value.charAt(i) == '-')) {
+            i++;
+        }
+        int end = skipDigits(value, i);
+        return end == i ? -1 : end;
     }
 
     private static int skipDigits(String value, int index) {

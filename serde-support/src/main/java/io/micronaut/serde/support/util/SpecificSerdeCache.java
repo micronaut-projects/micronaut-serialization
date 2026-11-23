@@ -173,6 +173,8 @@ public final class SpecificSerdeCache {
     private static final class TypeTable<V> {
         private static final int CAPACITY = MAX_CACHED_SERDES * 2;
 
+        // copied on write: a published array is never modified, so a volatile reference to it is enough
+        @SuppressWarnings("java:S3077")
         private volatile Entry<V>[] table = newTable();
         private volatile int size;
 
