@@ -40,10 +40,11 @@ import java.io.IOException;
 public final class ContextBoundSerdes {
 
     /**
-     * Per thread while a specialization is tracked: the number of serde beans created with a context, and the depth
-     * of the nested specializations. It is removed once the outermost specialization ends.
+     * Per thread: the number of serde beans created with a context while a specialization is tracked, and the depth
+     * of the nested specializations. A serializer of runtime types specializes once per runtime type and document, so
+     * the pair is kept for the thread instead of being set and removed each time; it holds no application class.
      */
-    private static final ThreadLocal<int[]> TRACKING = new ThreadLocal<>();
+    private static final ThreadLocal<int[]> TRACKING = ThreadLocal.withInitial(() -> new int[2]);
     private static final int CREATED = 0;
     private static final int DEPTH = 1;
 
@@ -55,7 +56,7 @@ public final class ContextBoundSerdes {
      */
     public static void created() {
         int[] tracking = TRACKING.get();
-        if (tracking != null) {
+        if (tracking[DEPTH] > 0) {
             tracking[CREATED]++;
         }
     }
@@ -71,12 +72,14 @@ public final class ContextBoundSerdes {
      * @throws SerdeException If it cannot be created
      */
     public static <T> Serializer<T> specialize(SerializerFactory<T> factory, Serializer.EncoderContext context) throws SerdeException {
-        int created = enter();
+        int[] tracking = TRACKING.get();
+        int created = tracking[CREATED];
+        tracking[DEPTH]++;
         try {
             Serializer<T> specific = factory.create(context);
-            return wrapsPerDocument(created, context) ? perDocument(factory, context, specific) : specific;
+            return wrapsPerDocument(tracking, created, context) ? perDocument(factory, context, specific) : specific;
         } finally {
-            exit();
+            tracking[DEPTH]--;
         }
     }
 
@@ -91,23 +94,15 @@ public final class ContextBoundSerdes {
      * @throws SerdeException If it cannot be created
      */
     public static <T> Deserializer<T> specialize(DeserializerFactory<T> factory, Deserializer.DecoderContext context) throws SerdeException {
-        int created = enter();
+        int[] tracking = TRACKING.get();
+        int created = tracking[CREATED];
+        tracking[DEPTH]++;
         try {
             Deserializer<T> specific = factory.create(context);
-            return wrapsPerDocument(created, context) ? perDocument(factory, context, specific) : specific;
+            return wrapsPerDocument(tracking, created, context) ? perDocument(factory, context, specific) : specific;
         } finally {
-            exit();
+            tracking[DEPTH]--;
         }
-    }
-
-    private static int enter() {
-        int[] tracking = TRACKING.get();
-        if (tracking == null) {
-            tracking = new int[2];
-            TRACKING.set(tracking);
-        }
-        tracking[DEPTH]++;
-        return tracking[CREATED];
     }
 
     /**
@@ -116,20 +111,12 @@ public final class ContextBoundSerdes {
      * The per-document serde isolates the context, so the serde beans it created no longer count for the enclosing
      * specializations, which keep their shared serde.
      */
-    private static boolean wrapsPerDocument(int created, Object context) {
-        int[] tracking = TRACKING.get();
-        if (tracking == null || tracking[CREATED] == created || !DocumentSerdes.keeps(context)) {
+    private static boolean wrapsPerDocument(int[] tracking, int created, Object context) {
+        if (tracking[CREATED] == created || !DocumentSerdes.keeps(context)) {
             return false;
         }
         tracking[CREATED] = created;
         return true;
-    }
-
-    private static void exit() {
-        int[] tracking = TRACKING.get();
-        if (tracking != null && --tracking[DEPTH] == 0) {
-            TRACKING.remove();
-        }
     }
 
     private static <T> Serializer<T> perDocument(SerializerFactory<T> factory, Serializer.EncoderContext context, Serializer<T> first) {
