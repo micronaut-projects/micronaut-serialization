@@ -85,8 +85,8 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
             // dynamic type resolving
             Serializer<Object> outer = !isObjectType ? createSpecificInternal(encoderContext, type) : null;
             return outer == null
-                ? new RuntimeTypeSerializer(null, null, type)
-                : new RuntimeTypeSerializer(outer, type);
+                ? new RuntimeTypeSerializer(encoderContext, null, null, type)
+                : new RuntimeTypeSerializer(encoderContext, outer, type);
         } else {
             return createSpecificInternal(encoderContext, type);
         }
@@ -100,7 +100,7 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
             serBean = (SerBean<Object>) getSerializableBean(type, encoderContext);
         } catch (IntrospectionException e) {
             // no introspection, create dynamic serialization case
-            return new RuntimeTypeSerializer(e, type);
+            return new RuntimeTypeSerializer(encoderContext, e, type);
         }
 
         io.micronaut.serde.Serializer<Object> serializer;
@@ -121,7 +121,7 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
         }
         boolean subtyped = !jsonKeySerialization && serBean.subtyped;
         if (subtyped) {
-            serializer = new RuntimeTypeSerializer(serializer, type);
+            serializer = new RuntimeTypeSerializer(encoderContext, serializer, type);
         } else if (!jsonKeySerialization) {
             if (serBean.dynamicWrapperProperty != null) {
                 serializer = new DynamicWrappedObjectSerializer<>(serializer, serBean.dynamicWrapperProperty);

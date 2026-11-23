@@ -27,7 +27,6 @@ import io.micronaut.serde.reference.AbstractPropertyReferenceManager;
 import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.reference.SerializationReference;
 import io.micronaut.serde.support.reference.DocumentIdSerializationReference;
-import io.micronaut.serde.util.DocumentContextTracker;
 import org.jspecify.annotations.Nullable;
 
 import java.util.IdentityHashMap;
@@ -39,9 +38,8 @@ import java.util.Optional;
  * @since 1.0.0
  */
 @Internal
-class DefaultEncoderContext extends AbstractPropertyReferenceManager implements Serializer.EncoderContext, DocumentContextTracker {
+class DefaultEncoderContext extends AbstractPropertyReferenceManager implements Serializer.EncoderContext {
     private final DefaultSerdeRegistry registry;
-    private int documentBindings;
     // Beans written in full in the current document, allocated only when a document uses object identity
     @Nullable
     private IdentityHashMap<Object, Object> writtenBeans;
@@ -58,12 +56,12 @@ class DefaultEncoderContext extends AbstractPropertyReferenceManager implements 
     @Override
     public final <T, D extends Serializer<? extends T>> D findCustomSerializer(Class<? extends D> serializerClass)
             throws SerdeException {
-        return DefaultSerdeRegistry.trackUserSerde(this, registry.findCustomSerializer(serializerClass));
+        return registry.findCustomSerializer(serializerClass);
     }
 
     @Override
     public final <T> Serializer<? super T> findSerializer(Argument<? extends T> forType) throws SerdeException {
-        return DefaultSerdeRegistry.trackUserSerde(this, registry.findSerializer(forType));
+        return registry.findSerializer(forType);
     }
 
     @Override
@@ -109,16 +107,6 @@ class DefaultEncoderContext extends AbstractPropertyReferenceManager implements 
     @Override
     public void close() {
         writtenBeans = null;
-    }
-
-    @Override
-    public void markDocumentBound() {
-        documentBindings++;
-    }
-
-    @Override
-    public int documentBindings() {
-        return documentBindings;
     }
 
     @Override

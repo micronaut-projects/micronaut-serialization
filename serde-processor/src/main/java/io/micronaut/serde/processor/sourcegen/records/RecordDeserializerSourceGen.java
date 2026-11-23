@@ -34,7 +34,6 @@ import io.micronaut.serde.processor.sourcegen.SerdeSourceGenSwitches;
 import io.micronaut.serde.util.GeneratedSerdeExceptionUtil;
 import io.micronaut.serde.util.GeneratedSerdeFallbackUtil;
 import io.micronaut.serde.util.GeneratedSerdeLazyUtil;
-import io.micronaut.serde.util.GeneratedSerde;
 import io.micronaut.sourcegen.model.AnnotationDef;
 import io.micronaut.sourcegen.model.ClassDef;
 import io.micronaut.sourcegen.model.ClassTypeDef;
@@ -333,7 +332,6 @@ public final class RecordDeserializerSourceGen {
                 .addMember(GENERATED_VALUE_MEMBER, NULLAWAY_WARNING)
                 .build())
             .addSuperinterface(TypeDef.parameterized(Deserializer.class, recordTypeDef))
-            .addSuperinterface(TypeDef.of(GeneratedSerde.class))
             .addFields(fields)
             .addMethod(generateCreateSpecificMethod(recordTypeDef))
             .addMethod(generateDeserializeMethod(element, recordTypeDef, deserializerClassTypeDef, recordSerdeShape, keyFieldNames, argumentFieldNames, deserializerFieldNames, new AliasKeys(aliasKeyFieldNames, aliasTargets)));

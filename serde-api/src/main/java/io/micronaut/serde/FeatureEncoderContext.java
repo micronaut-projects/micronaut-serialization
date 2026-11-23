@@ -16,7 +16,6 @@
 package io.micronaut.serde;
 
 import io.micronaut.core.annotation.Internal;
-import io.micronaut.serde.util.DocumentContextTracker;
 import io.micronaut.core.convert.ConversionService;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.config.SerdeConfiguration;
@@ -37,7 +36,7 @@ import java.util.Set;
  * @since 3.0
  */
 @Internal
-final class FeatureEncoderContext implements Serializer.EncoderContext, DocumentContextTracker {
+final class FeatureEncoderContext implements Serializer.EncoderContext {
     private final Serializer.EncoderContext delegate;
     private final Set<SerializationConfiguration.Feature> features;
 
@@ -105,15 +104,5 @@ final class FeatureEncoderContext implements Serializer.EncoderContext, Document
     @Override
     public void popManagedRef() {
         delegate.popManagedRef();
-    }
-
-    @Override
-    public void markDocumentBound() {
-        DocumentContextTracker.markDocumentBound(delegate);
-    }
-
-    @Override
-    public int documentBindings() {
-        return DocumentContextTracker.documentBindings(delegate);
     }
 }

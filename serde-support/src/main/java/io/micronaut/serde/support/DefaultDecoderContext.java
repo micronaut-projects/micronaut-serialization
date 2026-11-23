@@ -28,7 +28,6 @@ import io.micronaut.serde.reference.AbstractPropertyReferenceManager;
 import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.support.reference.DocumentIdReference;
 import io.micronaut.serde.support.reference.PendingDocumentIdReference;
-import io.micronaut.serde.util.DocumentContextTracker;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -46,9 +45,8 @@ import java.util.Optional;
  * @since 1.0.0
  */
 @Internal
-class DefaultDecoderContext extends AbstractPropertyReferenceManager implements Deserializer.DecoderContext, DocumentContextTracker {
+class DefaultDecoderContext extends AbstractPropertyReferenceManager implements Deserializer.DecoderContext {
     private final DefaultSerdeRegistry registry;
-    private int documentBindings;
     // Document-scoped identifier state, allocated only when a document uses identifiers and released on close
     @Nullable
     private Map<String, Object> documentIds;
@@ -67,12 +65,12 @@ class DefaultDecoderContext extends AbstractPropertyReferenceManager implements 
     @Override
     public final <T, D extends Deserializer<? extends T>> D findCustomDeserializer(Class<? extends D> deserializerClass)
             throws SerdeException {
-        return DefaultSerdeRegistry.trackUserSerde(this, registry.findCustomDeserializer(deserializerClass));
+        return registry.findCustomDeserializer(deserializerClass);
     }
 
     @Override
     public final <T> Deserializer<? extends T> findDeserializer(Argument<? extends T> type) throws SerdeException {
-        return DefaultSerdeRegistry.trackUserSerde(this, registry.findDeserializer(type));
+        return registry.findDeserializer(type);
     }
 
     @Override
@@ -177,15 +175,5 @@ class DefaultDecoderContext extends AbstractPropertyReferenceManager implements 
     @Override
     public Optional<DeserializationConfiguration> getDeserializationConfiguration() {
         return Optional.of(registry.getDeserializationConfiguration());
-    }
-
-    @Override
-    public void markDocumentBound() {
-        documentBindings++;
-    }
-
-    @Override
-    public int documentBindings() {
-        return documentBindings;
     }
 }
