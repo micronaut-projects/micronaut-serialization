@@ -61,4 +61,21 @@ class SpecificSerdeBeanSpec extends Specification {
         cleanup:
         context.close()
     }
+
+    void "the serializers of untyped values pass the context of each document to a contextual serde"() {
+        given:
+        ApplicationContext context = ApplicationContext.run()
+        ObjectMapper objectMapper = context.getBean(ObjectMapper)
+        def type = Argument.mapOf(String, Object)
+        Map<String, Object> value = [first: new Secret('a'), second: new Secret('b'), list: [new Secret('c'), new Secret('d')]]
+
+        expect:
+        (1..3).every {
+            objectMapper.writeValueAsString(type, value) == '{"first":"a","second":"b","list":["c","d"]}'
+                && objectMapper.writeValueAsString(value) == '{"first":"a","second":"b","list":["c","d"]}'
+        }
+
+        cleanup:
+        context.close()
+    }
 }
