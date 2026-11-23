@@ -66,6 +66,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedHashMap;
@@ -1348,12 +1349,12 @@ final class DeserBean<T> {
             this.unwrapped = unwrapped;
             this.unwrappedProperty = unwrappedProperty;
             this.isAnySetter = annotationMetadata.isAnnotationPresent(SerdeConfig.SerAnySetter.class);
-            String[] aliases = annotationMetadata.stringValues(SerdeConfig.class, SerdeConfig.ALIASES);
+            String[] declaredAliases = annotationMetadata.stringValues(SerdeConfig.class, SerdeConfig.ALIASES);
             if (extraAliases != null) {
-                aliases = ArrayUtils.concat(aliases, extraAliases);
+                declaredAliases = ArrayUtils.concat(declaredAliases, extraAliases);
             }
-            if (ArrayUtils.isNotEmpty(aliases)) {
-                this.aliases = ArrayUtils.concat(aliases, property);
+            if (ArrayUtils.isNotEmpty(declaredAliases)) {
+                this.aliases = ArrayUtils.concat(declaredAliases, property);
             } else {
                 this.aliases = null;
             }
@@ -1995,9 +1996,7 @@ final class DeserBean<T> {
             }
         }
         Set<String> names = new LinkedHashSet<>();
-        for (String alias : propertyMetadata.stringValues(SerdeConfig.class, SerdeConfig.ALIASES)) {
-            names.add(alias);
-        }
+        Collections.addAll(names, propertyMetadata.stringValues(SerdeConfig.class, SerdeConfig.ALIASES));
         names.add(propertyName);
         names.removeAll(otherArgumentNames);
         names.remove(argumentName);

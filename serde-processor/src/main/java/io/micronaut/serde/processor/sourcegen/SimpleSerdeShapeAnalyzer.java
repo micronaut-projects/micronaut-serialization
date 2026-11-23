@@ -354,11 +354,7 @@ public final class SimpleSerdeShapeAnalyzer {
         if (analysis.open() && hasDuplicateSerializedNames(element) && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE)) {
             return true;
         }
-        // The runtime reads a parameter's property name as another parameter that is explicitly named so
-        if (analysis.deserializerOpen()
-            && (analysis.shapeKind == ShapeKind.RECORD || analysis.shapeKind == ShapeKind.CONSTRUCTOR_BEAN)
-            && RecordSerdeShapeResolver.readsPropertyNameOfAnotherParameter(element)
-            && analysis.failDeserializer(FallbackReason.COMPLEX_CREATOR)) {
+        if (readsPropertyNameOfAnotherParameter(analysis) && analysis.failDeserializer(FallbackReason.COMPLEX_CREATOR)) {
             return true;
         }
         if (analysis.open()
@@ -702,6 +698,16 @@ public final class SimpleSerdeShapeAnalyzer {
             }
         }
         return false;
+    }
+
+    /**
+     * The runtime reads the property name of a creator parameter as another parameter that is explicitly named so,
+     * which a generated deserializer cannot do.
+     */
+    private static boolean readsPropertyNameOfAnotherParameter(Analysis analysis) {
+        return analysis.deserializerOpen()
+            && (analysis.shapeKind == ShapeKind.RECORD || analysis.shapeKind == ShapeKind.CONSTRUCTOR_BEAN)
+            && RecordSerdeShapeResolver.readsPropertyNameOfAnotherParameter(analysis.element);
     }
 
     private boolean hasDuplicateSerializedNames(ClassElement element) {
