@@ -33,8 +33,8 @@ class OracleRegistryLookupSpec extends Specification {
             assert text.writeValueAsString(book) == '"overridden"'
             assert binary.readValue(binary.writeValueAsBytes(Argument.of(OsonBook), book), String) == 'overridden'
         }
-        binary.serdeCache.@serializers.isEmpty()
-        text.serdeCache.@serializers.isEmpty()
+        binary.serdeCache.@serializers.size() == 0
+        text.serdeCache.@serializers.size() == 0
     }
 
     void "the serializer of a type the registry does not override is looked up once"() {
