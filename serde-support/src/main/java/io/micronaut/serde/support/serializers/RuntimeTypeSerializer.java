@@ -148,7 +148,7 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
         }
         inner = new Inner(argument, serializer, context);
         if (documentInners == null) {
-            documentInners = new HashMap<>(4);
+            documentInners = HashMap.newHashMap(4);
             if (!DocumentContextTracker.putDocumentValue(context, this, documentInners)) {
                 // a context that does not keep values: the serializer is reused only with this context
                 inners.put(type, inner);

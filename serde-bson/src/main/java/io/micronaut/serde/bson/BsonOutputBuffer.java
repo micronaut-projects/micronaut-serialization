@@ -146,7 +146,8 @@ final class BsonOutputBuffer extends OutputBuffer {
 
     @Override
     public int getSize() {
-        return position;
+        // the buffer is written sequentially, so its size is its position
+        return getPosition();
     }
 
     @Override
