@@ -4,6 +4,8 @@ import io.micronaut.serde.SerdeRegistry
 import io.micronaut.serde.jackson.JsonCompileSpec
 import spock.lang.Issue
 import spock.lang.Unroll
+import tools.jackson.databind.PropertyNamingStrategies
+import tools.jackson.databind.json.JsonMapper as DatabindJsonMapper
 
 @Issue("https://github.com/micronaut-projects/micronaut-serialization/issues/1517")
 class SerdeCreatorPropertyNamingSpec extends JsonCompileSpec {
@@ -234,6 +236,116 @@ class Person {
         'constructor' | false     | CONSTRUCTOR
         'record'      | true      | RECORD
         'record'      | false     | RECORD
+    }
+
+    void "a runtime naming strategy names the property a creator parameter named apart is also read with"() {
+        given:
+        def source = '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.core.annotation.AnnotatedElement;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.PropertyNamingStrategy;
+import jakarta.inject.Singleton;
+
+@Serdeable(naming = Person.Shout.class)
+class Person {
+    private final String firstName;
+    private final String lastName;
+
+    @JsonCreator
+    Person(@JsonProperty("legacy") String firstName, String lastName) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
+
+    public String getFirstName() { return firstName; }
+    public String getLastName() { return lastName; }
+
+    @Singleton
+    public static class Shout implements PropertyNamingStrategy {
+        @Override
+        public String translate(AnnotatedElement element) {
+            return element.getName().toUpperCase();
+        }
+    }
+}
+'''
+
+        expect: 'the name the strategy derives at runtime'
+        read(source, '{"FIRSTNAME":"Jane","LASTNAME":"Smith"}', false).firstName == 'Jane'
+        read(source, '{"legacy":"Jane"}', false).firstName == 'Jane'
+        roundTrip(source, { type -> type.newInstance('Jane', 'Smith') }, false).endsWith(' -> Jane')
+    }
+
+    void "a builder argument named apart from its property is not read with the name of the property"() {
+        given:
+        def source = '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(builder = @Introspected.IntrospectionBuilder(builderClass = Person.Builder.class))
+class Person {
+    private final String firstName;
+
+    private Person(String firstName) {
+        this.firstName = firstName;
+    }
+
+    @JsonProperty("current")
+    public String getFirstName() { return firstName; }
+
+    public static final class Builder {
+        private String firstName;
+
+        @JsonProperty("legacy")
+        public Builder firstName(String firstName) {
+            this.firstName = firstName;
+            return this;
+        }
+
+        public Person build() {
+            return new Person(firstName);
+        }
+    }
+}
+'''
+
+        expect:
+        read(source, '{"legacy":"Jane"}', false).firstName == 'Jane'
+        read(source, '{"current":"Jane"}', false).firstName == null
+    }
+
+    @Unroll
+    void "a record component named apart from its strategy name matches Jackson Databind (generated: #generated)"() {
+        given:
+        def context = buildContext('test.Person', RECORD, true, generated ? [:] : RUNTIME)
+        def type = argumentOf(context, 'test.Person')
+        def databind = DatabindJsonMapper.builder().propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE).build()
+        def recordType = context.classLoader.loadClass('test.Person')
+        def bean = recordType.newInstance('Jane', 'Smith')
+
+        expect: 'both write the same document'
+        jsonMapper.writeValueAsString(bean) == databind.writeValueAsString(bean)
+
+        and: 'both read the same names'
+        ['{"legacy":"Jane","last_name":"Smith"}', '{"nickname":"Jane","last_name":"Smith"}'].every { json ->
+            def serde = jsonMapper.readValue(json, type)
+            def jackson = databind.readValue(json, recordType)
+            serde.firstName() == jackson.firstName() && serde.lastName() == jackson.lastName() && serde.firstName() == 'Jane'
+        }
+
+        cleanup:
+        context.close()
+
+        where:
+        generated << [true, false]
     }
 
     private static final String CONSTRUCTOR = '''

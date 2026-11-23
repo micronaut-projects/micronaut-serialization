@@ -57,10 +57,6 @@ public final class RecordSerdeShapeResolver {
         Map<String, PropertyElement> propertiesByName = properties.stream()
             .collect(Collectors.toMap(PropertyElement::getName, Function.identity()));
         List<RecordSerdeShape.RecordComponent> components = new ArrayList<>();
-        if (propertyNameOfAnotherParameter(canonicalConstructor, propertiesByName)) {
-            // A component has one name for reading and writing; the runtime reads such a name as the other argument
-            return Optional.empty();
-        }
         for (ParameterElement parameter : canonicalConstructor.getParameters()) {
             if (parameter.getType().isTypeVariable()) {
                 return Optional.empty();
@@ -95,14 +91,26 @@ public final class RecordSerdeShapeResolver {
     }
 
     /**
-     * The aliases a component is read with. The property is written with its own name, such as one a naming
-     * strategy derives, and read with the explicit name of its creator parameter as well, like the runtime
-     * deserializer.
+     * Whether a creator parameter of a record or constructor bean is named apart from its property with the explicit
+     * name of another parameter, so that the property name of one component is the input name of another. A generated
+     * deserializer reads a component under one set of names, while the runtime reads such a name as the other
+     * argument, so the type is deserialized at runtime.
+     *
+     * @param element The type
+     * @return {@code true} if a property name of one component is the input name of another
      */
-    /**
-     * Whether a parameter is named apart from its property with the explicit name of another parameter, so that the
-     * property name of one component is the input name of another.
-     */
+    public static boolean readsPropertyNameOfAnotherParameter(ClassElement element) {
+        MethodElement constructor = element.getPrimaryConstructor().orElse(null);
+        if (constructor == null) {
+            return false;
+        }
+        Map<String, PropertyElement> propertiesByName = new HashMap<>();
+        for (PropertyElement property : BeanSerdeShapeResolver.introspectedProperties(element)) {
+            propertiesByName.putIfAbsent(property.getName(), property);
+        }
+        return propertyNameOfAnotherParameter(constructor, propertiesByName);
+    }
+
     private static boolean propertyNameOfAnotherParameter(MethodElement constructor, Map<String, PropertyElement> propertiesByName) {
         Map<String, String> explicitNames = new HashMap<>();
         for (ParameterElement parameter : constructor.getParameters()) {
@@ -122,6 +130,11 @@ public final class RecordSerdeShapeResolver {
         return false;
     }
 
+    /**
+     * The aliases a component is read with. The property is written with its own name, such as one a naming
+     * strategy derives, and read with the explicit name of its creator parameter as well, like the runtime
+     * deserializer.
+     */
     private static List<String> componentAliases(PropertyElement propertyElement, ParameterElement parameter, String serializedName) {
         String parameterName = parameter.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(serializedName);
         if (parameterName.equals(serializedName)) {

@@ -354,6 +354,13 @@ public final class SimpleSerdeShapeAnalyzer {
         if (analysis.open() && hasDuplicateSerializedNames(element) && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE)) {
             return true;
         }
+        // The runtime reads a parameter's property name as another parameter that is explicitly named so
+        if (analysis.deserializerOpen()
+            && (analysis.shapeKind == ShapeKind.RECORD || analysis.shapeKind == ShapeKind.CONSTRUCTOR_BEAN)
+            && RecordSerdeShapeResolver.readsPropertyNameOfAnotherParameter(element)
+            && analysis.failDeserializer(FallbackReason.COMPLEX_CREATOR)) {
+            return true;
+        }
         if (analysis.open()
             && hasUnsupportedPropertySerdeConfig(element, analysis.propertyExclusionSupported(), analysis.shapeKind == ShapeKind.CONSTRUCTOR_BEAN)
             && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE)) {
