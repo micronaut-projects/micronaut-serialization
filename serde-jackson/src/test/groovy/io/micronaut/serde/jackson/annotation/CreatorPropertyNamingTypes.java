@@ -6,6 +6,7 @@ import io.micronaut.core.annotation.AnnotatedElement;
 import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
 import jakarta.inject.Singleton;
 
 /**
@@ -35,6 +36,20 @@ public final class CreatorPropertyNamingTypes {
 
         public String getLastName() {
             return lastName;
+        }
+    }
+
+    @Serdeable(naming = SnakeCaseStrategy.class)
+    public static class ConstructorNamed {
+        private final String firstName;
+
+        @JsonCreator
+        public ConstructorNamed(@JsonProperty("legacy") String firstName) {
+            this.firstName = firstName;
+        }
+
+        public String getFirstName() {
+            return firstName;
         }
     }
 

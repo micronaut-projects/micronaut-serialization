@@ -1977,8 +1977,10 @@ final class DeserBean<T> {
             return null;
         }
         AnnotationMetadata propertyMetadata = property.getAnnotationMetadata();
-        String propertyName = resolveName(serdeArgumentConf, property, propertyMetadata,
-            getPropertyNamingStrategy(propertyMetadata, decoderContext, entityPropertyNamingStrategy));
+        // the name the property is written with: the serializer reads the property over its creator argument
+        AnnotationMetadata writtenMetadata = new AnnotationMetadataHierarchy(argument.getAnnotationMetadata(), propertyMetadata);
+        String propertyName = resolveName(serdeArgumentConf, property, writtenMetadata,
+            getPropertyNamingStrategy(writtenMetadata, decoderContext, entityPropertyNamingStrategy));
         if (propertyName.equals(argumentName)
             || !SerdePropertyAccess.canDeserialize(propertyMetadata)
             || propertyMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false)

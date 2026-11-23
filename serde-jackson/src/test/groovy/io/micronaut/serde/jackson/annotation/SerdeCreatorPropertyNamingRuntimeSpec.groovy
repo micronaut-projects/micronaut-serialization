@@ -5,6 +5,8 @@ import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 import spock.lang.Issue
 import spock.lang.Specification
+import tools.jackson.databind.PropertyNamingStrategies
+import tools.jackson.databind.json.JsonMapper as DatabindJsonMapper
 
 @Issue("https://github.com/micronaut-projects/micronaut-serialization/issues/1517")
 @MicronautTest
@@ -13,16 +15,32 @@ class SerdeCreatorPropertyNamingRuntimeSpec extends Specification {
     @Inject
     JsonMapper jsonMapper
 
-    void "a runtime naming strategy names the property a creator parameter named apart is also read with"() {
-        expect: 'the name the strategy derives at runtime'
-        jsonMapper.readValue('{"FIRSTNAME":"Jane","lastName":"Smith"}', CreatorPropertyNamingTypes.RuntimeNamed).firstName == 'Jane'
-        jsonMapper.readValue('{"legacy":"Jane"}', CreatorPropertyNamingTypes.RuntimeNamed).firstName == 'Jane'
-
+    void "a creator parameter named apart is written with its own name when the property has only a runtime strategy"() {
         when:
         def json = jsonMapper.writeValueAsString(new CreatorPropertyNamingTypes.RuntimeNamed('Jane', 'Smith'))
 
-        then: 'whatever name it is written with reads back'
+        then: 'the explicit name of the parameter wins over the runtime strategy of the property'
+        json.contains('"legacy":"Jane"')
+        !json.contains('FIRSTNAME')
         jsonMapper.readValue(json, CreatorPropertyNamingTypes.RuntimeNamed).firstName == 'Jane'
+
+        and: 'a name nothing writes is not read'
+        jsonMapper.readValue('{"FIRSTNAME":"Jane"}', CreatorPropertyNamingTypes.RuntimeNamed).firstName == null
+    }
+
+    void "a constructor parameter named apart from its strategy-named property differs from Jackson Databind"() {
+        given:
+        def databind = DatabindJsonMapper.builder().propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE).build()
+        def bean = new CreatorPropertyNamingTypes.ConstructorNamed('Jane')
+
+        expect: 'Serde writes the name of the property, Databind renames the property after the creator parameter'
+        jsonMapper.writeValueAsString(bean) == '{"first_name":"Jane"}'
+        databind.writeValueAsString(bean) == '{"legacy":"Jane"}'
+
+        and: 'both read the name of the parameter, and Serde also reads the name it writes'
+        jsonMapper.readValue('{"legacy":"Jane"}', CreatorPropertyNamingTypes.ConstructorNamed).firstName == 'Jane'
+        databind.readValue('{"legacy":"Jane"}', CreatorPropertyNamingTypes.ConstructorNamed).firstName == 'Jane'
+        jsonMapper.readValue('{"first_name":"Jane"}', CreatorPropertyNamingTypes.ConstructorNamed).firstName == 'Jane'
     }
 
     void "a type deserialized through a builder reads the names of the builder, not those of its constructor"() {
