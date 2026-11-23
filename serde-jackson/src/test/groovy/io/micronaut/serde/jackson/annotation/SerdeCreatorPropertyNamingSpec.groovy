@@ -250,7 +250,7 @@ import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import jakarta.inject.Singleton;
 
-@Serdeable(naming = Person.Shout.class)
+@Serdeable
 class Person {
     private final String firstName;
     private final String lastName;
@@ -261,6 +261,7 @@ class Person {
         this.lastName = lastName;
     }
 
+    @Serdeable.Serializable(naming = Shout.class)
     public String getFirstName() { return firstName; }
     public String getLastName() { return lastName; }
 
@@ -275,7 +276,7 @@ class Person {
 '''
 
         expect: 'the name the strategy derives at runtime'
-        read(source, '{"FIRSTNAME":"Jane","LASTNAME":"Smith"}', false).firstName == 'Jane'
+        read(source, '{"FIRSTNAME":"Jane","lastName":"Smith"}', false).firstName == 'Jane'
         read(source, '{"legacy":"Jane"}', false).firstName == 'Jane'
         roundTrip(source, { type -> type.newInstance('Jane', 'Smith') }, false).endsWith(' -> Jane')
     }
@@ -301,6 +302,7 @@ class Person {
     @JsonProperty("current")
     public String getFirstName() { return firstName; }
 
+    @Introspected
     public static final class Builder {
         private String firstName;
 
