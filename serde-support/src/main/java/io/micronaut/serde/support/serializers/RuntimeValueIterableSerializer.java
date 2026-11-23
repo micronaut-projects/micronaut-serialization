@@ -86,7 +86,7 @@ final class RuntimeValueIterableSerializer<T> extends AbstractIterableSerializer
         }
         component = new Component<>(generic, serializer, context);
         if (documentComponents == null) {
-            documentComponents = new HashMap<>(4);
+            documentComponents = HashMap.newHashMap(4);
             if (!DocumentContextTracker.putDocumentValue(context, this, documentComponents)) {
                 // a context that does not keep values: the serializer is reused only with this context
                 components.put(valueClass, component);

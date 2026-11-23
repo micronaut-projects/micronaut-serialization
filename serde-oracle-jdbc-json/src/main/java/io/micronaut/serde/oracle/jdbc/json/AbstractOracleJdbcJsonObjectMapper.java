@@ -63,11 +63,11 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
     @Nullable
     protected final Class<?> view;
     protected final OracleJsonFactory oracleJsonFactory = new OracleJsonFactory();
-    private final CoercionPolicy coercionPolicy;
     /**
      * The serializers and deserializers that a call created without binding them to its document.
      */
     final SpecificSerdeCache serdeCache = new SpecificSerdeCache();
+    private final CoercionPolicy coercionPolicy;
 
     protected AbstractOracleJdbcJsonObjectMapper(SerdeRegistry registry, @Nullable SerdeConfiguration serdeConfiguration) {
         this(registry, serdeConfiguration, null);
