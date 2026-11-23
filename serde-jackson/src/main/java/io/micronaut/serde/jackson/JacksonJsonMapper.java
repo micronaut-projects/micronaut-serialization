@@ -20,6 +20,7 @@ import io.micronaut.context.annotation.Primary;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.io.buffer.ByteBuffer;
 import io.micronaut.core.type.Argument;
+import io.micronaut.core.type.GenericPlaceholder;
 import io.micronaut.jackson.core.parser.JacksonCoreParserFactory;
 import io.micronaut.jackson.core.parser.JacksonCoreProcessor;
 import io.micronaut.jackson.core.tree.JsonNodeTreeCodec;
@@ -123,8 +124,8 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
      * The serializers and deserializers of the types read and written without a specific mapper,
      * which a call created without binding them to its document.
      */
-    private final Map<Argument<?>, Serializer<?>> serializers = new ConcurrentHashMap<>();
-    private final Map<Argument<?>, Deserializer<?>> deserializers = new ConcurrentHashMap<>();
+    private final Map<Argument<?>, Cached<Serializer<?>>> serializers = new ConcurrentHashMap<>();
+    private final Map<Argument<?>, Cached<Deserializer<?>>> deserializers = new ConcurrentHashMap<>();
 
     @Inject
     @Internal
@@ -557,14 +558,18 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
     private Serializer<?> findSerializer(Serializer.EncoderContext context, Argument<?> type) throws IOException {
         boolean cacheable = !type.isTypeVariable() && isCacheable(type);
         if (cacheable) {
-            Serializer<?> serializer = serializers.get(type);
-            if (serializer != null) {
-                return serializer;
+            Cached<Serializer<?>> cached = serializers.get(type);
+            if (cached != null) {
+                if (cached.matches(type)) {
+                    return cached.serde();
+                }
+                // an equal argument whose type parameters are placeholders in other places is not cached
+                cacheable = false;
             }
         }
         Serializer<?> serializer = context.findSerializer(type).createSpecific(context, (Argument) type);
         if (cacheable && !DocumentContextTracker.isDocumentBound(context) && serializers.size() < MAX_CACHED_SERDES) {
-            serializers.putIfAbsent(type, serializer);
+            serializers.putIfAbsent(type, new Cached<>(type, serializer));
         }
         return serializer;
     }
@@ -573,14 +578,17 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
     private Deserializer<?> findDeserializer(Deserializer.DecoderContext context, Argument<?> type) throws IOException {
         boolean cacheable = !type.isTypeVariable() && isCacheable(type);
         if (cacheable) {
-            Deserializer<?> deserializer = deserializers.get(type);
-            if (deserializer != null) {
-                return deserializer;
+            Cached<Deserializer<?>> cached = deserializers.get(type);
+            if (cached != null) {
+                if (cached.matches(type)) {
+                    return cached.serde();
+                }
+                cacheable = false;
             }
         }
         Deserializer<?> deserializer = context.findDeserializer(type).createSpecific(context, (Argument) type);
         if (cacheable && !DocumentContextTracker.isDocumentBound(context) && deserializers.size() < MAX_CACHED_SERDES) {
-            deserializers.putIfAbsent(type, deserializer);
+            deserializers.putIfAbsent(type, new Cached<>(type, deserializer));
         }
         return deserializer;
     }
@@ -631,6 +639,43 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
             } catch (IOException e) {
                 throw new StreamWriteException(g, e);
             }
+        }
+    }
+
+    /**
+     * A cached serde with the argument it was created for.
+     *
+     * @param type  The argument
+     * @param serde The serde
+     * @param <S>   The serde type
+     */
+    private record Cached<S>(Argument<?> type, S serde) {
+
+        /**
+         * {@link Argument#equals(Object)} ignores whether a type parameter is a generic placeholder, but the element
+         * of a placeholder, such as the type variable of {@code Argument.of(List.class, Base.class)} or a wildcard,
+         * is written by its runtime type, and the element of {@code Argument.listOf(Base.class)} by its declared type.
+         *
+         * @param other An argument equal to the cached one
+         * @return Whether the cached serde serves it
+         */
+        boolean matches(Argument<?> other) {
+            return other == type || samePlaceholders(type, other);
+        }
+
+        private static boolean samePlaceholders(Argument<?> a, Argument<?> b) {
+            Argument<?>[] parametersA = a.getTypeParameters();
+            Argument<?>[] parametersB = b.getTypeParameters();
+            if (parametersA.length != parametersB.length) {
+                return false;
+            }
+            for (int i = 0; i < parametersA.length; i++) {
+                if (parametersA[i] instanceof GenericPlaceholder<?> != parametersB[i] instanceof GenericPlaceholder<?>
+                    || !samePlaceholders(parametersA[i], parametersB[i])) {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }

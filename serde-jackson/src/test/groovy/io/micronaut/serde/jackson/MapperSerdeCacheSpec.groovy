@@ -122,7 +122,7 @@ class TokenSerializer implements Serializer<Token> {
     }
 
     @spock.lang.Unroll
-    void "a runtime bean holding a user serde that keeps the context stays bound when it is reused (#direction)"() {
+    void "a runtime #shape holding a user serde that keeps the context stays bound when it is reused (#direction)"() {
         given:
         def context = buildContext('test.Holder', '''
 package test;
@@ -144,6 +144,48 @@ public class Holder {
 }
 
 record Token(String value) {
+}
+
+@Serdeable
+@com.fasterxml.jackson.annotation.JsonTypeInfo(use = com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME, property = "type")
+@com.fasterxml.jackson.annotation.JsonSubTypes({
+    @com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = Circle.class, name = "circle"),
+    @com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = Square.class, name = "square")
+})
+interface Shape {
+}
+
+@Serdeable
+record Circle(Token token) implements Shape {
+}
+
+@Serdeable
+record Square(String side) implements Shape {
+}
+
+@Serdeable
+record Inner(Token token) {
+}
+
+@Serdeable
+record Wrapper(@com.fasterxml.jackson.annotation.JsonUnwrapped Inner inner) {
+}
+
+@Serdeable
+class First {
+    private Token token;
+    private Second second;
+    public Token getToken() { return token; }
+    public void setToken(Token token) { this.token = token; }
+    public Second getSecond() { return second; }
+    public void setSecond(Second second) { this.second = second; }
+}
+
+@Serdeable
+class Second {
+    private First first;
+    public First getFirst() { return first; }
+    public void setFirst(First first) { this.first = first; }
 }
 
 @Singleton
@@ -187,10 +229,10 @@ class TokenSerde implements Serializer<Token>, Deserializer<Token> {
             'micronaut.serde.deserialization.disable-generated-deserializer': true
         ])
         def registry = context.getBean(io.micronaut.serde.SerdeRegistry)
-        def type = argumentOf(context, 'test.Holder')
+        def types = documentTypes.collect { argumentOf(context, it) }
 
-        expect: 'the second document reuses the cached bean, and is still marked bound so that a mapper does not cache it'
-        (1..2).every {
+        expect: 'the second document reuses the cached beans, and is still marked bound so that a mapper does not cache it'
+        types.every { type ->
             def documentContext = direction == 'serialize' ? registry.newEncoderContext(null) : registry.newDecoderContext(null)
             // the runtime bean serdes, which keep the bean of a type between documents
             if (direction == 'serialize') {
@@ -205,7 +247,136 @@ class TokenSerde implements Serializer<Token>, Deserializer<Token> {
         context.close()
 
         where:
-        direction << ['serialize', 'deserialize']
+        [direction, shape, documentTypes] << [['serialize', 'deserialize'], [
+            ['bean', ['test.Holder', 'test.Holder']],
+            ['subtyped bean', ['test.Shape', 'test.Shape']],
+            ['unwrapped creator parameter', ['test.Wrapper', 'test.Wrapper']],
+            ['cycle of beans', ['test.First', 'test.Second']]
+        ]].combinations()
+            // a subtyped bean is written by the serializer of each value's runtime type, resolved when it is written
+            .findAll { d, s -> !(d == 'serialize' && s[0] == 'subtyped bean') }
+            .collect { d, s -> [d, s[0], s[1]] }
+    }
+
+    @spock.lang.Unroll
+    void "an element type variable and a declared element type are cached apart (#order)"() {
+        given:
+        def context = buildContext('test.Base', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+public class Base {
+    private String name;
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+}
+
+@Serdeable
+class Child extends Base {
+    private String extra;
+    public String getExtra() { return extra; }
+    public void setExtra(String extra) { this.extra = extra; }
+}
+''', true, [
+            'micronaut.serde.serialization.disable-generated-serializer': true,
+            'micronaut.serde.deserialization.disable-generated-deserializer': true
+        ])
+        def base = context.classLoader.loadClass('test.Base')
+        def child = context.classLoader.loadClass('test.Child').newInstance()
+        child.name = 'a'
+        child.extra = 'x'
+        def byRuntimeType = Argument.of(List, base)
+        def byDeclaredType = Argument.listOf(base)
+        def arguments = order == 'type variable first' ? [byRuntimeType, byDeclaredType] : [byDeclaredType, byRuntimeType]
+
+        expect: 'each argument keeps the serializer of its own shape'
+        (1..2).every {
+            arguments.every { argument ->
+                jsonMapper.writeValueAsString(argument, [child]) == (argument.is(byRuntimeType) ? '[{"name":"a","extra":"x"}]' : '[{"name":"a"}]')
+            }
+        }
+
+        cleanup:
+        context.close()
+
+        where:
+        order << ['type variable first', 'declared type first']
+    }
+
+    void "a polymorphic type with a generic subtype resolves that subtype with the context of each document"() {
+        given:
+        def context = buildContext('test.Result', '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import io.micronaut.core.type.Argument;
+import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.annotation.Serdeable;
+import jakarta.inject.Singleton;
+import java.io.IOException;
+
+@Serdeable
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = Ok.class, name = "ok"),
+    @JsonSubTypes.Type(value = Err.class, name = "err")
+})
+public sealed interface Result<T> permits Ok, Err {
+}
+
+@Serdeable
+record Ok<T>(T value) implements Result<T> {
+}
+
+@Serdeable
+record Err(String message) implements Result<Object> {
+}
+
+record Token(String value) {
+}
+
+@Singleton
+class TokenDeserializer implements Deserializer<Token> {
+    @Override
+    public Deserializer<Token> createSpecific(DecoderContext context, Argument<? super Token> type) {
+        return new Specific(context);
+    }
+
+    @Override
+    public Token deserialize(Decoder decoder, DecoderContext context, Argument<? super Token> type) throws IOException {
+        throw new IOException("Specific deserializer expected");
+    }
+
+    private record Specific(DecoderContext createdWith) implements Deserializer<Token> {
+        @Override
+        public Token deserialize(Decoder decoder, DecoderContext context, Argument<? super Token> type) throws IOException {
+            if (createdWith != context) {
+                throw new IOException("Used with the context of another document");
+            }
+            return new Token(decoder.decodeString());
+        }
+    }
+}
+''', true, [
+            'micronaut.serde.serialization.disable-generated-serializer': true,
+            'micronaut.serde.deserialization.disable-generated-deserializer': true
+        ])
+        def type = Argument.of(context.classLoader.loadClass('test.Result'), context.classLoader.loadClass('test.Token'))
+
+        when: 'the first document needs no generic subtype, the second does'
+        def err = jsonMapper.readValue('{"type":"err","message":"m"}', type)
+        def ok = jsonMapper.readValue('{"type":"ok","value":"v"}', type)
+
+        then:
+        err.message() == 'm'
+        ok.value().value() == 'v'
+
+        cleanup:
+        context.close()
     }
 
     void "a type variable is not served the cached serializer of its concrete type"() {
