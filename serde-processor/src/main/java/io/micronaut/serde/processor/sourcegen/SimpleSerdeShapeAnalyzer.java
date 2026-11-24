@@ -711,7 +711,7 @@ public final class SimpleSerdeShapeAnalyzer {
         return false;
     }
 
-        private boolean hasDuplicateSerializedNames(ClassElement element) {
+    private boolean hasDuplicateSerializedNames(ClassElement element) {
         Set<String> serializedNames = new HashSet<>();
         for (PropertyElement property : beanProperties(element)) {
             String serializedName = property.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(property.getName());

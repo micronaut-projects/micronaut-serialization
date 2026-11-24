@@ -1228,10 +1228,10 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         }
         boolean hasDirectionalNaming = hasExplicitSerializeNaming || hasExplicitDeserializeNaming;
         PropertyNamingStrategy serializeNamingStrategy = hasExplicitSerializeNaming
-            ? getPropertyNamingStrategy(classElement, propertyNamingStrategy, SerdeConfig.SERIALIZE_NAMING, SerdeConfig.SERIALIZE_RUNTIME_NAMING)
+            ? getDirectionalNamingStrategy(classElement, propertyNamingStrategy, SerdeConfig.SERIALIZE_NAMING, SerdeConfig.SERIALIZE_RUNTIME_NAMING)
             : propertyNamingStrategy;
         PropertyNamingStrategy deserializeNamingStrategy = hasExplicitDeserializeNaming
-            ? getPropertyNamingStrategy(classElement, propertyNamingStrategy, SerdeConfig.DESERIALIZE_NAMING, SerdeConfig.DESERIALIZE_RUNTIME_NAMING)
+            ? getDirectionalNamingStrategy(classElement, propertyNamingStrategy, SerdeConfig.DESERIALIZE_NAMING, SerdeConfig.DESERIALIZE_RUNTIME_NAMING)
             : propertyNamingStrategy;
         Map<String, ParameterElement> creatorNames = explicitCreatorNames(classElement);
         processProperties(
@@ -1720,6 +1720,24 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     @Nullable
     private PropertyNamingStrategy getPropertyNamingStrategy(TypedElement element, @Nullable PropertyNamingStrategy defaultValue) {
         return getPropertyNamingStrategy(element, defaultValue, SerdeConfig.NAMING, SerdeConfig.RUNTIME_NAMING);
+    }
+
+    /**
+     * Resolves the naming of one direction. An explicit {@link io.micronaut.serde.config.naming.IdentityStrategy}
+     * keeps the Java names, even when the type also has a shared naming.
+     */
+    @Nullable
+    private PropertyNamingStrategy getDirectionalNamingStrategy(TypedElement element,
+                                                                @Nullable PropertyNamingStrategy sharedNaming,
+                                                                String namingMember,
+                                                                String runtimeNamingMember) {
+        boolean explicitIdentity = element.stringValue(SerdeConfig.class, namingMember)
+            .filter(val -> val.equals(PropertyNamingStrategy.IDENTITY.getClass().getName()))
+            .isPresent();
+        if (explicitIdentity) {
+            return PropertyNamingStrategy.IDENTITY;
+        }
+        return getPropertyNamingStrategy(element, sharedNaming, namingMember, runtimeNamingMember);
     }
 
     @Nullable

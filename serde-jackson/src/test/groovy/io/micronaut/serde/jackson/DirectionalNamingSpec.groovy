@@ -212,6 +212,35 @@ class UserDto {
         context.close()
     }
 
+    void "an explicit identity naming keeps the Java names in its direction when the type also has a shared naming"() {
+        given:
+        def context = buildContext('test.UserDto', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.IdentityStrategy;
+import io.micronaut.serde.config.naming.KebabCaseStrategy;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+
+@Serdeable(naming = KebabCaseStrategy.class)
+@Serdeable.Serializable(naming = SnakeCaseStrategy.class)
+@Serdeable.Deserializable(naming = IdentityStrategy.class)
+class UserDto {
+    private String firstName;
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+}
+''', [firstName: 'John'])
+
+        expect:
+        writeJson(jsonMapper, beanUnderTest) == '{"first_name":"John"}'
+        jsonMapper.readValue('{"firstName":"Jane"}', typeUnderTest).firstName == 'Jane'
+        jsonMapper.readValue('{"first-name":"Jane"}', typeUnderTest).firstName == null
+
+        cleanup:
+        context.close()
+    }
+
     void "naming on @Serdeable.Deserializable alone names both directions, as before directional naming"() {
         given:
         def context = buildContext('test.UserDto', '''
