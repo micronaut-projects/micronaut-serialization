@@ -113,6 +113,12 @@ loadScripts(document, 'script');</script>
 <li><a href="#ALIASES" tabindex="0">ALIASES</a></li>
 <li><a href="#NAMING" tabindex="0">NAMING</a></li>
 <li><a href="#RUNTIME_NAMING" tabindex="0">RUNTIME_NAMING</a></li>
+<li><a href="#SERIALIZE_NAMING" tabindex="0">SERIALIZE_NAMING</a></li>
+<li><a href="#DESERIALIZE_NAMING" tabindex="0">DESERIALIZE_NAMING</a></li>
+<li><a href="#SERIALIZE_PROPERTY_NAME" tabindex="0">SERIALIZE_PROPERTY_NAME</a></li>
+<li><a href="#DESERIALIZE_PROPERTY_NAME" tabindex="0">DESERIALIZE_PROPERTY_NAME</a></li>
+<li><a href="#SERIALIZE_RUNTIME_NAMING" tabindex="0">SERIALIZE_RUNTIME_NAMING</a></li>
+<li><a href="#DESERIALIZE_RUNTIME_NAMING" tabindex="0">DESERIALIZE_RUNTIME_NAMING</a></li>
 <li><a href="#SOURCEGEN_SHAPE" tabindex="0">SOURCEGEN_SHAPE</a></li>
 <li><a href="#SOURCEGEN_SERIALIZER_ELIGIBLE" tabindex="0">SOURCEGEN_SERIALIZER_ELIGIBLE</a></li>
 <li><a href="#SOURCEGEN_DESERIALIZER_ELIGIBLE" tabindex="0">SOURCEGEN_DESERIALIZER_ELIGIBLE</a></li>
@@ -273,126 +279,158 @@ API for JSON like JSON-B or Jackson annotations should be used.</p></div>
 <div class="block">Used to store the type that will deserialize this type.</div>
 </div>
 <div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color"><code><a href="#DESERIALIZER_CLASS" class="member-name-link">DESERIALIZER_CLASS</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#DESERIALIZE_NAMING" class="member-name-link">DESERIALIZE_NAMING</a></code></div>
 <div class="col-last odd-row-color">
+<div class="block">The naming strategy to apply when deserializing properties.</div>
+</div>
+<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="#DESERIALIZE_PROPERTY_NAME" class="member-name-link">DESERIALIZE_PROPERTY_NAME</a></code></div>
+<div class="col-last even-row-color">
+<div class="block">The compile-time resolved property name used during deserialization.</div>
+</div>
+<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#DESERIALIZE_RUNTIME_NAMING" class="member-name-link">DESERIALIZE_RUNTIME_NAMING</a></code></div>
+<div class="col-last odd-row-color">
+<div class="block">Runtime naming strategy class used during deserialization,
+when the strategy cannot be resolved at compile time.</div>
+</div>
+<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="#DESERIALIZER_CLASS" class="member-name-link">DESERIALIZER_CLASS</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">Custom deserializer class.</div>
 </div>
-<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color"><code><a href="#FEATURES_WITH" class="member-name-link">FEATURES_WITH</a></code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#FEATURES_WITH" class="member-name-link">FEATURES_WITH</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">Format features to enable.</div>
 </div>
-<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color"><code><a href="#FEATURES_WITHOUT" class="member-name-link">FEATURES_WITHOUT</a></code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="#FEATURES_WITHOUT" class="member-name-link">FEATURES_WITHOUT</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">Format features to disable.</div>
 </div>
-<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color"><code><a href="#FILTER" class="member-name-link">FILTER</a></code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#FILTER" class="member-name-link">FILTER</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">Property filter name.</div>
 </div>
-<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color"><code><a href="#ID_REFERENCE" class="member-name-link">ID_REFERENCE</a></code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="#ID_REFERENCE" class="member-name-link">ID_REFERENCE</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">Internal marker for a property that references beans by their document-scoped identifier.</div>
 </div>
-<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color"><code><a href="#IGNORED" class="member-name-link">IGNORED</a></code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#IGNORED" class="member-name-link">IGNORED</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">Is it ignored.</div>
 </div>
-<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color"><code><a href="#IGNORED_DESERIALIZATION" class="member-name-link">IGNORED_DESERIALIZATION</a></code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="#IGNORED_DESERIALIZATION" class="member-name-link">IGNORED_DESERIALIZATION</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">Is it ignored for deserialization.</div>
 </div>
-<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color"><code><a href="#IGNORED_SERIALIZATION" class="member-name-link">IGNORED_SERIALIZATION</a></code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#IGNORED_SERIALIZATION" class="member-name-link">IGNORED_SERIALIZATION</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">Is it ignored for serialization.</div>
 </div>
-<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color"><code><a href="#INCLUDE" class="member-name-link">INCLUDE</a></code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="#INCLUDE" class="member-name-link">INCLUDE</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">Include strategy.</div>
 </div>
-<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color"><code><a href="#INCLUDE_CONTENT" class="member-name-link">INCLUDE_CONTENT</a></code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#INCLUDE_CONTENT" class="member-name-link">INCLUDE_CONTENT</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">Include content strategy.</div>
 </div>
-<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color"><code><a href="#LENIENT" class="member-name-link">LENIENT</a></code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="#LENIENT" class="member-name-link">LENIENT</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">if parsing is required whether to be lenient.</div>
 </div>
-<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color"><code><a href="#LOCALE" class="member-name-link">LOCALE</a></code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#LOCALE" class="member-name-link">LOCALE</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">A locale to use.</div>
 </div>
-<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color"><code><a href="#MERGE" class="member-name-link">MERGE</a></code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="#MERGE" class="member-name-link">MERGE</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">Whether an existing value should be updated instead of replaced.</div>
 </div>
-<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color"><code><a href="#META_ANNOTATION_PROPERTY" class="member-name-link">META_ANNOTATION_PROPERTY</a></code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#META_ANNOTATION_PROPERTY" class="member-name-link">META_ANNOTATION_PROPERTY</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">The meta annotation for property.</div>
 </div>
-<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color"><code><a href="#META_ANNOTATION_PROPERTY_ORDER" class="member-name-link">META_ANNOTATION_PROPERTY_ORDER</a></code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="#META_ANNOTATION_PROPERTY_ORDER" class="member-name-link">META_ANNOTATION_PROPERTY_ORDER</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">The meta annotation for property order.</div>
 </div>
-<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color"><code><a href="#NAMING" class="member-name-link">NAMING</a></code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#NAMING" class="member-name-link">NAMING</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">Naming strategy.</div>
 </div>
-<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color"><code><a href="#OBJECT_IDENTITY" class="member-name-link">OBJECT_IDENTITY</a></code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="#OBJECT_IDENTITY" class="member-name-link">OBJECT_IDENTITY</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">Internal marker set on the document-scoped identifier property (<a href="SerdeConfig.SerManagedRef.Scope.html#DOCUMENT"><code>SerdeConfig.SerManagedRef.Scope.DOCUMENT</code></a>) of a bean
 whose repeated occurrences in a document are written and read as that identifier, as with Jackson
 <code>@JsonIdentityInfo</code>.</div>
 </div>
-<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color"><code><a href="#PATTERN" class="member-name-link">PATTERN</a></code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#PATTERN" class="member-name-link">PATTERN</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">A pattern to use.</div>
 </div>
-<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color"><code><a href="#PROPERTY" class="member-name-link">PROPERTY</a></code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="#PROPERTY" class="member-name-link">PROPERTY</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">The property to use.</div>
 </div>
-<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color"><code><a href="#RADIX" class="member-name-link">RADIX</a></code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#RADIX" class="member-name-link">RADIX</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">The numeric base to use.</div>
 </div>
-<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color"><code><a href="#READ_ONLY" class="member-name-link">READ_ONLY</a></code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="#READ_ONLY" class="member-name-link">READ_ONLY</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">Is this property to be used only for reading.</div>
 </div>
-<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color"><code><a href="#REQUIRED" class="member-name-link">REQUIRED</a></code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#REQUIRED" class="member-name-link">REQUIRED</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">Whether this property is required (must be present in the input).</div>
 </div>
-<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color"><code><a href="#RUNTIME_NAMING" class="member-name-link">RUNTIME_NAMING</a></code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="#RUNTIME_NAMING" class="member-name-link">RUNTIME_NAMING</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">Runtime naming strategy class.</div>
 </div>
-<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color"><code><a href="#SERIALIZE_AS" class="member-name-link">SERIALIZE_AS</a></code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#SERIALIZE_AS" class="member-name-link">SERIALIZE_AS</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">Used to store the type that will serialize this type.</div>
+</div>
+<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="#SERIALIZE_NAMING" class="member-name-link">SERIALIZE_NAMING</a></code></div>
+<div class="col-last even-row-color">
+<div class="block">The naming strategy to apply when serializing properties.</div>
+</div>
+<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#SERIALIZE_PROPERTY_NAME" class="member-name-link">SERIALIZE_PROPERTY_NAME</a></code></div>
+<div class="col-last odd-row-color">
+<div class="block">The compile-time resolved property name used during serialization.</div>
+</div>
+<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="#SERIALIZE_RUNTIME_NAMING" class="member-name-link">SERIALIZE_RUNTIME_NAMING</a></code></div>
+<div class="col-last even-row-color">
+<div class="block">Runtime naming strategy class used during serialization,
+when the strategy cannot be resolved at compile time.</div>
 </div>
 <div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
 <div class="col-second odd-row-color"><code><a href="#SERIALIZER_CLASS" class="member-name-link">SERIALIZER_CLASS</a></code></div>
@@ -1527,6 +1565,128 @@ All the names would be mapped to the class during deserialization.</div>
 <dd>
 <ul class="tag-list">
 <li><a href="../../../../../constant-values.html#io.micronaut.serde.config.annotation.SerdeConfig.RUNTIME_NAMING">Constant Field Values</a></li>
+</ul>
+</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="SERIALIZE_NAMING">
+<h3>SERIALIZE_NAMING</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">static final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">SERIALIZE_NAMING</span></div>
+<div class="block">The naming strategy to apply when serializing properties.
+Overrides <a href="#NAMING"><code>NAMING</code></a> for serialization only.</div>
+<dl class="notes">
+<dt>See Also:</dt>
+<dd>
+<ul class="tag-list">
+<li><a href="#NAMING"><code>NAMING</code></a></li>
+<li><a href="#DESERIALIZE_NAMING"><code>DESERIALIZE_NAMING</code></a></li>
+<li><a href="../../../../../constant-values.html#io.micronaut.serde.config.annotation.SerdeConfig.SERIALIZE_NAMING">Constant Field Values</a></li>
+</ul>
+</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="DESERIALIZE_NAMING">
+<h3>DESERIALIZE_NAMING</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">static final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">DESERIALIZE_NAMING</span></div>
+<div class="block">The naming strategy to apply when deserializing properties.
+Overrides <a href="#NAMING"><code>NAMING</code></a> for deserialization only.</div>
+<dl class="notes">
+<dt>See Also:</dt>
+<dd>
+<ul class="tag-list">
+<li><a href="#NAMING"><code>NAMING</code></a></li>
+<li><a href="#SERIALIZE_NAMING"><code>SERIALIZE_NAMING</code></a></li>
+<li><a href="../../../../../constant-values.html#io.micronaut.serde.config.annotation.SerdeConfig.DESERIALIZE_NAMING">Constant Field Values</a></li>
+</ul>
+</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="SERIALIZE_PROPERTY_NAME">
+<h3>SERIALIZE_PROPERTY_NAME</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">static final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">SERIALIZE_PROPERTY_NAME</span></div>
+<div class="block">The compile-time resolved property name used during serialization.
+Falls back to <a href="#PROPERTY"><code>PROPERTY</code></a> if not set.</div>
+<dl class="notes">
+<dt>See Also:</dt>
+<dd>
+<ul class="tag-list">
+<li><a href="#PROPERTY"><code>PROPERTY</code></a></li>
+<li><a href="#DESERIALIZE_PROPERTY_NAME"><code>DESERIALIZE_PROPERTY_NAME</code></a></li>
+<li><a href="../../../../../constant-values.html#io.micronaut.serde.config.annotation.SerdeConfig.SERIALIZE_PROPERTY_NAME">Constant Field Values</a></li>
+</ul>
+</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="DESERIALIZE_PROPERTY_NAME">
+<h3>DESERIALIZE_PROPERTY_NAME</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">static final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">DESERIALIZE_PROPERTY_NAME</span></div>
+<div class="block">The compile-time resolved property name used during deserialization.
+Falls back to <a href="#PROPERTY"><code>PROPERTY</code></a> if not set.</div>
+<dl class="notes">
+<dt>See Also:</dt>
+<dd>
+<ul class="tag-list">
+<li><a href="#PROPERTY"><code>PROPERTY</code></a></li>
+<li><a href="#SERIALIZE_PROPERTY_NAME"><code>SERIALIZE_PROPERTY_NAME</code></a></li>
+<li><a href="../../../../../constant-values.html#io.micronaut.serde.config.annotation.SerdeConfig.DESERIALIZE_PROPERTY_NAME">Constant Field Values</a></li>
+</ul>
+</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="SERIALIZE_RUNTIME_NAMING">
+<h3>SERIALIZE_RUNTIME_NAMING</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">static final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">SERIALIZE_RUNTIME_NAMING</span></div>
+<div class="block">Runtime naming strategy class used during serialization,
+when the strategy cannot be resolved at compile time.
+Falls back to <a href="#RUNTIME_NAMING"><code>RUNTIME_NAMING</code></a> if not set.</div>
+<dl class="notes">
+<dt>See Also:</dt>
+<dd>
+<ul class="tag-list">
+<li><a href="#RUNTIME_NAMING"><code>RUNTIME_NAMING</code></a></li>
+<li><a href="#DESERIALIZE_RUNTIME_NAMING"><code>DESERIALIZE_RUNTIME_NAMING</code></a></li>
+<li><a href="../../../../../constant-values.html#io.micronaut.serde.config.annotation.SerdeConfig.SERIALIZE_RUNTIME_NAMING">Constant Field Values</a></li>
+</ul>
+</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="DESERIALIZE_RUNTIME_NAMING">
+<h3>DESERIALIZE_RUNTIME_NAMING</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">static final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">DESERIALIZE_RUNTIME_NAMING</span></div>
+<div class="block">Runtime naming strategy class used during deserialization,
+when the strategy cannot be resolved at compile time.
+Falls back to <a href="#RUNTIME_NAMING"><code>RUNTIME_NAMING</code></a> if not set.</div>
+<dl class="notes">
+<dt>See Also:</dt>
+<dd>
+<ul class="tag-list">
+<li><a href="#RUNTIME_NAMING"><code>RUNTIME_NAMING</code></a></li>
+<li><a href="#SERIALIZE_RUNTIME_NAMING"><code>SERIALIZE_RUNTIME_NAMING</code></a></li>
+<li><a href="../../../../../constant-values.html#io.micronaut.serde.config.annotation.SerdeConfig.DESERIALIZE_RUNTIME_NAMING">Constant Field Values</a></li>
 </ul>
 </dd>
 </dl>

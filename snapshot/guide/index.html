@@ -115,21 +115,23 @@
         
         <div class="toc-item" style="margin-left:10px" id="toc-item-jacksonQuick"><a href="#jacksonQuick"><strong>3.1</strong><span>Jackson Annotations &amp; Jackson Core</span></a></div>
         
-        <div class="toc-item" style="margin-left:10px" id="toc-item-jsonpQuick"><a href="#jsonpQuick"><strong>3.2</strong><span>JSON-B Annotations &amp; JSON-P</span></a></div>
+        <div class="toc-item" style="margin-left:10px" id="toc-item-directionalNaming"><a href="#directionalNaming"><strong>3.2</strong><span>Directional Property Naming</span></a></div>
         
-        <div class="toc-item" style="margin-left:10px" id="toc-item-bsonQuick"><a href="#bsonQuick"><strong>3.3</strong><span>BSON Annotations and BSON</span></a></div>
+        <div class="toc-item" style="margin-left:10px" id="toc-item-jsonpQuick"><a href="#jsonpQuick"><strong>3.3</strong><span>JSON-B Annotations &amp; JSON-P</span></a></div>
         
-        <div class="toc-item" style="margin-left:10px" id="toc-item-cborQuick"><a href="#cborQuick"><strong>3.4</strong><span>CBOR</span></a></div>
+        <div class="toc-item" style="margin-left:10px" id="toc-item-bsonQuick"><a href="#bsonQuick"><strong>3.4</strong><span>BSON Annotations and BSON</span></a></div>
         
-        <div class="toc-item" style="margin-left:10px" id="toc-item-yamlQuick"><a href="#yamlQuick"><strong>3.5</strong><span>YAML</span></a></div>
+        <div class="toc-item" style="margin-left:10px" id="toc-item-cborQuick"><a href="#cborQuick"><strong>3.5</strong><span>CBOR</span></a></div>
         
-        <div class="toc-item" style="margin-left:10px" id="toc-item-toonQuick"><a href="#toonQuick"><strong>3.6</strong><span>TOON</span></a></div>
+        <div class="toc-item" style="margin-left:10px" id="toc-item-yamlQuick"><a href="#yamlQuick"><strong>3.6</strong><span>YAML</span></a></div>
         
-        <div class="toc-item" style="margin-left:10px" id="toc-item-tomlQuick"><a href="#tomlQuick"><strong>3.7</strong><span>TOML</span></a></div>
+        <div class="toc-item" style="margin-left:10px" id="toc-item-toonQuick"><a href="#toonQuick"><strong>3.7</strong><span>TOON</span></a></div>
         
-        <div class="toc-item" style="margin-left:10px" id="toc-item-propertiesQuick"><a href="#propertiesQuick"><strong>3.8</strong><span>Java Properties</span></a></div>
+        <div class="toc-item" style="margin-left:10px" id="toc-item-tomlQuick"><a href="#tomlQuick"><strong>3.8</strong><span>TOML</span></a></div>
         
-        <div class="toc-item" style="margin-left:10px" id="toc-item-xmlQuick"><a href="#xmlQuick"><strong>3.9</strong><span>XML</span></a></div>
+        <div class="toc-item" style="margin-left:10px" id="toc-item-propertiesQuick"><a href="#propertiesQuick"><strong>3.9</strong><span>Java Properties</span></a></div>
+        
+        <div class="toc-item" style="margin-left:10px" id="toc-item-xmlQuick"><a href="#xmlQuick"><strong>3.10</strong><span>XML</span></a></div>
         
         <div class="toc-item" style="margin-left:0px" id="toc-item-jacksonAnnotations"><a href="#jacksonAnnotations"><strong>4</strong><span>Jackson Annotations</span></a></div>
         
@@ -875,7 +877,118 @@ class BookTest extends Specification {
 </div>
 </div>
 
-<h2 id="jsonpQuick"><a class="anchor" href="#jsonpQuick"></a>3.2 JSON-B Annotations & JSON-P</h2>
+<h2 id="directionalNaming"><a class="anchor" href="#directionalNaming"></a>3.2 Directional Property Naming</h2>
+
+<div class='contribute-btn'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.3.x/src/main/docs/guide/quickStart/directionalNaming.adoc"'>
+        <i class='fa fa-pencil-square-o'></i> Improve this doc
+    </button>
+</div>
+
+
+<div class="paragraph">
+<p>By default, a property naming strategy applies to both serialization and deserialization. Use <code>@Serdeable.Serializable</code> and <code>@Serdeable.Deserializable</code> when the JSON written by an application must follow a different naming convention from the JSON it reads.</p>
+</div>
+<div class="paragraph">
+<p>The following type writes snake case property names and reads upper camel case property names:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
+
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+import io.micronaut.serde.config.naming.UpperCamelCaseStrategy;
+
+@Serdeable.Serializable(naming = SnakeCaseStrategy.class) // <b class="conum">(1)</b>
+@Serdeable.Deserializable(naming = UpperCamelCaseStrategy.class) // <b class="conum">(2)</b>
+public record DirectionalContact(String firstName, String lastName) {
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The serialization naming strategy converts <code>firstName</code> and <code>lastName</code> to <code>first_name</code> and <code>last_name</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The deserialization naming strategy expects <code>FirstName</code> and <code>LastName</code>.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>For example, serializing the type produces:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{"first_name":"John","last_name":"Doe"}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The same type can deserialize JSON that uses the input naming convention:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{"FirstName":"Jane","LastName":"Smith"}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The following executable example verifies both directions:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
+
+import io.micronaut.serde.ObjectMapper;
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+@MicronautTest
+class DirectionalNamingTest {
+
+    @Test
+    void testDirectionalNaming(ObjectMapper objectMapper) throws IOException {
+        String json = objectMapper.writeValueAsString(new DirectionalContact("John", "Doe"));
+
+        assertEquals("{\"first_name\":\"John\",\"last_name\":\"Doe\"}", json);
+
+        DirectionalContact contact = objectMapper.readValue(
+            "{\"FirstName\":\"Jane\",\"LastName\":\"Smith\"}",
+            DirectionalContact.class
+        );
+
+        assertEquals("Jane", contact.firstName());
+        assertEquals("Smith", contact.lastName());
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Directional naming can be declared on a type or on an individual property, with the same rules at both levels. Explicit property names take precedence over naming strategies.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+For backward compatibility, a naming strategy declared on only one of <code>@Serdeable.Serializable</code> and <code>@Serdeable.Deserializable</code> still applies to both directions, as it did before directional naming was introduced. Naming is directional when both annotations declare a strategy, or when one of them overrides a shared naming strategy such as <code>@Serdeable(naming = &#8230;&#8203;)</code> or <code>@JsonNaming</code>. To change the names in one direction only, declare <code>IdentityStrategy</code> on the other annotation, for example <code>@Serdeable.Serializable(naming = SnakeCaseStrategy.class) @Serdeable.Deserializable(naming = IdentityStrategy.class)</code>. An explicit <code>IdentityStrategy</code> keeps the Java names in its direction even when the type also declares a shared naming strategy.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Use <code>@Serdeable(naming = &#8230;&#8203;)</code> when the same naming strategy should apply in both directions. A type whose properties are written and read with different names is handled by the runtime serializers and deserializers rather than the source-generated ones.</p>
+</div>
+
+<h2 id="jsonpQuick"><a class="anchor" href="#jsonpQuick"></a>3.3 JSON-B Annotations & JSON-P</h2>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.3.x/src/main/docs/guide/quickStart/jsonpQuick.adoc"'>
@@ -1448,7 +1561,7 @@ class BookTest extends Specification {
 </div>
 </div>
 
-<h2 id="bsonQuick"><a class="anchor" href="#bsonQuick"></a>3.3 BSON Annotations and BSON</h2>
+<h2 id="bsonQuick"><a class="anchor" href="#bsonQuick"></a>3.4 BSON Annotations and BSON</h2>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.3.x/src/main/docs/guide/quickStart/bsonQuick.adoc"'>
@@ -1934,7 +2047,7 @@ class BookTest extends Specification {
 </div>
 </div>
 
-<h2 id="cborQuick"><a class="anchor" href="#cborQuick"></a>3.4 CBOR</h2>
+<h2 id="cborQuick"><a class="anchor" href="#cborQuick"></a>3.5 CBOR</h2>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.3.x/src/main/docs/guide/quickStart/cborQuick.adoc"'>
@@ -2531,7 +2644,7 @@ These control token encoding details (for example minimal integer width). They d
 </div>
 </div>
 
-<h2 id="yamlQuick"><a class="anchor" href="#yamlQuick"></a>3.5 YAML</h2>
+<h2 id="yamlQuick"><a class="anchor" href="#yamlQuick"></a>3.6 YAML</h2>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.3.x/src/main/docs/guide/quickStart/yamlQuick.adoc"'>
@@ -3735,7 +3848,7 @@ class YamlBookController {
 </div>
 </div>
 
-<h2 id="toonQuick"><a class="anchor" href="#toonQuick"></a>3.6 TOON</h2>
+<h2 id="toonQuick"><a class="anchor" href="#toonQuick"></a>3.7 TOON</h2>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.3.x/src/main/docs/guide/quickStart/toonQuick.adoc"'>
@@ -4062,7 +4175,7 @@ indent = 2</code></pre>
 </div>
 </div>
 
-<h2 id="tomlQuick"><a class="anchor" href="#tomlQuick"></a>3.7 TOML</h2>
+<h2 id="tomlQuick"><a class="anchor" href="#tomlQuick"></a>3.8 TOML</h2>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.3.x/src/main/docs/guide/quickStart/tomlQuick.adoc"'>
@@ -4078,7 +4191,7 @@ indent = 2</code></pre>
 <p>See the <a href="https://micronaut-projects.github.io/micronaut-toml/latest/guide/#tomlQuick">Micronaut TOML serialization documentation</a> for dependency setup, the named TOML <a href="../api/io/micronaut/serde/ObjectMapper.html">ObjectMapper</a> bean, source-backed examples, mapper configuration, and TOML output layout.</p>
 </div>
 
-<h2 id="propertiesQuick"><a class="anchor" href="#propertiesQuick"></a>3.8 Java Properties</h2>
+<h2 id="propertiesQuick"><a class="anchor" href="#propertiesQuick"></a>3.9 Java Properties</h2>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.3.x/src/main/docs/guide/quickStart/propertiesQuick.adoc"'>
@@ -4308,7 +4421,7 @@ Java <code>*.properties</code> documents require keys. Root objects can be writt
 </table>
 </div>
 
-<h2 id="xmlQuick"><a class="anchor" href="#xmlQuick"></a>3.9 XML</h2>
+<h2 id="xmlQuick"><a class="anchor" href="#xmlQuick"></a>3.10 XML</h2>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.3.x/src/main/docs/guide/quickStart/xmlQuick.adoc"'>
