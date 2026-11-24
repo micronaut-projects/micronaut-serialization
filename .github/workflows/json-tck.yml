@@ -41,8 +41,6 @@ jobs:
         continue-on-error: true
         env:
           DEVELOCITY_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
-          DEVELOCITY_CACHE_USERNAME: ${{ secrets.GRADLE_ENTERPRISE_CACHE_USERNAME }}
-          DEVELOCITY_CACHE_PASSWORD: ${{ secrets.GRADLE_ENTERPRISE_CACHE_PASSWORD }}
         run: ./gradlew :micronaut-tests:micronaut-jsonp-tck:jakartaJsonpTck --no-daemon
 
       - name: "📦 Collect Jakarta JSON-P TCK evidence"
@@ -54,8 +52,6 @@ jobs:
         continue-on-error: true
         env:
           DEVELOCITY_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
-          DEVELOCITY_CACHE_USERNAME: ${{ secrets.GRADLE_ENTERPRISE_CACHE_USERNAME }}
-          DEVELOCITY_CACHE_PASSWORD: ${{ secrets.GRADLE_ENTERPRISE_CACHE_PASSWORD }}
         run: ./gradlew :micronaut-tests:micronaut-jsonb-tck:jakartaJsonbTck --no-daemon
 
       - name: "📦 Collect Jakarta JSON-B TCK evidence"
