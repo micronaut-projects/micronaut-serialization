@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.processor.sourcegen.enums;
 
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -22,11 +23,36 @@ import java.util.List;
  *
  * @param constants Enum constants participating in generated mapping.
  * @param hasPropertyOverrides Whether any constant has an overridden serialized name.
+ * @param serializedValues The serialized value of every constant, in declaration (ordinal) order.
  */
 public record EnumSerdeShape(
     List<EnumConstant> constants,
-    boolean hasPropertyOverrides
+    boolean hasPropertyOverrides,
+    List<String> serializedValues
 ) {
+
+    /**
+     * Shape model without the serialized values; the generated code then can't match them.
+     *
+     * @param constants Enum constants participating in generated mapping.
+     * @param hasPropertyOverrides Whether any constant has an overridden serialized name.
+     * @deprecated Use {@link #EnumSerdeShape(List, boolean, List)}
+     */
+    @Deprecated(since = "3.3.0", forRemoval = true)
+    public EnumSerdeShape(List<EnumConstant> constants, boolean hasPropertyOverrides) {
+        this(constants, hasPropertyOverrides, List.of());
+    }
+
+    /**
+     * Whether every constant has its own serialized value, which then identifies the constant in
+     * both directions.
+     *
+     * @return Whether the serialized values are unique
+     */
+    public boolean hasUniqueSerializedValues() {
+        return !serializedValues.isEmpty() && new HashSet<>(serializedValues).size() == serializedValues.size();
+    }
+
     /**
      * Enum constant metadata used by source generation.
      *

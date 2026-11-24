@@ -67,6 +67,8 @@ import java.util.stream.Stream;
  */
 public final class RecordSerializerSourceGen {
     private static final String CONTEXT_PARAMETER = "context";
+    private static final String ENCODER_LOCAL = "encoder";
+    private static final String KEYS_AWARE_ENCODER_LOCAL = "keysAwareEncoder";
     private static final String VALUE_PARAMETER = "value";
     private static final String VALUE_LOCAL_PREFIX = "value";
     private static final String GENERATED_VALUE_MEMBER = "value";
@@ -78,6 +80,8 @@ public final class RecordSerializerSourceGen {
     private static final TypeDef STRING_TYPE = TypeDef.of(String.class);
     private static final ClassTypeDef KEYS_TYPE = ClassTypeDef.of(Keys.class);
     private static final ClassTypeDef KEY_DESCRIPTOR_TYPE = ClassTypeDef.of(KeyDescriptor.class);
+    private static final int SERIALIZE_CHUNK_THRESHOLD = 64;
+    private static final int SERIALIZE_CHUNK_SIZE = 32;
     private static final ClassTypeDef KEYS_AWARE_ENCODER_TYPE = ClassTypeDef.of(KeysAwareEncoder.class);
 
     private static final Method SERIALIZE_METHOD = ReflectionUtils.getRequiredMethod(
@@ -214,7 +218,8 @@ public final class RecordSerializerSourceGen {
             .addFields(fields)
             .addMethod(generateCreateSpecificMethod(recordTypeDef))
             .addMethod(generateSerializeMethod(recordTypeDef))
-            .addMethod(generateSerializeIntoMethod(recordTypeDef, serializerClassTypeDef, recordSerdeShape, argumentFieldNames, serializerFieldNames));
+            .addMethod(generateSerializeIntoMethod(recordTypeDef, serializerClassTypeDef, recordSerdeShape, argumentFieldNames, serializerFieldNames))
+            .addMethods(generateSerializeChunkMethods(recordTypeDef, serializerClassTypeDef, recordSerdeShape, argumentFieldNames, serializerFieldNames));
         if (constructorRequired) {
             classDefBuilder.addMethod(generateConstructor(
                 element,
@@ -298,7 +303,7 @@ public final class RecordSerializerSourceGen {
         return MethodDef.builder("serialize")
             .addModifiers(Modifier.PUBLIC)
             .overrides()
-            .addParameter("encoder", TypeDef.of(Encoder.class))
+            .addParameter(ENCODER_LOCAL, TypeDef.of(Encoder.class))
             .addParameter(CONTEXT_PARAMETER, TypeDef.of(Serializer.EncoderContext.class))
             .addParameter("type", TypeDef.of(Argument.class))
             .addParameter(VALUE_PARAMETER, recordTypeDef)
@@ -327,7 +332,7 @@ public final class RecordSerializerSourceGen {
         return MethodDef.builder("serializeInto")
             .addModifiers(Modifier.PUBLIC)
             .overrides()
-            .addParameter("encoder", TypeDef.of(Encoder.class))
+            .addParameter(ENCODER_LOCAL, TypeDef.of(Encoder.class))
             .addParameter(CONTEXT_PARAMETER, TypeDef.of(Serializer.EncoderContext.class))
             .addParameter("type", TypeDef.of(Argument.class))
             .addParameter(VALUE_PARAMETER, recordTypeDef)
@@ -348,11 +353,24 @@ public final class RecordSerializerSourceGen {
                         value,
                         recordSerdeShape,
                         argumentFieldNames,
-                        serializerFieldNames
+                        serializerFieldNames,
+                        0,
+                        0
                     ));
                 }
+                int size = recordSerdeShape.components().size();
+                if (size > SERIALIZE_CHUNK_THRESHOLD) {
+                    return KEYS_AWARE_ENCODER_TYPE.invokeStatic(KEYS_AWARE_ENCODER_OF_METHOD, encoder)
+                        .newLocal(KEYS_AWARE_ENCODER_LOCAL, keysAwareEncoder -> {
+                            List<StatementDef> chunkCalls = new ArrayList<>();
+                            for (int from = 0; from < size; from += SERIALIZE_CHUNK_SIZE) {
+                                chunkCalls.add(aThis.invoke(serializeChunkMethodName(from), TypeDef.VOID, encoder, keysAwareEncoder, context, type, value));
+                            }
+                            return StatementDef.multi(chunkCalls);
+                        });
+                }
                 return KEYS_AWARE_ENCODER_TYPE.invokeStatic(KEYS_AWARE_ENCODER_OF_METHOD, encoder)
-                    .newLocal("keysAwareEncoder", keysAwareEncoder -> StatementDef.multi(serializeIntoStatements(
+                    .newLocal(KEYS_AWARE_ENCODER_LOCAL, keysAwareEncoder -> StatementDef.multi(serializeIntoStatements(
                             aThis,
                             serializerClassTypeDef,
                             encoder,
@@ -362,7 +380,9 @@ public final class RecordSerializerSourceGen {
                             value,
                             recordSerdeShape,
                             argumentFieldNames,
-                            serializerFieldNames
+                            serializerFieldNames,
+                            0,
+                            size
                         ))
                     );
             });
@@ -378,10 +398,12 @@ public final class RecordSerializerSourceGen {
                                                        VariableDef.MethodParameter value,
                                                        RecordSerdeShape recordSerdeShape,
                                                        Map<String, String> argumentFieldNames,
-                                                       Map<String, String> serializerFieldNames) {
-        List<StatementDef> statements = new ArrayList<>();
-        int index = 0;
-        for (RecordSerdeShape.RecordComponent component : recordSerdeShape.components()) {
+                                                       Map<String, String> serializerFieldNames,
+                                                       int from,
+                                                       int to) {
+        List<RecordSerdeShape.RecordComponent> items = recordSerdeShape.components();
+        List<StatementDef> statements = new ArrayList<>(to - from);
+        for (int index = from; index < to; index++) {
             statements.add(serializeComponent(
                 aThis,
                 serializerClassTypeDef,
@@ -390,13 +412,62 @@ public final class RecordSerializerSourceGen {
                 context,
                 type,
                 value,
-                component,
-                index++,
+                items.get(index),
+                index,
                 argumentFieldNames,
                 serializerFieldNames
             ));
         }
         return statements;
+    }
+
+    /**
+     * HotSpot does not JIT-compile a method of more than 8000 bytes of bytecode, and a generated
+     * property write takes about 70 bytes. The properties of a wide type are written by helper
+     * methods of {@value #SERIALIZE_CHUNK_SIZE} properties each, so every method stays compilable.
+     */
+    @SuppressWarnings("java:S107")
+    private List<MethodDef> generateSerializeChunkMethods(TypeDef recordTypeDef,
+                                                          ClassTypeDef serializerClassTypeDef,
+                                                          RecordSerdeShape recordSerdeShape,
+                                                          Map<String, String> argumentFieldNames,
+                                                          Map<String, String> serializerFieldNames) {
+        int size = recordSerdeShape.components().size();
+        if (size <= SERIALIZE_CHUNK_THRESHOLD) {
+            return List.of();
+        }
+        List<MethodDef> methods = new ArrayList<>();
+        for (int from = 0; from < size; from += SERIALIZE_CHUNK_SIZE) {
+            int chunkFrom = from;
+            int chunkTo = Math.min(size, from + SERIALIZE_CHUNK_SIZE);
+            methods.add(MethodDef.builder(serializeChunkMethodName(chunkFrom))
+                .addModifiers(Modifier.PRIVATE)
+                .addParameter(ENCODER_LOCAL, TypeDef.of(Encoder.class))
+                .addParameter(KEYS_AWARE_ENCODER_LOCAL, KEYS_AWARE_ENCODER_TYPE)
+                .addParameter(CONTEXT_PARAMETER, TypeDef.of(Serializer.EncoderContext.class))
+                .addParameter("type", TypeDef.of(Argument.class))
+                .addParameter(VALUE_PARAMETER, recordTypeDef)
+                .addThrows(TypeDef.of(IOException.class))
+                .build((aThis, methodParameters) -> StatementDef.multi(serializeIntoStatements(
+                    aThis,
+                    serializerClassTypeDef,
+                    methodParameters.get(0),
+                    methodParameters.get(1),
+                    methodParameters.get(2),
+                    methodParameters.get(3),
+                    methodParameters.get(4),
+                    recordSerdeShape,
+                    argumentFieldNames,
+                    serializerFieldNames,
+                    chunkFrom,
+                    chunkTo
+                ))));
+        }
+        return methods;
+    }
+
+    private static String serializeChunkMethodName(int from) {
+        return "serializeProperties" + from;
     }
 
     private StatementDef encodeKeyStatement(ClassTypeDef serializerClassTypeDef,

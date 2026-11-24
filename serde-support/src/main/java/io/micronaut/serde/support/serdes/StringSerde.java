@@ -23,11 +23,12 @@ import io.micronaut.serde.Encoder;
 import io.micronaut.serde.FormattedSerde;
 import io.micronaut.serde.support.SerdeRegistrar;
 import io.micronaut.serde.support.util.DecoderValueKind;
+import io.micronaut.serde.util.BuiltInStringDeserializer;
 
 import java.io.IOException;
 
 @Internal
-final class StringSerde implements FormattedSerde<String>, SerdeRegistrar<String>, DecoderValueKind.Provider {
+final class StringSerde implements FormattedSerde<String>, SerdeRegistrar<String>, DecoderValueKind.Provider, BuiltInStringDeserializer {
 
     @Override
     public Argument<String> getType() {

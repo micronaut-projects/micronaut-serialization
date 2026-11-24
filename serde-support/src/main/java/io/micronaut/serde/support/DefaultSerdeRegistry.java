@@ -714,26 +714,38 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     }
 
     private static final class InternalSerdeBeanDefinition<T> implements BeanDefinition<T> {
-        private final Argument<?> argument;
+        /**
+         * The annotation metadata of each order. Every built-in serde registers three definitions,
+         * so sharing the metadata keeps it to a few instances.
+         */
+        private static final Map<Integer, AnnotationMetadata> ORDER_METADATA = new ConcurrentHashMap<>();
+
+        private final Class<T> container;
         private final Argument<?> typeArgument;
         private final T value;
         private final List<Argument<?>> typeParameters;
         private final AnnotationMetadata annotationMetadata;
+        @Nullable
+        private Argument<?> argument;
 
         private InternalSerdeBeanDefinition(Argument<?> typeArgument,
                                             Class<T> container,
                                             T value,
                                             int order) {
-            this.argument = Argument.of(container, typeArgument);
+            this.container = container;
             this.value = value;
             this.typeArgument = typeArgument;
-            this.typeParameters = List.of(argument.getTypeParameters());
+            this.typeParameters = List.of(typeArgument);
             if (order == 0) {
                 order = 10; // Assign internal serdes to a lower priority
             }
+            annotationMetadata = ORDER_METADATA.computeIfAbsent(order, InternalSerdeBeanDefinition::orderMetadata);
+        }
+
+        private static AnnotationMetadata orderMetadata(Integer order) {
             MutableAnnotationMetadata mutableAnnotationMetadata = new MutableAnnotationMetadata();
             mutableAnnotationMetadata.addAnnotation(Order.class.getName(), Map.of("value", order));
-            annotationMetadata = mutableAnnotationMetadata;
+            return mutableAnnotationMetadata;
         }
 
         @Override
@@ -743,7 +755,13 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
         @Override
         public Argument<T> asArgument() {
-            return (Argument<T>) argument;
+            Argument<?> resolved = argument;
+            if (resolved == null) {
+                // Created on demand: the registry matches the type argument, not this one
+                resolved = Argument.of(container, typeArgument);
+                argument = resolved;
+            }
+            return (Argument<T>) resolved;
         }
 
         @Override
@@ -771,7 +789,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
         @Override
         public String toString() {
-            return argument.getTypeName();
+            return asArgument().getTypeName();
         }
 
     }
