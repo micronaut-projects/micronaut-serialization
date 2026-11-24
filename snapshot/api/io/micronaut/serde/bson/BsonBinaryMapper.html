@@ -68,6 +68,8 @@ loadScripts(document, 'script');</script>
 <li><a href="#cloneWithViewClass(java.lang.Class)" tabindex="0">cloneWithViewClass(Class)</a></li>
 <li><a href="#createBsonReader(java.nio.ByteBuffer)" tabindex="0">createBsonReader(ByteBuffer)</a></li>
 <li><a href="#createBsonWriter(java.io.OutputStream)" tabindex="0">createBsonWriter(OutputStream)</a></li>
+<li><a href="#writeValueAsBytes(java.lang.Object)" tabindex="0">writeValueAsBytes(Object)</a></li>
+<li><a href="#writeValueAsBytes(io.micronaut.core.type.Argument,T)" tabindex="0">writeValueAsBytes(Argument, T)</a></li>
 </ol>
 </li>
 </ol>
@@ -158,12 +160,19 @@ loadScripts(document, 'script');</script>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected org.bson.AbstractBsonWriter</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#createBsonWriter(java.io.OutputStream)" class="member-name-link">createBsonWriter</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/OutputStream.html" title="class or interface in java.io" class="external-link">OutputStream</a>&nbsp;os)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;T&gt;&nbsp;byte[]</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#writeValueAsBytes(io.micronaut.core.type.Argument,T)" class="member-name-link">writeValueAsBytes</a><wbr>(io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
+ @Nullable T&nbsp;object)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>byte[]</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#writeValueAsBytes(java.lang.Object)" class="member-name-link">writeValueAsBytes</a><wbr>(@Nullable <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;object)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 </div>
 </div>
 </div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-io.micronaut.serde.bson.AbstractBsonMapper">Methods inherited from class&nbsp;<a href="AbstractBsonMapper.html#method-summary" title="class in io.micronaut.serde.bson">AbstractBsonMapper</a></h3>
-<code><a href="AbstractBsonMapper.html#createReactiveParser(java.util.function.Consumer,boolean)" title="createReactiveParser(Consumer, boolean)">createReactiveParser</a>, <a href="AbstractBsonMapper.html#getSerdeRegistry()" title="getSerdeRegistry()">getSerdeRegistry</a>, <a href="AbstractBsonMapper.html#getStreamConfig()" title="getStreamConfig()">getStreamConfig</a>, <a href="AbstractBsonMapper.html#readValue(byte%5B%5D,io.micronaut.core.type.Argument)" title="readValue(byte[], Argument)">readValue</a>, <a href="AbstractBsonMapper.html#readValue(java.io.InputStream,io.micronaut.core.type.Argument)" title="readValue(InputStream, Argument)">readValue</a>, <a href="AbstractBsonMapper.html#readValueFromTree(io.micronaut.json.tree.JsonNode,io.micronaut.core.type.Argument)" title="readValueFromTree(JsonNode, Argument)">readValueFromTree</a>, <a href="AbstractBsonMapper.html#writeValue(java.io.OutputStream,io.micronaut.core.type.Argument,T)" title="writeValue(OutputStream, Argument, T)">writeValue</a>, <a href="AbstractBsonMapper.html#writeValue(java.io.OutputStream,java.lang.Object)" title="writeValue(OutputStream, Object)">writeValue</a>, <a href="AbstractBsonMapper.html#writeValueAsBytes(io.micronaut.core.type.Argument,T)" title="writeValueAsBytes(Argument, T)">writeValueAsBytes</a>, <a href="AbstractBsonMapper.html#writeValueAsBytes(java.lang.Object)" title="writeValueAsBytes(Object)">writeValueAsBytes</a>, <a href="AbstractBsonMapper.html#writeValueToTree(io.micronaut.core.type.Argument,T)" title="writeValueToTree(Argument, T)">writeValueToTree</a>, <a href="AbstractBsonMapper.html#writeValueToTree(java.lang.Object)" title="writeValueToTree(Object)">writeValueToTree</a></code></div>
+<code><a href="AbstractBsonMapper.html#createReactiveParser(java.util.function.Consumer,boolean)" title="createReactiveParser(Consumer, boolean)">createReactiveParser</a>, <a href="AbstractBsonMapper.html#encodeValue(org.bson.AbstractBsonWriter,io.micronaut.core.type.Argument,java.lang.Object)" title="encodeValue(AbstractBsonWriter, Argument, Object)">encodeValue</a>, <a href="AbstractBsonMapper.html#getSerdeRegistry()" title="getSerdeRegistry()">getSerdeRegistry</a>, <a href="AbstractBsonMapper.html#getStreamConfig()" title="getStreamConfig()">getStreamConfig</a>, <a href="AbstractBsonMapper.html#readValue(byte%5B%5D,io.micronaut.core.type.Argument)" title="readValue(byte[], Argument)">readValue</a>, <a href="AbstractBsonMapper.html#readValue(java.io.InputStream,io.micronaut.core.type.Argument)" title="readValue(InputStream, Argument)">readValue</a>, <a href="AbstractBsonMapper.html#readValueFromTree(io.micronaut.json.tree.JsonNode,io.micronaut.core.type.Argument)" title="readValueFromTree(JsonNode, Argument)">readValueFromTree</a>, <a href="AbstractBsonMapper.html#writeValue(java.io.OutputStream,io.micronaut.core.type.Argument,T)" title="writeValue(OutputStream, Argument, T)">writeValue</a>, <a href="AbstractBsonMapper.html#writeValue(java.io.OutputStream,java.lang.Object)" title="writeValue(OutputStream, Object)">writeValue</a>, <a href="AbstractBsonMapper.html#writeValueToTree(io.micronaut.core.type.Argument,T)" title="writeValueToTree(Argument, T)">writeValueToTree</a>, <a href="AbstractBsonMapper.html#writeValueToTree(java.lang.Object)" title="writeValueToTree(Object)">writeValueToTree</a></code></div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-java.lang.Object">Methods inherited from class&nbsp;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#method-summary" title="class or interface in java.lang" class="external-link">Object</a></h3>
 <code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#clone()" title="class or interface in java.lang" class="external-link">clone</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#equals(java.lang.Object)" title="class or interface in java.lang" class="external-link">equals</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#finalize()" title="class or interface in java.lang" class="external-link">finalize</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#getClass()" title="class or interface in java.lang" class="external-link">getClass</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#hashCode()" title="class or interface in java.lang" class="external-link">hashCode</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#notify()" title="class or interface in java.lang" class="external-link">notify</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#notifyAll()" title="class or interface in java.lang" class="external-link">notifyAll</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#toString()" title="class or interface in java.lang" class="external-link">toString</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#wait()" title="class or interface in java.lang" class="external-link">wait</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#wait(long)" title="class or interface in java.lang" class="external-link">wait</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#wait(long,int)" title="class or interface in java.lang" class="external-link">wait</a></code></div>
@@ -240,6 +249,41 @@ loadScripts(document, 'script');</script>
 <dl class="notes">
 <dt>Specified by:</dt>
 <dd><code><a href="AbstractBsonMapper.html#createBsonWriter(java.io.OutputStream)">createBsonWriter</a></code>&nbsp;in class&nbsp;<code><a href="AbstractBsonMapper.html" title="class in io.micronaut.serde.bson">AbstractBsonMapper</a></code></dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="writeValueAsBytes(java.lang.Object)">
+<h3>writeValueAsBytes</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">byte[]</span>&nbsp;<span class="element-name">writeValueAsBytes</span><wbr><span class="parameters">(@Nullable <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;object)</span>
+                         throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code>writeValueAsBytes</code>&nbsp;in interface&nbsp;<code>io.micronaut.json.JsonMapper</code></dd>
+<dt>Overrides:</dt>
+<dd><code><a href="AbstractBsonMapper.html#writeValueAsBytes(java.lang.Object)">writeValueAsBytes</a></code>&nbsp;in class&nbsp;<code><a href="AbstractBsonMapper.html" title="class in io.micronaut.serde.bson">AbstractBsonMapper</a></code></dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code></dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="writeValueAsBytes(io.micronaut.core.type.Argument,T)">
+<h3 id="writeValueAsBytes(io.micronaut.core.type.Argument,java.lang.Object)">writeValueAsBytes</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="type-parameters">&lt;T&gt;</span>&nbsp;<span class="return-type">byte[]</span>&nbsp;<span class="element-name">writeValueAsBytes</span><wbr><span class="parameters">(io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
+ @Nullable T&nbsp;object)</span>
+                             throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code>writeValueAsBytes</code>&nbsp;in interface&nbsp;<code>io.micronaut.json.JsonMapper</code></dd>
+<dt>Overrides:</dt>
+<dd><code><a href="AbstractBsonMapper.html#writeValueAsBytes(io.micronaut.core.type.Argument,T)">writeValueAsBytes</a></code>&nbsp;in class&nbsp;<code><a href="AbstractBsonMapper.html" title="class in io.micronaut.serde.bson">AbstractBsonMapper</a></code></dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code></dd>
 </dl>
 </div>
 </section>
