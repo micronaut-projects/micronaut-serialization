@@ -1150,6 +1150,20 @@ type.</div>
 <dd>
 <div class="block">Returns the value of the <code>content</code> record component.</div>
 </dd>
+<dt><a href="io/micronaut/serde/support/util/ContextBoundSerdes.html" class="type-name-link" title="class in io.micronaut.serde.support.util">ContextBoundSerdes</a> - Class in <a href="io/micronaut/serde/support/util/package-summary.html">io.micronaut.serde.support.util</a></dt>
+<dd>
+<div class="block">Tracks the serde beans created with the context of a document, such as a user serde taking
+<code>@Parameter EncoderContext</code>, while a serde is specialized, so that the serdes of a bean that are kept
+between documents are specialized again for each document when they contain one.</div>
+</dd>
+<dt><a href="io/micronaut/serde/support/util/ContextBoundSerdes.DeserializerFactory.html" class="type-name-link" title="interface in io.micronaut.serde.support.util">ContextBoundSerdes.DeserializerFactory&lt;T&gt;</a> - Interface in <a href="io/micronaut/serde/support/util/package-summary.html">io.micronaut.serde.support.util</a></dt>
+<dd>
+<div class="block">Creates a specific deserializer for each context.</div>
+</dd>
+<dt><a href="io/micronaut/serde/support/util/ContextBoundSerdes.SerializerFactory.html" class="type-name-link" title="interface in io.micronaut.serde.support.util">ContextBoundSerdes.SerializerFactory&lt;T&gt;</a> - Interface in <a href="io/micronaut/serde/support/util/package-summary.html">io.micronaut.serde.support.util</a></dt>
+<dd>
+<div class="block">Creates a specific serializer for each context.</div>
+</dd>
 <dt><a href="io/micronaut/serde/support/deserializers/collect/CoreCollectionsDeserializers.html" class="type-name-link" title="class in io.micronaut.serde.support.deserializers.collect">CoreCollectionsDeserializers</a> - Class in <a href="io/micronaut/serde/support/deserializers/collect/package-summary.html">io.micronaut.serde.support.deserializers.collect</a></dt>
 <dd>
 <div class="block">Core collections deserializers.</div>
@@ -1195,10 +1209,14 @@ ensuring no tabs are used for indentation.</div>
 <dd>
 <div class="block">Create a decoder that only performs the coercions the given policy allows.</div>
 </dd>
+<dt><a href="io/micronaut/serde/support/util/ContextBoundSerdes.DeserializerFactory.html#create(io.micronaut.serde.Deserializer.DecoderContext)" class="member-name-link">create(Deserializer.DecoderContext)</a> - Method in interface io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/ContextBoundSerdes.DeserializerFactory.html" title="interface in io.micronaut.serde.support.util">ContextBoundSerdes.DeserializerFactory</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/util/JsonNodeEncoder.html#create(io.micronaut.serde.LimitingStream.RemainingLimits)" class="member-name-link">create(LimitingStream.RemainingLimits)</a> - Static method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/JsonNodeEncoder.html" title="class in io.micronaut.serde.support.util">JsonNodeEncoder</a></dt>
 <dd>
 <div class="block">Creates a new instance.</div>
 </dd>
+<dt><a href="io/micronaut/serde/support/util/ContextBoundSerdes.SerializerFactory.html#create(io.micronaut.serde.Serializer.EncoderContext)" class="member-name-link">create(Serializer.EncoderContext)</a> - Method in interface io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/ContextBoundSerdes.SerializerFactory.html" title="interface in io.micronaut.serde.support.util">ContextBoundSerdes.SerializerFactory</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/Keys.html#create(java.lang.String...)" class="member-name-link">create(String...)</a> - Static method in interface io.micronaut.serde.<a href="io/micronaut/serde/Keys.html" title="interface in io.micronaut.serde">Keys</a></dt>
 <dd>
 <div class="block">Create a key set for the supplied keys.</div>
@@ -1297,6 +1315,10 @@ from the given package locations.</div>
 <dt><a href="io/micronaut/serde/support/AbstractDecoderPerStructureStreamDecoder.html#createChildDecoder()" class="member-name-link">createChildDecoder()</a> - Method in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractDecoderPerStructureStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractDecoderPerStructureStreamDecoder</a></dt>
 <dd>
 <div class="block">Create a new child decoder using <a href="io/micronaut/serde/support/AbstractDecoderPerStructureStreamDecoder.html#%3Cinit%3E(io.micronaut.serde.support.AbstractDecoderPerStructureStreamDecoder,io.micronaut.serde.LimitingStream.RemainingLimits)"><code>AbstractDecoderPerStructureStreamDecoder(AbstractDecoderPerStructureStreamDecoder, io.micronaut.serde.LimitingStream.RemainingLimits)</code></a>.</div>
+</dd>
+<dt><a href="io/micronaut/serde/support/util/ContextBoundSerdes.html#created()" class="member-name-link">created()</a> - Static method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/ContextBoundSerdes.html" title="class in io.micronaut.serde.support.util">ContextBoundSerdes</a></dt>
+<dd>
+<div class="block">Records that a serde bean was created with the context of the current specialization.</div>
 </dd>
 <dt><a href="io/micronaut/serde/FormatConfiguration.html#createDateFormat()" class="member-name-link">createDateFormat()</a> - Method in record class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a></dt>
 <dd>&nbsp;</dd>
@@ -2518,6 +2540,16 @@ when the strategy cannot be resolved at compile time.</div>
 share the <a href="io/micronaut/serde/config/annotation/SerdeConfig.SerManagedRef.Scope.html#DOCUMENT"><code>SerdeConfig.SerManagedRef.Scope.DOCUMENT</code></a> marker, one registry per document and the
 same reference serdes.</div>
 </dd>
+<dt><a href="io/micronaut/serde/util/DocumentSerdes.html" class="type-name-link" title="interface in io.micronaut.serde.util">DocumentSerdes</a> - Interface in <a href="io/micronaut/serde/util/package-summary.html">io.micronaut.serde.util</a></dt>
+<dd>
+<div class="block">Serdes kept for the duration of one document by the encoder or decoder context of the document.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/DocumentSerdes.Delegating.html" class="type-name-link" title="interface in io.micronaut.serde.util">DocumentSerdes.Delegating</a> - Interface in <a href="io/micronaut/serde/util/package-summary.html">io.micronaut.serde.util</a></dt>
+<dd>
+<div class="block">Document serdes kept by another context, such as the context a derived context delegates to.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/DocumentSerdes.Delegating.html#documentSerdesOwner()" class="member-name-link">documentSerdesOwner()</a> - Method in interface io.micronaut.serde.util.<a href="io/micronaut/serde/util/DocumentSerdes.Delegating.html" title="interface in io.micronaut.serde.util">DocumentSerdes.Delegating</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/bson/custom/BsonRepresentationSerde.html#doDeserialize(io.micronaut.serde.bson.BsonReaderDecoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">doDeserialize(BsonReaderDecoder, Deserializer.DecoderContext, Argument)</a> - Method in class io.micronaut.serde.bson.custom.<a href="io/micronaut/serde/bson/custom/BsonRepresentationSerde.html" title="class in io.micronaut.serde.bson.custom">BsonRepresentationSerde</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/bson/custom/AbstractBsonSerde.html#doDeserialize(io.micronaut.serde.bson.BsonReaderDecoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">doDeserialize(BsonReaderDecoder, Deserializer.DecoderContext, Argument)</a> - Method in class io.micronaut.serde.bson.custom.<a href="io/micronaut/serde/bson/custom/AbstractBsonSerde.html" title="class in io.micronaut.serde.bson.custom">AbstractBsonSerde</a></dt>
@@ -3764,6 +3796,8 @@ generated type, such as <code>List&lt;Self&gt;</code>.</div>
 <dd>
 <div class="block">Find contributed key data by index.</div>
 </dd>
+<dt><a href="io/micronaut/serde/util/DocumentSerdes.html#get(java.lang.Object,java.lang.Object)" class="member-name-link">get(Object, Object)</a> - Static method in interface io.micronaut.serde.util.<a href="io/micronaut/serde/util/DocumentSerdes.html" title="interface in io.micronaut.serde.util">DocumentSerdes</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/xml/tck/CustomBean.html#getA1()" class="member-name-link">getA1()</a> - Method in class io.micronaut.serde.xml.tck.<a href="io/micronaut/serde/xml/tck/CustomBean.html" title="class in io.micronaut.serde.xml.tck">CustomBean</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/builder/TestBuildMe.html#getAge()" class="member-name-link">getAge()</a> - Method in class io.micronaut.serde.jackson.builder.<a href="io/micronaut/serde/jackson/builder/TestBuildMe.html" title="class in io.micronaut.serde.jackson.builder">TestBuildMe</a></dt>
@@ -4021,6 +4055,10 @@ tabular row cells, and keyed entry-row cells.</div>
 <dd>
 <div class="block">Returns the wrapped deserializer, exposed for testing.</div>
 </dd>
+<dt><a href="io/micronaut/serde/util/DocumentSerdes.Delegating.html#getDocumentSerde(java.lang.Object)" class="member-name-link">getDocumentSerde(Object)</a> - Method in interface io.micronaut.serde.util.<a href="io/micronaut/serde/util/DocumentSerdes.Delegating.html" title="interface in io.micronaut.serde.util">DocumentSerdes.Delegating</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/util/DocumentSerdes.html#getDocumentSerde(java.lang.Object)" class="member-name-link">getDocumentSerde(Object)</a> - Method in interface io.micronaut.serde.util.<a href="io/micronaut/serde/util/DocumentSerdes.html" title="interface in io.micronaut.serde.util">DocumentSerdes</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/bson/BsonReaderDecoder.html#getDouble()" class="member-name-link">getDouble()</a> - Method in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/BsonReaderDecoder.html" title="class in io.micronaut.serde.bson">BsonReaderDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/json/stream/JsonParserDecoder.html#getDouble()" class="member-name-link">getDouble()</a> - Method in class io.micronaut.serde.json.stream.<a href="io/micronaut/serde/json/stream/JsonParserDecoder.html" title="class in io.micronaut.serde.json.stream">JsonParserDecoder</a></dt>
@@ -6520,6 +6558,8 @@ in-memory <code>JsonNode</code>.</div>
 </dd>
 <dt><a href="io/micronaut/serde/config/naming/KebabCaseStrategy.html#%3Cinit%3E()" class="member-name-link">KebabCaseStrategy()</a> - Constructor for class io.micronaut.serde.config.naming.<a href="io/micronaut/serde/config/naming/KebabCaseStrategy.html" title="class in io.micronaut.serde.config.naming">KebabCaseStrategy</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/util/DocumentSerdes.html#keeps(java.lang.Object)" class="member-name-link">keeps(Object)</a> - Static method in interface io.micronaut.serde.util.<a href="io/micronaut/serde/util/DocumentSerdes.html" title="interface in io.micronaut.serde.util">DocumentSerdes</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/exceptions/path/MapItemReferencePath.html#key()" class="member-name-link">key()</a> - Method in interface io.micronaut.serde.exceptions.path.<a href="io/micronaut/serde/exceptions/path/MapItemReferencePath.html" title="interface in io.micronaut.serde.exceptions.path">MapItemReferencePath</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#KEY" class="member-name-link">KEY</a> - Enum constant in enum class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html" title="enum class in io.micronaut.serde.support">AbstractStreamDecoder.TokenType</a></dt>
@@ -8117,6 +8157,16 @@ and the writer.</div>
 <dt><a href="io/micronaut/serde/reference/PropertyReferenceManager.html#pushManagedRef(io.micronaut.serde.reference.PropertyReference)" class="member-name-link">pushManagedRef(PropertyReference)</a> - Method in interface io.micronaut.serde.reference.<a href="io/micronaut/serde/reference/PropertyReferenceManager.html" title="interface in io.micronaut.serde.reference">PropertyReferenceManager</a></dt>
 <dd>
 <div class="block">Pushes a parent onto the stack.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/DocumentSerdes.html#put(java.lang.Object,java.lang.Object,java.lang.Object)" class="member-name-link">put(Object, Object, Object)</a> - Static method in interface io.micronaut.serde.util.<a href="io/micronaut/serde/util/DocumentSerdes.html" title="interface in io.micronaut.serde.util">DocumentSerdes</a></dt>
+<dd>
+<div class="block">Stores a value for the rest of the document of the context, when the context keeps document serdes.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/DocumentSerdes.Delegating.html#putDocumentSerde(java.lang.Object,java.lang.Object)" class="member-name-link">putDocumentSerde(Object, Object)</a> - Method in interface io.micronaut.serde.util.<a href="io/micronaut/serde/util/DocumentSerdes.Delegating.html" title="interface in io.micronaut.serde.util">DocumentSerdes.Delegating</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/util/DocumentSerdes.html#putDocumentSerde(java.lang.Object,java.lang.Object)" class="member-name-link">putDocumentSerde(Object, Object)</a> - Method in interface io.micronaut.serde.util.<a href="io/micronaut/serde/util/DocumentSerdes.html" title="interface in io.micronaut.serde.util">DocumentSerdes</a></dt>
+<dd>
+<div class="block">Stores a value for the rest of the document.</div>
 </dd>
 </dl>
 <h2 class="title" id="I:Q">Q</h2>
@@ -9754,6 +9804,14 @@ resolved at build time.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/sourcegen/SimpleSerdeShapeDecision.FallbackReason.html#SOURCEGEN_SKIPPED" class="member-name-link">SOURCEGEN_SKIPPED</a> - Enum constant in enum class io.micronaut.serde.processor.sourcegen.<a href="io/micronaut/serde/processor/sourcegen/SimpleSerdeShapeDecision.FallbackReason.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.FallbackReason</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/util/ContextBoundSerdes.html#specialize(io.micronaut.serde.support.util.ContextBoundSerdes.DeserializerFactory,io.micronaut.serde.Deserializer.DecoderContext)" class="member-name-link">specialize(ContextBoundSerdes.DeserializerFactory, Deserializer.DecoderContext)</a> - Static method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/ContextBoundSerdes.html" title="class in io.micronaut.serde.support.util">ContextBoundSerdes</a></dt>
+<dd>
+<div class="block">Specializes a deserializer that a bean keeps between documents.</div>
+</dd>
+<dt><a href="io/micronaut/serde/support/util/ContextBoundSerdes.html#specialize(io.micronaut.serde.support.util.ContextBoundSerdes.SerializerFactory,io.micronaut.serde.Serializer.EncoderContext)" class="member-name-link">specialize(ContextBoundSerdes.SerializerFactory, Serializer.EncoderContext)</a> - Static method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/ContextBoundSerdes.html" title="class in io.micronaut.serde.support.util">ContextBoundSerdes</a></dt>
+<dd>
+<div class="block">Specializes a serializer that a bean keeps between documents.</div>
+</dd>
 <dt><a href="io/micronaut/serde/toon/util/ToonEscapes.html#splitByDelimiter(java.lang.String,char)" class="member-name-link">splitByDelimiter(String, char)</a> - Static method in class io.micronaut.serde.toon.util.<a href="io/micronaut/serde/toon/util/ToonEscapes.html" title="class in io.micronaut.serde.toon.util">ToonEscapes</a></dt>
 <dd>
 <div class="block">Splits <code>s</code> on the given delimiter, treating any quoted
