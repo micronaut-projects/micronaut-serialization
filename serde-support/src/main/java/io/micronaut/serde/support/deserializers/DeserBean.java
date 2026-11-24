@@ -688,7 +688,7 @@ final class DeserBean<T> {
             }
         }
         if (anySetter != null) {
-            Argument<Object> anySetterValueType = (Argument<Object>) anySetter.valueType;
+            Argument<Object> anySetterValueType = anySetter.valueType;
             anySetter.deserializer = anySetterValueType.equalsType(Argument.OBJECT_ARGUMENT)
                 ? null
                 : ContextBoundSerdes.specialize(context -> findDeserializer(documentContext(context), anySetterValueType), decoderContext);

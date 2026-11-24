@@ -28,6 +28,7 @@ import io.micronaut.serde.util.DocumentSerdes;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Tracks the serde beans created with the context of a document, such as a user serde taking
@@ -41,10 +42,9 @@ public final class ContextBoundSerdes {
 
     /**
      * Per thread: the number of serde beans created with a context while a specialization is tracked, and the depth
-     * of the nested specializations. A serializer of runtime types specializes once per runtime type and document, so
-     * the pair is kept for the thread instead of being set and removed each time; it holds no application class.
+     * of the nested specializations. The pair is set by the outermost specialization and removed when it completes.
      */
-    private static final ThreadLocal<int[]> TRACKING = ThreadLocal.withInitial(() -> new int[2]);
+    private static final ThreadLocal<int[]> TRACKING = new ThreadLocal<>();
     private static final int CREATED = 0;
     private static final int DEPTH = 1;
 
@@ -56,7 +56,7 @@ public final class ContextBoundSerdes {
      */
     public static void created() {
         int[] tracking = TRACKING.get();
-        if (tracking[DEPTH] > 0) {
+        if (tracking != null && tracking[DEPTH] > 0) {
             tracking[CREATED]++;
         }
     }
@@ -72,14 +72,13 @@ public final class ContextBoundSerdes {
      * @throws SerdeException If it cannot be created
      */
     public static <T> Serializer<T> specialize(SerializerFactory<T> factory, Serializer.EncoderContext context) throws SerdeException {
-        int[] tracking = TRACKING.get();
+        int[] tracking = enter();
         int created = tracking[CREATED];
-        tracking[DEPTH]++;
         try {
             Serializer<T> specific = factory.create(context);
             return wrapsPerDocument(tracking, created, context) ? perDocument(factory, context, specific) : specific;
         } finally {
-            tracking[DEPTH]--;
+            exit(tracking);
         }
     }
 
@@ -94,14 +93,29 @@ public final class ContextBoundSerdes {
      * @throws SerdeException If it cannot be created
      */
     public static <T> Deserializer<T> specialize(DeserializerFactory<T> factory, Deserializer.DecoderContext context) throws SerdeException {
-        int[] tracking = TRACKING.get();
+        int[] tracking = enter();
         int created = tracking[CREATED];
-        tracking[DEPTH]++;
         try {
             Deserializer<T> specific = factory.create(context);
             return wrapsPerDocument(tracking, created, context) ? perDocument(factory, context, specific) : specific;
         } finally {
-            tracking[DEPTH]--;
+            exit(tracking);
+        }
+    }
+
+    private static int[] enter() {
+        int[] tracking = TRACKING.get();
+        if (tracking == null) {
+            tracking = new int[2];
+            TRACKING.set(tracking);
+        }
+        tracking[DEPTH]++;
+        return tracking;
+    }
+
+    private static void exit(int[] tracking) {
+        if (--tracking[DEPTH] == 0) {
+            TRACKING.remove();
         }
     }
 
@@ -175,8 +189,7 @@ public final class ContextBoundSerdes {
      */
     private static class PerDocumentSerializer<T> implements Serializer<T> {
         private final SerializerFactory<T> factory;
-        @Nullable
-        private volatile Serializer<T> shared;
+        private final AtomicReference<Serializer<T>> shared = new AtomicReference<>();
 
         PerDocumentSerializer(SerializerFactory<T> factory) {
             this.factory = factory;
@@ -191,10 +204,12 @@ public final class ContextBoundSerdes {
          * context, gets one specialization shared by all such contexts, as every context did before.
          */
         private Serializer<T> shared(Serializer.EncoderContext context) throws SerdeException {
-            Serializer<T> specific = shared;
+            Serializer<T> specific = shared.get();
             if (specific == null) {
                 specific = factory.create(context);
-                shared = specific;
+                if (!shared.compareAndSet(null, specific)) {
+                    specific = shared.get();
+                }
             }
             return specific;
         }
@@ -221,7 +236,7 @@ public final class ContextBoundSerdes {
         public final boolean isEmpty(EncoderContext context, @Nullable T value) {
             try {
                 return specific(context).isEmpty(context, value);
-            } catch (SerdeException e) {
+            } catch (SerdeException _) {
                 return Serializer.super.isEmpty(context, value);
             }
         }
@@ -230,7 +245,7 @@ public final class ContextBoundSerdes {
         public final boolean isAbsent(EncoderContext context, @Nullable T value) {
             try {
                 return specific(context).isAbsent(context, value);
-            } catch (SerdeException e) {
+            } catch (SerdeException _) {
                 return Serializer.super.isAbsent(context, value);
             }
         }
@@ -239,7 +254,7 @@ public final class ContextBoundSerdes {
         public final boolean isDefault(EncoderContext context, T value) {
             try {
                 return specific(context).isDefault(context, value);
-            } catch (SerdeException e) {
+            } catch (SerdeException _) {
                 return Serializer.super.isDefault(context, value);
             }
         }
@@ -273,8 +288,7 @@ public final class ContextBoundSerdes {
      */
     private static class PerDocumentDeserializer<T> implements Deserializer<T> {
         private final DeserializerFactory<T> factory;
-        @Nullable
-        private volatile Deserializer<T> shared;
+        private final AtomicReference<Deserializer<T>> shared = new AtomicReference<>();
 
         PerDocumentDeserializer(DeserializerFactory<T> factory) {
             this.factory = factory;
@@ -289,10 +303,12 @@ public final class ContextBoundSerdes {
          * context, gets one specialization shared by all such contexts, as every context did before.
          */
         private Deserializer<T> shared(Deserializer.DecoderContext context) throws SerdeException {
-            Deserializer<T> specific = shared;
+            Deserializer<T> specific = shared.get();
             if (specific == null) {
                 specific = factory.create(context);
-                shared = specific;
+                if (!shared.compareAndSet(null, specific)) {
+                    specific = shared.get();
+                }
             }
             return specific;
         }
