@@ -204,14 +204,14 @@ public final class ContextBoundSerdes {
          * context, gets one specialization shared by all such contexts, as every context did before.
          */
         private Serializer<T> shared(Serializer.EncoderContext context) throws SerdeException {
-            Serializer<T> specific = shared.get();
-            if (specific == null) {
-                specific = factory.create(context);
-                if (!shared.compareAndSet(null, specific)) {
-                    specific = shared.get();
-                }
+            Serializer<T> existing = shared.get();
+            if (existing != null) {
+                return existing;
             }
-            return specific;
+            Serializer<T> created = factory.create(context);
+            // Another thread may have created it first: keep the one stored
+            Serializer<T> witness = shared.compareAndExchange(null, created);
+            return witness != null ? witness : created;
         }
 
         @SuppressWarnings("unchecked")
@@ -303,14 +303,14 @@ public final class ContextBoundSerdes {
          * context, gets one specialization shared by all such contexts, as every context did before.
          */
         private Deserializer<T> shared(Deserializer.DecoderContext context) throws SerdeException {
-            Deserializer<T> specific = shared.get();
-            if (specific == null) {
-                specific = factory.create(context);
-                if (!shared.compareAndSet(null, specific)) {
-                    specific = shared.get();
-                }
+            Deserializer<T> existing = shared.get();
+            if (existing != null) {
+                return existing;
             }
-            return specific;
+            Deserializer<T> created = factory.create(context);
+            // Another thread may have created it first: keep the one stored
+            Deserializer<T> witness = shared.compareAndExchange(null, created);
+            return witness != null ? witness : created;
         }
 
         @SuppressWarnings("unchecked")
