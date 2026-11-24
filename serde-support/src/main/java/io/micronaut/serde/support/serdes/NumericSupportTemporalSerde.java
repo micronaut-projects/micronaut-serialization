@@ -17,6 +17,7 @@ package io.micronaut.serde.support.serdes;
 
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.config.SerdeConfiguration;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -45,7 +46,24 @@ abstract non-sealed class NumericSupportTemporalSerde<T extends TemporalAccessor
         SerdeConfiguration.TimeShape writeShape,
         SerdeConfiguration.NumericTimeUnit numericUnit
     ) {
-        super(stringFormatter);
+        this(stringFormatter, null, legacyUnit, writeShape, numericUnit);
+    }
+
+    /**
+     * @param stringFormatter The resolved string formatter
+     * @param isoFormatter    The JDK formatter that {@link #formatIso} and {@link #parseIso} reproduce
+     * @param legacyUnit      The unit to use in place of {@link io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit#LEGACY}
+     * @param writeShape      The configured write shape
+     * @param numericUnit     The configured numeric time unit
+     */
+    NumericSupportTemporalSerde(
+        DateTimeFormatter stringFormatter,
+        @Nullable DateTimeFormatter isoFormatter,
+        SerdeConfiguration.NumericTimeUnit legacyUnit,
+        SerdeConfiguration.TimeShape writeShape,
+        SerdeConfiguration.NumericTimeUnit numericUnit
+    ) {
+        super(stringFormatter, isoFormatter);
         this.writeShape = writeShape;
         this.numericUnit = normalizeNumericUnit(numericUnit, legacyUnit);
     }
@@ -65,6 +83,47 @@ abstract non-sealed class NumericSupportTemporalSerde<T extends TemporalAccessor
             exc.addSuppressed(e);
             throw exc;
         }
+        return fromDecimal(raw);
+    }
+
+    @Override
+    final @Nullable T parseNumber(String text) {
+        if (IsoTemporalFormat.isPlainInteger(text, IsoTemporalFormat.MAX_LONG_DIGITS)) {
+            // the same truncation toward zero as fromDecimal, without BigDecimal
+            long value = Long.parseLong(text);
+            return switch (numericUnit) {
+                case LEGACY -> throw new AssertionError("Should be replaced in constructor");
+                case SECONDS -> fromNanos(value, 0);
+                case MILLISECONDS -> fromNanos(value / 1_000, (int) (value % 1_000) * 1_000_000);
+                case NANOSECONDS -> fromNanos(value / 1_000_000_000, (int) (value % 1_000_000_000));
+            };
+        }
+        return isPlainDecimal(text) ? fromDecimal(new BigDecimal(text)) : null;
+    }
+
+    /**
+     * @param text The text
+     * @return Whether the text is an optional minus sign and digits, with at most one decimal point between digits
+     */
+    static boolean isPlainDecimal(String text) {
+        int len = text.length();
+        int start = len > 0 && text.charAt(0) == '-' ? 1 : 0;
+        if (start == len) {
+            return false;
+        }
+        boolean dot = false;
+        for (int i = start; i < len; i++) {
+            char c = text.charAt(i);
+            if (c == '.' && !dot && i > start && i < len - 1) {
+                dot = true;
+            } else if (c < '0' || c > '9') {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private T fromDecimal(BigDecimal raw) {
         BigDecimal s = switch (numericUnit) {
             case LEGACY -> throw new AssertionError("Should be replaced in constructor");
             case SECONDS -> raw;
