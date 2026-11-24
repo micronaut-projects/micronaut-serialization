@@ -24,7 +24,9 @@ import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.reference.PropertyReference;
+import io.micronaut.serde.util.DocumentSerdes;
 import org.jspecify.annotations.Nullable;
+
 
 import java.io.IOException;
 import java.util.Collection;
@@ -37,7 +39,7 @@ import java.util.Set;
  * @since 3.0
  */
 @Internal
-final class FeatureDecoderContext implements Deserializer.DecoderContext {
+final class FeatureDecoderContext implements Deserializer.DecoderContext, DocumentSerdes.Delegating {
     private final Deserializer.DecoderContext delegate;
     private final Set<DeserializationConfiguration.Feature> features;
 
@@ -105,6 +107,11 @@ final class FeatureDecoderContext implements Deserializer.DecoderContext {
     @Override
     public void close() throws IOException {
         delegate.close();
+    }
+
+    @Override
+    public Object documentSerdesOwner() {
+        return delegate;
     }
 
     @Override
