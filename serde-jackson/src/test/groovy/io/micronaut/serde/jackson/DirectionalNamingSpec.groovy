@@ -241,6 +241,90 @@ class UserDto {
         context.close()
     }
 
+    @spock.lang.Unroll
+    void "directional naming strategies looked up at runtime keep the runtime serdes (#serializeNaming, #deserializeNaming)"() {
+        given:
+        def context = buildContext('test.UserDto', """
+package test;
+
+import io.micronaut.core.annotation.AnnotatedElement;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.IdentityStrategy;
+import io.micronaut.serde.config.naming.PropertyNamingStrategy;
+import jakarta.inject.Singleton;
+
+@Serdeable.Serializable(naming = $serializeNaming)
+@Serdeable.Deserializable(naming = $deserializeNaming)
+class UserDto {
+    private String firstName;
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+
+    @Singleton
+    public static class Out implements PropertyNamingStrategy {
+        @Override
+        public String translate(AnnotatedElement element) { return "out_" + element.getName(); }
+    }
+
+    @Singleton
+    public static class In implements PropertyNamingStrategy {
+        @Override
+        public String translate(AnnotatedElement element) { return "in_" + element.getName(); }
+    }
+}
+""", true, [:])
+        def metadata = context.getBean(io.micronaut.serde.SerdeIntrospections)
+            .getSerializableIntrospection(argumentOf(context, 'test.UserDto'))
+            .annotationMetadata
+
+        expect: 'the processor leaves a strategy it cannot instantiate to the runtime serdes'
+        metadata.stringValue(io.micronaut.serde.config.annotation.SerdeConfig, io.micronaut.serde.config.annotation.SerdeConfig.SERIALIZE_RUNTIME_NAMING).isPresent() == serializeRuntime
+        metadata.stringValue(io.micronaut.serde.config.annotation.SerdeConfig, io.micronaut.serde.config.annotation.SerdeConfig.DESERIALIZE_RUNTIME_NAMING).isPresent()
+        !metadata.booleanValue(io.micronaut.serde.config.annotation.SerdeConfig, io.micronaut.serde.config.annotation.SerdeConfig.SOURCEGEN_SERIALIZER_ELIGIBLE).orElse(false)
+        !metadata.booleanValue(io.micronaut.serde.config.annotation.SerdeConfig, io.micronaut.serde.config.annotation.SerdeConfig.SOURCEGEN_DESERIALIZER_ELIGIBLE).orElse(false)
+
+        cleanup:
+        context.close()
+
+        where:
+        serializeNaming          | deserializeNaming | serializeRuntime
+        'UserDto.Out.class'      | 'UserDto.In.class' | true
+        'IdentityStrategy.class' | 'UserDto.In.class' | false
+    }
+
+    void "a property with only a deserialize name is handled by the runtime serdes"() {
+        given:
+        def context = buildContext('test.UserDto', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.IdentityStrategy;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+
+@Serdeable
+class UserDto {
+    private String firstName;
+
+    @Serdeable.Serializable(naming = IdentityStrategy.class)
+    @Serdeable.Deserializable(naming = SnakeCaseStrategy.class)
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+}
+''', [firstName: 'John'])
+        def metadata = context.getBean(io.micronaut.serde.SerdeIntrospections)
+            .getSerializableIntrospection(typeUnderTest)
+            .annotationMetadata
+
+        expect:
+        writeJson(jsonMapper, beanUnderTest) == '{"firstName":"John"}'
+        jsonMapper.readValue('{"first_name":"Jane"}', typeUnderTest).firstName == 'Jane'
+        !metadata.booleanValue(io.micronaut.serde.config.annotation.SerdeConfig, io.micronaut.serde.config.annotation.SerdeConfig.SOURCEGEN_SERIALIZER_ELIGIBLE).orElse(false)
+        !metadata.booleanValue(io.micronaut.serde.config.annotation.SerdeConfig, io.micronaut.serde.config.annotation.SerdeConfig.SOURCEGEN_DESERIALIZER_ELIGIBLE).orElse(false)
+
+        cleanup:
+        context.close()
+    }
+
     void "naming on @Serdeable.Deserializable alone names both directions, as before directional naming"() {
         given:
         def context = buildContext('test.UserDto', '''
