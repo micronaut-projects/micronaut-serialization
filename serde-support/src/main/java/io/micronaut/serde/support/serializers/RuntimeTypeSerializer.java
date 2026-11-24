@@ -33,8 +33,10 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Internal
 final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
+    private static final String NO_SERIALIZER_FOUND = "No serializer found for type: ";
+
     private final EncoderContext encoderContext;
-    private final Map<Class<?>, Serializer<Object>> inners = new ConcurrentHashMap<>(10);
+    private final Map<Class<?>, Inner> inners = new ConcurrentHashMap<>(10);
     @Nullable
     private final Serializer<Object> outer;
     @Nullable
@@ -69,8 +71,9 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
         if (outer != null && t == type.getType()) {
             serializer = outer;
         } else {
-            type = Argument.of(t);
-            serializer = getSerializer(context, value);
+            Inner inner = getInner(context, value);
+            type = inner.argument;
+            serializer = inner.serializer;
         }
         serializer.serialize(encoder, context, type, value);
     }
@@ -82,8 +85,9 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
         if (outer != null && t == type.getType()) {
             serializer = outer;
         } else {
-            type = Argument.of(t);
-            serializer = getSerializer(context, value);
+            Inner inner = getInner(context, value);
+            type = inner.argument;
+            serializer = inner.serializer;
         }
         if (serializer instanceof ObjectSerializer<Object> objectSerializer) {
             objectSerializer.serializeInto(encoder, context, type, value);
@@ -123,27 +127,20 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
     }
 
     private Serializer<Object> getSerializer(EncoderContext context, Object value) throws SerdeException {
+        return getInner(context, value).serializer;
+    }
+
+    private Inner getInner(EncoderContext context, Object value) throws SerdeException {
+        Inner inner = inners.get(value.getClass());
+        if (inner != null) {
+            return inner;
+        }
         try {
             return inners.computeIfAbsent(value.getClass(), t -> {
                 try {
-                    if (value.getClass().equals(outerType.getType())) {
-                        if (outer == null) {
-                            if (introspectionException != null) {
-                                String message = introspectionException.getMessage();
-                                if (message == null) {
-                                    message = "No serializer found for type: " + value.getClass();
-                                }
-                                throw new SerdeException(message, introspectionException);
-                            }
-                            throw new SerdeException("No serializer found for type: " + value.getClass());
-                        }
-                        return outer;
-                    } else {
-                        Argument<Object> arg = Argument.of((Class) value.getClass(), outerType.getAnnotationMetadata());
-                        return encoderContext.findSerializer(arg).createSpecific(context, arg);
-                    }
+                    return createInner(context, t);
                 } catch (SerdeException ex) {
-                    throw new IntrospectionException("No serializer found for type: " + value.getClass(), ex);
+                    throw new IntrospectionException(NO_SERIALIZER_FOUND + t, ex);
                 }
             });
         } catch (IntrospectionException e) {
@@ -153,6 +150,34 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
                 throw e;
             }
         }
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private Inner createInner(EncoderContext context, Class<?> valueType) throws SerdeException {
+        if (!valueType.equals(outerType.getType())) {
+            Argument<Object> arg = Argument.of((Class) valueType, outerType.getAnnotationMetadata());
+            return new Inner(Argument.of(valueType), encoderContext.findSerializer(arg).createSpecific(context, arg));
+        }
+        if (outer != null) {
+            return new Inner(Argument.of(valueType), outer);
+        }
+        if (introspectionException == null) {
+            throw new SerdeException(NO_SERIALIZER_FOUND + valueType);
+        }
+        String message = introspectionException.getMessage();
+        if (message == null) {
+            message = NO_SERIALIZER_FOUND + valueType;
+        }
+        throw new SerdeException(message, introspectionException);
+    }
+
+    /**
+     * The serializer of a runtime type and the argument it is called with.
+     *
+     * @param argument   The argument of the runtime type
+     * @param serializer The serializer
+     */
+    private record Inner(Argument<?> argument, Serializer<Object> serializer) {
     }
 
 }
