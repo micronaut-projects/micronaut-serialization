@@ -29,6 +29,7 @@ loadScripts(document, 'script');</script>
 <ul id="navbar-top-firstrow" class="nav-list" title="Navigation">
 <li><a href="index.html">Overview</a></li>
 <li><a href="overview-tree.html">Tree</a></li>
+<li><a href="deprecated-list.html">Deprecated</a></li>
 <li class="nav-bar-cell1-rev">Index</li>
 <li><a href="search.html">Search</a></li>
 <li><a href="help-doc.html#index">Help</a></li>
@@ -699,6 +700,11 @@ independent of value of the property.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jsonb/MicronautJsonbProvider.Builder.html#%3Cinit%3E()" class="member-name-link">Builder()</a> - Constructor for class io.micronaut.serde.jsonb.<a href="io/micronaut/serde/jsonb/MicronautJsonbProvider.Builder.html" title="class in io.micronaut.serde.jsonb">MicronautJsonbProvider.Builder</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/util/BuiltInStringDeserializer.html" class="type-name-link" title="interface in io.micronaut.serde.util">BuiltInStringDeserializer</a> - Interface in <a href="io/micronaut/serde/util/package-summary.html">io.micronaut.serde.util</a></dt>
+<dd>
+<div class="block">Marks the string deserializer Micronaut Serialization registers itself, which returns the string of the input
+unchanged.</div>
+</dd>
 <dt><a href="io/micronaut/serde/protobuf/ProtoSchema.html#byKeyIndex(io.micronaut.serde.Keys)" class="member-name-link">byKeyIndex(Keys)</a> - Method in class io.micronaut.serde.protobuf.<a href="io/micronaut/serde/protobuf/ProtoSchema.html" title="class in io.micronaut.serde.protobuf">ProtoSchema</a></dt>
 <dd>
 <div class="block">This schema's properties in key index order, so the encoder can turn a key index straight
@@ -2185,6 +2191,18 @@ from the given package locations.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeStringNullable()" class="member-name-link">decodeStringNullable()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/KeysAwareDecoder.html#decodeStringValue(io.micronaut.serde.Decoder,io.micronaut.serde.Keys)" class="member-name-link">decodeStringValue(Decoder, Keys)</a> - Static method in interface io.micronaut.serde.<a href="io/micronaut/serde/KeysAwareDecoder.html" title="interface in io.micronaut.serde">KeysAwareDecoder</a></dt>
+<dd>
+<div class="block">Decode the next value with any decoder if it is a string that is one of the supplied constant
+values, see <a href="io/micronaut/serde/KeysAwareDecoder.html#decodeStringValue(io.micronaut.serde.Keys)"><code>KeysAwareDecoder.decodeStringValue(Keys)</code></a>.</div>
+</dd>
+<dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeStringValue(io.micronaut.serde.Keys)" class="member-name-link">decodeStringValue(Keys)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/KeysAwareDecoder.html#decodeStringValue(io.micronaut.serde.Keys)" class="member-name-link">decodeStringValue(Keys)</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/KeysAwareDecoder.html" title="interface in io.micronaut.serde">KeysAwareDecoder</a></dt>
+<dd>
+<div class="block">Decode the next value if it is a string that is one of the supplied constant values, such as
+the serialized names of the constants of an enum.</div>
+</dd>
 <dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonParserDecoder.html#decodeZonedDateTime()" class="member-name-link">decodeZonedDateTime()</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonParserDecoder.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonParserDecoder</a></dt>
 <dd>
 <div class="block">Decodes Oracle JSON value as <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/ZonedDateTime.html" title="class or interface in java.time" class="external-link"><code>ZonedDateTime</code></a>.</div>
@@ -2946,6 +2964,17 @@ empty bean.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/xml/XmlStaxEncoder.html#encodeString(java.lang.String)" class="member-name-link">encodeString(String)</a> - Method in class io.micronaut.serde.xml.<a href="io/micronaut/serde/xml/XmlStaxEncoder.html" title="class in io.micronaut.serde.xml">XmlStaxEncoder</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/KeysAwareEncoder.html#encodeStringValue(io.micronaut.serde.Encoder,io.micronaut.serde.Keys,int)" class="member-name-link">encodeStringValue(Encoder, Keys, int)</a> - Static method in interface io.micronaut.serde.<a href="io/micronaut/serde/KeysAwareEncoder.html" title="interface in io.micronaut.serde">KeysAwareEncoder</a></dt>
+<dd>
+<div class="block">Encode a string value by index from the supplied set of constant values with any encoder.</div>
+</dd>
+<dt><a href="io/micronaut/serde/jackson/JacksonEncoder.html#encodeStringValue(io.micronaut.serde.Keys,int)" class="member-name-link">encodeStringValue(Keys, int)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonEncoder.html" title="class in io.micronaut.serde.jackson">JacksonEncoder</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/KeysAwareEncoder.html#encodeStringValue(io.micronaut.serde.Keys,int)" class="member-name-link">encodeStringValue(Keys, int)</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/KeysAwareEncoder.html" title="interface in io.micronaut.serde">KeysAwareEncoder</a></dt>
+<dd>
+<div class="block">Encode a string value by index from the supplied set of constant values, such as the
+serialized names of the constants of an enum.</div>
+</dd>
 <dt><a href="io/micronaut/serde/util/BinaryCodecUtil.html#encodeToArray(io.micronaut.serde.Encoder,byte%5B%5D)" class="member-name-link">encodeToArray(Encoder, byte[])</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/BinaryCodecUtil.html" title="class in io.micronaut.serde.util">BinaryCodecUtil</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/util/BinaryCodecUtil.html#encodeToBase64String(io.micronaut.serde.Encoder,byte%5B%5D)" class="member-name-link">encodeToBase64String(Encoder, byte[])</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/BinaryCodecUtil.html" title="class in io.micronaut.serde.util">BinaryCodecUtil</a></dt>
@@ -2999,6 +3028,12 @@ empty bean.</div>
 <div class="block">Shape model for enum-based source generation.</div>
 </dd>
 <dt><a href="io/micronaut/serde/processor/sourcegen/enums/EnumSerdeShape.html#%3Cinit%3E(java.util.List,boolean)" class="member-name-link">EnumSerdeShape(List, boolean)</a> - Constructor for record class io.micronaut.serde.processor.sourcegen.enums.<a href="io/micronaut/serde/processor/sourcegen/enums/EnumSerdeShape.html" title="class in io.micronaut.serde.processor.sourcegen.enums">EnumSerdeShape</a></dt>
+<dd>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated, for removal: This API element is subject to removal in a future version.</span>
+<div class="deprecation-comment">Use <a href="io/micronaut/serde/processor/sourcegen/enums/EnumSerdeShape.html#%3Cinit%3E(java.util.List,boolean,java.util.List)"><code>EnumSerdeShape(List, boolean, List)</code></a></div>
+</div>
+</dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/enums/EnumSerdeShape.html#%3Cinit%3E(java.util.List,boolean,java.util.List)" class="member-name-link">EnumSerdeShape(List, boolean, List)</a> - Constructor for record class io.micronaut.serde.processor.sourcegen.enums.<a href="io/micronaut/serde/processor/sourcegen/enums/EnumSerdeShape.html" title="class in io.micronaut.serde.processor.sourcegen.enums">EnumSerdeShape</a></dt>
 <dd>
 <div class="block">Creates an instance of a <code>EnumSerdeShape</code> record class.</div>
 </dd>
@@ -5008,6 +5043,11 @@ occurrences of the bean in a document are written and read as the identifier.</d
 <dd>
 <div class="block">Determines whether the property is restricted to only read or only write access.</div>
 </dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/enums/EnumSerdeShape.html#hasUniqueSerializedValues()" class="member-name-link">hasUniqueSerializedValues()</a> - Method in record class io.micronaut.serde.processor.sourcegen.enums.<a href="io/micronaut/serde/processor/sourcegen/enums/EnumSerdeShape.html" title="class in io.micronaut.serde.processor.sourcegen.enums">EnumSerdeShape</a></dt>
+<dd>
+<div class="block">Whether every constant has its own serialized value, which then identifies the constant in
+both directions.</div>
+</dd>
 <dt><a href="io/micronaut/serde/Deserializer.DecoderContext.html#hasView(java.lang.Class...)" class="member-name-link">hasView(Class...)</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/Serializer.EncoderContext.html#hasView(java.lang.Class...)" class="member-name-link">hasView(Class...)</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a></dt>
@@ -5598,6 +5638,11 @@ about the property that was incorrect.</div>
 <dd>
 <div class="block">Returns whether YAML boolean-like words such as <code>yes</code>, <code>no</code>,
 <code>on</code>, and <code>off</code> should be parsed as strings.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeEnumUtil.html#isBuiltInStringDeserializer(io.micronaut.serde.Deserializer)" class="member-name-link">isBuiltInStringDeserializer(Deserializer)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeEnumUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeEnumUtil</a></dt>
+<dd>
+<div class="block">Whether the string deserializer of a generated enum deserializer is the built-in one, see
+<a href="io/micronaut/serde/util/BuiltInStringDeserializer.html" title="interface in io.micronaut.serde.util"><code>BuiltInStringDeserializer</code></a>.</div>
 </dd>
 <dt><a href="io/micronaut/serde/yaml/SerdeYamlConfiguration.html#isCanonicalOutput()" class="member-name-link">isCanonicalOutput()</a> - Method in class io.micronaut.serde.yaml.<a href="io/micronaut/serde/yaml/SerdeYamlConfiguration.html" title="class in io.micronaut.serde.yaml">SerdeYamlConfiguration</a></dt>
 <dd>
@@ -9122,6 +9167,10 @@ when the strategy cannot be resolved at compile time.</div>
 <dd>
 <div class="block">Returns the value of the <a href="./io/micronaut/serde/processor/sourcegen/enums/EnumSerdeShape.EnumConstant.html#param-serializedValue"><code>serializedValue</code></a> record component.</div>
 </dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/enums/EnumSerdeShape.html#serializedValues()" class="member-name-link">serializedValues()</a> - Method in record class io.micronaut.serde.processor.sourcegen.enums.<a href="io/micronaut/serde/processor/sourcegen/enums/EnumSerdeShape.html" title="class in io.micronaut.serde.processor.sourcegen.enums">EnumSerdeShape</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./io/micronaut/serde/processor/sourcegen/enums/EnumSerdeShape.html#param-serializedValues"><code>serializedValues</code></a> record component.</div>
+</dd>
 <dt><a href="io/micronaut/serde/ObjectSerializer.html#serializeInto(io.micronaut.serde.Encoder,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,T)" class="member-name-link">serializeInto(Encoder, Serializer.EncoderContext, Argument, T)</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/ObjectSerializer.html" title="interface in io.micronaut.serde">ObjectSerializer</a></dt>
 <dd>
 <div class="block">Serializes the object values using the passed object encoder.</div>
@@ -10952,8 +11001,8 @@ threads.</div>
 </dd>
 <dt><a href="io/micronaut/serde/jackson/VirtualThreadAwareRecyclerPool.html#%3Cinit%3E()" class="member-name-link">VirtualThreadAwareRecyclerPool()</a> - Constructor for class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/VirtualThreadAwareRecyclerPool.html" title="class in io.micronaut.serde.jackson">VirtualThreadAwareRecyclerPool</a></dt>
 <dd>
-<div class="block">Creates a pool that uses <code>JsonRecyclerPools.threadLocalPool()</code> on platform threads and a new
-<code>concurrent deque pool</code> on virtual threads.</div>
+<div class="block">Creates a pool that uses <code>JsonRecyclerPools.threadLocalPool()</code> on platform threads and a new pool of
+concurrent deques on virtual threads.</div>
 </dd>
 <dt><a href="io/micronaut/serde/processor/SerdeAnnotationVisitor.html#visitClass(io.micronaut.inject.ast.ClassElement,io.micronaut.inject.visitor.VisitorContext)" class="member-name-link">visitClass(ClassElement, VisitorContext)</a> - Method in class io.micronaut.serde.processor.<a href="io/micronaut/serde/processor/SerdeAnnotationVisitor.html" title="class in io.micronaut.serde.processor">SerdeAnnotationVisitor</a></dt>
 <dd>&nbsp;</dd>
