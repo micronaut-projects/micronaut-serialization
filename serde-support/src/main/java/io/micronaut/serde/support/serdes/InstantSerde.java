@@ -18,6 +18,7 @@ package io.micronaut.serde.support.serdes;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.support.SerdeRegistrar;
+import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
@@ -45,6 +46,7 @@ public final class InstantSerde extends NumericSupportTemporalSerde<Instant> imp
                          SerdeConfiguration.NumericTimeUnit numericUnit) {
         super(
             stringFormatter,
+            DateTimeFormatter.ISO_INSTANT,
             SerdeConfiguration.NumericTimeUnit.MILLISECONDS,
             writeShape,
             numericUnit
@@ -54,6 +56,16 @@ public final class InstantSerde extends NumericSupportTemporalSerde<Instant> imp
     @Override
     public TemporalQuery<Instant> query() {
         return QUERY;
+    }
+
+    @Override
+    @Nullable String formatIso(Instant value) {
+        return IsoTemporalFormat.formatInstant(value);
+    }
+
+    @Override
+    @Nullable Instant parseIso(String text) {
+        return IsoTemporalFormat.parseInstant(text);
     }
 
     @Override

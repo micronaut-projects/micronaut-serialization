@@ -73,6 +73,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 
@@ -107,6 +109,12 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     private final SerdeConfiguration serdeConfiguration;
     private final SerializationConfiguration serializationConfiguration;
     private final DeserializationConfiguration deserializationConfiguration;
+    // The contexts of every document share these: the configuration of a registry does not change
+    private final Optional<SerdeConfiguration> optionalSerdeConfiguration;
+    private final Optional<SerializationConfiguration> optionalSerializationConfiguration;
+    private final Optional<DeserializationConfiguration> optionalDeserializationConfiguration;
+    private final Set<SerializationConfiguration.Feature> serializationFeatures;
+    private final Set<DeserializationConfiguration.Feature> deserializationFeatures;
 
     /**
      * Default constructor.
@@ -128,6 +136,11 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         this.serdeConfiguration = serdeConfiguration;
         this.serializationConfiguration = serializationConfiguration;
         this.deserializationConfiguration = deserializationConfiguration;
+        this.optionalSerdeConfiguration = Optional.of(serdeConfiguration);
+        this.optionalSerializationConfiguration = Optional.of(serializationConfiguration);
+        this.optionalDeserializationConfiguration = Optional.of(deserializationConfiguration);
+        this.serializationFeatures = SerializationConfiguration.features(serializationConfiguration);
+        this.deserializationFeatures = deserializationConfiguration.features();
         this.introspections = introspections;
         this.beanContext = beanContext;
         this.conversionService = conversionService;
@@ -600,6 +613,26 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     @Internal
     final DeserializationConfiguration getDeserializationConfiguration() {
         return deserializationConfiguration;
+    }
+
+    final Optional<SerdeConfiguration> optionalSerdeConfiguration() {
+        return optionalSerdeConfiguration;
+    }
+
+    final Optional<SerializationConfiguration> optionalSerializationConfiguration() {
+        return optionalSerializationConfiguration;
+    }
+
+    final Optional<DeserializationConfiguration> optionalDeserializationConfiguration() {
+        return optionalDeserializationConfiguration;
+    }
+
+    final Set<SerializationConfiguration.Feature> serializationFeatures() {
+        return serializationFeatures;
+    }
+
+    final Set<DeserializationConfiguration.Feature> deserializationFeatures() {
+        return deserializationFeatures;
     }
 
     /**

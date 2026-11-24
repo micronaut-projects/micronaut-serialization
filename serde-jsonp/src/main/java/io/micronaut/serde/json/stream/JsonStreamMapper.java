@@ -41,7 +41,9 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import jakarta.json.Json;
 import jakarta.json.stream.JsonGenerator;
+import jakarta.json.stream.JsonGeneratorFactory;
 import jakarta.json.stream.JsonParser;
+import jakarta.json.stream.JsonParserFactory;
 import org.reactivestreams.Processor;
 
 import java.io.ByteArrayInputStream;
@@ -50,6 +52,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -126,14 +129,14 @@ public class JsonStreamMapper implements ObjectMapper {
 
     @Override
     public <T> @Nullable T readValue(InputStream inputStream, Argument<T> type) throws IOException {
-        try (JsonParser parser = Json.createParser(inputStream)) {
+        try (JsonParser parser = Factories.PARSER.createParser(inputStream)) {
             return readValue(parser, type);
         }
     }
 
     @Override
     public <T> @Nullable T readValue(byte[] byteArray, Argument<T> type) throws IOException {
-        try (JsonParser parser = Json.createParser(new ByteArrayInputStream(byteArray))) {
+        try (JsonParser parser = Factories.PARSER.createParser(new ByteArrayInputStream(byteArray))) {
             return readValue(parser, type);
         }
     }
@@ -156,7 +159,7 @@ public class JsonStreamMapper implements ObjectMapper {
         return new BufferingJsonNodeProcessor(onSubscribe, streamArray) {
             @Override
             protected JsonNode parseOne(InputStream is) throws IOException {
-                try (JsonParser parser = Json.createParser(is)) {
+                try (JsonParser parser = Factories.PARSER.createParser(is)) {
                     final JsonParserDecoder decoder = new JsonParserDecoder(parser, limits(), coercionPolicy());
                     final Object o = decoder.decodeArbitrary();
                     return writeValueToTree(o);
@@ -187,7 +190,7 @@ public class JsonStreamMapper implements ObjectMapper {
 
     @Override
     public void writeValue(OutputStream outputStream, @Nullable Object object) throws IOException {
-        try (JsonGenerator generator = Json.createGenerator(Objects.requireNonNull(outputStream, "Output stream cannot be null"))) {
+        try (JsonGenerator generator = Factories.GENERATOR.createGenerator(Objects.requireNonNull(outputStream, "Output stream cannot be null"))) {
             if (object == null) {
                 generator.writeNull();
             } else {
@@ -200,7 +203,7 @@ public class JsonStreamMapper implements ObjectMapper {
 
     @Override
     public <T> void writeValue(OutputStream outputStream, Argument<T> type, @Nullable T object) throws IOException {
-        try (JsonGenerator generator = Json.createGenerator(Objects.requireNonNull(outputStream, "Output stream cannot be null"))) {
+        try (JsonGenerator generator = Factories.GENERATOR.createGenerator(Objects.requireNonNull(outputStream, "Output stream cannot be null"))) {
             if (object == null) {
                 generator.writeNull();
             } else {
@@ -253,4 +256,17 @@ public class JsonStreamMapper implements ObjectMapper {
         return JsonStreamConfig.DEFAULT;
     }
 
+
+    /**
+     * {@code Json.createParser} and {@code Json.createGenerator} look the provider up through the
+     * {@link java.util.ServiceLoader} on every call. The factories are thread safe, so they are
+     * resolved once, on first use.
+     */
+    private static final class Factories {
+        static final JsonParserFactory PARSER = Json.createParserFactory(Map.of());
+        static final JsonGeneratorFactory GENERATOR = Json.createGeneratorFactory(Map.of());
+
+        private Factories() {
+        }
+    }
 }
