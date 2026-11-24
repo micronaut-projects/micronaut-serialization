@@ -350,15 +350,7 @@ public final class SimpleSerdeShapeAnalyzer {
         if (analysis.open() && hasDirectIterableProperties(element) && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE)) {
             return true;
         }
-        // Two properties serialized under one name cannot share a generated key
-        if (analysis.open() && hasDuplicateSerializedNames(element) && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE)) {
-            return true;
-        }
-        // A property written and read with different names is handled by the runtime serdes
-        if (analysis.open() && hasDirectionalNames(element) && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE)) {
-            return true;
-        }
-        if (readsPropertyNameOfAnotherParameter(analysis) && analysis.failDeserializer(FallbackReason.COMPLEX_CREATOR)) {
+        if (analyzePropertyNames(analysis)) {
             return true;
         }
         if (analysis.open()
@@ -378,6 +370,24 @@ public final class SimpleSerdeShapeAnalyzer {
             && analysis.open()
             && hasComplexEnumCustomization(element)
             && analysis.failBoth(FallbackReason.COMPLEX_ENUM);
+    }
+
+    /**
+     * The names the properties are written and read with.
+     *
+     * @return {@code true} once the analysis is complete
+     */
+    private boolean analyzePropertyNames(Analysis analysis) {
+        ClassElement element = analysis.element;
+        // Two properties serialized under one name cannot share a generated key
+        if (analysis.open() && hasDuplicateSerializedNames(element) && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE)) {
+            return true;
+        }
+        // A property written and read with different names is handled by the runtime serdes
+        if (analysis.open() && hasDirectionalNames(element) && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE)) {
+            return true;
+        }
+        return readsPropertyNameOfAnotherParameter(analysis) && analysis.failDeserializer(FallbackReason.COMPLEX_CREATOR);
     }
 
     /**
