@@ -354,6 +354,10 @@ public final class SimpleSerdeShapeAnalyzer {
         if (analysis.open() && hasDuplicateSerializedNames(element) && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE)) {
             return true;
         }
+        // A property written and read with different names is handled by the runtime serdes
+        if (analysis.open() && hasDirectionalNames(element) && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE)) {
+            return true;
+        }
         if (readsPropertyNameOfAnotherParameter(analysis) && analysis.failDeserializer(FallbackReason.COMPLEX_CREATOR)) {
             return true;
         }
@@ -708,6 +712,16 @@ public final class SimpleSerdeShapeAnalyzer {
         return analysis.deserializerOpen()
             && (analysis.shapeKind == ShapeKind.RECORD || analysis.shapeKind == ShapeKind.CONSTRUCTOR_BEAN)
             && RecordSerdeShapeResolver.readsPropertyNameOfAnotherParameter(analysis.element);
+    }
+
+    private boolean hasDirectionalNames(ClassElement element) {
+        for (PropertyElement property : beanProperties(element)) {
+            if (property.stringValue(SerdeConfig.class, SerdeConfig.SERIALIZE_PROPERTY_NAME).isPresent()
+                || property.stringValue(SerdeConfig.class, SerdeConfig.DESERIALIZE_PROPERTY_NAME).isPresent()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean hasDuplicateSerializedNames(ClassElement element) {
@@ -1069,7 +1083,9 @@ public final class SimpleSerdeShapeAnalyzer {
      * generated serdes use. Only a strategy that has to be looked up at runtime needs the runtime serde.
      */
     private boolean hasCustomNaming(AnnotationMetadata annotationMetadata) {
-        return annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.RUNTIME_NAMING).isPresent();
+        return annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.RUNTIME_NAMING).isPresent()
+            || annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.SERIALIZE_RUNTIME_NAMING).isPresent()
+            || annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.DESERIALIZE_RUNTIME_NAMING).isPresent();
     }
 
     private boolean hasAnnotation(MethodElement methodElement, Class<? extends Annotation> annotation) {
