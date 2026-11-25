@@ -23,11 +23,8 @@ import io.micronaut.serde.toon.SerdeToonConfiguration;
 import jakarta.inject.Singleton;
 import org.jspecify.annotations.Nullable;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -55,8 +52,13 @@ import java.util.Set;
 @Singleton
 public final class ToonEncoder {
 
+    private static final int DOCUMENT_INITIAL_SIZE = 256;
+    private static final int BLOCK_SIZE = 8192;
+    private static final int CACHED_INDENTS = 16;
+
     private final char delimiter;
     private final String indentUnit;
+    private final String[] indents = new String[CACHED_INDENTS];
 
     /**
      * Creates a TOON encoder.
@@ -66,6 +68,9 @@ public final class ToonEncoder {
     public ToonEncoder(SerdeToonConfiguration toonConfiguration) {
         this.delimiter = toonConfiguration.getDelimiter().getCharacter();
         this.indentUnit = " ".repeat(toonConfiguration.getIndent());
+        for (int i = 0; i < CACHED_INDENTS; i++) {
+            indents[i] = indentUnit.repeat(i);
+        }
     }
 
     /**
@@ -78,17 +83,26 @@ public final class ToonEncoder {
     public void write(OutputStream outputStream, JsonNode tree) throws IOException {
         Objects.requireNonNull(outputStream, "Output stream cannot be null");
 
-        try (Writer writer = new BufferedWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8))) {
+        try (outputStream) {
+            // the lines are collected and encoded in blocks, so that a large document is not held twice in memory
+            StringBuilder block = new StringBuilder(DOCUMENT_INITIAL_SIZE);
             boolean[] firstLine = {true};
             writeRoot(line -> {
                 if (!firstLine[0]) {
-                    writer.write('\n');
+                    block.append('\n');
                 } else {
                     firstLine[0] = false;
                 }
-                writer.write(line);
+                block.append(line);
+                if (block.length() >= BLOCK_SIZE) {
+                    outputStream.write(block.toString().getBytes(StandardCharsets.UTF_8));
+                    block.setLength(0);
+                }
             }, tree);
-            writer.flush();
+            if (!block.isEmpty()) {
+                outputStream.write(block.toString().getBytes(StandardCharsets.UTF_8));
+            }
+            outputStream.flush();
         }
     }
 
@@ -436,7 +450,7 @@ public final class ToonEncoder {
     }
 
     private String indent(int depth) {
-        return indentUnit.repeat(depth);
+        return depth < CACHED_INDENTS ? indents[depth] : indentUnit.repeat(depth);
     }
 
     private static boolean allPrimitive(List<JsonNode> elements) {

@@ -22,6 +22,7 @@ import io.micronaut.serde.Keys;
 import io.micronaut.serde.KeysAwareEncoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
 import io.micronaut.serde.support.util.DecoderValueKind;
@@ -52,6 +53,11 @@ import java.util.Objects;
  * A fall-through tail switch then writes the remaining zero to three
  * properties. That keeps the hot path free of iterator allocation and reduces
  * loop branches without duplicating serializer state or error-path handling.
+ * <p>
+ * The {@code NON_NULL}, {@code NON_ABSENT} and {@code NON_EMPTY} inclusions are
+ * checked here as well, as {@code NON_EMPTY} is the default inclusion. A primitive
+ * written directly is never skipped: the serializers that write it treat only
+ * {@code null} as empty or absent.
  *
  * @param <T> The bean type
  * @author Denis Stepanov
@@ -60,12 +66,18 @@ import java.util.Objects;
 @Internal
 final class SimpleObjectSerializer<T> implements ObjectSerializer<T> {
 
+    private static final byte ALWAYS = 0;
+    private static final byte NON_NULL = 1;
+    private static final byte NON_ABSENT = 2;
+    private static final byte NON_EMPTY = 3;
+
     private final SerBean.SerProperty<T, Object>[] writeProperties;
     private final @Nullable Serializer<Object>[] serializers;
     private final Argument<Object>[] arguments;
     private final ReferencePath[] referencePaths;
     private final byte[] valueKinds;
     private final byte[] primitiveValueKinds;
+    private final byte[] inclusions;
     private final Keys keys;
     private final boolean serializersResolved;
 
@@ -77,6 +89,7 @@ final class SimpleObjectSerializer<T> implements ObjectSerializer<T> {
         this.referencePaths = new ReferencePath[writeProperties.length];
         this.valueKinds = new byte[writeProperties.length];
         this.primitiveValueKinds = new byte[writeProperties.length];
+        this.inclusions = new byte[writeProperties.length];
         boolean resolved = true;
         for (int i = 0; i < writeProperties.length; i++) {
             SerBean.SerProperty<T, Object> property = writeProperties[i];
@@ -87,6 +100,7 @@ final class SimpleObjectSerializer<T> implements ObjectSerializer<T> {
             byte valueKind = serializer == null ? DecoderValueKind.NONE_CODE : directValueKind(property, serializer);
             valueKinds[i] = valueKind;
             primitiveValueKinds[i] = property.primitive ? valueKind : DecoderValueKind.NONE_CODE;
+            inclusions[i] = inclusionCode(property.include);
             resolved &= serializer != null;
         }
         this.keys = serBean.propertyKeys;
@@ -229,6 +243,8 @@ final class SimpleObjectSerializer<T> implements ObjectSerializer<T> {
         } catch (SerdeException e) {
             e.getPath().add(referencePaths[index]);
             throw e;
+        } catch (Exception e) {
+            throw propertyError(index, e);
         }
     }
 
@@ -238,11 +254,12 @@ final class SimpleObjectSerializer<T> implements ObjectSerializer<T> {
         } catch (SerdeException e) {
             e.getPath().add(referencePaths[index]);
             throw e;
+        } catch (Exception e) {
+            throw propertyError(index, e);
         }
     }
 
     private void serializePropertyInto(KeysAwareEncoder encoder, EncoderContext context, T value, int index) throws IOException {
-        encoder.encodeKey(keys, index);
         SerBean.SerProperty<T, Object> property = writeProperties[index];
         byte valueKind = valueKinds[index];
         Serializer<Object> serializer = serializers[index];
@@ -252,34 +269,68 @@ final class SimpleObjectSerializer<T> implements ObjectSerializer<T> {
             valueKind = directValueKind(property, serializer);
             primitiveValueKind = valueKind;
         }
-        if (primitiveValueKind != DecoderValueKind.NONE_CODE && property.serializeDirectPrimitive(encoder, value, primitiveValueKind)) {
+        if (primitiveValueKind != DecoderValueKind.NONE_CODE
+            && property.serializeDirectPrimitive(encoder, keys, index, value, primitiveValueKind)) {
             return;
         }
         Object v = property.get(value);
-        if (v == null) {
-            encoder.encodeNull();
-        } else {
+        byte inclusion = inclusions[index];
+        if (inclusion != ALWAYS) {
             if (serializer == null) {
                 serializer = Objects.requireNonNull(property.serializer);
                 valueKind = directValueKind(property, serializer);
             }
-            if (valueKind != DecoderValueKind.NONE_CODE) {
-                serializeDirectValue(encoder, v, valueKind);
+            if (primitiveValueKind == DecoderValueKind.NONE_CODE && isSkipped(inclusion, serializer, context, v)) {
                 return;
             }
-            serializer.serialize(encoder, context, arguments[index], v);
         }
+        encoder.encodeKey(keys, index);
+        serializePropertyValue(encoder, context, index, v, serializer, valueKind);
+    }
+
+    private void serializePropertyValue(KeysAwareEncoder encoder,
+                                        EncoderContext context,
+                                        int index,
+                                        @Nullable Object v,
+                                        @Nullable Serializer<Object> resolvedSerializer,
+                                        byte resolvedValueKind) throws IOException {
+        if (v == null) {
+            encoder.encodeNull();
+            return;
+        }
+        Serializer<Object> serializer = resolvedSerializer;
+        byte valueKind = resolvedValueKind;
+        if (serializer == null) {
+            SerBean.SerProperty<T, Object> property = writeProperties[index];
+            serializer = Objects.requireNonNull(property.serializer);
+            valueKind = directValueKind(property, serializer);
+        }
+        if (valueKind != DecoderValueKind.NONE_CODE) {
+            serializeDirectValue(encoder, v, valueKind);
+            return;
+        }
+        serializer.serialize(encoder, context, arguments[index], v);
     }
 
     @SuppressWarnings("NullAway")
     private void serializeResolvedPropertyInto(KeysAwareEncoder encoder, EncoderContext context, T value, int index) throws IOException {
-        encoder.encodeKey(keys, index);
         SerBean.SerProperty<T, Object> property = writeProperties[index];
         byte primitiveValueKind = primitiveValueKinds[index];
-        if (primitiveValueKind != DecoderValueKind.NONE_CODE && property.serializeDirectPrimitive(encoder, value, primitiveValueKind)) {
-            return;
+        Object v;
+        if (primitiveValueKind != DecoderValueKind.NONE_CODE) {
+            if (property.serializeDirectPrimitive(encoder, keys, index, value, primitiveValueKind)) {
+                return;
+            }
+            v = property.get(value);
+            encoder.encodeKey(keys, index);
+        } else {
+            v = property.get(value);
+            byte inclusion = inclusions[index];
+            if (inclusion != ALWAYS && isSkipped(inclusion, serializers[index], context, v)) {
+                return;
+            }
+            encoder.encodeKey(keys, index);
         }
-        Object v = property.get(value);
         if (v == null) {
             encoder.encodeNull();
             return;
@@ -290,6 +341,44 @@ final class SimpleObjectSerializer<T> implements ObjectSerializer<T> {
             return;
         }
         serializers[index].serialize(encoder, context, arguments[index], v);
+    }
+
+    private SerdeException propertyError(int index, Exception e) {
+        SerBean.SerProperty<T, Object> property = writeProperties[index];
+        SerdeException serdeException = new SerdeException("Error getting property [" + property.argument + "] of type [" + property.beanType + "]: " + e.getMessage(), e);
+        serdeException.getPath().add(referencePaths[index]);
+        return serdeException;
+    }
+
+    private static boolean isSkipped(byte inclusion, Serializer<Object> serializer, EncoderContext context, @Nullable Object value) {
+        return switch (inclusion) {
+            case NON_NULL -> value == null;
+            case NON_ABSENT -> serializer.isAbsent(context, value);
+            case NON_EMPTY -> serializer.isEmpty(context, value);
+            default -> false;
+        };
+    }
+
+    /**
+     * Whether this serializer supports the inclusion of a property.
+     *
+     * @param include The inclusion
+     * @return Whether it is supported
+     */
+    static boolean supportsInclusion(SerdeConfig.SerInclude include) {
+        return switch (include) {
+            case ALWAYS, NON_NULL, NON_ABSENT, NON_EMPTY -> true;
+            default -> false;
+        };
+    }
+
+    private static byte inclusionCode(SerdeConfig.SerInclude include) {
+        return switch (include) {
+            case NON_NULL -> NON_NULL;
+            case NON_ABSENT -> NON_ABSENT;
+            case NON_EMPTY -> NON_EMPTY;
+            default -> ALWAYS;
+        };
     }
 
     private static byte directValueKind(SerBean.SerProperty<?, Object> property, Serializer<Object> serializer) {

@@ -48,6 +48,27 @@ class SpecificJsonMapperSpec extends Specification {
             mapper.@serdeCache.@deserializers.size() == 1
     }
 
+    void "the serdes are cached by type, whatever the names of the arguments"() {
+        given:
+            def mapper = jacksonJsonMapper.cloneWithConfiguration(null, null, null)
+
+        when:
+            mapper.writeValueAsString(Argument.of(TestX, 'first'), new TestX(name: "Fred"))
+            mapper.writeValueAsString(Argument.of(TestX, 'second'), new TestX(name: "Bob"))
+            def strings = mapper.writeValueAsString(Argument.listOf(String), ['a'])
+            def numbers = mapper.writeValueAsString(Argument.listOf(Integer), [1])
+            def readStrings = mapper.readValue('["1"]', Argument.listOf(String))
+            def readNumbers = mapper.readValue('["1"]', Argument.listOf(Integer))
+
+        then:
+            strings == '["a"]'
+            numbers == '[1]'
+            readStrings == ['1']
+            readNumbers == [1]
+            mapper.@serdeCache.@serializers.size() == 3
+            mapper.@serdeCache.@deserializers.size() == 2
+    }
+
     void "untyped maps reuse the serializers of their values"() {
         given:
             def mapper = jacksonJsonMapper.cloneWithConfiguration(null, null, null)
@@ -56,7 +77,7 @@ class SpecificJsonMapperSpec extends Specification {
             def valueSerializer = { ->
                 def field = Class.forName('io.micronaut.serde.support.serializers.AbstractMapObjectSerializer').getDeclaredField('valueSerializer')
                 field.accessible = true
-                field.get(mapper.@serdeCache.@serializers.get(type).serde())
+                field.get(mapper.@serdeCache.@serializers.values().first())
             }
             def inners = { serializer ->
                 def field = serializer.class.getDeclaredField('inners')
@@ -84,7 +105,7 @@ class SpecificJsonMapperSpec extends Specification {
             def valueSerializer = { ->
                 def field = Class.forName('io.micronaut.serde.support.serializers.AbstractMapObjectSerializer').getDeclaredField('valueSerializer')
                 field.accessible = true
-                field.get(mapper.@serdeCache.@serializers.get(type).serde())
+                field.get(mapper.@serdeCache.@serializers.get(type))
             }
             def inners = { serializer ->
                 def field = serializer.class.getDeclaredField('inners')
@@ -121,6 +142,24 @@ class SpecificJsonMapperSpec extends Specification {
             second == first
             // created once for each document, not once for each value
             example.retain.RetainingSerializer.SPECIFICS.get() == 2
+    }
+
+    void "lists of placeholder and plain elements are cached apart when the #first list goes first"() {
+        given:
+            def mapper = jacksonJsonMapper.cloneWithConfiguration(null, null, null)
+            // the elements of the first are type variables, written by their runtime type; those of the second are not
+            def types = [placeholder: Argument.of(List, Animal), plain: Argument.listOf(Animal)]
+            def expected = [placeholder: '[{"name":"Rex","barks":true}]', plain: '[{"name":"Rex"}]']
+            List<Animal> dogs = [new Dog(name: 'Rex', barks: true)]
+            def order = first == 'placeholder' ? ['placeholder', 'plain'] : ['plain', 'placeholder']
+
+        expect:
+            order.collect { mapper.writeValueAsString(types[it], dogs) } == order.collect { expected[it] }
+            order.collect { mapper.writeValueAsString(types[it], dogs) } == order.collect { expected[it] }
+            mapper.@serdeCache.@serializers.size() == 2
+
+        where:
+            first << ['placeholder', 'plain']
     }
 
     void "derived mappers share the JSON factory and its buffer pool"() {
@@ -195,6 +234,16 @@ class SpecificJsonMapperSpec extends Specification {
     static class FeatureMapHolder {
         @com.fasterxml.jackson.annotation.JsonFormat(with = com.fasterxml.jackson.annotation.JsonFormat.Feature.WRITE_SORTED_MAP_ENTRIES)
         Map<String, Object> values
+    }
+
+    @Serdeable
+    static class Animal {
+        String name
+    }
+
+    @Serdeable
+    static class Dog extends Animal {
+        boolean barks
     }
 
     @Serdeable
