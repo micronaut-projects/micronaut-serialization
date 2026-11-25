@@ -21,6 +21,27 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class ProtobufMapperBehaviorTest {
 
     @Test
+    void treesWrittenInParallelUseAContextPerCall() throws Exception {
+        try (ApplicationContext context = ApplicationContext.run()) {
+            ProtobufMapper mapper = context.getBean(ProtobufMapper.class);
+            java.util.concurrent.ExecutorService executor = java.util.concurrent.Executors.newFixedThreadPool(8);
+            try {
+                List<java.util.concurrent.Future<String>> results = new java.util.ArrayList<>();
+                for (int i = 0; i < 400; i++) {
+                    int index = i;
+                    results.add(executor.submit(() -> mapper.writeValueToTree(java.util.Map.of("a", List.of(index, java.util.Map.of("b", "c" + index)))).toString()));
+                }
+                for (int i = 0; i < results.size(); i++) {
+                    String tree = results.get(i).get();
+                    assertEquals(mapper.writeValueToTree(java.util.Map.of("a", List.of(i, java.util.Map.of("b", "c" + i)))).toString(), tree);
+                }
+            } finally {
+                executor.shutdownNow();
+            }
+        }
+    }
+
+    @Test
     void isExposedOnlyByItsConcreteBeanType() {
         try (ApplicationContext context = ApplicationContext.run()) {
             context.getBean(ProtobufMapper.class);
