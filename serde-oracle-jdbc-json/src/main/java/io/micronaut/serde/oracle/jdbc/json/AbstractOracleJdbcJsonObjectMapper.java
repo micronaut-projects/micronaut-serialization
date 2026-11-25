@@ -31,6 +31,7 @@ import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.BufferingJsonNodeProcessor;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
 import io.micronaut.serde.support.util.JsonNodeEncoder;
+import io.micronaut.serde.support.util.SpecificSerdeCache;
 import oracle.sql.json.OracleJsonArray;
 import oracle.sql.json.OracleJsonFactory;
 import oracle.sql.json.OracleJsonGenerator;
@@ -62,6 +63,10 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
     @Nullable
     protected final Class<?> view;
     protected final OracleJsonFactory oracleJsonFactory = new OracleJsonFactory();
+    /**
+     * The serializers and deserializers that a call created without binding them to its document.
+     */
+    final SpecificSerdeCache serdeCache = new SpecificSerdeCache();
     private final CoercionPolicy coercionPolicy;
 
     protected AbstractOracleJdbcJsonObjectMapper(SerdeRegistry registry, @Nullable SerdeConfiguration serdeConfiguration) {
@@ -143,7 +148,7 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
             return (T) parser.getArray();
         }
         try (var context = registry.newDecoderContext(view)) {
-            final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type).createSpecific(context, type);
+            final Deserializer<? extends T> deserializer = serdeCache.findDeserializer(registry, context, type);
             return deserializer.deserialize(
                 new OracleJdbcJsonParserDecoder(parser, limits(), coercionPolicy()),
                 context,
@@ -244,7 +249,7 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
 
     private void serialize(Encoder encoder, Object object, Argument type) throws IOException {
         try (var context = registry.newEncoderContext(view)) {
-            final Serializer<Object> serializer = registry.findSerializer(type).createSpecific(context, type);
+            final Serializer<Object> serializer = serdeCache.findSerializer(registry, context, (Argument<Object>) type);
             serializer.serialize(
                 encoder,
                 context,

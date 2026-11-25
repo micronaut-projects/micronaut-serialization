@@ -44,8 +44,8 @@ class SpecificJsonMapperSpec extends Specification {
             second == '{"name":"Bob"}'
             read.name == 'Fred'
             readAgain.name == 'Bob'
-            mapper.@serializers.size() == 1
-            mapper.@deserializers.size() == 1
+            mapper.@serdeCache.@serializers.size() == 1
+            mapper.@serdeCache.@deserializers.size() == 1
     }
 
     void "untyped maps reuse the serializers of their values"() {
@@ -56,7 +56,7 @@ class SpecificJsonMapperSpec extends Specification {
             def valueSerializer = { ->
                 def field = Class.forName('io.micronaut.serde.support.serializers.AbstractMapObjectSerializer').getDeclaredField('valueSerializer')
                 field.accessible = true
-                field.get(mapper.@serializers.get(type).serde())
+                field.get(mapper.@serdeCache.@serializers.get(type).serde())
             }
             def inners = { serializer ->
                 def field = serializer.class.getDeclaredField('inners')
@@ -75,6 +75,52 @@ class SpecificJsonMapperSpec extends Specification {
             second == first
             firstInners.keySet() == [Integer, LinkedHashMap, ArrayList] as Set
             firstInners.every { k, v -> secondInners[k].is(v) }
+    }
+
+    void "untyped maps keep the serializers bound to a document only for that document"() {
+        given:
+            def mapper = jacksonJsonMapper.cloneWithConfiguration(null, null, null)
+            def type = Argument.mapOf(String, Object)
+            def valueSerializer = { ->
+                def field = Class.forName('io.micronaut.serde.support.serializers.AbstractMapObjectSerializer').getDeclaredField('valueSerializer')
+                field.accessible = true
+                field.get(mapper.@serdeCache.@serializers.get(type).serde())
+            }
+            def inners = { serializer ->
+                def field = serializer.class.getDeclaredField('inners')
+                field.accessible = true
+                new HashMap(field.get(serializer))
+            }
+            example.retain.RetainingSerializer.SPECIFICS.set(0)
+
+        when:
+            def first = mapper.writeValueAsString(type, [a: new example.retain.Retained(name: 'x'), b: new example.retain.Retained(name: 'y'), n: 1])
+            def second = mapper.writeValueAsString(type, [a: new example.retain.Retained(name: 'z'), n: 2])
+
+        then:
+            first == '{"a":"x","b":"y","n":1}'
+            second == '{"a":"z","n":2}'
+            // created once for each document, and kept by the document rather than by the serializer that the mapper caches
+            example.retain.RetainingSerializer.SPECIFICS.get() == 2
+            inners(valueSerializer()).keySet() == [Integer, example.retain.Retained] as Set
+            !(inners(valueSerializer())[example.retain.Retained].serializer() instanceof example.retain.RetainingSerializer.Specific)
+    }
+
+    void "a property with feature overrides reuses the serializers bound to its document"() {
+        given:
+            def mapper = jacksonJsonMapper.cloneWithConfiguration(null, null, null)
+            example.retain.RetainingSerializer.SPECIFICS.set(0)
+            def holder = new FeatureMapHolder(values: [b: new example.retain.Retained(name: 'y'), a: new example.retain.Retained(name: 'x'), c: new example.retain.Retained(name: 'z')])
+
+        when:
+            def first = mapper.writeValueAsString(holder)
+            def second = mapper.writeValueAsString(holder)
+
+        then:
+            first == '{"values":{"a":"x","b":"y","c":"z"}}'
+            second == first
+            // created once for each document, not once for each value
+            example.retain.RetainingSerializer.SPECIFICS.get() == 2
     }
 
     void "derived mappers share the JSON factory and its buffer pool"() {
@@ -143,6 +189,12 @@ class SpecificJsonMapperSpec extends Specification {
             value.name == "Fred"
             recyclerPool instanceof VirtualThreadAwareRecyclerPool
             recyclerPool.pooledCount() == 0
+    }
+
+    @Serdeable
+    static class FeatureMapHolder {
+        @com.fasterxml.jackson.annotation.JsonFormat(with = com.fasterxml.jackson.annotation.JsonFormat.Feature.WRITE_SORTED_MAP_ENTRIES)
+        Map<String, Object> values
     }
 
     @Serdeable

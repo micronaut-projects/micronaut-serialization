@@ -30,6 +30,7 @@ import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.support.util.BufferingJsonNodeProcessor;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
 import io.micronaut.serde.support.util.JsonNodeEncoder;
+import io.micronaut.serde.support.util.SpecificSerdeCache;
 import org.bson.AbstractBsonWriter;
 import org.bson.BsonReader;
 import org.jspecify.annotations.Nullable;
@@ -57,6 +58,11 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
     protected Serializer.EncoderContext encoderContext;
     protected Deserializer.DecoderContext decoderContext;
     private final CoercionPolicy coercionPolicy;
+    private final LimitingStream.RemainingLimits limits;
+    /**
+     * The serializers and deserializers that a call created without binding them to its document.
+     */
+    private final SpecificSerdeCache serdeCache = new SpecificSerdeCache();
 
     protected AbstractBsonMapper(SerdeRegistry registry, @Nullable SerdeConfiguration serdeConfiguration) {
         this(registry, serdeConfiguration, null);
@@ -69,6 +75,7 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
         this.encoderContext = registry.newEncoderContext(view);
         this.decoderContext = registry.newDecoderContext(view);
         this.coercionPolicy = CoercionPolicy.fromConfiguration(this.decoderContext.getDeserializationConfiguration().orElse(null));
+        this.limits = serdeConfiguration == null ? LimitingStream.DEFAULT_LIMITS : LimitingStream.limitsFromConfiguration(serdeConfiguration);
     }
 
     @Override
@@ -81,7 +88,7 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
     protected abstract AbstractBsonWriter createBsonWriter(OutputStream bsonOutput) throws IOException;
 
     private LimitingStream.RemainingLimits limits() {
-        return serdeConfiguration == null ? LimitingStream.DEFAULT_LIMITS : LimitingStream.limitsFromConfiguration(serdeConfiguration);
+        return limits;
     }
 
     @Override
@@ -158,8 +165,7 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
     private <T> @Nullable T readValue(BsonReader bsonReader, Argument<T> type) throws IOException {
         // A context lives for one document: managed references and object identities do not leak between documents
         try (var context = registry.newDecoderContext(view)) {
-            return context.findDeserializer(type)
-                .createSpecific(context, type)
+            return serdeCache.findDeserializer(context, type)
                 .deserialize(new BsonReaderDecoder(bsonReader, limits(), coercionPolicy), context, type);
         }
     }
@@ -213,7 +219,7 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
     private void serialize(Encoder encoder, Object object, Argument type) throws IOException {
         // A context lives for one document: managed references and object identities do not leak between documents
         try (var context = registry.newEncoderContext(view)) {
-            final Serializer<Object> serializer = context.findSerializer(type).createSpecific(context, type);
+            final Serializer<Object> serializer = serdeCache.findSerializer(context, (Argument<Object>) type);
             serializer.serialize(encoder, context, type, object);
         }
     }

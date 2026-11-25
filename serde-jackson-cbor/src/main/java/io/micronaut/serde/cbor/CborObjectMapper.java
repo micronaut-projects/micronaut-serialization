@@ -42,6 +42,7 @@ import io.micronaut.serde.support.util.BufferingJsonNodeProcessor;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
 import io.micronaut.serde.support.util.JsonNodeEncoder;
 import io.micronaut.serde.support.util.JsonViewUtil;
+import io.micronaut.serde.support.util.SpecificSerdeCache;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jspecify.annotations.Nullable;
@@ -99,6 +100,11 @@ public final class CborObjectMapper implements ObjectMapper {
     private final Deserializer<?> specificDeserializer;
     @Nullable
     private final Serializer<?> specificSerializer;
+    /**
+     * The serializers and deserializers of the types read and written without a specific mapper,
+     * which a call created without binding them to its document.
+     */
+    private final SpecificSerdeCache serdeCache = new SpecificSerdeCache();
 
     /**
      * Creates a CBOR mapper backed by the given registry and configuration.
@@ -293,7 +299,7 @@ public final class CborObjectMapper implements ObjectMapper {
             if (isSpecificType(argument)) {
                 serializer = (Serializer<? super T>) Objects.requireNonNull(specificSerializer);
             } else {
-                serializer = context.findSerializer(argument).createSpecific(context, argument);
+                serializer = serdeCache.findSerializer(context, argument);
             }
             final Encoder encoder = JacksonEncoder.create(gen, streamLimits);
             serializer.serialize(encoder, context, argument, value);
@@ -308,7 +314,7 @@ public final class CborObjectMapper implements ObjectMapper {
             if (isSpecificType(type)) {
                 deserializer = Objects.requireNonNull(specificDeserializer);
             } else {
-                deserializer = context.findDeserializer(type).createSpecific(context, type);
+                deserializer = serdeCache.findDeserializer(context, type);
             }
             final Decoder decoder = JacksonDecoder.create(parser, streamLimits, coercionPolicy);
             return (T) deserializer.deserializeNullable(decoder, context, type);
