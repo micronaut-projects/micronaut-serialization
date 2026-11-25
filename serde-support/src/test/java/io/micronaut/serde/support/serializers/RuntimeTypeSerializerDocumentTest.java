@@ -77,7 +77,7 @@ class RuntimeTypeSerializerDocumentTest {
         RuntimeTypeSerializer serializer = new RuntimeTypeSerializer(context, null, null, Argument.OBJECT_ARGUMENT);
         assertFalse(serializer.isEmpty(context, "value"));
         assertFalse(serializer.isAbsent(context, "value"));
-        java.lang.reflect.Field field = RuntimeTypeSerializer.class.getDeclaredField("serializers");
+        java.lang.reflect.Field field = RuntimeTypeSerializer.class.getDeclaredField("inners");
         field.setAccessible(true);
         Map<?, ?> serializers = (Map<?, ?>) field.get(serializer);
         Object stringSerializer = serializers.get(String.class);
