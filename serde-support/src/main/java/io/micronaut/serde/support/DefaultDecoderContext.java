@@ -28,6 +28,7 @@ import io.micronaut.serde.reference.AbstractPropertyReferenceManager;
 import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.support.reference.DocumentIdReference;
 import io.micronaut.serde.support.reference.PendingDocumentIdReference;
+import io.micronaut.serde.util.DocumentContextTracker;
 import io.micronaut.serde.util.DocumentSerdes;
 import org.jspecify.annotations.Nullable;
 
@@ -48,12 +49,13 @@ import java.util.Set;
  * @since 1.0.0
  */
 @Internal
-class DefaultDecoderContext extends AbstractPropertyReferenceManager implements Deserializer.DecoderContext, DocumentSerdes {
+class DefaultDecoderContext extends AbstractPropertyReferenceManager implements Deserializer.DecoderContext, DocumentSerdes, DocumentContextTracker {
     // The serdes specialized for this document by serdes kept between documents, created on first use
     @Nullable
     private IdentityHashMap<Object, Object> documentSerdes;
 
     private final DefaultSerdeRegistry registry;
+    private int documentBindings;
     // Document-scoped identifier state, allocated only when a document uses identifiers and released on close
     @Nullable
     private Map<String, Object> documentIds;
@@ -72,12 +74,12 @@ class DefaultDecoderContext extends AbstractPropertyReferenceManager implements 
     @Override
     public final <T, D extends Deserializer<? extends T>> D findCustomDeserializer(Class<? extends D> deserializerClass)
             throws SerdeException {
-        return registry.findCustomDeserializer(deserializerClass);
+        return DefaultSerdeRegistry.trackUserSerde(this, registry.findCustomDeserializer(deserializerClass));
     }
 
     @Override
     public final <T> Deserializer<? extends T> findDeserializer(Argument<? extends T> type) throws SerdeException {
-        return registry.findDeserializer(type);
+        return DefaultSerdeRegistry.trackUserSerde(this, registry.findDeserializer(type));
     }
 
     @Override
@@ -198,5 +200,15 @@ class DefaultDecoderContext extends AbstractPropertyReferenceManager implements 
     @Override
     public Set<DeserializationConfiguration.Feature> getFeatures() {
         return registry.deserializationFeatures();
+    }
+
+    @Override
+    public void markDocumentBound() {
+        documentBindings++;
+    }
+
+    @Override
+    public int documentBindings() {
+        return documentBindings;
     }
 }

@@ -39,6 +39,7 @@ import io.micronaut.serde.processor.sourcegen.SerdeSourceGenRecursion;
 import io.micronaut.serde.util.GeneratedSerdeExceptionUtil;
 import io.micronaut.serde.util.GeneratedSerdeFallbackUtil;
 import io.micronaut.serde.util.GeneratedSerdeLazyUtil;
+import io.micronaut.serde.util.GeneratedSerde;
 import io.micronaut.sourcegen.model.AnnotationDef;
 import io.micronaut.sourcegen.model.ClassDef;
 import io.micronaut.sourcegen.model.ClassTypeDef;
@@ -215,6 +216,7 @@ public final class BeanSerializerSourceGen {
                 .build())
             .addSuperinterface(TypeDef.parameterized(Serializer.class, beanTypeDef))
             .addSuperinterface(TypeDef.parameterized(ObjectSerializer.class, beanTypeDef))
+            .addSuperinterface(TypeDef.of(GeneratedSerde.class))
             .addFields(fields)
             .addMethod(generateCreateSpecificMethod(beanTypeDef))
             .addMethod(generateSerializeMethod(beanTypeDef))

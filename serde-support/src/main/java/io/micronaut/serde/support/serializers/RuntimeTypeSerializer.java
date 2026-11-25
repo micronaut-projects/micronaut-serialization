@@ -36,7 +36,6 @@ import java.util.concurrent.ConcurrentHashMap;
 final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
     private static final String NO_SERIALIZER_FOUND = "No serializer found for type: ";
 
-    private final EncoderContext encoderContext;
     /**
      * The serializers of the runtime types. A serializer whose creation bound it to the context of the document, such as
      * one holding a serde bean that takes the context as a constructor argument, is specialized again for each
@@ -50,24 +49,22 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
     private final IntrospectionException introspectionException;
     private final Argument<?> outerType;
 
-    public RuntimeTypeSerializer(EncoderContext encoderContext,
-                                 @Nullable
+    public RuntimeTypeSerializer(@Nullable
                                  Serializer<Object> outer,
                                  @Nullable
                                  IntrospectionException introspectionException,
                                  Argument<?> outerType) {
-        this.encoderContext = encoderContext;
         this.outer = outer;
         this.introspectionException = introspectionException;
         this.outerType = outerType;
     }
 
-    public RuntimeTypeSerializer(EncoderContext encoderContext, Serializer<Object> outer, Argument<?> type) {
-        this(encoderContext, outer, null, type);
+    public RuntimeTypeSerializer(Serializer<Object> outer, Argument<?> type) {
+        this(outer, null, type);
     }
 
-    public RuntimeTypeSerializer(EncoderContext encoderContext, IntrospectionException introspectionException, Argument<?> type) {
-        this(encoderContext, null, introspectionException, type);
+    public RuntimeTypeSerializer(IntrospectionException introspectionException, Argument<?> type) {
+        this(null, introspectionException, type);
     }
 
     @Override
@@ -164,7 +161,8 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
             throw new SerdeException(NO_SERIALIZER_FOUND + type);
         }
         Argument<Object> arg = Argument.of((Class) type, outerType.getAnnotationMetadata());
-        return encoderContext.findSerializer(arg).createSpecific(context, arg);
+        // the context of the call, not of the creation: this serializer can serve several documents
+        return context.findSerializer(arg).createSpecific(context, arg);
     }
 
     /**

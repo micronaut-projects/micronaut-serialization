@@ -27,6 +27,7 @@ import io.micronaut.serde.reference.AbstractPropertyReferenceManager;
 import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.reference.SerializationReference;
 import io.micronaut.serde.support.reference.DocumentIdSerializationReference;
+import io.micronaut.serde.util.DocumentContextTracker;
 import io.micronaut.serde.util.DocumentSerdes;
 import org.jspecify.annotations.Nullable;
 
@@ -40,12 +41,13 @@ import java.util.Set;
  * @since 1.0.0
  */
 @Internal
-class DefaultEncoderContext extends AbstractPropertyReferenceManager implements Serializer.EncoderContext, DocumentSerdes {
+class DefaultEncoderContext extends AbstractPropertyReferenceManager implements Serializer.EncoderContext, DocumentSerdes, DocumentContextTracker {
     // The serdes specialized for this document by serdes kept between documents, created on first use
     @Nullable
     private IdentityHashMap<Object, Object> documentSerdes;
 
     private final DefaultSerdeRegistry registry;
+    private int documentBindings;
     // Beans written in full in the current document, allocated only when a document uses object identity
     @Nullable
     private IdentityHashMap<Object, Object> writtenBeans;
@@ -62,12 +64,12 @@ class DefaultEncoderContext extends AbstractPropertyReferenceManager implements 
     @Override
     public final <T, D extends Serializer<? extends T>> D findCustomSerializer(Class<? extends D> serializerClass)
             throws SerdeException {
-        return registry.findCustomSerializer(serializerClass);
+        return DefaultSerdeRegistry.trackUserSerde(this, registry.findCustomSerializer(serializerClass));
     }
 
     @Override
     public final <T> Serializer<? super T> findSerializer(Argument<? extends T> forType) throws SerdeException {
-        return registry.findSerializer(forType);
+        return DefaultSerdeRegistry.trackUserSerde(this, registry.findSerializer(forType));
     }
 
     @Override
@@ -124,6 +126,16 @@ class DefaultEncoderContext extends AbstractPropertyReferenceManager implements 
     public void close() {
         documentSerdes = null;
         writtenBeans = null;
+    }
+
+    @Override
+    public void markDocumentBound() {
+        documentBindings++;
+    }
+
+    @Override
+    public int documentBindings() {
+        return documentBindings;
     }
 
     @Override

@@ -20,6 +20,7 @@ import io.micronaut.context.annotation.Primary;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.io.buffer.ByteBuffer;
 import io.micronaut.core.type.Argument;
+import io.micronaut.core.type.GenericPlaceholder;
 import io.micronaut.jackson.core.parser.JacksonCoreParserFactory;
 import io.micronaut.jackson.core.parser.JacksonCoreProcessor;
 import io.micronaut.jackson.core.tree.JsonNodeTreeCodec;
@@ -42,6 +43,7 @@ import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.support.util.JsonViewUtil;
+import io.micronaut.serde.util.DocumentContextTracker;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jspecify.annotations.Nullable;
@@ -71,6 +73,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 /**
@@ -90,6 +93,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
 
     private static final String VALUE_TO_UPDATE_NULL_MSG = "Value to update cannot be null";
     private static final String TYPE_NULL_MSG = "Type cannot be null";
+    private static final int MAX_CACHED_SERDES = 256;
 
     /**
      * Adaptive first-block size for {@link #writeValueAsBytes}. Plain int with benign
@@ -116,6 +120,12 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
     private final Deserializer<?> specificDeserializer;
     @Nullable
     private final Serializer<?> specificSerializer;
+    /**
+     * The serializers and deserializers of the types read and written without a specific mapper,
+     * which a call created without binding them to its document.
+     */
+    private final Map<Argument<?>, Cached<Serializer<?>>> serializers = new ConcurrentHashMap<>();
+    private final Map<Argument<?>, Cached<Deserializer<?>>> deserializers = new ConcurrentHashMap<>();
 
     @Inject
     @Internal
@@ -261,7 +271,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
             if (isSpecificType(argument)) {
                 serializer = (Serializer<? super T>) Objects.requireNonNull(specificSerializer);
             } else {
-                serializer = context.findSerializer(argument).createSpecific(context, argument);
+                serializer = (Serializer<? super T>) findSerializer(context, argument);
             }
             final Encoder encoder = JacksonEncoder.create(gen, streamLimits);
             serializer.serialize(encoder, context, argument, value);
@@ -280,7 +290,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
             if (isSpecificType(type)) {
                 deserializer = Objects.requireNonNull(specificDeserializer);
             } else {
-                deserializer = context.findDeserializer(type).createSpecific(context, (Argument) type);
+                deserializer = findDeserializer(context, type);
             }
             final Decoder decoder = createDecoder(parser);
             return (T) deserializer.deserializeNullable(decoder, context, type);
@@ -544,6 +554,67 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
         return JacksonDecoder.create(parser, streamLimits, coercionPolicy);
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private Serializer<?> findSerializer(Serializer.EncoderContext context, Argument<?> type) throws IOException {
+        boolean cacheable = !type.isTypeVariable() && isCacheable(type);
+        if (cacheable) {
+            Cached<Serializer<?>> cached = serializers.get(type);
+            if (cached != null) {
+                if (cached.matches(type)) {
+                    return cached.serde();
+                }
+                // an equal argument whose type parameters are placeholders in other places is not cached
+                cacheable = false;
+            }
+        }
+        Serializer<?> serializer = context.findSerializer(type).createSpecific(context, (Argument) type);
+        if (cacheable && !DocumentContextTracker.isDocumentBound(context) && serializers.size() < MAX_CACHED_SERDES) {
+            serializers.putIfAbsent(type, new Cached<>(type, serializer));
+        }
+        return serializer;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private Deserializer<?> findDeserializer(Deserializer.DecoderContext context, Argument<?> type) throws IOException {
+        boolean cacheable = !type.isTypeVariable() && isCacheable(type);
+        if (cacheable) {
+            Cached<Deserializer<?>> cached = deserializers.get(type);
+            if (cached != null) {
+                if (cached.matches(type)) {
+                    return cached.serde();
+                }
+                cacheable = false;
+            }
+        }
+        Deserializer<?> deserializer = context.findDeserializer(type).createSpecific(context, (Argument) type);
+        if (cacheable && !DocumentContextTracker.isDocumentBound(context) && deserializers.size() < MAX_CACHED_SERDES) {
+            deserializers.putIfAbsent(type, new Cached<>(type, deserializer));
+        }
+        return deserializer;
+    }
+
+    /**
+     * The equality of arguments ignores their annotations, which can change the serde, so only
+     * types without annotations are cached.
+     *
+     * @param type The type
+     * @return Whether the serde of the type can be cached by the type
+     */
+    private static boolean isCacheable(Argument<?> type) {
+        // A type variable equals the concrete argument of its type, but is serialized by runtime type, so the root
+        // argument of a call is not cached when it is one (see the callers). The type parameters of an argument such as
+        // Argument.of(ArrayList.class, Integer.class) are type variables bound to concrete types, and stay cacheable.
+        if (!type.getAnnotationMetadata().isEmpty()) {
+            return false;
+        }
+        for (Argument<?> typeParameter : type.getTypeParameters()) {
+            if (!isCacheable(typeParameter)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private boolean isSpecificType(Argument<?> type) {
         return type == specificType || type.equalsType(specificType);
     }
@@ -568,6 +639,43 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
             } catch (IOException e) {
                 throw new StreamWriteException(g, e);
             }
+        }
+    }
+
+    /**
+     * A cached serde with the argument it was created for.
+     *
+     * @param type  The argument
+     * @param serde The serde
+     * @param <S>   The serde type
+     */
+    private record Cached<S>(Argument<?> type, S serde) {
+
+        /**
+         * {@link Argument#equals(Object)} ignores whether a type parameter is a generic placeholder, but the element
+         * of a placeholder, such as the type variable of {@code Argument.of(List.class, Base.class)} or a wildcard,
+         * is written by its runtime type, and the element of {@code Argument.listOf(Base.class)} by its declared type.
+         *
+         * @param other An argument equal to the cached one
+         * @return Whether the cached serde serves it
+         */
+        boolean matches(Argument<?> other) {
+            return other == type || samePlaceholders(type, other);
+        }
+
+        private static boolean samePlaceholders(Argument<?> a, Argument<?> b) {
+            Argument<?>[] parametersA = a.getTypeParameters();
+            Argument<?>[] parametersB = b.getTypeParameters();
+            if (parametersA.length != parametersB.length) {
+                return false;
+            }
+            for (int i = 0; i < parametersA.length; i++) {
+                if (parametersA[i] instanceof GenericPlaceholder<?> != parametersB[i] instanceof GenericPlaceholder<?>
+                    || !samePlaceholders(parametersA[i], parametersB[i])) {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }

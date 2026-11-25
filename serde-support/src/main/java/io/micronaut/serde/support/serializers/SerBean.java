@@ -48,6 +48,7 @@ import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
+import io.micronaut.serde.support.util.BeanInitializations;
 import io.micronaut.serde.support.util.ContextBoundSerdes;
 import io.micronaut.serde.support.util.DecoderValueKind;
 import io.micronaut.serde.support.util.DocumentIdUtil;
@@ -56,6 +57,7 @@ import io.micronaut.serde.support.util.SerdeAnnotationUtil;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
 import io.micronaut.serde.support.util.SerdeFeatures;
 import io.micronaut.serde.support.util.SubtypeInfo;
+import io.micronaut.serde.util.DocumentContextTracker;
 import io.micronaut.serde.util.SerdePropertyAccess;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.LoggerFactory;
@@ -94,6 +96,7 @@ final class SerBean<T> {
                 }
             }
     );
+    private static final BeanInitializations<SerBean<?>> INITIALIZATIONS = new BeanInitializations<>();
     private static final String JK_PROP = "com.fasterxml.jackson.annotation.JsonProperty";
     private static final String JACKSON_VALUE = "com.fasterxml.jackson.annotation.JsonValue";
     private static final String JACKSON_KEY = "com.fasterxml.jackson.annotation.JsonKey";
@@ -139,6 +142,16 @@ final class SerBean<T> {
     private final Set<SerializationConfiguration.Feature> beanFeaturesWithout;
     private volatile boolean initialized;
     private volatile boolean initializing;
+    /**
+     * Whether initializing the property serdes bound them to the document, such as with a user serde keeping the
+     * context. The bean is kept between documents, so each document that uses it is marked bound as well.
+     */
+    private volatile boolean documentBound;
+    /**
+     * The beans that reached this one through a cycle while it was initializing, bound whenever this one is.
+     */
+    @Nullable
+    private List<SerBean<?>> cycleDependents;
 
     @Nullable
     private List<Initializer> initializers = new ArrayList<>();
@@ -886,15 +899,54 @@ final class SerBean<T> {
                 if (!initialized && !initializing) {
                     initializing = true;
                     encoderContext = encoderContext.withFeatures(beanFeaturesWith, beanFeaturesWithout);
-            for (Initializer initializer : Objects.requireNonNull(initializers)) {
-                initializer.initialize(encoderContext);
-            }
+                    int bindings = DocumentContextTracker.documentBindings(encoderContext);
+                    INITIALIZATIONS.enter(this);
+                    try {
+                        for (Initializer initializer : Objects.requireNonNull(initializers)) {
+                            initializer.initialize(encoderContext);
+                        }
+                    } finally {
+                        INITIALIZATIONS.exit();
+                    }
+                    documentBound = DocumentContextTracker.documentBindings(encoderContext) != bindings;
                     initializers = null;
                     initialized = true;
                     initializing = false;
+                    bindCycleDependents();
+                } else if (initializing) {
+                    addCycleDependents();
                 }
             } finally {
                 lock.unlock();
+            }
+        }
+        if (documentBound) {
+            DocumentContextTracker.markDocumentBound(encoderContext);
+        }
+    }
+
+    /**
+     * Reached again through a cycle while initializing: the beans initialized since hold the serdes of this one.
+     */
+    private void addCycleDependents() {
+        List<SerBean<?>> within = INITIALIZATIONS.initializingWithin(this);
+        if (!within.isEmpty()) {
+            if (cycleDependents == null) {
+                cycleDependents = new ArrayList<>();
+            }
+            cycleDependents.addAll(within);
+        }
+    }
+
+    /**
+     * The beans that reached this one through a cycle are bound whenever this one is.
+     */
+    private void bindCycleDependents() {
+        List<SerBean<?>> dependents = cycleDependents;
+        cycleDependents = null;
+        if (documentBound && dependents != null) {
+            for (SerBean<?> dependent : dependents) {
+                dependent.documentBound = true;
             }
         }
     }

@@ -34,6 +34,7 @@ import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
 import io.micronaut.serde.support.util.SubtypeInfo;
 import io.micronaut.serde.util.CustomizableDeserializer;
+import io.micronaut.serde.util.DocumentContextTracker;
 
 import java.io.IOException;
 import java.util.Map;
@@ -160,6 +161,9 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
         if (!hasUnresolved) {
             deserializerSubtypeInfo = resolved;
         } else {
+            // the subtypes with unresolved generics are resolved later, with the context of this call, so the
+            // deserializer is bound to this document
+            DocumentContextTracker.markDocumentBound(context);
             Deserializer<Object> finalDefaultDeserializer = defaultDeserializer;
             deserializerSubtypeInfo = new DeserializerSubtypeInfo<>() {
                 @Override

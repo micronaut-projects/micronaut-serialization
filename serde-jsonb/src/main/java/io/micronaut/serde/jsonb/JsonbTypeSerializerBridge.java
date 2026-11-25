@@ -60,9 +60,10 @@ public final class JsonbTypeSerializerBridge implements Serializer<Object> {
             mapper,
             context.getSerdeConfiguration().orElse(null)
         );
-        return (encoder, _, _, value) -> {
+        // the serializer is kept between documents, so it writes with the context of each call
+        return (encoder, callContext, _, value) -> {
             try {
-                jsonNodeSerializer.serialize(encoder, context, JSON_NODE_ARGUMENT, JsonbJsonpBridge.writeWithJsonbSerializer(serializer, value, codec));
+                jsonNodeSerializer.serialize(encoder, callContext, JSON_NODE_ARGUMENT, JsonbJsonpBridge.writeWithJsonbSerializer(serializer, value, codec));
             } catch (JsonbException | IOException e) {
                 throw e;
             } catch (RuntimeException e) {

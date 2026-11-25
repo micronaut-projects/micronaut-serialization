@@ -74,7 +74,7 @@ class RuntimeTypeSerializerDocumentTest {
     @Test
     void serializersOfRuntimeTypesWithoutContextualSerdesAreSharedByDocuments() throws Exception {
         Serializer.EncoderContext context = registry.newEncoderContext(null);
-        RuntimeTypeSerializer serializer = new RuntimeTypeSerializer(context, null, null, Argument.OBJECT_ARGUMENT);
+        RuntimeTypeSerializer serializer = new RuntimeTypeSerializer(null, null, Argument.OBJECT_ARGUMENT);
         assertFalse(serializer.isEmpty(context, "value"));
         assertFalse(serializer.isAbsent(context, "value"));
         java.lang.reflect.Field field = RuntimeTypeSerializer.class.getDeclaredField("inners");
@@ -91,7 +91,7 @@ class RuntimeTypeSerializerDocumentTest {
     @Test
     void runtimeTypeSerializersWorkWithContextsWithoutDocumentSerdes() {
         Serializer.EncoderContext context = proxy(Serializer.EncoderContext.class, registry.newEncoderContext(null));
-        RuntimeTypeSerializer serializer = new RuntimeTypeSerializer(context, null, null, Argument.OBJECT_ARGUMENT);
+        RuntimeTypeSerializer serializer = new RuntimeTypeSerializer(null, null, Argument.OBJECT_ARGUMENT);
         assertFalse(serializer.isEmpty(context, "value"));
         assertTrue(serializer.isEmpty(context, null));
     }
@@ -100,13 +100,13 @@ class RuntimeTypeSerializerDocumentTest {
     void outerTypeWithoutSerializerIsReported() {
         Serializer.EncoderContext context = registry.newEncoderContext(null);
         Encoder encoder = proxy(Encoder.class, null);
-        RuntimeTypeSerializer withoutSerializer = new RuntimeTypeSerializer(context, null, null, Argument.of(Unknown.class));
+        RuntimeTypeSerializer withoutSerializer = new RuntimeTypeSerializer(null, null, Argument.of(Unknown.class));
         assertFalse(withoutSerializer.isEmpty(context, new Unknown()));
         assertFalse(withoutSerializer.isAbsent(context, new Unknown()));
         SerdeException noSerializer = assertThrows(SerdeException.class, () -> withoutSerializer.serialize(encoder, context, Argument.OBJECT_ARGUMENT, new Unknown()));
         assertTrue(noSerializer.getMessage().contains("No serializer found"));
 
-        RuntimeTypeSerializer notIntrospected = new RuntimeTypeSerializer(context, new IntrospectionException("Not introspected"), Argument.of(Unknown.class));
+        RuntimeTypeSerializer notIntrospected = new RuntimeTypeSerializer(new IntrospectionException("Not introspected"), Argument.of(Unknown.class));
         SerdeException failure = assertThrows(SerdeException.class, () -> notIntrospected.serialize(encoder, context, Argument.OBJECT_ARGUMENT, new Unknown()));
         assertEquals("Not introspected", failure.getMessage());
     }

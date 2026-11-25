@@ -50,6 +50,7 @@ import io.micronaut.serde.exceptions.InvalidPropertyFormatException;
 import io.micronaut.serde.exceptions.NullValueSerdeException;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
+import io.micronaut.serde.support.util.BeanInitializations;
 import io.micronaut.serde.support.util.ContextBoundSerdes;
 import io.micronaut.serde.support.util.DecoderValueKind;
 import io.micronaut.serde.support.util.DocumentIdUtil;
@@ -59,6 +60,7 @@ import io.micronaut.serde.support.util.SerdeArgumentConf;
 import io.micronaut.serde.support.util.SerdeFeatures;
 import io.micronaut.serde.support.util.SubtypeInfo;
 import io.micronaut.serde.util.GeneratedSerdeExceptionUtil;
+import io.micronaut.serde.util.DocumentContextTracker;
 import io.micronaut.serde.util.SerdePropertyAccess;
 import org.jspecify.annotations.Nullable;
 
@@ -90,6 +92,7 @@ import java.util.function.Predicate;
  */
 @Internal
 final class DeserBean<T> {
+    private static final BeanInitializations<DeserBean<?>> INITIALIZATIONS = new BeanInitializations<>();
     private static final String JK_PROP = "com.fasterxml.jackson.annotation.JsonProperty";
 
     // CHECKSTYLE:OFF
@@ -152,6 +155,16 @@ final class DeserBean<T> {
     private volatile boolean initializing;
     @Nullable
     private final SerdeArgumentConf serdeArgumentConf;
+    /**
+     * Whether initializing the property deserializers bound them to the document, such as with a user serde keeping
+     * the context. The bean is kept between documents, so each document that uses it is marked bound as well.
+     */
+    private volatile boolean documentBound;
+    /**
+     * The beans that reached this one through a cycle while it was initializing, bound whenever this one is.
+     */
+    @Nullable
+    private List<DeserBean<?>> cycleDependents;
 
     // CHECKSTYLE:ON
 
@@ -172,6 +185,8 @@ final class DeserBean<T> {
                      @Nullable SerdeArgumentConf serdeArgumentConf)
         throws SerdeException {
 
+        // the constructor resolves the subtypes and the unwrapped creator parameters, which can bind the document
+        int constructorBindings = DocumentContextTracker.documentBindings(decoderContext);
         this.typeArguments = typeArguments;
         this.serdeArgumentConf = serdeArgumentConf;
         AnnotationMetadata beanAnnotationMetadata = introspection.getAnnotationMetadata();
@@ -533,6 +548,7 @@ final class DeserBean<T> {
 
         simpleBean = isSimpleBean();
         recordLikeBean = isRecordLikeBean();
+        documentBound = DocumentContextTracker.documentBindings(decoderContext) != constructorBindings;
     }
 
     /**
@@ -672,15 +688,54 @@ final class DeserBean<T> {
                 if (!initialized && !initializing) {
                     initializing = true;
                     decoderContext = decoderContext.withFeatures(beanFeaturesWith, beanFeaturesWithout);
+                    INITIALIZATIONS.enter(this);
                     try {
+                        int bindings = DocumentContextTracker.documentBindings(decoderContext);
                         initializeInternal(decoderContext);
+                        // the subtypes and the unwrapped creator parameters were resolved by the constructor
+                        boolean bound = documentBound || DocumentContextTracker.documentBindings(decoderContext) != bindings;
+                        documentBound = bound;
                         initialized = true;
                     } finally {
+                        INITIALIZATIONS.exit();
                         initializing = false;
                     }
+                    bindCycleDependents();
+                } else if (initializing) {
+                    addCycleDependents();
                 }
             } finally {
                 lock.unlock();
+            }
+        }
+        if (documentBound) {
+            DocumentContextTracker.markDocumentBound(decoderContext);
+        }
+    }
+
+    /**
+     * Reached again through a cycle while initializing: the beans initialized since hold the deserializers of this
+     * one.
+     */
+    private void addCycleDependents() {
+        List<DeserBean<?>> within = INITIALIZATIONS.initializingWithin(this);
+        if (!within.isEmpty()) {
+            if (cycleDependents == null) {
+                cycleDependents = new ArrayList<>();
+            }
+            cycleDependents.addAll(within);
+        }
+    }
+
+    /**
+     * The beans that reached this one through a cycle are bound whenever this one is.
+     */
+    private void bindCycleDependents() {
+        List<DeserBean<?>> dependents = cycleDependents;
+        cycleDependents = null;
+        if (documentBound && dependents != null) {
+            for (DeserBean<?> dependent : dependents) {
+                dependent.documentBound = true;
             }
         }
     }
