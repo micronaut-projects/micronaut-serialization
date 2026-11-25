@@ -20,14 +20,12 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
-import io.micronaut.serde.util.DocumentContextTracker;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The customized iterable serializer.
@@ -38,63 +36,48 @@ import java.util.concurrent.ConcurrentHashMap;
 @Internal
 final class RuntimeValueIterableSerializer<T> extends AbstractIterableSerializer<T> {
 
-    /**
-     * The serializers of the element types, reused by the next documents.
-     */
-    private final Map<Class<?>, Component<T>> components = new ConcurrentHashMap<>(4);
-
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Iterable<T>> type, Iterable<T> value) throws IOException {
         // slow path, generic look up per element
         final Encoder childEncoder = encoder.encodeArray(type);
-        Component<T> component = null;
+        Class<?> lastValueClass = null;
+        Element<T> element = null;
+        // The element serializers are created with the context of this call, so they are only kept for this call:
+        // a serializer may depend on its context (views, features, user serdes created with it).
+        // A homogeneous iterable needs only the last element; the map is created on the first change of class.
+        Map<Class<?>, Element<T>> elements = null;
         for (T t : value) {
             if (t == null) {
                 childEncoder.encodeNull();
                 continue;
             }
-            if (component == null || component.type().getType() != t.getClass()) {
-                component = findComponent(context, t.getClass());
+            Class<?> valueClass = t.getClass();
+            if (lastValueClass != valueClass || element == null) {
+                if (element != null && elements == null) {
+                    elements = new HashMap<>();
+                    elements.put(lastValueClass, element);
+                }
+                lastValueClass = valueClass;
+                element = elementOf(context, valueClass, elements);
             }
-            component.serializer().serialize(childEncoder, context, component.type(), t);
+            element.serializer.serialize(childEncoder, context, element.argument, t);
         }
         childEncoder.finishStructure();
     }
 
-    private Component<T> findComponent(EncoderContext context, Class<?> valueClass) throws SerdeException {
-        Component<T> component = components.get(valueClass);
-        if (component != null && (component.document() == null || component.document() == context)) {
-            return component;
-        }
-        Map<Class<?>, Component<T>> documentComponents = (Map<Class<?>, Component<T>>) DocumentContextTracker.getDocumentValue(context, this);
-        if (documentComponents != null) {
-            component = documentComponents.get(valueClass);
-            if (component != null) {
-                return component;
+    @SuppressWarnings("unchecked")
+    private Element<T> elementOf(EncoderContext context,
+                                 Class<?> valueClass,
+                                 @Nullable Map<Class<?>, Element<T>> elements) throws SerdeException {
+        Element<T> element = elements == null ? null : elements.get(valueClass);
+        if (element == null) {
+            Argument<T> generic = (Argument<T>) Argument.of(valueClass);
+            element = new Element<>(generic, context.findSerializer(generic).createSpecific(context, generic));
+            if (elements != null) {
+                elements.put(valueClass, element);
             }
         }
-        Argument<T> generic = (Argument<T>) Argument.of(valueClass);
-        int bindings = DocumentContextTracker.documentBindings(context);
-        Serializer<? super T> serializer = context.findSerializer(generic).createSpecific(context, generic);
-        // This serializer can serve several documents (a mapper caches the serializers that are not bound to a
-        // document), so a serializer that the creation bound to the document is kept by the document, which
-        // releases it with the values it holds when the document is finished.
-        if (bindings >= 0 && DocumentContextTracker.documentBindings(context) == bindings) {
-            component = new Component<>(generic, serializer, null);
-            components.put(valueClass, component);
-            return component;
-        }
-        component = new Component<>(generic, serializer, context);
-        if (documentComponents == null) {
-            documentComponents = HashMap.newHashMap(4);
-            if (!DocumentContextTracker.putDocumentValue(context, this, documentComponents)) {
-                // a context that does not keep values: the serializer is reused only with this context
-                components.put(valueClass, component);
-                return component;
-            }
-        }
-        documentComponents.put(valueClass, component);
-        return component;
+        return element;
     }
 
     @Override
@@ -115,13 +98,13 @@ final class RuntimeValueIterableSerializer<T> extends AbstractIterableSerializer
     }
 
     /**
-     * The serializer of an element type.
+     * The serializer of the elements of a class and the argument it is called with.
      *
-     * @param type       The element type
-     * @param serializer The serializer
-     * @param document   The context the serializer is bound to, null if it is not bound
+     * @param argument   The argument of the class of the element
+     * @param serializer The specific serializer
      * @param <T>        The element type
      */
-    private record Component<T>(Argument<T> type, Serializer<? super T> serializer, @Nullable Object document) {
+    private record Element<T>(Argument<T> argument, Serializer<? super T> serializer) {
     }
+
 }

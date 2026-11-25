@@ -28,10 +28,12 @@ import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.reference.SerializationReference;
 import io.micronaut.serde.support.reference.DocumentIdSerializationReference;
 import io.micronaut.serde.util.DocumentContextTracker;
+import io.micronaut.serde.util.DocumentSerdes;
 import org.jspecify.annotations.Nullable;
 
 import java.util.IdentityHashMap;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Default implementation of {@link io.micronaut.serde.Serializer.EncoderContext}.
@@ -39,15 +41,16 @@ import java.util.Optional;
  * @since 1.0.0
  */
 @Internal
-class DefaultEncoderContext extends AbstractPropertyReferenceManager implements Serializer.EncoderContext, DocumentContextTracker {
+class DefaultEncoderContext extends AbstractPropertyReferenceManager implements Serializer.EncoderContext, DocumentSerdes, DocumentContextTracker {
+    // The serdes specialized for this document by serdes kept between documents, created on first use
+    @Nullable
+    private IdentityHashMap<Object, Object> documentSerdes;
+
     private final DefaultSerdeRegistry registry;
     private int documentBindings;
     // Beans written in full in the current document, allocated only when a document uses object identity
     @Nullable
     private IdentityHashMap<Object, Object> writtenBeans;
-    // Values that shared serdes keep for the current document only, allocated on first use
-    @Nullable
-    private IdentityHashMap<Object, Object> documentValues;
 
     DefaultEncoderContext(DefaultSerdeRegistry registry) {
         this.registry = registry;
@@ -110,26 +113,19 @@ class DefaultEncoderContext extends AbstractPropertyReferenceManager implements 
     }
 
     @Override
+    public @Nullable Object getDocumentSerde(Object owner) {
+        return DocumentSerdeMaps.get(documentSerdes, owner);
+    }
+
+    @Override
+    public void putDocumentSerde(Object owner, Object value) {
+        documentSerdes = DocumentSerdeMaps.put(documentSerdes, owner, value);
+    }
+
+    @Override
     public void close() {
+        documentSerdes = null;
         writtenBeans = null;
-        documentValues = null;
-    }
-
-    @Override
-    public @Nullable Object getDocumentValue(Object key) {
-        IdentityHashMap<Object, Object> values = documentValues;
-        return values == null ? null : values.get(key);
-    }
-
-    @Override
-    public boolean putDocumentValue(Object key, Object value) {
-        IdentityHashMap<Object, Object> values = documentValues;
-        if (values == null) {
-            values = new IdentityHashMap<>(4);
-            documentValues = values;
-        }
-        values.put(key, value);
-        return true;
     }
 
     @Override
@@ -144,11 +140,16 @@ class DefaultEncoderContext extends AbstractPropertyReferenceManager implements 
 
     @Override
     public Optional<SerdeConfiguration> getSerdeConfiguration() {
-        return Optional.of(registry.getSerdeConfiguration());
+        return registry.optionalSerdeConfiguration();
     }
 
     @Override
     public Optional<SerializationConfiguration> getSerializationConfiguration() {
-        return Optional.of(registry.getSerializationConfiguration());
+        return registry.optionalSerializationConfiguration();
+    }
+
+    @Override
+    public Set<SerializationConfiguration.Feature> getFeatures() {
+        return registry.serializationFeatures();
     }
 }

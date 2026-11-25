@@ -49,6 +49,7 @@ import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
 import io.micronaut.serde.support.util.BeanInitializations;
+import io.micronaut.serde.support.util.ContextBoundSerdes;
 import io.micronaut.serde.support.util.DecoderValueKind;
 import io.micronaut.serde.support.util.DocumentIdUtil;
 import io.micronaut.serde.support.util.ObjectShapeSerdeHelper;
@@ -971,10 +972,20 @@ final class SerBean<T> {
         } else {
             serializer = (Serializer<Z>) encoderContext.findSerializer(argument);
         }
-        Serializer.EncoderContext propertyContext = encoderContext.withFeatures(prop.featuresWith, prop.featuresWithout);
-        prop.serializer = prop.format == null
-            ? serializer.createSpecific(propertyContext, argument)
-            : createSpecific(prop.format, serializer, propertyContext, argument);
+        final Serializer<Z> resolved = serializer;
+        final Argument<Z> resolvedArgument = argument;
+        ContextBoundSerdes.SerializerFactory<Z> factory = context -> {
+            // the features of the bean argument and of the bean apply to a document context as they did to the first
+            Serializer.EncoderContext argumentContext = serdeArgumentConf == null ? context : serdeArgumentConf.withFeatures(context);
+            Serializer.EncoderContext beanContext = argumentContext.withFeatures(prop.beanFeaturesWith, prop.beanFeaturesWithout);
+            Serializer.EncoderContext propertyContext = beanContext.withFeatures(prop.featuresWith, prop.featuresWithout);
+            return prop.format == null
+                ? (Serializer<Z>) resolved.createSpecific(propertyContext, resolvedArgument)
+                : createSpecific(prop.format, resolved, propertyContext, resolvedArgument);
+        };
+        // The bean keeps its property serializers between documents: one that a serde bean bound to the context
+        // of this document is specialized again for the context of each document
+        prop.serializer = ContextBoundSerdes.specialize(factory, encoderContext);
 
         if (prop.serializableInto) {
             if (prop.serializer instanceof io.micronaut.serde.ObjectSerializer<Z> objectSerializer) {
@@ -1036,8 +1047,12 @@ final class SerBean<T> {
     private static PropertyNamingStrategy getPropertyNamingStrategy(AnnotationMetadata annotationMetadata,
                                                              Serializer.EncoderContext encoderContext,
                                                              @Nullable PropertyNamingStrategy defaultNamingStrategy) throws SerdeException {
-        Class<? extends PropertyNamingStrategy> namingStrategyClass = annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.RUNTIME_NAMING)
+        Class<? extends PropertyNamingStrategy> namingStrategyClass = annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.SERIALIZE_RUNTIME_NAMING)
                 .orElse(null);
+        if (namingStrategyClass == null) {
+            namingStrategyClass = annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.RUNTIME_NAMING)
+                    .orElse(null);
+        }
         return namingStrategyClass == null ? defaultNamingStrategy : encoderContext.findNamingStrategy(namingStrategyClass);
     }
 
@@ -1047,7 +1062,10 @@ final class SerBean<T> {
                                SerdeArgumentConf serdeArgumentConf,
                                @Nullable PropertyNamingStrategy propertyNamingStrategy) {
 
-        String resolvedName = propertyAnnotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(null);
+        String resolvedName = propertyAnnotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.SERIALIZE_PROPERTY_NAME).orElse(null);
+        if (resolvedName == null) {
+            resolvedName = propertyAnnotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(null);
+        }
         if (resolvedName == null && propertyNamingStrategy != null) {
             resolvedName = propertyNamingStrategy.translate(new AnnotatedElement() {
                 @Override
@@ -1235,6 +1253,9 @@ final class SerBean<T> {
         public final FormatConfiguration format;
         public final Set<SerializationConfiguration.Feature> featuresWith;
         public final Set<SerializationConfiguration.Feature> featuresWithout;
+        // the features of the bean, which a property serializer specialized again for a document applies as well
+        final Set<SerializationConfiguration.Feature> beanFeaturesWith;
+        final Set<SerializationConfiguration.Feature> beanFeaturesWithout;
         // CHECKSTYLE:ON
 
         public SerProperty(
@@ -1252,6 +1273,8 @@ final class SerBean<T> {
                 Argument<P> argument,
                 AnnotationMetadata annotationMetadata) {
             this.beanType = bean.introspection.getBeanType();
+            this.beanFeaturesWith = bean.beanFeaturesWith;
+            this.beanFeaturesWithout = bean.beanFeaturesWithout;
             this.name = name;
             this.originalName = originalName;
             this.argument = annotationMetadata.isEmpty() ? argument : argument.withAnnotationMetadata(annotationMetadata);

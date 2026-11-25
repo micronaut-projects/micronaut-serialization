@@ -126,7 +126,7 @@ public final class ProtobufMapper implements ObjectMapper {
 
     @Override
     public <T> @Nullable T readValue(byte[] byteArray, Argument<T> type) throws IOException {
-        // A context lives for one document: managed references and object identities do not leak between documents
+        // a context serves one document, and is closed at its end
         try (Deserializer.DecoderContext decoderContext = registry.newDecoderContext(view)) {
             ProtobufDecoder decoder = new ProtobufDecoder(byteArray, limits(), decoderContext);
             return decoderContext.findDeserializer(type)
@@ -178,7 +178,7 @@ public final class ProtobufMapper implements ObjectMapper {
     }
 
     private <T> void serialize(io.micronaut.serde.Encoder encoder, Argument<T> type, T value) throws IOException {
-        // A context lives for one document: managed references and object identities do not leak between documents
+        // a context serves one document, and is closed at its end
         try (Serializer.EncoderContext encoderContext = registry.newEncoderContext(view)) {
             Serializer<? super T> serializer = encoderContext.findSerializer(type).createSpecific(encoderContext, type);
             serializer.serialize(encoder, encoderContext, type, value);
