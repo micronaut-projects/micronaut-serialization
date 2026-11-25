@@ -23,6 +23,7 @@ import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.ContextBoundSerdes;
+import io.micronaut.serde.util.DocumentContextTracker;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -38,9 +39,9 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
 
     /**
      * The serializers of the runtime types. A serializer whose creation bound it to the context of the document, such as
-     * one holding a serde bean that takes the context as a constructor argument, is specialized again for each
-     * document by {@link ContextBoundSerdes}, which keeps the specializations in the document context. Each is kept
-     * with the argument it is called with, so that a value does not build an argument.
+     * one holding a serde bean that takes the context as a constructor argument, or one created by a user serde, is
+     * specialized again for each document by {@link ContextBoundSerdes}, which keeps the specializations in the document
+     * context. Each is kept with the argument it is called with, so that a value does not build an argument.
      */
     private final Map<Class<?>, Inner> inners = new ConcurrentHashMap<>(4);
     @Nullable
@@ -161,8 +162,14 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
             throw new SerdeException(NO_SERIALIZER_FOUND + type);
         }
         Argument<Object> arg = Argument.of((Class) type, outerType.getAnnotationMetadata());
+        int bindings = DocumentContextTracker.documentBindings(context);
         // the context of the call, not of the creation: this serializer can serve several documents
-        return context.findSerializer(arg).createSpecific(context, arg);
+        Serializer<Object> serializer = context.findSerializer(arg).createSpecific(context, arg);
+        if (bindings >= 0 && DocumentContextTracker.documentBindings(context) != bindings) {
+            // a user serde was looked up: the serializer it created can keep the context of this document
+            ContextBoundSerdes.created();
+        }
+        return serializer;
     }
 
     /**

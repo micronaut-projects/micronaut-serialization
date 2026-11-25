@@ -100,9 +100,10 @@ class SpecificJsonMapperSpec extends Specification {
         then:
             first == '{"a":"x","b":"y","n":1}'
             second == '{"a":"z","n":2}'
-            // created once for each document, and not kept by the serializer that the mapper caches
+            // created once for each document, and kept by the document rather than by the serializer that the mapper caches
             example.retain.RetainingSerializer.SPECIFICS.get() == 2
-            inners(valueSerializer()).keySet() == [Integer] as Set
+            inners(valueSerializer()).keySet() == [Integer, example.retain.Retained] as Set
+            !(inners(valueSerializer())[example.retain.Retained].serializer() instanceof example.retain.RetainingSerializer.Specific)
     }
 
     void "a property with feature overrides reuses the serializers bound to its document"() {
