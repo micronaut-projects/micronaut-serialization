@@ -79,4 +79,12 @@ class BuilderSpec extends Specification {
         then:
         value.foo == 'baz'
     }
+
+    void "a builder reads its own names, not the explicit names of the constructor"() {
+        when:
+        def value = objectMapper.readValue('{"name":"Jane"}', TestBuildCreatorName)
+
+        then:
+        value.name == 'Jane'
+    }
 }

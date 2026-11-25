@@ -16,7 +16,6 @@
 package io.micronaut.serde;
 
 import io.micronaut.core.annotation.Internal;
-import io.micronaut.serde.util.DocumentContextTracker;
 import io.micronaut.core.convert.ConversionService;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.config.SerdeConfiguration;
@@ -25,6 +24,8 @@ import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.reference.SerializationReference;
+import io.micronaut.serde.util.DocumentContextTracker;
+import io.micronaut.serde.util.DocumentSerdes;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -37,7 +38,7 @@ import java.util.Set;
  * @since 3.0
  */
 @Internal
-final class FeatureEncoderContext implements Serializer.EncoderContext, DocumentContextTracker {
+final class FeatureEncoderContext implements Serializer.EncoderContext, DocumentSerdes.Delegating, DocumentContextTracker {
     private final Serializer.EncoderContext delegate;
     private final Set<SerializationConfiguration.Feature> features;
 
@@ -65,6 +66,11 @@ final class FeatureEncoderContext implements Serializer.EncoderContext, Document
     @Override
     public void close() throws IOException {
         delegate.close();
+    }
+
+    @Override
+    public Object documentSerdesOwner() {
+        return delegate;
     }
 
     @Override
@@ -115,15 +121,5 @@ final class FeatureEncoderContext implements Serializer.EncoderContext, Document
     @Override
     public int documentBindings() {
         return DocumentContextTracker.documentBindings(delegate);
-    }
-
-    @Override
-    public @Nullable Object getDocumentValue(Object key) {
-        return DocumentContextTracker.getDocumentValue(delegate, key);
-    }
-
-    @Override
-    public boolean putDocumentValue(Object key, Object value) {
-        return DocumentContextTracker.putDocumentValue(delegate, key, value);
     }
 }

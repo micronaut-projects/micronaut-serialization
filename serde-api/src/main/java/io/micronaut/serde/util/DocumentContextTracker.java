@@ -16,7 +16,6 @@
 package io.micronaut.serde.util;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.Nullable;
 
 /**
  * Tracks whether a serde created with the context of a document keeps that context, so that it
@@ -49,30 +48,6 @@ public interface DocumentContextTracker {
     int documentBindings();
 
     /**
-     * Finds a value that a serde keeps for the current document only, so that a serde shared by several
-     * documents does not retain what it created for one of them after that document.
-     *
-     * @param key The key, usually the serde itself
-     * @return The value, or null if none is kept
-     */
-    default @Nullable Object getDocumentValue(Object key) {
-        return null;
-    }
-
-    /**
-     * Keeps a value for the current document only, released when the document is finished. Only a
-     * context that serves one document and is closed at its end keeps values; a context shared by
-     * several documents or threads returns false.
-     *
-     * @param key   The key, usually the serde itself
-     * @param value The value
-     * @return Whether the value is kept, false when the context does not keep values
-     */
-    default boolean putDocumentValue(Object key, Object value) {
-        return false;
-    }
-
-    /**
      * Marks the serdes created with the given context as bound to the document.
      *
      * @param context The encoder or decoder context
@@ -99,24 +74,5 @@ public interface DocumentContextTracker {
      */
     static int documentBindings(Object context) {
         return context instanceof DocumentContextTracker tracker ? tracker.documentBindings() : -1;
-    }
-
-    /**
-     * @param context The encoder or decoder context
-     * @param key     The key
-     * @return The value kept for the document of the context, null if none is kept
-     */
-    static @Nullable Object getDocumentValue(Object context, Object key) {
-        return context instanceof DocumentContextTracker tracker ? tracker.getDocumentValue(key) : null;
-    }
-
-    /**
-     * @param context The encoder or decoder context
-     * @param key     The key
-     * @param value   The value
-     * @return Whether the value is kept for the document of the context
-     */
-    static boolean putDocumentValue(Object context, Object key, Object value) {
-        return context instanceof DocumentContextTracker tracker && tracker.putDocumentValue(key, value);
     }
 }

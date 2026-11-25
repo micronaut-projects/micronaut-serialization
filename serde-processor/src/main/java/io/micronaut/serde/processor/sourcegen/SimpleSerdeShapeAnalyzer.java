@@ -350,8 +350,7 @@ public final class SimpleSerdeShapeAnalyzer {
         if (analysis.open() && hasDirectIterableProperties(element) && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE)) {
             return true;
         }
-        // Two properties serialized under one name cannot share a generated key
-        if (analysis.open() && hasDuplicateSerializedNames(element) && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE)) {
+        if (analyzePropertyNames(analysis)) {
             return true;
         }
         if (analysis.open()
@@ -371,6 +370,24 @@ public final class SimpleSerdeShapeAnalyzer {
             && analysis.open()
             && hasComplexEnumCustomization(element)
             && analysis.failBoth(FallbackReason.COMPLEX_ENUM);
+    }
+
+    /**
+     * The names the properties are written and read with.
+     *
+     * @return {@code true} once the analysis is complete
+     */
+    private boolean analyzePropertyNames(Analysis analysis) {
+        ClassElement element = analysis.element;
+        // Two properties serialized under one name cannot share a generated key
+        if (analysis.open() && hasDuplicateSerializedNames(element) && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE)) {
+            return true;
+        }
+        // A property written and read with different names is handled by the runtime serdes
+        if (analysis.open() && hasDirectionalNames(element) && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE)) {
+            return true;
+        }
+        return readsPropertyNameOfAnotherParameter(analysis) && analysis.failDeserializer(FallbackReason.COMPLEX_CREATOR);
     }
 
     /**
@@ -691,6 +708,26 @@ public final class SimpleSerdeShapeAnalyzer {
             var unsupportedAnnotations = new LinkedHashMap<String, Boolean>();
             collectJacksonAnnotationNames(method.getAnnotationNames(), unsupportedAnnotations);
             if (!unsupportedAnnotations.isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * The runtime reads the property name of a creator parameter as another parameter that is explicitly named so,
+     * which a generated deserializer cannot do.
+     */
+    private static boolean readsPropertyNameOfAnotherParameter(Analysis analysis) {
+        return analysis.deserializerOpen()
+            && (analysis.shapeKind == ShapeKind.RECORD || analysis.shapeKind == ShapeKind.CONSTRUCTOR_BEAN)
+            && RecordSerdeShapeResolver.readsPropertyNameOfAnotherParameter(analysis.element);
+    }
+
+    private boolean hasDirectionalNames(ClassElement element) {
+        for (PropertyElement property : beanProperties(element)) {
+            if (property.stringValue(SerdeConfig.class, SerdeConfig.SERIALIZE_PROPERTY_NAME).isPresent()
+                || property.stringValue(SerdeConfig.class, SerdeConfig.DESERIALIZE_PROPERTY_NAME).isPresent()) {
                 return true;
             }
         }
@@ -1056,7 +1093,9 @@ public final class SimpleSerdeShapeAnalyzer {
      * generated serdes use. Only a strategy that has to be looked up at runtime needs the runtime serde.
      */
     private boolean hasCustomNaming(AnnotationMetadata annotationMetadata) {
-        return annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.RUNTIME_NAMING).isPresent();
+        return annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.RUNTIME_NAMING).isPresent()
+            || annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.SERIALIZE_RUNTIME_NAMING).isPresent()
+            || annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.DESERIALIZE_RUNTIME_NAMING).isPresent();
     }
 
     private boolean hasAnnotation(MethodElement methodElement, Class<? extends Annotation> annotation) {
