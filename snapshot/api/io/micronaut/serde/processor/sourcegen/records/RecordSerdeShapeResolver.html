@@ -64,6 +64,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
 <li><a href="#resolve(io.micronaut.inject.ast.ClassElement)" tabindex="0">resolve(ClassElement)</a></li>
+<li><a href="#readsPropertyNameOfAnotherParameter(io.micronaut.inject.ast.ClassElement)" tabindex="0">readsPropertyNameOfAnotherParameter(ClassElement)</a></li>
 <li><a href="#isConstructorBean(io.micronaut.inject.ast.ClassElement)" tabindex="0">isConstructorBean(ClassElement)</a></li>
 </ol>
 </li>
@@ -118,9 +119,15 @@ loadScripts(document, 'script');</script>
 generators apply: the constructor takes at least one parameter, every parameter names a bean
 property of the same type, and every bean property is such a parameter.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a><wbr>&lt;<a href="RecordSerdeShape.html" title="class in io.micronaut.serde.processor.sourcegen.records">RecordSerdeShape</a>&gt;</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#resolve(io.micronaut.inject.ast.ClassElement)" class="member-name-link">resolve</a><wbr>(io.micronaut.inject.ast.ClassElement&nbsp;element)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#readsPropertyNameOfAnotherParameter(io.micronaut.inject.ast.ClassElement)" class="member-name-link">readsPropertyNameOfAnotherParameter</a><wbr>(io.micronaut.inject.ast.ClassElement&nbsp;element)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Whether a creator parameter of a record or constructor bean is named apart from its property with the explicit
+name of another parameter, so that the property name of one component is the input name of another.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a><wbr>&lt;<a href="RecordSerdeShape.html" title="class in io.micronaut.serde.processor.sourcegen.records">RecordSerdeShape</a>&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#resolve(io.micronaut.inject.ast.ClassElement)" class="member-name-link">resolve</a><wbr>(io.micronaut.inject.ast.ClassElement&nbsp;element)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 </div>
 </div>
 </div>
@@ -159,6 +166,24 @@ property of the same type, and every bean property is such a parameter.</div>
 <h3>resolve</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a>&lt;<a href="RecordSerdeShape.html" title="class in io.micronaut.serde.processor.sourcegen.records">RecordSerdeShape</a>&gt;</span>&nbsp;<span class="element-name">resolve</span><wbr><span class="parameters">(io.micronaut.inject.ast.ClassElement&nbsp;element)</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="readsPropertyNameOfAnotherParameter(io.micronaut.inject.ast.ClassElement)">
+<h3>readsPropertyNameOfAnotherParameter</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">readsPropertyNameOfAnotherParameter</span><wbr><span class="parameters">(io.micronaut.inject.ast.ClassElement&nbsp;element)</span></div>
+<div class="block">Whether a creator parameter of a record or constructor bean is named apart from its property with the explicit
+name of another parameter, so that the property name of one component is the input name of another. A generated
+deserializer reads a component under one set of names, while the runtime reads such a name as the other
+argument, so the type is deserialized at runtime.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>element</code> - The type</dd>
+<dt>Returns:</dt>
+<dd><code>true</code> if a property name of one component is the input name of another</dd>
+</dl>
 </div>
 </section>
 </li>
