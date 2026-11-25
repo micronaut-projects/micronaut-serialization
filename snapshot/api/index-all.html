@@ -436,6 +436,12 @@ independent of value of the property.</div>
 </dd>
 <dt><a href="io/micronaut/serde/processor/sourcegen/beans/BeanDeserializerSourceGen.html#%3Cinit%3E(io.micronaut.inject.visitor.VisitorContext.Language)" class="member-name-link">BeanDeserializerSourceGen(VisitorContext.Language)</a> - Constructor for class io.micronaut.serde.processor.sourcegen.beans.<a href="io/micronaut/serde/processor/sourcegen/beans/BeanDeserializerSourceGen.html" title="class in io.micronaut.serde.processor.sourcegen.beans">BeanDeserializerSourceGen</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/util/BeanInitializations.html" class="type-name-link" title="class in io.micronaut.serde.support.util">BeanInitializations&lt;B&gt;</a> - Class in <a href="io/micronaut/serde/support/util/package-summary.html">io.micronaut.serde.support.util</a></dt>
+<dd>
+<div class="block">The beans of one kind being initialized by the current thread, innermost last.</div>
+</dd>
+<dt><a href="io/micronaut/serde/support/util/BeanInitializations.html#%3Cinit%3E()" class="member-name-link">BeanInitializations()</a> - Constructor for class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/BeanInitializations.html" title="class in io.micronaut.serde.support.util">BeanInitializations</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html#%3Cinit%3E(java.lang.String,io.micronaut.inject.ast.ClassElement,io.micronaut.inject.ast.ClassElement,boolean,boolean,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.FieldElement,io.micronaut.inject.ast.FieldElement)" class="member-name-link">BeanProperty(String, ClassElement, ClassElement, boolean, boolean, MethodElement, MethodElement, FieldElement, FieldElement)</a> - Constructor for record class io.micronaut.serde.processor.sourcegen.beans.<a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html" title="class in io.micronaut.serde.processor.sourcegen.beans">BeanSerdeShape.BeanProperty</a></dt>
 <dd>
 <div class="block">Creates a property without contributed key metadata.</div>
@@ -2518,6 +2524,15 @@ when the strategy cannot be resolved at compile time.</div>
 <dd>
 <div class="block">Reference is available for the enclosing document.</div>
 </dd>
+<dt><a href="io/micronaut/serde/util/DocumentContextTracker.html#documentBindings()" class="member-name-link">documentBindings()</a> - Method in interface io.micronaut.serde.util.<a href="io/micronaut/serde/util/DocumentContextTracker.html" title="interface in io.micronaut.serde.util">DocumentContextTracker</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/util/DocumentContextTracker.html#documentBindings(java.lang.Object)" class="member-name-link">documentBindings(Object)</a> - Static method in interface io.micronaut.serde.util.<a href="io/micronaut/serde/util/DocumentContextTracker.html" title="interface in io.micronaut.serde.util">DocumentContextTracker</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/util/DocumentContextTracker.html" class="type-name-link" title="interface in io.micronaut.serde.util">DocumentContextTracker</a> - Interface in <a href="io/micronaut/serde/util/package-summary.html">io.micronaut.serde.util</a></dt>
+<dd>
+<div class="block">Tracks whether a serde created with the context of a document keeps that context, so that it
+must not serve other documents.</div>
+</dd>
 <dt><a href="io/micronaut/serde/support/reference/DocumentIdReference.html" class="type-name-link" title="class in io.micronaut.serde.support.reference">DocumentIdReference&lt;B&gt;</a> - Class in <a href="io/micronaut/serde/support/reference/package-summary.html">io.micronaut.serde.support.reference</a></dt>
 <dd>
 <div class="block">A bean registered under, or looked up by, its document-scoped identifier.</div>
@@ -3035,6 +3050,10 @@ serialized names of the constants of an enum.</div>
 <dd>
 <div class="block">Ensures reflection-only JSON-B features are not used by the generated provider.</div>
 </dd>
+<dt><a href="io/micronaut/serde/support/util/BeanInitializations.html#enter(B)" class="member-name-link">enter(B)</a> - Method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/BeanInitializations.html" title="class in io.micronaut.serde.support.util">BeanInitializations</a></dt>
+<dd>
+<div class="block">Records that the bean starts initializing.</div>
+</dd>
 <dt><a href="io/micronaut/serde/processor/sourcegen/SimpleSerdeShapeDecision.ShapeKind.html#ENUM" class="member-name-link">ENUM</a> - Enum constant in enum class io.micronaut.serde.processor.sourcegen.<a href="io/micronaut/serde/processor/sourcegen/SimpleSerdeShapeDecision.ShapeKind.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.ShapeKind</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/sourcegen/enums/EnumSerdeShape.EnumConstant.html#%3Cinit%3E(java.lang.String,java.lang.String)" class="member-name-link">EnumConstant(String, String)</a> - Constructor for record class io.micronaut.serde.processor.sourcegen.enums.<a href="io/micronaut/serde/processor/sourcegen/enums/EnumSerdeShape.EnumConstant.html" title="class in io.micronaut.serde.processor.sourcegen.enums">EnumSerdeShape.EnumConstant</a></dt>
@@ -3354,6 +3373,10 @@ format string rather than as an argument of one.</div>
 </dd>
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.SerSubtyped.DiscriminatorType.html#EXISTING_PROPERTY" class="member-name-link">EXISTING_PROPERTY</a> - Enum constant in enum class io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.SerSubtyped.DiscriminatorType.html" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerSubtyped.DiscriminatorType</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/util/BeanInitializations.html#exit()" class="member-name-link">exit()</a> - Method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/BeanInitializations.html" title="class in io.micronaut.serde.support.util">BeanInitializations</a></dt>
+<dd>
+<div class="block">Records that the innermost bean completed its initialization.</div>
+</dd>
 <dt><a href="io/micronaut/serde/protobuf/ProtoProperty.html#explicitPresence()" class="member-name-link">explicitPresence()</a> - Method in record class io.micronaut.serde.protobuf.<a href="io/micronaut/serde/protobuf/ProtoProperty.html" title="class in io.micronaut.serde.protobuf">ProtoProperty</a></dt>
 <dd>
 <div class="block">Returns the value of the <a href="./io/micronaut/serde/protobuf/ProtoProperty.html#param-explicitPresence"><code>explicitPresence</code></a> record component.</div>
@@ -3753,6 +3776,10 @@ quote at <code>startQuoteIndex</code>.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/sourcegen/SerdeSourceGenClassNaming.html#generatedDeserializerClassName(io.micronaut.inject.ast.ClassElement)" class="member-name-link">generatedDeserializerClassName(ClassElement)</a> - Static method in class io.micronaut.serde.processor.sourcegen.<a href="io/micronaut/serde/processor/sourcegen/SerdeSourceGenClassNaming.html" title="class in io.micronaut.serde.processor.sourcegen">SerdeSourceGenClassNaming</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerde.html" class="type-name-link" title="interface in io.micronaut.serde.util">GeneratedSerde</a> - Interface in <a href="io/micronaut/serde/util/package-summary.html">io.micronaut.serde.util</a></dt>
+<dd>
+<div class="block">Marks the serializers and deserializers generated at build time.</div>
+</dd>
 <dt><a href="io/micronaut/serde/jsonb/MicronautJsonbProvider.MicronautJsonb.html#generatedSerdeCache()" class="member-name-link">generatedSerdeCache()</a> - Static method in class io.micronaut.serde.jsonb.<a href="io/micronaut/serde/jsonb/MicronautJsonbProvider.MicronautJsonb.html" title="class in io.micronaut.serde.jsonb">MicronautJsonbProvider.MicronautJsonb</a></dt>
 <dd>
 <div class="block">Creates a bounded cache for per-mapper generated Serde capability checks.</div>
@@ -5256,6 +5283,8 @@ per-property inclusion check entirely.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/tck/tests/InetAddressTest.html#%3Cinit%3E()" class="member-name-link">InetAddressTest()</a> - Constructor for class io.micronaut.serde.tck.tests.<a href="io/micronaut/serde/tck/tests/InetAddressTest.html" title="class in io.micronaut.serde.tck.tests">InetAddressTest</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/util/BeanInitializations.html#initializingWithin(B)" class="member-name-link">initializingWithin(B)</a> - Method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/BeanInitializations.html" title="class in io.micronaut.serde.support.util">BeanInitializations</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/toon/tck/ObjectBean.html#inner()" class="member-name-link">inner()</a> - Method in record class io.micronaut.serde.toon.tck.<a href="io/micronaut/serde/toon/tck/ObjectBean.html" title="class in io.micronaut.serde.toon.tck">ObjectBean</a></dt>
 <dd>
 <div class="block">Returns the value of the <a href="./io/micronaut/serde/toon/tck/ObjectBean.html#param-inner"><code>inner</code></a> record component.</div>
@@ -5728,6 +5757,8 @@ property of the same type, and every bean property is such a parameter.</div>
 <dd>
 <div class="block">Whether the property type is the owning type itself, so the generated serde can reuse itself.</div>
 </dd>
+<dt><a href="io/micronaut/serde/util/DocumentContextTracker.html#isDocumentBound(java.lang.Object)" class="member-name-link">isDocumentBound(Object)</a> - Static method in interface io.micronaut.serde.util.<a href="io/micronaut/serde/util/DocumentContextTracker.html" title="interface in io.micronaut.serde.util">DocumentContextTracker</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/util/DocumentIdUtil.html#isDocumentId(io.micronaut.core.annotation.AnnotationMetadata)" class="member-name-link">isDocumentId(AnnotationMetadata)</a> - Static method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/DocumentIdUtil.html" title="class in io.micronaut.serde.support.util">DocumentIdUtil</a></dt>
 <dd>
 <div class="block">Checks whether a property is the document-scoped identifier of its bean.</div>
@@ -5904,6 +5935,8 @@ string.</div>
 <dd>
 <div class="block">Whether a single element JSON array should be read into a scalar property, unwrapping it.</div>
 </dd>
+<dt><a href="io/micronaut/serde/util/UserSerdes.html#isUser(java.lang.Class)" class="member-name-link">isUser(Class)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/UserSerdes.html" title="class in io.micronaut.serde.util">UserSerdes</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/yaml/SerdeYamlConfiguration.html#isUseYamlNonfiniteNotation()" class="member-name-link">isUseYamlNonfiniteNotation()</a> - Method in class io.micronaut.serde.yaml.<a href="io/micronaut/serde/yaml/SerdeYamlConfiguration.html" title="class in io.micronaut.serde.yaml">SerdeYamlConfiguration</a></dt>
 <dd>
 <div class="block">Returns whether non-finite numbers should use YAML notation.</div>
@@ -7029,6 +7062,18 @@ representation, a custom <code>localName</code> and an optional XML <code>namesp
 <dt><a href="io/micronaut/serde/processor/jackson/ValidatingAnnotationMapper.html#mapValid(io.micronaut.core.annotation.AnnotationValue,io.micronaut.inject.visitor.VisitorContext)" class="member-name-link">mapValid(AnnotationValue, VisitorContext)</a> - Method in class io.micronaut.serde.processor.jackson.<a href="io/micronaut/serde/processor/jackson/ValidatingAnnotationMapper.html" title="class in io.micronaut.serde.processor.jackson">ValidatingAnnotationMapper</a></dt>
 <dd>
 <div class="block">The transform method will be called for each instances of the annotation returned via this method.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/UserSerdes.html#mark(java.lang.Class)" class="member-name-link">mark(Class)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/UserSerdes.html" title="class in io.micronaut.serde.util">UserSerdes</a></dt>
+<dd>
+<div class="block">Records that the registry resolved a serde of this class from a bean of the application.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/DocumentContextTracker.html#markDocumentBound()" class="member-name-link">markDocumentBound()</a> - Method in interface io.micronaut.serde.util.<a href="io/micronaut/serde/util/DocumentContextTracker.html" title="interface in io.micronaut.serde.util">DocumentContextTracker</a></dt>
+<dd>
+<div class="block">Marks the serdes created with this context as bound to the document.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/DocumentContextTracker.html#markDocumentBound(java.lang.Object)" class="member-name-link">markDocumentBound(Object)</a> - Static method in interface io.micronaut.serde.util.<a href="io/micronaut/serde/util/DocumentContextTracker.html" title="interface in io.micronaut.serde.util">DocumentContextTracker</a></dt>
+<dd>
+<div class="block">Marks the serdes created with the given context as bound to the document.</div>
 </dd>
 <dt><a href="io/micronaut/serde/support/util/DocumentIdUtil.html#markWritten(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.serde.support.reference.DocumentIdSerializationReference)" class="member-name-link">markWritten(Serializer.EncoderContext, DocumentIdSerializationReference)</a> - Static method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/DocumentIdUtil.html" title="class in io.micronaut.serde.support.util">DocumentIdUtil</a></dt>
 <dd>
@@ -10685,6 +10730,11 @@ among the message's properties".</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/xml/tck/Users3.User.html" class="type-name-link" title="class in io.micronaut.serde.xml.tck">Users3.User</a> - Class in <a href="io/micronaut/serde/xml/tck/package-summary.html">io.micronaut.serde.xml.tck</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/util/UserSerdes.html" class="type-name-link" title="class in io.micronaut.serde.util">UserSerdes</a> - Class in <a href="io/micronaut/serde/util/package-summary.html">io.micronaut.serde.util</a></dt>
+<dd>
+<div class="block">The serde classes a registry resolved from beans of the application, as opposed to the serdes Micronaut
+Serialization registers itself and the generated serdes.</div>
+</dd>
 <dt><a href="io/micronaut/serde/annotation/Serdeable.Deserializable.html#using()" class="member-name-link">using()</a> - Element in annotation interface io.micronaut.serde.annotation.<a href="io/micronaut/serde/annotation/Serdeable.Deserializable.html" title="annotation interface in io.micronaut.serde.annotation">Serdeable.Deserializable</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/annotation/Serdeable.Serializable.html#using()" class="member-name-link">using()</a> - Element in annotation interface io.micronaut.serde.annotation.<a href="io/micronaut/serde/annotation/Serdeable.Serializable.html" title="annotation interface in io.micronaut.serde.annotation">Serdeable.Serializable</a></dt>

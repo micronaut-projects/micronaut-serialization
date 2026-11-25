@@ -95,74 +95,78 @@ loadScripts(document, 'script');</script>
 <div class="col-last even-row-color class-summary class-summary-tab2">
 <div class="block">Can be used as a key for type.</div>
 </div>
-<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="BufferingJsonNodeProcessor.html" title="class in io.micronaut.serde.support.util">BufferingJsonNodeProcessor</a></div>
+<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="BeanInitializations.html" title="class in io.micronaut.serde.support.util">BeanInitializations</a>&lt;B&gt;</div>
 <div class="col-last odd-row-color class-summary class-summary-tab2">
+<div class="block">The beans of one kind being initialized by the current thread, innermost last.</div>
+</div>
+<div class="col-first even-row-color class-summary class-summary-tab2"><a href="BufferingJsonNodeProcessor.html" title="class in io.micronaut.serde.support.util">BufferingJsonNodeProcessor</a></div>
+<div class="col-last even-row-color class-summary class-summary-tab2">
 <div class="block">Utility class for buffering and parsing JSON to support <code>JsonMapper.createReactiveParser(java.util.function.Consumer, boolean)</code>.</div>
 </div>
-<div class="col-first even-row-color class-summary class-summary-tab2"><a href="ContextBoundSerdes.html" title="class in io.micronaut.serde.support.util">ContextBoundSerdes</a></div>
-<div class="col-last even-row-color class-summary class-summary-tab2">
+<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="ContextBoundSerdes.html" title="class in io.micronaut.serde.support.util">ContextBoundSerdes</a></div>
+<div class="col-last odd-row-color class-summary class-summary-tab2">
 <div class="block">Tracks the serde beans created with the context of a document, such as a user serde taking
 <code>@Parameter EncoderContext</code>, while a serde is specialized, so that the serdes of a bean that are kept
 between documents are specialized again for each document when they contain one.</div>
 </div>
-<div class="col-first odd-row-color class-summary class-summary-tab1"><a href="ContextBoundSerdes.DeserializerFactory.html" title="interface in io.micronaut.serde.support.util">ContextBoundSerdes.DeserializerFactory</a>&lt;T&gt;</div>
-<div class="col-last odd-row-color class-summary class-summary-tab1">
+<div class="col-first even-row-color class-summary class-summary-tab1"><a href="ContextBoundSerdes.DeserializerFactory.html" title="interface in io.micronaut.serde.support.util">ContextBoundSerdes.DeserializerFactory</a>&lt;T&gt;</div>
+<div class="col-last even-row-color class-summary class-summary-tab1">
 <div class="block">Creates a specific deserializer for each context.</div>
 </div>
-<div class="col-first even-row-color class-summary class-summary-tab1"><a href="ContextBoundSerdes.SerializerFactory.html" title="interface in io.micronaut.serde.support.util">ContextBoundSerdes.SerializerFactory</a>&lt;T&gt;</div>
-<div class="col-last even-row-color class-summary class-summary-tab1">
+<div class="col-first odd-row-color class-summary class-summary-tab1"><a href="ContextBoundSerdes.SerializerFactory.html" title="interface in io.micronaut.serde.support.util">ContextBoundSerdes.SerializerFactory</a>&lt;T&gt;</div>
+<div class="col-last odd-row-color class-summary class-summary-tab1">
 <div class="block">Creates a specific serializer for each context.</div>
 </div>
-<div class="col-first odd-row-color class-summary class-summary-tab3"><a href="DecoderValueKind.html" title="enum class in io.micronaut.serde.support.util">DecoderValueKind</a></div>
-<div class="col-last odd-row-color class-summary class-summary-tab3">
+<div class="col-first even-row-color class-summary class-summary-tab3"><a href="DecoderValueKind.html" title="enum class in io.micronaut.serde.support.util">DecoderValueKind</a></div>
+<div class="col-last even-row-color class-summary class-summary-tab3">
 <div class="block">Internal marker for serdes that map directly to one scalar value method.</div>
 </div>
-<div class="col-first even-row-color class-summary class-summary-tab1"><a href="DecoderValueKind.Provider.html" title="interface in io.micronaut.serde.support.util">DecoderValueKind.Provider</a></div>
-<div class="col-last even-row-color class-summary class-summary-tab1">
+<div class="col-first odd-row-color class-summary class-summary-tab1"><a href="DecoderValueKind.Provider.html" title="interface in io.micronaut.serde.support.util">DecoderValueKind.Provider</a></div>
+<div class="col-last odd-row-color class-summary class-summary-tab1">
 <div class="block">Internal marker for serdes that expose the direct scalar value kind.</div>
 </div>
-<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="DocumentIdUtil.html" title="class in io.micronaut.serde.support.util">DocumentIdUtil</a></div>
-<div class="col-last odd-row-color class-summary class-summary-tab2">
+<div class="col-first even-row-color class-summary class-summary-tab2"><a href="DocumentIdUtil.html" title="class in io.micronaut.serde.support.util">DocumentIdUtil</a></div>
+<div class="col-last even-row-color class-summary class-summary-tab2">
 <div class="block">Support for document-scoped identifiers: JAXB <code>@XmlID</code> and Jackson <code>@JsonIdentityInfo</code> properties
 share the <a href="../../config/annotation/SerdeConfig.SerManagedRef.Scope.html#DOCUMENT"><code>SerdeConfig.SerManagedRef.Scope.DOCUMENT</code></a> marker, one registry per document and the
 same reference serdes.</div>
 </div>
-<div class="col-first even-row-color class-summary class-summary-tab2"><a href="JsonNodeDecoder.html" title="class in io.micronaut.serde.support.util">JsonNodeDecoder</a></div>
-<div class="col-last even-row-color class-summary class-summary-tab2">
+<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="JsonNodeDecoder.html" title="class in io.micronaut.serde.support.util">JsonNodeDecoder</a></div>
+<div class="col-last odd-row-color class-summary class-summary-tab2">
 <div class="block">Implementation of the <a href="../../Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a> interface that
 uses the <code>JsonNode</code> abstraction.</div>
 </div>
-<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="JsonNodeEncoder.html" title="class in io.micronaut.serde.support.util">JsonNodeEncoder</a></div>
-<div class="col-last odd-row-color class-summary class-summary-tab2">
+<div class="col-first even-row-color class-summary class-summary-tab2"><a href="JsonNodeEncoder.html" title="class in io.micronaut.serde.support.util">JsonNodeEncoder</a></div>
+<div class="col-last even-row-color class-summary class-summary-tab2">
 <div class="block">Implementation of the <a href="../../Encoder.html" title="interface in io.micronaut.serde"><code>Encoder</code></a> interface that encodes a
 in-memory <code>JsonNode</code>.</div>
 </div>
-<div class="col-first even-row-color class-summary class-summary-tab2"><a href="JsonViewUtil.html" title="class in io.micronaut.serde.support.util">JsonViewUtil</a></div>
-<div class="col-last even-row-color class-summary class-summary-tab2">
+<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="JsonViewUtil.html" title="class in io.micronaut.serde.support.util">JsonViewUtil</a></div>
+<div class="col-last odd-row-color class-summary class-summary-tab2">
 <div class="block">Utilities for implementing JsonView support in mappers.</div>
 </div>
-<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="ObjectShapeSerdeHelper.html" title="class in io.micronaut.serde.support.util">ObjectShapeSerdeHelper</a></div>
-<div class="col-last odd-row-color class-summary class-summary-tab2">
+<div class="col-first even-row-color class-summary class-summary-tab2"><a href="ObjectShapeSerdeHelper.html" title="class in io.micronaut.serde.support.util">ObjectShapeSerdeHelper</a></div>
+<div class="col-last even-row-color class-summary class-summary-tab2">
 <div class="block">Common helpers for POJO-like shape handling.</div>
 </div>
-<div class="col-first even-row-color class-summary class-summary-tab2"><a href="SerdeAnnotationUtil.html" title="class in io.micronaut.serde.support.util">SerdeAnnotationUtil</a></div>
-<div class="col-last even-row-color class-summary class-summary-tab2">
+<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="SerdeAnnotationUtil.html" title="class in io.micronaut.serde.support.util">SerdeAnnotationUtil</a></div>
+<div class="col-last odd-row-color class-summary class-summary-tab2">
 <div class="block">Utility methods for annotations.</div>
 </div>
-<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="SerdeArgumentConf.html" title="class in io.micronaut.serde.support.util">SerdeArgumentConf</a></div>
-<div class="col-last odd-row-color class-summary class-summary-tab2">
+<div class="col-first even-row-color class-summary class-summary-tab2"><a href="SerdeArgumentConf.html" title="class in io.micronaut.serde.support.util">SerdeArgumentConf</a></div>
+<div class="col-last even-row-color class-summary class-summary-tab2">
 <div class="block">Extra configuration placed at the argument.</div>
 </div>
-<div class="col-first even-row-color class-summary class-summary-tab2"><a href="SerdeFeatures.html" title="class in io.micronaut.serde.support.util">SerdeFeatures</a></div>
-<div class="col-last even-row-color class-summary class-summary-tab2">
+<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="SerdeFeatures.html" title="class in io.micronaut.serde.support.util">SerdeFeatures</a></div>
+<div class="col-last odd-row-color class-summary class-summary-tab2">
 <div class="block">Helpers for resolving format feature overrides from annotation metadata.</div>
 </div>
-<div class="col-first odd-row-color class-summary class-summary-tab4"><a href="SubtypeInfo.html" title="class in io.micronaut.serde.support.util">SubtypeInfo</a></div>
-<div class="col-last odd-row-color class-summary class-summary-tab4">
+<div class="col-first even-row-color class-summary class-summary-tab4"><a href="SubtypeInfo.html" title="class in io.micronaut.serde.support.util">SubtypeInfo</a></div>
+<div class="col-last even-row-color class-summary class-summary-tab4">
 <div class="block">The subtype info.</div>
 </div>
-<div class="col-first even-row-color class-summary class-summary-tab2"><a href="TypeKey.html" title="class in io.micronaut.serde.support.util">TypeKey</a></div>
-<div class="col-last even-row-color class-summary class-summary-tab2">
+<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="TypeKey.html" title="class in io.micronaut.serde.support.util">TypeKey</a></div>
+<div class="col-last odd-row-color class-summary class-summary-tab2">
 <div class="block">Can be used as a key for type.</div>
 </div>
 </div>
