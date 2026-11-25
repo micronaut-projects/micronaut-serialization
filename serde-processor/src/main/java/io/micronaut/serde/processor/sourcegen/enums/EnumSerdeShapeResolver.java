@@ -46,16 +46,18 @@ public final class EnumSerdeShapeResolver {
         }
 
         List<EnumSerdeShape.EnumConstant> overrides = new ArrayList<>();
+        List<String> serializedValues = new ArrayList<>();
         for (EnumConstantElement enumConstant : ((EnumElement) element).elements()) {
             String name = enumConstant.getName();
             String serializedValue = enumConstant.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY)
                 .or(() -> enumConstant.stringValue("com.fasterxml.jackson.annotation.JsonProperty", "value"))
                 .orElse(name);
+            serializedValues.add(serializedValue);
             if (!serializedValue.equals(name)) {
                 overrides.add(new EnumSerdeShape.EnumConstant(name, serializedValue));
             }
         }
-        return Optional.of(new EnumSerdeShape(List.copyOf(overrides), !overrides.isEmpty()));
+        return Optional.of(new EnumSerdeShape(List.copyOf(overrides), !overrides.isEmpty(), List.copyOf(serializedValues)));
     }
 
     private boolean hasCustomEnumValue(ClassElement element) {

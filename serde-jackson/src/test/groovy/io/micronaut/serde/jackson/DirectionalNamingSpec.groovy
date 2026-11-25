@@ -1,0 +1,1038 @@
+package io.micronaut.serde.jackson
+
+import io.micronaut.serde.config.naming.SnakeCaseStrategy
+import io.micronaut.serde.config.naming.UpperCamelCaseStrategy
+import tools.jackson.databind.PropertyNamingStrategies
+
+class DirectionalNamingSpec extends JsonCompileSpec {
+
+    @spock.lang.Unroll
+    void "an explicit @JsonProperty on a constructor parameter wins over #naming (generated: #generated)"() {
+        given:
+        def context = buildContext('test.Person', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+
+$naming
+class Person {
+    private final String firstName;
+    private final String lastName;
+
+    @JsonCreator
+    Person(@JsonProperty("legacy") String firstName, String lastName) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
+
+    public String getFirstName() { return firstName; }
+    public String getLastName() { return lastName; }
+}
+""", true, generated ? [:] : [
+            'micronaut.serde.serialization.disable-generated-serializer': true,
+            'micronaut.serde.deserialization.disable-generated-deserializer': true
+        ])
+
+        when:
+        def bean = jsonMapper.readValue('{"legacy":"Jane","last_name":"Smith"}', argumentOf(context, 'test.Person'))
+
+        then:
+        bean.firstName == 'Jane'
+        bean.lastName == 'Smith'
+
+        and: 'a property written and read with different names is handled by the runtime serdes'
+        def type = argumentOf(context, 'test.Person')
+        def registry = context.getBean(io.micronaut.serde.SerdeRegistry)
+        !registry.findSerializer(type).createSpecific(registry.newEncoderContext(Object), type).class.name.contains('SerdePerson')
+        !registry.findDeserializer(type).createSpecific(registry.newDecoderContext(Object), type).class.name.contains('SerdePerson')
+
+        cleanup:
+        context.close()
+
+        where:
+        // shared naming with generated serdes reads first_name instead, on 3.3.x too: a separate issue
+        naming                                                                                                  | generated
+        '@Serdeable(naming = SnakeCaseStrategy.class)'                                                          | false
+        '@Serdeable.Serializable @Serdeable.Deserializable(naming = SnakeCaseStrategy.class)'                   | false
+        '@Serdeable.Serializable(naming = SnakeCaseStrategy.class) @Serdeable.Deserializable(naming = SnakeCaseStrategy.class)' | true
+        '@Serdeable.Serializable(naming = SnakeCaseStrategy.class) @Serdeable.Deserializable(naming = SnakeCaseStrategy.class)' | false
+    }
+
+    void "a setter of a property bound through a named creator parameter does not read another key"() {
+        given:
+        def context = buildContext('test.Person', '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.IdentityStrategy;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+
+@Serdeable.Serializable(naming = IdentityStrategy.class)
+@Serdeable.Deserializable(naming = SnakeCaseStrategy.class)
+class Person {
+    private String firstName;
+
+    @JsonCreator
+    Person(@JsonProperty("first_name") String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+}
+''', true, [:])
+
+        when:
+        def bean = jsonMapper.readValue('{"first_name":"Jane","firstName":"Eve"}', argumentOf(context, 'test.Person'))
+
+        then:
+        bean.firstName == 'Jane'
+
+        cleanup:
+        context.close()
+    }
+
+    void "the creator of an importing class does not name the properties of an imported type"() {
+        given:
+        def context = buildContext('test.Holder', '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.SerdeImport;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.IdentityStrategy;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+
+@Serdeable
+@SerdeImport(Holder.Target.class)
+class Holder {
+    private final String firstName;
+
+    @JsonCreator
+    Holder(@JsonProperty("legacy") String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getFirstName() { return firstName; }
+
+    @Serdeable.Serializable(naming = IdentityStrategy.class)
+    @Serdeable.Deserializable(naming = SnakeCaseStrategy.class)
+    public static class Target {
+        private String firstName;
+        public String getFirstName() { return firstName; }
+        public void setFirstName(String firstName) { this.firstName = firstName; }
+    }
+}
+''', true, [:])
+
+        when:
+        def target = jsonMapper.readValue('{"first_name":"Jane"}', argumentOf(context, 'test.Holder$Target'))
+
+        then:
+        target.firstName == 'Jane'
+
+        cleanup:
+        context.close()
+    }
+
+    void "naming on @Serdeable.Serializable alone names both directions, as before directional naming"() {
+        given:
+        def context = buildContext('test.UserDto', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+
+@Serdeable.Serializable(naming = SnakeCaseStrategy.class)
+@Serdeable.Deserializable
+class UserDto {
+    private String firstName;
+    private String lastName;
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
+}
+''', [firstName: 'John', lastName: 'Doe'])
+
+        when:
+        def result = writeJson(jsonMapper, beanUnderTest)
+
+        then:
+        result == '{"first_name":"John","last_name":"Doe"}'
+
+        when:
+        def bean = jsonMapper.readValue('{"first_name":"Jane","last_name":"Smith"}', typeUnderTest)
+
+        then:
+        bean.firstName == 'Jane'
+        bean.lastName == 'Smith'
+
+        when: 'the Java names are not the names of the properties'
+        def javaNamed = jsonMapper.readValue('{"firstName":"Jane","lastName":"Smith"}', typeUnderTest)
+
+        then:
+        javaNamed.firstName == null
+        javaNamed.lastName == null
+
+        cleanup:
+        context.close()
+    }
+
+    void "an explicit identity naming on the other annotation makes a single naming directional"() {
+        given:
+        def context = buildContext('test.UserDto', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.IdentityStrategy;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+
+@Serdeable.Serializable(naming = SnakeCaseStrategy.class)
+@Serdeable.Deserializable(naming = IdentityStrategy.class)
+class UserDto {
+    private String firstName;
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+}
+''', [firstName: 'John'])
+
+        expect:
+        writeJson(jsonMapper, beanUnderTest) == '{"first_name":"John"}'
+        jsonMapper.readValue('{"firstName":"Jane"}', typeUnderTest).firstName == 'Jane'
+        jsonMapper.readValue('{"first_name":"Jane"}', typeUnderTest).firstName == null
+
+        cleanup:
+        context.close()
+    }
+
+    void "an explicit identity naming keeps the Java names in its direction when the type also has a shared naming"() {
+        given:
+        def context = buildContext('test.UserDto', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.IdentityStrategy;
+import io.micronaut.serde.config.naming.KebabCaseStrategy;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+
+@Serdeable(naming = KebabCaseStrategy.class)
+@Serdeable.Serializable(naming = SnakeCaseStrategy.class)
+@Serdeable.Deserializable(naming = IdentityStrategy.class)
+class UserDto {
+    private String firstName;
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+}
+''', [firstName: 'John'])
+
+        expect:
+        writeJson(jsonMapper, beanUnderTest) == '{"first_name":"John"}'
+        jsonMapper.readValue('{"firstName":"Jane"}', typeUnderTest).firstName == 'Jane'
+        jsonMapper.readValue('{"first-name":"Jane"}', typeUnderTest).firstName == null
+
+        cleanup:
+        context.close()
+    }
+
+    @spock.lang.Unroll
+    void "directional naming strategies looked up at runtime keep the runtime serdes (#serializeNaming, #deserializeNaming)"() {
+        given:
+        def context = buildContext('test.UserDto', """
+package test;
+
+import io.micronaut.core.annotation.AnnotatedElement;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.IdentityStrategy;
+import io.micronaut.serde.config.naming.PropertyNamingStrategy;
+import jakarta.inject.Singleton;
+
+@Serdeable.Serializable(naming = $serializeNaming)
+@Serdeable.Deserializable(naming = $deserializeNaming)
+class UserDto {
+    private String firstName;
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+
+    @Singleton
+    public static class Out implements PropertyNamingStrategy {
+        @Override
+        public String translate(AnnotatedElement element) { return "out_" + element.getName(); }
+    }
+
+    @Singleton
+    public static class In implements PropertyNamingStrategy {
+        @Override
+        public String translate(AnnotatedElement element) { return "in_" + element.getName(); }
+    }
+}
+""", true, [:])
+        def metadata = context.getBean(io.micronaut.serde.SerdeIntrospections)
+            .getSerializableIntrospection(argumentOf(context, 'test.UserDto'))
+            .annotationMetadata
+
+        expect: 'the processor leaves a strategy it cannot instantiate to the runtime serdes'
+        metadata.stringValue(io.micronaut.serde.config.annotation.SerdeConfig, io.micronaut.serde.config.annotation.SerdeConfig.SERIALIZE_RUNTIME_NAMING).isPresent() == serializeRuntime
+        metadata.stringValue(io.micronaut.serde.config.annotation.SerdeConfig, io.micronaut.serde.config.annotation.SerdeConfig.DESERIALIZE_RUNTIME_NAMING).isPresent()
+        !metadata.booleanValue(io.micronaut.serde.config.annotation.SerdeConfig, io.micronaut.serde.config.annotation.SerdeConfig.SOURCEGEN_SERIALIZER_ELIGIBLE).orElse(false)
+        !metadata.booleanValue(io.micronaut.serde.config.annotation.SerdeConfig, io.micronaut.serde.config.annotation.SerdeConfig.SOURCEGEN_DESERIALIZER_ELIGIBLE).orElse(false)
+
+        cleanup:
+        context.close()
+
+        where:
+        serializeNaming          | deserializeNaming | serializeRuntime
+        'UserDto.Out.class'      | 'UserDto.In.class' | true
+        'IdentityStrategy.class' | 'UserDto.In.class' | false
+    }
+
+    void "a property with only a deserialize name is handled by the runtime serdes"() {
+        given:
+        def context = buildContext('test.UserDto', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.IdentityStrategy;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+
+@Serdeable
+class UserDto {
+    private String firstName;
+
+    @Serdeable.Serializable(naming = IdentityStrategy.class)
+    @Serdeable.Deserializable(naming = SnakeCaseStrategy.class)
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+}
+''', [firstName: 'John'])
+        def metadata = context.getBean(io.micronaut.serde.SerdeIntrospections)
+            .getSerializableIntrospection(typeUnderTest)
+            .annotationMetadata
+
+        expect:
+        writeJson(jsonMapper, beanUnderTest) == '{"firstName":"John"}'
+        jsonMapper.readValue('{"first_name":"Jane"}', typeUnderTest).firstName == 'Jane'
+        !metadata.booleanValue(io.micronaut.serde.config.annotation.SerdeConfig, io.micronaut.serde.config.annotation.SerdeConfig.SOURCEGEN_SERIALIZER_ELIGIBLE).orElse(false)
+        !metadata.booleanValue(io.micronaut.serde.config.annotation.SerdeConfig, io.micronaut.serde.config.annotation.SerdeConfig.SOURCEGEN_DESERIALIZER_ELIGIBLE).orElse(false)
+
+        cleanup:
+        context.close()
+    }
+
+    void "naming on @Serdeable.Deserializable alone names both directions, as before directional naming"() {
+        given:
+        def context = buildContext('test.UserDto', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+
+@Serdeable.Serializable
+@Serdeable.Deserializable(naming = SnakeCaseStrategy.class)
+class UserDto {
+    private String firstName;
+    private String lastName;
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
+}
+''', [firstName: 'John', lastName: 'Doe'])
+
+        when:
+        def result = writeJson(jsonMapper, beanUnderTest)
+
+        then:
+        result == '{"first_name":"John","last_name":"Doe"}'
+
+        when:
+        def bean = jsonMapper.readValue('{"first_name":"Jane","last_name":"Smith"}', typeUnderTest)
+
+        then:
+        bean.firstName == 'Jane'
+        bean.lastName == 'Smith'
+
+        when: 'the Java names are not the names of the properties'
+        def javaNamed = jsonMapper.readValue('{"firstName":"Jane","lastName":"Smith"}', typeUnderTest)
+
+        then:
+        javaNamed.firstName == null
+
+        cleanup:
+        context.close()
+    }
+
+    void "test both serializeNaming and deserializeNaming with different strategies"() {
+        given:
+        def context = buildContext('test.UserDto', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+import io.micronaut.serde.config.naming.UpperCamelCaseStrategy;
+
+@Serdeable.Serializable(naming = SnakeCaseStrategy.class)
+@Serdeable.Deserializable(naming = UpperCamelCaseStrategy.class)
+class UserDto {
+    private String firstName;
+    private String lastName;
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
+}
+''', [firstName: 'John', lastName: 'Doe'])
+
+        when:
+        def result = writeJson(jsonMapper, beanUnderTest)
+
+        then:
+        result == '{"first_name":"John","last_name":"Doe"}'
+
+        when:
+        def bean = jsonMapper.readValue('{"FirstName":"Jane","LastName":"Smith"}', typeUnderTest)
+
+        then:
+        bean.firstName == 'Jane'
+        bean.lastName == 'Smith'
+
+        cleanup:
+        context.close()
+    }
+
+    void "test directional naming uses runtime serde when source generation is skipped"() {
+        given:
+        def context = buildContext('test.UserDto', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+import io.micronaut.serde.config.naming.UpperCamelCaseStrategy;
+
+@SerdeableGenerated(skip = true)
+@Serdeable.Serializable(naming = SnakeCaseStrategy.class)
+@Serdeable.Deserializable(naming = UpperCamelCaseStrategy.class)
+class UserDto {
+    private String firstName;
+    private String lastName;
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
+}
+''', [firstName: 'John', lastName: 'Doe'])
+
+        when:
+        def result = writeJson(jsonMapper, beanUnderTest)
+
+        then:
+        result == '{"first_name":"John","last_name":"Doe"}'
+
+        when:
+        def bean = jsonMapper.readValue('{"FirstName":"Jane","LastName":"Smith"}', typeUnderTest)
+
+        then:
+        bean.firstName == 'Jane'
+        bean.lastName == 'Smith'
+
+        cleanup:
+        context.close()
+    }
+
+    void "test unified naming with directional override - directional takes precedence"() {
+        given:
+        def context = buildContext('test.UserDto', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+import io.micronaut.serde.config.naming.UpperCamelCaseStrategy;
+import tools.jackson.databind.annotation.JsonNaming;
+
+@JsonNaming(${PropertyNamingStrategies.SNAKE_CASE.class.canonicalName}.class)
+@Serdeable.Serializable(naming = UpperCamelCaseStrategy.class)
+@Serdeable.Deserializable
+class UserDto {
+    private String firstName;
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+}
+""", [firstName: 'John'])
+
+        when:
+        def result = writeJson(jsonMapper, beanUnderTest)
+
+        then:
+        result == '{"FirstName":"John"}'
+
+        when:
+        def bean = jsonMapper.readValue('{"first_name":"Jane"}', typeUnderTest)
+
+        then:
+        bean.firstName == 'Jane'
+
+        cleanup:
+        context.close()
+    }
+
+    void "test backward compatibility - class with only unified naming behaves as before"() {
+        given:
+        def context = buildContext('test.UserDto', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import tools.jackson.databind.annotation.JsonNaming;
+
+@Serdeable
+@JsonNaming(${PropertyNamingStrategies.SNAKE_CASE.class.canonicalName}.class)
+class UserDto {
+    private String firstName;
+    private String lastName;
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
+}
+""", [firstName: 'John', lastName: 'Doe'])
+
+        when:
+        def result = writeJson(jsonMapper, beanUnderTest)
+
+        then:
+        result == '{"first_name":"John","last_name":"Doe"}'
+
+        when:
+        def bean = jsonMapper.readValue('{"first_name":"Jane","last_name":"Smith"}', typeUnderTest)
+
+        then:
+        bean.firstName == 'Jane'
+        bean.lastName == 'Smith'
+
+        cleanup:
+        context.close()
+    }
+
+    void "test explicit property annotation overrides directional strategy"() {
+        given:
+        def context = buildContext('test.UserDto', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@Serdeable.Serializable(naming = SnakeCaseStrategy.class)
+@Serdeable.Deserializable(naming = SnakeCaseStrategy.class)
+class UserDto {
+    @JsonProperty("custom_name")
+    private String firstName;
+    private String lastName;
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
+}
+''', [firstName: 'John', lastName: 'Doe'])
+
+        when:
+        def result = writeJson(jsonMapper, beanUnderTest)
+
+        then:
+        result == '{"custom_name":"John","last_name":"Doe"}'
+
+        when:
+        def bean = jsonMapper.readValue('{"custom_name":"Jane","last_name":"Smith"}', typeUnderTest)
+
+        then:
+        bean.firstName == 'Jane'
+        bean.lastName == 'Smith'
+
+        cleanup:
+        context.close()
+    }
+
+    void "test runtime naming strategy applied directionally via Serializable annotation"() {
+        given:
+        def context = buildContext('test.UserDto', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+import io.micronaut.serde.config.naming.UpperCamelCaseStrategy;
+
+@Serdeable.Serializable(naming = UpperCamelCaseStrategy.class)
+@Serdeable.Deserializable(naming = SnakeCaseStrategy.class)
+class UserDto {
+    private String firstName;
+    private String homeTown;
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+    public String getHomeTown() { return homeTown; }
+    public void setHomeTown(String homeTown) { this.homeTown = homeTown; }
+}
+''', [firstName: 'John', homeTown: 'Paris'])
+
+        when:
+        def result = writeJson(jsonMapper, beanUnderTest)
+
+        then:
+        result == '{"FirstName":"John","HomeTown":"Paris"}'
+
+        when:
+        def bean = jsonMapper.readValue('{"first_name":"Jane","home_town":"London"}', typeUnderTest)
+
+        then:
+        bean.firstName == 'Jane'
+        bean.homeTown == 'London'
+
+        cleanup:
+        context.close()
+    }
+
+    void "test read camelCase write snake_case - real migration use case"() {
+        given:
+        def context = buildContext('test.UserDto', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.LowerCamelCaseStrategy;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+
+@Serdeable.Serializable(naming = SnakeCaseStrategy.class)
+@Serdeable.Deserializable(naming = LowerCamelCaseStrategy.class)
+class UserDto {
+    private String firstName;
+    private String lastName;
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
+}
+''', [firstName: 'Hamza', lastName: 'Mousrij'])
+
+        when: "serialized output uses snake_case"
+        def result = writeJson(jsonMapper, beanUnderTest)
+
+        then:
+        result == '{"first_name":"Hamza","last_name":"Mousrij"}'
+
+        when: "deserialization accepts camelCase input"
+        def bean = jsonMapper.readValue('{"firstName":"Hamza","lastName":"Mousrij"}', typeUnderTest)
+
+        then:
+        bean.firstName == 'Hamza'
+        bean.lastName == 'Mousrij'
+
+        cleanup:
+        context.close()
+    }
+
+    void "test read legacy snake_case write new camelCase - reverse migration"() {
+        given:
+        def context = buildContext('test.UserDto', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.LowerCamelCaseStrategy;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+
+@Serdeable.Serializable(naming = LowerCamelCaseStrategy.class)
+@Serdeable.Deserializable(naming = SnakeCaseStrategy.class)
+class UserDto {
+    private String firstName;
+    private String lastName;
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
+}
+''', [firstName: 'Hamza', lastName: 'Mousrij'])
+
+        when: "serialized output uses camelCase"
+        def result = writeJson(jsonMapper, beanUnderTest)
+
+        then:
+        result == '{"firstName":"Hamza","lastName":"Mousrij"}'
+
+        when: "deserialization accepts legacy snake_case input"
+        def bean = jsonMapper.readValue('{"first_name":"Hamza","last_name":"Mousrij"}', typeUnderTest)
+
+        then:
+        bean.firstName == 'Hamza'
+        bean.lastName == 'Mousrij'
+
+        cleanup:
+        context.close()
+    }
+
+    void "test serialize naming does not affect deserialization - wrong format rejected"() {
+        given:
+        def context = buildContext('test.UserDto', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.LowerCamelCaseStrategy;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+
+@Serdeable.Serializable(naming = SnakeCaseStrategy.class)
+@Serdeable.Deserializable(naming = LowerCamelCaseStrategy.class)
+class UserDto {
+    private String firstName;
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+}
+''', [:])
+
+        when: "snake_case is only for serialization, not deserialization"
+        def bean = jsonMapper.readValue('{"first_name":"Hamza"}', typeUnderTest)
+
+        then: "snake_case input is NOT accepted when deser uses camelCase"
+        bean.firstName == null
+
+        when: "camelCase input IS accepted"
+        def bean2 = jsonMapper.readValue('{"firstName":"Hamza"}', typeUnderTest)
+
+        then:
+        bean2.firstName == 'Hamza'
+
+        cleanup:
+        context.close()
+    }
+
+    void "test JsonGetter and JsonSetter with different property names - directional resolution"() {
+        given:
+        def context = buildContext('test.UserDto', '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class UserDto {
+    private String firstName;
+
+    @JsonGetter("first_name_out")
+    public String getFirstName() { return firstName; }
+
+    @JsonSetter("firstNameIn")
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+}
+''', [:])
+
+        when: "serialized using @JsonGetter name"
+        def bean = newInstance(context, 'test.UserDto', [:])
+        bean.firstName = "Hamza"
+        def json = writeJson(jsonMapper, bean)
+
+        then:
+        json == '{"first_name_out":"Hamza"}'
+
+        when: "deserialized using @JsonSetter name"
+        def read = jsonMapper.readValue('{"firstNameIn":"Hamza"}', typeUnderTest)
+
+        then:
+        read.firstName == 'Hamza'
+
+        cleanup:
+        context.close()
+    }
+
+    void "test backward compat - existing JsonProperty still works as unified fallback"() {
+        given:
+        def context = buildContext('test.UserDto', '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class UserDto {
+    @JsonProperty("first_name")
+    private String firstName;
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+}
+''', [firstName: 'Hamza'])
+
+        when: "serialized with JsonProperty name"
+        def result = writeJson(jsonMapper, beanUnderTest)
+
+        then:
+        result == '{"first_name":"Hamza"}'
+
+        when: "deserialized with same JsonProperty name"
+        def bean = jsonMapper.readValue('{"first_name":"Hamza"}', typeUnderTest)
+
+        then:
+        bean.firstName == 'Hamza'
+
+        cleanup:
+        context.close()
+    }
+
+    void "test explicit @JsonProperty wins over class-level @JsonNaming on serialization"() {
+        given:
+        def context = buildContext('test.Account', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import tools.jackson.databind.annotation.JsonNaming;
+
+@JsonNaming(${PropertyNamingStrategies.SNAKE_CASE.class.canonicalName}.class)
+class Account {
+    @JsonProperty("explicit_name")
+    private String displayName;
+    private String homeTown;
+    public String getDisplayName() { return displayName; }
+    public void setDisplayName(String displayName) { this.displayName = displayName; }
+    public String getHomeTown() { return homeTown; }
+    public void setHomeTown(String homeTown) { this.homeTown = homeTown; }
+}
+""", [displayName: 'x', homeTown: 'y'])
+
+        when: "the explicit @JsonProperty name is kept, the non-annotated one follows the strategy"
+        def result = writeJson(jsonMapper, beanUnderTest)
+
+        then:
+        result == '{"explicit_name":"x","home_town":"y"}'
+
+        cleanup:
+        context.close()
+    }
+
+    void "test explicit @JsonProperty name is used for deserialization and the strategy name is rejected"() {
+        given:
+        def context = buildContext('test.Account', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import tools.jackson.databind.annotation.JsonNaming;
+
+@JsonNaming(${PropertyNamingStrategies.SNAKE_CASE.class.canonicalName}.class)
+class Account {
+    @JsonProperty("explicit_name")
+    private String displayName;
+    public String getDisplayName() { return displayName; }
+    public void setDisplayName(String displayName) { this.displayName = displayName; }
+}
+""", [:])
+
+        when: "the explicit name is accepted"
+        def bean = jsonMapper.readValue('{"explicit_name":"x"}', typeUnderTest)
+
+        then:
+        bean.displayName == "x"
+
+        when: "the strategy-derived name is not accepted"
+        def bean2 = jsonMapper.readValue('{"display_name":"y"}', typeUnderTest)
+
+        then:
+        bean2.displayName == null
+
+        cleanup:
+        context.close()
+    }
+
+    void "test directional explicit names: @JsonGetter and @JsonSetter with different names"() {
+        given:
+        def context = buildContext('test.User', '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class User {
+    private String name;
+    @JsonGetter("name_out")
+    public String getName() { return name; }
+    @JsonSetter("name_in")
+    public void setName(String name) { this.name = name; }
+}
+''', [:])
+
+        when: "serialized under the getter name"
+        def bean = newInstance(context, 'test.User', [:])
+        bean.name = "Hamza"
+        def json = writeJson(jsonMapper, bean)
+
+        then:
+        json == '{"name_out":"Hamza"}'
+
+        when: "deserialized under the setter name"
+        def read = jsonMapper.readValue('{"name_in":"Hamza"}', typeUnderTest)
+
+        then:
+        read.name == "Hamza"
+
+        when: "the serialize name is also accepted on input (lenient, round-trip-safe)"
+        def read2 = jsonMapper.readValue('{"name_out":"Hamza"}', typeUnderTest)
+
+        then: "Micronaut accepts both the @JsonSetter name and the @JsonGetter name on input"
+        read2.name == "Hamza"
+
+        cleanup:
+        context.close()
+    }
+
+    void "Per-property both Serializable+Deserializable with different strategies"() {
+        given:
+        def context = buildContext('test.UserDto', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+import io.micronaut.serde.config.naming.UpperCamelCaseStrategy;
+
+@Serdeable
+class UserDto {
+    @Serdeable.Serializable(naming = SnakeCaseStrategy.class)
+    @Serdeable.Deserializable(naming = UpperCamelCaseStrategy.class)
+    private String firstName;
+
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+}
+''', [firstName: 'John'])
+
+        when: "serialization uses the Serializable strategy (snake_case)"
+        def result = writeJson(jsonMapper, beanUnderTest)
+
+        then:
+        result == '{"first_name":"John"}'
+
+        when: "deserialization uses the Deserializable strategy (UpperCamel)"
+        def bean = jsonMapper.readValue('{"FirstName":"Jane"}', typeUnderTest)
+
+        then:
+        bean.firstName == 'Jane'
+
+        and: 'the serialized name is not read'
+        jsonMapper.readValue('{"first_name":"Jane"}', typeUnderTest).firstName == null
+
+        cleanup:
+        context.close()
+    }
+
+    void "per-property naming on @Serdeable.Deserializable alone names both directions"() {
+        given:
+        def context = buildContext('test.UserDto', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.UpperCamelCaseStrategy;
+
+@Serdeable
+class UserDto {
+    @Serdeable.Deserializable(naming = UpperCamelCaseStrategy.class)
+    private String firstName;
+
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+}
+''', [firstName: 'John'])
+
+        when:
+        def result = writeJson(jsonMapper, beanUnderTest)
+
+        then:
+        result == '{"FirstName":"John"}'
+
+        when:
+        def bean = jsonMapper.readValue('{"FirstName":"Jane"}', typeUnderTest)
+
+        then:
+        bean.firstName == 'Jane'
+
+        and: 'the Java name is not the name of the property'
+        jsonMapper.readValue('{"firstName":"Jane"}', typeUnderTest).firstName == null
+
+        cleanup:
+        context.close()
+    }
+
+    void "per-property naming on @Serdeable.Serializable alone names both directions, like a type"() {
+        given:
+        def context = buildContext('test.UserDto', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+
+@Serdeable
+class UserDto {
+    @Serdeable.Serializable(naming = SnakeCaseStrategy.class)
+    private String firstName;
+
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+}
+''', [firstName: 'John'])
+
+        when:
+        def result = writeJson(jsonMapper, beanUnderTest)
+
+        then:
+        result == '{"first_name":"John"}'
+
+        when:
+        def bean = jsonMapper.readValue('{"first_name":"Jane"}', typeUnderTest)
+
+        then:
+        bean.firstName == 'Jane'
+
+        and: 'the Java name is not the name of the property'
+        jsonMapper.readValue('{"firstName":"Jane"}', typeUnderTest).firstName == null
+
+        cleanup:
+        context.close()
+    }
+
+    void "a property sharing only its Java name with a named creator parameter of another type keeps its own key"() {
+        given:
+        def context = buildContext('test.Person', '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.IdentityStrategy;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+
+@Serdeable.Serializable(naming = IdentityStrategy.class)
+@Serdeable.Deserializable(naming = SnakeCaseStrategy.class)
+class Person {
+    private final int id;
+    private String name;
+
+    @JsonCreator
+    Person(@JsonProperty("id") int name) {
+        this.id = name;
+    }
+
+    public int getId() { return id; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+}
+''', true, [:])
+
+        when:
+        def bean = jsonMapper.readValue('{"id":7,"name":"Jane"}', argumentOf(context, 'test.Person'))
+
+        then:
+        bean.id == 7
+        bean.name == 'Jane'
+
+        cleanup:
+        context.close()
+    }
+}

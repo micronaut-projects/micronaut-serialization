@@ -369,6 +369,69 @@ class Second {
         context.close()
     }
 
+    void 'test directional naming on a type with explicit Serializable and Deserializable annotations'() {
+        given:
+        def context = buildContext('test.DirectionalTypes', '''
+package test;
+
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+import io.micronaut.serde.config.naming.UpperCamelCaseStrategy;
+
+public final class DirectionalTypes {
+    @Serdeable.Serializable(naming = SnakeCaseStrategy.class)
+    @Serdeable.Deserializable(naming = UpperCamelCaseStrategy.class)
+    @Introspected
+    public static class Bean {
+        private String firstName;
+
+        public String getFirstName() { return firstName; }
+        public void setFirstName(String firstName) { this.firstName = firstName; }
+    }
+
+    @Serdeable.Serializable(naming = SnakeCaseStrategy.class)
+    @Serdeable.Deserializable(naming = UpperCamelCaseStrategy.class)
+    @Introspected
+    public record Record(String firstName) {
+    }
+}
+''')
+        def registry = context.getBean(SerdeRegistry)
+        Class<?> beanType = context.classLoader.loadClass('test.DirectionalTypes$Bean')
+        Class<?> recordType = context.classLoader.loadClass('test.DirectionalTypes$Record')
+        Argument beanArgument = Argument.of(beanType)
+        Argument recordArgument = Argument.of(recordType)
+
+        expect: 'explicit type-level Serializable and Deserializable annotations keep the runtime serdes'
+        !isGeneratedSerializer(registry, beanArgument)
+        !isGeneratedSerializer(registry, recordArgument)
+
+        when:
+        def bean = beanType.getDeclaredConstructor().newInstance()
+        bean.firstName = 'John'
+        def record = recordType.getDeclaredConstructor(String).newInstance('John')
+
+        then:
+        jsonMapper.writeValueAsString(bean) == '{"first_name":"John"}'
+        jsonMapper.writeValueAsString(record) == '{"first_name":"John"}'
+
+        when:
+        def decodedBean = jsonMapper.readValue('{"FirstName":"Jane"}', beanArgument)
+        def decodedRecord = jsonMapper.readValue('{"FirstName":"Jane"}', recordArgument)
+
+        then:
+        decodedBean.firstName == decodedRecord.firstName
+
+        cleanup:
+        context.close()
+    }
+
+    private static boolean isGeneratedSerializer(SerdeRegistry registry, Argument argument) {
+        Serializer serializer = registry.findSerializer(argument).createSpecific(registry.newEncoderContext(Object), argument)
+        return serializer.class.name == generatedClassName(argument.type, 'Serializer')
+    }
+
     private static void assertGeneratedSerializer(SerdeRegistry registry, Argument argument) {
         Serializer serializer = registry.findSerializer(argument).createSpecific(registry.newEncoderContext(Object), argument)
         assert serializer.class.name == generatedClassName(argument.type, 'Serializer')

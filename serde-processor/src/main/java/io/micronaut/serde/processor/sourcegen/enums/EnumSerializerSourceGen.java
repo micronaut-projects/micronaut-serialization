@@ -23,6 +23,8 @@ import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.FormattedSerializer;
+import io.micronaut.serde.Keys;
+import io.micronaut.serde.KeysAwareEncoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
@@ -32,6 +34,7 @@ import io.micronaut.sourcegen.model.AnnotationDef;
 import io.micronaut.sourcegen.model.ClassDef;
 import io.micronaut.sourcegen.model.ClassTypeDef;
 import io.micronaut.sourcegen.model.ExpressionDef;
+import io.micronaut.sourcegen.model.FieldDef;
 import io.micronaut.sourcegen.model.MethodDef;
 import io.micronaut.sourcegen.model.StatementDef;
 import io.micronaut.sourcegen.model.TypeDef;
@@ -55,6 +58,18 @@ public final class EnumSerializerSourceGen {
 
     private static final Method ENCODE_STRING_METHOD = ReflectionUtils.getRequiredMethod(Encoder.class, "encodeString", String.class);
     private static final Method ENUM_NAME_METHOD = ReflectionUtils.getRequiredMethod(Enum.class, "name");
+    private static final Method ENUM_ORDINAL_METHOD = ReflectionUtils.getRequiredMethod(Enum.class, "ordinal");
+    private static final Method KEYS_CREATE_METHOD = ReflectionUtils.getRequiredMethod(Keys.class, "create", String[].class);
+    private static final Method ENCODE_STRING_VALUE_METHOD = ReflectionUtils.getRequiredMethod(
+        KeysAwareEncoder.class,
+        "encodeStringValue",
+        Encoder.class,
+        Keys.class,
+        int.class
+    );
+    private static final String VALUES_FIELD = "VALUES";
+
+    private static final TypeDef KEYS_TYPE = TypeDef.of(Keys.class);
     private static final Method RUNTIME_FALLBACK_FORMATTED_SERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
         GeneratedSerdeFallbackUtil.class,
         "runtimeFormattedEnumSerializer",
@@ -70,9 +85,12 @@ public final class EnumSerializerSourceGen {
         Argument.class
     );
 
+    private String serializerClassName = "";
+
     public ClassDef generate(ClassElement element, EnumSerdeShape enumSerdeShape) {
         TypeDef enumTypeDef = TypeDef.of(element);
-        return ClassDef.builder(SerdeSourceGenClassNaming.generatedSerializerClassName(element))
+        serializerClassName = SerdeSourceGenClassNaming.generatedSerializerClassName(element);
+        return ClassDef.builder(serializerClassName)
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
             .addAnnotation(Prototype.class)
             // Generated serdes are not API: their constructors follow the generator, not the type
@@ -86,6 +104,7 @@ public final class EnumSerializerSourceGen {
                 .build())
             .addSuperinterface(TypeDef.parameterized(FormattedSerializer.class, enumTypeDef))
             .addSuperinterface(TypeDef.parameterized(ObjectSerializer.class, enumTypeDef))
+            .addFields(valuesField(enumSerdeShape))
             .addMethod(generateCreateSpecificMethod(enumTypeDef))
             .addMethod(generateCreateSpecificWithFormatMethod(enumTypeDef))
             .addMethod(generateSerializeMethod(enumTypeDef, enumSerdeShape))
@@ -159,10 +178,37 @@ public final class EnumSerializerSourceGen {
             ));
     }
 
+    /**
+     * The serialized values of the constants by ordinal, which lets an encoder write a value it
+     * encoded once, such as a Jackson {@code SerializableString}. Values that are not unique keep
+     * the string path.
+     */
+    private static List<FieldDef> valuesField(EnumSerdeShape enumSerdeShape) {
+        if (!enumSerdeShape.hasUniqueSerializedValues()) {
+            return List.of();
+        }
+        List<ExpressionDef> values = enumSerdeShape.serializedValues().stream()
+            .map(v -> (ExpressionDef) ExpressionDef.constant(v))
+            .toList();
+        return List.of(FieldDef.builder(VALUES_FIELD, KEYS_TYPE)
+            .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+            .initializer(ClassTypeDef.of(Keys.class).invokeStatic(KEYS_CREATE_METHOD, TypeDef.STRING.array().instantiate(values)))
+            .build());
+    }
+
     private List<StatementDef> serializeStatements(VariableDef encoder,
                                                    VariableDef.MethodParameter value,
                                                    EnumSerdeShape enumSerdeShape) {
         List<StatementDef> statements = new ArrayList<>();
+        if (enumSerdeShape.hasUniqueSerializedValues()) {
+            statements.add(ClassTypeDef.of(KeysAwareEncoder.class).invokeStatic(
+                ENCODE_STRING_VALUE_METHOD,
+                encoder,
+                ClassTypeDef.of(serializerClassName).getStaticField(VALUES_FIELD, KEYS_TYPE),
+                value.invoke(ENUM_ORDINAL_METHOD)
+            ));
+            return statements;
+        }
 
         StatementDef.DefineAndAssign enumNameDef = value.invoke(ENUM_NAME_METHOD)
             .newLocal("enumName");

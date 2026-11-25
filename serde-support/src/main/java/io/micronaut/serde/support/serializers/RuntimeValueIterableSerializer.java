@@ -19,11 +19,13 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.exceptions.SerdeException;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Objects;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * The customized iterable serializer.
@@ -39,21 +41,43 @@ final class RuntimeValueIterableSerializer<T> extends AbstractIterableSerializer
         // slow path, generic look up per element
         final Encoder childEncoder = encoder.encodeArray(type);
         Class<?> lastValueClass = null;
-        Serializer<? super T> componentSerializer = null;
-        Argument<T> generic = null;
+        Element<T> element = null;
+        // The element serializers are created with the context of this call, so they are only kept for this call:
+        // a serializer may depend on its context (views, features, user serdes created with it).
+        // A homogeneous iterable needs only the last element; the map is created on the first change of class.
+        Map<Class<?>, Element<T>> elements = null;
         for (T t : value) {
             if (t == null) {
                 childEncoder.encodeNull();
                 continue;
             }
-            if (lastValueClass != t.getClass() || componentSerializer == null) {
-                generic = (Argument<T>) Argument.of(t.getClass());
-                componentSerializer = context.findSerializer(generic).createSpecific(context, generic);
-                lastValueClass = t.getClass();
+            Class<?> valueClass = t.getClass();
+            if (lastValueClass != valueClass || element == null) {
+                if (element != null && elements == null) {
+                    elements = new HashMap<>();
+                    elements.put(lastValueClass, element);
+                }
+                lastValueClass = valueClass;
+                element = elementOf(context, valueClass, elements);
             }
-            componentSerializer.serialize(childEncoder, context, Objects.requireNonNull(generic), t);
+            element.serializer.serialize(childEncoder, context, element.argument, t);
         }
         childEncoder.finishStructure();
+    }
+
+    @SuppressWarnings("unchecked")
+    private Element<T> elementOf(EncoderContext context,
+                                 Class<?> valueClass,
+                                 @Nullable Map<Class<?>, Element<T>> elements) throws SerdeException {
+        Element<T> element = elements == null ? null : elements.get(valueClass);
+        if (element == null) {
+            Argument<T> generic = (Argument<T>) Argument.of(valueClass);
+            element = new Element<>(generic, context.findSerializer(generic).createSpecific(context, generic));
+            if (elements != null) {
+                elements.put(valueClass, element);
+            }
+        }
+        return element;
     }
 
     @Override
@@ -71,6 +95,16 @@ final class RuntimeValueIterableSerializer<T> extends AbstractIterableSerializer
     @Override
     public boolean isAbsent(EncoderContext context, @Nullable Iterable<T> value) {
         return value == null;
+    }
+
+    /**
+     * The serializer of the elements of a class and the argument it is called with.
+     *
+     * @param argument   The argument of the class of the element
+     * @param serializer The specific serializer
+     * @param <T>        The element type
+     */
+    private record Element<T>(Argument<T> argument, Serializer<? super T> serializer) {
     }
 
 }

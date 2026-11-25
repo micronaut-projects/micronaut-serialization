@@ -120,13 +120,14 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
     @Inject
     @Internal
     public JacksonJsonMapper(SerdeRegistry registry, SerdeConfiguration serdeConfiguration, SerdeJacksonConfiguration jacksonConfiguration) {
-        this(registry, JsonStreamConfig.DEFAULT, serdeConfiguration, jacksonConfiguration, Object.class, null, null, null);
+        this(registry, JsonStreamConfig.DEFAULT, serdeConfiguration, jacksonConfiguration, buildJsonFactory(jacksonConfiguration), Object.class, null, null, null);
     }
 
     private JacksonJsonMapper(SerdeRegistry registry,
                               JsonStreamConfig streamConfig,
                               SerdeConfiguration serdeConfiguration,
                               SerdeJacksonConfiguration jacksonConfiguration,
+                              JsonFactory jsonFactory,
                               @Nullable Class<?> view,
                               @Nullable Argument<?> specificType,
                               @Nullable Deserializer<?> specificDeserializer,
@@ -139,7 +140,9 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
         this.encoderContext = registry.newEncoderContext(view);
         this.decoderContext = registry.newDecoderContext(view);
         this.jacksonConfiguration = jacksonConfiguration;
-        this.jsonFactory = buildJsonFactory(jacksonConfiguration);
+        // The mappers derived from this one share the factory, and with it the pool of buffers, unless
+        // the Jackson configuration changes
+        this.jsonFactory = jsonFactory;
         this.streamLimits = LimitingStream.limitsFromConfiguration(serdeConfiguration);
         this.coercionPolicy = CoercionPolicy.fromConfiguration(this.decoderContext.getDeserializationConfiguration().orElse(null));
         this.specificType = specificType;
@@ -161,6 +164,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
                 streamConfig,
                 serdeConfiguration,
                 jacksonConfiguration,
+                jsonFactory,
                 view,
                 type,
                 registry.findDeserializer(type).createSpecific(decoderContext, (Argument) type),
@@ -172,7 +176,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
         }
         @Nullable Class<?> viewClass = JsonViewUtil.extractView(serdeConfiguration, type, view);
         if (viewClass != view) {
-            return new JacksonJsonMapper(registry, streamConfig, serdeConfiguration, jacksonConfiguration, viewClass, specificType, specificDeserializer, specificSerializer);
+            return new JacksonJsonMapper(registry, streamConfig, serdeConfiguration, jacksonConfiguration, jsonFactory, viewClass, specificType, specificDeserializer, specificSerializer);
         }
         return mapper;
     }
@@ -187,18 +191,21 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
                                                @Nullable SerializationConfiguration serializationConfiguration,
                                                @Nullable DeserializationConfiguration deserializationConfiguration,
                                                @Nullable SerdeIntrospections introspections) {
-        return new JacksonJsonMapper(
+        JacksonJsonMapper clone = new JacksonJsonMapper(
             introspections == null
                 ? registry.cloneWithConfiguration(configuration, serializationConfiguration, deserializationConfiguration)
                 : registry.cloneWithConfiguration(configuration, serializationConfiguration, deserializationConfiguration, introspections),
             streamConfig,
             configuration == null ? this.serdeConfiguration : configuration,
             jacksonConfiguration,
+            jsonFactory,
             view,
-            specificType,
-            specificDeserializer,
-            specificSerializer
+            null,
+            null,
+            null
         );
+        // the specific serdes keep the serdes they resolved, so they are resolved again with the new configuration
+        return specificType == null ? clone : (ObjectMapper) clone.createSpecific(specificType);
     }
 
     @Override
@@ -208,6 +215,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
             streamConfig,
             serdeConfiguration,
             jacksonConfiguration,
+            buildJsonFactory(jacksonConfiguration),
             view,
             specificType,
             specificDeserializer,
@@ -423,7 +431,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
 
     @Override
     public JsonMapper cloneWithViewClass(Class<?> viewClass) {
-        return new JacksonJsonMapper(registry, streamConfig, serdeConfiguration, jacksonConfiguration, viewClass, specificType, specificDeserializer, specificSerializer);
+        return new JacksonJsonMapper(registry, streamConfig, serdeConfiguration, jacksonConfiguration, jsonFactory, viewClass, specificType, specificDeserializer, specificSerializer);
     }
 
     @Override

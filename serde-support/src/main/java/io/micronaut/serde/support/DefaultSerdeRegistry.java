@@ -71,6 +71,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 
@@ -105,6 +107,12 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     private final SerdeConfiguration serdeConfiguration;
     private final SerializationConfiguration serializationConfiguration;
     private final DeserializationConfiguration deserializationConfiguration;
+    // The contexts of every document share these: the configuration of a registry does not change
+    private final Optional<SerdeConfiguration> optionalSerdeConfiguration;
+    private final Optional<SerializationConfiguration> optionalSerializationConfiguration;
+    private final Optional<DeserializationConfiguration> optionalDeserializationConfiguration;
+    private final Set<SerializationConfiguration.Feature> serializationFeatures;
+    private final Set<DeserializationConfiguration.Feature> deserializationFeatures;
 
     /**
      * Default constructor.
@@ -126,6 +134,11 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         this.serdeConfiguration = serdeConfiguration;
         this.serializationConfiguration = serializationConfiguration;
         this.deserializationConfiguration = deserializationConfiguration;
+        this.optionalSerdeConfiguration = Optional.of(serdeConfiguration);
+        this.optionalSerializationConfiguration = Optional.of(serializationConfiguration);
+        this.optionalDeserializationConfiguration = Optional.of(deserializationConfiguration);
+        this.serializationFeatures = SerializationConfiguration.features(serializationConfiguration);
+        this.deserializationFeatures = deserializationConfiguration.features();
         this.introspections = introspections;
         this.beanContext = beanContext;
         this.conversionService = conversionService;
@@ -597,6 +610,26 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         return deserializationConfiguration;
     }
 
+    final Optional<SerdeConfiguration> optionalSerdeConfiguration() {
+        return optionalSerdeConfiguration;
+    }
+
+    final Optional<SerializationConfiguration> optionalSerializationConfiguration() {
+        return optionalSerializationConfiguration;
+    }
+
+    final Optional<DeserializationConfiguration> optionalDeserializationConfiguration() {
+        return optionalDeserializationConfiguration;
+    }
+
+    final Set<SerializationConfiguration.Feature> serializationFeatures() {
+        return serializationFeatures;
+    }
+
+    final Set<DeserializationConfiguration.Feature> deserializationFeatures() {
+        return deserializationFeatures;
+    }
+
     /**
      * Creates the beans of a serde definition that takes the context and the type as constructor arguments, the way
      * {@link BeanContext#createBean(Class, Object...)} creates a bean once it has found its definition. The registry
@@ -690,26 +723,38 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     }
 
     private static final class InternalSerdeBeanDefinition<T> implements BeanDefinition<T> {
-        private final Argument<?> argument;
+        /**
+         * The annotation metadata of each order. Every built-in serde registers three definitions,
+         * so sharing the metadata keeps it to a few instances.
+         */
+        private static final Map<Integer, AnnotationMetadata> ORDER_METADATA = new ConcurrentHashMap<>();
+
+        private final Class<T> container;
         private final Argument<?> typeArgument;
         private final T value;
         private final List<Argument<?>> typeParameters;
         private final AnnotationMetadata annotationMetadata;
+        @Nullable
+        private Argument<?> argument;
 
         private InternalSerdeBeanDefinition(Argument<?> typeArgument,
                                             Class<T> container,
                                             T value,
                                             int order) {
-            this.argument = Argument.of(container, typeArgument);
+            this.container = container;
             this.value = value;
             this.typeArgument = typeArgument;
-            this.typeParameters = List.of(argument.getTypeParameters());
+            this.typeParameters = List.of(typeArgument);
             if (order == 0) {
                 order = 10; // Assign internal serdes to a lower priority
             }
+            annotationMetadata = ORDER_METADATA.computeIfAbsent(order, InternalSerdeBeanDefinition::orderMetadata);
+        }
+
+        private static AnnotationMetadata orderMetadata(Integer order) {
             MutableAnnotationMetadata mutableAnnotationMetadata = new MutableAnnotationMetadata();
             mutableAnnotationMetadata.addAnnotation(Order.class.getName(), Map.of("value", order));
-            annotationMetadata = mutableAnnotationMetadata;
+            return mutableAnnotationMetadata;
         }
 
         @Override
@@ -719,7 +764,13 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
         @Override
         public Argument<T> asArgument() {
-            return (Argument<T>) argument;
+            Argument<?> resolved = argument;
+            if (resolved == null) {
+                // Created on demand: the registry matches the type argument, not this one
+                resolved = Argument.of(container, typeArgument);
+                argument = resolved;
+            }
+            return (Argument<T>) resolved;
         }
 
         @Override
@@ -747,7 +798,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
         @Override
         public String toString() {
-            return argument.getTypeName();
+            return asArgument().getTypeName();
         }
 
     }

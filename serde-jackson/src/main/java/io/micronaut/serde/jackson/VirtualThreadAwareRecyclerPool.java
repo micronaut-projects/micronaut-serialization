@@ -21,6 +21,7 @@ import tools.jackson.core.util.JsonRecyclerPools;
 import tools.jackson.core.util.RecyclerPool;
 
 import java.io.Serial;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -32,6 +33,9 @@ import java.util.concurrent.atomic.AtomicReference;
  * and give them back to it when their parser or generator is closed. The concurrent deque pool is created when a virtual
  * thread first asks for a recycler.</p>
  *
+ * <p>The recyclers of virtual threads are kept in several deques, picked by the thread id, so that the threads running at
+ * the same time do not all contend on one deque. A thread takes a recycler from another deque before it creates one.</p>
+ *
  * @since 3.3.0
  */
 @Internal
@@ -41,11 +45,12 @@ public final class VirtualThreadAwareRecyclerPool implements RecyclerPool<Buffer
     private static final long serialVersionUID = 1L;
 
     private final RecyclerPool<BufferRecycler> platformThreadPool = JsonRecyclerPools.threadLocalPool();
-    private final AtomicReference<RecyclerPool<BufferRecycler>> virtualThreadPool = new AtomicReference<>();
+    // The pooled recyclers are not serializable, so a deserialized pool starts empty, see readResolve
+    private final transient AtomicReference<RecyclerPool<BufferRecycler>> virtualThreadPool = new AtomicReference<>();
 
     /**
-     * Creates a pool that uses {@link JsonRecyclerPools#threadLocalPool()} on platform threads and a new
-     * {@link JsonRecyclerPools#newConcurrentDequePool() concurrent deque pool} on virtual threads.
+     * Creates a pool that uses {@link JsonRecyclerPools#threadLocalPool()} on platform threads and a new pool of
+     * concurrent deques on virtual threads.
      */
     public VirtualThreadAwareRecyclerPool() {
         // the pool of virtual threads is created when a virtual thread first asks for a recycler
@@ -79,14 +84,92 @@ public final class VirtualThreadAwareRecyclerPool implements RecyclerPool<Buffer
         return pool == null || pool.clear();
     }
 
+    /**
+     * @return A new, empty pool in place of the deserialized one, like the pools of Jackson
+     */
+    @Serial
+    private Object readResolve() {
+        return new VirtualThreadAwareRecyclerPool();
+    }
+
     private RecyclerPool<BufferRecycler> pool() {
         if (!Thread.currentThread().isVirtual()) {
             return platformThreadPool;
         }
         RecyclerPool<BufferRecycler> pool = virtualThreadPool.get();
         if (pool == null) {
-            pool = virtualThreadPool.updateAndGet(current -> current != null ? current : JsonRecyclerPools.newConcurrentDequePool());
+            pool = virtualThreadPool.updateAndGet(current -> current != null ? current : new StripedDequePool());
         }
         return pool;
+    }
+
+    /**
+     * Concurrent deques of recyclers, picked by the id of the current thread. A thread takes the most recently released
+     * recycler of its deque, whose buffers are the most likely to still be cached, and takes one from another deque
+     * before it creates one.
+     */
+    private static final class StripedDequePool implements RecyclerPool<BufferRecycler> {
+
+        @Serial
+        private static final long serialVersionUID = 1L;
+
+        private static final int STRIPES = Math.min(64, Integer.highestOneBit(Math.max(1, 2 * Runtime.getRuntime().availableProcessors() - 1)) << 1);
+
+        private final ConcurrentLinkedDeque<BufferRecycler>[] deques;
+
+        @SuppressWarnings("unchecked")
+        StripedDequePool() {
+            deques = new ConcurrentLinkedDeque[STRIPES];
+            for (int i = 0; i < STRIPES; i++) {
+                deques[i] = new ConcurrentLinkedDeque<>();
+            }
+        }
+
+        @Override
+        public BufferRecycler acquireAndLinkPooled() {
+            return acquirePooled().withPool(this);
+        }
+
+        @Override
+        public BufferRecycler acquirePooled() {
+            int stripe = stripe();
+            BufferRecycler recycler = deques[stripe].pollFirst();
+            if (recycler != null) {
+                return recycler;
+            }
+            for (int i = 1; i < STRIPES; i++) {
+                recycler = deques[(stripe + i) & (STRIPES - 1)].pollFirst();
+                if (recycler != null) {
+                    return recycler;
+                }
+            }
+            return new BufferRecycler();
+        }
+
+        @Override
+        public void releasePooled(BufferRecycler pooled) {
+            deques[stripe()].offerFirst(pooled);
+        }
+
+        @Override
+        public int pooledCount() {
+            int count = 0;
+            for (ConcurrentLinkedDeque<BufferRecycler> deque : deques) {
+                count += deque.size();
+            }
+            return count;
+        }
+
+        @Override
+        public boolean clear() {
+            for (ConcurrentLinkedDeque<BufferRecycler> deque : deques) {
+                deque.clear();
+            }
+            return true;
+        }
+
+        private static int stripe() {
+            return (int) Thread.currentThread().threadId() & (STRIPES - 1);
+        }
     }
 }

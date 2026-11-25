@@ -995,8 +995,12 @@ final class SerBean<T> {
     private static PropertyNamingStrategy getPropertyNamingStrategy(AnnotationMetadata annotationMetadata,
                                                              Serializer.EncoderContext encoderContext,
                                                              @Nullable PropertyNamingStrategy defaultNamingStrategy) throws SerdeException {
-        Class<? extends PropertyNamingStrategy> namingStrategyClass = annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.RUNTIME_NAMING)
+        Class<? extends PropertyNamingStrategy> namingStrategyClass = annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.SERIALIZE_RUNTIME_NAMING)
                 .orElse(null);
+        if (namingStrategyClass == null) {
+            namingStrategyClass = annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.RUNTIME_NAMING)
+                    .orElse(null);
+        }
         return namingStrategyClass == null ? defaultNamingStrategy : encoderContext.findNamingStrategy(namingStrategyClass);
     }
 
@@ -1006,7 +1010,10 @@ final class SerBean<T> {
                                SerdeArgumentConf serdeArgumentConf,
                                @Nullable PropertyNamingStrategy propertyNamingStrategy) {
 
-        String resolvedName = propertyAnnotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(null);
+        String resolvedName = propertyAnnotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.SERIALIZE_PROPERTY_NAME).orElse(null);
+        if (resolvedName == null) {
+            resolvedName = propertyAnnotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(null);
+        }
         if (resolvedName == null && propertyNamingStrategy != null) {
             resolvedName = propertyNamingStrategy.translate(new AnnotatedElement() {
                 @Override

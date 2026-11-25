@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Default implementation of {@link io.micronaut.serde.Deserializer.DecoderContext}.
@@ -186,11 +187,16 @@ class DefaultDecoderContext extends AbstractPropertyReferenceManager implements 
 
     @Override
     public Optional<SerdeConfiguration> getSerdeConfiguration() {
-        return Optional.of(registry.getSerdeConfiguration());
+        return registry.optionalSerdeConfiguration();
     }
 
     @Override
     public Optional<DeserializationConfiguration> getDeserializationConfiguration() {
-        return Optional.of(registry.getDeserializationConfiguration());
+        return registry.optionalDeserializationConfiguration();
+    }
+
+    @Override
+    public Set<DeserializationConfiguration.Feature> getFeatures() {
+        return registry.deserializationFeatures();
     }
 }
