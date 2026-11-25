@@ -350,12 +350,7 @@ public final class SimpleSerdeShapeAnalyzer {
         if (analysis.open() && hasDirectIterableProperties(element) && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE)) {
             return true;
         }
-        // Two properties serialized under one name cannot share a generated key
-        if (analysis.open() && hasDuplicateSerializedNames(element) && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE)) {
-            return true;
-        }
-        // A property written and read with different names is handled by the runtime serdes
-        if (analysis.open() && hasDirectionalNames(element) && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE)) {
+        if (analyzePropertyNames(analysis)) {
             return true;
         }
         if (analysis.open()
@@ -375,6 +370,24 @@ public final class SimpleSerdeShapeAnalyzer {
             && analysis.open()
             && hasComplexEnumCustomization(element)
             && analysis.failBoth(FallbackReason.COMPLEX_ENUM);
+    }
+
+    /**
+     * The names the properties are written and read with.
+     *
+     * @return {@code true} once the analysis is complete
+     */
+    private boolean analyzePropertyNames(Analysis analysis) {
+        ClassElement element = analysis.element;
+        // Two properties serialized under one name cannot share a generated key
+        if (analysis.open() && hasDuplicateSerializedNames(element) && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE)) {
+            return true;
+        }
+        // A property written and read with different names is handled by the runtime serdes
+        if (analysis.open() && hasDirectionalNames(element) && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE)) {
+            return true;
+        }
+        return readsPropertyNameOfAnotherParameter(analysis) && analysis.failDeserializer(FallbackReason.COMPLEX_CREATOR);
     }
 
     /**
@@ -699,6 +712,16 @@ public final class SimpleSerdeShapeAnalyzer {
             }
         }
         return false;
+    }
+
+    /**
+     * The runtime reads the property name of a creator parameter as another parameter that is explicitly named so,
+     * which a generated deserializer cannot do.
+     */
+    private static boolean readsPropertyNameOfAnotherParameter(Analysis analysis) {
+        return analysis.deserializerOpen()
+            && (analysis.shapeKind == ShapeKind.RECORD || analysis.shapeKind == ShapeKind.CONSTRUCTOR_BEAN)
+            && RecordSerdeShapeResolver.readsPropertyNameOfAnotherParameter(analysis.element);
     }
 
     private boolean hasDirectionalNames(ClassElement element) {

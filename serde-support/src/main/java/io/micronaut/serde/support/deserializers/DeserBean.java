@@ -67,7 +67,9 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -273,12 +275,18 @@ final class DeserBean<T> {
                     decoderContext
                 );
             }
+            // A constructor argument named apart from its property is also read with the names the property is written
+            // with, such as one a naming strategy derives. A builder argument is the property itself.
+            String @Nullable [] propertyAliases = hasBuilder || isIgnored ? null : renamedPropertyNames(
+                serdeArgumentConf, introspection, constructorArguments, i, propertyName, decoderContext, entityPropertyNamingStrategy
+            );
             DerProperty<T, Object> derProperty = new DerProperty<>(
                 conversionService,
                 introspection,
                 i,
                 propertyName,
                 constructorWithPropertyArgument,
+                constructorWithPropertyArgument.getAnnotationMetadata(),
                 isIgnored ? null : introspection.getProperty(propertyName)
                     .or(() -> introspection.getProperty(constructorArgument.getName()))
                     .orElse(null),
@@ -288,7 +296,8 @@ final class DeserBean<T> {
                 isIgnored,
                 deserializationConfiguration,
                 failOnNullForPrimitives,
-                unresolvedTypeVariableName
+                unresolvedTypeVariableName,
+                propertyAliases
             );
             if (isUnwrapped) {
                 if (creatorUnwrapped == null) {
@@ -1295,7 +1304,8 @@ final class DeserBean<T> {
                 ignored,
                 deserializationConfiguration,
                 failOnNullForPrimitives,
-                unresolvedTypeVariableName
+                unresolvedTypeVariableName,
+                null
             );
         }
 
@@ -1312,7 +1322,8 @@ final class DeserBean<T> {
                     boolean ignored,
                     DeserializationConfiguration deserializationConfiguration,
                     boolean failOnNullForPrimitives,
-                    @Nullable String unresolvedTypeVariableName) throws SerdeException {
+                    @Nullable String unresolvedTypeVariableName,
+                    String @Nullable [] extraAliases) throws SerdeException {
             this.introspection = introspection;
             this.index = index;
             this.ignored = ignored;
@@ -1370,9 +1381,12 @@ final class DeserBean<T> {
             this.unwrapped = unwrapped;
             this.unwrappedProperty = unwrappedProperty;
             this.isAnySetter = annotationMetadata.isAnnotationPresent(SerdeConfig.SerAnySetter.class);
-            final String[] aliases = annotationMetadata.stringValues(SerdeConfig.class, SerdeConfig.ALIASES);
-            if (ArrayUtils.isNotEmpty(aliases)) {
-                this.aliases = ArrayUtils.concat(aliases, property);
+            String[] declaredAliases = annotationMetadata.stringValues(SerdeConfig.class, SerdeConfig.ALIASES);
+            if (extraAliases != null) {
+                declaredAliases = ArrayUtils.concat(declaredAliases, extraAliases);
+            }
+            if (ArrayUtils.isNotEmpty(declaredAliases)) {
+                this.aliases = ArrayUtils.concat(declaredAliases, property);
             } else {
                 this.aliases = null;
             }
@@ -1972,6 +1986,55 @@ final class DeserBean<T> {
             .filter(metadata -> !hasDifferentExplicitName(annotationMetadata, metadata))
             .orElse(AnnotationMetadata.EMPTY_METADATA);
         return new AnnotationMetadataHierarchy(propertyMetadata, annotationMetadata);
+    }
+
+    /**
+     * The names a constructor argument named apart from its property is read with as well: the name the property is
+     * written with, resolved like a written property, and its aliases, except for names that other constructor
+     * arguments are read with.
+     */
+    private String @Nullable [] renamedPropertyNames(@Nullable SerdeArgumentConf serdeArgumentConf,
+                                                     BeanIntrospection<T> introspection,
+                                                     Argument<?>[] constructorArguments,
+                                                     int index,
+                                                     String argumentName,
+                                                     Deserializer.DecoderContext decoderContext,
+                                                     @Nullable PropertyNamingStrategy entityPropertyNamingStrategy) throws SerdeException {
+        Argument<?> argument = constructorArguments[index];
+        if (findExplicitName(argument.getAnnotationMetadata()) == null) {
+            return null;
+        }
+        BeanProperty<T, ?> property = introspection.getProperty(argument.getName(), argument.getType()).orElse(null);
+        if (property == null) {
+            return null;
+        }
+        AnnotationMetadata propertyMetadata = property.getAnnotationMetadata();
+        // the name the property is written with: the serializer reads the property over its creator argument
+        AnnotationMetadata writtenMetadata = new AnnotationMetadataHierarchy(argument.getAnnotationMetadata(), propertyMetadata);
+        String propertyName = resolveName(serdeArgumentConf, property, writtenMetadata,
+            getPropertyNamingStrategy(writtenMetadata, decoderContext, entityPropertyNamingStrategy));
+        if (propertyName.equals(argumentName)
+            || !SerdePropertyAccess.canDeserialize(propertyMetadata)
+            || propertyMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false)
+            || propertyMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED_DESERIALIZATION).orElse(false)) {
+            return null;
+        }
+        // a name another constructor argument is read with stays that argument's
+        Set<String> otherArgumentNames = new HashSet<>();
+        for (int i = 0; i < constructorArguments.length; i++) {
+            if (i != index) {
+                Argument<?> other = constructorArguments[i];
+                AnnotationMetadata otherMetadata = resolveArgumentMetadata(introspection, other, other.getAnnotationMetadata());
+                otherArgumentNames.add(resolveName(serdeArgumentConf, other, otherMetadata,
+                    getPropertyNamingStrategy(otherMetadata, decoderContext, entityPropertyNamingStrategy)));
+            }
+        }
+        Set<String> names = new LinkedHashSet<>();
+        Collections.addAll(names, propertyMetadata.stringValues(SerdeConfig.class, SerdeConfig.ALIASES));
+        names.add(propertyName);
+        names.removeAll(otherArgumentNames);
+        names.remove(argumentName);
+        return names.isEmpty() ? null : names.toArray(String[]::new);
     }
 
     private static boolean hasDifferentExplicitName(AnnotationMetadata argumentMetadata, AnnotationMetadata propertyMetadata) {
