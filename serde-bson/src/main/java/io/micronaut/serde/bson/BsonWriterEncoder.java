@@ -53,6 +53,13 @@ public final class BsonWriterEncoder extends LimitingStream implements KeysAware
     private Keys currentKeys;
     private String @Nullable [] currentKeyNames;
     private int currentIndex = 0;
+    /**
+     * The child encoders, reused for the next structure once the previous one is finished.
+     */
+    @Nullable
+    private BsonWriterEncoder objectChild;
+    @Nullable
+    private BsonWriterEncoder arrayChild;
 
     public BsonWriterEncoder(BsonWriter bsonWriter, RemainingLimits remainingLimits) {
         super(remainingLimits);
@@ -68,6 +75,11 @@ public final class BsonWriterEncoder extends LimitingStream implements KeysAware
         this.parent = parent;
     }
 
+    private void reset() {
+        currentKey = null;
+        currentIndex = 0;
+    }
+
     private void postEncodeValue() {
         currentIndex++;
     }
@@ -75,13 +87,27 @@ public final class BsonWriterEncoder extends LimitingStream implements KeysAware
     @Override
     public Encoder encodeArray(Argument<?> type) throws SerdeException {
         bsonWriter.writeStartArray();
-        return new BsonWriterEncoder(this, childLimits(), true);
+        BsonWriterEncoder child = arrayChild;
+        if (child == null) {
+            child = new BsonWriterEncoder(this, childLimits(), true);
+            arrayChild = child;
+        } else {
+            child.reset();
+        }
+        return child;
     }
 
     @Override
     public Encoder encodeObject(Argument<?> type) throws SerdeException {
         bsonWriter.writeStartDocument();
-        return new BsonWriterEncoder(this, childLimits(), false);
+        BsonWriterEncoder child = objectChild;
+        if (child == null) {
+            child = new BsonWriterEncoder(this, childLimits(), false);
+            objectChild = child;
+        } else {
+            child.reset();
+        }
+        return child;
     }
 
     @Override

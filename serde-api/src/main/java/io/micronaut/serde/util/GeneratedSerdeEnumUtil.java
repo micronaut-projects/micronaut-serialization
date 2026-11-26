@@ -43,6 +43,18 @@ public final class GeneratedSerdeEnumUtil {
     }
 
     /**
+     * Whether the string deserializer of a generated enum deserializer is the built-in one, see
+     * {@link BuiltInStringDeserializer}. The generated deserializer decides this once, when it is created, and matches
+     * the constant names directly only then, so that any other string deserializer still sees every value.
+     *
+     * @param stringDeserializer The string deserializer
+     * @return Whether it is built in
+     */
+    public static boolean isBuiltInStringDeserializer(Deserializer<?> stringDeserializer) {
+        return stringDeserializer instanceof BuiltInStringDeserializer;
+    }
+
+    /**
      * Resolves an enum constant from serialized input.
      *
      * @param enumType        The enum type.

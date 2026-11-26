@@ -21,7 +21,6 @@ import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.exceptions.SerdeException;
 import org.jspecify.annotations.NonNull;
 import org.snakeyaml.engine.v2.api.DumpSettings;
-import org.snakeyaml.engine.v2.api.YamlOutputStreamWriter;
 import org.snakeyaml.engine.v2.common.FlowStyle;
 import org.snakeyaml.engine.v2.common.ScalarStyle;
 import org.snakeyaml.engine.v2.emitter.Emitter;
@@ -46,7 +45,6 @@ import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Map;
@@ -64,7 +62,9 @@ import java.util.Optional;
  */
 public class YamlEncoder extends LimitingStream implements Encoder {
 
-    private final YamlOutputStreamWriter writer;
+    private static final ScalarResolver RESOLVER = new CoreScalarResolver(true);
+
+    private final YamlOutputBuffer writer;
     private final Emitter emitter;
     private final FlowStyle flowStyle;
     private final boolean explicitStart;
@@ -73,7 +73,6 @@ public class YamlEncoder extends LimitingStream implements Encoder {
     private final boolean literalBlockStyle;
     private final boolean useYamlNonfiniteNotation;
     private final YamlStringQuotingChecker quotingChecker;
-    private final ScalarResolver resolver = new CoreScalarResolver(true);
     private final Deque<CollectionContext> contextStack = new ArrayDeque<>();
     private boolean streamStarted;
     private boolean documentClosed;
@@ -106,7 +105,7 @@ public class YamlEncoder extends LimitingStream implements Encoder {
         minimizeQuotes = configuration.isMinimizeQuotes();
         literalBlockStyle = configuration.isLiteralBlockStyle();
         useYamlNonfiniteNotation = configuration.isUseYamlNonfiniteNotation();
-        writer = new YamlOutputStreamWriter(outputStream, StandardCharsets.UTF_8);
+        writer = new YamlOutputBuffer(outputStream);
         emitter = new Emitter(createEmitterOptions(configuration), writer);
         this.quotingChecker = Objects.requireNonNull(quotingChecker, "quotingChecker");
     }
@@ -258,8 +257,9 @@ public class YamlEncoder extends LimitingStream implements Encoder {
 
     @Override
     public void encodeString(@NonNull String value) throws IOException {
-        Tag detectedTag = resolver.resolve(value, true);
-        Tag defaultTag = resolver.resolve(value, false);
+        // the resolver is stateless, and resolves every non-implicit scalar as a string
+        Tag detectedTag = RESOLVER.resolve(value, true);
+        Tag defaultTag = Tag.STR;
         ScalarStyle style;
         if ((literalBlockStyle || minimizeQuotes) && value.indexOf('\n') != -1) {  // matches Jackson’s behavior where MINIMIZE_QUOTES also enables literal block style.
             style = ScalarStyle.LITERAL;

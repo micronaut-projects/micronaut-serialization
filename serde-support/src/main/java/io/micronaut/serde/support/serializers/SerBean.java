@@ -39,6 +39,7 @@ import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.FormattedSerializer;
 import io.micronaut.serde.KeyDescriptor;
 import io.micronaut.serde.Keys;
+import io.micronaut.serde.KeysAwareEncoder;
 import io.micronaut.serde.PropertyFilter;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
@@ -48,6 +49,8 @@ import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
+import io.micronaut.serde.support.util.BeanInitializations;
+import io.micronaut.serde.support.util.ContextBoundSerdes;
 import io.micronaut.serde.support.util.DecoderValueKind;
 import io.micronaut.serde.support.util.DocumentIdUtil;
 import io.micronaut.serde.support.util.ObjectShapeSerdeHelper;
@@ -55,6 +58,7 @@ import io.micronaut.serde.support.util.SerdeAnnotationUtil;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
 import io.micronaut.serde.support.util.SerdeFeatures;
 import io.micronaut.serde.support.util.SubtypeInfo;
+import io.micronaut.serde.util.DocumentContextTracker;
 import io.micronaut.serde.util.SerdePropertyAccess;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.LoggerFactory;
@@ -93,6 +97,7 @@ final class SerBean<T> {
                 }
             }
     );
+    private static final BeanInitializations<SerBean<?>> INITIALIZATIONS = new BeanInitializations<>();
     private static final String JK_PROP = "com.fasterxml.jackson.annotation.JsonProperty";
     private static final String JACKSON_VALUE = "com.fasterxml.jackson.annotation.JsonValue";
     private static final String JACKSON_KEY = "com.fasterxml.jackson.annotation.JsonKey";
@@ -138,6 +143,16 @@ final class SerBean<T> {
     private final Set<SerializationConfiguration.Feature> beanFeaturesWithout;
     private volatile boolean initialized;
     private volatile boolean initializing;
+    /**
+     * Whether initializing the property serdes bound them to the document, such as with a user serde keeping the
+     * context. The bean is kept between documents, so each document that uses it is marked bound as well.
+     */
+    private volatile boolean documentBound;
+    /**
+     * The beans that reached this one through a cycle while it was initializing, bound whenever this one is.
+     */
+    @Nullable
+    private List<SerBean<?>> cycleDependents;
 
     @Nullable
     private List<Initializer> initializers = new ArrayList<>();
@@ -885,15 +900,54 @@ final class SerBean<T> {
                 if (!initialized && !initializing) {
                     initializing = true;
                     encoderContext = encoderContext.withFeatures(beanFeaturesWith, beanFeaturesWithout);
-            for (Initializer initializer : Objects.requireNonNull(initializers)) {
-                initializer.initialize(encoderContext);
-            }
+                    int bindings = DocumentContextTracker.documentBindings(encoderContext);
+                    INITIALIZATIONS.enter(this);
+                    try {
+                        for (Initializer initializer : Objects.requireNonNull(initializers)) {
+                            initializer.initialize(encoderContext);
+                        }
+                    } finally {
+                        INITIALIZATIONS.exit();
+                    }
+                    documentBound = DocumentContextTracker.documentBindings(encoderContext) != bindings;
                     initializers = null;
                     initialized = true;
                     initializing = false;
+                    bindCycleDependents();
+                } else if (initializing) {
+                    addCycleDependents();
                 }
             } finally {
                 lock.unlock();
+            }
+        }
+        if (documentBound) {
+            DocumentContextTracker.markDocumentBound(encoderContext);
+        }
+    }
+
+    /**
+     * Reached again through a cycle while initializing: the beans initialized since hold the serdes of this one.
+     */
+    private void addCycleDependents() {
+        List<SerBean<?>> within = INITIALIZATIONS.initializingWithin(this);
+        if (!within.isEmpty()) {
+            if (cycleDependents == null) {
+                cycleDependents = new ArrayList<>();
+            }
+            cycleDependents.addAll(within);
+        }
+    }
+
+    /**
+     * The beans that reached this one through a cycle are bound whenever this one is.
+     */
+    private void bindCycleDependents() {
+        List<SerBean<?>> dependents = cycleDependents;
+        cycleDependents = null;
+        if (documentBound && dependents != null) {
+            for (SerBean<?> dependent : dependents) {
+                dependent.documentBound = true;
             }
         }
     }
@@ -919,10 +973,20 @@ final class SerBean<T> {
         } else {
             serializer = (Serializer<Z>) encoderContext.findSerializer(argument);
         }
-        Serializer.EncoderContext propertyContext = encoderContext.withFeatures(prop.featuresWith, prop.featuresWithout);
-        prop.serializer = prop.format == null
-            ? serializer.createSpecific(propertyContext, argument)
-            : createSpecific(prop.format, serializer, propertyContext, argument);
+        final Serializer<Z> resolved = serializer;
+        final Argument<Z> resolvedArgument = argument;
+        ContextBoundSerdes.SerializerFactory<Z> factory = context -> {
+            // the features of the bean argument and of the bean apply to a document context as they did to the first
+            Serializer.EncoderContext argumentContext = serdeArgumentConf == null ? context : serdeArgumentConf.withFeatures(context);
+            Serializer.EncoderContext beanContext = argumentContext.withFeatures(prop.beanFeaturesWith, prop.beanFeaturesWithout);
+            Serializer.EncoderContext propertyContext = beanContext.withFeatures(prop.featuresWith, prop.featuresWithout);
+            return prop.format == null
+                ? (Serializer<Z>) resolved.createSpecific(propertyContext, resolvedArgument)
+                : createSpecific(prop.format, resolved, propertyContext, resolvedArgument);
+        };
+        // The bean keeps its property serializers between documents: one that a serde bean bound to the context
+        // of this document is specialized again for the context of each document
+        prop.serializer = ContextBoundSerdes.specialize(factory, encoderContext);
 
         if (prop.serializableInto) {
             if (prop.serializer instanceof io.micronaut.serde.ObjectSerializer<Z> objectSerializer) {
@@ -973,7 +1037,9 @@ final class SerBean<T> {
             return false;
         }
         for (SerProperty<T, Object> property : writeProperties) {
-            if (property.serializableInto || property.backRef != null || property.include != SerdeConfig.SerInclude.ALWAYS || property.views != null || property.managedRef != null) {
+            if (property.serializableInto || property.backRef != null || property.views != null || property.managedRef != null
+                || !SimpleObjectSerializer.supportsInclusion(property.include)
+                || !property.featuresWith.isEmpty() || !property.featuresWithout.isEmpty()) {
                 return false;
             }
         }
@@ -984,8 +1050,12 @@ final class SerBean<T> {
     private static PropertyNamingStrategy getPropertyNamingStrategy(AnnotationMetadata annotationMetadata,
                                                              Serializer.EncoderContext encoderContext,
                                                              @Nullable PropertyNamingStrategy defaultNamingStrategy) throws SerdeException {
-        Class<? extends PropertyNamingStrategy> namingStrategyClass = annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.RUNTIME_NAMING)
+        Class<? extends PropertyNamingStrategy> namingStrategyClass = annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.SERIALIZE_RUNTIME_NAMING)
                 .orElse(null);
+        if (namingStrategyClass == null) {
+            namingStrategyClass = annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.RUNTIME_NAMING)
+                    .orElse(null);
+        }
         return namingStrategyClass == null ? defaultNamingStrategy : encoderContext.findNamingStrategy(namingStrategyClass);
     }
 
@@ -995,7 +1065,10 @@ final class SerBean<T> {
                                SerdeArgumentConf serdeArgumentConf,
                                @Nullable PropertyNamingStrategy propertyNamingStrategy) {
 
-        String resolvedName = propertyAnnotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(null);
+        String resolvedName = propertyAnnotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.SERIALIZE_PROPERTY_NAME).orElse(null);
+        if (resolvedName == null) {
+            resolvedName = propertyAnnotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(null);
+        }
         if (resolvedName == null && propertyNamingStrategy != null) {
             resolvedName = propertyNamingStrategy.translate(new AnnotatedElement() {
                 @Override
@@ -1054,19 +1127,52 @@ final class SerBean<T> {
         }
 
         @Override
-        public boolean serializeDirectPrimitive(Encoder encoder, B bean, byte valueKind) throws IOException {
+        public boolean serializeDirectPrimitive(KeysAwareEncoder encoder, Keys keys, int index, B bean, byte valueKind) throws IOException {
             if (!primitive) {
                 return false;
             }
+            // the value is read before the key is written, so that a failing getter leaves no key without a value
             switch (valueKind) {
-                case DecoderValueKind.BOOLEAN_CODE -> encoder.encodeBoolean(beanProperty.getBooleanUnsafe(bean));
-                case DecoderValueKind.BYTE_CODE -> encoder.encodeByte(beanProperty.getByteUnsafe(bean));
-                case DecoderValueKind.SHORT_CODE -> encoder.encodeShort(beanProperty.getShortUnsafe(bean));
-                case DecoderValueKind.CHAR_CODE -> encoder.encodeChar(beanProperty.getCharUnsafe(bean));
-                case DecoderValueKind.INT_CODE -> encoder.encodeInt(beanProperty.getIntUnsafe(bean));
-                case DecoderValueKind.LONG_CODE -> encoder.encodeLong(beanProperty.getLongUnsafe(bean));
-                case DecoderValueKind.FLOAT_CODE -> encoder.encodeFloat(beanProperty.getFloatUnsafe(bean));
-                case DecoderValueKind.DOUBLE_CODE -> encoder.encodeDouble(beanProperty.getDoubleUnsafe(bean));
+                case DecoderValueKind.BOOLEAN_CODE -> {
+                    boolean v = beanProperty.getBooleanUnsafe(bean);
+                    encoder.encodeKey(keys, index);
+                    encoder.encodeBoolean(v);
+                }
+                case DecoderValueKind.BYTE_CODE -> {
+                    byte v = beanProperty.getByteUnsafe(bean);
+                    encoder.encodeKey(keys, index);
+                    encoder.encodeByte(v);
+                }
+                case DecoderValueKind.SHORT_CODE -> {
+                    short v = beanProperty.getShortUnsafe(bean);
+                    encoder.encodeKey(keys, index);
+                    encoder.encodeShort(v);
+                }
+                case DecoderValueKind.CHAR_CODE -> {
+                    char v = beanProperty.getCharUnsafe(bean);
+                    encoder.encodeKey(keys, index);
+                    encoder.encodeChar(v);
+                }
+                case DecoderValueKind.INT_CODE -> {
+                    int v = beanProperty.getIntUnsafe(bean);
+                    encoder.encodeKey(keys, index);
+                    encoder.encodeInt(v);
+                }
+                case DecoderValueKind.LONG_CODE -> {
+                    long v = beanProperty.getLongUnsafe(bean);
+                    encoder.encodeKey(keys, index);
+                    encoder.encodeLong(v);
+                }
+                case DecoderValueKind.FLOAT_CODE -> {
+                    float v = beanProperty.getFloatUnsafe(bean);
+                    encoder.encodeKey(keys, index);
+                    encoder.encodeFloat(v);
+                }
+                case DecoderValueKind.DOUBLE_CODE -> {
+                    double v = beanProperty.getDoubleUnsafe(bean);
+                    encoder.encodeKey(keys, index);
+                    encoder.encodeDouble(v);
+                }
                 default -> {
                     return false;
                 }
@@ -1183,6 +1289,9 @@ final class SerBean<T> {
         public final FormatConfiguration format;
         public final Set<SerializationConfiguration.Feature> featuresWith;
         public final Set<SerializationConfiguration.Feature> featuresWithout;
+        // the features of the bean, which a property serializer specialized again for a document applies as well
+        final Set<SerializationConfiguration.Feature> beanFeaturesWith;
+        final Set<SerializationConfiguration.Feature> beanFeaturesWithout;
         // CHECKSTYLE:ON
 
         public SerProperty(
@@ -1200,6 +1309,8 @@ final class SerBean<T> {
                 Argument<P> argument,
                 AnnotationMetadata annotationMetadata) {
             this.beanType = bean.introspection.getBeanType();
+            this.beanFeaturesWith = bean.beanFeaturesWith;
+            this.beanFeaturesWithout = bean.beanFeaturesWithout;
             this.name = name;
             this.originalName = originalName;
             this.argument = annotationMetadata.isEmpty() ? argument : argument.withAnnotationMetadata(annotationMetadata);
@@ -1261,7 +1372,18 @@ final class SerBean<T> {
 
         public abstract @Nullable P get(B bean);
 
-        public boolean serializeDirectPrimitive(Encoder encoder, B bean, byte valueKind) throws IOException {
+        /**
+         * Writes the key and the value of a primitive property without boxing the value.
+         *
+         * @param encoder   The encoder
+         * @param keys      The keys of the properties
+         * @param index     The index of the key of the property
+         * @param bean      The bean
+         * @param valueKind The kind of the value
+         * @return Whether the key and the value are written, nothing is written otherwise
+         * @throws IOException If the value cannot be written
+         */
+        public boolean serializeDirectPrimitive(KeysAwareEncoder encoder, Keys keys, int index, B bean, byte valueKind) throws IOException {
             return false;
         }
 

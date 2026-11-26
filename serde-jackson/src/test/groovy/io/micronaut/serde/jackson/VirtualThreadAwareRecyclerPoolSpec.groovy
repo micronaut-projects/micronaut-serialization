@@ -33,6 +33,27 @@ class VirtualThreadAwareRecyclerPoolSpec extends Specification {
         second.get().is(first.get())
     }
 
+    void "virtual threads take recyclers released to the deques of other virtual threads"() {
+        given:
+        def pool = new VirtualThreadAwareRecyclerPool()
+        def recyclers = Collections.newSetFromMap(new IdentityHashMap<BufferRecycler, Boolean>())
+
+        when:
+        100.times {
+            Thread.ofVirtual().start {
+                BufferRecycler recycler = pool.acquireAndLinkPooled()
+                synchronized (recyclers) {
+                    recyclers.add(recycler)
+                }
+                recycler.releaseToPool()
+            }.join()
+        }
+
+        then:
+        recyclers.size() == 1
+        pool.pooledCount() == 1
+    }
+
     void "platform threads keep their own recycler"() {
         given:
         def pool = new VirtualThreadAwareRecyclerPool()
@@ -157,5 +178,24 @@ class VirtualThreadAwareRecyclerPoolSpec extends Specification {
         pool.pooledCount() == 0
         pool.clear()
         pool.@virtualThreadPool.get() == null
+    }
+
+    void "a pool holding recyclers of virtual threads can be serialized, and is deserialized empty"() {
+        given:
+        def pool = new VirtualThreadAwareRecyclerPool()
+        Thread.ofVirtual().start {
+            pool.releasePooled(pool.acquirePooled())
+        }.join()
+
+        when:
+        def bytes = new ByteArrayOutputStream()
+        new ObjectOutputStream(bytes).withCloseable { it.writeObject(pool) }
+        def copy = new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray())).withCloseable { it.readObject() }
+
+        then:
+        pool.pooledCount() == 1
+        copy instanceof VirtualThreadAwareRecyclerPool
+        copy.pooledCount() == 0
+        copy.acquirePooled() != null
     }
 }

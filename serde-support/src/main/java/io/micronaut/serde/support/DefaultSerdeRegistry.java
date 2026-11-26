@@ -58,9 +58,13 @@ import io.micronaut.serde.support.serdes.ObjectArraySerde;
 import io.micronaut.serde.support.serdes.Serdes;
 import io.micronaut.serde.support.serializers.CoreSerializers;
 import io.micronaut.serde.support.serializers.ObjectSerializer;
+import io.micronaut.serde.support.util.ContextBoundSerdes;
 import io.micronaut.serde.support.util.TypeKey;
 import io.micronaut.serde.util.CustomizableDeserializer;
 import io.micronaut.serde.util.CustomizableSerializer;
+import io.micronaut.serde.util.DocumentContextTracker;
+import io.micronaut.serde.util.GeneratedSerde;
+import io.micronaut.serde.util.UserSerdes;
 import jakarta.inject.Singleton;
 import org.jspecify.annotations.Nullable;
 
@@ -70,6 +74,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 
@@ -104,6 +110,12 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     private final SerdeConfiguration serdeConfiguration;
     private final SerializationConfiguration serializationConfiguration;
     private final DeserializationConfiguration deserializationConfiguration;
+    // The contexts of every document share these: the configuration of a registry does not change
+    private final Optional<SerdeConfiguration> optionalSerdeConfiguration;
+    private final Optional<SerializationConfiguration> optionalSerializationConfiguration;
+    private final Optional<DeserializationConfiguration> optionalDeserializationConfiguration;
+    private final Set<SerializationConfiguration.Feature> serializationFeatures;
+    private final Set<DeserializationConfiguration.Feature> deserializationFeatures;
 
     /**
      * Default constructor.
@@ -125,6 +137,11 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         this.serdeConfiguration = serdeConfiguration;
         this.serializationConfiguration = serializationConfiguration;
         this.deserializationConfiguration = deserializationConfiguration;
+        this.optionalSerdeConfiguration = Optional.of(serdeConfiguration);
+        this.optionalSerializationConfiguration = Optional.of(serializationConfiguration);
+        this.optionalDeserializationConfiguration = Optional.of(deserializationConfiguration);
+        this.serializationFeatures = SerializationConfiguration.features(serializationConfiguration);
+        this.deserializationFeatures = deserializationConfiguration.features();
         this.introspections = introspections;
         this.beanContext = beanContext;
         this.conversionService = conversionService;
@@ -245,13 +262,17 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     @Override
     public <T, D extends Serializer<? extends T>> D findCustomSerializer(Class<? extends D> serializerClass) throws SerdeException {
         checkBeanContext();
-        return beanContext().findBean(serializerClass).orElseThrow(() -> new SerdeException("Cannot find serializer: " + serializerClass));
+        D serializer = beanContext().findBean(serializerClass).orElseThrow(() -> new SerdeException("Cannot find serializer: " + serializerClass));
+        beanContext().findBeanDefinition(serializerClass).ifPresent(definition -> markUserSerde(definition, serializer));
+        return serializer;
     }
 
     @Override
     public <T, D extends Deserializer<? extends T>> D findCustomDeserializer(Class<? extends D> deserializerClass) throws SerdeException {
         checkBeanContext();
-        return beanContext().findBean(deserializerClass).orElseThrow(() -> new SerdeException("Cannot find deserializer: " + deserializerClass));
+        D deserializer = beanContext().findBean(deserializerClass).orElseThrow(() -> new SerdeException("Cannot find deserializer: " + deserializerClass));
+        beanContext().findBeanDefinition(deserializerClass).ifPresent(definition -> markUserSerde(definition, deserializer));
+        return deserializer;
     }
 
     @Override
@@ -308,6 +329,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                 deser = new SpecificBeanDeserializer(specificBeanFactory(deserBeanDefinition));
             } else {
                 deser = beanContext.getBean(deserBeanDefinition);
+                markUserSerde(deserBeanDefinition, deser);
             }
             deserializerMap.put(key, deser);
             return (Deserializer<? extends T>) deser;
@@ -360,6 +382,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                 ser = new SpecificBeanSerializer(specificBeanFactory(serializerBeanDefinition));
             } else {
                 ser = beanContext.getBean(serializerBeanDefinition);
+                markUserSerde(serializerBeanDefinition, ser);
             }
             serializerMap.put(key, new SerializerWrapper(ser));
             return (Serializer<? super T>) ser;
@@ -462,7 +485,10 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         boolean createdByDefinition = !beanDefinition.isProxy()
             && !beanDefinition.hasAnnotation(DependsOn.class)
             && !hasBeanCreatedEventListener(beanDefinition.getBeanType());
-        return new SpecificBeanFactory<>(beanContext, parametrizedBeanDefinition, arguments[0].getName(), arguments[1].getName(), createdByDefinition);
+        // A generated serde passes the context of each document on; a user serde may keep the one it is created with.
+        // The generated serdes are declared @Internal (the javax Generated annotation is not kept at runtime)
+        boolean contextBound = !beanDefinition.hasDeclaredAnnotation(Internal.class);
+        return new SpecificBeanFactory<>(beanContext, parametrizedBeanDefinition, arguments[0].getName(), arguments[1].getName(), createdByDefinition, contextBound);
     }
 
     private boolean hasBeanCreatedEventListener(Class<?> beanType) {
@@ -593,6 +619,58 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         return deserializationConfiguration;
     }
 
+    final Optional<SerdeConfiguration> optionalSerdeConfiguration() {
+        return optionalSerdeConfiguration;
+    }
+
+    final Optional<SerializationConfiguration> optionalSerializationConfiguration() {
+        return optionalSerializationConfiguration;
+    }
+
+    final Optional<DeserializationConfiguration> optionalDeserializationConfiguration() {
+        return optionalDeserializationConfiguration;
+    }
+
+    final Set<SerializationConfiguration.Feature> serializationFeatures() {
+        return serializationFeatures;
+    }
+
+    final Set<DeserializationConfiguration.Feature> deserializationFeatures() {
+        return deserializationFeatures;
+    }
+
+    /**
+     * Records a serde resolved from a bean of the application as a user serde. A serde bean declared {@code @Internal}
+     * belongs to a Micronaut module, as the serdes of Micronaut Serialization and the generated serdes do.
+     *
+     * @param definition The bean definition the serde was resolved from
+     * @param serde      The serde
+     */
+    private static void markUserSerde(BeanDefinition<?> definition, Object serde) {
+        if (!definition.hasDeclaredAnnotation(Internal.class)) {
+            UserSerdes.mark(serde.getClass());
+        }
+    }
+
+    /**
+     * Marks the serdes created with the context as bound to the document when a lookup returns a user serde. A
+     * user serde's {@code createSpecific} can return an instance that keeps the context, or state of one document,
+     * so the serdes created with it must not be cached across documents. A user serde is one the registry resolved
+     * from a bean of the application, see {@link #markUserSerde}; the serdes Micronaut Serialization registers and
+     * the generated serdes are not.
+     *
+     * @param context The encoder or decoder context of the lookup
+     * @param serde   The serde found
+     * @param <S>     The serde type
+     * @return The serde
+     */
+    static <S> S trackUserSerde(Object context, S serde) {
+        if (UserSerdes.isUser(serde.getClass())) {
+            DocumentContextTracker.markDocumentBound(context);
+        }
+        return serde;
+    }
+
     /**
      * Creates the beans of a serde definition that takes the context and the type as constructor arguments, the way
      * {@link BeanContext#createBean(Class, Object...)} creates a bean once it has found its definition. The registry
@@ -606,15 +684,24 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
      * @param contextName         The name of the context argument
      * @param typeName            The name of the type argument
      * @param createdByDefinition Whether the bean is created from the definition, otherwise by the bean context
+     * @param contextBound        Whether the bean may keep the context it is created with, such as a user serde
      * @param <T>                 The serde type
      */
     private record SpecificBeanFactory<T>(BeanContext beanContext,
                                           ParametrizedInstantiatableBeanDefinition<T> beanDefinition,
                                           String contextName,
                                           String typeName,
-                                          boolean createdByDefinition) {
+                                          boolean createdByDefinition,
+                                          boolean contextBound) {
 
         T create(Object context, Argument<?> type) {
+            if (contextBound) {
+                ContextBoundSerdes.created();
+            }
+            if (!GeneratedSerde.class.isAssignableFrom(beanDefinition.getBeanType())) {
+                // A user serde can keep the context it is created with
+                DocumentContextTracker.markDocumentBound(context);
+            }
             if (!createdByDefinition) {
                 return beanContext.createBean(beanDefinition.getBeanType(), context, type);
             }
@@ -681,26 +768,38 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     }
 
     private static final class InternalSerdeBeanDefinition<T> implements BeanDefinition<T> {
-        private final Argument<?> argument;
+        /**
+         * The annotation metadata of each order. Every built-in serde registers three definitions,
+         * so sharing the metadata keeps it to a few instances.
+         */
+        private static final Map<Integer, AnnotationMetadata> ORDER_METADATA = new ConcurrentHashMap<>();
+
+        private final Class<T> container;
         private final Argument<?> typeArgument;
         private final T value;
         private final List<Argument<?>> typeParameters;
         private final AnnotationMetadata annotationMetadata;
+        @Nullable
+        private Argument<?> argument;
 
         private InternalSerdeBeanDefinition(Argument<?> typeArgument,
                                             Class<T> container,
                                             T value,
                                             int order) {
-            this.argument = Argument.of(container, typeArgument);
+            this.container = container;
             this.value = value;
             this.typeArgument = typeArgument;
-            this.typeParameters = List.of(argument.getTypeParameters());
+            this.typeParameters = List.of(typeArgument);
             if (order == 0) {
                 order = 10; // Assign internal serdes to a lower priority
             }
+            annotationMetadata = ORDER_METADATA.computeIfAbsent(order, InternalSerdeBeanDefinition::orderMetadata);
+        }
+
+        private static AnnotationMetadata orderMetadata(Integer order) {
             MutableAnnotationMetadata mutableAnnotationMetadata = new MutableAnnotationMetadata();
             mutableAnnotationMetadata.addAnnotation(Order.class.getName(), Map.of("value", order));
-            annotationMetadata = mutableAnnotationMetadata;
+            return mutableAnnotationMetadata;
         }
 
         @Override
@@ -710,7 +809,13 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
         @Override
         public Argument<T> asArgument() {
-            return (Argument<T>) argument;
+            Argument<?> resolved = argument;
+            if (resolved == null) {
+                // Created on demand: the registry matches the type argument, not this one
+                resolved = Argument.of(container, typeArgument);
+                argument = resolved;
+            }
+            return (Argument<T>) resolved;
         }
 
         @Override
@@ -738,7 +843,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
         @Override
         public String toString() {
-            return argument.getTypeName();
+            return asArgument().getTypeName();
         }
 
     }

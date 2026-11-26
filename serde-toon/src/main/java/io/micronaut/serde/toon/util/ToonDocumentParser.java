@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 /**
  * A stateful recursive-descent parser over one TOON document's text,
@@ -74,7 +73,6 @@ import java.util.regex.Pattern;
  */
 final class ToonDocumentParser extends LimitingStream {
 
-    private static final Pattern LINE_SPLIT = Pattern.compile("\r\n|\r|\n");
     private static final char BOM = (char) 0xFEFF;
 
     private final List<Line> lines;
@@ -106,7 +104,16 @@ final class ToonDocumentParser extends LimitingStream {
         List<Line> parsedLines = new ArrayList<>();
         int lineNumber = 0;
         boolean pendingBlankLine = false;
-        for (String rawLine : LINE_SPLIT.split(text, -1)) {
+        int length = text.length();
+        int start = 0;
+        while (start <= length) {
+            int end = start;
+            while (end < length && text.charAt(end) != '\n' && text.charAt(end) != '\r') {
+                end++;
+            }
+            String rawLine = text.substring(start, end);
+            // the line ends with \r\n, \r or \n, or the text ends
+            start = end < length && text.charAt(end) == '\r' && end + 1 < length && text.charAt(end + 1) == '\n' ? end + 2 : end + 1;
             lineNumber++;
             String line = ToonEscapes.stripTrailingWhitespace(rawLine);
             if (line.isBlank()) {

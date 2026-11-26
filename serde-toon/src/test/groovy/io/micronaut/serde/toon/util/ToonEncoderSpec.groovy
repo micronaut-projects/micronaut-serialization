@@ -432,4 +432,56 @@ meta:'''
         toText(writer(SerdeToonConfiguration.Delimiter.TAB), tree) == "tags[2\t]: a\tb"
         toText(writer(SerdeToonConfiguration.Delimiter.PIPE), tree) == 'tags[2|]: a|b'
     }
+
+    void "a large document is written to the stream in blocks and the stream is closed"() {
+        given:
+        def writes = []
+        boolean closed = false
+        def out = new ByteArrayOutputStream() {
+            @Override
+            void write(byte[] b, int off, int len) {
+                writes << len
+                super.write(b, off, len)
+            }
+
+            @Override
+            void close() {
+                closed = true
+            }
+        }
+        def text = 'x' * 4096
+        def tree = JsonNode.createArrayNode((0..<100).collect { JsonNode.createObjectNode([name: JsonNode.createStringNode(text), id: JsonNode.createNumberNode(it)]) })
+
+        when:
+        writer().write(out, tree)
+
+        then:
+        writes.size() > 10
+        writes.every { it < 3 * 8192 }
+        closed
+        out.toString('UTF-8') == toText(writer(), tree)
+    }
+
+    void "the stream is closed when writing fails"() {
+        given:
+        boolean closed = false
+        def out = new OutputStream() {
+            @Override
+            void write(int b) throws IOException {
+                throw new IOException('broken')
+            }
+
+            @Override
+            void close() {
+                closed = true
+            }
+        }
+
+        when:
+        writer().write(out, JsonNode.createStringNode('x'))
+
+        then:
+        thrown(IOException)
+        closed
+    }
 }
