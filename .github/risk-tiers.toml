@@ -1,0 +1,9 @@
+# Risk tier rules for this repository, read by the "Risk tier" workflow on top of the global rules in
+# micronaut-project-template (.github/risk-tiers.global.toml), which it fetches on every run. Values set here overwrite
+# the global ones: tables merge key by key, any other value replaces the global one. Not synced: edit it here.
+# See MAINTAINING.md, "Risk tiers and AI disclosure".
+
+[tiers.T2]
+description = """Public API, how values are serialized or deserialized, supported formats, a change of default \
+behaviour, or anything breaking."""
+paths = ["serde-*/src/main/**"]
