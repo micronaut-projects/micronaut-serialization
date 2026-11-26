@@ -56,6 +56,24 @@ class OracleOsonDecoderSpec extends Specification {
         second.pages == 0
     }
 
+    def "the serdes of a type without annotations are created once"() {
+        given:
+        def binary = (OracleJdbcJsonBinaryObjectMapper) mapper.cloneWithViewClass(Object)
+        def type = Argument.of(OsonBook)
+
+        when:
+        def oson = binary.writeValueAsBytes(type, new OsonBook(id: 1L, title: "a", pages: 1))
+        binary.writeValueAsBytes(type, new OsonBook(id: 2L, title: "b", pages: 2))
+        def first = binary.readValue(oson, type)
+        def second = binary.readValue(factory.createJsonBinaryParser(new ByteArrayInputStream(oson)), type)
+
+        then:
+        first.title == "a"
+        second.title == "a"
+        binary.serdeCache.@serializers.size() == 1
+        binary.serdeCache.@deserializers.size() == 1
+    }
+
     def "decodes nested objects, arrays, nulls, booleans, decimals and skips unknown fields"() {
         given:
         def doc = new OsonNested(name: "n", flag: true, ratio: new BigDecimal("3.25"), scores: [1, 2, 3],

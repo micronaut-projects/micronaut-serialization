@@ -20,7 +20,6 @@ import io.micronaut.serde.exceptions.SerdeException;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * Quote-aware lexical utilities shared by {@link ToonEncoder} (encode) and
@@ -32,23 +31,12 @@ import java.util.regex.Pattern;
 @Internal
 public final class ToonEscapes {
 
-    /**
-     * The encode-side quoting check for whether a string value looks
-     * number-like enough to need quoting. Deliberately broader than {@link
-     * #DECODE_NUMBER} (allows a leading {@code +} and leading zeros): a
-     * string need only look like a number to some decoder to require
-     * quoting, whether or not it matches this module's own strict decode
-     * grammar.
-     */
-    private static final Pattern NUMERIC_LITERAL = Pattern.compile("^[+-]?[0-9]+(?:\\.[0-9]+)?(?:e[+-]?[0-9]+)?$", Pattern.CASE_INSENSITIVE);
-
-    /**
-     * The strict decode number grammar: unlike {@link #NUMERIC_LITERAL} (used
-     * on encode to decide whether a string value needs quoting), this
-     * disallows a leading {@code +} and forbidden leading zeros (e.g. "05" is
-     * not a number, but "0", "0.5", and "0e1" are).
-     */
-    private static final Pattern DECODE_NUMBER = Pattern.compile("^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?(?:e[+-]?[0-9]+)?$", Pattern.CASE_INSENSITIVE);
+    // The encode-side quoting check for whether a string value looks number-like enough to need
+    // quoting is ^[+-]?[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+)?$, deliberately broader than the decode
+    // grammar (a leading + and leading zeros): a string need only look like a number to some decoder
+    // to require quoting. The strict decode grammar is ^-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?[0-9]+)?$,
+    // which disallows a leading + and leading zeros (e.g. "05" is not a number, but "0", "0.5" and
+    // "0e1" are). Both are matched by matchesNumber.
 
     private static final char CONTROL_CHARACTER_BOUNDARY = 0x20;
     private static final char[] HEX_DIGITS = "0123456789abcdef".toCharArray();
@@ -141,7 +129,68 @@ public final class ToonEscapes {
      * @return {@code true} if the token should decode as a number
      */
     public static boolean isNumberToken(String token) {
-        return DECODE_NUMBER.matcher(token).matches();
+        return matchesNumber(token, false);
+    }
+
+    /**
+     * Matches the strict decode number grammar, or the encode-side grammar when lenient.
+     *
+     * @param value   The value
+     * @param lenient Whether a leading {@code +} and leading zeros are allowed
+     * @return Whether the value is a number
+     */
+    static boolean matchesNumber(String value, boolean lenient) {
+        int length = value.length();
+        int i = 0;
+        if (i < length && (value.charAt(i) == '-' || lenient && value.charAt(i) == '+')) {
+            i++;
+        }
+        int integerStart = i;
+        i = skipDigits(value, i);
+        if (i == integerStart || !lenient && i - integerStart > 1 && value.charAt(integerStart) == '0') {
+            return false;
+        }
+        i = skipFraction(value, i);
+        if (i < 0) {
+            return false;
+        }
+        i = skipExponent(value, i);
+        return i == length;
+    }
+
+    /**
+     * @return The index after an optional fraction, or -1 if it has no digits
+     */
+    private static int skipFraction(String value, int index) {
+        if (index >= value.length() || value.charAt(index) != '.') {
+            return index;
+        }
+        int end = skipDigits(value, index + 1);
+        return end == index + 1 ? -1 : end;
+    }
+
+    /**
+     * @return The index after an optional exponent, or -1 if it has no digits
+     */
+    private static int skipExponent(String value, int index) {
+        int length = value.length();
+        if (index >= length || value.charAt(index) != 'e' && value.charAt(index) != 'E') {
+            return index;
+        }
+        int i = index + 1;
+        if (i < length && (value.charAt(i) == '+' || value.charAt(i) == '-')) {
+            i++;
+        }
+        int end = skipDigits(value, i);
+        return end == i ? -1 : end;
+    }
+
+    private static int skipDigits(String value, int index) {
+        int i = index;
+        while (i < value.length() && isAsciiDigit(value.charAt(i))) {
+            i++;
+        }
+        return i;
     }
 
     /**
@@ -454,7 +503,7 @@ public final class ToonEscapes {
             return true;
         }
 
-        if ((first == '+' || isAsciiDigit(first)) && NUMERIC_LITERAL.matcher(value).matches()) {
+        if ((first == '+' || isAsciiDigit(first)) && matchesNumber(value, true)) {
             return true;
         }
 

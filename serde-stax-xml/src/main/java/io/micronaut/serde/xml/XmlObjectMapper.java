@@ -30,6 +30,7 @@ import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
 import io.micronaut.serde.support.util.JsonNodeEncoder;
+import io.micronaut.serde.support.util.SpecificSerdeCache;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import org.jspecify.annotations.Nullable;
@@ -39,12 +40,13 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The XmlObjectMapper class provides a concrete implementation of the
@@ -61,6 +63,8 @@ public final class XmlObjectMapper implements ObjectMapper {
      */
     public static final String XML_MAPPER_NAME = "xml";
 
+    private static final int MAX_ROOT_NAMES = 256;
+
     private final SerdeRegistry registry;
     @Nullable
     private final SerdeConfiguration serdeConfiguration;
@@ -68,6 +72,14 @@ public final class XmlObjectMapper implements ObjectMapper {
     private final long maximumInputSize;
     private final XMLInputFactory xmlInputFactory;
     private final XMLOutputFactory xmlOutputFactory;
+    /**
+     * The serializers and deserializers that a call created without binding them to its document.
+     */
+    private final SpecificSerdeCache serdeCache = new SpecificSerdeCache();
+    /**
+     * The root element names by the name they are derived from.
+     */
+    private final Map<String, String> rootNames = new ConcurrentHashMap<>();
 
     /**
      * Constructs an XML object mapper.
@@ -120,8 +132,7 @@ public final class XmlObjectMapper implements ObjectMapper {
         try (var decoderContext = registry.newDecoderContext(null);
              XmlReaderResource resource = new XmlReaderResource(
             xmlInputFactory.createXMLStreamReader(new LimitedInputStream(inputStream, maximumInputSize)))) {
-            Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext,
-                type);
+            Deserializer<? extends T> deserializer = serdeCache.findDeserializer(decoderContext, type);
             XmlStaxDecoder decoder = new XmlStaxDecoder.DocumentDecoder(
                 limits(), resource.reader(), emptyElementAsNull);
             return deserializer.deserialize(decoder, decoderContext, type);
@@ -170,8 +181,7 @@ public final class XmlObjectMapper implements ObjectMapper {
     @Override
     public <T> T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
         try (var decoderContext = registry.newDecoderContext(null)) {
-            Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext,
-                type);
+            Deserializer<? extends T> deserializer = serdeCache.findDeserializer(decoderContext, type);
             return deserializer.deserialize(JsonNodeDecoder.create(tree, limits()), decoderContext, type);
         }
     }
@@ -240,6 +250,12 @@ public final class XmlObjectMapper implements ObjectMapper {
     }
 
     private void writeValue0(OutputStream outputStream, Argument<?> type, @Nullable Object object) throws IOException {
+        XmlOutputBuffer buffer = new XmlOutputBuffer(outputStream);
+        writeValue1(buffer, type, object);
+        buffer.flush();
+    }
+
+    private void writeValue1(XmlOutputBuffer outputStream, Argument<?> type, @Nullable Object object) throws IOException {
         try (XmlWriterResource resource = new XmlWriterResource(
             xmlOutputFactory.createXMLStreamWriter(outputStream))) {
             XMLStreamWriter xmlWriter = resource.writer();
@@ -270,8 +286,8 @@ public final class XmlObjectMapper implements ObjectMapper {
     }
 
     private byte[] writeValueAsBytes0(Argument<?> type, @Nullable Object object) throws IOException {
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        writeValue0(output, type, object);
+        XmlOutputBuffer output = new XmlOutputBuffer();
+        writeValue1(output, type, object);
         return output.toByteArray();
     }
 
@@ -322,21 +338,27 @@ public final class XmlObjectMapper implements ObjectMapper {
     @SuppressWarnings("unchecked")
     private void serialize(Encoder encoder, Object object, Argument type) throws IOException {
         try (var encoderContext = registry.newEncoderContext(null)) {
-            Serializer<Object> serializer = encoderContext.findSerializer(type).createSpecific(encoderContext, type);
+            Serializer<Object> serializer = serdeCache.findSerializer(encoderContext, type);
             serializer.serialize(encoder, encoderContext, type, object);
         }
     }
 
-    private static String resolveRootName(Argument<?> type) {
-        return type.getAnnotationMetadata()
-            .stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY)
-            .orElseGet(() -> {
-                Class<?> javaType = type.getType();
-                if (javaType.isArray()) {
-                    return NameUtils.camelCase(javaType.getComponentType().getSimpleName() + "s", false);
-                }
-                return NameUtils.camelCase(type.getName(), false);
-            });
+    private String resolveRootName(Argument<?> type) {
+        String wrapper = type.getAnnotationMetadata().stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY).orElse(null);
+        if (wrapper != null) {
+            return wrapper;
+        }
+        Class<?> javaType = type.getType();
+        String name = javaType.isArray() ? javaType.getComponentType().getSimpleName() + "s" : type.getName();
+        String rootName = rootNames.get(name);
+        if (rootName == null) {
+            // the conversion compiles a pattern
+            rootName = NameUtils.camelCase(name, false);
+            if (rootNames.size() < MAX_ROOT_NAMES) {
+                rootNames.put(name, rootName);
+            }
+        }
+        return rootName;
     }
 
     private record XmlReaderResource(XMLStreamReader reader) implements AutoCloseable {

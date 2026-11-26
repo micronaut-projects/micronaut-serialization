@@ -28,16 +28,20 @@ import io.micronaut.serde.reference.AbstractPropertyReferenceManager;
 import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.support.reference.DocumentIdReference;
 import io.micronaut.serde.support.reference.PendingDocumentIdReference;
+import io.micronaut.serde.util.DocumentContextTracker;
+import io.micronaut.serde.util.DocumentSerdes;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.IdentityHashMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Default implementation of {@link io.micronaut.serde.Deserializer.DecoderContext}.
@@ -45,8 +49,13 @@ import java.util.Optional;
  * @since 1.0.0
  */
 @Internal
-class DefaultDecoderContext extends AbstractPropertyReferenceManager implements Deserializer.DecoderContext {
+class DefaultDecoderContext extends AbstractPropertyReferenceManager implements Deserializer.DecoderContext, DocumentSerdes, DocumentContextTracker {
+    // The serdes specialized for this document by serdes kept between documents, created on first use
+    @Nullable
+    private IdentityHashMap<Object, Object> documentSerdes;
+
     private final DefaultSerdeRegistry registry;
+    private int documentBindings;
     // Document-scoped identifier state, allocated only when a document uses identifiers and released on close
     @Nullable
     private Map<String, Object> documentIds;
@@ -65,12 +74,12 @@ class DefaultDecoderContext extends AbstractPropertyReferenceManager implements 
     @Override
     public final <T, D extends Deserializer<? extends T>> D findCustomDeserializer(Class<? extends D> deserializerClass)
             throws SerdeException {
-        return registry.findCustomDeserializer(deserializerClass);
+        return DefaultSerdeRegistry.trackUserSerde(this, registry.findCustomDeserializer(deserializerClass));
     }
 
     @Override
     public final <T> Deserializer<? extends T> findDeserializer(Argument<? extends T> type) throws SerdeException {
-        return registry.findDeserializer(type);
+        return DefaultSerdeRegistry.trackUserSerde(this, registry.findDeserializer(type));
     }
 
     @Override
@@ -158,7 +167,18 @@ class DefaultDecoderContext extends AbstractPropertyReferenceManager implements 
     }
 
     @Override
+    public @Nullable Object getDocumentSerde(Object owner) {
+        return DocumentSerdeMaps.get(documentSerdes, owner);
+    }
+
+    @Override
+    public void putDocumentSerde(Object owner, Object value) {
+        documentSerdes = DocumentSerdeMaps.put(documentSerdes, owner, value);
+    }
+
+    @Override
     public void close() throws IOException {
+        documentSerdes = null;
         Map<String, List<PendingDocumentIdReference>> pending = pendingDocumentIds;
         documentIds = null;
         pendingDocumentIds = null;
@@ -169,11 +189,26 @@ class DefaultDecoderContext extends AbstractPropertyReferenceManager implements 
 
     @Override
     public Optional<SerdeConfiguration> getSerdeConfiguration() {
-        return Optional.of(registry.getSerdeConfiguration());
+        return registry.optionalSerdeConfiguration();
     }
 
     @Override
     public Optional<DeserializationConfiguration> getDeserializationConfiguration() {
-        return Optional.of(registry.getDeserializationConfiguration());
+        return registry.optionalDeserializationConfiguration();
+    }
+
+    @Override
+    public Set<DeserializationConfiguration.Feature> getFeatures() {
+        return registry.deserializationFeatures();
+    }
+
+    @Override
+    public void markDocumentBound() {
+        documentBindings++;
+    }
+
+    @Override
+    public int documentBindings() {
+        return documentBindings;
     }
 }

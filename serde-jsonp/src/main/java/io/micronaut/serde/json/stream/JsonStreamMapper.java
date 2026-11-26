@@ -37,11 +37,14 @@ import io.micronaut.serde.support.util.BufferingJsonNodeProcessor;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
 import io.micronaut.serde.support.util.JsonNodeEncoder;
 import io.micronaut.serde.support.util.JsonViewUtil;
+import io.micronaut.serde.support.util.SpecificSerdeCache;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import jakarta.json.Json;
 import jakarta.json.stream.JsonGenerator;
+import jakarta.json.stream.JsonGeneratorFactory;
 import jakarta.json.stream.JsonParser;
+import jakarta.json.stream.JsonParserFactory;
 import org.reactivestreams.Processor;
 
 import java.io.ByteArrayInputStream;
@@ -50,6 +53,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -59,6 +63,11 @@ import java.util.function.Consumer;
 @Singleton
 @BootstrapContextCompatible
 public class JsonStreamMapper implements ObjectMapper {
+
+    /**
+     * The serializers and deserializers that a call created without binding them to its document.
+     */
+    private final SpecificSerdeCache serdeCache = new SpecificSerdeCache();
     private final SerdeRegistry registry;
     @Nullable
     private final SerdeConfiguration serdeConfiguration;
@@ -126,14 +135,14 @@ public class JsonStreamMapper implements ObjectMapper {
 
     @Override
     public <T> @Nullable T readValue(InputStream inputStream, Argument<T> type) throws IOException {
-        try (JsonParser parser = Json.createParser(inputStream)) {
+        try (JsonParser parser = Factories.PARSER.createParser(inputStream)) {
             return readValue(parser, type);
         }
     }
 
     @Override
     public <T> @Nullable T readValue(byte[] byteArray, Argument<T> type) throws IOException {
-        try (JsonParser parser = Json.createParser(new ByteArrayInputStream(byteArray))) {
+        try (JsonParser parser = Factories.PARSER.createParser(new ByteArrayInputStream(byteArray))) {
             return readValue(parser, type);
         }
     }
@@ -141,7 +150,7 @@ public class JsonStreamMapper implements ObjectMapper {
     private <T> @Nullable T readValue(JsonParser parser, Argument<T> type) throws IOException {
         Decoder decoder = new JsonParserDecoder(parser, limits(), coercionPolicy());
         try (var context = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view))) {
-            final Deserializer<? extends T> deserializer = context.findDeserializer(type).createSpecific(context, type);
+            final Deserializer<? extends T> deserializer = serdeCache.findDeserializer(context, type);
             return deserializer.deserialize(
                     decoder,
                     context,
@@ -156,7 +165,7 @@ public class JsonStreamMapper implements ObjectMapper {
         return new BufferingJsonNodeProcessor(onSubscribe, streamArray) {
             @Override
             protected JsonNode parseOne(InputStream is) throws IOException {
-                try (JsonParser parser = Json.createParser(is)) {
+                try (JsonParser parser = Factories.PARSER.createParser(is)) {
                     final JsonParserDecoder decoder = new JsonParserDecoder(parser, limits(), coercionPolicy());
                     final Object o = decoder.decodeArbitrary();
                     return writeValueToTree(o);
@@ -187,7 +196,7 @@ public class JsonStreamMapper implements ObjectMapper {
 
     @Override
     public void writeValue(OutputStream outputStream, @Nullable Object object) throws IOException {
-        try (JsonGenerator generator = Json.createGenerator(Objects.requireNonNull(outputStream, "Output stream cannot be null"))) {
+        try (JsonGenerator generator = Factories.GENERATOR.createGenerator(Objects.requireNonNull(outputStream, "Output stream cannot be null"))) {
             if (object == null) {
                 generator.writeNull();
             } else {
@@ -200,7 +209,7 @@ public class JsonStreamMapper implements ObjectMapper {
 
     @Override
     public <T> void writeValue(OutputStream outputStream, Argument<T> type, @Nullable T object) throws IOException {
-        try (JsonGenerator generator = Json.createGenerator(Objects.requireNonNull(outputStream, "Output stream cannot be null"))) {
+        try (JsonGenerator generator = Factories.GENERATOR.createGenerator(Objects.requireNonNull(outputStream, "Output stream cannot be null"))) {
             if (object == null) {
                 generator.writeNull();
             } else {
@@ -225,7 +234,7 @@ public class JsonStreamMapper implements ObjectMapper {
 
     private void serialize(Encoder encoder, Object object, Argument type) throws IOException {
         try (var context = registry.newEncoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view))) {
-            final Serializer<Object> serializer = context.findSerializer(type).createSpecific(context, type);
+            final Serializer<Object> serializer = serdeCache.findSerializer(context, type);
             serializer.serialize(
                     encoder,
                     context,
@@ -253,4 +262,17 @@ public class JsonStreamMapper implements ObjectMapper {
         return JsonStreamConfig.DEFAULT;
     }
 
+
+    /**
+     * {@code Json.createParser} and {@code Json.createGenerator} look the provider up through the
+     * {@link java.util.ServiceLoader} on every call. The factories are thread safe, so they are
+     * resolved once, on first use.
+     */
+    private static final class Factories {
+        static final JsonParserFactory PARSER = Json.createParserFactory(Map.of());
+        static final JsonGeneratorFactory GENERATOR = Json.createGeneratorFactory(Map.of());
+
+        private Factories() {
+        }
+    }
 }

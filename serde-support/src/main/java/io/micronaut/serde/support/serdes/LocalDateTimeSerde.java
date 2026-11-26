@@ -24,6 +24,7 @@ import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerdeRegistrar;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -45,13 +46,23 @@ public final class LocalDateTimeSerde extends DefaultFormattedTemporalSerde<Loca
     }
 
     private LocalDateTimeSerde(DateTimeFormatter stringFormatter, boolean strictIJson) {
-        super(stringFormatter);
+        super(stringFormatter, DateTimeFormatter.ISO_DATE_TIME);
         this.strictIJson = strictIJson;
     }
 
     @Override
     public TemporalQuery<LocalDateTime> query() {
         return LocalDateTime::from;
+    }
+
+    @Override
+    @Nullable String formatIso(LocalDateTime value) {
+        return IsoTemporalFormat.formatLocalDateTime(value);
+    }
+
+    @Override
+    @Nullable LocalDateTime parseIso(String text) {
+        return IsoTemporalFormat.parseLocalDateTime(text);
     }
 
     @Override

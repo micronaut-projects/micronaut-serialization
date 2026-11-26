@@ -124,7 +124,7 @@ public final class OracleJdbcJsonBinaryObjectMapper extends AbstractOracleJdbcJs
      */
     public <T> @Nullable T readValue(byte[] byteArray, int offset, int length, Argument<T> type) throws IOException {
         try (var context = registry.newDecoderContext(view)) {
-            final Deserializer<? extends T> deserializer = registry.findDeserializer(type).createSpecific(context, type);
+            final Deserializer<? extends T> deserializer = serdeCache.findDeserializer(registry, context, type);
             return deserializer.deserialize(
                 new OracleOsonDecoder(byteArray, offset, length, limits(), coercionPolicy(), fieldNameCache),
                 context,

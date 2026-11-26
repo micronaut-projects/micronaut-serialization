@@ -1258,6 +1258,23 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         final boolean ignoreOnlyDeserialization = classElement.booleanValue(SerdeConfig.SerIgnored.class, SerdeConfig.SerIgnored.ALLOW_SERIALIZE).orElse(false);
         final boolean ignoreOnlySerialization = classElement.booleanValue(SerdeConfig.SerIgnored.class, SerdeConfig.SerIgnored.ALLOW_DESERIALIZE).orElse(false);
         PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(classElement, null);
+        boolean hasExplicitSerializeNaming = classElement.stringValue(SerdeConfig.class, SerdeConfig.SERIALIZE_NAMING).isPresent();
+        boolean hasExplicitDeserializeNaming = classElement.stringValue(SerdeConfig.class, SerdeConfig.DESERIALIZE_NAMING).isPresent();
+        String singleNaming = singleDirectionNaming(classElement, hasExplicitSerializeNaming, hasExplicitDeserializeNaming);
+        if (singleNaming != null) {
+            // The naming of @Serdeable.Serializable or @Serdeable.Deserializable alone names both directions
+            propertyNamingStrategy = getPropertyNamingStrategy(classElement, null, singleNaming, SerdeConfig.RUNTIME_NAMING);
+            hasExplicitSerializeNaming = false;
+            hasExplicitDeserializeNaming = false;
+        }
+        boolean hasDirectionalNaming = hasExplicitSerializeNaming || hasExplicitDeserializeNaming;
+        PropertyNamingStrategy serializeNamingStrategy = hasExplicitSerializeNaming
+            ? getDirectionalNamingStrategy(classElement, propertyNamingStrategy, SerdeConfig.SERIALIZE_NAMING, SerdeConfig.SERIALIZE_RUNTIME_NAMING)
+            : propertyNamingStrategy;
+        PropertyNamingStrategy deserializeNamingStrategy = hasExplicitDeserializeNaming
+            ? getDirectionalNamingStrategy(classElement, propertyNamingStrategy, SerdeConfig.DESERIALIZE_NAMING, SerdeConfig.DESERIALIZE_RUNTIME_NAMING)
+            : propertyNamingStrategy;
+        Map<String, ParameterElement> creatorNames = explicitCreatorNames(classElement);
         processProperties(
             context,
                 beanProperties,
@@ -1266,7 +1283,11 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 includeProperties,
                 ignoreOnlyDeserialization,
                 ignoreOnlySerialization,
-                propertyNamingStrategy
+                propertyNamingStrategy,
+                hasDirectionalNaming,
+                serializeNamingStrategy,
+                deserializeNamingStrategy,
+                creatorNames
         );
         if (supportFields) {
             final List<FieldElement> fields = classElement.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyInstance()
@@ -1279,7 +1300,11 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                     includeProperties,
                     ignoreOnlyDeserialization,
                     ignoreOnlySerialization,
-                    propertyNamingStrategy
+                    propertyNamingStrategy,
+                    hasDirectionalNaming,
+                    serializeNamingStrategy,
+                    deserializeNamingStrategy,
+                    creatorNames
             );
         }
     }
@@ -1747,7 +1772,33 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
     @Nullable
     private PropertyNamingStrategy getPropertyNamingStrategy(TypedElement element, @Nullable PropertyNamingStrategy defaultValue) {
-        String namingStrategy = element.stringValue(SerdeConfig.class, SerdeConfig.NAMING)
+        return getPropertyNamingStrategy(element, defaultValue, SerdeConfig.NAMING, SerdeConfig.RUNTIME_NAMING);
+    }
+
+    /**
+     * Resolves the naming of one direction. An explicit {@link io.micronaut.serde.config.naming.IdentityStrategy}
+     * keeps the Java names, even when the type also has a shared naming.
+     */
+    @Nullable
+    private PropertyNamingStrategy getDirectionalNamingStrategy(TypedElement element,
+                                                                @Nullable PropertyNamingStrategy sharedNaming,
+                                                                String namingMember,
+                                                                String runtimeNamingMember) {
+        boolean explicitIdentity = element.stringValue(SerdeConfig.class, namingMember)
+            .filter(val -> val.equals(PropertyNamingStrategy.IDENTITY.getClass().getName()))
+            .isPresent();
+        if (explicitIdentity) {
+            return PropertyNamingStrategy.IDENTITY;
+        }
+        return getPropertyNamingStrategy(element, sharedNaming, namingMember, runtimeNamingMember);
+    }
+
+    @Nullable
+    private PropertyNamingStrategy getPropertyNamingStrategy(TypedElement element,
+                                                             @Nullable PropertyNamingStrategy defaultValue,
+                                                             String namingMember,
+                                                             String runtimeNamingMember) {
+        String namingStrategy = element.stringValue(SerdeConfig.class, namingMember)
                 .filter(val -> !val.equals(PropertyNamingStrategy.IDENTITY.getClass().getName()))
                 .orElse(null);
         if (namingStrategy != null) {
@@ -1760,7 +1811,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 if (o instanceof PropertyNamingStrategy) {
                     return (PropertyNamingStrategy) o;
                 } else {
-                    element.annotate(SerdeConfig.class, builder -> builder.member(SerdeConfig.RUNTIME_NAMING, namingStrategy));
+                    element.annotate(SerdeConfig.class, builder -> builder.member(runtimeNamingMember, namingStrategy));
                 }
             }
             return propertyNamingStrategy;
@@ -1775,7 +1826,11 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                                    String[] includeProperties,
                                    boolean ignoreOnlyDeserialization,
                                    boolean ignoreOnlySerialization,
-                                   @Nullable PropertyNamingStrategy namingStrategy) {
+                                   @Nullable PropertyNamingStrategy namingStrategy,
+                                   boolean hasDirectionalNaming,
+                                   @Nullable PropertyNamingStrategy serializeNamingStrategy,
+                                   @Nullable PropertyNamingStrategy deserializeNamingStrategy,
+                                   Map<String, ParameterElement> creatorNames) {
         final Set<String> ignoredSet = CollectionUtils.setOf(ignoresProperties);
         final Set<String> includeSet = CollectionUtils.setOf(includeProperties);
         final List<String> order = new ArrayList<>(orderDef);
@@ -1784,6 +1839,28 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             applyJsonbNillablePrecedence(beanProperty);
 
             PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(beanProperty, namingStrategy);
+            // A property with a naming of its own is named by it in both directions
+            boolean hasPropertyNaming = propertyNamingStrategy != namingStrategy;
+            boolean hasPropSerNaming = beanProperty.stringValue(SerdeConfig.class, SerdeConfig.SERIALIZE_NAMING).isPresent();
+            boolean hasPropDeserNaming = beanProperty.stringValue(SerdeConfig.class, SerdeConfig.DESERIALIZE_NAMING).isPresent();
+            String singlePropertyNaming = singleDirectionNaming(beanProperty, hasPropSerNaming, hasPropDeserNaming);
+            if (singlePropertyNaming != null) {
+                propertyNamingStrategy = getPropertyNamingStrategy(beanProperty, null, singlePropertyNaming, SerdeConfig.RUNTIME_NAMING);
+                hasPropertyNaming = true;
+            }
+            boolean hasPerPropertyDirectionalNaming = !hasPropertyNaming && hasPropSerNaming && hasPropDeserNaming;
+            PropertyNamingStrategy perPropSerNamingStrategy = null;
+            PropertyNamingStrategy perPropDeserNamingStrategy = null;
+            if (hasPerPropertyDirectionalNaming) {
+                perPropSerNamingStrategy = getPropertyNamingStrategy(
+                    beanProperty, null, SerdeConfig.SERIALIZE_NAMING, SerdeConfig.SERIALIZE_RUNTIME_NAMING);
+                perPropDeserNamingStrategy = getPropertyNamingStrategy(
+                    beanProperty, null, SerdeConfig.DESERIALIZE_NAMING, SerdeConfig.DESERIALIZE_RUNTIME_NAMING);
+            }
+            final PropertyNamingStrategy resolvedPropertyNaming = propertyNamingStrategy;
+            final boolean typeDirectionalNaming = hasDirectionalNaming && !hasPropertyNaming;
+            final PropertyNamingStrategy resolvedPerPropSerNaming = perPropSerNamingStrategy;
+            final PropertyNamingStrategy resolvedPerPropDeserNaming = perPropDeserNamingStrategy;
 
             if (beanProperty instanceof PropertyElement pm) {
                 pm.getReadMethod().ifPresent(readMethods::add);
@@ -1799,9 +1876,53 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 ignoreProperty(false, false, beanProperty);
                 continue;
             }
-            if (propertyNamingStrategy != null) {
+            boolean hasExplicitProperty = beanProperty.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).isPresent();
+            // An explicit name on the creator parameter of the property is the name it is read with
+            final ParameterElement creatorParameter = creatorNames.get(beanProperty.getName());
+            // the parameter binds this property only when it has a type the property can hold
+            final String creatorName = creatorParameter != null && isCreatorParameterOf(creatorParameter, beanProperty)
+                ? creatorParameter.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(null)
+                : null;
+            if (hasPerPropertyDirectionalNaming && !hasExplicitProperty) {
+                // a strategy looked up at runtime is applied by the runtime serdes
+                if (resolvedPerPropSerNaming != null) {
+                    String serName = resolvedPerPropSerNaming.translate(beanProperty);
+                    beanProperty.annotate(SerdeConfig.class, (builder) ->
+                        builder.member(SerdeConfig.SERIALIZE_PROPERTY_NAME, serName)
+                    );
+                }
+                // the property is read with the explicit name of its creator parameter, so that a setter of the
+                // same property shares the name of the creator argument
+                if (creatorName != null) {
+                    beanProperty.annotate(SerdeConfig.class, (builder) ->
+                        builder.member(SerdeConfig.DESERIALIZE_PROPERTY_NAME, creatorName)
+                    );
+                } else if (resolvedPerPropDeserNaming != null) {
+                    String deserName = resolvedPerPropDeserNaming.translate(beanProperty);
+                    beanProperty.annotate(SerdeConfig.class, (builder) ->
+                        builder.member(SerdeConfig.DESERIALIZE_PROPERTY_NAME, deserName)
+                    );
+                }
+            } else if (typeDirectionalNaming && !hasExplicitProperty) {
+                if (serializeNamingStrategy != null) {
+                    String serName = serializeNamingStrategy.translate(beanProperty);
+                    beanProperty.annotate(SerdeConfig.class, (builder) ->
+                        builder.member(SerdeConfig.SERIALIZE_PROPERTY_NAME, serName)
+                    );
+                }
+                if (creatorName != null) {
+                    beanProperty.annotate(SerdeConfig.class, (builder) ->
+                        builder.member(SerdeConfig.DESERIALIZE_PROPERTY_NAME, creatorName)
+                    );
+                } else if (deserializeNamingStrategy != null) {
+                    String deserName = deserializeNamingStrategy.translate(beanProperty);
+                    beanProperty.annotate(SerdeConfig.class, (builder) ->
+                        builder.member(SerdeConfig.DESERIALIZE_PROPERTY_NAME, deserName)
+                    );
+                }
+            } else if (!hasExplicitProperty && resolvedPropertyNaming != null) {
                 beanProperty.annotate(SerdeConfig.class, (builder) ->
-                    builder.member(SerdeConfig.PROPERTY, propertyNamingStrategy.translate(beanProperty))
+                    builder.member(SerdeConfig.PROPERTY, resolvedPropertyNaming.translate(beanProperty))
                 );
             }
             if (CollectionUtils.isNotEmpty(order)) {
@@ -1949,6 +2070,59 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
     private ClassElement currentClass() {
         return Objects.requireNonNull(currentClass);
+    }
+
+    /**
+     * Before directional naming, the naming of {@code @Serdeable.Serializable} or {@code @Serdeable.Deserializable}
+     * named both directions. When only one of them declares a naming, and the element has no shared naming, it keeps
+     * naming both directions, so that the names on the wire do not change. Directional naming applies when both
+     * declare a naming, or when it overrides a shared naming.
+     *
+     * @param element The type or property
+     * @param hasSerializeNaming Whether {@code @Serdeable.Serializable} declares a naming
+     * @param hasDeserializeNaming Whether {@code @Serdeable.Deserializable} declares a naming
+     * @return The member that holds the naming for both directions, or {@code null}
+     */
+    @Nullable
+    private static String singleDirectionNaming(TypedElement element, boolean hasSerializeNaming, boolean hasDeserializeNaming) {
+        if (hasSerializeNaming == hasDeserializeNaming || element.stringValue(SerdeConfig.class, SerdeConfig.NAMING).isPresent()) {
+            return null;
+        }
+        return hasSerializeNaming ? SerdeConfig.SERIALIZE_NAMING : SerdeConfig.DESERIALIZE_NAMING;
+    }
+
+    /**
+     * @param classElement The class whose properties are processed
+     * @return The parameters of its creator named explicitly, such as with {@code @JsonProperty}, by parameter name. A
+     * type deserialized through a builder reads the names of the builder, so its constructor names nothing.
+     */
+    private static Map<String, ParameterElement> explicitCreatorNames(ClassElement classElement) {
+        MethodElement creator = classElement.getPrimaryConstructor().orElse(null);
+        if (creator == null || (!classElement.isRecord() && hasIntrospectionBuilder(classElement))) {
+            return Map.of();
+        }
+        Map<String, ParameterElement> parameters = new HashMap<>();
+        for (ParameterElement parameter : creator.getParameters()) {
+            if (parameter.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).isPresent()) {
+                parameters.put(parameter.getName(), parameter);
+            }
+        }
+        return parameters;
+    }
+
+    private static boolean hasIntrospectionBuilder(ClassElement element) {
+        AnnotationValue<Introspected> introspected = element.getAnnotation(Introspected.class);
+        return introspected != null && (introspected.annotationClassValue("builderClass").isPresent()
+            || introspected.getAnnotation("builder", Introspected.IntrospectionBuilder.class)
+                .flatMap(builder -> builder.annotationClassValue("builderClass"))
+                .isPresent());
+    }
+
+    private static boolean isCreatorParameterOf(ParameterElement parameter, TypedElement beanProperty) {
+        ClassElement parameterType = parameter.getType();
+        ClassElement propertyType = beanProperty.getType();
+        return parameterType.getName().equals(propertyType.getName())
+            || parameterType.isAssignable(propertyType) || propertyType.isAssignable(parameterType);
     }
 
     private SerdeConfig.SerSubtyped.DiscriminatorValueKind getDiscriminatorValueKind(Element typeInfo) {

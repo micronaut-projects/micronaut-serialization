@@ -32,6 +32,7 @@ import io.micronaut.serde.properties.util.PropertiesTreeAdapter;
 import io.micronaut.serde.properties.util.PropertiesWriter;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
 import io.micronaut.serde.support.util.JsonNodeEncoder;
+import io.micronaut.serde.support.util.SpecificSerdeCache;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -75,6 +76,10 @@ public final class PropertiesMapper implements ObjectMapper {
     @NonNull
     private final PropertiesWriter propertiesWriter;
     private final JsonStreamMapper jsonStreamMapper;
+    /**
+     * The serializers and deserializers that a call created without binding them to its document.
+     */
+    private final SpecificSerdeCache serdeCache = new SpecificSerdeCache();
 
     /**
      * Creates a Java {@code .properties}-backed {@link ObjectMapper}.
@@ -260,7 +265,7 @@ public final class PropertiesMapper implements ObjectMapper {
 
     private <T> void serialize(Encoder encoder, T object, Argument<T> type) throws IOException {
         try (var context = registry.newEncoderContext(null)) {
-            Serializer<? super T> serializer = context.findSerializer(type).createSpecific(context, type);
+            Serializer<? super T> serializer = serdeCache.findSerializer(context, type);
             serializer.serialize(encoder, context, type, object);
         }
     }

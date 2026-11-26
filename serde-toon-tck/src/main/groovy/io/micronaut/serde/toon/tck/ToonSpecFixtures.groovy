@@ -16,6 +16,7 @@
 package io.micronaut.serde.toon.tck
 
 import groovy.json.JsonSlurper
+import groovy.transform.CompileStatic
 
 /**
  * Loads the vendored {@code toon-format/spec} conformance fixtures (see
@@ -182,7 +183,12 @@ final class ToonSpecFixtures {
      * implementation may reasonably decode {@code 42} as a {@code Long}
      * where the fixture's own JSON parsing produced an {@code Integer}).
      */
+    @CompileStatic
     static boolean jsonEquals(Object actual, Object expected) {
+        // Statically compiled with plain loops (no Groovy closures) so each
+        // nesting level costs a single stack frame: the deep-nesting specs
+        // recurse hundreds of levels and dynamic closure dispatch overflowed
+        // the default thread stack on Linux CI runners.
         if (expected == null) {
             return actual == null
         }
@@ -190,32 +196,37 @@ final class ToonSpecFixtures {
             if (!(actual instanceof Map)) {
                 return false
             }
-            Map<?, ?> e = (Map) expected
-            Map<?, ?> a = (Map) actual
+            Map<?, ?> e = (Map<?, ?>) expected
+            Map<?, ?> a = (Map<?, ?>) actual
             if (a.keySet() != e.keySet()) {
                 return false
             }
-            // Map.get(k), not the a[k] bracket form: for a key like
-            // "properties" that collides with a reflective Groovy property
-            // name, bracket access on certain Map instances resolves
-            // through property-getter lookup instead of a real entry
-            // lookup and silently returns the wrong value.
-            return e.every { k, v -> jsonEquals(a.get(k), v) }
+            for (Map.Entry<?, ?> entry : e.entrySet()) {
+                if (!jsonEquals(a.get(entry.key), entry.value)) {
+                    return false
+                }
+            }
+            return true
         }
         if (expected instanceof List) {
             if (!(actual instanceof List)) {
                 return false
             }
-            List<?> e = (List) expected
-            List<?> a = (List) actual
+            List<?> e = (List<?>) expected
+            List<?> a = (List<?>) actual
             if (a.size() != e.size()) {
                 return false
             }
-            return (0..<e.size()).every { i -> jsonEquals(a[i], e[i]) }
+            for (int i = 0; i < e.size(); i++) {
+                if (!jsonEquals(a.get(i), e.get(i))) {
+                    return false
+                }
+            }
+            return true
         }
         if (expected instanceof Number) {
             return actual instanceof Number && new BigDecimal(expected.toString()) == new BigDecimal(actual.toString())
         }
-        actual == expected
+        return actual == expected
     }
 }

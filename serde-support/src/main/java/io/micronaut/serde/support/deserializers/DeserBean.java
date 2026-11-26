@@ -50,6 +50,8 @@ import io.micronaut.serde.exceptions.InvalidPropertyFormatException;
 import io.micronaut.serde.exceptions.NullValueSerdeException;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
+import io.micronaut.serde.support.util.BeanInitializations;
+import io.micronaut.serde.support.util.ContextBoundSerdes;
 import io.micronaut.serde.support.util.DecoderValueKind;
 import io.micronaut.serde.support.util.DocumentIdUtil;
 import io.micronaut.serde.support.util.ObjectShapeSerdeHelper;
@@ -58,6 +60,7 @@ import io.micronaut.serde.support.util.SerdeArgumentConf;
 import io.micronaut.serde.support.util.SerdeFeatures;
 import io.micronaut.serde.support.util.SubtypeInfo;
 import io.micronaut.serde.util.GeneratedSerdeExceptionUtil;
+import io.micronaut.serde.util.DocumentContextTracker;
 import io.micronaut.serde.util.SerdePropertyAccess;
 import org.jspecify.annotations.Nullable;
 
@@ -66,7 +69,9 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,6 +92,7 @@ import java.util.function.Predicate;
  */
 @Internal
 final class DeserBean<T> {
+    private static final BeanInitializations<DeserBean<?>> INITIALIZATIONS = new BeanInitializations<>();
     private static final String JK_PROP = "com.fasterxml.jackson.annotation.JsonProperty";
 
     // CHECKSTYLE:OFF
@@ -147,6 +153,18 @@ final class DeserBean<T> {
     private final Set<DeserializationConfiguration.Feature> beanFeaturesWithout;
     private volatile boolean initialized;
     private volatile boolean initializing;
+    @Nullable
+    private final SerdeArgumentConf serdeArgumentConf;
+    /**
+     * Whether initializing the property deserializers bound them to the document, such as with a user serde keeping
+     * the context. The bean is kept between documents, so each document that uses it is marked bound as well.
+     */
+    private volatile boolean documentBound;
+    /**
+     * The beans that reached this one through a cycle while it was initializing, bound whenever this one is.
+     */
+    @Nullable
+    private List<DeserBean<?>> cycleDependents;
 
     // CHECKSTYLE:ON
 
@@ -167,7 +185,10 @@ final class DeserBean<T> {
                      @Nullable SerdeArgumentConf serdeArgumentConf)
         throws SerdeException {
 
+        // the constructor resolves the subtypes and the unwrapped creator parameters, which can bind the document
+        int constructorBindings = DocumentContextTracker.documentBindings(decoderContext);
         this.typeArguments = typeArguments;
+        this.serdeArgumentConf = serdeArgumentConf;
         AnnotationMetadata beanAnnotationMetadata = introspection.getAnnotationMetadata();
         this.beanFeaturesWith = SerdeFeatures.deserializationFeaturesWith(beanAnnotationMetadata);
         this.beanFeaturesWithout = SerdeFeatures.deserializationFeaturesWithout(beanAnnotationMetadata);
@@ -269,12 +290,18 @@ final class DeserBean<T> {
                     decoderContext
                 );
             }
+            // A constructor argument named apart from its property is also read with the names the property is written
+            // with, such as one a naming strategy derives. A builder argument is the property itself.
+            String @Nullable [] propertyAliases = hasBuilder || isIgnored ? null : renamedPropertyNames(
+                serdeArgumentConf, introspection, constructorArguments, i, propertyName, decoderContext, entityPropertyNamingStrategy
+            );
             DerProperty<T, Object> derProperty = new DerProperty<>(
                 conversionService,
                 introspection,
                 i,
                 propertyName,
                 constructorWithPropertyArgument,
+                constructorWithPropertyArgument.getAnnotationMetadata(),
                 isIgnored ? null : introspection.getProperty(propertyName)
                     .or(() -> introspection.getProperty(constructorArgument.getName()))
                     .orElse(null),
@@ -284,7 +311,8 @@ final class DeserBean<T> {
                 isIgnored,
                 deserializationConfiguration,
                 failOnNullForPrimitives,
-                unresolvedTypeVariableName
+                unresolvedTypeVariableName,
+                propertyAliases
             );
             if (isUnwrapped) {
                 if (creatorUnwrapped == null) {
@@ -520,6 +548,7 @@ final class DeserBean<T> {
 
         simpleBean = isSimpleBean();
         recordLikeBean = isRecordLikeBean();
+        documentBound = DocumentContextTracker.documentBindings(decoderContext) != constructorBindings;
     }
 
     /**
@@ -659,15 +688,54 @@ final class DeserBean<T> {
                 if (!initialized && !initializing) {
                     initializing = true;
                     decoderContext = decoderContext.withFeatures(beanFeaturesWith, beanFeaturesWithout);
+                    INITIALIZATIONS.enter(this);
                     try {
+                        int bindings = DocumentContextTracker.documentBindings(decoderContext);
                         initializeInternal(decoderContext);
+                        // the subtypes and the unwrapped creator parameters were resolved by the constructor
+                        boolean bound = documentBound || DocumentContextTracker.documentBindings(decoderContext) != bindings;
+                        documentBound = bound;
                         initialized = true;
                     } finally {
+                        INITIALIZATIONS.exit();
                         initializing = false;
                     }
+                    bindCycleDependents();
+                } else if (initializing) {
+                    addCycleDependents();
                 }
             } finally {
                 lock.unlock();
+            }
+        }
+        if (documentBound) {
+            DocumentContextTracker.markDocumentBound(decoderContext);
+        }
+    }
+
+    /**
+     * Reached again through a cycle while initializing: the beans initialized since hold the deserializers of this
+     * one.
+     */
+    private void addCycleDependents() {
+        List<DeserBean<?>> within = INITIALIZATIONS.initializingWithin(this);
+        if (!within.isEmpty()) {
+            if (cycleDependents == null) {
+                cycleDependents = new ArrayList<>();
+            }
+            cycleDependents.addAll(within);
+        }
+    }
+
+    /**
+     * The beans that reached this one through a cycle are bound whenever this one is.
+     */
+    private void bindCycleDependents() {
+        List<DeserBean<?>> dependents = cycleDependents;
+        cycleDependents = null;
+        if (documentBound && dependents != null) {
+            for (DeserBean<?> dependent : dependents) {
+                dependent.documentBound = true;
             }
         }
     }
@@ -684,7 +752,10 @@ final class DeserBean<T> {
             }
         }
         if (anySetter != null) {
-            anySetter.deserializer = anySetter.valueType.equalsType(Argument.OBJECT_ARGUMENT) ? null : findDeserializer(decoderContext, anySetter.valueType);
+            Argument<Object> anySetterValueType = anySetter.valueType;
+            anySetter.deserializer = anySetterValueType.equalsType(Argument.OBJECT_ARGUMENT)
+                ? null
+                : ContextBoundSerdes.specialize(context -> findDeserializer(documentContext(context), anySetterValueType), decoderContext);
         }
         if (unwrappedProperties != null) {
             for (DerProperty<T, Object> unwrappedProperty : unwrappedProperties) {
@@ -719,7 +790,9 @@ final class DeserBean<T> {
             ? (Argument<Object>) property.argument.getTypeVariable("V").orElse(Argument.OBJECT_ARGUMENT)
             : Argument.OBJECT_ARGUMENT;
         property.unwrappedValueType = valueType;
-        property.unwrappedValueDeserializer = valueType.equalsType(Argument.OBJECT_ARGUMENT) ? null : findDeserializer(decoderContext, valueType);
+        property.unwrappedValueDeserializer = valueType.equalsType(Argument.OBJECT_ARGUMENT)
+            ? null
+            : ContextBoundSerdes.specialize(context -> findDeserializer(documentContext(context), valueType), decoderContext);
     }
 
     private boolean isSimpleBean() {
@@ -756,14 +829,28 @@ final class DeserBean<T> {
         return true;
     }
 
+    /**
+     * The context a deserializer specialized again for a document is created with: the features of the bean argument
+     * and of the bean apply to it as they did to the context the bean was initialized with.
+     */
+    private Deserializer.DecoderContext documentContext(Deserializer.DecoderContext context) {
+        Deserializer.DecoderContext argumentContext = serdeArgumentConf == null ? context : serdeArgumentConf.withFeatures(context);
+        return argumentContext.withFeatures(beanFeaturesWith, beanFeaturesWithout);
+    }
+
     private void initProperty(DerProperty<T, Object> property, Deserializer.DecoderContext decoderContext) throws SerdeException {
         if (property.ignored) {
             return;
         }
-        Deserializer.DecoderContext propertyContext = decoderContext.withFeatures(property.featuresWith, property.featuresWithout);
-        property.deserializer = unwrapErrorCatching(property.format == null
-            ? findDeserializerWithoutFormat(propertyContext, property.argument)
-            : findDeserializer(propertyContext, property.argument, property.format));
+        ContextBoundSerdes.DeserializerFactory<Object> factory = context -> {
+            Deserializer.DecoderContext propertyContext = documentContext(context).withFeatures(property.featuresWith, property.featuresWithout);
+            return unwrapErrorCatching(property.format == null
+                ? findDeserializerWithoutFormat(propertyContext, property.argument)
+                : findDeserializer(propertyContext, property.argument, property.format));
+        };
+        // The bean keeps its property deserializers between documents: one that a serde bean bound to the context
+        // of this document is specialized again for the context of each document
+        property.deserializer = ContextBoundSerdes.specialize(factory, decoderContext);
         if (property.format == null && !property.hasFeatureOverrides && property.deserializer instanceof DecoderValueKind.Provider decoderValueKind) {
             property.decoderValueKind = decoderValueKind.decoderValueKind().code();
             property.updateDirectModes();
@@ -774,7 +861,8 @@ final class DeserBean<T> {
             && !property.hasFeatureOverrides
             && !property.argument.getType().isArray()
             && !(property.deserializer instanceof UpdatingDeserializer)) {
-            UpdatingDeserializer<Object> mergeDeserializer = ObjectShapeSerdeHelper.updatingObjectDeserializer(propertyContext, property.argument);
+            UpdatingDeserializer<Object> mergeDeserializer = ObjectShapeSerdeHelper.updatingObjectDeserializer(
+                decoderContext.withFeatures(property.featuresWith, property.featuresWithout), property.argument);
             if (mergeDeserializer != null) {
                 property.mergeDeserializer = unwrapErrorCatching(mergeDeserializer);
             }
@@ -792,8 +880,12 @@ final class DeserBean<T> {
     private PropertyNamingStrategy getPropertyNamingStrategy(AnnotationMetadata annotationMetadata,
                                                              Deserializer.DecoderContext decoderContext,
                                                              @Nullable PropertyNamingStrategy defaultNamingStrategy) throws SerdeException {
-        Class<? extends PropertyNamingStrategy> namingStrategyClass = annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.RUNTIME_NAMING)
+        Class<? extends PropertyNamingStrategy> namingStrategyClass = annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.DESERIALIZE_RUNTIME_NAMING)
             .orElse(null);
+        if (namingStrategyClass == null) {
+            namingStrategyClass = annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.RUNTIME_NAMING)
+                .orElse(null);
+        }
         return namingStrategyClass == null ? defaultNamingStrategy : decoderContext.findNamingStrategy(namingStrategyClass);
     }
 
@@ -884,6 +976,10 @@ final class DeserBean<T> {
                                List<AnnotationMetadata> annotationMetadata,
                                @Nullable PropertyNamingStrategy namingStrategy) {
         for (AnnotationMetadata metadataElement : annotationMetadata) {
+            Optional<String> deserProp = metadataElement.stringValue(SerdeConfig.class, SerdeConfig.DESERIALIZE_PROPERTY_NAME);
+            if (deserProp.isPresent()) {
+                return deserProp.get();
+            }
             Optional<String> serde = metadataElement.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY);
             if (serde.isPresent()) {
                 return serde.get();
@@ -1263,7 +1359,8 @@ final class DeserBean<T> {
                 ignored,
                 deserializationConfiguration,
                 failOnNullForPrimitives,
-                unresolvedTypeVariableName
+                unresolvedTypeVariableName,
+                null
             );
         }
 
@@ -1280,7 +1377,8 @@ final class DeserBean<T> {
                     boolean ignored,
                     DeserializationConfiguration deserializationConfiguration,
                     boolean failOnNullForPrimitives,
-                    @Nullable String unresolvedTypeVariableName) throws SerdeException {
+                    @Nullable String unresolvedTypeVariableName,
+                    String @Nullable [] extraAliases) throws SerdeException {
             this.introspection = introspection;
             this.index = index;
             this.ignored = ignored;
@@ -1338,9 +1436,12 @@ final class DeserBean<T> {
             this.unwrapped = unwrapped;
             this.unwrappedProperty = unwrappedProperty;
             this.isAnySetter = annotationMetadata.isAnnotationPresent(SerdeConfig.SerAnySetter.class);
-            final String[] aliases = annotationMetadata.stringValues(SerdeConfig.class, SerdeConfig.ALIASES);
-            if (ArrayUtils.isNotEmpty(aliases)) {
-                this.aliases = ArrayUtils.concat(aliases, property);
+            String[] declaredAliases = annotationMetadata.stringValues(SerdeConfig.class, SerdeConfig.ALIASES);
+            if (extraAliases != null) {
+                declaredAliases = ArrayUtils.concat(declaredAliases, extraAliases);
+            }
+            if (ArrayUtils.isNotEmpty(declaredAliases)) {
+                this.aliases = ArrayUtils.concat(declaredAliases, property);
             } else {
                 this.aliases = null;
             }
@@ -1940,6 +2041,55 @@ final class DeserBean<T> {
             .filter(metadata -> !hasDifferentExplicitName(annotationMetadata, metadata))
             .orElse(AnnotationMetadata.EMPTY_METADATA);
         return new AnnotationMetadataHierarchy(propertyMetadata, annotationMetadata);
+    }
+
+    /**
+     * The names a constructor argument named apart from its property is read with as well: the name the property is
+     * written with, resolved like a written property, and its aliases, except for names that other constructor
+     * arguments are read with.
+     */
+    private String @Nullable [] renamedPropertyNames(@Nullable SerdeArgumentConf serdeArgumentConf,
+                                                     BeanIntrospection<T> introspection,
+                                                     Argument<?>[] constructorArguments,
+                                                     int index,
+                                                     String argumentName,
+                                                     Deserializer.DecoderContext decoderContext,
+                                                     @Nullable PropertyNamingStrategy entityPropertyNamingStrategy) throws SerdeException {
+        Argument<?> argument = constructorArguments[index];
+        if (findExplicitName(argument.getAnnotationMetadata()) == null) {
+            return null;
+        }
+        BeanProperty<T, ?> property = introspection.getProperty(argument.getName(), argument.getType()).orElse(null);
+        if (property == null) {
+            return null;
+        }
+        AnnotationMetadata propertyMetadata = property.getAnnotationMetadata();
+        // the name the property is written with: the serializer reads the property over its creator argument
+        AnnotationMetadata writtenMetadata = new AnnotationMetadataHierarchy(argument.getAnnotationMetadata(), propertyMetadata);
+        String propertyName = resolveName(serdeArgumentConf, property, writtenMetadata,
+            getPropertyNamingStrategy(writtenMetadata, decoderContext, entityPropertyNamingStrategy));
+        if (propertyName.equals(argumentName)
+            || !SerdePropertyAccess.canDeserialize(propertyMetadata)
+            || propertyMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false)
+            || propertyMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED_DESERIALIZATION).orElse(false)) {
+            return null;
+        }
+        // a name another constructor argument is read with stays that argument's
+        Set<String> otherArgumentNames = new HashSet<>();
+        for (int i = 0; i < constructorArguments.length; i++) {
+            if (i != index) {
+                Argument<?> other = constructorArguments[i];
+                AnnotationMetadata otherMetadata = resolveArgumentMetadata(introspection, other, other.getAnnotationMetadata());
+                otherArgumentNames.add(resolveName(serdeArgumentConf, other, otherMetadata,
+                    getPropertyNamingStrategy(otherMetadata, decoderContext, entityPropertyNamingStrategy)));
+            }
+        }
+        Set<String> names = new LinkedHashSet<>();
+        Collections.addAll(names, propertyMetadata.stringValues(SerdeConfig.class, SerdeConfig.ALIASES));
+        names.add(propertyName);
+        names.removeAll(otherArgumentNames);
+        names.remove(argumentName);
+        return names.isEmpty() ? null : names.toArray(String[]::new);
     }
 
     private static boolean hasDifferentExplicitName(AnnotationMetadata argumentMetadata, AnnotationMetadata propertyMetadata) {

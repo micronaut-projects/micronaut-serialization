@@ -74,6 +74,7 @@ public final class OffsetDateTimeSerde extends NumericSupportTemporalSerde<Offse
                                 @Nullable ZoneId adjustTimeZone) {
         super(
             stringFormatter,
+            DateTimeFormatter.ISO_OFFSET_DATE_TIME,
             SerdeConfiguration.NumericTimeUnit.MILLISECONDS,
             writeShape,
             numericUnit
@@ -84,6 +85,16 @@ public final class OffsetDateTimeSerde extends NumericSupportTemporalSerde<Offse
     @Override
     public TemporalQuery<OffsetDateTime> query() {
         return QUERY;
+    }
+
+    @Override
+    @Nullable String formatIso(OffsetDateTime value) {
+        return IsoTemporalFormat.formatOffsetDateTime(value);
+    }
+
+    @Override
+    @Nullable OffsetDateTime parseIso(String text) {
+        return IsoTemporalFormat.parseOffsetDateTime(text);
     }
 
     @Override
