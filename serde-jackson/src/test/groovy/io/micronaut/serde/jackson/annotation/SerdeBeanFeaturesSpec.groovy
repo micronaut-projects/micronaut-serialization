@@ -1,6 +1,7 @@
 package io.micronaut.serde.jackson.annotation
 
 import io.micronaut.serde.jackson.JsonCompileSpec
+import spock.lang.Unroll
 
 /**
  * How the format features of a bean reach what the bean holds.
@@ -43,5 +44,32 @@ record Holder(Map<String, Integer> map) {
 
         cleanup:
         context.close()
+    }
+
+    @Unroll
+    void "a bean is written with the features of the bean that holds it, and without them on its own, when #first is written first"() {
+        given: 'run-time serializers, which keep the serializers of a bean between documents'
+        def context = buildContext('test.Sorted', SOURCE, true, ['micronaut.serde.serialization.disable-generated-serializer': true])
+        def holder = newInstance(context, 'test.Holder', [unsorted()] as Object[])
+        def bean = newInstance(context, 'test.Sorted', [null, null, null, null, holder] as Object[])
+        String held = '{"holder":{"map":{"a":2,"b":1}}}'
+        String onItsOwn = '{"map":{"b":1,"a":2}}'
+
+        expect:
+        if (first == 'the held bean') {
+            assert writeJson(jsonMapper, holder) == onItsOwn
+            assert writeJson(jsonMapper, bean) == held
+        } else {
+            assert writeJson(jsonMapper, bean) == held
+            assert writeJson(jsonMapper, holder) == onItsOwn
+        }
+        writeJson(jsonMapper, bean) == held
+        writeJson(jsonMapper, holder) == onItsOwn
+
+        cleanup:
+        context.close()
+
+        where:
+        first << ['the held bean', 'the bean that holds it']
     }
 }

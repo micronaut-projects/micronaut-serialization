@@ -171,7 +171,8 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
             context.getSerdeConfiguration().orElse(serdeConfiguration),
             resolvedSerializationConfiguration,
             type,
-            serdeArgumentConf
+            serdeArgumentConf,
+            context.getFeatures()
         );
         EncoderContext featureContext = context;
         // Use suppliers to prevent recursive update because the lambda will call the same method again
