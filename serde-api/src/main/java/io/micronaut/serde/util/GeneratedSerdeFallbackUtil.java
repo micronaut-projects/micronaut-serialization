@@ -125,7 +125,7 @@ public final class GeneratedSerdeFallbackUtil {
             return generatedSerializer;
         }
         Serializer<?> objectSerializer = context.findSerializer(Argument.OBJECT_ARGUMENT);
-        return (Serializer<T>) objectSerializer.createSpecific(context, (Argument) type);
+        return objectSerializer.createSpecific(context, (Argument) type);
     }
 
     /**
