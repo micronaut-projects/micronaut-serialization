@@ -205,14 +205,14 @@ class YamlEncoderSpec extends Specification {
         b.encodeKey("c")
         def sibling = b.encodeArray(Argument.OBJECT_ARGUMENT)
         stale.close()
-        sibling.encodeString("y")
+        sibling.encodeString("z")
         sibling.close()
         b.encodeKey("d")
         b.encodeInt(1)
         root.close()
 
         then:
-        out.toString("UTF-8") == "outer:\n  a:\n  - x\nb:\n  c:\n  - y\n  d: 1\n"
+        out.toString("UTF-8") == "outer:\n  a:\n  - x\nb:\n  c:\n  - z\n  d: 1\n"
     }
 
     def "a serializer that fails still leaves the finished partial document in the output"() {
