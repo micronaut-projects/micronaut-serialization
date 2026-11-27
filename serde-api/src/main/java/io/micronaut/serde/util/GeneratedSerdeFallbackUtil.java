@@ -108,14 +108,15 @@ public final class GeneratedSerdeFallbackUtil {
      * @param generatedSerializer The generated serializer
      * @param context             The encoder context
      * @param type                The target type
+     * @param <T>                 The type the generated serializer writes
      * @return The generated serializer or a runtime object serializer
      * @throws SerdeException If no serializer can be resolved
      * @since 3.3.0
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static Serializer<?> withWholeFloatsRuntimeObjectFallback(Serializer<?> generatedSerializer,
-                                                                     Serializer.EncoderContext context,
-                                                                     Argument<?> type) throws SerdeException {
+    public static <T> Serializer<T> withWholeFloatsRuntimeObjectFallback(Serializer<T> generatedSerializer,
+                                                                         Serializer.EncoderContext context,
+                                                                         Argument<?> type) throws SerdeException {
         Set<SerializationConfiguration.Feature> features = context.getFeatures();
         if ((SUPPORTED_SER_FEATURES.equals(features) || SUPPORTED_SER_FEATURES_WITH_WHOLE_FLOATS.equals(features))
             && !hasRuntimeNamingStrategy(context.getSerdeConfiguration().orElse(null))
@@ -124,7 +125,7 @@ public final class GeneratedSerdeFallbackUtil {
             return generatedSerializer;
         }
         Serializer<?> objectSerializer = context.findSerializer(Argument.OBJECT_ARGUMENT);
-        return objectSerializer.createSpecific(context, (Argument) type);
+        return (Serializer<T>) objectSerializer.createSpecific(context, (Argument) type);
     }
 
     /**
