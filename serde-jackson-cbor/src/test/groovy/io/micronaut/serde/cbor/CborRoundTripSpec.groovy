@@ -15,6 +15,8 @@ import io.micronaut.serde.cbor.data.Views
 import io.micronaut.serde.jackson.JacksonJsonMapper
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
+import org.reactivestreams.Subscriber
+import org.reactivestreams.Subscription
 import spock.lang.Specification
 
 @Property(name = "jackson.json-view.enabled", value = "true")
@@ -106,6 +108,25 @@ class CborRoundTripSpec extends Specification {
     def "null tree reads as null"() {
         expect:
         cborMapper.readValueFromTree(JsonNode.nullNode(), Argument.of(Book)) == null
+    }
+
+    def "reactive parser emits a CBOR number"() {
+        given:
+        def subscriber = Mock(Subscriber)
+        def parser = cborMapper.createReactiveParser({}, false)
+        byte[] bytes = cborMapper.writeValueAsBytes(42)
+
+        when:
+        parser.onSubscribe(Stub(Subscription))
+        parser.subscribe(subscriber)
+        parser.onNext(bytes)
+        parser.onComplete()
+
+        then:
+        1 * subscriber.onSubscribe(_) >> { Subscription subscription -> subscription.request(Long.MAX_VALUE) }
+        1 * subscriber.onNext(JsonNode.createNumberNode(42))
+        1 * subscriber.onComplete()
+        0 * subscriber.onError(_)
     }
 
     def "typed tree conversion applies JsonView"() {

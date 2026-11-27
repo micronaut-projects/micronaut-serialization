@@ -162,6 +162,7 @@ public final class KeysSupport {
             this.keys = keys;
             this.descriptors = descriptors;
             this.caseInsensitive = caseInsensitive;
+            this.contributedKeys = contributedKeys;
             this.keyToIndex = new StringIntMap(keys.size());
             for (int i = 0; i < keys.size(); i++) {
                 String key = normalize(keys.get(i));
@@ -169,7 +170,6 @@ public final class KeysSupport {
                     keyToIndex.put(key, i);
                 }
             }
-            this.contributedKeys = contributedKeys;
         }
 
         @Override

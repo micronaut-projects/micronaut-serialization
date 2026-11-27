@@ -500,6 +500,7 @@ public @interface SerdeConfig {
         /**
          * @return The managed-reference scope
          */
+        @SuppressWarnings("java:S1845") // The constant holds the annotation member name for metadata lookups.
         Scope scope() default Scope.PROPERTY;
 
         /**

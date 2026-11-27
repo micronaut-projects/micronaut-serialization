@@ -264,6 +264,7 @@ public final class BsonReaderDecoder extends AbstractDecoderPerStructureStreamDe
                 }
                 case NULL -> bsonReader.readNull();
                 default -> {
+                    // The decoding methods consume keys and other scalar values.
                 }
             }
         }
@@ -275,23 +276,20 @@ public final class BsonReaderDecoder extends AbstractDecoderPerStructureStreamDe
             return;
         }
         if (ctx == Context.DOCUMENT) {
-            if (currentToken == TokenType.KEY) {
-                // move into the value
-                currentToken = toToken(requireCurrentBsonType(), ctx);
-            } else {
-                currentBsonType = bsonReader.readBsonType();
-                if (currentBsonType == BsonType.END_OF_DOCUMENT) {
-                    currentToken = TokenType.END_OBJECT;
-                } else {
-                    currentToken = TokenType.KEY;
-                }
-            }
+            advanceDocumentToken();
+        } else if (ctx != Context.TOP || currentBsonType != BsonType.END_OF_DOCUMENT) {
+            currentBsonType = bsonReader.readBsonType();
+            BsonType bsonType = currentBsonType;
+            currentToken = bsonType == null ? null : toToken(bsonType, ctx);
+        }
+    }
+
+    private void advanceDocumentToken() {
+        if (currentToken == TokenType.KEY) {
+            currentToken = toToken(requireCurrentBsonType(), Context.DOCUMENT);
         } else {
-            if (ctx != Context.TOP || currentBsonType != BsonType.END_OF_DOCUMENT) {
-                currentBsonType = bsonReader.readBsonType();
-                BsonType bsonType = currentBsonType;
-                currentToken = bsonType == null ? null : toToken(bsonType, ctx);
-            }
+            currentBsonType = bsonReader.readBsonType();
+            currentToken = currentBsonType == BsonType.END_OF_DOCUMENT ? TokenType.END_OBJECT : TokenType.KEY;
         }
     }
 
@@ -538,6 +536,9 @@ public final class BsonReaderDecoder extends AbstractDecoderPerStructureStreamDe
 
     private Decoder decoderFromBytes(byte[] documentBytes) throws IOException {
         BsonReaderDecoder topDecoder = new BsonReaderDecoder(new BsonBinaryReader(ByteBuffer.wrap(documentBytes)), ourLimits());
+        if (topDecoder.currentToken() != TokenType.START_OBJECT) {
+            throw topDecoder.unexpectedToken(TokenType.START_OBJECT);
+        }
         Decoder decoder = topDecoder.decodeObject();
         decoder.decodeKey(); // Unwrap
         return decoder;
