@@ -136,12 +136,10 @@ final class WholeFloats {
 
         @Override
         public void serialize(Encoder encoder, EncoderContext context, Argument<? extends N> type, N value) throws IOException {
-            if (value instanceof Double aDouble) {
-                encode(encoder, aDouble.doubleValue());
-            } else if (value instanceof Float aFloat) {
-                encode(encoder, aFloat.floatValue());
-            } else {
-                serializer.serialize(encoder, context, type, value);
+            switch ((Number) value) {
+                case Double aDouble -> encode(encoder, aDouble.doubleValue());
+                case Float aFloat -> encode(encoder, aFloat.floatValue());
+                default -> serializer.serialize(encoder, context, type, value);
             }
         }
 
