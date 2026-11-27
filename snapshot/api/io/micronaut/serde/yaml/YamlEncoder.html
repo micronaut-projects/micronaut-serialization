@@ -167,7 +167,7 @@ quoted instead of tagged so that it round-trips as a string.</p></div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#close()" class="member-name-link">close</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Finalize the current structure.</div>
+<div class="block">Finishes every structure that is still open, closes the document and flushes the output.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@NonNull <a href="../Encoder.html" title="interface in io.micronaut.serde">Encoder</a></code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#encodeArray(io.micronaut.core.type.Argument)" class="member-name-link">encodeArray</a><wbr>(@NonNull io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)</code></div>
@@ -360,15 +360,16 @@ quoted instead of tagged so that it round-trips as a string.</p></div>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">close</span>()
            throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
-<div class="block"><span class="description-from-type-label">Description copied from interface:&nbsp;<code><a href="../Encoder.html#close()">Encoder</a></code></span></div>
-<div class="block">Finalize the current structure. Equivalent to calling <a href="../Encoder.html#finishStructure()"><code>Encoder.finishStructure()</code></a>.</div>
+<div class="block">Finishes every structure that is still open, closes the document and flushes the output.
+The structures that serializers open are closed through their own child encoders, so closing
+this encoder completes the whole document.</div>
 <dl class="notes">
 <dt>Specified by:</dt>
 <dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/AutoCloseable.html#close()" title="class or interface in java.lang" class="external-link">close</a></code>&nbsp;in interface&nbsp;<code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/AutoCloseable.html" title="class or interface in java.lang" class="external-link">AutoCloseable</a></code></dd>
 <dt>Specified by:</dt>
 <dd><code><a href="../Encoder.html#close()">close</a></code>&nbsp;in interface&nbsp;<code><a href="../Encoder.html" title="interface in io.micronaut.serde">Encoder</a></code></dd>
 <dt>Throws:</dt>
-<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an unrecoverable error occurs</dd>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If the document cannot be written</dd>
 </dl>
 </div>
 </section>

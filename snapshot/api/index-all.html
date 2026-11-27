@@ -1001,7 +1001,9 @@ CBOR factory together with Micronaut Serialization serializers and deserializers
 <div class="block">Completes the document written with this context.</div>
 </dd>
 <dt><a href="io/micronaut/serde/yaml/YamlEncoder.html#close()" class="member-name-link">close()</a> - Method in class io.micronaut.serde.yaml.<a href="io/micronaut/serde/yaml/YamlEncoder.html" title="class in io.micronaut.serde.yaml">YamlEncoder</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Finishes every structure that is still open, closes the document and flushes the output.</div>
+</dd>
 <dt><a href="io/micronaut/serde/jsonb/MicronautJsonbProvider.MicronautJsonb.MapperAndClose.html#closeAction()" class="member-name-link">closeAction()</a> - Method in record class io.micronaut.serde.jsonb.<a href="io/micronaut/serde/jsonb/MicronautJsonbProvider.MicronautJsonb.MapperAndClose.html" title="class in io.micronaut.serde.jsonb">MicronautJsonbProvider.MicronautJsonb.MapperAndClose</a></dt>
 <dd>
 <div class="block">Returns the value of the <code>closeAction</code> record component.</div>
@@ -7482,6 +7484,12 @@ values are to be included.</div>
 <dd>
 <div class="block">Returns the value of the <a href="./io/micronaut/serde/processor/sourcegen/records/RecordSerdeShape.RecordComponent.html#param-nonNull"><code>nonNull</code></a> record component.</div>
 </dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/SerdeSourceGenArgumentTypes.html#normalize(io.micronaut.inject.ast.ClassElement)" class="member-name-link">normalize(ClassElement)</a> - Static method in class io.micronaut.serde.processor.sourcegen.<a href="io/micronaut/serde/processor/sourcegen/SerdeSourceGenArgumentTypes.html" title="class in io.micronaut.serde.processor.sourcegen">SerdeSourceGenArgumentTypes</a></dt>
+<dd>
+<div class="block">Normalizes a property type to the type its argument is built for: primitives are boxed,
+<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Iterable.html" title="class or interface in java.lang" class="external-link"><code>Iterable</code></a> becomes <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Collection.html" title="class or interface in java.util" class="external-link"><code>Collection</code></a>, and wildcards and unresolved type variables are
+replaced by their bound.</div>
+</dd>
 <dt><a href="io/micronaut/serde/toon/tck/ScalarsBean.html#nothing()" class="member-name-link">nothing()</a> - Method in record class io.micronaut.serde.toon.tck.<a href="io/micronaut/serde/toon/tck/ScalarsBean.html" title="class in io.micronaut.serde.toon.tck">ScalarsBean</a></dt>
 <dd>
 <div class="block">Returns the value of the <a href="./io/micronaut/serde/toon/tck/ScalarsBean.html#param-nothing"><code>nothing</code></a> record component.</div>
@@ -9115,6 +9123,11 @@ for the serialization project.</div>
 </dd>
 <dt><a href="io/micronaut/serde/support/serdes/Serdes.html#%3Cinit%3E()" class="member-name-link">Serdes()</a> - Constructor for class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/Serdes.html" title="class in io.micronaut.serde.support.serdes">Serdes</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/SerdeSourceGenArgumentTypes.html" class="type-name-link" title="class in io.micronaut.serde.processor.sourcegen">SerdeSourceGenArgumentTypes</a> - Class in <a href="io/micronaut/serde/processor/sourcegen/package-summary.html">io.micronaut.serde.processor.sourcegen</a></dt>
+<dd>
+<div class="block">Resolves the property types the generated bean and record serdes describe with an
+<code>Argument</code>.</div>
+</dd>
 <dt><a href="io/micronaut/serde/processor/sourcegen/SerdeSourceGenClassNaming.html" class="type-name-link" title="class in io.micronaut.serde.processor.sourcegen">SerdeSourceGenClassNaming</a> - Class in <a href="io/micronaut/serde/processor/sourcegen/package-summary.html">io.micronaut.serde.processor.sourcegen</a></dt>
 <dd>
 <div class="block">Centralized naming rules for generated serializer and deserializer classes.</div>
@@ -10511,6 +10524,10 @@ normalized to <code>0</code>, <code>NaN</code>/infinite values encoded as
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#TYPE_PROPERTY_VISIBLE" class="member-name-link">TYPE_PROPERTY_VISIBLE</a> - Static variable in annotation interface io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig</a></dt>
 <dd>
 <div class="block">If the type property should be visible.</div>
+</dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/SerdeSourceGenArgumentTypes.html#typeArguments(io.micronaut.inject.ast.ClassElement)" class="member-name-link">typeArguments(ClassElement)</a> - Static method in class io.micronaut.serde.processor.sourcegen.<a href="io/micronaut/serde/processor/sourcegen/SerdeSourceGenArgumentTypes.html" title="class in io.micronaut.serde.processor.sourcegen">SerdeSourceGenArgumentTypes</a></dt>
+<dd>
+<div class="block">Returns the type arguments of the given type, in declaration order.</div>
 </dd>
 <dt><a href="io/micronaut/serde/support/util/TypeKey.html" class="type-name-link" title="class in io.micronaut.serde.support.util">TypeKey</a> - Class in <a href="io/micronaut/serde/support/util/package-summary.html">io.micronaut.serde.support.util</a></dt>
 <dd>
