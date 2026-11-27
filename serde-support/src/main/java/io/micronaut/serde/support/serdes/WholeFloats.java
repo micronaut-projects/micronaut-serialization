@@ -121,7 +121,7 @@ final class WholeFloats {
 
         @Override
         public void serialize(Encoder encoder, EncoderContext context, Argument<? extends N> type, N value) throws IOException {
-            switch ((Number) value) {
+            switch (value) {
                 case Double aDouble -> encode(encoder, aDouble.doubleValue());
                 case Float aFloat -> encode(encoder, aFloat.floatValue());
                 default -> serializer.serialize(encoder, context, type, value);
