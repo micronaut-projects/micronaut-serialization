@@ -91,7 +91,7 @@ public interface NumberSerde<N extends Number> extends FormattedSerde<N>, Serde<
     default Serializer<N> createSpecific(EncoderContext context, Argument<? extends N> type) throws SerdeException {
         context = SerdeFeatures.withFeatures(context, type.getAnnotationMetadata());
         FormatConfiguration format = FormatConfiguration.from(type.getAnnotationMetadata());
-        return format == null ? createSpecificForFeatures(context) : createSpecific(context, type, format);
+        return format == null ? createSpecificForFeatures(WholeFloats.enabled(context)) : createSpecific(context, type, format);
     }
 
     @Override
@@ -100,11 +100,11 @@ public interface NumberSerde<N extends Number> extends FormattedSerde<N>, Serde<
                                          FormatConfiguration format) throws SerdeException {
         Serde<N> formatted = createSpecificSerde(format);
         // a pattern or a string shape decides how the number is written, and wins over the features
-        return formatted == this ? createSpecificForFeatures(context) : formatted;
+        return formatted == this ? createSpecificForFeatures(WholeFloats.enabled(context, format.shape())) : formatted;
     }
 
-    private Serializer<N> createSpecificForFeatures(EncoderContext context) {
-        return writesFloatingPoint() && WholeFloats.enabled(context) ? new WholeFloats.NumberSerializer<>(this) : this;
+    private Serializer<N> createSpecificForFeatures(boolean wholeFloatsAsIntegers) {
+        return wholeFloatsAsIntegers && writesFloatingPoint() ? new WholeFloats.NumberSerializer<>(this) : this;
     }
 
     private Serde<N> createSpecificSerde(FormatConfiguration format) {

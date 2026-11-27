@@ -49,7 +49,26 @@ A property with a pattern or a string shape, for example `@JsonFormat(pattern = 
 
 Reading is unchanged: `900` is read into a `double` property with or without the setting.
 
-=== A Bean or a Property
+=== A Property
+
+The shape of link:{jacksonAnnotationJavadoc}/JsonFormat.html[@JsonFormat] decides for one property, whatever the setting is:
+
+[source,java]
+----
+@Serdeable
+record Tokens(
+    String accessToken,
+    @JsonFormat(shape = JsonFormat.Shape.NUMBER_INT) double expiresIn, // <1>
+    @JsonFormat(shape = JsonFormat.Shape.NUMBER_FLOAT) double ratio    // <2>
+) { }
+----
+
+<1> `NUMBER_INT` writes a whole value as an integer: `900`. A fraction is written as it is, not rounded.
+<2> `NUMBER_FLOAT` keeps the fraction of a whole value, `1.0`, when the setting is on.
+
+The shape applies to a floating-point property, to the elements of an array or a collection, to the values of a map, to an `OptionalDouble` and to a `Number` or `Object` property. Jackson Databind does not act on these two shapes for a floating-point property.
+
+=== A Bean
 
 `WRITE_WHOLE_FLOATS_AS_INTEGERS` is a format feature like `WRITE_SORTED_MAP_ENTRIES`: the `featuresWith` and `featuresWithout` members of the annotation metadata of `SerdeConfig` switch it for a bean or for a property, and a bean that enables it passes it on to the beans it holds. `JsonFormat.Feature` of Jackson has no constant for the feature, so `@JsonFormat(with = …)` cannot name it. A build tool or an annotation mapper that sets the members names it as a string.
 

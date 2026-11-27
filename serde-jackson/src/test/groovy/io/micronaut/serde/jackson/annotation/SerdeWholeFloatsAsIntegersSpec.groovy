@@ -10,9 +10,10 @@ import spock.lang.Unroll
 /**
  * {@code SerializationConfiguration.Feature.WRITE_WHOLE_FLOATS_AS_INTEGERS}.
  *
- * <p>No annotation names the feature: {@code JsonFormat.Feature} of Jackson has no constant for it. The tests set it
- * on a bean and on a property with {@code io.micronaut.serde.jackson.features.Features}, which is mapped to the
- * members of {@code SerdeConfig} that {@code @JsonFormat(with = …, without = …)} is mapped to.</p>
+ * <p>A property asks for it with {@code @JsonFormat(shape = NUMBER_INT)} and refuses it with
+ * {@code shape = NUMBER_FLOAT}. {@code JsonFormat.Feature} of Jackson has no constant for the feature itself, so the
+ * tests set it on a bean and on a property with {@code io.micronaut.serde.jackson.features.Features}, which is mapped
+ * to the members of {@code SerdeConfig} that {@code @JsonFormat(with = …, without = …)} is mapped to.</p>
  */
 class SerdeWholeFloatsAsIntegersSpec extends JsonCompileSpec {
 
@@ -20,6 +21,8 @@ class SerdeWholeFloatsAsIntegersSpec extends JsonCompileSpec {
 
     private static final String WITH_FEATURE = '@Features(with = "WRITE_WHOLE_FLOATS_AS_INTEGERS")'
     private static final String WITHOUT_FEATURE = '@Features(without = "WRITE_WHOLE_FLOATS_AS_INTEGERS")'
+    private static final String NUMBER_INT = '@JsonFormat(shape = JsonFormat.Shape.NUMBER_INT)'
+    private static final String NUMBER_FLOAT = '@JsonFormat(shape = JsonFormat.Shape.NUMBER_FLOAT)'
 
     private static final String IMPORTS = '''
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -250,6 +253,88 @@ record Test(float primitive, Float boxed, float[] array, Number number, Object a
         1.0E20f                 | '1.0E20'
         Float.NaN               | '"NaN"'
         Float.POSITIVE_INFINITY | '"Infinity"'
+    }
+
+    void "the shape NUMBER_INT of a property writes its whole values as integers when the feature is off"() {
+        given:
+        def context = buildContext('test.Test', """
+package test;
+$IMPORTS
+@Serdeable
+record Test($NUMBER_INT double shaped, double plain,
+            $NUMBER_INT Double boxedShaped, Double boxedPlain,
+            $NUMBER_INT float singleShaped, float singlePlain,
+            $NUMBER_INT double fraction,
+            $NUMBER_INT double[] arrayShaped, double[] arrayPlain,
+            $NUMBER_INT float[] singlesShaped,
+            $NUMBER_INT List<Double> listShaped, List<Double> listPlain,
+            $NUMBER_INT Map<String, Double> mapShaped, Map<String, Double> mapPlain,
+            $NUMBER_INT OptionalDouble optionalShaped, OptionalDouble optionalPlain,
+            $NUMBER_INT Number numberShaped, Number numberPlain,
+            $NUMBER_INT Object anyShaped, Object anyPlain,
+            $NUMBER_INT int integer) {
+}
+""", true, [:])
+        def bean = newInstance(context, 'test.Test', [
+            900d, 900d, 900d, 900d, 900f, 900f, 0.5d,
+            [900d, 0.5d] as double[], [900d] as double[], [900f] as float[],
+            [900d, 0.5d], [900d], [a: 900d], [a: 900d],
+            OptionalDouble.of(900d), OptionalDouble.of(900d), 900d, 900d, 900d, 900d, 900
+        ] as Object[])
+
+        expect:
+        writeJson(jsonMapper, bean) == '{"shaped":900,"plain":900.0,"boxedShaped":900,"boxedPlain":900.0,' +
+            '"singleShaped":900,"singlePlain":900.0,"fraction":0.5,' +
+            '"arrayShaped":[900,0.5],"arrayPlain":[900.0],"singlesShaped":[900],' +
+            '"listShaped":[900,0.5],"listPlain":[900.0],"mapShaped":{"a":900},"mapPlain":{"a":900.0},' +
+            '"optionalShaped":900,"optionalPlain":900.0,"numberShaped":900,"numberPlain":900.0,' +
+            '"anyShaped":900,"anyPlain":900.0,"integer":900}'
+
+        and: 'what is written is read back'
+        jsonMapper.readValue(writeJson(jsonMapper, bean), argumentOf(context, 'test.Test')).shaped == 900d
+
+        cleanup:
+        context.close()
+    }
+
+    @Unroll
+    void "the shape NUMBER_FLOAT of a property keeps the fraction when the feature is on #where"() {
+        given:
+        def context = buildContext('test.Test', """
+package test;
+$IMPORTS
+@Serdeable
+$typeAnnotation
+record Test($NUMBER_FLOAT double shaped, double plain,
+            $NUMBER_FLOAT Double boxedShaped, Double boxedPlain,
+            $NUMBER_FLOAT float singleShaped,
+            $NUMBER_FLOAT double[] arrayShaped, double[] arrayPlain,
+            $NUMBER_FLOAT List<Double> listShaped, List<Double> listPlain,
+            $NUMBER_FLOAT Map<String, Double> mapShaped,
+            $NUMBER_FLOAT OptionalDouble optionalShaped,
+            $NUMBER_FLOAT Number numberShaped,
+            $NUMBER_FLOAT Object anyShaped, Object anyPlain) {
+}
+""", true, configuration)
+        def bean = newInstance(context, 'test.Test', [
+            900d, 900d, 900d, 900d, 900f,
+            [900d] as double[], [900d] as double[], [900d], [900d], [a: 900d],
+            OptionalDouble.of(900d), 900d, 900d, 900d
+        ] as Object[])
+
+        expect:
+        writeJson(jsonMapper, bean) == '{"shaped":900.0,"plain":900,"boxedShaped":900.0,"boxedPlain":900,' +
+            '"singleShaped":900.0,"arrayShaped":[900.0],"arrayPlain":[900],' +
+            '"listShaped":[900.0],"listPlain":[900],"mapShaped":{"a":900.0},' +
+            '"optionalShaped":900.0,"numberShaped":900.0,"anyShaped":900.0,"anyPlain":900}'
+
+        cleanup:
+        context.close()
+
+        where:
+        where              | typeAnnotation | configuration
+        'for the bean'     | WITH_FEATURE   | [:]
+        'by configuration' | ''             | ON
     }
 
     void "a pattern or a string shape wins over the feature"() {

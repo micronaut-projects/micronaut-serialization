@@ -19,8 +19,10 @@ import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerializationConfiguration;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.support.util.SerdeFeatures;
 import org.jspecify.annotations.Nullable;
 
@@ -47,15 +49,34 @@ final class WholeFloats {
 
     /**
      * @param context The encoder context
-     * @param type    The type being written, whose annotations can switch the feature
+     * @param type    The type being written, whose annotations can switch the feature or set a number shape
      * @return Whether whole floating-point values are written as integers
      */
     static boolean enabled(Serializer.EncoderContext context, Argument<?> type) {
         AnnotationMetadata annotationMetadata = type.getAnnotationMetadata();
-        if (!annotationMetadata.isEmpty()) {
-            context = SerdeFeatures.withFeatures(context, annotationMetadata);
+        if (annotationMetadata.isEmpty()) {
+            return enabled(context);
         }
-        return enabled(context);
+        FormatConfiguration.Shape shape = annotationMetadata
+            .enumValue(SerdeConfig.class, SerdeConfig.SHAPE, FormatConfiguration.Shape.class)
+            .orElse(FormatConfiguration.Shape.ANY);
+        return enabled(SerdeFeatures.withFeatures(context, annotationMetadata), shape);
+    }
+
+    /**
+     * The shape of a property wins over the feature: {@link FormatConfiguration.Shape#NUMBER_INT} writes whole
+     * values as integers and {@link FormatConfiguration.Shape#NUMBER_FLOAT} keeps the fraction.
+     *
+     * @param context The encoder context
+     * @param shape   The shape of the format of the property
+     * @return Whether whole floating-point values are written as integers
+     */
+    static boolean enabled(Serializer.EncoderContext context, FormatConfiguration.Shape shape) {
+        return switch (shape) {
+            case NUMBER_INT -> true;
+            case NUMBER_FLOAT -> false;
+            default -> enabled(context);
+        };
     }
 
     /**
