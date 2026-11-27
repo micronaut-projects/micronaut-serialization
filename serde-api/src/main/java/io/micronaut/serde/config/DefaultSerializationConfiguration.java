@@ -41,6 +41,7 @@ final class DefaultSerializationConfiguration implements SerializationConfigurat
     private final boolean writeSingleElemArraysUnwrapped;
     private final boolean writeSortedMapEntries;
     private final boolean disableGeneratedSerializer;
+    private final boolean writeWholeFloatsAsIntegers;
     private final Set<SerializationConfiguration.Feature> features;
 
     @ConfigurationInject
@@ -52,7 +53,8 @@ final class DefaultSerializationConfiguration implements SerializationConfigurat
                                       @Bindable(defaultValue = StringUtils.TRUE) boolean writeDatesWithZoneId,
                                       @Bindable(defaultValue = StringUtils.FALSE) boolean writeSingleElemArraysUnwrapped,
                                       @Bindable(defaultValue = StringUtils.FALSE) boolean writeSortedMapEntries,
-                                      @Bindable(defaultValue = StringUtils.FALSE) boolean disableGeneratedSerializer) {
+                                      @Bindable(defaultValue = StringUtils.FALSE) boolean disableGeneratedSerializer,
+                                      @Bindable(defaultValue = StringUtils.FALSE) boolean writeWholeFloatsAsIntegers) {
         this.inclusion = inclusion;
         this.alwaysSerializeErrorsAsList = alwaysSerializeErrorsAsList;
         this.sortPropertiesAlphabetically = sortPropertiesAlphabetically;
@@ -61,6 +63,7 @@ final class DefaultSerializationConfiguration implements SerializationConfigurat
         this.writeSingleElemArraysUnwrapped = writeSingleElemArraysUnwrapped;
         this.writeSortedMapEntries = writeSortedMapEntries;
         this.disableGeneratedSerializer = disableGeneratedSerializer;
+        this.writeWholeFloatsAsIntegers = writeWholeFloatsAsIntegers;
         this.features = SerializationConfiguration.super.features();
     }
 
@@ -102,6 +105,11 @@ final class DefaultSerializationConfiguration implements SerializationConfigurat
     @Override
     public boolean disableGeneratedSerializer() {
         return disableGeneratedSerializer;
+    }
+
+    @Override
+    public boolean writeWholeFloatsAsIntegers() {
+        return writeWholeFloatsAsIntegers;
     }
 
     @Override

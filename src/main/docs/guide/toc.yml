@@ -26,6 +26,7 @@ jsonbAnnotations:
 bsonAnnotations: BSON Annotations
 protobuf: Protocol Buffers
 coercion: Type Coercion
+wholeFloats: Whole Floating-Point Numbers as Integers
 builders: Builders
 serdes: Custom Serializers & Deserializers
 serdeImport: Enabling Serialization of External Classes

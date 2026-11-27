@@ -54,6 +54,11 @@ final class DoubleSerde implements SerdeRegistrar<Double>, NumberSerde<Double>, 
     }
 
     @Override
+    public boolean writesFloatingPoint() {
+        return true;
+    }
+
+    @Override
     public boolean isDefault(EncoderContext context, Double value) {
         return value.equals(0D);
     }

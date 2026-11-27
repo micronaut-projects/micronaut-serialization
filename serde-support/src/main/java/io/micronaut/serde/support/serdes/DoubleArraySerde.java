@@ -20,12 +20,33 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.Serializer;
+import io.micronaut.serde.exceptions.SerdeException;
 
 import java.io.IOException;
 import java.util.Arrays;
 
 @Internal
 final class DoubleArraySerde extends AbstractArraySerde<double[]> {
+
+    private static final DoubleArraySerde WHOLE_AS_INTEGERS = new DoubleArraySerde(true);
+
+    private final boolean wholeAsIntegers;
+
+    DoubleArraySerde() {
+        this(false);
+    }
+
+    private DoubleArraySerde(boolean wholeAsIntegers) {
+        this.wholeAsIntegers = wholeAsIntegers;
+    }
+
+    @Override
+    public Serializer<double[]> createSpecific(EncoderContext context, Argument<? extends double[]> type) throws SerdeException {
+        // the serializer is chosen once, so that no element is checked while the feature is off
+        return SingleElementArraySerde.writeSingleElementArraysUnwrapped(
+            WholeFloats.enabled(context, type) ? WHOLE_AS_INTEGERS : this, context);
+    }
 
     @Override
     public double[] deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super double[]> type)
@@ -51,8 +72,14 @@ final class DoubleArraySerde extends AbstractArraySerde<double[]> {
                           EncoderContext context,
                           Argument<? extends double[]> type, double[] value) throws IOException {
         final Encoder arrayEncoder = encoder.encodeArray(type);
-        for (double i : value) {
-            arrayEncoder.encodeDouble(i);
+        if (wholeAsIntegers) {
+            for (double i : value) {
+                WholeFloats.encode(arrayEncoder, i);
+            }
+        } else {
+            for (double i : value) {
+                arrayEncoder.encodeDouble(i);
+            }
         }
         arrayEncoder.finishStructure();
     }

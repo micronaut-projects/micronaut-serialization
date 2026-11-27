@@ -1,0 +1,79 @@
+A `double` or a `float` that holds a whole number is written with a fraction, as Java prints it:
+
+[source,json]
+----
+{"accessToken": "…", "expiresIn": 900.0}
+----
+
+A client that reads the property into an integer type may refuse `900.0`, and JavaScript writes the same number as `900`. To write whole floating-point values as integers, enable `write-whole-floats-as-integers`:
+
+[configuration]
+----
+micronaut:
+  serde:
+    serialization:
+      write-whole-floats-as-integers: true
+----
+
+[source,json]
+----
+{"accessToken": "…", "expiresIn": 900}
+----
+
+The setting is off by default. It corresponds to the feature api:serde.config.SerializationConfiguration.Feature[] `WRITE_WHOLE_FLOATS_AS_INTEGERS`.
+
+=== What Is Written
+
+|===
+|Value |Written as
+
+|A whole number of magnitude at most 2^53^, such as `900.0`
+|`900`
+
+|Negative zero
+|`0`
+
+|A fraction, such as `0.5`
+|`0.5`, unchanged
+
+|A larger whole number, such as `1.0E20`
+|`1.0E20`, unchanged
+
+|`NaN` and the infinities
+|unchanged
+|===
+
+2^53^ is the range in which every whole number is a `double`. The setting applies to `double`, `Double`, `float` and `Float`, to `double[]` and `float[]`, to `OptionalDouble`, to a `Number` or an `Object` that holds a `Double` or a `Float`, to the elements of collections and arrays of these, and to the keys and the values of maps. A `BigDecimal` is written with the scale it has.
+
+A property with a pattern or a string shape, for example `@JsonFormat(pattern = "0.00")` or `@JsonFormat(shape = JsonFormat.Shape.STRING)`, keeps its format.
+
+Reading is unchanged: `900` is read into a `double` property with or without the setting.
+
+=== A Property
+
+The shape of link:{jacksonAnnotationJavadoc}/JsonFormat.html[@JsonFormat] decides for one property, whatever the setting is:
+
+[source,java]
+----
+@Serdeable
+record Tokens(
+    String accessToken,
+    @JsonFormat(shape = JsonFormat.Shape.NUMBER_INT) double expiresIn, // <1>
+    @JsonFormat(shape = JsonFormat.Shape.NUMBER_FLOAT) double ratio    // <2>
+) { }
+----
+
+<1> `NUMBER_INT` writes a whole value as an integer: `900`. A fraction is written as it is, not rounded.
+<2> `NUMBER_FLOAT` keeps the fraction of a whole value, `1.0`, when the setting is on.
+
+The shape applies to a floating-point property, to the elements of an array or a collection, to the values of a map, to an `OptionalDouble` and to a `Number` or `Object` property. Jackson Databind does not act on these two shapes for a floating-point property.
+
+=== A Bean
+
+`WRITE_WHOLE_FLOATS_AS_INTEGERS` is a format feature like `WRITE_SORTED_MAP_ENTRIES`: the `featuresWith` and `featuresWithout` members of the annotation metadata of `SerdeConfig` switch it for a bean or for a property, and a bean that enables it passes it on to the beans it holds. `JsonFormat.Feature` of Jackson has no constant for the feature, so `@JsonFormat(with = …)` cannot name it. A build tool or an annotation mapper that sets the members names it as a string.
+
+=== Generated Serializers and Other Formats
+
+A bean is written by the runtime serializer, not by its generated serializer, wherever the feature is on.
+
+The feature acts before the format. In a binary format it changes the type of what is stored: with BSON a whole `double` is written as an `int64`. A property with `@BsonRepresentation` is not affected.

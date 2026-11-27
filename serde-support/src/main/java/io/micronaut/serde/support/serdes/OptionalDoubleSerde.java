@@ -20,6 +20,7 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.Serializer;
 import io.micronaut.serde.support.SerdeRegistrar;
 
 import java.io.IOException;
@@ -28,12 +29,33 @@ import java.util.OptionalDouble;
 @Internal
 final class OptionalDoubleSerde implements SerdeRegistrar<OptionalDouble> {
 
+    private static final OptionalDoubleSerde WHOLE_AS_INTEGERS = new OptionalDoubleSerde(true);
+
+    private final boolean wholeAsIntegers;
+
+    OptionalDoubleSerde() {
+        this(false);
+    }
+
+    private OptionalDoubleSerde(boolean wholeAsIntegers) {
+        this.wholeAsIntegers = wholeAsIntegers;
+    }
+
+    @Override
+    public Serializer<OptionalDouble> createSpecific(EncoderContext context, Argument<? extends OptionalDouble> type) {
+        return WholeFloats.enabled(context, type) ? WHOLE_AS_INTEGERS : this;
+    }
+
     @Override
     public void serialize(Encoder encoder,
                           EncoderContext context,
                           Argument<? extends OptionalDouble> type, OptionalDouble value) throws IOException {
         if (value.isPresent()) {
-            encoder.encodeDouble(value.getAsDouble());
+            if (wholeAsIntegers) {
+                WholeFloats.encode(encoder, value.getAsDouble());
+            } else {
+                encoder.encodeDouble(value.getAsDouble());
+            }
         } else {
             encoder.encodeNull();
         }
