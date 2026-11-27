@@ -36,6 +36,7 @@ import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenNames;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenPropertyOrder;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenRecursion;
+import io.micronaut.serde.processor.sourcegen.SerdeWholeFloatsSourceGen;
 import io.micronaut.serde.util.GeneratedSerdeExceptionUtil;
 import io.micronaut.serde.util.GeneratedSerdeFallbackUtil;
 import io.micronaut.serde.util.GeneratedSerdeLazyUtil;
@@ -108,7 +109,7 @@ public final class RecordSerializerSourceGen {
     );
     private static final Method WITH_RUNTIME_FALLBACK_SERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
         GeneratedSerdeFallbackUtil.class,
-        "withRuntimeObjectFallback",
+        "withWholeFloatsRuntimeObjectFallback",
         Serializer.class,
         Serializer.EncoderContext.class,
         Argument.class
@@ -140,7 +141,10 @@ public final class RecordSerializerSourceGen {
         Argument.class
     );
 
+    private SerdeWholeFloatsSourceGen.Mode wholeFloats = SerdeWholeFloatsSourceGen.Mode.CONTEXT;
+
     public ClassDef generate(ClassElement element, RecordSerdeShape recordSerdeShape) {
+        wholeFloats = SerdeWholeFloatsSourceGen.mode(element.getAnnotationMetadata());
         // A component whose inclusion is NEVER is not written by the runtime serializer either. The getter
         // methods are written after the components, and a property order places both alike.
         recordSerdeShape = new RecordSerdeShape(
@@ -202,6 +206,13 @@ public final class RecordSerializerSourceGen {
         if (inclusionAware) {
             fields.addAll(SerdeInclusionSourceGen.fields());
         }
+        // Whether whole floats are written as integers is resolved once per serializer as well, and only when
+        // the type does not decide it and has a property that the serializer writes itself
+        boolean wholeFloatsAware = wholeFloats == SerdeWholeFloatsSourceGen.Mode.CONTEXT
+            && recordSerdeShape.components().stream().anyMatch(item -> SerdeWholeFloatsSourceGen.isFloatingPoint(item.type()));
+        if (wholeFloatsAware) {
+            fields.add(SerdeWholeFloatsSourceGen.field());
+        }
         ClassDef.ClassDefBuilder classDefBuilder = ClassDef.builder(SerdeSourceGenClassNaming.generatedSerializerClassName(element))
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
             .addAnnotation(Prototype.class)
@@ -230,7 +241,8 @@ public final class RecordSerializerSourceGen {
                 recordSerdeShape,
                 argumentFieldNames,
                 serializerFieldNames,
-                inclusionAware
+                inclusionAware,
+                wholeFloatsAware
             ));
         }
 
@@ -243,7 +255,8 @@ public final class RecordSerializerSourceGen {
                                           RecordSerdeShape recordSerdeShape,
                                           Map<String, String> argumentFieldNames,
                                           Map<String, String> serializerFieldNames,
-                                          boolean inclusionAware) {
+                                          boolean inclusionAware,
+                                          boolean wholeFloatsAware) {
         MethodDef.MethodDefBuilder constructorBuilder = MethodDef.constructor()
             .addModifiers(Modifier.PUBLIC)
             .addParameter(parameter(CONTEXT_PARAMETER, TypeDef.of(Serializer.EncoderContext.class)))
@@ -255,6 +268,18 @@ public final class RecordSerializerSourceGen {
             if (inclusionAware) {
                 statements.addAll(SerdeInclusionSourceGen.resolveStatements(aThis, context));
             }
+            if (wholeFloatsAware) {
+                statements.add(SerdeWholeFloatsSourceGen.resolveStatement(aThis, context));
+            }
+            // A type that sets the feature creates the serializers of its properties with it, as the runtime
+            // serializer does, so that the values the type holds are written as the type is
+            ExpressionDef propertyContext = context;
+            if (wholeFloats != SerdeWholeFloatsSourceGen.Mode.CONTEXT && !serializerFieldNames.isEmpty()) {
+                StatementDef.DefineAndAssign featureContextDef = SerdeWholeFloatsSourceGen.featureContext(wholeFloats, context)
+                    .newLocal("featureContext");
+                statements.add(featureContextDef);
+                propertyContext = featureContextDef.variable();
+            }
             SerdeSourceGenRecursion recursion = new SerdeSourceGenRecursion(element);
             for (Map.Entry<String, String> serializerFieldEntry : serializerFieldNames.entrySet()) {
                 String componentName = serializerFieldEntry.getKey();
@@ -263,12 +288,12 @@ public final class RecordSerializerSourceGen {
                 ExpressionDef serializerExpression;
                 if (isSelfReferentialComponent(element, recordSerdeShape, componentName)) {
                     serializerExpression = ClassTypeDef.of(GeneratedSerdeFallbackUtil.class)
-                        .invokeStatic(WITH_RUNTIME_FALLBACK_SERIALIZER_METHOD, aThis, context, argumentExpression);
+                        .invokeStatic(WITH_RUNTIME_FALLBACK_SERIALIZER_METHOD, aThis, propertyContext, argumentExpression);
                 } else if (isIndirectlyRecursiveComponent(recursion, recordSerdeShape, componentName)) {
-                    serializerExpression = ClassTypeDef.of(GeneratedSerdeLazyUtil.class).invokeStatic(LAZY_SERIALIZER_METHOD, context, argumentExpression);
+                    serializerExpression = ClassTypeDef.of(GeneratedSerdeLazyUtil.class).invokeStatic(LAZY_SERIALIZER_METHOD, propertyContext, argumentExpression);
                 } else {
-                    serializerExpression = context.invoke(FIND_SERIALIZER_METHOD, argumentExpression)
-                        .invoke(CREATE_SPECIFIC_SERIALIZER_METHOD, context, argumentExpression);
+                    serializerExpression = propertyContext.invoke(FIND_SERIALIZER_METHOD, argumentExpression)
+                        .invoke(CREATE_SPECIFIC_SERIALIZER_METHOD, propertyContext, argumentExpression);
                 }
                 statements.add(aThis.field(serializerFieldName, SERIALIZER_TYPE).put(
                     serializerExpression
@@ -507,7 +532,7 @@ public final class RecordSerializerSourceGen {
             if (primitive) {
                 StatementDef writePrimitive = StatementDef.multi(
                     encodeKey,
-                    objectEncoder.invoke(scalarMethod, scalarValueDef.variable())
+                    encodeScalar(aThis, objectEncoder, scalarMethod, componentType, scalarValueDef.variable())
                 );
                 return wrapWithPropertyPath(StatementDef.multi(
                     scalarValueDef,
@@ -521,7 +546,7 @@ public final class RecordSerializerSourceGen {
                 encodeKey,
                 scalarValueDef.variable().isNull().ifTrue(
                     objectEncoder.invoke(ENCODE_NULL_METHOD),
-                    StatementDef.multi(objectEncoder.invoke(scalarMethod, scalarValueDef.variable()))
+                    StatementDef.multi(encodeScalar(aThis, objectEncoder, scalarMethod, componentType, scalarValueDef.variable()))
                 )
             );
             return wrapWithPropertyPath(StatementDef.multi(
@@ -577,6 +602,17 @@ public final class RecordSerializerSourceGen {
                 writeValue
             )
         ), type, argumentExpression);
+    }
+
+    private StatementDef encodeScalar(VariableDef.This aThis,
+                                      VariableDef encoder,
+                                      Method scalarMethod,
+                                      ClassElement type,
+                                      ExpressionDef value) {
+        if (SerdeWholeFloatsSourceGen.isFloatingPoint(type)) {
+            return SerdeWholeFloatsSourceGen.encode(wholeFloats, aThis, encoder, scalarMethod, type, value);
+        }
+        return encoder.invoke(scalarMethod, value);
     }
 
     private String indexedName(String prefix, int index) {

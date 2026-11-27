@@ -74,6 +74,6 @@ The shape applies to a floating-point property, to the elements of an array or a
 
 === Generated Serializers and Other Formats
 
-A bean is written by the runtime serializer, not by its generated serializer, wherever the feature is on.
+The generated serializers write the feature themselves, for the setting and for a bean that enables or disables it: they read it once, when they are created. A bean with a property that sets the feature, or a number shape, is written by the runtime serializer, as a bean with any other format on a property is.
 
 The feature acts before the format. In a binary format it changes the type of what is stored: with BSON a whole `double` is written as an `int64`. A property with `@BsonRepresentation` is not affected.

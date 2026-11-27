@@ -31,6 +31,7 @@ import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import org.jspecify.annotations.Nullable;
 
+import java.util.EnumSet;
 import java.util.Set;
 
 /**
@@ -44,6 +45,8 @@ public final class GeneratedSerdeFallbackUtil {
 
     // We should consider writing them in the actual generated code; For now we don't implement extra features
     private static final Set<SerializationConfiguration.Feature> SUPPORTED_SER_FEATURES = SerializationConfiguration.DEFAULT_FEATURES;
+    // The generated serializers that call withWholeFloatsRuntimeObjectFallback write this feature themselves
+    private static final Set<SerializationConfiguration.Feature> SUPPORTED_SER_FEATURES_WITH_WHOLE_FLOATS = withWholeFloats(SUPPORTED_SER_FEATURES);
     private static final Set<DeserializationConfiguration.Feature> SUPPORTED_DESER_FEATURES = DeserializationConfiguration.DEFAULT_FEATURES;
 
     private GeneratedSerdeFallbackUtil() {
@@ -87,6 +90,35 @@ public final class GeneratedSerdeFallbackUtil {
                                                           Serializer.EncoderContext context,
                                                           Argument<?> type) throws SerdeException {
         if (supportsFeatures(context)
+            && !hasRuntimeNamingStrategy(context.getSerdeConfiguration().orElse(null))
+            && !sortsPropertiesAlphabetically(context.getSerializationConfiguration().orElse(null))
+            && !isCustomised(type)) {
+            return generatedSerializer;
+        }
+        Serializer<?> objectSerializer = context.findSerializer(Argument.OBJECT_ARGUMENT);
+        return objectSerializer.createSpecific(context, (Argument) type);
+    }
+
+    /**
+     * Returns the generated serializer unless the active features require the runtime object serializer, for a
+     * generated serializer that writes {@link SerializationConfiguration.Feature#WRITE_WHOLE_FLOATS_AS_INTEGERS}
+     * itself. A serializer generated before the feature calls
+     * {@link #withRuntimeObjectFallback(Serializer, Serializer.EncoderContext, Argument)} and steps aside for it.
+     *
+     * @param generatedSerializer The generated serializer
+     * @param context             The encoder context
+     * @param type                The target type
+     * @param <T>                 The type the generated serializer writes
+     * @return The generated serializer or a runtime object serializer
+     * @throws SerdeException If no serializer can be resolved
+     * @since 3.3.0
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static <T> Serializer<T> withWholeFloatsRuntimeObjectFallback(Serializer<T> generatedSerializer,
+                                                                         Serializer.EncoderContext context,
+                                                                         Argument<?> type) throws SerdeException {
+        Set<SerializationConfiguration.Feature> features = context.getFeatures();
+        if ((SUPPORTED_SER_FEATURES.equals(features) || SUPPORTED_SER_FEATURES_WITH_WHOLE_FLOATS.equals(features))
             && !hasRuntimeNamingStrategy(context.getSerdeConfiguration().orElse(null))
             && !sortsPropertiesAlphabetically(context.getSerializationConfiguration().orElse(null))
             && !isCustomised(type)) {
@@ -179,6 +211,12 @@ public final class GeneratedSerdeFallbackUtil {
             return formattedDeserializer.createSpecific(context, type, format);
         }
         return enumDeserializer.createSpecific(context, (Argument) type);
+    }
+
+    private static Set<SerializationConfiguration.Feature> withWholeFloats(Set<SerializationConfiguration.Feature> features) {
+        EnumSet<SerializationConfiguration.Feature> withWholeFloats = EnumSet.copyOf(features);
+        withWholeFloats.add(SerializationConfiguration.Feature.WRITE_WHOLE_FLOATS_AS_INTEGERS);
+        return Set.copyOf(withWholeFloats);
     }
 
     private static boolean supportsFeatures(Serializer.EncoderContext context) {

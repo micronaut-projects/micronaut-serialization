@@ -276,7 +276,7 @@ public final class SimpleSerdeShapeAnalyzer {
         // generators still hand those shapes to the runtime serde.
         boolean propertyExclusionSupported = analysis.propertyExclusionSupported();
         if (analysis.open()
-            && hasUnsupportedSerdeConfigMetadata(element.getAnnotationMetadata(), propertyExclusionSupported)
+            && hasUnsupportedSerdeConfigMetadata(element.getAnnotationMetadata(), propertyExclusionSupported, element)
             && analysis.failBoth(FallbackReason.UNSUPPORTED_SHAPE)) {
             return true;
         }
@@ -702,7 +702,7 @@ public final class SimpleSerdeShapeAnalyzer {
                 || returnType.hasDeclaredAnnotation(SerdeConfig.SerSubtyped.class)
                 || hasAnnotation(returnType, SerdeConfig.SerValue.class)
                 || method.hasAnnotation(SERDEABLE_SERIALIZABLE)
-                || hasUnsupportedSerdeConfigMetadata(annotationMetadata, propertyExclusionSupported)) {
+                || hasUnsupportedSerdeConfigMetadata(annotationMetadata, propertyExclusionSupported, element)) {
                 return true;
             }
             var unsupportedAnnotations = new LinkedHashMap<String, Boolean>();
@@ -833,7 +833,7 @@ public final class SimpleSerdeShapeAnalyzer {
     }
 
     private boolean hasUnsupportedPropertySerdeConfig(ClassElement element, boolean propertyExclusionSupported, boolean constructorBound) {
-        Predicate<AnnotationMetadata> unsupported = annotationMetadata -> hasUnsupportedSerdeConfigMetadata(annotationMetadata, propertyExclusionSupported);
+        Predicate<AnnotationMetadata> unsupported = annotationMetadata -> hasUnsupportedSerdeConfigMetadata(annotationMetadata, propertyExclusionSupported, element);
         for (PropertyElement property : beanProperties(element)) {
             if (hasUnsupportedPropertyMetadata(property, unsupported)) {
                 return true;
@@ -1035,7 +1035,13 @@ public final class SimpleSerdeShapeAnalyzer {
         return false;
     }
 
-    private boolean hasUnsupportedSerdeConfigMetadata(AnnotationMetadata annotationMetadata, boolean propertyExclusionSupported) {
+    /**
+     * @param annotationMetadata The metadata of the type or of one of its members
+     * @param type               The type. The generated serializers write {@code WRITE_WHOLE_FLOATS_AS_INTEGERS}
+     *                           for a type that sets it; a member that sets a feature, and any other feature, are
+     *                           left to the runtime serde.
+     */
+    private boolean hasUnsupportedSerdeConfigMetadata(AnnotationMetadata annotationMetadata, boolean propertyExclusionSupported, ClassElement type) {
         if (!propertyExclusionSupported
             && (annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false)
             || annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED_SERIALIZATION).orElse(false)
@@ -1048,7 +1054,7 @@ public final class SimpleSerdeShapeAnalyzer {
         return annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.FILTER).isPresent()
             || annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.MERGE).orElse(false)
             || FormatConfiguration.from(annotationMetadata) != null
-            || hasFeatureOverrides(annotationMetadata)
+            || SerdeWholeFloatsSourceGen.hasUnsupportedFeatureOverrides(annotationMetadata, type.getAnnotationMetadata())
             || hasSerializeAsOverride(annotationMetadata)
             || hasDeserializeAsOverride(annotationMetadata)
             || hasCustomNaming(annotationMetadata)
@@ -1061,11 +1067,6 @@ public final class SimpleSerdeShapeAnalyzer {
      */
     private boolean hasBindableDefaultValue(AnnotationMetadata annotationMetadata) {
         return annotationMetadata.stringValue(BINDABLE, BINDABLE_DEFAULT_VALUE).isPresent();
-    }
-
-    private boolean hasFeatureOverrides(AnnotationMetadata annotationMetadata) {
-        return annotationMetadata.stringValues(SerdeConfig.class, SerdeConfig.FEATURES_WITH).length > 0
-            || annotationMetadata.stringValues(SerdeConfig.class, SerdeConfig.FEATURES_WITHOUT).length > 0;
     }
 
     private boolean hasSerializeAsOverride(Element element) {

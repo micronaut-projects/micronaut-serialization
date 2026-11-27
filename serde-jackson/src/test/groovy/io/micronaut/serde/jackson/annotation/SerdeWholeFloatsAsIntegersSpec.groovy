@@ -5,6 +5,7 @@ import io.micronaut.core.type.Argument
 import io.micronaut.serde.SerdeRegistry
 import io.micronaut.serde.config.SerializationConfiguration
 import io.micronaut.serde.jackson.JsonCompileSpec
+import io.micronaut.serde.jackson.features.WholeFloatsBean
 import spock.lang.Unroll
 
 /**
@@ -18,6 +19,11 @@ import spock.lang.Unroll
 class SerdeWholeFloatsAsIntegersSpec extends JsonCompileSpec {
 
     private static final Map<String, Object> ON = ['micronaut.serde.serialization.write-whole-floats-as-integers': true]
+
+    /**
+     * Has the runtime serializers write every bean, as a generated serializer steps aside for this feature.
+     */
+    private static final Map<String, Object> RUNTIME = ['micronaut.serde.serialization.disable-generated-serializer': true]
 
     private static final String WITH_FEATURE = '@Features(with = "WRITE_WHOLE_FLOATS_AS_INTEGERS")'
     private static final String WITHOUT_FEATURE = '@Features(without = "WRITE_WHOLE_FLOATS_AS_INTEGERS")'
@@ -57,6 +63,20 @@ record Numbers(double primitive, Double boxed, float single, Float boxedSingle,
 """
     }
 
+    /**
+     * Writes a bean with the generated serializers and with the runtime serializers.
+     */
+    private List<String> writtenByBoth(String className, String source, Map<String, Object> configuration, Closure<Object> bean) {
+        [configuration, configuration + RUNTIME].collect { Map<String, Object> properties ->
+            def context = buildContext(className, source, true, properties)
+            try {
+                writeJson(jsonMapper, bean(context))
+            } finally {
+                context.close()
+            }
+        }
+    }
+
     private Object numbers(ApplicationContext context) {
         newInstance(context, 'test.Numbers', [
             900d, 900d, 900f, 900f,
@@ -76,6 +96,7 @@ record Numbers(double primitive, Double boxed, float single, Float boxedSingle,
         !configuration.features().contains(SerializationConfiguration.Feature.WRITE_WHOLE_FLOATS_AS_INTEGERS)
         !SerializationConfiguration.DEFAULT_FEATURES.contains(SerializationConfiguration.Feature.WRITE_WHOLE_FLOATS_AS_INTEGERS)
         writeJson(jsonMapper, numbers(context)) == FRACTIONS
+        writtenByBoth('test.Numbers', numbersSource(''), [:]) { numbers(it) } == [FRACTIONS, FRACTIONS]
 
         cleanup:
         context.close()
@@ -90,6 +111,7 @@ record Numbers(double primitive, Double boxed, float single, Float boxedSingle,
         configuration.writeWholeFloatsAsIntegers()
         configuration.features().contains(SerializationConfiguration.Feature.WRITE_WHOLE_FLOATS_AS_INTEGERS)
         writeJson(jsonMapper, numbers(context)) == WHOLE
+        writtenByBoth('test.Numbers', numbersSource(''), ON) { numbers(it) } == [WHOLE, WHOLE]
 
         cleanup:
         context.close()
@@ -101,6 +123,7 @@ record Numbers(double primitive, Double boxed, float single, Float boxedSingle,
 
         expect:
         writeJson(jsonMapper, numbers(context)) == WHOLE
+        writtenByBoth('test.Numbers', numbersSource(WITH_FEATURE), [:]) { numbers(it) } == [WHOLE, WHOLE]
 
         cleanup:
         context.close()
@@ -184,22 +207,21 @@ record Test(double on, $WITHOUT_FEATURE double off,
     @Unroll
     void "the double #value is written as #expected"() {
         given:
-        def context = buildContext('test.Test', """
+        String source = """
 package test;
 $IMPORTS
 @Serdeable
 record Test(double primitive, Double boxed, double[] array, OptionalDouble optional, Number number, Object any) {
 }
-""", true, ON)
+"""
         double d = value
-        def bean = newInstance(context, 'test.Test', [d, d, [d] as double[], OptionalDouble.of(d), d, d] as Object[])
-
-        expect:
-        writeJson(jsonMapper, bean) == '{"primitive":' + expected + ',"boxed":' + expected + ',"array":[' + expected +
+        String json = '{"primitive":' + expected + ',"boxed":' + expected + ',"array":[' + expected +
             '],"optional":' + expected + ',"number":' + expected + ',"any":' + expected + '}'
 
-        cleanup:
-        context.close()
+        expect:
+        writtenByBoth('test.Test', source, ON) {
+            newInstance(it, 'test.Test', [d, d, [d] as double[], OptionalDouble.of(d), d, d] as Object[])
+        } == [json, json]
 
         where:
         value                    | expected
@@ -225,22 +247,21 @@ record Test(double primitive, Double boxed, double[] array, OptionalDouble optio
     @Unroll
     void "the float #value is written as #expected"() {
         given:
-        def context = buildContext('test.Test', """
+        String source = """
 package test;
 $IMPORTS
 @Serdeable
 record Test(float primitive, Float boxed, float[] array, Number number, Object any) {
 }
-""", true, ON)
+"""
         float f = value
-        def bean = newInstance(context, 'test.Test', [f, f, [f] as float[], f, f] as Object[])
-
-        expect:
-        writeJson(jsonMapper, bean) == '{"primitive":' + expected + ',"boxed":' + expected + ',"array":[' + expected +
+        String json = '{"primitive":' + expected + ',"boxed":' + expected + ',"array":[' + expected +
             '],"number":' + expected + ',"any":' + expected + '}'
 
-        cleanup:
-        context.close()
+        expect:
+        writtenByBoth('test.Test', source, ON) {
+            newInstance(it, 'test.Test', [f, f, [f] as float[], f, f] as Object[])
+        } == [json, json]
 
         where:
         value                   | expected
@@ -429,40 +450,181 @@ record Test(Map<Double, String> keys, $WITHOUT_FEATURE Map<Double, String> fract
         context.close()
     }
 
-    void "a generated serializer steps aside for the feature of the configuration"() {
+    void "a generated serializer writes the feature of the configuration itself"() {
         given:
         String source = """
 package test;
 $IMPORTS
 @Serdeable
-record Test(String name, double value, Double boxed, float single) {
+record Test(String name, double value, Double boxed, float single, Float boxedSingle, List<Double> list) {
 }
 """
+        Object[] values = ['a', 900d, 900d, 900f, 900f, [900d]]
 
         when: 'the feature is off'
         def context = buildContext('test.Test', source, true, [:])
 
         then: 'the generated serializer writes the bean'
         specificSerializer(context, 'test.Test').class.name == 'test.SerdeTestSerializer'
-        writeJson(jsonMapper, newInstance(context, 'test.Test', ['a', 900d, 900d, 900f] as Object[])) ==
-            '{"name":"a","value":900.0,"boxed":900.0,"single":900.0}'
+        writeJson(jsonMapper, newInstance(context, 'test.Test', values)) ==
+            '{"name":"a","value":900.0,"boxed":900.0,"single":900.0,"boxedSingle":900.0,"list":[900.0]}'
 
         when: 'the feature is on'
         context.close()
         context = buildContext('test.Test', source, true, ON)
 
-        then: 'the generated serializer is there, and the run-time serializer writes the bean'
-        context.classLoader.loadClass('test.SerdeTestSerializer')
-        specificSerializer(context, 'test.Test').class.name != 'test.SerdeTestSerializer'
-        writeJson(jsonMapper, newInstance(context, 'test.Test', ['a', 900d, 900d, 900f] as Object[])) ==
-            '{"name":"a","value":900,"boxed":900,"single":900}'
+        then: 'the generated serializer writes the bean as well'
+        specificSerializer(context, 'test.Test').class.name == 'test.SerdeTestSerializer'
+        writeJson(jsonMapper, newInstance(context, 'test.Test', values)) ==
+            '{"name":"a","value":900,"boxed":900,"single":900,"boxedSingle":900,"list":[900]}'
+
+        and: 'it keeps what the context says in a field'
+        readsFeatureFromContext(context, 'test.SerdeTestSerializer')
+
+        cleanup:
+        context.close()
+    }
+
+    void "a generated serializer reads the feature once, when it is created"() {
+        given:
+        def context = ApplicationContext.run(ON)
+        def mapper = context.getBean(io.micronaut.json.JsonMapper)
+        String generated = generatedTestSource('io.micronaut.serde.jackson.features.SerdeWholeFloatsBeanSerializer')
+
+        expect:
+        writeJson(mapper, new WholeFloatsBean('a', 900d, 900d, 900f, 900f, [900d])) ==
+            '{"name":"a","value":900,"boxed":900,"single":900,"boxedSingle":900,"list":[900]}'
+        generated.contains('private final boolean wholeFloats;')
+        generated.contains('this.wholeFloats = GeneratedSerdeWholeFloatsUtil.enabled(context);')
+        generated.count('if (this.wholeFloats) {') == 4
+        generated.count('GeneratedSerdeWholeFloatsUtil.encodeDouble(encoder, ') == 2
+        generated.count('GeneratedSerdeWholeFloatsUtil.encodeFloat(encoder, ') == 2
+        generated.count('encoder.encodeDouble(') == 2
+        generated.count('encoder.encodeFloat(') == 2
+        generated.contains('GeneratedSerdeFallbackUtil.withWholeFloatsRuntimeObjectFallback(this, context, type)')
+
+        cleanup:
+        context.close()
+    }
+
+    void "a generated serializer of a bean without a floating-point property does not read the feature"() {
+        given:
+        def context = buildContext('test.Test', """
+package test;
+$IMPORTS
+@Serdeable
+record Test(String name, int value, List<Double> list) {
+}
+""", true, ON)
+
+        expect:
+        specificSerializer(context, 'test.Test').class.name == 'test.SerdeTestSerializer'
+        writeJson(jsonMapper, newInstance(context, 'test.Test', ['a', 900, [900d]] as Object[])) == '{"name":"a","value":900,"list":[900]}'
+        !readsFeatureFromContext(context, 'test.SerdeTestSerializer')
 
         cleanup:
         context.close()
     }
 
     @Unroll
-    void "a bean that sets the feature #where has no generated serializer"() {
+    void "a bean that #sets the feature has a generated serializer that writes #expected when the feature is #feature"() {
+        given:
+        def context = buildContext('test.Test', """
+package test;
+$IMPORTS
+@Serdeable
+$typeAnnotation
+record Test(String name, double value, Float boxed, List<Double> list, Held held) {
+}
+
+@Serdeable
+record Held(double value) {
+}
+""", true, configuration)
+        def bean = newInstance(context, 'test.Test', ['a', 900d, 900f, [900d], newInstance(context, 'test.Held', [900d] as Object[])] as Object[])
+
+        expect: 'the generated serializer writes the bean, and what the bean holds, as the bean says'
+        specificSerializer(context, 'test.Test').class.name == 'test.SerdeTestSerializer'
+        writeJson(jsonMapper, bean) == '{"name":"a","value":' + expected + ',"boxed":' + expected +
+            ',"list":[' + expected + '],"held":{"value":' + expected + '}}'
+
+        and: 'the feature is decided in the generated source, not read from the context'
+        !readsFeatureFromContext(context, 'test.SerdeTestSerializer')
+
+        cleanup:
+        context.close()
+
+        where:
+        sets       | typeAnnotation  | configuration | expected
+        'enables'  | WITH_FEATURE    | [:]           | '900'
+        'enables'  | WITH_FEATURE    | ON            | '900'
+        'disables' | WITHOUT_FEATURE | ON            | '900.0'
+        'disables' | WITHOUT_FEATURE | [:]           | '900.0'
+
+        feature = configuration ? 'on' : 'off'
+    }
+
+    @Unroll
+    void "the generated serializer of a class writes #expected when #where"() {
+        given:
+        def context = buildContext('test.Test', """
+package test;
+$IMPORTS
+@Serdeable
+$typeAnnotation
+class Test {
+    private double value;
+    private Double boxed;
+    private float single;
+    private Float boxedSingle;
+    private List<Double> list;
+    private Held held;
+
+    public double getValue() { return value; }
+    public void setValue(double value) { this.value = value; }
+    public Double getBoxed() { return boxed; }
+    public void setBoxed(Double boxed) { this.boxed = boxed; }
+    public float getSingle() { return single; }
+    public void setSingle(float single) { this.single = single; }
+    public Float getBoxedSingle() { return boxedSingle; }
+    public void setBoxedSingle(Float boxedSingle) { this.boxedSingle = boxedSingle; }
+    public List<Double> getList() { return list; }
+    public void setList(List<Double> list) { this.list = list; }
+    public Held getHeld() { return held; }
+    public void setHeld(Held held) { this.held = held; }
+}
+
+@Serdeable
+class Held {
+    private double value;
+
+    public double getValue() { return value; }
+    public void setValue(double value) { this.value = value; }
+}
+""", true, configuration)
+        def bean = newInstance(context, 'test.Test', [
+            value: 900d, boxed: 900d, single: 900f, boxedSingle: 900f, list: [900d], held: newInstance(context, 'test.Held', [value: 900d])
+        ])
+
+        expect:
+        specificSerializer(context, 'test.Test').class.name == 'test.SerdeTestSerializer'
+        writeJson(jsonMapper, bean) == '{"value":' + expected + ',"boxed":' + expected + ',"single":' + expected +
+            ',"boxedSingle":' + expected + ',"list":[' + expected + '],"held":{"value":' + expected + '}}'
+        readsFeatureFromContext(context, 'test.SerdeTestSerializer') == !typeAnnotation
+
+        cleanup:
+        context.close()
+
+        where:
+        where                                  | typeAnnotation  | configuration | expected
+        'the feature is off'                   | ''              | [:]           | '900.0'
+        'the feature is on by configuration'   | ''              | ON            | '900'
+        'the class enables the feature'        | WITH_FEATURE    | [:]           | '900'
+        'the class disables the feature'       | WITHOUT_FEATURE | ON            | '900.0'
+    }
+
+    @Unroll
+    void "a bean with #what has no generated serializer"() {
         given:
         def context = buildContext('test.Test', """
 package test;
@@ -484,9 +646,10 @@ record Test(String name, $propertyAnnotation double value) {
         context.close()
 
         where:
-        where            | typeAnnotation | propertyAnnotation
-        'for itself'     | WITH_FEATURE   | ''
-        'for a property' | ''             | WITH_FEATURE
+        what                                 | typeAnnotation                                                                    | propertyAnnotation
+        'a property that sets the feature'   | ''                                                                                | WITH_FEATURE
+        'a property with the shape'          | ''                                                                                | NUMBER_INT
+        'another feature beside the feature' | '@Features(with = {"WRITE_WHOLE_FLOATS_AS_INTEGERS", "WRITE_SORTED_MAP_ENTRIES"})' | ''
     }
 
     void "the feature of a bean reaches the beans it holds"() {
@@ -507,6 +670,7 @@ record Inner(double value, List<Double> values) {
         def outer = newInstance(context, 'test.Outer', [900d, inner, [inner], [a: inner], inner] as Object[])
 
         expect:
+        specificSerializer(context, 'test.Outer').class.name == 'test.SerdeOuterSerializer'
         writeJson(jsonMapper, outer) == '{"value":900,"inner":{"value":900,"values":[900]},' +
             '"inners":[{"value":900,"values":[900]}],"byName":{"a":{"value":900,"values":[900]}},' +
             '"any":{"value":900,"values":[900]}}'
@@ -542,6 +706,13 @@ record Inner(double value) {
 
         cleanup:
         context.close()
+    }
+
+    /**
+     * Whether a generated serializer has the field that holds the feature of the context it was created with.
+     */
+    private static boolean readsFeatureFromContext(ApplicationContext context, String serializerClassName) {
+        context.classLoader.loadClass(serializerClassName).declaredFields.any { it.name == 'wholeFloats' }
     }
 
     private static Object specificSerializer(ApplicationContext context, String className) {

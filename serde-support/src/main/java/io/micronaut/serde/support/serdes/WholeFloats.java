@@ -24,6 +24,7 @@ import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.support.util.SerdeFeatures;
+import io.micronaut.serde.util.GeneratedSerdeWholeFloatsUtil;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -32,17 +33,12 @@ import java.io.IOException;
  * Support for {@link SerializationConfiguration.Feature#WRITE_WHOLE_FLOATS_AS_INTEGERS}. A serde asks
  * {@link #enabled(Serializer.EncoderContext, Argument)} once, when it is specialized, and answers a serializer that
  * writes with {@link #encode(Encoder, double)}, so that nothing is checked for a value while the feature is off.
+ * The generated serializers write with {@link GeneratedSerdeWholeFloatsUtil}, which holds the check.
  *
  * @since 3.3.0
  */
 @Internal
 final class WholeFloats {
-
-    /**
-     * Every whole number of this magnitude or less is a {@code double}. It is {@code Number.MAX_SAFE_INTEGER + 1}
-     * of JavaScript.
-     */
-    private static final long MAX_WHOLE = 1L << 53;
 
     private WholeFloats() {
     }
@@ -84,24 +80,18 @@ final class WholeFloats {
      * @return Whether whole floating-point values are written as integers
      */
     static boolean enabled(Serializer.EncoderContext context) {
-        return context.getFeatures().contains(SerializationConfiguration.Feature.WRITE_WHOLE_FLOATS_AS_INTEGERS);
+        return GeneratedSerdeWholeFloatsUtil.enabled(context);
     }
 
     /**
      * Writes a whole value of magnitude at most 2<sup>53</sup> as an integer and any other value as it is.
-     * The comparison is false for {@code NaN}, an infinity and a fraction; negative zero is written as {@code 0}.
      *
      * @param encoder The encoder
      * @param value   The value
      * @throws IOException If an I/O error occurs
      */
     static void encode(Encoder encoder, double value) throws IOException {
-        long whole = (long) value;
-        if (whole == value && whole >= -MAX_WHOLE && whole <= MAX_WHOLE) {
-            encoder.encodeLong(whole);
-        } else {
-            encoder.encodeDouble(value);
-        }
+        GeneratedSerdeWholeFloatsUtil.encodeDouble(encoder, value);
     }
 
     /**
@@ -112,12 +102,7 @@ final class WholeFloats {
      * @throws IOException If an I/O error occurs
      */
     static void encode(Encoder encoder, float value) throws IOException {
-        long whole = (long) value;
-        if (whole == value && whole >= -MAX_WHOLE && whole <= MAX_WHOLE) {
-            encoder.encodeLong(whole);
-        } else {
-            encoder.encodeFloat(value);
-        }
+        GeneratedSerdeWholeFloatsUtil.encodeFloat(encoder, value);
     }
 
     /**
