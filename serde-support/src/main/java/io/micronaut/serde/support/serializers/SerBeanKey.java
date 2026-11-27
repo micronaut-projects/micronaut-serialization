@@ -23,6 +23,7 @@ import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
 
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * The {@link SerBean} caching key.
@@ -34,13 +35,23 @@ final class SerBeanKey {
     private final Argument<?> type;
     @Nullable
     private final SerdeArgumentConf serdeArgumentConf;
+    /**
+     * The features of the context the bean is created with. The serializers of its properties are specialized with
+     * them, so a bean that holds this one and has other features needs a bean of its own.
+     */
+    private final Set<SerializationConfiguration.Feature> features;
     private final int hashCode;
 
-    public SerBeanKey(SerdeConfiguration serdeConfiguration, SerializationConfiguration serializationConfiguration, Argument<?> type, @Nullable SerdeArgumentConf serdeArgumentConf) {
+    public SerBeanKey(SerdeConfiguration serdeConfiguration,
+                      SerializationConfiguration serializationConfiguration,
+                      Argument<?> type,
+                      @Nullable SerdeArgumentConf serdeArgumentConf,
+                      Set<SerializationConfiguration.Feature> features) {
         this.serdeConfiguration = serdeConfiguration;
         this.serializationConfiguration = serializationConfiguration;
         this.type = type;
         this.serdeArgumentConf = serdeArgumentConf;
+        this.features = features;
         this.hashCode = type.typeHashCode();
     }
 
@@ -53,7 +64,11 @@ final class SerBeanKey {
             return false;
         }
         SerBeanKey that = (SerBeanKey) o;
-        return type.equalsType(that.type) && Objects.equals(serdeArgumentConf, that.serdeArgumentConf) && serializationConfiguration == that.serializationConfiguration && serdeConfiguration == that.serdeConfiguration;
+        return type.equalsType(that.type)
+            && Objects.equals(serdeArgumentConf, that.serdeArgumentConf)
+            && serializationConfiguration == that.serializationConfiguration
+            && serdeConfiguration == that.serdeConfiguration
+            && features.equals(that.features);
     }
 
     @Override

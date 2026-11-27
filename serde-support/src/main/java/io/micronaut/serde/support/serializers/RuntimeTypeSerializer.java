@@ -21,13 +21,16 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.ContextBoundSerdes;
 import io.micronaut.serde.util.DocumentContextTracker;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.EnumSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -49,15 +52,43 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
     @Nullable
     private final IntrospectionException introspectionException;
     private final Argument<?> outerType;
+    /**
+     * The features this serializer was created with, such as those of the bean and of the property that hold the
+     * value. The serializers of the runtime types are created with the context of a call, which is the context of
+     * the document and does not have them. Null if the serializer was created without a context.
+     */
+    @Nullable
+    private final Set<SerializationConfiguration.Feature> features;
+    @Nullable
+    private final Set<SerializationConfiguration.Feature> excludedFeatures;
 
     public RuntimeTypeSerializer(@Nullable
                                  Serializer<Object> outer,
                                  @Nullable
                                  IntrospectionException introspectionException,
                                  Argument<?> outerType) {
+        this(outer, introspectionException, outerType, null);
+    }
+
+    RuntimeTypeSerializer(@Nullable
+                          Serializer<Object> outer,
+                          @Nullable
+                          IntrospectionException introspectionException,
+                          Argument<?> outerType,
+                          @Nullable
+                          EncoderContext creationContext) {
         this.outer = outer;
         this.introspectionException = introspectionException;
         this.outerType = outerType;
+        if (creationContext == null) {
+            this.features = null;
+            this.excludedFeatures = null;
+        } else {
+            this.features = creationContext.getFeatures();
+            EnumSet<SerializationConfiguration.Feature> excluded = EnumSet.allOf(SerializationConfiguration.Feature.class);
+            excluded.removeAll(features);
+            this.excludedFeatures = excluded;
+        }
     }
 
     public RuntimeTypeSerializer(Serializer<Object> outer, Argument<?> type) {
@@ -164,12 +195,22 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
         Argument<Object> arg = Argument.of((Class) type, outerType.getAnnotationMetadata());
         int bindings = DocumentContextTracker.documentBindings(context);
         // the context of the call, not of the creation: this serializer can serve several documents
-        Serializer<Object> serializer = context.findSerializer(arg).createSpecific(context, arg);
+        Serializer<Object> serializer = context.findSerializer(arg).createSpecific(withCreationFeatures(context), arg);
         if (bindings >= 0 && DocumentContextTracker.documentBindings(context) != bindings) {
             // a user serde was looked up: the serializer it created can keep the context of this document
             ContextBoundSerdes.created();
         }
         return serializer;
+    }
+
+    /**
+     * The context of a call with the features this serializer was created with.
+     */
+    private EncoderContext withCreationFeatures(EncoderContext context) {
+        if (features == null || excludedFeatures == null || features.equals(context.getFeatures())) {
+            return context;
+        }
+        return context.withFeatures(features, excludedFeatures);
     }
 
     /**
