@@ -187,6 +187,34 @@ class YamlEncoderSpec extends Specification {
         out.toString("UTF-8") == "list:\n- a\nafter: 1\n"
     }
 
+    def "closing a child encoder an outer structure already finished leaves a newer sibling open"() {
+        given:
+        def out = new ByteArrayOutputStream()
+        def encoder = new YamlEncoder(out, LimitingStream.DEFAULT_LIMITS)
+
+        when: "the parent finishes the child, then a structure is opened at the child's depth"
+        def root = encoder.encodeObject(Argument.OBJECT_ARGUMENT)
+        root.encodeKey("outer")
+        def outer = root.encodeObject(Argument.OBJECT_ARGUMENT)
+        outer.encodeKey("a")
+        def stale = outer.encodeArray(Argument.OBJECT_ARGUMENT)
+        stale.encodeString("x")
+        outer.finishStructure()
+        root.encodeKey("b")
+        def b = root.encodeObject(Argument.OBJECT_ARGUMENT)
+        b.encodeKey("c")
+        def sibling = b.encodeArray(Argument.OBJECT_ARGUMENT)
+        stale.close()
+        sibling.encodeString("z")
+        sibling.close()
+        b.encodeKey("d")
+        b.encodeInt(1)
+        root.close()
+
+        then:
+        out.toString("UTF-8") == "outer:\n  a:\n  - x\nb:\n  c:\n  - z\n  d: 1\n"
+    }
+
     def "a serializer that fails still leaves the finished partial document in the output"() {
         given:
         def out = new ByteArrayOutputStream()

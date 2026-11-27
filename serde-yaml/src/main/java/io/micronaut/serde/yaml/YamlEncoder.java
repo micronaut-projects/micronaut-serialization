@@ -155,18 +155,20 @@ public class YamlEncoder extends LimitingStream implements Encoder {
     public @NonNull Encoder encodeArray(@NonNull Argument<?> type) throws IOException {
         ensureDocumentOpen();
         increaseDepth();
-        contextStack.push(new CollectionContext(true));
+        CollectionContext context = new CollectionContext(true);
+        contextStack.push(context);
         emit(new SequenceStartEvent(Optional.empty(), Optional.empty(), true, flowStyle));
-        return new ChildEncoder(contextStack.size());
+        return new ChildEncoder(context);
     }
 
     @Override
     public @NonNull Encoder encodeObject(@NonNull Argument<?> type) throws IOException {
         ensureDocumentOpen();
         increaseDepth();
-        contextStack.push(new CollectionContext(false));
+        CollectionContext context = new CollectionContext(false);
+        contextStack.push(context);
         emit(new MappingStartEvent(Optional.empty(), Optional.empty(), true, flowStyle));
-        return new ChildEncoder(contextStack.size());
+        return new ChildEncoder(context);
     }
 
     @Override
@@ -176,6 +178,7 @@ public class YamlEncoder extends LimitingStream implements Encoder {
             return;
         }
         CollectionContext context = contextStack.pop();
+        context.finished = true;
         emit(context.isSequence
             ? new SequenceEndEvent()
             : new MappingEndEvent());
@@ -220,13 +223,15 @@ public class YamlEncoder extends LimitingStream implements Encoder {
     }
 
     /**
-     * Finishes the structure opened at the given depth, and any structure still open inside it.
+     * Finishes the given structure, and any structure still open inside it. Does nothing when the
+     * structure was already finished, for example by closing an outer structure first, so that a
+     * structure opened since then at the same depth stays open.
      *
-     * @param depth The size of the context stack once the structure was opened
+     * @param context The context of the structure
      * @throws IOException If the structure cannot be written
      */
-    private void finishStructure(int depth) throws IOException {
-        while (contextStack.size() >= depth) {
+    private void finishStructure(CollectionContext context) throws IOException {
+        while (!context.finished && !contextStack.isEmpty()) {
             finishStructure();
         }
     }
@@ -369,6 +374,7 @@ public class YamlEncoder extends LimitingStream implements Encoder {
     private static final class CollectionContext {
         private final boolean isSequence;
         private boolean expectingKey;
+        private boolean finished;
 
         CollectionContext(boolean isSequence) {
             this.isSequence = isSequence;
@@ -382,11 +388,11 @@ public class YamlEncoder extends LimitingStream implements Encoder {
      * {@link #finishStructure()} first.
      */
     private final class ChildEncoder implements Encoder {
-        private final int depth;
+        private final CollectionContext context;
         private boolean finished;
 
-        private ChildEncoder(int depth) {
-            this.depth = depth;
+        private ChildEncoder(CollectionContext context) {
+            this.context = context;
         }
 
         @Override
@@ -405,14 +411,14 @@ public class YamlEncoder extends LimitingStream implements Encoder {
                 throw new IllegalStateException("The structure is already finished");
             }
             finished = true;
-            YamlEncoder.this.finishStructure(depth);
+            YamlEncoder.this.finishStructure(context);
         }
 
         @Override
         public void close() throws IOException {
             if (!finished) {
                 finished = true;
-                YamlEncoder.this.finishStructure(depth);
+                YamlEncoder.this.finishStructure(context);
             }
         }
 
