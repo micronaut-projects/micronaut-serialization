@@ -157,7 +157,7 @@ public class YamlEncoder extends LimitingStream implements Encoder {
         increaseDepth();
         contextStack.push(new CollectionContext(true));
         emit(new SequenceStartEvent(Optional.empty(), Optional.empty(), true, flowStyle));
-        return this;
+        return new ChildEncoder(contextStack.size());
     }
 
     @Override
@@ -166,7 +166,7 @@ public class YamlEncoder extends LimitingStream implements Encoder {
         increaseDepth();
         contextStack.push(new CollectionContext(false));
         emit(new MappingStartEvent(Optional.empty(), Optional.empty(), true, flowStyle));
-        return this;
+        return new ChildEncoder(contextStack.size());
     }
 
     @Override
@@ -203,6 +203,13 @@ public class YamlEncoder extends LimitingStream implements Encoder {
         }
     }
 
+    /**
+     * Finishes every structure that is still open, closes the document and flushes the output.
+     * The structures that serializers open are closed through their own child encoders, so closing
+     * this encoder completes the whole document.
+     *
+     * @throws IOException If the document cannot be written
+     */
     @Override
     public void close() throws IOException {
         while (!contextStack.isEmpty()) {
@@ -210,6 +217,18 @@ public class YamlEncoder extends LimitingStream implements Encoder {
         }
         closeDocumentIfOpen();
         flushWriter();
+    }
+
+    /**
+     * Finishes the structure opened at the given depth, and any structure still open inside it.
+     *
+     * @param depth The size of the context stack once the structure was opened
+     * @throws IOException If the structure cannot be written
+     */
+    private void finishStructure(int depth) throws IOException {
+        while (contextStack.size() >= depth) {
+            finishStructure();
+        }
     }
 
     private void flushWriter() throws IOException {
@@ -354,6 +373,122 @@ public class YamlEncoder extends LimitingStream implements Encoder {
         CollectionContext(boolean isSequence) {
             this.isSequence = isSequence;
             expectingKey = !isSequence;
+        }
+    }
+
+    /**
+     * The encoder of one array or object. Finishing or closing it finishes only that structure, so a
+     * serializer can close it with try-with-resources, with or without calling
+     * {@link #finishStructure()} first.
+     */
+    private final class ChildEncoder implements Encoder {
+        private final int depth;
+        private boolean finished;
+
+        private ChildEncoder(int depth) {
+            this.depth = depth;
+        }
+
+        @Override
+        public Encoder encodeArray(Argument<?> type) throws IOException {
+            return YamlEncoder.this.encodeArray(type);
+        }
+
+        @Override
+        public Encoder encodeObject(Argument<?> type) throws IOException {
+            return YamlEncoder.this.encodeObject(type);
+        }
+
+        @Override
+        public void finishStructure() throws IOException {
+            if (finished) {
+                throw new IllegalStateException("The structure is already finished");
+            }
+            finished = true;
+            YamlEncoder.this.finishStructure(depth);
+        }
+
+        @Override
+        public void close() throws IOException {
+            if (!finished) {
+                finished = true;
+                YamlEncoder.this.finishStructure(depth);
+            }
+        }
+
+        @Override
+        public void encodeKey(String key) throws IOException {
+            YamlEncoder.this.encodeKey(key);
+        }
+
+        @Override
+        public void encodeString(String value) throws IOException {
+            YamlEncoder.this.encodeString(value);
+        }
+
+        @Override
+        public void encodeBoolean(boolean value) throws IOException {
+            YamlEncoder.this.encodeBoolean(value);
+        }
+
+        @Override
+        public void encodeByte(byte value) throws IOException {
+            YamlEncoder.this.encodeByte(value);
+        }
+
+        @Override
+        public void encodeShort(short value) throws IOException {
+            YamlEncoder.this.encodeShort(value);
+        }
+
+        @Override
+        public void encodeChar(char value) throws IOException {
+            YamlEncoder.this.encodeChar(value);
+        }
+
+        @Override
+        public void encodeInt(int value) throws IOException {
+            YamlEncoder.this.encodeInt(value);
+        }
+
+        @Override
+        public void encodeLong(long value) throws IOException {
+            YamlEncoder.this.encodeLong(value);
+        }
+
+        @Override
+        public void encodeFloat(float value) throws IOException {
+            YamlEncoder.this.encodeFloat(value);
+        }
+
+        @Override
+        public void encodeDouble(double value) throws IOException {
+            YamlEncoder.this.encodeDouble(value);
+        }
+
+        @Override
+        public void encodeBigInteger(BigInteger value) throws IOException {
+            YamlEncoder.this.encodeBigInteger(value);
+        }
+
+        @Override
+        public void encodeBigDecimal(BigDecimal value) throws IOException {
+            YamlEncoder.this.encodeBigDecimal(value);
+        }
+
+        @Override
+        public void encodeBinary(byte[] data) throws IOException {
+            YamlEncoder.this.encodeBinary(data);
+        }
+
+        @Override
+        public void encodeNull() throws IOException {
+            YamlEncoder.this.encodeNull();
+        }
+
+        @Override
+        public String currentPath() {
+            return YamlEncoder.this.currentPath();
         }
     }
 }
