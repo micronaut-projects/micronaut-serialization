@@ -100,6 +100,10 @@ jobs:
         run: |
           ./gradlew check jacocoReport --no-daemon --continue
 
+      - name: "Test the vulnerability audit filter"
+        if: env.SONAR_TOKEN_AVAILABLE == 'true' && matrix.java == '25'
+        run: bash .github/scripts/test-vulnerability-audit.sh
+
       - name: "🔎 Run static analysis"
         id: sonar
         if: env.SONAR_TOKEN_AVAILABLE == 'true' && matrix.java == '25'

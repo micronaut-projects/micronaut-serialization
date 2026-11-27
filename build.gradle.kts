@@ -30,9 +30,11 @@ if (System.getenv("SONAR_TOKEN") != null) {
     configure<SonarExtension> {
         properties {
             property("sonar.exclusions", "**/example/**")
+            property("sonar.python.coverage.reportPaths", "build/coverage/vulnerability-audit.xml")
             property(
                 "sonar.coverage.exclusions",
-                "serde-api/src/main/java/io/micronaut/serde/ObjectMapper.java," +
+                ".github/scripts/tests/**," +
+                    "serde-api/src/main/java/io/micronaut/serde/ObjectMapper.java," +
                     "serde-api/src/main/java/io/micronaut/serde/ObjectMappers.java," +
                     "serde-api/src/main/java/io/micronaut/serde/SerdeRegistry.java," +
                     "serde-api/src/main/java/io/micronaut/serde/config/SerdeConfiguration.java," +

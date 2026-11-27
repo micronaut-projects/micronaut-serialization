@@ -276,6 +276,12 @@ jobs:
         run: |
           ./gradlew check jacocoReport --no-daemon --continue
 
+      - name: "Test the vulnerability audit filter"
+        run: |
+          if [ -f .github/scripts/test-vulnerability-audit.sh ]; then
+            bash .github/scripts/test-vulnerability-audit.sh
+          fi
+
       # Analysis is a second Gradle invocation rather than `check jacocoReport
       # sonar` in one, matching gradle.yml, for two reasons. `sonar` needs
       # `--no-parallel`, and applying that to the whole build would serialise the
