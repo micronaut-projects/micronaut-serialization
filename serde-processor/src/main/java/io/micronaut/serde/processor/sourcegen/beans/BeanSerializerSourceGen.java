@@ -36,6 +36,7 @@ import io.micronaut.serde.processor.sourcegen.SerdeInclusionSourceGen;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenNames;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenRecursion;
+import io.micronaut.serde.processor.sourcegen.SerdeWholeFloatsSourceGen;
 import io.micronaut.serde.util.GeneratedSerdeExceptionUtil;
 import io.micronaut.serde.util.GeneratedSerdeFallbackUtil;
 import io.micronaut.serde.util.GeneratedSerdeLazyUtil;
@@ -108,7 +109,7 @@ public final class BeanSerializerSourceGen {
     );
     private static final Method WITH_RUNTIME_FALLBACK_SERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
         GeneratedSerdeFallbackUtil.class,
-        "withRuntimeObjectFallback",
+        "withWholeFloatsRuntimeObjectFallback",
         Serializer.class,
         Serializer.EncoderContext.class,
         Argument.class
@@ -140,11 +141,14 @@ public final class BeanSerializerSourceGen {
         Argument.class
     );
 
+    private SerdeWholeFloatsSourceGen.Mode wholeFloats = SerdeWholeFloatsSourceGen.Mode.CONTEXT;
+
     private static String required(Map<String, String> names, String key) {
         return Objects.requireNonNull(names.get(key));
     }
 
     public ClassDef generate(ClassElement element, BeanSerdeShape beanSerdeShape) {
+        wholeFloats = SerdeWholeFloatsSourceGen.mode(element.getAnnotationMetadata());
         // A property whose inclusion is NEVER is not written by the runtime serializer either
         beanSerdeShape = new BeanSerdeShape(
             beanSerdeShape.defaultConstructor(),
@@ -206,6 +210,13 @@ public final class BeanSerializerSourceGen {
         if (inclusionAware) {
             fields.addAll(SerdeInclusionSourceGen.fields());
         }
+        // Whether whole floats are written as integers is resolved once per serializer as well, and only when
+        // the type does not decide it and has a property that the serializer writes itself
+        boolean wholeFloatsAware = wholeFloats == SerdeWholeFloatsSourceGen.Mode.CONTEXT
+            && beanSerdeShape.serializationProperties().stream().anyMatch(item -> SerdeWholeFloatsSourceGen.isFloatingPoint(item.serializationType()));
+        if (wholeFloatsAware) {
+            fields.add(SerdeWholeFloatsSourceGen.field());
+        }
         ClassDef.ClassDefBuilder classDefBuilder = ClassDef.builder(SerdeSourceGenClassNaming.generatedSerializerClassName(element))
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
             .addAnnotation(Prototype.class)
@@ -230,7 +241,8 @@ public final class BeanSerializerSourceGen {
                 beanSerdeShape,
                 argumentFieldNames,
                 serializerFieldNames,
-                inclusionAware
+                inclusionAware,
+                wholeFloatsAware
             ));
         }
 
@@ -255,7 +267,8 @@ public final class BeanSerializerSourceGen {
                                           BeanSerdeShape beanSerdeShape,
                                           Map<String, String> argumentFieldNames,
                                           Map<String, String> serializerFieldNames,
-                                          boolean inclusionAware) {
+                                          boolean inclusionAware,
+                                          boolean wholeFloatsAware) {
         MethodDef.MethodDefBuilder constructorBuilder = MethodDef.constructor()
             .addModifiers(Modifier.PUBLIC)
             .addParameter(parameter(CONTEXT_PARAMETER, TypeDef.of(Serializer.EncoderContext.class)))
@@ -267,6 +280,18 @@ public final class BeanSerializerSourceGen {
             if (inclusionAware) {
                 statements.addAll(SerdeInclusionSourceGen.resolveStatements(aThis, context));
             }
+            if (wholeFloatsAware) {
+                statements.add(SerdeWholeFloatsSourceGen.resolveStatement(aThis, context));
+            }
+            // A type that sets the feature creates the serializers of its properties with it, as the runtime
+            // serializer does, so that the values the type holds are written as the type is
+            ExpressionDef propertyContext = context;
+            if (wholeFloats != SerdeWholeFloatsSourceGen.Mode.CONTEXT && !serializerFieldNames.isEmpty()) {
+                StatementDef.DefineAndAssign featureContextDef = SerdeWholeFloatsSourceGen.featureContext(wholeFloats, context)
+                    .newLocal("featureContext");
+                statements.add(featureContextDef);
+                propertyContext = featureContextDef.variable();
+            }
             SerdeSourceGenRecursion recursion = new SerdeSourceGenRecursion(element);
             for (Map.Entry<String, String> serializerFieldEntry : serializerFieldNames.entrySet()) {
                 String propertyName = serializerFieldEntry.getKey();
@@ -275,12 +300,12 @@ public final class BeanSerializerSourceGen {
                 ExpressionDef serializerExpression;
                 if (isSelfReferentialProperty(element, beanSerdeShape, propertyName)) {
                     serializerExpression = ClassTypeDef.of(GeneratedSerdeFallbackUtil.class)
-                        .invokeStatic(WITH_RUNTIME_FALLBACK_SERIALIZER_METHOD, aThis, context, argumentExpression);
+                        .invokeStatic(WITH_RUNTIME_FALLBACK_SERIALIZER_METHOD, aThis, propertyContext, argumentExpression);
                 } else if (isIndirectlyRecursiveProperty(recursion, beanSerdeShape, propertyName)) {
-                    serializerExpression = ClassTypeDef.of(GeneratedSerdeLazyUtil.class).invokeStatic(LAZY_SERIALIZER_METHOD, context, argumentExpression);
+                    serializerExpression = ClassTypeDef.of(GeneratedSerdeLazyUtil.class).invokeStatic(LAZY_SERIALIZER_METHOD, propertyContext, argumentExpression);
                 } else {
-                    serializerExpression = context.invoke(FIND_SERIALIZER_METHOD, argumentExpression)
-                        .invoke(CREATE_SPECIFIC_SERIALIZER_METHOD, context, argumentExpression);
+                    serializerExpression = propertyContext.invoke(FIND_SERIALIZER_METHOD, argumentExpression)
+                        .invoke(CREATE_SPECIFIC_SERIALIZER_METHOD, propertyContext, argumentExpression);
                 }
                 statements.add(aThis.field(serializerFieldName, SERIALIZER_TYPE).put(serializerExpression));
             }
@@ -517,7 +542,7 @@ public final class BeanSerializerSourceGen {
             if (primitive) {
                 StatementDef writePrimitive = StatementDef.multi(
                     encodeKey,
-                    objectEncoder.invoke(scalarMethod, scalarValueDef.variable())
+                    encodeScalar(aThis, objectEncoder, scalarMethod, propertyType, scalarValueDef.variable())
                 );
                 return wrapWithPropertyPath(StatementDef.multi(
                     scalarValueDef,
@@ -531,7 +556,7 @@ public final class BeanSerializerSourceGen {
                 encodeKey,
                 scalarValueDef.variable().isNull().ifTrue(
                     objectEncoder.invoke(ENCODE_NULL_METHOD),
-                    StatementDef.multi(objectEncoder.invoke(scalarMethod, scalarValueDef.variable()))
+                    StatementDef.multi(encodeScalar(aThis, objectEncoder, scalarMethod, propertyType, scalarValueDef.variable()))
                 )
             );
             return wrapWithPropertyPath(StatementDef.multi(
@@ -609,6 +634,17 @@ public final class BeanSerializerSourceGen {
             instanceName + "." + SerdeSourceGenNames.escapeSourceWriterFormat(field.getName()),
             TypeDef.of(field.getType())
         );
+    }
+
+    private StatementDef encodeScalar(VariableDef.This aThis,
+                                      VariableDef encoder,
+                                      Method scalarMethod,
+                                      ClassElement type,
+                                      ExpressionDef value) {
+        if (SerdeWholeFloatsSourceGen.isFloatingPoint(type)) {
+            return SerdeWholeFloatsSourceGen.encode(wholeFloats, aThis, encoder, scalarMethod, type, value);
+        }
+        return encoder.invoke(scalarMethod, value);
     }
 
     private String indexedName(String prefix, int index) {
