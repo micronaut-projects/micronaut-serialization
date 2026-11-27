@@ -20,12 +20,33 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.Serializer;
+import io.micronaut.serde.exceptions.SerdeException;
 
 import java.io.IOException;
 import java.util.Arrays;
 
 @Internal
 final class FloatArraySerde extends AbstractArraySerde<float[]> {
+
+    private static final FloatArraySerde WHOLE_AS_INTEGERS = new FloatArraySerde(true);
+
+    private final boolean wholeAsIntegers;
+
+    FloatArraySerde() {
+        this(false);
+    }
+
+    private FloatArraySerde(boolean wholeAsIntegers) {
+        this.wholeAsIntegers = wholeAsIntegers;
+    }
+
+    @Override
+    public Serializer<float[]> createSpecific(EncoderContext context, Argument<? extends float[]> type) throws SerdeException {
+        // the serializer is chosen once, so that no element is checked while the feature is off
+        return SingleElementArraySerde.writeSingleElementArraysUnwrapped(
+            WholeFloats.enabled(context, type) ? WHOLE_AS_INTEGERS : this, context);
+    }
 
     @Override
     public float[] deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super float[]> type)
@@ -51,8 +72,14 @@ final class FloatArraySerde extends AbstractArraySerde<float[]> {
                           EncoderContext context,
                           Argument<? extends float[]> type, float[] value) throws IOException {
         final Encoder arrayEncoder = encoder.encodeArray(type);
-        for (float i : value) {
-            arrayEncoder.encodeFloat(i);
+        if (wholeAsIntegers) {
+            for (float i : value) {
+                WholeFloats.encode(arrayEncoder, i);
+            }
+        } else {
+            for (float i : value) {
+                arrayEncoder.encodeFloat(i);
+            }
         }
         arrayEncoder.finishStructure();
     }

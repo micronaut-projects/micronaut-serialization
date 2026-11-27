@@ -52,6 +52,11 @@ final class NumberTypeSerde implements SerdeRegistrar<Number>, NumberSerde<Numbe
         encodeNumber(encoder, value);
     }
 
+    @Override
+    public boolean writesFloatingPoint() {
+        return true;
+    }
+
     @Nullable
     @Override
     public Integer getDefaultValue(DecoderContext context, Argument<? super Number> type) {

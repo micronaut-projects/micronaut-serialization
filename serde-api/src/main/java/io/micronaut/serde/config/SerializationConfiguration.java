@@ -103,6 +103,19 @@ public interface SerializationConfiguration {
     }
 
     /**
+     * Determines whether a {@code double} or a {@code float} that holds a whole number is written as an integer:
+     * {@code 900.0} as {@code 900}.
+     *
+     * @return true if whole floating-point values should be written as integers
+     * @see Feature#WRITE_WHOLE_FLOATS_AS_INTEGERS
+     * @since 3.3
+     */
+    @Bindable(defaultValue = StringUtils.FALSE)
+    default boolean writeWholeFloatsAsIntegers() {
+        return false;
+    }
+
+    /**
      * Determines whether generated serializers should fall back to the runtime serializer.
      *
      * @return true if generated serializers should be disabled
@@ -146,6 +159,9 @@ public interface SerializationConfiguration {
         if (configuration != null && configuration.writeSortedMapEntries()) {
             features.add(Feature.WRITE_SORTED_MAP_ENTRIES);
         }
+        if (configuration != null && configuration.writeWholeFloatsAsIntegers()) {
+            features.add(Feature.WRITE_WHOLE_FLOATS_AS_INTEGERS);
+        }
         if (configuration != null && configuration.disableGeneratedSerializer()) {
             features.add(Feature.DISABLE_GENERATED_SERIALIZER);
         }
@@ -177,6 +193,15 @@ public interface SerializationConfiguration {
         /**
          * Disable generated serializers and use the runtime serializer.
          */
-        DISABLE_GENERATED_SERIALIZER
+        DISABLE_GENERATED_SERIALIZER,
+        /**
+         * Write a {@code double} or a {@code float} that holds a whole number as an integer: {@code 900.0} as
+         * {@code 900}. It applies to a value of magnitude at most 2<sup>53</sup>, the range in which every whole
+         * number is a {@code double}. A fraction, {@code NaN}, an infinity and a larger value are written as they
+         * are without the feature, and so is a {@link java.math.BigDecimal}. Negative zero is written as {@code 0}.
+         *
+         * @since 3.3
+         */
+        WRITE_WHOLE_FLOATS_AS_INTEGERS
     }
 }

@@ -162,14 +162,6 @@ public class MicronautJsonbProvider extends JsonbProvider {
             this(config, mapper, serdeConfiguration(mapper), closeAction);
         }
 
-        private static @Nullable SerdeConfiguration serdeConfiguration(ObjectMapper mapper) {
-            try (Serializer.EncoderContext encoderContext = mapper.getSerdeRegistry().newEncoderContext(null)) {
-                return encoderContext.getSerdeConfiguration().orElse(null);
-            } catch (IOException e) {
-                throw new IllegalStateException("Unable to close the encoder context", e);
-            }
-        }
-
         protected MicronautJsonb(JsonbConfig config, ObjectMapper mapper, @Nullable SerdeConfiguration serdeConfiguration, Runnable closeAction) {
             this.mapper = mapper;
             this.closeAction = closeAction;
@@ -181,6 +173,14 @@ public class MicronautJsonbProvider extends JsonbProvider {
             this.binaryDataStrategy = binaryDataStrategy(config);
             this.serdeConfiguration = serdeConfiguration;
             this.reflectionOnlyFeatures = hasReflectionOnlyFeatures(config);
+        }
+
+        private static @Nullable SerdeConfiguration serdeConfiguration(ObjectMapper mapper) {
+            try (Serializer.EncoderContext encoderContext = mapper.getSerdeRegistry().newEncoderContext(null)) {
+                return encoderContext.getSerdeConfiguration().orElse(null);
+            } catch (IOException e) {
+                throw new IllegalStateException("Unable to close the encoder context", e);
+            }
         }
 
         /**
@@ -765,6 +765,11 @@ public class MicronautJsonbProvider extends JsonbProvider {
         @Override
         public boolean writeSortedMapEntries() {
             return delegate.writeSortedMapEntries();
+        }
+
+        @Override
+        public boolean writeWholeFloatsAsIntegers() {
+            return delegate.writeWholeFloatsAsIntegers();
         }
 
         @Override

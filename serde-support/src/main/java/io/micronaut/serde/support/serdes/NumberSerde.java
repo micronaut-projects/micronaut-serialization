@@ -76,18 +76,35 @@ public interface NumberSerde<N extends Number> extends FormattedSerde<N>, Serde<
         return createSpecificSerde(format);
     }
 
+    /**
+     * Whether this serde writes {@code double} or {@code float} values, which
+     * {@link io.micronaut.serde.config.SerializationConfiguration.Feature#WRITE_WHOLE_FLOATS_AS_INTEGERS} applies to.
+     *
+     * @return Whether the values written can be floating-point values
+     * @since 3.3.0
+     */
+    default boolean writesFloatingPoint() {
+        return false;
+    }
+
     @Override
     default Serializer<N> createSpecific(EncoderContext context, Argument<? extends N> type) throws SerdeException {
         context = SerdeFeatures.withFeatures(context, type.getAnnotationMetadata());
         FormatConfiguration format = FormatConfiguration.from(type.getAnnotationMetadata());
-        return format == null ? this : createSpecific(context, type, format);
+        return format == null ? createSpecificForFeatures(context) : createSpecific(context, type, format);
     }
 
     @Override
     default Serializer<N> createSpecific(EncoderContext context,
                                          Argument<? extends N> type,
                                          FormatConfiguration format) throws SerdeException {
-        return createSpecificSerde(format);
+        Serde<N> formatted = createSpecificSerde(format);
+        // a pattern or a string shape decides how the number is written, and wins over the features
+        return formatted == this ? createSpecificForFeatures(context) : formatted;
+    }
+
+    private Serializer<N> createSpecificForFeatures(EncoderContext context) {
+        return writesFloatingPoint() && WholeFloats.enabled(context) ? new WholeFloats.NumberSerializer<>(this) : this;
     }
 
     private Serde<N> createSpecificSerde(FormatConfiguration format) {

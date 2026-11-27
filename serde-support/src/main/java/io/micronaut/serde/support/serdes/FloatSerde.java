@@ -54,6 +54,11 @@ final class FloatSerde implements SerdeRegistrar<Float>, NumberSerde<Float>, Dec
     }
 
     @Override
+    public boolean writesFloatingPoint() {
+        return true;
+    }
+
+    @Override
     public boolean isDefault(EncoderContext context, Float value) {
         return value.equals(0F);
     }
