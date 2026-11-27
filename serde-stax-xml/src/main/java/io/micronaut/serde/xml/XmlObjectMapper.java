@@ -212,6 +212,7 @@ public final class XmlObjectMapper implements ObjectMapper {
         return writeValueToTree0(type, value);
     }
 
+    @SuppressWarnings("java:S2095") // The in-memory root encoder owns no resources. Only child structures are closed.
     private JsonNode writeValueToTree0(Argument<?> type, @Nullable Object value) throws IOException {
         JsonNodeEncoder encoder = JsonNodeEncoder.create(limits());
         if (value == null) {

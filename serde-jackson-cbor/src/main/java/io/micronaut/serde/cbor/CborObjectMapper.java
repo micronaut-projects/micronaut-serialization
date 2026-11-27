@@ -459,17 +459,22 @@ public final class CborObjectMapper implements ObjectMapper {
             @Override
             protected JsonNode parseOne(InputStream is) throws IOException {
                 try (JsonParser parser = cborFactory.createParser(is)) {
-                    return JacksonDecoder.create(parser, streamLimits, coercionPolicy).decodeNode();
+                    return decodeNode(parser);
                 }
             }
 
             @Override
             protected JsonNode parseOne(byte[] remaining) throws IOException {
                 try (JsonParser parser = cborFactory.createParser(remaining)) {
-                    return JacksonDecoder.create(parser, streamLimits, coercionPolicy).decodeNode();
+                    return decodeNode(parser);
                 }
             }
         };
+    }
+
+    @SuppressWarnings("java:S2095") // The caller closes the parser. Decoder.close() finishes a child structure.
+    private JsonNode decodeNode(JsonParser parser) throws IOException {
+        return JacksonDecoder.create(parser, streamLimits, coercionPolicy).decodeNode();
     }
 
     @Override
